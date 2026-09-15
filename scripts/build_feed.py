@@ -248,13 +248,15 @@ def extract_states(location: str) -> list[str]:
     states: set[str] = set()
     if "remote" in low:
         states.add("Remote")
-    if re.search(r"\b((united states|usa|u.\.s\.)\b", low) and not states:
+    if re.search(r"\b(united states|usa|u\.s\.)\b", low):
         states.add("US")
-    for name, abbr in STATE_NAMES.items():
-        if re.search(rf"\b{re.escape(name)}\b", low):
-            states.add(abbr)
     for abbr in STATE_ABBRS:
-        if re.search(rf("(?:^|[ws/,(-]){abbr}(?:$|[\s,/)])", loc, flags=re.I):
+        if re.search(rf"(?:^|[\s,/(-]){abbr}(?:$|[\s,/)])", loc, flags=re.I):
+            states.add(abbr)
+    for name, abbr in STATE_NAMES.items():
+        if name == "washington" and "DC" in states:
+            continue
+        if re.search(rf"\b{re.escape(name)}\b", low):
             states.add(abbr)
     return sorted(states)
 
@@ -349,7 +351,7 @@ def parse_dreamwork(payload: dict[str, Any], source: dict[str, Any], reference: 
 
 def split_markdown_row(line: str) -> list[str]:
     line = line.strip().strip("|")
-    return [part.replace("\|", "|").strip() for part in re.split(r"(?<!\\)\  ", line)]
+    return [part.replace("\\|", "|").strip() for part in re.split(r"(?<!\\)\|", line)]
 
 
 def header_index(headers: list[str], *names: str) -> int | None:
@@ -564,7 +566,7 @@ def merge_job(target: dict[str, Any], incoming: dict[str, Any]) -> None:
     target["source_names"] = sorted(set(target.get("source_names", [])) | {incoming["source_name"]})
     target["source_urls"] = sorted(set(target.get("source_urls", [])) | {incoming["source_url"]})
     target["profiles"] = sorted(set(target.get("profiles", [])) | set(incoming.get("profiles", [])))
-    target["states"] = sorted(set(target.get("states", [])) | set(incoming.get("states", []))
+    target["states"] = sorted(set(target.get("states", [])) | set(incoming.get("states", [])))
     if not target.get("url") and incoming.get("url"):
         target["url"] = incoming["url"]
     elif incoming.get("url"):
@@ -588,7 +590,7 @@ def dedupe(jobs: list[dict[str, Any]], old_jobs: dict[str, dict[str, Any]], refe
 
     for job in jobs:
         url_key = canonical_url(job.get("url"))
-        sig = "|".join((norm(job.get("company")), norm(job.get("title")), norm(job.get("location")))
+        sig = "|".join((norm(job.get("company")), norm(job.get("title")), norm(job.get("location"))))
         idx = by_url.get(url_key) if url_key else None
         if idx is None:
             idx = by_sig.get(sig)
