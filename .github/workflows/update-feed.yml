@@ -66,14 +66,16 @@ jobs:
           '''
           text = text[:start] + replacement + text[end:]
 
-          text = text.replace(
-              'return [part.replace("\\\\|", "|").strip() for part in re.split(r"(?<!\\\\)\\  ", line)]',
-              'return [part.replace("\\\\|", "|").strip() for part in re.split(r"(?<!\\\\)\\|", line)]',
-          )
-          text = text.replace(
-              'target["states"] = sorted(set(target.get("states", [])) | set(incoming.get("states", []))',
-              'target["states"] = sorted(set(target.get("states", [])) | set(incoming.get("states", [])))',
-          )
+          lines = text.splitlines()
+          for i, line in enumerate(lines):
+              stripped = line.strip()
+              if stripped.startswith('return [part.replace(') and 're.split' in stripped:
+                  lines[i] = '    return [part.replace("\\\\|", "|").strip() for part in re.split(r"(?<!\\\\)\\|", line)]'
+              elif stripped.startswith('target["states"] = sorted('):
+                  lines[i] = '    target["states"] = sorted(set(target.get("states", [])) | set(incoming.get("states", [])))'
+              elif stripped.startswith('sig = "|".join('):
+                  lines[i] = '        sig = "|".join((norm(job.get("company")), norm(job.get("title")), norm(job.get("location"))))'
+          text = "\n".join(lines) + "\n"
 
           path.write_text(text, encoding="utf-8")
           PY
