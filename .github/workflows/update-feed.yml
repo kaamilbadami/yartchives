@@ -2,6 +2,14 @@ name: Update opportunity feed
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "scripts/**"
+      - "sources.json"
+      - "requirements.txt"
+      - ".github/workflows/update-feed.yml"
   schedule:
     - cron: "17 * * * *"
 
@@ -57,32 +65,20 @@ jobs:
           PY
           python -m py_compile scripts/build_feed.py
 
-      - name: Persist builder repair
-        run: |
-          if git diff --quiet -- scripts/build_feed.py; then
-            echo "Builder already repaired."
-            exit 0
-          fi
-          git config user.name "yartchives-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add scripts/build_feed.py
-          git commit -m "fix: repair state parser"
-          git push
-
       - name: Build normalized feed
         env:
           USAJOBS_API_KEY: ${{ secrets.USAJOBS_API_KEY }}
           USAJOBS_EMAIL: ${{ secrets.USAJOBS_EMAIL }}
         run: python scripts/build_feed.py
 
-      - name: Commit updated feed
+      - name: Commit builder repair and updated feed
         run: |
-          if git diff --quiet -- data/listings.json; then
+          if git diff --quiet -- scripts/build_feed.py data/listings.json; then
             echo "No feed changes."
             exit 0
           fi
           git config user.name "yartchives-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/listings.json
+          git add scripts/build_feed.py data/listings.json
           git commit -m "chore: refresh opportunity feed"
           git push
