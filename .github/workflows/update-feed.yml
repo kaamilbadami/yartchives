@@ -36,50 +36,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Repair initial feed-builder import
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path("scripts/build_feed.py")
-          text = path.read_text(encoding="utf-8")
-
-          start = text.index("def extract_states(location: str) -> list[str]:")
-          end = text.index("\n\ndef classify_profiles", start)
-          replacement = '''def extract_states(location: str) -> list[str]:
-              loc = location or ""
-              low = loc.lower()
-              states: set[str] = set()
-              if "remote" in low:
-                  states.add("Remote")
-              if re.search(r"\\b(united states|usa|u\\.s\\.)\\b", low):
-                  states.add("US")
-              for abbr in STATE_ABBRS:
-                  if re.search(rf"(?:^|[\\s,/(-]){abbr}(?:$|[\\s,/)])", loc, flags=re.I):
-                      states.add(abbr)
-              for name, abbr in STATE_NAMES.items():
-                  if name == "washington" and "DC" in states:
-                      continue
-                  if re.search(rf"\\b{re.escape(name)}\\b", low):
-                      states.add(abbr)
-              return sorted(states)
-          '''
-          text = text[:start] + replacement + text[end:]
-
-          lines = text.splitlines()
-          for i, line in enumerate(lines):
-              stripped = line.strip()
-              if stripped.startswith('return [part.replace(') and 're.split' in stripped:
-                  lines[i] = '    return [part.replace("\\\\|", "|").strip() for part in re.split(r"(?<!\\\\)\\|", line)]'
-              elif stripped.startswith('target["states"] = sorted('):
-                  lines[i] = '    target["states"] = sorted(set(target.get("states", [])) | set(incoming.get("states", [])))'
-              elif stripped.startswith('sig = "|".join('):
-                  lines[i] = '        sig = "|".join((norm(job.get("company")), norm(job.get("title")), norm(job.get("location"))))'
-          text = "\n".join(lines) + "\n"
-
-          path.write_text(text, encoding="utf-8")
-          PY
-          python -m py_compile scripts/build_feed.py
+      - name: Validate feed builder
+        run: python -m py_compile scripts/build_feed.py
 
       - name: Build normalized feed
         env:
@@ -87,14 +45,14 @@ jobs:
           USAJOBS_EMAIL: ${{ secrets.USAJOBS_EMAIL }}
         run: python scripts/build_feed.py
 
-      - name: Commit builder repair and updated feed
+      - name: Commit updated feed
         run: |
-          if git diff --quiet -- scripts/build_feed.py data/listings.json; then
+          if git diff --quiet -- data/listings.json; then
             echo "No feed changes."
             exit 0
           fi
           git config user.name "yartchives-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add scripts/build_feed.py data/listings.json
+          git add data/listings.json
           git commit -m "chore: refresh opportunity feed"
           git push
