@@ -1,0 +1,73 @@
+[
+  {
+    "key": "dreamwork-tech",
+    "name": "Dreamwork Tech",
+    "kind": "dreamwork_json",
+    "url": "https://raw.githubusercontent.com/dreamworkhq/Open-Tech-Internships-2027/main/data/listings.json",
+    "homepage": "https://github.com/dreamworkhq/Open-Tech-Internships-2027"
+  },
+  {
+    "key": "dreamwork-business",
+    "name": "Dreamwork Business",
+    "kind": "dreamwork_json",
+    "url": "https://raw.githubusercontent.com/dreamworkhq/Open-Tech-Internships-2027/main/data/business-listings.json",
+    "homepage": "https://github.com/dreamworkhq/Open-Tech-Internships-2027"
+  },
+  {
+    "key": "zapply",
+    "name": "Zapply",
+    "kind": "markdown",
+    "url": "https://raw.githubusercontent.com/zapplyjobs/Internships-2027/main/README.md",
+    "homepage": "https://github.com/zapplyjobs/Internships-2027"
+  },
+  {
+    "key": "simplify",
+    "name": "Simplify",
+    "kind": "markdown",
+    "url": "https://raw.githubusercontent.com/SimplifyJobs/Summer2027-Internships/dev/README.md",
+    "homepage": "https://github.com/SimplifyJobs/Summer2027-Internships"
+  },
+  {
+    "key": "vansh-cscareers",
+    "name": "Vansh / CSCareers",
+    "kind": "markdown",
+    "url": "https://raw.githubusercontent.com/vanshb03/Summer2027-Internships/dev/README.md",
+    "homepage": "https://github.com/vanshb03/Summer2027-Internships"
+  },
+  {
+    "key": "speedyapply",
+    "name": "SpeedyApply",
+    "kind": "markdown",
+    "url": "https://raw.githubusercontent.com/speedyapply/2027-SWE-College-Jobs/main/README.md",
+    "homepage": "https://github.com/speedyapply/2027-SWE-College-Jobs"
+  },
+  {
+    "key": "applyguy",
+    "name": "ApplyGuy",
+    "kind": "markdown",
+    "url": "https://raw.githubusercontent.com/ApplyGuy/2027-Internships/main/README.md",
+    "homepage": "https://github.com/ApplyGuy/2027-Internships"
+  },
+  {
+    "key": "sndsh",
+    "name": "Summer 2027 Internships",
+    "kind": "markdown",
+    "url": "https://raw.githubusercontent.com/sndsh404/summer-2027-internships/main/README.md",
+    "homepage": "https://github.com/sndsh404/summer-2027-internships"
+  },
+  {
+    "key": "public-sector",
+    "name": "Public Sector",
+    "kind": "markdown",
+    "url": "https://raw.githubusercontent.com/jobright-ai/2026-Public-Sector-Internship/master/README.md",
+    "homepage": "https://github.com/jobright-ai/2026-Public-Sector-Internship",
+    "profile_hint": ["policy"]
+  },
+  {
+    "key": "campus-to-career",
+    "name": "Campus to Career",
+    "kind": "markdown",
+    "url": "https://raw.githubusercontent.com/fromcampustocareer/fromcampustocareer-opportunities/main/README.md",
+    "homepage": "https://github.com/fromcampustocareer/fromcampustocareer-opportunities"
+  }
+]

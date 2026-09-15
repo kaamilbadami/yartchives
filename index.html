@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Yartchives — a multi-source platform for internships, research, fellowships, and early-career opportunities." />
+  <title>Yartchives</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div>
+      <p class="eyebrow">opportunities, without the tab chaos</p>
+      <h1>Yartchives</h1>
+      <p class="subtitle">Internships, research, fellowships, and early-career opportunities pulled into one place.</p>
+    </div>
+    <div class="header-actions">
+      <button id="shareBtn" class="ghost-btn" type="button">Share this view</button>
+      <a class="ghost-btn link-btn" href="https://github.com/kaamilbadami/yartchives" target="_blank" rel="noreferrer">GitHub</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="stats" aria-label="Feed summary">
+      <div class="stat"><span id="shownCount">0</span><small>shown</small></div>
+      <div class="stat"><span id="totalCount">0</span><small>indexed</small></div>
+      <div class="stat"><span id="newCount">0</span><small>new this week</small></div>
+      <div class="stat"><span id="savedCount">0</span><small>saved</small></div>
+    </section>
+
+    <section class="controls panel">
+      <div class="control-block profile-block">
+        <div class="control-label-row">
+          <label>Profile</label>
+          <span class="muted">A role can belong to more than one profile.</span>
+        </div>
+        <div id="profileChips" class="chips"></div>
+      </div>
+
+      <div class="filter-grid">
+        <label class="field search-field">
+          <span>Search</span>
+          <input id="searchInput" type="search" placeholder="company, role, skill..." autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>Location</span>
+          <input id="locationInput" type="text" placeholder="MD, DC, Remote..." autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>Freshness</span>
+          <select id="freshnessSelect">
+            <option value="all">Any age</option>
+            <option value="1">Past 24 hours</option>
+            <option value="3">Past 3 days</option>
+            <option value="7" selected>Past 7 days</option>
+            <option value="30">Past 30 days</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Status</span>
+          <select id="statusSelect">
+            <option value="all">All</option>
+            <option value="saved">Saved</option>
+            <option value="applied">Applied</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="quick-locations" aria-label="Quick locations">
+        <button type="button" data-location="">Anywhere</button>
+        <button type="button" data-location="Remote">Remote</button>
+        <button type="button" data-location="MD">MD</button>
+        <button type="button" data-location="DC">DC</button>
+        <button type="button" data-location="VA">VA</button>
+        <button type="button" data-location="CT">CT</button>
+        <button type="button" data-location="NY">NY</button>
+        <button type="button" data-location="NJ">NJ</button>
+        <button type="button" data-location="MA">MA</button>
+      </div>
+    </section>
+
+    <section class="results-header">
+      <div>
+        <h2 id="resultsTitle">All opportunities</h2>
+        <p id="feedMeta" class="muted">Loading feed…</p>
+      </div>
+      <button id="clearFiltersBtn" class="text-btn" type="button">Clear filters</button>
+    </section>
+
+    <section id="errorBox" class="error-box hidden" role="alert"></section>
+    <section id="jobs" class="jobs" aria-live="polite"></section>
+    <div class="load-more-wrap">
+      <button id="loadMoreBtn" class="primary-btn hidden" type="button">Load more</button>
+    </div>
+
+    <details class="source-health panel">
+      <summary>Source health</summary>
+      <div id="sourceHealth" class="source-health-grid"></div>
+    </details>
+  </main>
+
+  <template id="jobCardTemplate">
+    <article class="job-card">
+      <div class="job-main">
+        <div class="job-heading">
+          <div>
+            <p class="company"></p>
+            <h3 class="title"></h3>
+          </div>
+          <span class="age badge"></span>
+        </div>
+        <p class="location"></p>
+        <div class="tags"></div>
+        <div class="sources"></div>
+      </div>
+      <div class="job-actions">
+        <button class="save-btn secondary-btn" type="button">Save</button>
+        <button class="applied-btn secondary-btn" type="button">Applied</button>
+        <a class="apply-btn primary-btn" target="_blank" rel="noreferrer">Apply</a>
+        <button class="hide-btn icon-btn" type="button" title="Hide listing" aria-label="Hide listing">×</button>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
