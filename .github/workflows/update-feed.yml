@@ -28,6 +28,47 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Repair state parser typo from initial import
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path("scripts/build_feed.py")
+          text = path.read_text(encoding="utf-8")
+          start = text.index("def extract_states(location: str) -> list[str]:")
+          end = text.index("\n\ndef classify_profiles", start)
+          replacement = '''def extract_states(location: str) -> list[str]:
+              loc = location or ""
+              low = loc.lower()
+              states: set[str] = set()
+              if "remote" in low:
+                  states.add("Remote")
+              if re.search(r"\\b(united states|usa|u\\.s\\.)\\b", low) and not states:
+                  states.add("US")
+              for name, abbr in STATE_NAMES.items():
+                  if re.search(rf"\\b{re.escape(name)}\\b", low):
+                      states.add(abbr)
+              for abbr in STATE_ABBRS:
+                  if re.search(rf"(?:^|[\\s,/(-]){abbr}(?:$|[\\s,/)])", loc, flags=re.I):
+                      states.add(abbr)
+              return sorted(states)
+          '''
+          path.write_text(text[:start] + replacement + text[end:], encoding="utf-8")
+          PY
+          python -m py_compile scripts/build_feed.py
+
+      - name: Persist builder repair
+        run: |
+          if git diff --quiet -- scripts/build_feed.py; then
+            echo "Builder already repaired."
+            exit 0
+          fi
+          git config user.name "yartchives-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add scripts/build_feed.py
+          git commit -m "fix: repair state parser"
+          git push
+
       - name: Build normalized feed
         env:
           USAJOBS_API_KEY: ${{ secrets.USAJOBS_API_KEY }}
