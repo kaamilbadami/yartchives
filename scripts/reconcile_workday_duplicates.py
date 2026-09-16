@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Collapse feed records that resolve to the same authoritative Workday posting.
+"""Collapse feed records that resolve to the same authoritative ATS posting.
 
-The broad feeds often publish the same Workday job with cosmetic URL differences
-(locale prefixes, tracking query strings, career-site casing, etc.). Those copies
-may also disagree on employer metadata. This pass runs after link recovery,
-groups records by a generic Workday identity, and prefers a direct-employer
-record when one is available while preserving merged source/profile metadata.
+Broad feeds often publish the same employer job with cosmetic URL or metadata
+differences. This pass runs after link recovery, groups records by provider-native
+posting identity for supported ATS families, and prefers the strongest record
+while preserving merged source/profile metadata.
+
+The historical filename is retained because the workflow already calls this
+entrypoint, but reconciliation is provider-generic for Workday, Greenhouse, and
+iCIMS.
 """
 
 from __future__ import annotations
@@ -22,6 +25,8 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+from greenhouse_inspector import derive_greenhouse_endpoint  # noqa: E402
+from icims_inspector import derive_icims_endpoint  # noqa: E402
 from workday_inspector import derive_cxs_endpoint  # noqa: E402
 
 ROOT = SCRIPT_DIR.parent
@@ -40,6 +45,7 @@ FILL_FIELDS = (
     "link_checked_at",
     "resolved_from_url",
 )
+PROVIDERS = ("workday", "greenhouse", "icims")
 
 
 def workday_canonical_url(url: str | None) -> str | None:
@@ -74,6 +80,65 @@ def workday_identity_key(url: str | None) -> tuple[str, str, str] | None:
         )
     except (ValueError, KeyError, TypeError):
         return None
+
+
+def greenhouse_canonical_url(url: str | None) -> str | None:
+    if not url:
+        return None
+    try:
+        return derive_greenhouse_endpoint(str(url))["canonical_job_url"]
+    except (ValueError, KeyError, TypeError):
+        return None
+
+
+def greenhouse_identity_key(url: str | None) -> tuple[str, str] | None:
+    if not url:
+        return None
+    try:
+        derived = derive_greenhouse_endpoint(str(url))
+        return (str(derived["board_token"]).casefold(), str(derived["job_id"]))
+    except (ValueError, KeyError, TypeError):
+        return None
+
+
+def icims_canonical_url(url: str | None) -> str | None:
+    if not url:
+        return None
+    try:
+        return derive_icims_endpoint(str(url))["canonical_job_url"]
+    except (ValueError, KeyError, TypeError):
+        return None
+
+
+def icims_identity_key(url: str | None) -> tuple[str, str] | None:
+    if not url:
+        return None
+    try:
+        derived = derive_icims_endpoint(str(url))
+        return (str(derived["host"]).casefold(), str(derived["job_id"]))
+    except (ValueError, KeyError, TypeError):
+        return None
+
+
+def posting_identity_key(url: str | None) -> tuple[str, ...] | None:
+    """Return a provider-qualified authoritative posting identity when supported."""
+
+    workday = workday_identity_key(url)
+    if workday:
+        return ("workday", *workday)
+    greenhouse = greenhouse_identity_key(url)
+    if greenhouse:
+        return ("greenhouse", *greenhouse)
+    icims = icims_identity_key(url)
+    if icims:
+        return ("icims", *icims)
+    return None
+
+
+def canonical_posting_url(url: str | None) -> str | None:
+    """Return the provider-native canonical job URL for a supported ATS posting."""
+
+    return workday_canonical_url(url) or greenhouse_canonical_url(url) or icims_canonical_url(url)
 
 
 def authority_rank(job: dict[str, Any]) -> tuple[int, int, int, str, str]:
@@ -114,8 +179,8 @@ def _latest_timestamp_record(group: list[dict[str, Any]], field: str) -> dict[st
     return max(candidates, key=lambda job: str(job.get(field) or ""))
 
 
-def merge_workday_group(canonical_url: str, group: list[dict[str, Any]]) -> dict[str, Any]:
-    """Merge one Workday posting group, preferring authoritative employer metadata."""
+def merge_posting_group(canonical_url: str, group: list[dict[str, Any]]) -> dict[str, Any]:
+    """Merge one authoritative ATS posting group without inventing metadata."""
 
     winner = max(group, key=authority_rank)
     merged = copy.deepcopy(winner)
@@ -159,43 +224,57 @@ def merge_workday_group(canonical_url: str, group: list[dict[str, Any]]) -> dict
     return merged
 
 
+def merge_workday_group(canonical_url: str, group: list[dict[str, Any]]) -> dict[str, Any]:
+    """Backward-compatible alias for callers of the former Workday-only helper."""
+
+    return merge_posting_group(canonical_url, group)
+
+
 def reconcile_jobs(jobs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, int]]:
-    workday_groups: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
+    posting_groups: dict[tuple[str, ...], list[dict[str, Any]]] = {}
     passthrough: list[dict[str, Any]] = []
 
     for job in jobs:
         if not isinstance(job, dict):
             continue
-        identity = workday_identity_key(job.get("url"))
+        identity = posting_identity_key(job.get("url"))
         if not identity:
             passthrough.append(copy.deepcopy(job))
             continue
-        workday_groups.setdefault(identity, []).append(job)
+        posting_groups.setdefault(identity, []).append(job)
 
     reconciled = passthrough
     duplicate_groups = 0
     removed = 0
-    for group in workday_groups.values():
+    provider_postings = {provider: 0 for provider in PROVIDERS}
+
+    for identity, group in posting_groups.items():
+        provider = identity[0]
+        if provider in provider_postings:
+            provider_postings[provider] += 1
         if len(group) == 1:
             reconciled.append(copy.deepcopy(group[0]))
             continue
         duplicate_groups += 1
         removed += len(group) - 1
         winner = max(group, key=authority_rank)
-        canonical = workday_canonical_url(winner.get("url"))
+        canonical = canonical_posting_url(winner.get("url"))
         if not canonical:
             reconciled.extend(copy.deepcopy(job) for job in group)
             duplicate_groups -= 1
             removed -= len(group) - 1
             continue
-        reconciled.append(merge_workday_group(canonical, group))
+        reconciled.append(merge_posting_group(canonical, group))
 
     reconciled.sort(
         key=lambda job: (job.get("posted_at") or job.get("first_seen") or "", job.get("id") or ""),
         reverse=True,
     )
     return reconciled, {
-        "workday_postings": len(workday_groups),
+        "ats_postings": len(posting_groups),
+        "workday_postings": provider_postings["workday"],
+        "greenhouse_postings": provider_postings["greenhouse"],
+        "icims_postings": provider_postings["icims"],
         "duplicate_groups": duplicate_groups,
         "records_removed": removed,
     }
