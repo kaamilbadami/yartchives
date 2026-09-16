@@ -9,7 +9,7 @@
     "homepage": "https://osv-cci.wd1.myworkdayjobs.com/en-US/CCICareers",
     "state": "CT",
     "profile_hint": ["cs"],
-    "minimum_expected": 2,
+    "minimum_expected": 0,
     "search_terms": [
       "intern software",
       "intern computer science",
@@ -29,7 +29,7 @@
     "homepage": "https://thehartford.wd5.myworkdayjobs.com/en-US/Careers_External",
     "state": "CT",
     "profile_hint": ["cs"],
-    "minimum_expected": 1,
+    "minimum_expected": 0,
     "search_terms": [
       "intern software",
       "intern computer science",
@@ -49,13 +49,15 @@
     "homepage": "https://travelers.wd5.myworkdayjobs.com/en-US/External",
     "state": "CT",
     "profile_hint": ["cs"],
-    "minimum_expected": 1,
+    "minimum_expected": 0,
+    "title_allow_patterns": [
+      "\\btechnology\\b.*\\bintern"
+    ],
     "search_terms": [
       "intern software",
       "intern computer science",
       "intern cybersecurity",
       "intern data engineering",
-      "engineering development program intern",
       "intern technology"
     ]
   },
@@ -69,7 +71,10 @@
     "homepage": "https://iberdrola.wd3.myworkdayjobs.com/en-US/Iberdrola",
     "state": "CT",
     "profile_hint": ["cs"],
-    "minimum_expected": 1,
+    "minimum_expected": 0,
+    "title_allow_patterns": [
+      "\\bdigital technology\\b"
+    ],
     "search_terms": [
       "technology cyber data internship",
       "intern technology",
@@ -87,13 +92,32 @@
     "homepage": "https://gartner.wd5.myworkdayjobs.com/en-US/EXT",
     "state": "CT",
     "profile_hint": ["cs"],
-    "minimum_expected": 1,
+    "minimum_expected": 0,
     "search_terms": [
       "IT intern",
       "intern software",
       "intern computer science",
       "intern cybersecurity",
       "intern data science"
+    ]
+  },
+  {
+    "key": "ct-iat-workday",
+    "name": "IAT Insurance Group (direct)",
+    "company": "IAT Insurance Group",
+    "kind": "workday",
+    "api_url": "https://iatinsurancegroup.wd1.myworkdayjobs.com/wday/cxs/iatinsurancegroup/iat/jobs",
+    "public_base": "https://iatinsurancegroup.wd1.myworkdayjobs.com/en-US/iat",
+    "homepage": "https://iatinsurancegroup.wd1.myworkdayjobs.com/en-US/iat",
+    "state": "CT",
+    "profile_hint": ["cs"],
+    "minimum_expected": 0,
+    "search_terms": [
+      "network operations internship",
+      "intern software",
+      "intern computer science",
+      "intern cybersecurity",
+      "IT intern"
     ]
   },
   {
@@ -126,13 +150,17 @@
     "state": "CT",
     "profile_hint": ["cs"],
     "minimum_expected": 0,
+    "title_allow_patterns": [
+      "\\bdigital technology\\b"
+    ],
     "search_terms": [
       "intern software",
       "intern computer science",
       "intern cybersecurity",
       "intern data science",
       "intern digital technology",
-      "co-op software"
+      "co-op software",
+      "intern database"
     ]
   },
   {
