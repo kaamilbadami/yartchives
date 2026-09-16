@@ -64,6 +64,26 @@ def main() -> int:
         ct7 = [j for j in ct if (d := age_days(j, reference)) is not None and d <= 7]
         print(f"{profile:13} | {all_count:5} | {len(ct):5} | {len(ct7):5}")
 
+    cs_eligible = [j for j in eligible if "cs" in (j.get("profiles") or [])]
+    source_contrib: Counter[str] = Counter()
+    source_unique: Counter[str] = Counter()
+    multi_source = 0
+    for job in cs_eligible:
+        keys = [str(key) for key in (job.get("source_keys") or []) if key]
+        for key in set(keys):
+            source_contrib[key] += 1
+        if len(set(keys)) == 1:
+            source_unique[keys[0]] += 1
+        elif len(set(keys)) > 1:
+            multi_source += 1
+
+    print("\n=== Computer Science coverage overlap ===")
+    print(f"Yartchives deduplicated CS union: {len(cs_eligible)}")
+    print(f"Listings seen in 2+ upstream sources: {multi_source}")
+    print("source key | contributes to union | unique to source")
+    for source, count in source_contrib.most_common():
+        print(f"{source:28} | {count:5} | {source_unique[source]:5}")
+
     target = [
         j for j in eligible
         if "cs" in (j.get("profiles") or [])
