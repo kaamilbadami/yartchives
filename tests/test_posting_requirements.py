@@ -58,6 +58,23 @@ class PostingRequirementTests(unittest.TestCase):
         self.assertTrue(any("communication skills" in fact["statement"].lower() for fact in skills["required"]))
         self.assertFalse(any("Build Python data pipelines" in fact["statement"] for fact in skills["required"]))
 
+    def test_typographic_apostrophes_share_heading_semantics(self):
+        result = shared.extract_requirements([
+            "What we’re looking for:",
+            "Foundational knowledge of Python, SQL/PLSQL, Tableau, and Oracle (coursework or project experience acceptable).",
+            "Strong communication skills and the ability to collaborate across technical and business teams.",
+            "What you’ll do:",
+            "Build Python data pipelines.",
+        ])
+        skills = result["skills"]
+        self.assertEqual(skills["classification"], "required")
+        technology_fact = next(fact for fact in skills["required"] if fact.get("technologies"))
+        self.assertEqual(
+            technology_fact["technologies"],
+            ["Python", "SQL", "Tableau", "Oracle"],
+        )
+        self.assertFalse(any("Build Python data pipelines" in fact["statement"] for fact in skills["required"]))
+
     def test_quantified_preference_remains_preferred(self):
         result = shared.extract_requirements([
             "Preferred but not required:",
