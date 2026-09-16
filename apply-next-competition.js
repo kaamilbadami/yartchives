@@ -209,11 +209,29 @@
     return /\.myworkdayjobs\.com(?:\/|$)/i.test(String(job?.url || ""));
   }
 
-  function workdayInspectionStatus(job) {
-    if (!isWorkdayUrl(job)) return null;
+  function isIcimsUrl(job) {
+    return /(?:^|\.)icims\.com(?:\/|$)/i.test(String(job?.url || "").replace(/^https?:\/\//i, ""));
+  }
+
+  function inspectionProvider(job) {
+    const inspection = inspectionForJob(job);
+    const explicit = normalize(inspection?.provider || inspection?.provenance?.provider || inspection?.queue?.provider);
+    if (explicit === "workday" || explicit === "icims") return explicit;
+    if (isWorkdayUrl(job)) return "workday";
+    if (isIcimsUrl(job)) return "icims";
+    return null;
+  }
+
+  function postingInspectionStatus(job) {
+    const provider = inspectionProvider(job);
+    if (!provider) return null;
+    const providerLabel = provider === "workday" ? "Workday" : "iCIMS";
     const inspection = inspectionForJob(job);
     if (!inspection) {
-      return "Workday link is not currently recognized by the authoritative posting inspector.";
+      return {
+        label: provider === "icims" ? "Unsupported iCIMS URL" : "Metadata only",
+        detail: `${providerLabel} link is not currently recognized by the authoritative posting inspector.`,
+      };
     }
     if (inspection.status === "inspected" || inspection.status === "unavailable") return null;
 
@@ -224,28 +242,48 @@
       ? queue.reasons.filter(Boolean).slice(0, 4)
       : [];
 
+    if (inspection.status === "unsupported_url" || queue.state === "unsupported_url") {
+      return {
+        label: provider === "icims" ? "Unsupported iCIMS URL" : "Unsupported posting URL",
+        detail: `${providerLabel} URL shape is not recognized by the authoritative posting inspector.`,
+      };
+    }
     if (inspection.status === "queued") {
-      const detail = `Queued for bounded Workday inspection${rankText}.`;
-      return reasons.length ? `${detail} Priority signals: ${reasons.join(", ")}.` : detail;
+      const detail = `Queued for bounded ${providerLabel} inspection${rankText}.`;
+      return {
+        label: "Queued for inspection",
+        detail: reasons.length ? `${detail} Priority signals: ${reasons.join(", ")}.` : detail,
+      };
     }
-
     if (queue.state === "retry_cooldown") {
-      return "Workday inspection was attempted but could not retrieve authoritative data; retry is cooling down before another bounded attempt.";
+      return {
+        label: "Inspection retry cooldown",
+        detail: `${providerLabel} inspection was attempted but could not retrieve authoritative data; retry is cooling down before another bounded attempt.`,
+      };
     }
 
-    const detail = `Workday inspection was attempted but could not retrieve authoritative data; it remains queued for retry${rankText}.`;
-    return reasons.length ? `${detail} Priority signals: ${reasons.join(", ")}.` : detail;
+    const detail = `${providerLabel} inspection was attempted but could not retrieve authoritative data; it remains queued for retry${rankText}.`;
+    return {
+      label: "Inspection retry queued",
+      detail: reasons.length ? `${detail} Priority signals: ${reasons.join(", ")}.` : detail,
+    };
+  }
+
+  function workdayInspectionStatus(job) {
+    if (!isWorkdayUrl(job)) return null;
+    return postingInspectionStatus(job)?.detail || null;
   }
 
   function decorateInspectionStatus(result) {
     if (!result || result?.inspection?.state !== "metadata-only") return result;
-    const detail = workdayInspectionStatus(result.job);
-    if (!detail) return result;
+    const status = postingInspectionStatus(result.job);
+    if (!status) return result;
     return {
       ...result,
       inspection: {
         ...result.inspection,
-        evidence: [detail],
+        label: status.label,
+        evidence: [status.detail],
       },
     };
   }
@@ -298,6 +336,9 @@
     buildCompetitionContext,
     requiredSkillSupport,
     isWorkdayUrl,
+    isIcimsUrl,
+    inspectionProvider,
+    postingInspectionStatus,
     workdayInspectionStatus,
     decorateInspectionStatus,
     scoreRoi,

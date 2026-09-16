@@ -165,6 +165,47 @@ const failedWorkday = {
 const failedScore = C.scoreJob(failedWorkday, profile, now, C.buildCompetitionContext([failedWorkday]));
 assert.match(failedScore.inspection.evidence[0], /retry is cooling down/i);
 
+const queuedIcims = {
+  ...neutral,
+  company: "QueuedIcims",
+  url: "https://careers-example.icims.com/jobs/74848/job?mobile=true&ref=Simplify",
+  _inspection: {
+    provider: "icims",
+    status: "queued",
+    retrieval_confidence: "none",
+    posting: null,
+    requirements: {},
+    queue: {
+      provider: "icims",
+      state: "queued",
+      rank: 4,
+      priority_score: 140,
+      reasons: ["Summer 2027", "internship/co-op", "undergrad-friendly"],
+    },
+  },
+};
+const queuedIcimsScore = C.scoreJob(queuedIcims, profile, now, C.buildCompetitionContext([queuedIcims]));
+assert.equal(queuedIcimsScore.inspection.label, "Queued for inspection");
+assert.match(queuedIcimsScore.inspection.evidence[0], /Queued for bounded iCIMS inspection/);
+assert.match(queuedIcimsScore.inspection.evidence[0], /public priority #4/);
+
+const unsupportedIcims = {
+  ...neutral,
+  company: "OddIcims",
+  url: "https://careers-example.icims.com/jobs/search",
+  _inspection: {
+    provider: "icims",
+    status: "unsupported_url",
+    retrieval_confidence: "none",
+    posting: null,
+    requirements: {},
+    queue: { provider: "icims", state: "unsupported_url", reasons: [] },
+  },
+};
+const unsupportedIcimsScore = C.scoreJob(unsupportedIcims, profile, now, C.buildCompetitionContext([unsupportedIcims]));
+assert.equal(unsupportedIcimsScore.inspection.label, "Unsupported iCIMS URL");
+assert.match(unsupportedIcimsScore.inspection.evidence[0], /not recognized/i);
+
 const unsupportedWorkday = {
   ...neutral,
   company: "OddWorkday",

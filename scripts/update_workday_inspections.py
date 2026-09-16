@@ -1,31 +1,40 @@
 #!/usr/bin/env python3
-"""Incrementally inspect authoritative Workday listings into a static cache artifact."""
+"""Incrementally inspect authoritative ATS listings into a static cache artifact.
+
+The filename is retained for backwards compatibility, while entries and request
+budgets are provider-aware for Workday and iCIMS.
+"""
 
 from __future__ import annotations
 
 import argparse
 import copy
+import html
 import json
 import re
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable
+from urllib.parse import urlparse, urlunparse
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from workday_inspector import derive_cxs_endpoint, inspect_workday_url  # noqa: E402
+from icims_inspector import derive_icims_endpoint, inspect_icims_url  # noqa: E402
+from workday_inspector import derive_cxs_endpoint, extract_requirements, inspect_workday_url  # noqa: E402
 
 ROOT = SCRIPT_DIR.parent
 DEFAULT_FEED = ROOT / "data" / "listings.json"
 DEFAULT_CACHE = ROOT / "data" / "workday-inspections.json"
 DEFAULT_MAX_REQUESTS = 25
+DEFAULT_MAX_ICIMS_REQUESTS = 10
 DEFAULT_TTL_DAYS = 7
 FAILED_RETRY_HOURS = 6
-CACHE_VERSION = 2
+CACHE_VERSION = 3
 REUSABLE_STATUSES = {"inspected", "unavailable"}
+PROVIDERS = ("workday", "icims")
 
 
 def utc_now() -> datetime:
@@ -105,16 +114,109 @@ def workday_identity(job: dict[str, Any]) -> dict[str, str] | None:
     except ValueError:
         return None
     return {
+        "provider": "workday",
         "canonical_url": derived["canonical_job_url"],
         "endpoint_url": derived["endpoint_url"],
+        "supported": "true",
     }
+
+
+def _unsupported_icims_identity(url: str) -> dict[str, str] | None:
+    parsed = urlparse(html.unescape(url or ""))
+    host = (parsed.hostname or "").lower()
+    if parsed.scheme.lower() != "https" or not host.endswith(".icims.com"):
+        return None
+    canonical = urlunparse(("https", host, parsed.path.rstrip("/") or "/", "", "", ""))
+    return {
+        "provider": "icims",
+        "canonical_url": canonical,
+        "endpoint_url": canonical,
+        "supported": "false",
+    }
+
+
+def icims_identity(job: dict[str, Any]) -> dict[str, str] | None:
+    if not isinstance(job, dict) or job.get("link_kind") in {"listing", "source"}:
+        return None
+    url = str(job.get("url") or "").strip()
+    if not url:
+        return None
+    try:
+        derived = derive_icims_endpoint(url)
+    except ValueError:
+        return _unsupported_icims_identity(url)
+    return {
+        "provider": "icims",
+        "canonical_url": derived["canonical_job_url"],
+        "endpoint_url": derived["endpoint_url"],
+        "supported": "true",
+    }
+
+
+def posting_identity(job: dict[str, Any]) -> dict[str, str] | None:
+    return workday_identity(job) or icims_identity(job)
+
+
+def provider_for_url(url: str) -> str | None:
+    parsed = urlparse(url or "")
+    host = (parsed.hostname or "").lower()
+    if re.fullmatch(r"[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com", host, flags=re.I):
+        return "workday"
+    if host.endswith(".icims.com"):
+        return "icims"
+    return None
+
+
+def supported_identity(url: str) -> bool:
+    provider = provider_for_url(url)
+    try:
+        if provider == "workday":
+            derive_cxs_endpoint(url)
+        elif provider == "icims":
+            derive_icims_endpoint(url)
+        else:
+            return False
+    except ValueError:
+        return False
+    return True
+
+
+def inspect_posting_url(url: str) -> dict[str, Any]:
+    provider = provider_for_url(url)
+    if provider == "workday":
+        return inspect_workday_url(url)
+    if provider == "icims":
+        return inspect_icims_url(url)
+    return {
+        "status": "unsupported_url",
+        "retrieval_confidence": "none",
+        "error": "No supported ATS provider matched the URL",
+        "posting": None,
+        "requirements": {},
+        "provenance": {"source_url": url},
+    }
+
+
+def renormalize_cached_icims(entry: dict[str, Any]) -> dict[str, Any]:
+    """Re-run deterministic extraction from a cached full description without a request."""
+
+    out = copy.deepcopy(entry)
+    inspection = out.get("inspection")
+    if not isinstance(inspection, dict) or inspection.get("status") != "inspected":
+        return out
+    posting = inspection.get("posting")
+    description = posting.get("description") if isinstance(posting, dict) else None
+    if not isinstance(description, str) or not description.strip():
+        return out
+    inspection["requirements"] = extract_requirements(description.splitlines())
+    return out
 
 
 def build_listing_index(jobs: list[dict[str, Any]]) -> tuple[dict[str, str], dict[str, list[dict[str, Any]]]]:
     listing_index: dict[str, str] = {}
     by_url: dict[str, list[dict[str, Any]]] = {}
     for job in jobs:
-        identity = workday_identity(job)
+        identity = posting_identity(job)
         if not identity:
             continue
         canonical = identity["canonical_url"]
@@ -243,11 +345,16 @@ def candidate_urls(
     entries: dict[str, Any],
     now: datetime,
     ttl_days: int,
+    provider: str | None = None,
 ) -> list[str]:
     pending: list[tuple[int, int, float, str]] = []
     stale: list[tuple[int, datetime, float, str]] = []
 
     for canonical, jobs in by_url.items():
+        if provider and provider_for_url(canonical) != provider:
+            continue
+        if not supported_identity(canonical):
+            continue
         entry = entries.get(canonical)
         if reusable(entry, now, ttl_days):
             continue
@@ -276,8 +383,10 @@ def build_queue_metadata(
     now: datetime,
     ttl_days: int,
 ) -> dict[str, dict[str, Any]]:
-    candidates = candidate_urls(by_url, entries, now, ttl_days)
-    ranks = {canonical: index + 1 for index, canonical in enumerate(candidates)}
+    ranks: dict[str, int] = {}
+    for provider in PROVIDERS:
+        candidates = candidate_urls(by_url, entries, now, ttl_days, provider)
+        ranks.update({canonical: index + 1 for index, canonical in enumerate(candidates)})
     queue: dict[str, dict[str, Any]] = {}
 
     for canonical, jobs in by_url.items():
@@ -299,6 +408,9 @@ def build_queue_metadata(
             "priority_score": priority,
             "reasons": reasons,
         }
+        if not supported_identity(canonical):
+            item["state"] = "unsupported_url"
+            rank = None
         if rank is not None:
             item["rank"] = rank
         queue[canonical] = item
@@ -311,37 +423,54 @@ def materialize_queue_entries(
     queue: dict[str, dict[str, Any]],
 ) -> None:
     """
-    Ensure queued Workday postings carry lightweight inspection-status metadata.
+    Ensure pending ATS postings carry lightweight inspection-status metadata.
 
-    This lets the static frontend explain why a Workday job is still metadata-only
-    without exposing private profile data or making browser-side Workday requests.
+    This lets the static frontend explain why a job is still metadata-only without
+    exposing private profile data or making browser-side ATS requests.
     """
     for canonical, queue_info in queue.items():
         entry = entries.get(canonical)
         inspection = entry.get("inspection") if isinstance(entry, dict) else None
+        provider = provider_for_url(canonical)
 
         if isinstance(inspection, dict) and inspection.get("status") in REUSABLE_STATUSES:
+            entry = copy.deepcopy(entry)
+            entry.setdefault("provider", provider)
+            entries[canonical] = entry
             continue
 
         if isinstance(inspection, dict):
             inspection = copy.deepcopy(inspection)
+            provenance = inspection.get("provenance")
+            if provider == "workday" and not (
+                isinstance(provenance, dict) and provenance.get("provider")
+            ):
+                inspection.pop("provider", None)
             inspection["queue"] = copy.deepcopy(queue_info)
             entry = copy.deepcopy(entry)
+            entry.setdefault("provider", provider)
             entry["inspection"] = inspection
             entries[canonical] = entry
             continue
 
         entries[canonical] = {
+            "provider": provider,
             "inspection": {
-                "status": "queued",
+                "provider": provider,
+                "status": "unsupported_url" if queue_info.get("state") == "unsupported_url" else "queued",
                 "retrieval_confidence": "none",
-                "error": None,
+                "error": (
+                    "iCIMS URL shape is not recognized by the public posting inspector"
+                    if queue_info.get("state") == "unsupported_url"
+                    else None
+                ),
                 "posting": None,
                 "requirements": {},
                 "queue": copy.deepcopy(queue_info),
                 "provenance": {
                     "source_url": canonical,
-                    "interface": "workday_cxs_json",
+                    "provider": provider,
+                    "interface": "workday_cxs_json" if provider == "workday" else "icims_jobposting_jsonld",
                 },
             },
             "last_attempted_at": None,
@@ -355,9 +484,11 @@ def refresh_cache(
     cache: dict[str, Any],
     *,
     max_requests: int = DEFAULT_MAX_REQUESTS,
+    max_workday_requests: int | None = None,
+    max_icims_requests: int = DEFAULT_MAX_ICIMS_REQUESTS,
     ttl_days: int = DEFAULT_TTL_DAYS,
     now: Callable[[], datetime] = utc_now,
-    inspector: Callable[[str], dict[str, Any]] = inspect_workday_url,
+    inspector: Callable[[str], dict[str, Any]] = inspect_posting_url,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Return an updated cache without mutating the feed or input cache."""
 
@@ -375,14 +506,31 @@ def refresh_cache(
     out["listing_index"] = listing_index
 
     entries = {key: value for key, value in out["entries"].items() if key in by_url}
+    entries = {
+        key: renormalize_cached_icims(value) if provider_for_url(key) == "icims" else value
+        for key, value in entries.items()
+    }
     out["entries"] = entries
     candidates = candidate_urls(by_url, entries, reference, ttl_days)
+    provider_caps = {
+        "workday": max(0, int(max_requests if max_workday_requests is None else max_workday_requests)),
+        "icims": max(0, int(max_icims_requests)),
+    }
+    selected: list[str] = []
+    for provider in PROVIDERS:
+        provider_candidates = candidate_urls(by_url, entries, reference, ttl_days, provider)
+        selected.extend(provider_candidates[: provider_caps[provider]])
     requested = 0
     succeeded = 0
     preserved = 0
+    requested_by_provider = {provider: 0 for provider in PROVIDERS}
+    succeeded_by_provider = {provider: 0 for provider in PROVIDERS}
 
-    for canonical in candidates[: max(0, int(max_requests))]:
+    for canonical in selected:
+        provider = provider_for_url(canonical)
         requested += 1
+        if provider in requested_by_provider:
+            requested_by_provider[provider] += 1
         old_entry = copy.deepcopy(entries.get(canonical)) if isinstance(entries.get(canonical), dict) else None
         result = inspector(canonical)
         if not isinstance(result, dict):
@@ -394,26 +542,34 @@ def refresh_cache(
                 "requirements": {},
                 "provenance": {"source_url": canonical, "inspected_at": iso(reference)},
             }
+        result.setdefault("provider", provider)
+        if isinstance(result.get("provenance"), dict):
+            result["provenance"].setdefault("provider", provider)
 
         status = result.get("status")
         attempted_at = result.get("provenance", {}).get("inspected_at") or iso(reference)
         if status in REUSABLE_STATUSES:
             entries[canonical] = {
+                "provider": provider,
                 "inspection": result,
                 "last_attempted_at": attempted_at,
                 "last_success_at": attempted_at,
                 "last_error": None,
             }
             succeeded += 1
+            if provider in succeeded_by_provider:
+                succeeded_by_provider[provider] += 1
             continue
 
         if old_entry and isinstance(old_entry.get("inspection"), dict) and old_entry["inspection"].get("status") in REUSABLE_STATUSES:
             old_entry["last_attempted_at"] = attempted_at
             old_entry["last_error"] = result.get("error") or f"Inspection status: {status or 'failed'}"
+            old_entry.setdefault("provider", provider)
             entries[canonical] = old_entry
             preserved += 1
         else:
             entries[canonical] = {
+                "provider": provider,
                 "inspection": result,
                 "last_attempted_at": attempted_at,
                 "last_success_at": None,
@@ -425,13 +581,18 @@ def refresh_cache(
     out["entries"] = dict(sorted(entries.items()))
     out["queue"] = queue
     stats = {
-        "workday_listings": len(listing_index),
-        "workday_postings": len(by_url),
+        "workday_listings": sum(1 for canonical in listing_index.values() if provider_for_url(canonical) == "workday"),
+        "workday_postings": sum(1 for canonical in by_url if provider_for_url(canonical) == "workday"),
+        "icims_listings": sum(1 for canonical in listing_index.values() if provider_for_url(canonical) == "icims"),
+        "icims_postings": sum(1 for canonical in by_url if provider_for_url(canonical) == "icims"),
         "priority_term": out["priority_term"],
         "eligible_for_refresh": len(candidates),
         "requested": requested,
         "succeeded": succeeded,
         "preserved_last_good": preserved,
+        "provider_requests": requested_by_provider,
+        "provider_successes": succeeded_by_provider,
+        "provider_caps": provider_caps,
     }
     return out, stats
 
@@ -457,6 +618,8 @@ def main() -> int:
     parser.add_argument("feed", nargs="?", type=Path, default=DEFAULT_FEED)
     parser.add_argument("--cache", type=Path, default=DEFAULT_CACHE)
     parser.add_argument("--max-requests", type=int, default=DEFAULT_MAX_REQUESTS)
+    parser.add_argument("--max-workday-requests", type=int)
+    parser.add_argument("--max-icims-requests", type=int, default=DEFAULT_MAX_ICIMS_REQUESTS)
     parser.add_argument("--ttl-days", type=int, default=DEFAULT_TTL_DAYS)
     args = parser.parse_args()
 
@@ -467,6 +630,8 @@ def main() -> int:
         feed,
         original,
         max_requests=args.max_requests,
+        max_workday_requests=args.max_workday_requests,
+        max_icims_requests=args.max_icims_requests,
         ttl_days=args.ttl_days,
         now=lambda: reference,
     )

@@ -43,6 +43,28 @@ def workday_job(
     }
 
 
+def icims_job(
+    job_id,
+    posting_id="1001",
+    posted_at="2026-09-16T12:00:00Z",
+    link_kind="direct",
+    *,
+    title="Data Intern",
+    term="Summer 2027",
+):
+    return {
+        "id": job_id,
+        "company": "Example iCIMS",
+        "title": title,
+        "url": f"https://careers-example.icims.com/jobs/{posting_id}/role/job?mobile=true&utm_source=Simplify&ref=Simplify",
+        "posted_at": posted_at,
+        "link_kind": link_kind,
+        "term": term,
+        "opportunity_type": "internship",
+        "education_level": "undergrad",
+    }
+
+
 def inspection(url, status="inspected", at="2026-09-16T17:30:00Z"):
     posting = {"application_status": "available"} if status == "inspected" else None
     return {
@@ -56,6 +78,123 @@ def inspection(url, status="inspected", at="2026-09-16T17:30:00Z"):
 
 
 class UpdateWorkdayInspectionTests(unittest.TestCase):
+    def test_applies_explicit_independent_provider_request_caps(self):
+        jobs = [
+            workday_job("wd-new", "REQ-1", "2026-09-16T15:00:00Z"),
+            workday_job("wd-old", "REQ-2", "2026-09-15T15:00:00Z"),
+            icims_job("icims-new", "1001", "2026-09-16T16:00:00Z"),
+            icims_job("icims-old", "1002", "2026-09-14T16:00:00Z"),
+        ]
+        calls = []
+        updated, stats = mod.refresh_cache(
+            {"jobs": jobs},
+            mod.empty_cache(),
+            max_workday_requests=1,
+            max_icims_requests=1,
+            now=lambda: NOW,
+            inspector=lambda url: calls.append(url) or inspection(url),
+        )
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(sum("myworkdayjobs.com" in url for url in calls), 1)
+        self.assertEqual(sum("icims.com" in url for url in calls), 1)
+        self.assertEqual(stats["provider_requests"], {"workday": 1, "icims": 1})
+        self.assertEqual(stats["provider_caps"], {"workday": 1, "icims": 1})
+        self.assertEqual(stats["workday_listings"], 2)
+        self.assertEqual(stats["icims_listings"], 2)
+        for entry in updated["entries"].values():
+            self.assertIn(entry["provider"], {"workday", "icims"})
+
+    def test_icims_transient_failure_preserves_last_good_inspection(self):
+        job = icims_job("icims-one", "2001")
+        canonical = mod.icims_identity(job)["canonical_url"]
+        good = inspection(canonical, at="2026-09-01T00:00:00Z")
+        good["provider"] = "icims"
+        cache = mod.empty_cache()
+        cache["entries"][canonical] = {
+            "provider": "icims",
+            "inspection": good,
+            "last_attempted_at": "2026-09-01T00:00:00Z",
+            "last_success_at": "2026-09-01T00:00:00Z",
+            "last_error": None,
+        }
+        failed = inspection(canonical, status="failed")
+        updated, stats = mod.refresh_cache(
+            {"jobs": [job]},
+            cache,
+            max_workday_requests=0,
+            max_icims_requests=1,
+            now=lambda: NOW,
+            inspector=lambda url: failed,
+        )
+        self.assertEqual(stats["preserved_last_good"], 1)
+        self.assertEqual(updated["entries"][canonical]["inspection"], good)
+        self.assertTrue(updated["entries"][canonical]["last_error"])
+
+    def test_cached_icims_description_is_renormalized_without_a_request(self):
+        job = icims_job("cached", "2002")
+        canonical = mod.icims_identity(job)["canonical_url"]
+        good = inspection(canonical, at="2026-09-15T17:30:00Z")
+        good["provider"] = "icims"
+        good["posting"]["description"] = (
+            "Required Qualifications\nPython experience is required.\n"
+            "Preferred Qualifications\nLinux experience preferred."
+        )
+        cache = mod.empty_cache()
+        cache["entries"][canonical] = {
+            "provider": "icims",
+            "inspection": good,
+            "last_attempted_at": "2026-09-15T17:30:00Z",
+            "last_success_at": "2026-09-15T17:30:00Z",
+            "last_error": None,
+        }
+        calls = []
+        updated, stats = mod.refresh_cache(
+            {"jobs": [job]},
+            cache,
+            max_workday_requests=0,
+            max_icims_requests=1,
+            now=lambda: NOW,
+            inspector=lambda url: calls.append(url),
+        )
+        skills = updated["entries"][canonical]["inspection"]["requirements"]["skills"]
+        self.assertEqual(calls, [])
+        self.assertEqual(stats["requested"], 0)
+        self.assertEqual(skills["required"][0]["technologies"], ["Python"])
+        self.assertEqual(skills["preferred"][0]["technologies"], ["Linux"])
+
+    def test_icims_queue_retry_and_unsupported_statuses_are_materialized(self):
+        queued = icims_job("queued", "3001")
+        failed = icims_job("failed", "3002")
+        unsupported = {
+            **icims_job("unsupported", "3003"),
+            "url": "https://careers-example.icims.com/jobs/search?ref=feed",
+        }
+        failed_canonical = mod.icims_identity(failed)["canonical_url"]
+        cache = mod.empty_cache()
+        cache["entries"][failed_canonical] = {
+            "provider": "icims",
+            "inspection": inspection(failed_canonical, status="failed"),
+            "last_attempted_at": "2026-09-16T16:30:00Z",
+            "last_success_at": None,
+            "last_error": "temporary",
+        }
+        updated, stats = mod.refresh_cache(
+            {"jobs": [queued, failed, unsupported]},
+            cache,
+            max_workday_requests=0,
+            max_icims_requests=0,
+            now=lambda: NOW,
+        )
+        queued_canonical = mod.icims_identity(queued)["canonical_url"]
+        unsupported_canonical = mod.icims_identity(unsupported)["canonical_url"]
+        self.assertEqual(updated["entries"][queued_canonical]["inspection"]["status"], "queued")
+        self.assertEqual(updated["queue"][queued_canonical]["state"], "queued")
+        self.assertEqual(updated["queue"][failed_canonical]["state"], "retry_cooldown")
+        self.assertEqual(updated["entries"][failed_canonical]["inspection"]["queue"]["state"], "retry_cooldown")
+        self.assertEqual(updated["queue"][unsupported_canonical]["state"], "unsupported_url")
+        self.assertEqual(updated["entries"][unsupported_canonical]["inspection"]["status"], "unsupported_url")
+        self.assertEqual(stats["requested"], 0)
+
     def test_bounds_requests_and_ignores_non_direct_or_non_workday(self):
         jobs = [
             workday_job("newest", "REQ-1", "2026-09-16T15:00:00Z"),

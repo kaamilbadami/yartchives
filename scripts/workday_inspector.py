@@ -74,11 +74,12 @@ REQUIRED_HEADING = re.compile(
 )
 PREFERRED_HEADING = re.compile(
     r"\b(?:preferred qualifications?|qualifications? we prefer|ideal candidate|"
-    r"nice to have|desired qualifications?)\b",
+    r"nice to have|desired qualifications?|what sets you apart|bonus points?)\b",
     re.I,
 )
 UNSPECIFIED_HEADING = re.compile(
-    r"\b(?:qualifications?|candidate profile|this job might be for you if)\b",
+    r"\b(?:qualifications?|candidate profile|this job might be for you if|"
+    r"what you bring(?: to the table)?|skills and abilities|education)\b",
     re.I,
 )
 RESET_HEADING = re.compile(
@@ -408,12 +409,14 @@ def normalize_payload(payload: Any) -> dict[str, Any]:
 
 def _base_result(job_url: str, inspected_at: datetime) -> dict[str, Any]:
     return {
+        "provider": "workday",
         "status": "failed",
         "retrieval_confidence": "none",
         "error": None,
         "posting": None,
         "requirements": {key: _empty_field() for key in REQUIREMENT_FIELDS},
         "provenance": {
+            "provider": "workday",
             "interface": INTERFACE,
             "source_url": job_url,
             "endpoint_url": None,
