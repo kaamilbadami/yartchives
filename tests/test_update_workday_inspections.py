@@ -19,14 +19,27 @@ spec.loader.exec_module(mod)
 NOW = datetime(2026, 9, 16, 17, 30, tzinfo=timezone.utc)
 
 
-def workday_job(job_id, req="REQ-1", posted_at="2026-09-16T12:00:00Z", link_kind="direct"):
+def workday_job(
+    job_id,
+    req="REQ-1",
+    posted_at="2026-09-16T12:00:00Z",
+    link_kind="direct",
+    *,
+    title="Software Intern",
+    term="Summer 2027",
+    opportunity_type="internship",
+    education_level="undergrad",
+):
     return {
         "id": job_id,
         "company": "Example",
-        "title": "Software Intern",
+        "title": title,
         "url": f"https://tenant.wd5.myworkdayjobs.com/Careers/job/CT/Role_{req}",
         "posted_at": posted_at,
         "link_kind": link_kind,
+        "term": term,
+        "opportunity_type": opportunity_type,
+        "education_level": education_level,
     }
 
 
@@ -68,6 +81,64 @@ class UpdateWorkdayInspectionTests(unittest.TestCase):
         self.assertEqual(len(calls), 1)
         self.assertIn("REQ-1", calls[0])
         self.assertEqual(len(updated["listing_index"]), 2)
+        older = mod.workday_identity(jobs[1])["canonical_url"]
+        self.assertEqual(updated["queue"][older]["state"], "queued")
+        self.assertEqual(updated["queue"][older]["rank"], 1)
+        self.assertEqual(updated["entries"][older]["inspection"]["status"], "queued")
+        self.assertEqual(updated["entries"][older]["inspection"]["queue"]["rank"], 1)
+
+    def test_prioritizes_upcoming_summer_internship_over_newer_wrong_term(self):
+        high_value = workday_job(
+            "summer",
+            "REQ-SUMMER",
+            "2026-09-13T12:00:00Z",
+            term="Summer 2027",
+            opportunity_type="internship",
+            education_level="undergrad",
+        )
+        newer_wrong_term = workday_job(
+            "wrong",
+            "REQ-WRONG",
+            "2026-09-16T16:00:00Z",
+            title="Graduate Research Role",
+            term="Summer 2026",
+            opportunity_type="research",
+            education_level="graduate-only",
+        )
+        calls = []
+        updated, stats = mod.refresh_cache(
+            {"jobs": [newer_wrong_term, high_value]},
+            mod.empty_cache(),
+            max_requests=1,
+            now=lambda: NOW,
+            inspector=lambda url: calls.append(url) or inspection(url),
+        )
+        self.assertEqual(stats["priority_term"], "Summer 2027")
+        self.assertEqual(len(calls), 1)
+        self.assertIn("REQ-SUMMER", calls[0])
+        wrong = mod.workday_identity(newer_wrong_term)["canonical_url"]
+        self.assertEqual(updated["queue"][wrong]["state"], "queued")
+        self.assertIn("other term: Summer 2026", updated["queue"][wrong]["reasons"])
+        self.assertIn("graduate-only", updated["queue"][wrong]["reasons"])
+
+    def test_failed_inspection_enters_retry_cooldown_with_visible_queue_state(self):
+        job = workday_job("one")
+        canonical = mod.workday_identity(job)["canonical_url"]
+        failed = inspection(canonical, status="failed")
+        updated, stats = mod.refresh_cache(
+            {"jobs": [job]},
+            mod.empty_cache(),
+            max_requests=1,
+            now=lambda: NOW,
+            inspector=lambda url: failed,
+        )
+        self.assertEqual(stats["requested"], 1)
+        self.assertEqual(updated["queue"][canonical]["state"], "retry_cooldown")
+        self.assertEqual(updated["entries"][canonical]["inspection"]["queue"]["state"], "retry_cooldown")
+        self.assertEqual(
+            mod.candidate_urls({canonical: [job]}, updated["entries"], NOW, 7),
+            [],
+        )
 
     def test_fresh_success_is_reused_without_network_call(self):
         job = workday_job("one")
@@ -87,6 +158,7 @@ class UpdateWorkdayInspectionTests(unittest.TestCase):
         self.assertEqual(calls, [])
         self.assertEqual(stats["requested"], 0)
         self.assertEqual(updated["entries"][canonical]["last_success_at"], "2026-09-15T17:30:00Z")
+        self.assertEqual(updated["queue"][canonical]["state"], "cached")
 
     def test_stale_success_is_refreshed(self):
         job = workday_job("one")

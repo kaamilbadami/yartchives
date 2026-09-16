@@ -128,4 +128,53 @@ assert.equal(score.components.roi.score, 13);
 assert.equal(score.competition.penalty, 2);
 assert.equal(score.competition.differentiationBonus, 5);
 
+const queuedWorkday = {
+  ...neutral,
+  company: "QueuedCo",
+  url: "https://tenant.wd5.myworkdayjobs.com/Careers/job/CT/Role_REQ-9",
+  _inspection: {
+    status: "queued",
+    retrieval_confidence: "none",
+    posting: null,
+    requirements: {},
+    queue: {
+      state: "queued",
+      rank: 12,
+      priority_score: 140,
+      reasons: ["Summer 2027", "internship/co-op", "undergrad-friendly", "posted within 7 days"],
+    },
+  },
+};
+const queuedScore = C.scoreJob(queuedWorkday, profile, now, C.buildCompetitionContext([queuedWorkday]));
+assert.equal(queuedScore.inspection.state, "metadata-only");
+assert.match(queuedScore.inspection.evidence[0], /Queued for bounded Workday inspection/);
+assert.match(queuedScore.inspection.evidence[0], /public priority #12/);
+assert.match(queuedScore.inspection.evidence[0], /Summer 2027/);
+
+const failedWorkday = {
+  ...queuedWorkday,
+  company: "RetryCo",
+  _inspection: {
+    status: "failed",
+    retrieval_confidence: "none",
+    posting: null,
+    requirements: {},
+    queue: { state: "retry_cooldown", priority_score: 140, reasons: ["Summer 2027"] },
+  },
+};
+const failedScore = C.scoreJob(failedWorkday, profile, now, C.buildCompetitionContext([failedWorkday]));
+assert.match(failedScore.inspection.evidence[0], /retry is cooling down/i);
+
+const unsupportedWorkday = {
+  ...neutral,
+  company: "OddWorkday",
+  url: "https://tenant.wd5.myworkdayjobs.com/private_shape/job/CT/Role_REQ-X",
+};
+const unsupportedScore = C.scoreJob(unsupportedWorkday, profile, now, C.buildCompetitionContext([unsupportedWorkday]));
+assert.match(unsupportedScore.inspection.evidence[0], /not currently recognized/i);
+
+const nonWorkday = C.scoreJob(neutral, profile, now, C.buildCompetitionContext([neutral]));
+assert.equal(nonWorkday.inspection.state, "metadata-only");
+assert.deepEqual(nonWorkday.inspection.evidence, []);
+
 console.log("apply-next competition tests passed");

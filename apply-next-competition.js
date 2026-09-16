@@ -205,6 +205,51 @@
     };
   }
 
+  function isWorkdayUrl(job) {
+    return /\.myworkdayjobs\.com(?:\/|$)/i.test(String(job?.url || ""));
+  }
+
+  function workdayInspectionStatus(job) {
+    if (!isWorkdayUrl(job)) return null;
+    const inspection = inspectionForJob(job);
+    if (!inspection) {
+      return "Workday link is not currently recognized by the authoritative posting inspector.";
+    }
+    if (inspection.status === "inspected" || inspection.status === "unavailable") return null;
+
+    const queue = inspection?.queue && typeof inspection.queue === "object" ? inspection.queue : {};
+    const rank = Number(queue.rank);
+    const rankText = Number.isFinite(rank) && rank > 0 ? ` (public priority #${rank})` : "";
+    const reasons = Array.isArray(queue.reasons)
+      ? queue.reasons.filter(Boolean).slice(0, 4)
+      : [];
+
+    if (inspection.status === "queued") {
+      const detail = `Queued for bounded Workday inspection${rankText}.`;
+      return reasons.length ? `${detail} Priority signals: ${reasons.join(", ")}.` : detail;
+    }
+
+    if (queue.state === "retry_cooldown") {
+      return "Workday inspection was attempted but could not retrieve authoritative data; retry is cooling down before another bounded attempt.";
+    }
+
+    const detail = `Workday inspection was attempted but could not retrieve authoritative data; it remains queued for retry${rankText}.`;
+    return reasons.length ? `${detail} Priority signals: ${reasons.join(", ")}.` : detail;
+  }
+
+  function decorateInspectionStatus(result) {
+    if (!result || result?.inspection?.state !== "metadata-only") return result;
+    const detail = workdayInspectionStatus(result.job);
+    if (!detail) return result;
+    return {
+      ...result,
+      inspection: {
+        ...result.inspection,
+        evidence: [detail],
+      },
+    };
+  }
+
   function scoreJob(job, profile, now = new Date(), context = {}) {
     const baseResult = originalScoreJob(job, profile, now);
     if (baseResult.excluded) return baseResult;
@@ -218,7 +263,7 @@
     if (baseResult.readiness) {
       reasons.push(`readiness: ${baseResult.readiness.label}${readinessDelta ? ` (${readinessDelta})` : ""}`);
     }
-    return {
+    return decorateInspectionStatus({
       ...baseResult,
       total,
       components,
@@ -227,7 +272,7 @@
         penalty: roi.competitionPenalty,
         differentiationBonus: roi.differentiationBonus,
       },
-    };
+    });
   }
 
   function rankJobs(jobs, profile, now = new Date()) {
@@ -252,6 +297,9 @@
     marketPressure,
     buildCompetitionContext,
     requiredSkillSupport,
+    isWorkdayUrl,
+    workdayInspectionStatus,
+    decorateInspectionStatus,
     scoreRoi,
     scoreJob,
     rankJobs,
