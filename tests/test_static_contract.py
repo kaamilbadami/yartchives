@@ -29,6 +29,8 @@ class StaticContractTests(unittest.TestCase):
         scripts = [tag.get("src") for tag in soup.find_all("script") if tag.get("src")]
         self.assertLess(scripts.index("frontend-utils.js"), scripts.index("app.js"))
         self.assertLess(scripts.index("app.js"), scripts.index("enhancements.js"))
+        self.assertLess(scripts.index("enhancements.js"), scripts.index("ui.js"))
+        self.assertLess(scripts.index("ui.js"), scripts.index("ux.js"))
 
     def test_multiselect_and_manual_applied_behavior_are_wired(self):
         text = (ROOT / "enhancements.js").read_text(encoding="utf-8")
@@ -36,6 +38,16 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("selectedProfiles.size === 0", text)
         self.assertIn("apply.cloneNode(true)", text)
         self.assertIn("View listing ↗", text)
+
+    def test_final_ux_contract(self):
+        text = (ROOT / "ux.js").read_text(encoding="utf-8")
+        self.assertIn('"Career area"', text)
+        self.assertIn('"Product / Analytics"', text)
+        self.assertIn('"IT / Tech Consulting"', text)
+        self.assertIn('`Posted ${relativeAge(job)} ago`', text)
+        self.assertIn('`Distance ≈${Math.round(job._distanceMiles)} mi`', text)
+        self.assertIn('"Listing hidden on this browser."', text)
+        self.assertIn('"Saved, applied, and hidden are stored only in this browser."', text)
 
     def test_state_filter_is_present_as_secondary_ui(self):
         text = (ROOT / "enhancements.js").read_text(encoding="utf-8")
