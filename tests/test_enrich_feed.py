@@ -2,7 +2,7 @@ import importlib.util
 from pathlib import Path
 import unittest
 
-MODULE_PATH = Path(__file__).resolve().parents[1] / "enrich_feed.py"
+MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "enrich_feed.py"
 spec = importlib.util.spec_from_file_location("enrich_feed", MODULE_PATH)
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
