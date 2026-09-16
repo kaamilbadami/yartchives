@@ -11,7 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +21,23 @@ if str(ROOT) not in sys.path:
 
 from scripts import coverage_audit as base  # noqa: E402
 from scripts.build_feed import canonical_url, norm  # noqa: E402
+
+ATS_HOST_HINTS: dict[str, tuple[str, ...]] = {
+    "workday": ("myworkdayjobs.com",),
+    "greenhouse": ("greenhouse.io",),
+    "lever": ("lever.co",),
+    "ashby": ("ashbyhq.com",),
+    "smartrecruiters": ("smartrecruiters.com",),
+    "icims": ("icims.com",),
+    "oracle": ("oraclecloud.com",),
+    "jobvite": ("jobvite.com",),
+}
+MISSING_STATUSES = {
+    "configured_source_miss",
+    "employer_exists_but_listing_missing",
+    "source_not_covered",
+    "unknown",
+}
 
 
 def is_discovery_surface(value: str) -> bool:
@@ -44,6 +61,28 @@ def has_strong_signature(row: dict[str, Any]) -> bool:
             base.location_key(base.first(row, "location", "locations")),
         )
     )
+
+
+def ats_family(url: str) -> str:
+    """Identify a known ATS family from a job URL without guessing employers."""
+    hostname = base.host(url)
+    if not hostname:
+        return "unknown"
+    for family, hints in ATS_HOST_HINTS.items():
+        if any(hostname == hint or hostname.endswith(f".{hint}") for hint in hints):
+            return family
+    return "unknown"
+
+
+def ats_family_for_result(result: dict[str, Any]) -> str:
+    """Use the representative/direct URL first, then preserved observation URLs."""
+    candidates = [str(result.get("url") or "")]
+    candidates.extend(str(value) for value in (result.get("observation_urls") or []))
+    for candidate in candidates:
+        family = ats_family(candidate)
+        if family != "unknown":
+            return family
+    return "unknown"
 
 
 def _row_quality(row: dict[str, Any]) -> tuple[int, int]:
@@ -180,6 +219,17 @@ def build_report(
         classified["observed_sources"] = list(row.get("_audit_observed_sources") or [])
         classified["input_indices"] = list(row.get("_audit_input_indices") or [])
         classified["observation_urls"] = list(row.get("_audit_observation_urls") or [])
+        classified["ats_family"] = ats_family_for_result(classified)
+
+    missing_by_ats = Counter(
+        result["ats_family"]
+        for result in report["results"]
+        if result.get("status") in MISSING_STATUSES
+    )
+    summary["missing_by_ats_family"] = {
+        family: count
+        for family, count in sorted(missing_by_ats.items(), key=lambda item: (-item[1], item[0]))
+    }
 
     return report
 
@@ -195,7 +245,16 @@ def markdown(report: dict[str, Any]) -> str:
             f"- Duplicate observations collapsed: **{summary['duplicate_observations_collapsed']}**",
         )
     )
-    return text.replace(needle, replacement, 1)
+    text = text.replace(needle, replacement, 1)
+
+    ats_counts = summary.get("missing_by_ats_family") or {}
+    ats_lines = ["## Missing listings by ATS family", ""]
+    if ats_counts:
+        ats_lines.extend(f"- `{family}`: **{count}**" for family, count in ats_counts.items())
+    else:
+        ats_lines.append("No missing listings in this sample.")
+    ats_section = "\n".join(ats_lines) + "\n\n"
+    return text.replace("## Status breakdown\n", ats_section + "## Status breakdown\n", 1)
 
 
 def _write_text(path: str, content: str) -> None:
