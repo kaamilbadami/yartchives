@@ -24,7 +24,7 @@ class FakeSession:
     def post(self, url, json=None, timeout=None):
         return FakeResponse(
             {
-                "total": 3,
+                "total": 5,
                 "jobPostings": [
                     {
                         "title": "Software Engineering Intern - Summer 2027",
@@ -42,6 +42,18 @@ class FakeSession:
                         "title": "Senior Software Engineer",
                         "locationsText": "Hartford, CT",
                         "externalPath": "/job/Hartford-CT/Senior-Software-Engineer_R3",
+                        "postedOn": "Posted Today",
+                    },
+                    {
+                        "title": "Mechanical Design Engineering Intern",
+                        "locationsText": "East Hartford, CT",
+                        "externalPath": "/job/East-Hartford-CT/Mechanical-Intern_R4",
+                        "postedOn": "Posted Today",
+                    },
+                    {
+                        "title": "Intern, Investment Portfolio Management",
+                        "locationsText": "Hartford, CT",
+                        "externalPath": "/job/Hartford-CT/Investment-Intern_R5",
                         "postedOn": "Posted Today",
                     },
                 ],
@@ -69,7 +81,36 @@ class DirectWorkdayTests(unittest.TestCase):
         self.assertTrue(mod.is_target_state("Stamford, Connecticut", "CT"))
         self.assertFalse(mod.is_target_state("Acton, Massachusetts", "CT"))
 
-    def test_fetch_workday_filters_to_ct_student_roles(self):
+    def test_cs_title_relevance(self):
+        accepted = [
+            "Embedded Software Engineering Co-Op - Fall 2027",
+            "Co-Op - SQL Database & Back-End Developer (Hybrid)",
+            "Network Operations Internship",
+            "Summer 2027 IT Intern",
+            "Cybersecurity Internship (Summer 2027)",
+            "Data Science Intern",
+        ]
+        rejected = [
+            "Mechanical Design Engineering Intern",
+            "Intern, Investment Portfolio Management",
+            "Safety and Reliability Intern",
+            "Industrial Engineering Intern",
+            "Materials & Processes Engineering Intern",
+        ]
+        for title in accepted:
+            with self.subTest(title=title):
+                self.assertTrue(mod.is_cs_relevant_title(title))
+        for title in rejected:
+            with self.subTest(title=title):
+                self.assertFalse(mod.is_cs_relevant_title(title))
+
+    def test_source_specific_title_allow_pattern(self):
+        source = dict(self.source)
+        source["title_allow_patterns"] = [r"\bdigital technology\b"]
+        self.assertTrue(mod.is_cs_relevant_title("Digital Technology Intern", source))
+        self.assertFalse(mod.is_cs_relevant_title("Project Engineering Intern", source))
+
+    def test_fetch_workday_filters_to_ct_student_cs_roles(self):
         ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
         jobs = mod.fetch_workday_source(FakeSession(), self.source, ref)
         self.assertEqual(len(jobs), 1)
