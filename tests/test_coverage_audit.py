@@ -116,6 +116,20 @@ class CoverageAuditTests(unittest.TestCase):
             (root / "items.csv").write_text("company,title\nB,Intern\n", encoding="utf-8")
             self.assertEqual(mod.load_rows(root / "items.csv")[0]["company"], "B")
 
+    def test_self_describing_json_reads_scope_and_collection_metadata(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "ct-cs.json"
+            path.write_text(json.dumps({
+                "name": "Connecticut CS coverage audit",
+                "collected_at": "2026-09-16T12:00:00Z",
+                "scope": {"profiles": ["cs"], "states": ["CT"]},
+                "discoveries": [{"company": "A", "title": "Software Intern"}],
+            }), encoding="utf-8")
+            metadata, rows = mod.load_audit_input(path)
+            self.assertEqual(metadata["scope"], {"profiles": ["cs"], "states": ["CT"]})
+            self.assertEqual(metadata["collected_at"], "2026-09-16T12:00:00Z")
+            self.assertEqual(rows[0]["title"], "Software Intern")
+
     def test_report_has_machine_readable_status_counts(self):
         report = mod.build_report(
             [{"company": "Acme Corp", "title": "Software Engineering Intern", "location": "Hartford, CT"}],
@@ -124,10 +138,13 @@ class CoverageAuditTests(unittest.TestCase):
             self.catalog,
             ["cs"],
             ["CT"],
+            audit_meta={"name": "CT CS", "collected_at": "2026-09-16T12:00:00Z"},
         )
         self.assertEqual(report["schema_version"], 1)
         self.assertEqual(report["summary"]["status_counts"]["already_in_yartchives"], 1)
-        self.assertIn("Yartchives external coverage audit", mod.markdown(report))
+        rendered = mod.markdown(report)
+        self.assertIn("# CT CS", rendered)
+        self.assertIn("Yartchives feed snapshot", rendered)
 
 
 if __name__ == "__main__":
