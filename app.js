@@ -23,7 +23,7 @@ const PROFILE_TITLES = {
 };
 
 const STORAGE_KEY = "yartchives-state-v1";
-const PAGE_SIZE = 80;
+const PAGE_SIZE = 40;
 let feed = { jobs: [], sources: {}, generated_at: null };
 let filtered = [];
 let visibleLimit = PAGE_SIZE;
@@ -53,6 +53,7 @@ const els = {
   newCount: document.querySelector("#newCount"),
   savedCount: document.querySelector("#savedCount"),
   resultsTitle: document.querySelector("#resultsTitle"),
+  resultsNote: document.querySelector("#resultsNote"),
   feedMeta: document.querySelector("#feedMeta"),
   sourceHealth: document.querySelector("#sourceHealth"),
   errorBox: document.querySelector("#errorBox"),
@@ -125,9 +126,10 @@ function searchable(job) {
 }
 
 function jobAgeDays(job) {
-  const raw = job.posted_at || job.first_seen;
-  if (!raw) return null;
-  const ms = Date.now() - new Date(raw).getTime();
+  // Freshness is the actual source/employer posting date only. first_seen is
+  // useful internally, but it does not mean the job itself was posted then.
+  if (!job.posted_at) return null;
+  const ms = Date.now() - new Date(job.posted_at).getTime();
   return Math.max(0, ms / 86400000);
 }
 
@@ -142,7 +144,8 @@ function matchesLocation(job) {
 
 function applyFilters() {
   const q = state.search.trim().toLowerCase();
-  const maxDays = state.freshness === "all" ? Infinity : Number(state.freshness);
+  const hasFreshnessLimit = state.freshness !== "all";
+  const maxDays = hasFreshnessLimit ? Number(state.freshness) : Infinity;
 
   filtered = feed.jobs.filter(job => {
     if (state.hidden.has(job.id)) return false;
@@ -150,6 +153,9 @@ function applyFilters() {
     if (q && !searchable(job).includes(q)) return false;
     if (!matchesLocation(job)) return false;
     const ageDays = jobAgeDays(job);
+    // Date-unknown listings are useful, but they should never masquerade as
+    // freshly posted. They appear only when the user selects Any age.
+    if (hasFreshnessLimit && ageDays === null) return false;
     if (ageDays !== null && ageDays > maxDays) return false;
     if (state.status === "saved" && !state.saved.has(job.id)) return false;
     if (state.status === "applied" && !state.applied.has(job.id)) return false;
@@ -158,12 +164,12 @@ function applyFilters() {
 
   renderJobs();
   updateStats();
+  updateResultsNote();
 }
 
 function relativeAge(job) {
-  const raw = job.posted_at || job.first_seen;
-  if (!raw) return "date unknown";
-  const delta = Math.max(0, Date.now() - new Date(raw).getTime());
+  if (!job.posted_at) return "date unknown";
+  const delta = Math.max(0, Date.now() - new Date(job.posted_at).getTime());
   const hours = Math.floor(delta / 3600000);
   if (hours < 1) return "<1h";
   if (hours < 24) return `${hours}h`;
@@ -196,7 +202,8 @@ function renderJobs() {
     card.querySelector(".location").textContent = job.location || "Location not listed";
     const age = card.querySelector(".age");
     age.textContent = relativeAge(job);
-    age.title = job.posted_at ? `Posted/added: ${new Date(job.posted_at).toLocaleString()}` : "Posting date unavailable";
+    age.classList.toggle("unknown", !job.posted_at);
+    age.title = job.posted_at ? `Posted: ${new Date(job.posted_at).toLocaleString()}` : "Posting date unavailable from this source";
 
     const tags = card.querySelector(".tags");
     for (const profile of (job.profiles || []).filter(x => x !== "general").slice(0, 4)) {
@@ -270,8 +277,20 @@ function toggleSet(set, id) {
 function updateStats() {
   els.shownCount.textContent = filtered.length.toLocaleString();
   els.totalCount.textContent = feed.jobs.length.toLocaleString();
-  els.newCount.textContent = feed.jobs.filter(j => { const d = jobAgeDays(j); return d !== null && d <= 7; }).length.toLocaleString();
+  els.newCount.textContent = feed.jobs.filter(j => {
+    const d = jobAgeDays(j);
+    return d !== null && d <= 7;
+  }).length.toLocaleString();
   els.savedCount.textContent = state.saved.size.toLocaleString();
+}
+
+function updateResultsNote() {
+  if (!els.resultsNote) return;
+  if (state.freshness === "all") {
+    els.resultsNote.textContent = "Any age includes listings whose source does not expose a reliable posting date.";
+  } else {
+    els.resultsNote.textContent = "Freshness uses the source/employer posting date. Date-unknown listings are hidden in this view.";
+  }
 }
 
 function renderHealth() {
