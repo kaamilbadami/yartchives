@@ -1,7 +1,5 @@
 .filter-grid {
-  display: grid;
-  grid-template-columns: minmax(220px, 1.7fr) minmax(170px, 1.05fr) minmax(96px, .55fr) minmax(150px, .85fr) minmax(155px, .9fr) minmax(130px, .78fr) minmax(105px, .62fr);
-  gap: 10px;
+  grid-template-columns: minmax(0, 2fr) minmax(180px, 1.15fr) minmax(112px, .62fr) minmax(132px, .9fr) minmax(140px, .95fr) minmax(120px, .8fr) minmax(110px, .75fr);
 }
 
 .field input:disabled {
@@ -9,36 +7,31 @@
   cursor: not-allowed;
 }
 
-.quick-locations button[data-location="CT"] {
+.radius-field.hidden {
+  display: none;
+}
+
+.quick-locations button[data-location="06897"],
+.quick-locations button[data-location="20740"] {
   border-color: #4e6b91;
   box-shadow: inset 0 0 0 1px rgba(124, 160, 211, .08);
 }
 
-.quick-locations button[data-location="CT"]:not(.active) {
-  color: #d7e5f9;
+.state-backup {
+  margin-top: 10px;
+  width: fit-content;
+  max-width: 100%;
 }
 
-.quick-locations button[data-location="06897"] {
-  border-color: #3f628e;
+.state-backup summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: .84rem;
+  user-select: none;
 }
 
-.quick-locations button[data-location="06897"]:not(.active) {
-  color: #d7e5f9;
-}
-
-.tag-warning {
-  border-color: #684b2a;
-  color: #e8c58d;
-  background: #211b14;
-}
-
-.geo-attribution {
-  margin-top: 12px;
-  font-size: .74rem;
-}
-
-.geo-attribution a {
-  color: inherit;
+.state-backup .quick-locations {
+  margin-top: 9px;
 }
 
 @media (max-width: 1180px) {

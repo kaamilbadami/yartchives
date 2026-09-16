@@ -21,14 +21,26 @@ class StaticContractTests(unittest.TestCase):
     def test_quick_zip_buttons(self):
         soup = BeautifulSoup((ROOT / "index.html").read_text(encoding="utf-8"), "html.parser")
         values = {button.get("data-location") for button in soup.select(".quick-locations button")}
-        self.assertIn("CT", values)
         self.assertIn("06897", values)
         self.assertIn("20740", values)
 
-    def test_frontend_utils_load_before_app(self):
+    def test_frontend_script_order(self):
         soup = BeautifulSoup((ROOT / "index.html").read_text(encoding="utf-8"), "html.parser")
         scripts = [tag.get("src") for tag in soup.find_all("script") if tag.get("src")]
         self.assertLess(scripts.index("frontend-utils.js"), scripts.index("app.js"))
+        self.assertLess(scripts.index("app.js"), scripts.index("enhancements.js"))
+
+    def test_multiselect_and_manual_applied_behavior_are_wired(self):
+        text = (ROOT / "enhancements.js").read_text(encoding="utf-8")
+        self.assertIn("profiles: []", text)
+        self.assertIn("selectedProfiles.size === 0", text)
+        self.assertIn("apply.cloneNode(true)", text)
+        self.assertIn("View listing ↗", text)
+
+    def test_state_filter_is_present_as_secondary_ui(self):
+        text = (ROOT / "enhancements.js").read_text(encoding="utf-8")
+        self.assertIn('summary.textContent = "State fallback"', text)
+        self.assertIn('radiusField.classList.toggle("hidden", !currentZip())', text)
 
 
 if __name__ == "__main__":

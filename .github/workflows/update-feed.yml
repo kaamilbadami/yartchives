@@ -41,7 +41,7 @@ jobs:
 
       - name: Validate code
         run: |
-          python -m py_compile scripts/build_feed.py scripts/enrich_feed.py scripts/validate_feed.py
+          python -m py_compile scripts/build_feed.py scripts/enrich_feed.py scripts/repair_links.py scripts/validate_feed.py scripts/audit_feed.py
           python -m unittest discover -s tests -p "test_*.py" -v
           node --check frontend-utils.js
           node --check app.js
@@ -57,8 +57,14 @@ jobs:
       - name: Add student-level metadata
         run: python scripts/enrich_feed.py data/listings.json
 
+      - name: Repair and label application links
+        run: python scripts/repair_links.py data/listings.json
+
       - name: Validate generated feed
         run: python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8
+
+      - name: Print coverage audit
+        run: python scripts/audit_feed.py data/listings.json
 
       - name: Commit updated feed
         run: |

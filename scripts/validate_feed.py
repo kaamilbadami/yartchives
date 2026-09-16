@@ -11,6 +11,22 @@ from urllib.parse import urlparse
 
 ALLOWED_EDUCATION = {"undergrad", "graduate-only", "unspecified"}
 ALLOWED_TYPES = {"internship", "co-op", "fellowship", "research", "student", "other"}
+ALLOWED_LINK_KINDS = {"direct", "listing", "source"}
+NON_DIRECT_HOSTS = {
+    "github.com", "www.github.com", "raw.githubusercontent.com",
+    "simplify.jobs", "www.simplify.jobs",
+    "zapply.jobs", "www.zapply.jobs",
+    "jobright.ai", "www.jobright.ai",
+    "applyguy.ai", "www.applyguy.ai", "applyguy.com", "www.applyguy.com",
+    "fromcampustocareer.com", "www.fromcampustocareer.com",
+}
+
+
+def valid_http_url(value: str | None) -> bool:
+    if not value:
+        return False
+    parsed = urlparse(str(value))
+    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
 def validate(path: Path, minimum_jobs: int, minimum_healthy_sources: int, strict_sources: bool) -> list[str]:
@@ -51,11 +67,26 @@ def validate(path: Path, minimum_jobs: int, minimum_healthy_sources: int, strict
         if job.get("opportunity_type") not in ALLOWED_TYPES:
             errors.append(f"job {job_id or i} has invalid opportunity_type {job.get('opportunity_type')!r}")
 
+        kind = job.get("link_kind")
+        if kind not in ALLOWED_LINK_KINDS:
+            errors.append(f"job {job_id or i} has invalid link_kind {kind!r}")
+
         url = job.get("url")
-        if url:
-            parsed = urlparse(str(url))
-            if parsed.scheme not in {"http", "https"} or not parsed.netloc:
-                errors.append(f"job {job_id or i} has unsafe/invalid URL {url!r}")
+        listing_url = job.get("listing_url")
+        if url and not valid_http_url(url):
+            errors.append(f"job {job_id or i} has unsafe/invalid URL {url!r}")
+        if listing_url and not valid_http_url(listing_url):
+            errors.append(f"job {job_id or i} has unsafe/invalid listing_url {listing_url!r}")
+
+        if kind == "direct":
+            if not valid_http_url(url):
+                errors.append(f"job {job_id or i} direct link_kind has no direct URL")
+            elif urlparse(str(url)).netloc.lower() in NON_DIRECT_HOSTS:
+                errors.append(f"job {job_id or i} labels non-direct host as Apply: {urlparse(str(url)).netloc}")
+        elif kind == "listing" and not valid_http_url(listing_url):
+            errors.append(f"job {job_id or i} listing link_kind has no listing_url")
+        elif kind == "source" and url:
+            errors.append(f"job {job_id or i} source-only link should not populate url")
 
     healthy = 0
     for key, source in sources.items():
