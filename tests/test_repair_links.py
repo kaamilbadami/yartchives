@@ -15,6 +15,7 @@ class RepairLinksTests(unittest.TestCase):
                 "id": "1",
                 "company": "Analog Devices",
                 "title": "Embedded Software Engineer Intern",
+                "location": "Boston, MA",
                 "source_keys": ["applyguy"],
                 "url": "",
             }]
@@ -29,31 +30,81 @@ class RepairLinksTests(unittest.TestCase):
         stats = mod.repair_document(doc, payload)
         job = doc["jobs"][0]
         self.assertEqual(job["link_kind"], "direct")
+        self.assertEqual(job["link_origin"], "applyguy-feed")
         self.assertIn("myworkdayjobs.com", job["url"])
         self.assertEqual(stats["applyguy_repaired"], 1)
 
-    def test_zapply_redirect_is_not_labeled_direct_apply(self):
+    def test_zapply_resolution_becomes_direct_and_keeps_provenance(self):
+        listing = "https://zapply.jobs/l/d/workday-caci-external-331393?s=gh-internships-2027"
+        direct = "https://caci.wd1.myworkdayjobs.com/external/job/Danbury-CT/Embedded-Software_331393"
         doc = {
             "jobs": [{
                 "id": "2",
                 "company": "CACI",
                 "title": "Embedded Software Engineering Co-op",
+                "location": "Danbury, CT, US",
                 "source_keys": ["zapply"],
-                "url": "https://zapply.jobs/l/d/workday-caci-external-331393",
+                "url": listing,
+            }]
+        }
+        mod.repair_document(doc, resolved_urls={mod.listing_cache_key(listing): direct})
+        job = doc["jobs"][0]
+        self.assertEqual(job["url"], direct)
+        self.assertEqual(job["link_kind"], "direct")
+        self.assertEqual(job["link_origin"], "redirect-resolved")
+        self.assertEqual(job["resolved_from_url"], listing)
+        self.assertNotIn("listing_url", job)
+
+    def test_unresolved_zapply_stays_listing(self):
+        listing = "https://zapply.jobs/l/d/workday-caci-external-331393"
+        doc = {
+            "jobs": [{
+                "id": "3",
+                "company": "CACI",
+                "title": "Embedded Software Engineering Co-op",
+                "location": "Danbury, CT, US",
+                "source_keys": ["zapply"],
+                "url": listing,
             }]
         }
         mod.repair_document(doc)
         job = doc["jobs"][0]
         self.assertEqual(job["url"], "")
         self.assertEqual(job["link_kind"], "listing")
-        self.assertEqual(job["listing_url"], "https://zapply.jobs/l/d/workday-caci-external-331393")
+        self.assertEqual(job["listing_url"], listing)
+
+    def test_source_feed_can_repair_github_only_record(self):
+        doc = {
+            "jobs": [{
+                "id": "4",
+                "company": "Microsoft",
+                "title": "Software Engineering Intern",
+                "location": "Washington, DC",
+                "source_keys": ["speedyapply"],
+                "url": "https://github.com/speedyapply/2027-SWE-College-Jobs",
+            }]
+        }
+        parsed = [{
+            "company": "Microsoft",
+            "title": "Software Engineering Intern",
+            "location": "Washington, DC",
+            "url": "https://apply.careers.microsoft.com/careers/job/123",
+        }]
+        exact, company_title = mod.source_direct_indexes(parsed)
+        stats = mod.repair_document(doc, source_exact=exact, source_company_title=company_title)
+        job = doc["jobs"][0]
+        self.assertEqual(job["link_kind"], "direct")
+        self.assertEqual(job["link_origin"], "source-feed")
+        self.assertIn("apply.careers.microsoft.com", job["url"])
+        self.assertEqual(stats["source_repaired"], 1)
 
     def test_direct_employer_url_stays_direct(self):
         doc = {
             "jobs": [{
-                "id": "3",
+                "id": "5",
                 "company": "Example",
                 "title": "Software Engineering Intern",
+                "location": "New York, NY",
                 "source_keys": ["dreamwork-tech"],
                 "url": "https://example.com/careers/jobs/123",
             }]
@@ -63,12 +114,13 @@ class RepairLinksTests(unittest.TestCase):
         self.assertEqual(job["link_kind"], "direct")
         self.assertEqual(job["url"], "https://example.com/careers/jobs/123")
 
-    def test_github_source_is_source_only(self):
+    def test_github_source_without_recovery_is_source_only(self):
         doc = {
             "jobs": [{
-                "id": "4",
+                "id": "6",
                 "company": "Example",
                 "title": "Software Engineering Intern",
+                "location": "Remote",
                 "source_keys": ["applyguy"],
                 "url": "https://github.com/ApplyGuy/2027-Internships",
             }]
@@ -78,6 +130,25 @@ class RepairLinksTests(unittest.TestCase):
         self.assertEqual(job["link_kind"], "source")
         self.assertEqual(job["url"], "")
         self.assertNotIn("listing_url", job)
+
+    def test_dead_resolved_link_falls_back_to_listing(self):
+        job = {
+            "id": "7",
+            "url": "https://employer.example/jobs/123",
+            "link_kind": "direct",
+            "resolved_from_url": "https://zapply.jobs/l/d/workday-example-careers-123",
+        }
+        mod.downgrade_dead_link(job)
+        self.assertEqual(job["url"], "")
+        self.assertEqual(job["link_kind"], "listing")
+        self.assertEqual(job["listing_url"], "https://zapply.jobs/l/d/workday-example-careers-123")
+        self.assertEqual(job["dead_url"], "https://employer.example/jobs/123")
+
+    def test_zapply_greenhouse_slug_can_be_inferred(self):
+        inferred = mod.candidate_from_zapply_slug(
+            "https://zapply.jobs/l/d/greenhouse-singlestore-8205514?s=gh-internships-2027"
+        )
+        self.assertEqual(inferred, "https://job-boards.greenhouse.io/singlestore/jobs/8205514")
 
 
 if __name__ == "__main__":
