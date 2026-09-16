@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Recover official employer links from Jobright's public visitor search API.
 
-The public-sector GitHub feed only exposes Jobright detail URLs, but Jobright's
-unauthenticated visitor search response includes the original employer/apply
-URL. We query by title and only upgrade a row when the API returns the exact
-Jobright job id from the listing URL. Ambiguous/search-only matches are ignored.
+The public-sector GitHub feed only exposes Jobright detail URLs, while Jobright's
+unauthenticated visitor search response can expose the original employer/apply
+URL. Prefer an exact Jobright ID match. Some public category-feed IDs are not the
+same identifier returned by visitor search, so a second path accepts exactly one
+result only when normalized title, company, and location all match.
 """
 
 from __future__ import annotations
@@ -36,11 +37,38 @@ USER_AGENT = (
 )
 
 
-def clean_title(value: str | None) -> str:
+def clean_text(value: str | None) -> str:
     text = value or ""
-    # Public-sector markdown titles can retain bold markers after upstream parsing.
     text = text.replace("**", "").replace("__", "")
     return re.sub(r"\s+", " ", text).strip()
+
+
+def clean_title(value: str | None) -> str:
+    return clean_text(value)
+
+
+def norm(value: str | None) -> str:
+    text = clean_text(value).lower()
+    text = re.sub(r"[^a-z0-9]+", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def compact(value: str | None) -> str:
+    return re.sub(r"[^a-z0-9]+", "", clean_text(value).lower())
+
+
+def norm_location(value: str | None) -> str:
+    text = norm(value)
+    text = re.sub(r"\b(united states of america|united states|usa|us)\b", " ", text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def locations_match(left: str | None, right: str | None) -> bool:
+    a = norm_location(left)
+    b = norm_location(right)
+    if not a or not b:
+        return False
+    return a == b or a in b or b in a
 
 
 def jobright_id(value: str | None) -> str:
@@ -53,7 +81,7 @@ def jobright_id(value: str | None) -> str:
     return match.group(1) if match else ""
 
 
-def visitor_payload(title: str, position: int = 0, count: int = 30) -> dict[str, Any]:
+def visitor_payload(title: str, position: int = 0, count: int = 40) -> dict[str, Any]:
     return {
         "value": clean_title(title),
         "country": "US",
@@ -89,6 +117,22 @@ def row_job_result(row: dict[str, Any]) -> dict[str, Any]:
     return value if isinstance(value, dict) else row
 
 
+def row_company(row: dict[str, Any]) -> str:
+    company_result = row.get("companyResult")
+    if isinstance(company_result, dict) and company_result.get("companyName"):
+        return str(company_result.get("companyName"))
+    job = row_job_result(row)
+    return str(job.get("companyName") or job.get("company") or "")
+
+
+def direct_from_job(job: dict[str, Any]) -> str | None:
+    for key in ("originalUrl", "applyLink"):
+        value = job.get(key)
+        if links.is_direct_application_url(value):
+            return str(value)
+    return None
+
+
 def direct_from_exact_id(rows: list[dict[str, Any]], target_id: str) -> str | None:
     exact: list[dict[str, Any]] = []
     for row in rows:
@@ -98,23 +142,42 @@ def direct_from_exact_id(rows: list[dict[str, Any]], target_id: str) -> str | No
             exact.append(job)
     if len(exact) != 1:
         return None
-    job = exact[0]
-    for key in ("originalUrl", "applyLink"):
-        value = job.get(key)
-        if links.is_direct_application_url(value):
-            return str(value)
-    return None
+    return direct_from_job(exact[0])
 
 
-def fetch_exact_direct(listing_url: str, title: str) -> str | None:
-    target_id = jobright_id(listing_url)
-    title = clean_title(title)
-    if not target_id or not title:
+def direct_from_exact_metadata(
+    rows: list[dict[str, Any]], company: str, title: str, location: str
+) -> str | None:
+    """Return a direct link only for one exact title/company/location result."""
+    target_title = norm(title)
+    target_company = compact(company)
+    matches: list[dict[str, Any]] = []
+    for row in rows:
+        job = row_job_result(row)
+        if norm(job.get("jobTitle") or job.get("title")) != target_title:
+            continue
+        if compact(row_company(row)) != target_company:
+            continue
+        candidate_location = str(job.get("jobLocation") or job.get("location") or "")
+        if not locations_match(location, candidate_location):
+            continue
+        if direct_from_job(job):
+            matches.append(job)
+    if len(matches) != 1:
         return None
+    return direct_from_job(matches[0])
+
+
+def fetch_direct(job_record: dict[str, Any]) -> tuple[str | None, str]:
+    listing_url = str(job_record.get("listing_url") or "")
+    target_id = jobright_id(listing_url)
+    title = clean_title(job_record.get("title"))
+    if not target_id or not title:
+        return None, "none"
 
     params = {
         "sortCondition": "0",
-        "count": "30",
+        "count": "40",
         "position": "0",
         "useLegacySearch": "true",
     }
@@ -135,15 +198,26 @@ def fetch_exact_direct(listing_url: str, title: str) -> str | None:
             timeout=TIMEOUT,
         )
         if response.status_code != 200:
-            return None
-        direct = direct_from_exact_id(response_jobs(response.json()), target_id)
+            return None, f"http-{response.status_code}"
+        rows = response_jobs(response.json())
     except (requests.RequestException, ValueError):
-        return None
+        return None, "request-error"
 
+    direct = direct_from_exact_id(rows, target_id)
+    origin = "jobright-id"
     if not direct:
-        return None
-    # Validate before this URL can become an Apply button.
-    return links.validate_candidate_once(direct)
+        direct = direct_from_exact_metadata(
+            rows,
+            str(job_record.get("company") or ""),
+            title,
+            str(job_record.get("location") or ""),
+        )
+        origin = "jobright-metadata"
+    if not direct:
+        return None, "no-match"
+
+    validated = links.validate_candidate_once(direct)
+    return (validated, origin) if validated else (None, "validation-failed")
 
 
 def main() -> int:
@@ -160,24 +234,24 @@ def main() -> int:
         and jobright_id(job.get("listing_url"))
     ]
 
-    upgrades: list[tuple[dict[str, Any], str]] = []
+    upgrades: list[tuple[dict[str, Any], str, str]] = []
+    outcomes: dict[str, int] = {}
     with ThreadPoolExecutor(max_workers=WORKERS) as pool:
-        futures = {
-            pool.submit(fetch_exact_direct, job.get("listing_url") or "", job.get("title") or ""): job
-            for job in targets
-        }
+        futures = {pool.submit(fetch_direct, job): job for job in targets}
         for future in as_completed(futures):
             job = futures[future]
             try:
-                direct = future.result()
+                direct, origin = future.result()
             except Exception as exc:
                 print(f"warning: Jobright resolver failed for {job.get('company')}: {exc}", file=sys.stderr)
-                direct = None
+                direct, origin = None, "exception"
+            outcomes[origin] = outcomes.get(origin, 0) + 1
             if direct:
-                upgrades.append((job, direct))
+                upgrades.append((job, direct, origin))
 
     checked_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-    for job, direct in upgrades:
+    committed = 0
+    for job, direct, origin in upgrades:
         listing = job.get("listing_url") or ""
         status, final = links.validate_direct_url(direct)
         if status == "dead":
@@ -186,12 +260,14 @@ def main() -> int:
         job["url"] = final if links.is_direct_application_url(final) else direct
         job.pop("listing_url", None)
         job["link_kind"] = "direct"
-        job["link_origin"] = "jobright-visitor-api"
+        job["link_origin"] = origin
         job["link_status"] = status
         job["link_checked_at"] = checked_at
+        committed += 1
 
     path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"Jobright direct-link recovery: {len(upgrades)} of {len(targets)} listing(s) upgraded")
+    detail = ", ".join(f"{key}={value}" for key, value in sorted(outcomes.items()))
+    print(f"Jobright direct-link recovery: {committed} of {len(targets)} listing(s) upgraded; {detail}")
     return 0
 
 
