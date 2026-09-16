@@ -223,8 +223,8 @@
         score: 0,
         excluded: true,
         detail: inspection?.status === "unavailable"
-          ? "Authoritative Workday posting is unavailable"
-          : "Authoritative Workday posting says applications are unavailable",
+          ? "Authoritative posting is unavailable"
+          : "Authoritative posting says applications are unavailable",
       };
     }
 
@@ -446,7 +446,7 @@
     const inspection = inspectionForJob(job);
     if (!inspection) return { state: "metadata-only", label: "Metadata only", evidence: [] };
     if (inspection.status === "unavailable" || inspectionAvailability(inspection) === "unavailable") {
-      return { state: "unavailable", label: "Posting unavailable", evidence: ["Authoritative Workday posting is no longer available"] };
+      return { state: "unavailable", label: "Posting unavailable", evidence: ["Authoritative posting is no longer available"] };
     }
     if (inspection.status !== "inspected") {
       return { state: "metadata-only", label: "Metadata only", evidence: ["Authoritative posting inspection is not currently available"] };

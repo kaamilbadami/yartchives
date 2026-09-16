@@ -42,11 +42,23 @@ assert.match(UI.profileSummary(profile), /Summer 2027/);
 assert.match(UI.profileSummary(profile), /Wilton/);
 
 const artifact = {
-  version: 1,
-  listing_index: { good: "https://tenant.wd5.myworkdayjobs.com/Careers/job/CT/Role_REQ-1" },
+  version: 3,
+  listing_index: {
+    good: "https://tenant.wd5.myworkdayjobs.com/Careers/job/CT/Role_REQ-1",
+    "unknown-term": "https://careers-example.icims.com/jobs/74848/job",
+  },
   entries: {
     "https://tenant.wd5.myworkdayjobs.com/Careers/job/CT/Role_REQ-1": {
       inspection: {
+        status: "inspected",
+        posting: { application_status: "available" },
+        requirements: {},
+      },
+    },
+    "https://careers-example.icims.com/jobs/74848/job": {
+      provider: "icims",
+      inspection: {
+        provider: "icims",
         status: "inspected",
         posting: { application_status: "available" },
         requirements: {},
@@ -56,7 +68,8 @@ const artifact = {
 };
 UI.attachInspections(jobs, artifact);
 assert.equal(jobs[0]._inspection.status, "inspected");
-assert.equal(jobs[1]._inspection, undefined);
+assert.equal(jobs[1]._inspection.provider, "icims");
+assert.equal(jobs[2]._inspection, undefined);
 
 (async () => {
   const loaded = await UI.loadInspectionArtifact(async (url, options) => {

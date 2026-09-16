@@ -91,7 +91,9 @@ assert.ok(exactTerm.score > unknownTerm.score);
 const inspectedStrong = {
   ...freshDirect,
   company: "Inspected",
+  url: "https://careers-example.icims.com/jobs/74848/job",
   _inspection: {
+    provider: "icims",
     status: "inspected",
     retrieval_confidence: "high",
     posting: { application_status: "available" },

@@ -26,8 +26,9 @@ function inspectedJob({ required = [], preferred = [], other = [], citizenship =
     term: "Summer 2027",
     posted_at: "2026-09-16T12:00:00Z",
     link_kind: "direct",
-    url: "https://example.com/job",
+    url: "https://careers-example.icims.com/jobs/1234/job",
     _inspection: {
+      provider: "icims",
       status: "inspected",
       posting: { application_status: "available" },
       requirements: {
