@@ -28,10 +28,19 @@ class StaticContractTests(unittest.TestCase):
         soup = BeautifulSoup((ROOT / "index.html").read_text(encoding="utf-8"), "html.parser")
         scripts = [tag.get("src") for tag in soup.find_all("script") if tag.get("src")]
         self.assertLess(scripts.index("frontend-utils.js"), scripts.index("app.js"))
-        self.assertLess(scripts.index("app.js"), scripts.index("enhancements.js"))
+        self.assertLess(scripts.index("app.js"), scripts.index("profile-config.js"))
+        self.assertLess(scripts.index("profile-config.js"), scripts.index("enhancements.js"))
         self.assertLess(scripts.index("enhancements.js"), scripts.index("ui.js"))
         self.assertLess(scripts.index("ui.js"), scripts.index("ux.js"))
         self.assertLess(scripts.index("ux.js"), scripts.index("share.js"))
+
+    def test_public_profile_configuration(self):
+        text = (ROOT / "profile-config.js").read_text(encoding="utf-8")
+        self.assertIn('"Business / Product / Analytics"', text)
+        self.assertIn('"Mechanical / Manufacturing"', text)
+        self.assertIn('"Electrical / Computer Eng."', text)
+        self.assertIn("delete PROFILE_LABELS.policy", text)
+        self.assertIn("delete PROFILE_LABELS.health", text)
 
     def test_multiselect_and_manual_applied_behavior_are_wired(self):
         text = (ROOT / "enhancements.js").read_text(encoding="utf-8")
