@@ -22,6 +22,8 @@ CACI_PATH = (
     "/job/Colorado-Springs-CO-US/"
     "Software-Test-Engineer-Intern---Summer-2027_332003"
 )
+DOORDASH_URL = "https://job-boards.greenhouse.io/doordashusa/jobs/8171041"
+ICIMS_URL = "https://careers-gdeb.icims.com/jobs/20341/job"
 
 
 def base_job(job_id, company, url, *, direct=False, source="Simplify", posted="2026-09-16T12:00:00Z"):
@@ -143,6 +145,61 @@ class ReconcileWorkdayDuplicateTests(unittest.TestCase):
         self.assertEqual(set(job["source_names"]), {"Simplify", "RTX direct"})
         self.assertEqual(job["location"], "US-CT-WINDSOR LOCKS-B1 ~ 1 Hamilton Rd ~ BLDG 1")
 
+    def test_greenhouse_identity_ignores_legacy_host_and_tracking(self):
+        tracked = DOORDASH_URL + "?amp%3Bref=Simplify"
+        legacy = "https://boards.greenhouse.io/doordashusa/jobs/8171041?gh_src=test"
+
+        self.assertEqual(mod.greenhouse_canonical_url(tracked), DOORDASH_URL)
+        self.assertEqual(mod.greenhouse_canonical_url(legacy), DOORDASH_URL)
+        self.assertEqual(mod.posting_identity_key(tracked), mod.posting_identity_key(legacy))
+
+    def test_greenhouse_company_name_variants_collapse_by_authoritative_posting_identity(self):
+        older = base_job(
+            "older-copy",
+            "DoorDash USA",
+            DOORDASH_URL,
+            source="Zapply",
+            posted="2026-09-14T00:00:00Z",
+        )
+        older["title"] = "Software Engineer, Intern (Summer 2027) - US"
+        older["location"] = "New York City, NY"
+        older["states"] = ["NY"]
+        older["posted_raw"] = "2d"
+
+        newer = base_job(
+            "newer-copy",
+            "DoorDash",
+            DOORDASH_URL + "?amp%3Bref=Simplify",
+            source="Simplify",
+            posted="2026-09-15T00:00:00Z",
+        )
+        newer["title"] = "Software Engineer, Intern (Summer 2027) - US"
+        newer["location"] = "New York, NY"
+        newer["states"] = ["NY"]
+        newer["posted_raw"] = "1d"
+
+        reconciled, stats = mod.reconcile_jobs([older, newer])
+
+        self.assertEqual(len(reconciled), 1)
+        self.assertEqual(stats["greenhouse_postings"], 1)
+        self.assertEqual(stats["duplicate_groups"], 1)
+        self.assertEqual(stats["records_removed"], 1)
+        job = reconciled[0]
+        self.assertEqual(job["company"], "DoorDash")
+        self.assertEqual(job["id"], "newer-copy")
+        self.assertEqual(job["url"], DOORDASH_URL)
+        self.assertEqual(job["posted_at"], "2026-09-15T00:00:00Z")
+        self.assertEqual(job["posted_raw"], "1d")
+        self.assertEqual(set(job["source_names"]), {"Simplify", "Zapply"})
+
+    def test_icims_job_and_login_variants_share_identity(self):
+        job_url = ICIMS_URL + "?mobile=true&amp%3BneedsRedirect=false"
+        login_url = "https://careers-gdeb.icims.com/jobs/20341/login?mobile=true"
+
+        self.assertEqual(mod.icims_canonical_url(job_url), ICIMS_URL)
+        self.assertEqual(mod.icims_canonical_url(login_url), ICIMS_URL)
+        self.assertEqual(mod.posting_identity_key(job_url), mod.posting_identity_key(login_url))
+
     def test_distinct_workday_postings_do_not_merge(self):
         first = base_job(
             "one",
@@ -159,18 +216,21 @@ class ReconcileWorkdayDuplicateTests(unittest.TestCase):
         self.assertEqual(stats["duplicate_groups"], 0)
         self.assertEqual(stats["records_removed"], 0)
 
-    def test_non_workday_record_is_preserved(self):
+    def test_non_supported_ats_record_is_preserved(self):
         job = {
-            "id": "greenhouse",
+            "id": "lever",
             "company": "Example",
             "title": "Software Intern",
             "location": "New York, NY",
-            "url": "https://boards.greenhouse.io/example/jobs/123",
+            "url": "https://jobs.lever.co/example/123",
             "posted_at": "2026-09-16T12:00:00Z",
         }
         reconciled, stats = mod.reconcile_jobs([job])
         self.assertEqual(reconciled, [job])
+        self.assertEqual(stats["ats_postings"], 0)
         self.assertEqual(stats["workday_postings"], 0)
+        self.assertEqual(stats["greenhouse_postings"], 0)
+        self.assertEqual(stats["icims_postings"], 0)
 
 
 if __name__ == "__main__":
