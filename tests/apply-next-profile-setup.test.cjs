@@ -122,6 +122,16 @@ assert.equal(citizenProfile.facts.workAuthorization, "Authorized to work in the 
   assert.match(source, /raw resume is never saved or uploaded/i);
   assert.doesNotMatch(source, /Kaamil|Badami|kaamil\.badami/i);
 
+  const deploy = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
+  for (const asset of ["apply-next-profile-setup.js", "apply-next-profile-setup.css"]) {
+    assert.ok(deploy.includes(asset), `Pages workflow must include ${asset}`);
+    assert.ok(deploy.includes(`${asset}?v=\${VERSION}`), `Pages workflow must cache-bust ${asset}`);
+  }
+
+  const quality = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "quality.yml"), "utf8");
+  assert.match(quality, /node --check apply-next-profile-setup\.js/);
+  assert.match(quality, /node tests\/apply-next-profile-setup\.test\.cjs/);
+
   console.log("apply-next resume profile setup tests passed");
 })().catch(error => {
   console.error(error);
