@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
@@ -31,6 +33,15 @@ def age_days(job: dict, reference: datetime) -> float | None:
 
 def default_eligible(job: dict) -> bool:
     return job.get("education_level") != "graduate-only" and job.get("opportunity_type") in INTERNSHIP_TYPES
+
+
+def zapply_provider(value: str) -> str:
+    parsed = urlparse(value or "")
+    if parsed.netloc.lower() not in {"zapply.jobs", "www.zapply.jobs"}:
+        return ""
+    slug = parsed.path.rstrip("/").split("/")[-1].lower()
+    match = re.match(r"([a-z0-9]+)-", slug)
+    return match.group(1) if match else "unknown"
 
 
 def main() -> int:
@@ -68,17 +79,59 @@ def main() -> int:
 
     kinds = {"direct": 0, "listing": 0, "source": 0, "legacy": 0}
     hosts: dict[str, int] = {}
+    unresolved_sources: Counter[str] = Counter()
+    zapply_providers: Counter[str] = Counter()
+    zapply_companies: Counter[str] = Counter()
+    source_only_sources: Counter[str] = Counter()
+    non_direct: list[dict] = []
+
     for job in jobs:
         kind = job.get("link_kind") or "legacy"
         kinds[kind] = kinds.get(kind, 0) + 1
-        if kind != "direct":
-            value = job.get("listing_url") or job.get("url") or ""
-            host = urlparse(value).netloc.lower() if value else "no-link"
-            hosts[host] = hosts.get(host, 0) + 1
+        if kind == "direct":
+            continue
+        non_direct.append(job)
+        value = job.get("listing_url") or job.get("url") or ""
+        host = urlparse(value).netloc.lower() if value else "no-link"
+        hosts[host] = hosts.get(host, 0) + 1
+        for source in job.get("source_keys") or ["unknown"]:
+            unresolved_sources[str(source)] += 1
+        if kind == "source":
+            for source in job.get("source_keys") or ["unknown"]:
+                source_only_sources[str(source)] += 1
+        provider = zapply_provider(value)
+        if provider:
+            zapply_providers[provider] += 1
+            zapply_companies[str(job.get("company") or "unknown")] += 1
+
     print("\nLink quality:", ", ".join(f"{k}={v}" for k, v in kinds.items()))
     print("Largest non-direct link buckets:")
     for host, count in sorted(hosts.items(), key=lambda item: item[1], reverse=True)[:10]:
         print(f"- {host}: {count}")
+
+    print("Unresolved by source key:")
+    for source, count in unresolved_sources.most_common(15):
+        print(f"- {source}: {count}")
+
+    print("Zapply unresolved provider prefixes:")
+    for provider, count in zapply_providers.most_common(15):
+        print(f"- {provider}: {count}")
+
+    print("Zapply unresolved companies:")
+    for company, count in zapply_companies.most_common(20):
+        print(f"- {company}: {count}")
+
+    print("Source-only by source key:")
+    for source, count in source_only_sources.most_common(15):
+        print(f"- {source}: {count}")
+
+    print("Remaining non-direct sample:")
+    for job in non_direct[:40]:
+        value = job.get("listing_url") or job.get("url") or ""
+        print(
+            f"- [{job.get('link_kind')}] {job.get('company')} — {job.get('title')} — "
+            f"{job.get('location')} — {value or 'no-link'} — sources={','.join(job.get('source_keys') or [])}"
+        )
     return 0
 
 
