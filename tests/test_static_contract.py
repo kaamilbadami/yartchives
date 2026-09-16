@@ -31,6 +31,7 @@ class StaticContractTests(unittest.TestCase):
         self.assertLess(scripts.index("app.js"), scripts.index("enhancements.js"))
         self.assertLess(scripts.index("enhancements.js"), scripts.index("ui.js"))
         self.assertLess(scripts.index("ui.js"), scripts.index("ux.js"))
+        self.assertLess(scripts.index("ux.js"), scripts.index("share.js"))
 
     def test_multiselect_and_manual_applied_behavior_are_wired(self):
         text = (ROOT / "enhancements.js").read_text(encoding="utf-8")
@@ -48,6 +49,15 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn('`Distance ≈${Math.round(job._distanceMiles)} mi`', text)
         self.assertIn('"Listing hidden on this browser."', text)
         self.assertIn('"Saved, applied, and hidden are stored only in this browser."', text)
+
+    def test_share_view_preserves_public_filters_only(self):
+        text = (ROOT / "share.js").read_text(encoding="utf-8")
+        for parameter in ["q", "loc", "miles", "fresh", "areas", "edu", "type", "sort"]:
+            self.assertIn(f'url.searchParams.set("{parameter}"', text)
+        self.assertIn("event.stopImmediatePropagation()", text)
+        self.assertNotIn('url.searchParams.set("saved"', text)
+        self.assertNotIn('url.searchParams.set("hidden"', text)
+        self.assertNotIn('url.searchParams.set("applied"', text)
 
     def test_state_filter_is_present_as_secondary_ui(self):
         text = (ROOT / "enhancements.js").read_text(encoding="utf-8")
