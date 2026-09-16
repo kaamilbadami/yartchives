@@ -71,6 +71,36 @@ assert.ok(analyticsReadiness.delta <= -20);
 assert.match(analyticsReadiness.details.join(" "), /Required gap: (oracle|sql|tableau)/i);
 assert.match(analyticsReadiness.details.join(" "), /cautiously supported: python/i);
 
+const gisDomain = inspectedJob({ required: [
+  { statement: "Previous GIS coursework or relevant GIS experience." },
+  { statement: "Familiarity with Esri Geographic Information Systems (GIS) product line." },
+] });
+gisDomain.title = "GIS Intern - Geographic Information Systems";
+const broadSystemsProfile = JSON.parse(JSON.stringify(profile));
+broadSystemsProfile.supportedKeywords.push("systems");
+broadSystemsProfile.facts.supportedSkills.push("systems");
+const gisAnalysis = R.analyzeRequiredSkills(gisDomain, broadSystemsProfile);
+assert.equal(gisAnalysis.supported.includes("systems"), false, "generic systems evidence must not satisfy a specific GIS domain requirement");
+assert.equal(gisAnalysis.unverifiedDomainRequirements.length, 2);
+const gisReadiness = R.scoreReadiness(gisDomain, broadSystemsProfile);
+assert.equal(gisReadiness.delta, -12);
+assert.match(gisReadiness.details.join(" "), /Unverified required domain experience: Previous GIS coursework/i);
+assert.match(gisReadiness.details.join(" "), /Esri Geographic Information Systems/i);
+
+const gisProfile = JSON.parse(JSON.stringify(broadSystemsProfile));
+gisProfile.supportedKeywords.push("gis");
+gisProfile.facts.supportedSkills.push("GIS");
+const gisSupportedAnalysis = R.analyzeRequiredSkills(gisDomain, gisProfile);
+assert.deepEqual(gisSupportedAnalysis.unverifiedDomainRequirements, []);
+assert.equal(gisSupportedAnalysis.supported.includes("gis"), true);
+assert.equal(R.scoreReadiness(gisDomain, gisProfile).delta, 0);
+
+const communicationOnly = inspectedJob({ required: [
+  { statement: "Strong communication and interpersonal skills." },
+] });
+assert.deepEqual(R.analyzeRequiredSkills(communicationOnly, profile).unverifiedDomainRequirements, []);
+assert.equal(R.scoreReadiness(communicationOnly, profile).delta, 0);
+
 const preferredCPlusPlus = inspectedJob({ preferred: [
   { statement: "C++ preferred", technologies: ["C++"] },
 ] });
