@@ -137,6 +137,73 @@ class CoverageAuditTests(unittest.TestCase):
         }, jobs=[])
         self.assertEqual(result["status"], "configured_source_miss")
 
+    def test_controlled_miss_category_regression_matrix(self):
+        cases = [
+            (
+                "configured source outranks generic employer presence",
+                {
+                    "company": "The Hartford",
+                    "title": "Technology Intern",
+                    "location": "Hartford, CT",
+                    "url": "https://thehartford.wd5.myworkdayjobs.com/en-US/Careers_External/job/R123",
+                    "source": "LinkedIn",
+                },
+                [feed_job(
+                    company="The Hartford",
+                    title="Finance Rotation Program Intern",
+                    url="https://thehartford.wd5.myworkdayjobs.com/en-US/Careers_External/job/R999",
+                )],
+                ["cs"],
+                ["CT"],
+                "configured_source_miss",
+            ),
+            (
+                "known employer without configured role source",
+                {
+                    "company": "Acme Corp",
+                    "title": "Cybersecurity Intern",
+                    "location": "New Haven, CT",
+                    "url": "https://jobs.acme.com/job/99999",
+                    "source": "LinkedIn",
+                },
+                [feed_job()],
+                ["cs"],
+                ["CT"],
+                "employer_exists_but_listing_missing",
+            ),
+            (
+                "uncovered employer and source",
+                {
+                    "company": "NewCo",
+                    "title": "Software Intern",
+                    "location": "Hartford, CT",
+                    "url": "https://newco.example/jobs/555",
+                    "source": "LinkedIn Jobs",
+                },
+                [],
+                [],
+                [],
+                "source_not_covered",
+            ),
+            (
+                "present listing hidden by expected filter",
+                {
+                    "company": "Acme Corp",
+                    "title": "Software Engineering Intern",
+                    "location": "Hartford, CT",
+                    "url": "https://jobs.acme.com/job/12345?foo=bar",
+                },
+                [feed_job(profiles=["tech-business"])],
+                ["cs"],
+                ["CT"],
+                "filtered_or_misclassified",
+            ),
+        ]
+        for name, record, jobs, profiles, states, expected_status in cases:
+            with self.subTest(name=name):
+                result = self.classify(record, jobs=jobs, profiles=profiles, states=states)
+                self.assertEqual(result["status"], expected_status)
+
     def test_json_and_csv_inputs(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

@@ -339,6 +339,40 @@ def result(
     }
 
 
+def source_coverage(
+    row: dict[str, Any],
+    company: str,
+    source: str,
+    url: str,
+    catalog: dict[str, set[str]],
+) -> tuple[bool | None, str, str]:
+    """Return whether the discovery explicitly points at a configured source."""
+    source_key = norm(first(row, "source_key"))
+    source_name = norm(source)
+    discovery_hostname = host(first(row, "source_url", "discovery_url"))
+    listing_hostname = host(url)
+
+    if company and company in catalog["companies"]:
+        return True, "employer has a configured direct source", source_name
+    if source_key:
+        return source_key in catalog["keys"], f"source_key={source_key}", source_name
+    if source_name and source_name in catalog["names"]:
+        return True, f"source={source_name}", source_name
+    if source_name and any(surface in source_name for surface in DISCOVERY_SURFACES):
+        return False, f"discovery surface '{source_name}' is not ingested", source_name
+    if discovery_hostname and discovery_hostname in catalog["hosts"]:
+        return True, f"discovery host={discovery_hostname}", source_name
+    if listing_hostname and listing_hostname in catalog["hosts"]:
+        return True, f"listing host={listing_hostname}", source_name
+
+    hostname = discovery_hostname or listing_hostname
+    if hostname and any(hint in hostname for hint in ATS_HINTS):
+        return False, f"direct ATS host '{hostname}' is not configured", source_name
+    if hostname:
+        return False, f"listing/source host '{hostname}' is not configured", source_name
+    return None, "no source metadata", source_name
+
+
 def classify(
     row: dict[str, Any],
     index: Index,
@@ -403,6 +437,7 @@ def classify(
         )
 
     company = company_key(company_display)
+    covered, why, source_name = source_coverage(row, company, source, url, catalog)
     employer_jobs = index.get(index.companies.get(company, [])) if company else []
     if employer_jobs:
         near = [
@@ -438,41 +473,16 @@ def classify(
                 match_score=round(score, 3),
                 matched_job=compact(job),
             )
-        return result(
-            base,
-            "employer_exists_but_listing_missing",
-            "high",
-            "known_employer_missing_role",
-            f"Yartchives has {len(employer_jobs)} listing(s) for this employer but not this role",
-            "Trace the role to the employer ATS and check source filters or add direct coverage.",
-            candidate_jobs=[compact(job) for job in employer_jobs[:3]],
-        )
-
-    source_key = norm(first(row, "source_key"))
-    source_name = norm(source)
-    discovery_hostname = host(first(row, "source_url", "discovery_url"))
-    listing_hostname = host(url)
-
-    if company and company in catalog["companies"]:
-        covered, why = True, "employer has a configured direct source"
-    elif source_key:
-        covered, why = source_key in catalog["keys"], f"source_key={source_key}"
-    elif source_name and source_name in catalog["names"]:
-        covered, why = True, f"source={source_name}"
-    elif source_name and any(surface in source_name for surface in DISCOVERY_SURFACES):
-        covered, why = False, f"discovery surface '{source_name}' is not ingested"
-    elif discovery_hostname and discovery_hostname in catalog["hosts"]:
-        covered, why = True, f"discovery host={discovery_hostname}"
-    elif listing_hostname and listing_hostname in catalog["hosts"]:
-        covered, why = True, f"listing host={listing_hostname}"
-    else:
-        hostname = discovery_hostname or listing_hostname
-        if hostname and any(hint in hostname for hint in ATS_HINTS):
-            covered, why = False, f"direct ATS host '{hostname}' is not configured"
-        elif hostname:
-            covered, why = False, f"listing/source host '{hostname}' is not configured"
-        else:
-            covered, why = None, "no source metadata"
+        if covered is not True:
+            return result(
+                base,
+                "employer_exists_but_listing_missing",
+                "high",
+                "known_employer_missing_role",
+                f"Yartchives has {len(employer_jobs)} listing(s) for this employer but not this role",
+                "Trace the role to the employer ATS and check source filters or add direct coverage.",
+                candidate_jobs=[compact(job) for job in employer_jobs[:3]],
+            )
 
     if covered is True:
         return result(
