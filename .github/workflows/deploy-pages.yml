@@ -11,6 +11,7 @@ on:
       - "ui.css"
       - "ux.css"
       - "apply-next.css"
+      - "apply-next-profile-setup.css"
       - "frontend-utils.js"
       - "app.js"
       - "enhancements.js"
@@ -22,6 +23,7 @@ on:
       - "apply-next-readiness.js"
       - "apply-next-competition.js"
       - "apply-next-ui.js"
+      - "apply-next-profile-setup.js"
       - "data/listings.json"
       - "data/workday-inspections.json"
       - ".nojekyll"
@@ -63,7 +65,7 @@ jobs:
         run: |
           rm -rf _site
           mkdir -p _site/data
-          cp index.html styles.css location.css ui.css ux.css apply-next.css frontend-utils.js app.js enhancements.js ui.js ux.js location-display.js share.js apply-next.js apply-next-readiness.js apply-next-competition.js apply-next-ui.js .nojekyll _site/
+          cp index.html styles.css location.css ui.css ux.css apply-next.css apply-next-profile-setup.css frontend-utils.js app.js enhancements.js ui.js ux.js location-display.js share.js apply-next.js apply-next-readiness.js apply-next-competition.js apply-next-ui.js apply-next-profile-setup.js .nojekyll _site/
           cp data/listings.json _site/data/listings.json
           cp data/workday-inspections.json _site/data/workday-inspections.json
           VERSION="$(git rev-parse --short=12 HEAD)"
@@ -72,6 +74,7 @@ jobs:
           sed -i "s|href=\"ui.css\"|href=\"ui.css?v=${VERSION}\"|" _site/index.html
           sed -i "s|href=\"ux.css\"|href=\"ux.css?v=${VERSION}\"|" _site/index.html
           sed -i "s|href=\"apply-next.css\"|href=\"apply-next.css?v=${VERSION}\"|" _site/index.html
+          sed -i "s|href=\"apply-next-profile-setup.css\"|href=\"apply-next-profile-setup.css?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"frontend-utils.js\"|src=\"frontend-utils.js?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"app.js\"|src=\"app.js?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"enhancements.js\"|src=\"enhancements.js?v=${VERSION}\"|" _site/index.html
@@ -83,6 +86,7 @@ jobs:
           sed -i "s|src=\"apply-next-readiness.js\"|src=\"apply-next-readiness.js?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"apply-next-competition.js\"|src=\"apply-next-competition.js?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"apply-next-ui.js\"|src=\"apply-next-ui.js?v=${VERSION}\"|" _site/index.html
+          sed -i "s|src=\"apply-next-profile-setup.js\"|src=\"apply-next-profile-setup.js?v=${VERSION}\"|" _site/index.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
