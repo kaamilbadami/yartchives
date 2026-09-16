@@ -4,7 +4,7 @@
 The broad GitHub internship feeds are useful for discovery, but Connecticut
 coverage can be sparse or delayed. This pass queries selected employer career
 systems directly, keeps student opportunities in Connecticut that match
-CS/technology searches, and merges them into the normalized feed. Direct
+CS/technology titles, and merges them into the normalized feed. Direct
 employer URLs are preferred over aggregator links.
 """
 
@@ -37,6 +37,29 @@ TIMEOUT = 25
 WORKDAY_PAGE_SIZE = 20
 MAX_RESULTS_PER_QUERY = 500
 
+# Workday search is fuzzy: a query such as "intern software" can return any
+# internship at the employer. Require the title itself to carry a strong CS / IT
+# signal before assigning the CS profile. This intentionally favors precision;
+# source-specific patterns can be added when a legitimate title uses unusual
+# wording.
+CS_TITLE_PATTERNS = (
+    r"\bsoftware\b",
+    r"\bcomputer\s+(?:science|engineering)\b",
+    r"\bcyber(?:security|\s+security)?\b",
+    r"\binformation\s+(?:technology|security)\b",
+    r"\bdata\s+(?:engineer(?:ing)?|science|scientist|analytics?)\b",
+    r"\bmachine\s+learning\b",
+    r"\bartificial\s+intelligence\b",
+    r"\bfirmware\b",
+    r"\bembedded\b",
+    r"\b(?:full[- ]?stack|front[- ]?end|back[- ]?end)\b",
+    r"\b(?:database|sql)\b",
+    r"\b(?:network|networking)\b",
+    r"\b(?:cloud|devops|site reliability)\b",
+    r"\b(?:application|web)\s+develop(?:er|ment)\b",
+    r"\bprogrammer\b",
+)
+
 
 def now_utc() -> datetime:
     return datetime.now(timezone.utc)
@@ -68,6 +91,27 @@ def normalize_posted(raw: str | None) -> str:
 
 def is_student_opportunity(title: str) -> bool:
     return bool(re.search(r"\b(intern(?:ship)?|co[- ]?op|student)\b", title or "", flags=re.I))
+
+
+def is_cs_relevant_title(title: str, source: dict[str, Any] | None = None) -> bool:
+    text = bf.clean_text(title)
+    if not text:
+        return False
+
+    # "IT" is useful as an acronym but case-insensitive matching would also match
+    # the ordinary word "it". Match the uppercase acronym separately.
+    if re.search(r"\bIT\b", text):
+        return True
+    if any(re.search(pattern, text, flags=re.I) for pattern in CS_TITLE_PATTERNS):
+        return True
+
+    # Some employers use stable internal program names that do not contain a
+    # generic CS keyword. Keep those exceptions explicit in direct_sources.json.
+    if source:
+        for pattern in source.get("title_allow_patterns", []):
+            if re.search(pattern, text, flags=re.I):
+                return True
+    return False
 
 
 def is_target_state(location: str, state: str) -> bool:
@@ -126,6 +170,8 @@ def fetch_workday_source(
                 if dedupe_key in seen_paths:
                     continue
                 if not is_student_opportunity(title):
+                    continue
+                if not is_cs_relevant_title(title, source):
                     continue
                 if not is_target_state(location, state):
                     continue
