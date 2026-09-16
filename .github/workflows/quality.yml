@@ -12,6 +12,7 @@ on:
       - "enhancements.js"
       - "ui.js"
       - "ux.js"
+      - "location-display.js"
       - "share.js"
       - "index.html"
       - "styles.css"
@@ -61,8 +62,10 @@ jobs:
           node --check enhancements.js
           node --check ui.js
           node --check ux.js
+          node --check location-display.js
           node --check share.js
           node tests/frontend-utils.test.cjs
+          node tests/location-display.test.cjs
 
       - name: Validate checked-in feed
         run: |
