@@ -50,7 +50,7 @@
         <div id="profileChips" class="chips"></div>
       </div>
 
-      <div class="filter-grid">
+      <div class="filter-grid primary-filter-grid">
         <label class="field search-field">
           <span>Search</span>
           <input id="searchInput" type="search" placeholder="company, role, skill..." autocomplete="off" />
@@ -59,63 +59,69 @@
           <span>Location / ZIP</span>
           <input id="locationInput" type="text" placeholder="CT, Boston, or 06897..." autocomplete="off" inputmode="text" />
         </label>
-        <label class="field radius-field">
-          <span>Within miles</span>
-          <input id="radiusInput" type="number" min="5" max="500" step="5" value="50" inputmode="numeric" disabled />
-        </label>
-        <label class="field">
-          <span>Student level</span>
-          <select id="educationSelect">
-            <option value="undergrad-friendly" selected>Undergrad-friendly</option>
-            <option value="explicit-undergrad">Explicit undergrad only</option>
-            <option value="all">All levels</option>
-            <option value="graduate-only">Graduate-only</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Opportunity type</span>
-          <select id="opportunityTypeSelect">
-            <option value="internships" selected>Internships + co-ops</option>
-            <option value="all">All opportunities</option>
-            <option value="internship">Internships only</option>
-            <option value="co-op">Co-ops only</option>
-            <option value="fellowship">Fellowships</option>
-            <option value="research">Research</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Freshness</span>
-          <select id="freshnessSelect">
-            <option value="all">Any age</option>
-            <option value="1">Past 24 hours</option>
-            <option value="3">Past 3 days</option>
-            <option value="7" selected>Past 7 days</option>
-            <option value="30">Past 30 days</option>
-          </select>
-        </label>
-        <label class="field">
-          <span>Status</span>
-          <select id="statusSelect">
-            <option value="all">All</option>
-            <option value="saved">Saved</option>
-            <option value="applied">Applied</option>
-          </select>
-        </label>
       </div>
 
-      <div class="quick-locations" aria-label="Quick locations">
-        <button type="button" data-location="">Anywhere</button>
-        <button type="button" data-location="CT" title="Priority location">CT ★</button>
-        <button type="button" data-location="06897" title="Wilton, Connecticut">Wilton · 06897</button>
-        <button type="button" data-location="20740" title="College Park, Maryland">College Park · 20740</button>
-        <button type="button" data-location="Remote">Remote</button>
-        <button type="button" data-location="MD">MD</button>
-        <button type="button" data-location="DC">DC</button>
-        <button type="button" data-location="VA">VA</button>
-        <button type="button" data-location="NY">NY</button>
-        <button type="button" data-location="NJ">NJ</button>
-        <button type="button" data-location="MA">MA</button>
-      </div>
+      <details class="more-filters">
+        <summary>More filters</summary>
+        <div class="filter-grid advanced-filter-grid">
+          <label class="field radius-field">
+            <span>Within miles</span>
+            <input id="radiusInput" type="number" min="5" max="500" step="5" value="50" inputmode="numeric" disabled />
+          </label>
+          <label class="field">
+            <span>Student level</span>
+            <select id="educationSelect">
+              <option value="undergrad-friendly" selected>Undergrad-friendly</option>
+              <option value="explicit-undergrad">Explicit undergrad only</option>
+              <option value="all">All levels</option>
+              <option value="graduate-only">Graduate-only</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Opportunity type</span>
+            <select id="opportunityTypeSelect">
+              <option value="internships" selected>Internships + co-ops</option>
+              <option value="all">All opportunities</option>
+              <option value="internship">Internships only</option>
+              <option value="co-op">Co-ops only</option>
+              <option value="fellowship">Fellowships</option>
+              <option value="research">Research</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Freshness</span>
+            <select id="freshnessSelect">
+              <option value="all">Any age</option>
+              <option value="1">Past 24 hours</option>
+              <option value="3">Past 3 days</option>
+              <option value="7" selected>Past 7 days</option>
+              <option value="30">Past 30 days</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Status</span>
+            <select id="statusSelect">
+              <option value="all">All</option>
+              <option value="saved">Saved</option>
+              <option value="applied">Applied</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="quick-locations" aria-label="Quick locations">
+          <button type="button" data-location="">Anywhere</button>
+          <button type="button" data-location="CT" title="Priority location">CT ★</button>
+          <button type="button" data-location="06897" title="Wilton, Connecticut">Wilton · 06897</button>
+          <button type="button" data-location="20740" title="College Park, Maryland">College Park · 20740</button>
+          <button type="button" data-location="Remote">Remote</button>
+          <button type="button" data-location="MD">MD</button>
+          <button type="button" data-location="DC">DC</button>
+          <button type="button" data-location="VA">VA</button>
+          <button type="button" data-location="NY">NY</button>
+          <button type="button" data-location="NJ">NJ</button>
+          <button type="button" data-location="MA">MA</button>
+        </div>
+      </details>
     </section>
 
     <section class="results-header">

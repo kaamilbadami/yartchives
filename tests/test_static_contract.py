@@ -24,6 +24,19 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("06897", values)
         self.assertIn("20740", values)
 
+    def test_primary_filters_are_prominent_and_secondary_filters_are_disclosed(self):
+        soup = BeautifulSoup((ROOT / "index.html").read_text(encoding="utf-8"), "html.parser")
+        primary = soup.select_one(".primary-filter-grid")
+        more = soup.select_one("details.more-filters")
+        self.assertIsNotNone(primary)
+        self.assertIsNotNone(more)
+        self.assertEqual(more.summary.get_text(strip=True), "More filters")
+        self.assertIsNotNone(primary.select_one("#searchInput"))
+        self.assertIsNotNone(primary.select_one("#locationInput"))
+        for control_id in ["radiusInput", "educationSelect", "opportunityTypeSelect", "freshnessSelect", "statusSelect"]:
+            self.assertIsNotNone(more.select_one(f"#{control_id}"))
+        self.assertIsNotNone(more.select_one(".quick-locations"))
+
     def test_frontend_script_order(self):
         soup = BeautifulSoup((ROOT / "index.html").read_text(encoding="utf-8"), "html.parser")
         scripts = [tag.get("src") for tag in soup.find_all("script") if tag.get("src")]

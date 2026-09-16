@@ -195,6 +195,20 @@ h1 {
 .quick-locations { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
 .quick-locations button { padding-block: 5px; font-size: .8rem; }
 
+.more-filters {
+  margin-top: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.more-filters summary {
+  cursor: pointer;
+  color: #b8c5d7;
+  font-size: .88rem;
+  font-weight: 700;
+  user-select: none;
+}
+.more-filters[open] summary { margin-bottom: 12px; }
+
 .results-header {
   display: flex;
   justify-content: space-between;

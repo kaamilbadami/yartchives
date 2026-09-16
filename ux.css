@@ -8,6 +8,12 @@
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 12px;
 }
+.primary-filter-grid {
+  grid-template-columns: minmax(0, 2fr) minmax(180px, 1fr);
+}
+.advanced-filter-grid {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
 .field,
 .field select,
 .field input {
@@ -125,6 +131,7 @@
 @media (max-width: 900px) {
   .stats { grid-template-columns: repeat(2, 1fr); }
   .filter-grid { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  .primary-filter-grid { grid-template-columns: 1fr 1fr; }
   .job-actions {
     width: 100%;
     min-width: 0;
