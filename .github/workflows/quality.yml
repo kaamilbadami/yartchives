@@ -121,4 +121,4 @@ jobs:
           python scripts/source_links.py data/listings.json
           python scripts/reconcile_workday_duplicates.py data/listings.json
           python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8 --strict-sources
-          python scripts/audit_feed.py
+          python scripts/audit_feed.py data/listings.json
