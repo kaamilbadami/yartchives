@@ -84,6 +84,16 @@ RESET_HEADING = re.compile(
     re.I,
 )
 
+# ATS descriptions commonly contain typographic apostrophes even when the same
+# headings are authored with ASCII punctuation elsewhere. Normalize only the
+# heading candidate so evidence statements retain the employer's original text.
+HEADING_APOSTROPHE_TRANSLATION = str.maketrans({
+    "’": "'",
+    "‘": "'",
+    "ʼ": "'",
+    "＇": "'",
+})
+
 
 def clean_line(value: str | None) -> str:
     return re.sub(r"\s+", " ", value or "").strip(" \t\r\n\u200b")
@@ -108,7 +118,7 @@ def normalize_description(raw_html: str | None) -> tuple[str, list[str]]:
 
 
 def _heading_level(line: str) -> tuple[bool, str | None]:
-    candidate = line.rstrip(":").strip()
+    candidate = line.rstrip(":").strip().translate(HEADING_APOSTROPHE_TRANSLATION)
     if not candidate or len(candidate) > 100 or len(candidate.split()) > 14:
         return False, None
     if PREFERRED_HEADING.search(candidate):
