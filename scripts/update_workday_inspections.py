@@ -557,7 +557,7 @@ def refresh_cache(
     entries = {key: value for key, value in out["entries"].items() if key in by_url}
     entries = {
         key: renormalize_cached_requirements(value)
-        if provider_for_url(key) in {"icims", "greenhouse"}
+        if provider_for_url(key) in PROVIDERS
         else value
         for key, value in entries.items()
     }

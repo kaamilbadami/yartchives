@@ -31,6 +31,12 @@ TECHNOLOGIES: tuple[tuple[str, str], ...] = (
     ("Linux", r"\bLinux\b"),
     ("Microsoft Office", r"\b(?:Microsoft|MS) Office\b"),
     ("Excel", r"\bExcel\b"),
+    ("Tableau", r"\bTableau\b"),
+    ("Power BI", r"\bPower\s*BI\b"),
+    ("Oracle", r"\bOracle\b"),
+    ("Snowflake", r"\bSnowflake\b"),
+    ("Databricks", r"\bDatabricks\b"),
+    ("Spark", r"\b(?:Apache\s+)?Spark\b"),
     ("SolidWorks", r"\bSolidWorks\b"),
     ("CAD", r"\bCAD\b"),
     ("MATLAB", r"\bMATLAB\b"),
@@ -54,7 +60,9 @@ REQUIREMENT_FIELDS = (
 REQUIRED_HEADING = re.compile(
     r"\b(?:qualifications? (?:you )?must have|required qualifications?|"
     r"minimum qualifications?|basic qualifications?|what (?:is )?a must have|"
-    r"requirements?)\b",
+    r"requirements?|what (?:we(?:'re| are)|we) (?:are )?looking for|"
+    r"who (?:we(?:'re| are)|we) (?:are )?looking for|"
+    r"what you(?:'ll| will) need|what we seek)\b",
     re.I,
 )
 PREFERRED_HEADING = re.compile(
@@ -69,7 +77,7 @@ UNSPECIFIED_HEADING = re.compile(
     re.I,
 )
 RESET_HEADING = re.compile(
-    r"\b(?:what you will do|responsibilities|duties|about (?:us|the role)|"
+    r"\b(?:what you(?:'ll| will) (?:do|be doing)|responsibilities|duties|about (?:us|the role)|"
     r"what we offer|benefits|compensation|salary|employment practices|"
     r"location information|who are we|job category|target openings|"
     r"what is the opportunity|what you will learn|learn more)\b",

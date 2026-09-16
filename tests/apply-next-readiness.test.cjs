@@ -58,6 +58,19 @@ const cautiousPython = inspectedJob({ required: [
 assert.equal(R.scoreReadiness(cautiousPython, profile).delta, -4);
 assert.match(R.scoreReadiness(cautiousPython, profile).details.join(" "), /cautiously supported/i);
 
+const analyticsStack = inspectedJob({ required: [
+  {
+    statement: "Foundational knowledge of Python, SQL/PLSQL, Tableau, and Oracle (coursework or project experience acceptable).",
+    technologies: ["Python", "SQL", "Tableau", "Oracle"],
+  },
+] });
+analyticsStack.title = "IT Data Analytics Intern";
+const analyticsReadiness = R.scoreReadiness(analyticsStack, profile);
+assert.equal(analyticsReadiness.label, "Major required gaps");
+assert.ok(analyticsReadiness.delta <= -20);
+assert.match(analyticsReadiness.details.join(" "), /Required gap: (oracle|sql|tableau)/i);
+assert.match(analyticsReadiness.details.join(" "), /cautiously supported: python/i);
+
 const preferredCPlusPlus = inspectedJob({ preferred: [
   { statement: "C++ preferred", technologies: ["C++"] },
 ] });
