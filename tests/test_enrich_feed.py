@@ -41,6 +41,88 @@ class EnrichFeedTests(unittest.TestCase):
         self.assertEqual(mod.classify_opportunity_type("Research Assistant Program"), "research")
         self.assertEqual(mod.classify_opportunity_type("Entry Level Analyst"), "other")
 
+    def test_source_formatting_is_removed_from_display(self):
+        self.assertEqual(mod.clean_display_text("**Avis Budget Group**"), "Avis Budget Group")
+        self.assertEqual(mod.clean_display_text("🔥 Intel"), "Intel")
+        self.assertEqual(
+            mod.extract_source_markers("🔥 Intel", "Silicon Hardware Intern 🎓"),
+            ["advanced_degree", "source_featured"],
+        )
+
+    def test_hardware_section_alone_does_not_make_role_electrical(self):
+        job = {
+            "title": "Program Management Intern",
+            "section": "Hardware Engineering",
+            "function_primary": "",
+            "source_keys": ["simplify"],
+        }
+        self.assertNotIn("electrical", mod.classify_profiles(job))
+
+    def test_actual_electrical_and_hardware_roles_are_electrical(self):
+        for title in (
+            "Electrical Engineering Intern",
+            "Hardware Engineering Co-Op",
+            "FPGA Design Intern",
+        ):
+            with self.subTest(title=title):
+                self.assertIn("electrical", mod.classify_profiles({"title": title}))
+
+    def test_embedded_software_can_be_both_cs_and_electrical(self):
+        profiles = mod.classify_profiles({"title": "Embedded Software Engineering Co-op"})
+        self.assertIn("cs", profiles)
+        self.assertIn("electrical", profiles)
+
+    def test_generic_software_test_role_is_not_mechanical(self):
+        profiles = mod.classify_profiles({"title": "Software Test Engineering Intern"})
+        self.assertIn("cs", profiles)
+        self.assertNotIn("mechanical", profiles)
+
+    def test_mechanical_test_role_is_mechanical(self):
+        profiles = mod.classify_profiles({"title": "Mechanical Test Engineering Intern"})
+        self.assertIn("mechanical", profiles)
+
+    def test_public_sector_source_does_not_force_policy(self):
+        profiles = mod.classify_profiles({
+            "title": "Software Engineering Intern",
+            "source_keys": ["public-sector"],
+        })
+        self.assertIn("cs", profiles)
+        self.assertNotIn("policy", profiles)
+
+    def test_narrow_sections_can_supply_unambiguous_context(self):
+        self.assertIn("finance-econ", mod.classify_profiles({
+            "title": "Summer Analyst",
+            "section": "Quantitative Finance",
+        }))
+        self.assertIn("tech-business", mod.classify_profiles({
+            "title": "Summer Intern",
+            "section": "Product Management",
+        }))
+
+    def test_direct_ct_source_retains_cs_after_strict_adapter(self):
+        profiles = mod.classify_profiles({
+            "title": "Digital Technology Intern",
+            "source_keys": ["ct-avangrid-workday"],
+        })
+        self.assertIn("cs", profiles)
+
+    def test_enrichment_cleans_display_and_uses_degree_marker(self):
+        doc = {
+            "jobs": [{
+                "company": "🔥 **Intel**",
+                "title": "Silicon Hardware Engineering Intern - Graduate 🎓",
+                "profiles": ["electrical", "mechanical"],
+                "source_keys": ["simplify"],
+            }]
+        }
+        self.assertTrue(mod.enrich_document(doc))
+        job = doc["jobs"][0]
+        self.assertEqual(job["company"], "Intel")
+        self.assertEqual(job["title"], "Silicon Hardware Engineering Intern - Graduate")
+        self.assertEqual(job["education_level"], "graduate-only")
+        self.assertEqual(job["profiles"], ["electrical"])
+        self.assertEqual(job["source_markers"], ["advanced_degree", "source_featured"])
+
 
 if __name__ == "__main__":
     unittest.main()
