@@ -1,0 +1,114 @@
+name: External coverage audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      sample_path:
+        description: "Audit sample path, for example audit/samples/ct-cs-2026-09-16.json"
+        required: true
+        type: string
+  push:
+    branches:
+      - main
+    paths:
+      - "audit/samples/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coverage-audit-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Select audit samples
+        id: samples
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          MANUAL_SAMPLE: ${{ inputs.sample_path }}
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/yartchives-audit
+          : > /tmp/yartchives-audit/samples.txt
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            printf '%s\n' "$MANUAL_SAMPLE" >> /tmp/yartchives-audit/samples.txt
+          else
+            git diff-tree --no-commit-id --name-only -r HEAD -- audit/samples/ \
+              | grep -E '\.(json|jsonl|ndjson|csv)$' \
+              | grep -v '\.example\.' \
+              >> /tmp/yartchives-audit/samples.txt || true
+          fi
+
+          sort -u -o /tmp/yartchives-audit/samples.txt /tmp/yartchives-audit/samples.txt
+          count=0
+          while IFS= read -r sample; do
+            [ -n "$sample" ] || continue
+            case "$sample" in
+              audit/samples/*.json|audit/samples/*.jsonl|audit/samples/*.ndjson|audit/samples/*.csv) ;;
+              *) echo "Invalid sample path: $sample" >&2; exit 1 ;;
+            esac
+            case "$sample" in
+              *..*) echo "Parent-directory paths are not allowed: $sample" >&2; exit 1 ;;
+            esac
+            if [ ! -f "$sample" ]; then
+              echo "Sample does not exist: $sample" >&2
+              exit 1
+            fi
+            count=$((count + 1))
+          done < /tmp/yartchives-audit/samples.txt
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+
+      - name: Run coverage audits
+        if: steps.samples.outputs.count != '0'
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/yartchives-audit/results
+          while IFS= read -r sample; do
+            [ -n "$sample" ] || continue
+            base="$(basename "$sample")"
+            stem="${base%.*}"
+            json_out="/tmp/yartchives-audit/results/${stem}.json"
+            md_out="/tmp/yartchives-audit/results/${stem}.md"
+
+            python scripts/coverage_audit.py "$sample" \
+              --output "$json_out" \
+              --markdown-output "$md_out"
+
+            {
+              echo ""
+              echo "---"
+              echo ""
+              cat "$md_out"
+            } >> "$GITHUB_STEP_SUMMARY"
+          done < /tmp/yartchives-audit/samples.txt
+
+      - name: Explain empty audit
+        if: steps.samples.outputs.count == '0'
+        run: echo "No non-example audit sample changed in this commit." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload machine-readable audit results
+        if: steps.samples.outputs.count != '0'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: yartchives-coverage-audit-${{ github.run_id }}
+          path: /tmp/yartchives-audit/results/
+          if-no-files-found: error
+          retention-days: 90

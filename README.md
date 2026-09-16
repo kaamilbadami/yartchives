@@ -40,7 +40,7 @@ Then open `http://localhost:8000`.
 
 `scripts/coverage_audit.py` compares a sample of opportunities discovered outside Yartchives against the current feed. It accepts JSON, JSONL, or CSV and produces both machine-readable results and a human-readable action queue. The first intended audit is Connecticut Computer Science coverage using LinkedIn, Handshake, employer sites, and web search as independent discovery surfaces.
 
-Those platforms are used to measure misses, not scraped into the production feed. Recurring misses should be traced to durable employer/ATS sources. See `audit/README.md` for the input format, status definitions, and CT CS command.
+Those platforms are used to measure misses, not scraped into the production feed. Recurring misses should be traced to durable employer/ATS sources. A dedicated **External coverage audit** GitHub Action can run a dated sample and publish the report in the Actions summary, so the audit does not require a local terminal. See `audit/README.md` for the sample format and workflow.
 
 ## Automatic refreshes
 
