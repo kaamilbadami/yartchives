@@ -22,7 +22,7 @@ permissions:
 
 concurrency:
   group: update-opportunity-feed
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   build:
