@@ -87,6 +87,9 @@ class WorkdayInspectorTests(unittest.TestCase):
         requirements = normalized["requirements"]
 
         self.assertEqual(posting["requisition_id"], "REQ-10001")
+        self.assertIs(posting["can_apply"], True)
+        self.assertIs(posting["posted"], True)
+        self.assertEqual(posting["application_status"], "available")
         self.assertEqual(posting["locations"]["status"], "authoritative")
         self.assertEqual(
             posting["locations"]["values"],
@@ -107,6 +110,10 @@ class WorkdayInspectorTests(unittest.TestCase):
         self.assertEqual(requirements["graduation"]["classification"], "unknown")
 
         self.assertEqual(requirements["skills"]["classification"], "mixed")
+        self.assertEqual(
+            requirements["skills"]["required"][0]["requirement_state"], "required"
+        )
+        self.assertIs(requirements["skills"]["required"][0]["negated"], False)
         self.assertEqual(
             requirements["skills"]["required"][0]["technologies"], ["C", "Python"]
         )
@@ -141,7 +148,7 @@ class WorkdayInspectorTests(unittest.TestCase):
                 for fact in requirements["other_eligibility"]["preferred"])
         )
 
-    def test_success_records_status_confidence_and_provenance(self):
+    def test_success_records_status_retrieval_confidence_and_provenance(self):
         session = FakeSession(FakeResponse(fixture("software_intern.json")))
         url = (
             "https://aerospace.wd5.myworkdayjobs.com/en-US/External_Careers/"
@@ -150,7 +157,8 @@ class WorkdayInspectorTests(unittest.TestCase):
         result = mod.inspect_workday_url(url, session=session, now=fixed_now)
 
         self.assertEqual(result["status"], "inspected")
-        self.assertEqual(result["confidence"], "high")
+        self.assertEqual(result["retrieval_confidence"], "high")
+        self.assertNotIn("confidence", result)
         self.assertIsNone(result["error"])
         self.assertEqual(result["provenance"]["interface"], "workday_cxs_json")
         self.assertEqual(result["provenance"]["tenant"], "aerospace")
@@ -158,6 +166,44 @@ class WorkdayInspectorTests(unittest.TestCase):
         self.assertEqual(result["provenance"]["inspected_at"], "2026-09-16T16:30:00Z")
         self.assertEqual(len(session.calls), 1)
         self.assertEqual(session.calls[0]["timeout"], mod.TIMEOUT)
+
+    def test_retrievable_inactive_posting_preserves_workday_availability(self):
+        payload = fixture("software_intern.json")
+        payload["jobPostingInfo"]["canApply"] = False
+        payload["jobPostingInfo"]["posted"] = False
+        result = mod.inspect_workday_url(
+            "https://aerospace.wd5.myworkdayjobs.com/External_Careers/"
+            "job/Connecticut/Software-Engineering-Intern_REQ-10001",
+            session=FakeSession(FakeResponse(payload)),
+            now=fixed_now,
+        )
+
+        self.assertEqual(result["status"], "inspected")
+        self.assertEqual(result["retrieval_confidence"], "high")
+        self.assertIs(result["posting"]["can_apply"], False)
+        self.assertIs(result["posting"]["posted"], False)
+        self.assertEqual(result["posting"]["application_status"], "unavailable")
+
+    def test_negated_citizenship_and_sponsorship_are_not_required_evidence(self):
+        requirements = mod.extract_requirements([
+            "Required Qualifications:",
+            "U.S. citizenship is not required.",
+            "Visa sponsorship is not required.",
+        ])
+
+        citizenship = requirements["citizenship"]
+        self.assertEqual(citizenship["classification"], "not_required")
+        self.assertEqual(citizenship["required"], [])
+        self.assertEqual(citizenship["not_required"][0]["requirement_state"], "not_required")
+        self.assertIs(citizenship["not_required"][0]["negated"], True)
+
+        authorization = requirements["work_authorization"]
+        self.assertEqual(authorization["classification"], "not_required")
+        self.assertEqual(authorization["required"], [])
+        self.assertEqual(
+            authorization["not_required"][0]["requirement_state"], "not_required"
+        )
+        self.assertIs(authorization["not_required"][0]["negated"], True)
 
     def test_unavailable_or_changed_response_does_not_destroy_base_listing(self):
         base = {
@@ -199,14 +245,14 @@ class WorkdayInspectorTests(unittest.TestCase):
             now=fixed_now,
         )
         self.assertEqual(network["status"], "failed")
-        self.assertEqual(network["confidence"], "none")
+        self.assertEqual(network["retrieval_confidence"], "none")
         self.assertIn("Timeout", network["error"])
 
         unsupported = mod.inspect_workday_url(
             "https://jobs.example.com/job/1", session=FakeSession(), now=fixed_now
         )
         self.assertEqual(unsupported["status"], "unsupported_url")
-        self.assertEqual(unsupported["confidence"], "none")
+        self.assertEqual(unsupported["retrieval_confidence"], "none")
         self.assertEqual(unsupported["provenance"]["interface"], "workday_cxs_json")
 
 

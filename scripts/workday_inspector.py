@@ -184,8 +184,16 @@ def _heading_level(line: str) -> tuple[bool, str | None]:
 
 def _explicit_level(statement: str, section_level: str | None) -> str | None:
     lower = statement.lower()
-    if re.search(r"\b(?:not|required is not|no .* required)\b", lower) and "not required" in lower:
-        return section_level
+    # Polarity overrides section headings. For example, a statement under
+    # "Required Qualifications" that says citizenship is not required must not
+    # become positive required evidence merely because of its section.
+    if re.search(
+        r"\bnot required\b|\bisn['’]?t required\b|"
+        r"\b(?:do|does|did|will) not require\b|"
+        r"\bno\b[^,.;:]{0,60}\brequired\b",
+        lower,
+    ):
+        return "not_required"
     if re.search(
         r"\b(?:must|requires?|required to|required qualification|minimum of|at least|"
         r"must be authorized|does not sponsor|will not sponsor|unable to sponsor)\b",
@@ -223,11 +231,16 @@ def _empty_field() -> dict[str, Any]:
         "required": [],
         "preferred": [],
         "unspecified": [],
+        "not_required": [],
     }
 
 
 def _finalize_field(field: dict[str, Any]) -> None:
-    present = [level for level in ("required", "preferred", "unspecified") if field[level]]
+    present = [
+        level
+        for level in ("required", "preferred", "unspecified", "not_required")
+        if field[level]
+    ]
     if not present:
         field["classification"] = "unknown"
     elif len(present) == 1:
@@ -237,8 +250,12 @@ def _finalize_field(field: dict[str, Any]) -> None:
 
 
 def _add(field: dict[str, Any], level: str | None, statement: str, **extra: Any) -> None:
-    bucket = level if level in {"required", "preferred"} else "unspecified"
-    fact: dict[str, Any] = {"statement": statement}
+    bucket = level if level in {"required", "preferred", "not_required"} else "unspecified"
+    fact: dict[str, Any] = {
+        "statement": statement,
+        "requirement_state": bucket,
+        "negated": bucket == "not_required",
+    }
     fact.update({key: value for key, value in extra.items() if value})
     if fact not in field[bucket]:
         field[bucket].append(fact)
@@ -366,6 +383,14 @@ def normalize_payload(payload: Any) -> dict[str, Any]:
     description, lines = normalize_description(info.get("jobDescription"))
     requisition_id = clean_line(info.get("jobReqId")) or None
     posting_id = clean_line(info.get("jobPostingId")) or None
+    can_apply = info.get("canApply") if isinstance(info.get("canApply"), bool) else None
+    posted = info.get("posted") if isinstance(info.get("posted"), bool) else None
+    if can_apply is False or posted is False:
+        application_status = "unavailable"
+    elif can_apply is True and posted is True:
+        application_status = "available"
+    else:
+        application_status = "unknown"
     return {
         "posting": {
             "title": clean_line(info.get("title")) or None,
@@ -373,6 +398,9 @@ def normalize_payload(payload: Any) -> dict[str, Any]:
             "requisition_id": requisition_id,
             "posting_id": posting_id,
             "locations": extract_locations(info),
+            "can_apply": can_apply,
+            "posted": posted,
+            "application_status": application_status,
         },
         "requirements": extract_requirements(lines),
     }
@@ -381,7 +409,7 @@ def normalize_payload(payload: Any) -> dict[str, Any]:
 def _base_result(job_url: str, inspected_at: datetime) -> dict[str, Any]:
     return {
         "status": "failed",
-        "confidence": "none",
+        "retrieval_confidence": "none",
         "error": None,
         "posting": None,
         "requirements": {key: _empty_field() for key in REQUIREMENT_FIELDS},
@@ -443,7 +471,11 @@ def inspect_workday_url(
 
     result.update(normalized)
     result["status"] = "inspected"
-    result["confidence"] = "high" if normalized["posting"].get("description") else "medium"
+    # This describes CXS retrieval completeness only. It is deliberately not a
+    # semantic confidence score for the deterministic requirement extraction.
+    result["retrieval_confidence"] = (
+        "high" if normalized["posting"].get("description") else "medium"
+    )
     result["error"] = None
     return result
 

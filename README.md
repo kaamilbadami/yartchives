@@ -49,11 +49,15 @@ python scripts/workday_inspector.py \
 
 Structured Workday fields supply the posting text, requisition ID, and
 locations. Requirement facts retain the posting's normalized wording and are
-separated into `required`, `preferred`, and `unspecified` evidence. A field with
-no explicit evidence has `classification: "unknown"`; absence is never treated
-as eligibility. Retrieval and response-shape failures are returned as structured
-inspection statuses. `inspect_listing()` attaches that result to a copy of a
-base listing, so a failed inspection does not replace or remove discovery data.
+separated into `required`, `preferred`, `unspecified`, and `not_required`
+evidence with explicit polarity. A field with no explicit evidence has
+`classification: "unknown"`; absence is never treated as eligibility. Structured
+`can_apply` and `posted` values preserve Workday availability even when a posting
+is still retrievable. Top-level `retrieval_confidence` describes response
+completeness, not semantic-extraction certainty. Retrieval and response-shape
+failures are returned as structured inspection statuses. `inspect_listing()`
+attaches that result to a copy of a base listing, so a failed inspection does not
+replace or remove discovery data.
 
 The inspector is intentionally not part of the scoring formula or frontend. It
 is the retrieval/normalization boundary for a later Apply Next integration.
