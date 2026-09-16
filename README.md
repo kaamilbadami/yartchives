@@ -36,6 +36,28 @@ python -m http.server 8000
 
 Then open `http://localhost:8000`.
 
+## Workday posting inspection
+
+`scripts/workday_inspector.py` retrieves one authoritative public Workday job
+URL through Workday's public CXS JSON detail interface and emits conservative,
+evidence-backed structured facts:
+
+```bash
+python scripts/workday_inspector.py \
+  "https://tenant.wd5.myworkdayjobs.com/en-US/Careers/job/Location/Role_REQ-123"
+```
+
+Structured Workday fields supply the posting text, requisition ID, and
+locations. Requirement facts retain the posting's normalized wording and are
+separated into `required`, `preferred`, and `unspecified` evidence. A field with
+no explicit evidence has `classification: "unknown"`; absence is never treated
+as eligibility. Retrieval and response-shape failures are returned as structured
+inspection statuses. `inspect_listing()` attaches that result to a copy of a
+base listing, so a failed inspection does not replace or remove discovery data.
+
+The inspector is intentionally not part of the scoring formula or frontend. It
+is the retrieval/normalization boundary for a later Apply Next integration.
+
 ## Coverage audits
 
 `scripts/coverage_audit.py` compares a sample of opportunities discovered outside Yartchives against the current feed. It accepts JSON, JSONL, or CSV and produces both machine-readable results and a human-readable action queue. The first intended audit is Connecticut Computer Science coverage using LinkedIn, Handshake, employer sites, and web search as independent discovery surfaces.

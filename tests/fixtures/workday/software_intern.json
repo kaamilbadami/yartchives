@@ -1,0 +1,34 @@
+{
+  "jobPostingInfo": {
+    "id": "aaaaaaaa11111111bbbbbbbb22222222",
+    "title": "Software Engineering Intern (Summer 2027)",
+    "location": "US-CT-WINDSOR LOCKS",
+    "postedOn": "Posted Today",
+    "startDate": "2026-09-16",
+    "timeType": "Full time",
+    "jobReqId": "REQ-10001",
+    "jobPostingId": "Software-Engineering-Intern_REQ-10001",
+    "jobPostingSiteId": "External_Careers",
+    "country": {
+      "descriptor": "United States of America",
+      "id": "country-us"
+    },
+    "canApply": true,
+    "posted": true,
+    "jobRequisitionLocation": {
+      "descriptor": "Windsor Locks, Connecticut",
+      "country": {
+        "descriptor": "United States of America",
+        "alpha2Code": "US"
+      }
+    },
+    "externalUrl": "https://aerospace.wd5.myworkdayjobs.com/External_Careers/job/Connecticut/Software-Engineering-Intern_REQ-10001",
+    "jobDescription": "<p><b>U.S. Person Status:</b></p><p>This job requires a U.S. Person. U.S. citizens, U.S. permanent residents, refugees, and asylees are considered U.S. persons.</p><p><b>What You Will Do:</b></p><ul><li>Develop and test flight-control software.</li></ul><p><b>Qualifications You Must Have:</b></p><ul><li>Must be pursuing a Bachelor’s or Advanced degree in Computer Science, Software Engineering, or a related field and actively enrolled through completion of the internship.</li><li>Must have a minimum of 90 credit hours by the start of the internship.</li><li>Experience using C and Python.</li></ul><p><b>Qualifications We Prefer:</b></p><ul><li>Experience using Git.</li><li>Strong communication skills.</li></ul>"
+  },
+  "hiringOrganization": {
+    "name": "Aerospace Systems",
+    "url": ""
+  },
+  "similarJobs": [],
+  "userAuthenticated": false
+}
