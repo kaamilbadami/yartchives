@@ -19,6 +19,23 @@
   }
 
   const originalScoreJob = base.scoreJob;
+  const GENERIC_REQUIREMENT_MATCH_TERMS = new Set([
+    "software",
+    "system",
+    "systems",
+    "data",
+    "it",
+    "technology",
+    "technologies",
+    "engineering",
+    "engineer",
+    "analysis",
+    "analytics",
+    "programming",
+    "development",
+    "computer",
+    "technical",
+  ]);
 
   function normalize(value) {
     if (typeof base.normalize === "function") return base.normalize(value);
@@ -89,6 +106,16 @@
     ].filter(Boolean).join(" "));
   }
 
+  function isDomainRequirementStatement(statement) {
+    const text = normalize(statement);
+    if (!text) return false;
+    const domainEvidence = /\b(?:experience|knowledge|familiarity|familiar|proficiency|proficient|expertise|coursework|background)\b/.test(text);
+    if (!domainEvidence) return false;
+    const softSkillOnly = /\b(?:communication|interpersonal|organizational|collaboration|teamwork|time management)\b/.test(text)
+      && !/\b(?:technical|domain|industry|tool|platform|product|language|framework|database|gis|cad|laboratory|lab)\b/.test(text);
+    return !softSkillOnly;
+  }
+
   function analyzeRequiredSkills(job, profile) {
     const inspection = inspectionForJob(job);
     const skills = requirementField(inspection, "skills");
@@ -98,18 +125,25 @@
     const cautious = new Set();
     const unsupported = new Set();
     const preferredSupported = new Set();
+    const unverifiedDomainRequirements = new Set();
 
     function classifyFact(fact, bucket) {
       const technologies = Array.isArray(fact?.technologies)
         ? fact.technologies.map(canonicalSkill).filter(Boolean)
         : [];
       const statement = normalize(fact?.statement);
+      const domainRequirement = bucket === "required"
+        && !technologies.length
+        && isDomainRequirementStatement(statement);
       let candidates = technologies;
       if (!candidates.length) {
         candidates = [...new Set([
           ...supportedProfile.filter(skill => exactContains(statement, skill)),
           ...cautiousProfile.filter(skill => exactContains(statement, skill)),
         ])];
+        if (domainRequirement) {
+          candidates = candidates.filter(skill => !GENERIC_REQUIREMENT_MATCH_TERMS.has(skill));
+        }
       }
       for (const skill of candidates) {
         if (supportedProfile.includes(skill)) {
@@ -121,6 +155,9 @@
           unsupported.add(skill);
         }
       }
+      if (domainRequirement && !candidates.length && fact?.statement) {
+        unverifiedDomainRequirements.add(String(fact.statement).trim());
+      }
     }
 
     for (const fact of evidenceFacts(skills, "required")) classifyFact(fact, "required");
@@ -131,6 +168,7 @@
       cautious: [...cautious].sort(),
       unsupported: [...unsupported].sort(),
       preferredSupported: [...preferredSupported].sort(),
+      unverifiedDomainRequirements: [...unverifiedDomainRequirements],
     };
   }
 
@@ -166,6 +204,9 @@
     }
     if (skillAnalysis.unsupported.length) {
       reasons.push(`Required posting skills not supported by profile: ${skillAnalysis.unsupported.slice(0, 4).join(", ")}`);
+    }
+    if (skillAnalysis.unverifiedDomainRequirements.length) {
+      reasons.push(`Required domain experience not verified: ${skillAnalysis.unverifiedDomainRequirements.length} requirement${skillAnalysis.unverifiedDomainRequirements.length === 1 ? "" : "s"}`);
     }
 
     if (!reasons.length) reasons.push("No strong evidence match visible in current feed fields");
@@ -280,6 +321,11 @@
     const cautiousPenalty = Math.min(8, skills.cautious.length * 4);
     for (const skill of skills.cautious) details.push(`Required skill only cautiously supported: ${skill}`);
 
+    const domainPenalty = Math.min(12, skills.unverifiedDomainRequirements.length * 6);
+    for (const statement of skills.unverifiedDomainRequirements) {
+      details.push(`Unverified required domain experience: ${statement}`);
+    }
+
     const auth = authorizationGate(job, profile);
     if (auth.excluded) {
       return { delta: 0, excluded: true, label: "Known requirement conflict", details: auth.details };
@@ -291,7 +337,7 @@
 
     details.push(...auth.details, ...clearance.details);
     const unverifiedPenalty = Math.min(10, auth.penalty + clearance.penalty);
-    const totalPenalty = Math.min(30, skillPenalty + cautiousPenalty + unverifiedPenalty);
+    const totalPenalty = Math.min(30, skillPenalty + cautiousPenalty + domainPenalty + unverifiedPenalty);
     const label = totalPenalty >= 16 || skills.unsupported.length >= 2
       ? "Major required gaps"
       : (totalPenalty > 0 ? "Some required gaps" : "Ready on known requirements");
@@ -363,6 +409,7 @@
   return {
     canonicalSkill,
     exactContains,
+    isDomainRequirementStatement,
     analyzeRequiredSkills,
     scoreFit,
     authorizationGate,
