@@ -10,12 +10,15 @@ on:
       - "location.css"
       - "ui.css"
       - "ux.css"
+      - "apply-next.css"
       - "frontend-utils.js"
       - "app.js"
       - "enhancements.js"
       - "ui.js"
       - "ux.js"
       - "share.js"
+      - "apply-next.js"
+      - "apply-next-ui.js"
       - "data/listings.json"
       - ".nojekyll"
       - ".github/workflows/deploy-pages.yml"
@@ -56,19 +59,22 @@ jobs:
         run: |
           rm -rf _site
           mkdir -p _site/data
-          cp index.html styles.css location.css ui.css ux.css frontend-utils.js app.js enhancements.js ui.js ux.js share.js .nojekyll _site/
+          cp index.html styles.css location.css ui.css ux.css apply-next.css frontend-utils.js app.js enhancements.js ui.js ux.js share.js apply-next.js apply-next-ui.js .nojekyll _site/
           cp data/listings.json _site/data/listings.json
           VERSION="$(git rev-parse --short=12 HEAD)"
           sed -i "s|href=\"styles.css\"|href=\"styles.css?v=${VERSION}\"|" _site/index.html
           sed -i "s|href=\"location.css\"|href=\"location.css?v=${VERSION}\"|" _site/index.html
           sed -i "s|href=\"ui.css\"|href=\"ui.css?v=${VERSION}\"|" _site/index.html
           sed -i "s|href=\"ux.css\"|href=\"ux.css?v=${VERSION}\"|" _site/index.html
+          sed -i "s|href=\"apply-next.css\"|href=\"apply-next.css?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"frontend-utils.js\"|src=\"frontend-utils.js?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"app.js\"|src=\"app.js?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"enhancements.js\"|src=\"enhancements.js?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"ui.js\"|src=\"ui.js?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"ux.js\"|src=\"ux.js?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"share.js\"|src=\"share.js?v=${VERSION}\"|" _site/index.html
+          sed -i "s|src=\"apply-next.js\"|src=\"apply-next.js?v=${VERSION}\"|" _site/index.html
+          sed -i "s|src=\"apply-next-ui.js\"|src=\"apply-next-ui.js?v=${VERSION}\"|" _site/index.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
