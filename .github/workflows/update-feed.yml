@@ -36,8 +36,19 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Validate feed builder
-        run: python -m py_compile scripts/build_feed.py
+      - name: Repair markdown table separator parser
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("scripts/build_feed.py")
+          text = path.read_text(encoding="utf-8")
+          old = 're.match(r"^\\s*\\|?\\s*:?-{v3}", next_line)'
+          new = 're.match(r"^\\s*\\|?\\s*:?-{3,}", next_line)'
+          if old not in text:
+              raise SystemExit("Expected parser pattern not found")
+          path.write_text(text.replace(old, new), encoding="utf-8")
+          PY
+          python -m py_compile scripts/build_feed.py
 
       - name: Build normalized feed
         env:
@@ -45,14 +56,14 @@ jobs:
           USAJOBS_EMAIL: ${{ secrets.USAJOBS_EMAIL }}
         run: python scripts/build_feed.py
 
-      - name: Commit updated feed
+      - name: Commit parser repair and updated feed
         run: |
-          if git diff --quiet -- data/listings.json; then
+          if git diff --quiet -- scripts/build_feed.py data/listings.json; then
             echo "No feed changes."
             exit 0
           fi
           git config user.name "yartchives-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add data/listings.json
-          git commit -m "chore: refresh opportunity feed"
+          git add scripts/build_feed.py data/listings.json
+          git commit -m "fix: parse markdown opportunity tables"
           git push
