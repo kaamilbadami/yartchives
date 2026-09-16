@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests" />
+  <meta name="referrer" content="no-referrer" />
   <meta name="description" content="Yartchives — a multi-source platform for internships, research, fellowships, and early-career opportunities." />
   <title>Yartchives</title>
   <link rel="stylesheet" href="styles.css" />
@@ -16,7 +18,7 @@
     </div>
     <div class="header-actions">
       <button id="shareBtn" class="ghost-btn" type="button">Share this view</button>
-      <a class="ghost-btn link-btn" href="https://github.com/kaamilbadami/yartchives" target="_blank" rel="noreferrer">GitHub</a>
+      <a class="ghost-btn link-btn" href="https://github.com/kaamilbadami/yartchives" target="_blank" rel="noopener noreferrer">GitHub</a>
     </div>
   </header>
 
@@ -116,7 +118,7 @@
       <div class="job-actions">
         <button class="save-btn secondary-btn" type="button">Save</button>
         <button class="applied-btn secondary-btn" type="button">Applied</button>
-        <a class="apply-btn primary-btn" target="_blank" rel="noreferrer">Apply</a>
+        <a class="apply-btn primary-btn" target="_blank" rel="noopener noreferrer">Apply</a>
         <button class="hide-btn icon-btn" type="button" title="Hide listing" aria-label="Hide listing">×</button>
       </div>
     </article>
