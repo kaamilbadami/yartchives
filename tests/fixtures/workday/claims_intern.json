@@ -1,0 +1,40 @@
+{
+  "jobPostingInfo": {
+    "id": "cccccccc33333333dddddddd44444444",
+    "title": "Claims Development Program Internship",
+    "location": "MA - West Bridgewater",
+    "postedOn": "Posted 2 Days Ago",
+    "startDate": "2026-09-14",
+    "timeType": "Full time",
+    "remoteType": "Hybrid",
+    "jobReqId": "R-20002",
+    "jobPostingId": "Claims-Development-Program-Internship_R-20002",
+    "jobPostingSiteId": "Jobs",
+    "country": {
+      "descriptor": "United States of America",
+      "id": "country-us"
+    },
+    "canApply": true,
+    "posted": true,
+    "jobRequisitionLocation": {
+      "descriptor": "West Bridgewater",
+      "country": {
+        "descriptor": "United States of America",
+        "alpha2Code": "US"
+      }
+    },
+    "additionalLocations": [
+      {
+        "descriptor": "Boston, Massachusetts"
+      }
+    ],
+    "externalUrl": "https://insurance.wd1.myworkdayjobs.com/Jobs/job/Massachusetts/Claims-Development-Program-Internship_R-20002",
+    "jobDescription": "<h2>What Is the Opportunity?</h2><p>Applicants must be authorized to work for any employer in the U.S. now and in the future. The company does not sponsor H-1B petitions or STEM OPT for this role.</p><h2>What Will You Do?</h2><ul><li>Learn strategies for investigating and resolving claims.</li></ul><h2>What Will Our Ideal Candidate Have?</h2><ul><li>Preferred cumulative GPA of 3.0 or above.</li><li>Candidates graduating between December 2027 and June 2028 are preferred.</li><li>Suggested college majors include Business Administration, Risk Management, Insurance, or a business-related discipline.</li><li>Knowledge of Microsoft Office.</li></ul><h2>What is a Must Have?</h2><ul><li>Obtained or pursuing a Bachelor’s degree.</li></ul>"
+  },
+  "hiringOrganization": {
+    "name": "Insurance Group",
+    "url": ""
+  },
+  "similarJobs": [],
+  "userAuthenticated": false
+}
