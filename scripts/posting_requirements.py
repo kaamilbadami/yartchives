@@ -77,7 +77,7 @@ UNSPECIFIED_HEADING = re.compile(
     re.I,
 )
 RESET_HEADING = re.compile(
-    r"\b(?:what you will do|responsibilities|duties|about (?:us|the role)|"
+    r"\b(?:what you(?:'ll| will) (?:do|be doing)|responsibilities|duties|about (?:us|the role)|"
     r"what we offer|benefits|compensation|salary|employment practices|"
     r"location information|who are we|job category|target openings|"
     r"what is the opportunity|what you will learn|learn more)\b",
