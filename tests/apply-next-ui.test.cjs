@@ -41,20 +41,57 @@ assert.equal(UI.knownWrongTerm(jobs[1], profile), false);
 assert.match(UI.profileSummary(profile), /Summer 2027/);
 assert.match(UI.profileSummary(profile), /Wilton/);
 
-const index = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
-assert.ok(index.includes('href="apply-next.css"'));
-assert.ok(index.includes('src="apply-next.js"'));
-assert.ok(index.includes('src="apply-next-ui.js"'));
-assert.ok(index.indexOf('src="apply-next.js"') < index.indexOf('src="apply-next-ui.js"'));
+const artifact = {
+  version: 1,
+  listing_index: { good: "https://tenant.wd5.myworkdayjobs.com/Careers/job/CT/Role_REQ-1" },
+  entries: {
+    "https://tenant.wd5.myworkdayjobs.com/Careers/job/CT/Role_REQ-1": {
+      inspection: {
+        status: "inspected",
+        posting: { application_status: "available" },
+        requirements: {},
+      },
+    },
+  },
+};
+UI.attachInspections(jobs, artifact);
+assert.equal(jobs[0]._inspection.status, "inspected");
+assert.equal(jobs[1]._inspection, undefined);
 
-const uiSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-ui.js"), "utf8");
-assert.match(uiSource, /local storage/i);
-assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
+(async () => {
+  const loaded = await UI.loadInspectionArtifact(async (url, options) => {
+    assert.equal(url, UI.INSPECTION_URL);
+    assert.equal(options.cache, "no-store");
+    return { ok: true, json: async () => artifact };
+  });
+  assert.deepEqual(loaded.listing_index, artifact.listing_index);
 
-const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
-for (const asset of ["apply-next.css", "apply-next.js", "apply-next-ui.js"]) {
-  assert.ok(deployWorkflow.includes(asset), `Pages workflow must include ${asset}`);
-  assert.ok(deployWorkflow.includes(`${asset}?v=\${VERSION}`), `Pages workflow must cache-bust ${asset}`);
-}
+  const failed = await UI.loadInspectionArtifact(async () => {
+    throw new Error("offline");
+  });
+  assert.deepEqual(failed, { version: 1, entries: {}, listing_index: {} });
 
-console.log("apply-next UI tests passed");
+  const index = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+  assert.ok(index.includes('href="apply-next.css"'));
+  assert.ok(index.includes('src="apply-next.js"'));
+  assert.ok(index.includes('src="apply-next-ui.js"'));
+  assert.ok(index.indexOf('src="apply-next.js"') < index.indexOf('src="apply-next-ui.js"'));
+
+  const uiSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-ui.js"), "utf8");
+  assert.match(uiSource, /local storage/i);
+  assert.match(uiSource, /Authoritative posting evidence/);
+  assert.match(uiSource, /data\/workday-inspections\.json/);
+  assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
+
+  const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
+  for (const asset of ["apply-next.css", "apply-next.js", "apply-next-ui.js"]) {
+    assert.ok(deployWorkflow.includes(asset), `Pages workflow must include ${asset}`);
+    assert.ok(deployWorkflow.includes(`${asset}?v=\${VERSION}`), `Pages workflow must cache-bust ${asset}`);
+  }
+  assert.ok(deployWorkflow.includes("data/workday-inspections.json"), "Pages workflow must deploy Workday inspections");
+
+  console.log("apply-next UI tests passed");
+})().catch(error => {
+  console.error(error);
+  process.exit(1);
+});
