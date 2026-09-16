@@ -426,7 +426,7 @@ def parse_markdown_tables(text: str, source: dict[str, Any], reference: datetime
         if "|" in line:
             maybe_headers = split_markdown_row(line)
             next_line = lines[i + 1].strip() if i + 1 < len(lines) else ""
-            is_separator = bool(re.match(r"^\s*\|?\s*:?-{v3}", next_line)) and "|" in next_line
+            is_separator = bool(re.match(r"^\s*\|?\s*:?-{3,}", next_line)) and "|" in next_line
             header_blob = " ".join(norm(x) for x in maybe_headers)
             if is_separator and ("company" in header_blob or "organization" in header_blob) and (
                 "role" in header_blob or "title" in header_blob or "position" in header_blob
