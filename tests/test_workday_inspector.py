@@ -2,12 +2,16 @@ import importlib.util
 import json
 from datetime import datetime, timezone
 from pathlib import Path
+import sys
 import unittest
 
 import requests
 
 ROOT = Path(__file__).resolve().parents[1]
-MODULE_PATH = ROOT / "scripts" / "workday_inspector.py"
+SCRIPTS = ROOT / "scripts"
+if str(SCRIPTS) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS))
+MODULE_PATH = SCRIPTS / "workday_inspector.py"
 FIXTURES = ROOT / "tests" / "fixtures" / "workday"
 spec = importlib.util.spec_from_file_location("workday_inspector", MODULE_PATH)
 mod = importlib.util.module_from_spec(spec)
