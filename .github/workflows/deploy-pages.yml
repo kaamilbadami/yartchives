@@ -19,6 +19,7 @@ on:
       - "location-display.js"
       - "share.js"
       - "apply-next.js"
+      - "apply-next-readiness.js"
       - "apply-next-ui.js"
       - "data/listings.json"
       - "data/workday-inspections.json"
@@ -61,7 +62,7 @@ jobs:
         run: |
           rm -rf _site
           mkdir -p _site/data
-          cp index.html styles.css location.css ui.css ux.css apply-next.css frontend-utils.js app.js enhancements.js ui.js ux.js location-display.js share.js apply-next.js apply-next-ui.js .nojekyll _site/
+          cp index.html styles.css location.css ui.css ux.css apply-next.css frontend-utils.js app.js enhancements.js ui.js ux.js location-display.js share.js apply-next.js apply-next-readiness.js apply-next-ui.js .nojekyll _site/
           cp data/listings.json _site/data/listings.json
           cp data/workday-inspections.json _site/data/workday-inspections.json
           VERSION="$(git rev-parse --short=12 HEAD)"
@@ -78,6 +79,7 @@ jobs:
           sed -i "s|src=\"location-display.js\"|src=\"location-display.js?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"share.js\"|src=\"share.js?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"apply-next.js\"|src=\"apply-next.js?v=${VERSION}\"|" _site/index.html
+          sed -i "s|src=\"apply-next-readiness.js\"|src=\"apply-next-readiness.js?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"apply-next-ui.js\"|src=\"apply-next-ui.js?v=${VERSION}\"|" _site/index.html
 
       - name: Upload Pages artifact
