@@ -1,6 +1,6 @@
 {
   "name": "Connecticut Computer Science coverage audit",
-  "collected_at": "2026-09-16T16:00:00Z",
+  "collected_at": "2026-09-16T14:42:45Z",
   "notes": "Independent sample collected on 2026-09-16. Each row is a distinct, apparently open employer or ATS requisition for a Connecticut internship or co-op accessible to undergraduate CS or closely related students. LinkedIn and Indeed were used only as discovery surfaces; the url field retains the authoritative employer/ATS page.",
   "scope": {
     "profiles": ["cs"],
