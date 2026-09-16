@@ -36,17 +36,21 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Repair markdown table separator parser
+      - name: Repair opportunity-table header support
         run: |
           python - <<'PY'
           from pathlib import Path
           path = Path("scripts/build_feed.py")
           text = path.read_text(encoding="utf-8")
-          old = 're.match(r"^\\s*\\|?\\s*:?-{v3}", next_line)'
-          new = 're.match(r"^\\s*\\|?\\s*:?-{3,}", next_line)'
+          old = '"role" in header_blob or "title" in header_blob or "position" in header_blob'
+          new = '"role" in header_blob or "title" in header_blob or "position" in header_blob or "opportunity" in header_blob'
           if old not in text:
-              raise SystemExit("Expected parser pattern not found")
-          path.write_text(text.replace(old, new), encoding="utf-8")
+              raise SystemExit("Expected markdown header condition not found")
+          text = text.replace(old, new)
+          old_html = 'any(x in blob for x in ("role", "title", "position"))'
+          new_html = 'any(x in blob for x in ("role", "title", "position", "opportunity"))'
+          text = text.replace(old_html, new_html)
+          path.write_text(text, encoding="utf-8")
           PY
           python -m py_compile scripts/build_feed.py
 
@@ -65,5 +69,5 @@ jobs:
           git config user.name "yartchives-bot"
           git config user.email "actions@users.noreply.github.com"
           git add scripts/build_feed.py data/listings.json
-          git commit -m "fix: parse markdown opportunity tables"
+          git commit -m "fix: parse opportunity-labeled tables"
           git push
