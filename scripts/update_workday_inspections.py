@@ -298,8 +298,10 @@ def public_priority(job: dict[str, Any], reference: datetime) -> tuple[int, list
     """
     Score generic public metadata for inspection ordering only.
 
-    This deliberately avoids any browser-local/private Apply Next profile. It favors the
-    upcoming Summer term, internships/co-ops, non-graduate-only roles, and fresh posts.
+    Keep these weights close to the public pieces of Apply Next instead of letting one
+    metadata field dominate the inspection queue. Unknown term/education values retain
+    substantial priority because authoritative inspection is most useful when metadata
+    leaves an otherwise-promising internship unresolved.
     """
     score = 0
     reasons: list[str] = []
@@ -307,45 +309,56 @@ def public_priority(job: dict[str, Any], reference: datetime) -> tuple[int, list
     priority_term = upcoming_summer_term(reference)
     term = str(job.get("term") or "").strip()
     if normalize(term) == normalize(priority_term):
-        score += 60
+        score += 7
         reasons.append(priority_term)
     elif term:
-        score -= 30
+        score -= 20
         reasons.append(f"other term: {term}")
     else:
-        score += 5
-        reasons.append("term unknown")
+        score += 6
+        reasons.append("term unknown; inspection can resolve it")
 
     opportunity = normalize(job.get("opportunity_type"))
     title = normalize(job.get("title"))
     if opportunity in {"internship", "co-op"}:
-        score += 40
+        score += 7
         reasons.append("internship/co-op")
     elif re.search(r"\b(intern|internship|co-?op)\b", title):
-        score += 35
+        score += 6
         reasons.append("internship/co-op title")
 
     education = normalize(job.get("education_level"))
     if education == "graduate-only":
-        score -= 40
+        score -= 20
         reasons.append("graduate-only")
     elif education in {"undergrad", "undergraduate", "undergrad-friendly"}:
-        score += 20
+        score += 6
         reasons.append("undergrad-friendly")
     else:
-        score += 10
-        reasons.append("education not restrictive")
+        score += 5
+        reasons.append("education not restrictive; inspection can clarify")
+
+    profiles = sorted({normalize(value) for value in job.get("profiles", []) if normalize(value)})
+    if profiles:
+        score += 8
+        reasons.append(f"classified career area: {', '.join(profiles[:3])}")
 
     age = age_days(job, reference)
     if age is not None:
-        if age <= 7:
-            score += 20
+        if age <= 2:
+            score += 15
+            reasons.append("posted within 2 days")
+        elif age <= 7:
+            score += 12
             reasons.append("posted within 7 days")
+        elif age <= 14:
+            score += 9
+            reasons.append("posted within 14 days")
         elif age <= 30:
-            score += 10
+            score += 5
             reasons.append("posted within 30 days")
         elif age <= 60:
-            score += 5
+            score += 2
             reasons.append("posted within 60 days")
 
     return score, reasons
