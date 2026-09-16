@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Recover, validate, and label application links after the feed is merged.
 
-Yartchives treats upstream aggregators and GitHub repositories as discovery
-sources, not destinations. This pass tries to recover the underlying employer
-application URL, caches successful intermediary resolutions in the final feed,
-and downgrades known-dead application links instead of presenting them as
-working Apply buttons.
+Upstream aggregators and GitHub repositories are discovery sources, not ideal
+application destinations. Yartchives only upgrades a link to "direct" when it
+can recover an employer/ATS URL with high confidence. Ambiguous intermediary
+pages remain "View listing" rather than guessing at an application URL.
 """
 
 from __future__ import annotations
@@ -18,10 +17,9 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
-from urllib.parse import urljoin, urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse
 
 import requests
-from bs4 import BeautifulSoup
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
@@ -53,24 +51,7 @@ AGGREGATOR_HOSTS = {
     "fromcampustocareer.com",
     "www.fromcampustocareer.com",
 }
-SOURCE_HOSTS = {
-    "github.com",
-    "www.github.com",
-    "raw.githubusercontent.com",
-}
-ATS_HOST_HINTS = (
-    "myworkdayjobs.com",
-    "greenhouse.io",
-    "lever.co",
-    "ashbyhq.com",
-    "smartrecruiters.com",
-    "icims.com",
-    "jobvite.com",
-    "oraclecloud.com",
-    "successfactors.com",
-    "phenompeople.com",
-    "eightfold.ai",
-)
+SOURCE_HOSTS = {"github.com", "www.github.com", "raw.githubusercontent.com"}
 DEAD_PAGE_PHRASES = (
     "the page you are looking for doesn't exist",
     "the page you are looking for does not exist",
@@ -118,9 +99,7 @@ def is_direct_application_url(value: str | None) -> bool:
 
 
 def is_listing_url(value: str | None) -> bool:
-    if not is_http_url(value):
-        return False
-    return urlparse(value).netloc.lower() in AGGREGATOR_HOSTS
+    return bool(is_http_url(value) and urlparse(value).netloc.lower() in AGGREGATOR_HOSTS)
 
 
 def listing_cache_key(value: str | None) -> str:
@@ -195,10 +174,7 @@ def choose_source_direct(
     exact: dict[tuple[str, str, str], str],
     company_title: dict[tuple[str, str], str],
 ) -> str | None:
-    candidate = exact.get(job_signature(job))
-    if candidate:
-        return candidate
-    return company_title.get(company_title_key(job))
+    return exact.get(job_signature(job)) or company_title.get(company_title_key(job))
 
 
 def fetch_applyguy_payload() -> dict[str, Any] | None:
@@ -215,11 +191,11 @@ def fetch_applyguy_payload() -> dict[str, Any] | None:
 
 
 def fetch_source_direct_jobs() -> list[dict[str, Any]]:
-    """Re-read upstream markdown to recover direct Apply-column URLs.
+    """Re-read markdown sources and recover their actual Apply-column URLs.
 
-    This intentionally fixes parser gaps without making the browser depend on
-    source repositories. SpeedyApply calls its application column "Posting",
-    so normalize that header to "Apply" before using the shared parser.
+    SpeedyApply labels that column "Posting", which the generic feed parser did
+    not recognize. Normalizing only that header lets us recover its employer
+    links while retaining the GitHub repository merely as provenance.
     """
     try:
         sources = json.loads(SOURCES_PATH.read_text(encoding="utf-8"))
@@ -257,60 +233,32 @@ def old_resolution_cache(old_doc: dict[str, Any]) -> dict[str, str]:
     return cache
 
 
-def probable_job_url(value: str) -> bool:
-    if not is_direct_application_url(value):
-        return False
-    parsed = urlparse(value)
-    host = parsed.netloc.lower()
-    path = parsed.path.lower()
-    if any(hint in host for hint in ATS_HOST_HINTS):
-        return True
-    return any(token in path for token in ("/job", "/jobs", "/career", "/careers", "/position", "/apply"))
-
-
-def read_limited_html(response: requests.Response, limit: int = 512_000) -> str:
-    chunks: list[bytes] = []
-    size = 0
-    for chunk in response.iter_content(chunk_size=32_768):
-        if not chunk:
-            continue
-        remaining = limit - size
-        if remaining <= 0:
-            break
-        chunks.append(chunk[:remaining])
-        size += min(len(chunk), remaining)
-        if size >= limit:
-            break
-    encoding = response.encoding or "utf-8"
-    return b"".join(chunks).decode(encoding, errors="replace")
-
-
 def candidate_from_zapply_slug(value: str) -> str | None:
-    """Recover deterministic ATS URLs for Zapply slugs when possible."""
+    """Infer only ATS formats whose public URL is deterministic from the slug."""
     parsed = urlparse(value)
     if parsed.netloc.lower() not in {"zapply.jobs", "www.zapply.jobs"}:
         return None
     slug = parsed.path.rstrip("/").split("/")[-1]
 
-    m = re.fullmatch(r"greenhouse-(.+)-(\d+)", slug, flags=re.I)
-    if m:
-        board, job_id = m.groups()
+    match = re.fullmatch(r"greenhouse-(.+)-(\d+)", slug, flags=re.I)
+    if match:
+        board, job_id = match.groups()
         return f"https://job-boards.greenhouse.io/{board}/jobs/{job_id}"
 
-    m = re.fullmatch(r"ashby-(.+)-([0-9a-fA-F-]{32,36})", slug)
-    if m:
-        board, job_id = m.groups()
+    match = re.fullmatch(r"ashby-(.+)-([0-9a-fA-F-]{32,36})", slug)
+    if match:
+        board, job_id = match.groups()
         return f"https://jobs.ashbyhq.com/{board}/{job_id}"
 
-    m = re.fullmatch(r"lever-(.+)-([0-9a-fA-F-]{32,36})", slug)
-    if m:
-        company, job_id = m.groups()
+    match = re.fullmatch(r"lever-(.+)-([0-9a-fA-F-]{32,36})", slug)
+    if match:
+        company, job_id = match.groups()
         return f"https://jobs.lever.co/{company}/{job_id}"
 
     return None
 
 
-def validate_candidate_once(value: str) -> str | None:
+def validate_candidate_once(value: str | None) -> str | None:
     if not is_direct_application_url(value):
         return None
     try:
@@ -324,10 +272,8 @@ def validate_candidate_once(value: str) -> str | None:
         try:
             if response.status_code in {404, 410}:
                 return None
-            final = response.url
-            if is_direct_application_url(final):
-                return final
-            return None
+            final = response.url or value
+            return final if is_direct_application_url(final) else None
         finally:
             response.close()
     except requests.RequestException:
@@ -335,7 +281,14 @@ def validate_candidate_once(value: str) -> str | None:
 
 
 def resolve_intermediary_url(value: str) -> str | None:
-    """Follow an aggregator URL and recover an employer/ATS destination."""
+    """Resolve an intermediary only when the destination is unambiguous.
+
+    Safe cases are a real HTTP redirect from the exact listing URL or a
+    deterministic ATS URL encoded in the Zapply slug. We deliberately do not
+    scrape a generic aggregator page for the first link that looks like an ATS;
+    those pages contain many jobs and doing that can attach the wrong employer's
+    application URL to a listing.
+    """
     if not is_listing_url(value):
         return None
     try:
@@ -347,53 +300,17 @@ def resolve_intermediary_url(value: str) -> str | None:
             stream=True,
         )
         try:
-            if response.status_code in {404, 410}:
-                return None
-            final = response.url
-            if is_direct_application_url(final):
-                return final
-
-            html = read_limited_html(response)
-            soup = BeautifulSoup(html, "html.parser")
-            candidates: list[str] = []
-
-            for meta in soup.find_all("meta"):
-                if str(meta.get("http-equiv", "")).lower() != "refresh":
-                    continue
-                content = str(meta.get("content", ""))
-                match = re.search(r"url\s*=\s*['\"]?([^'\";]+)", content, flags=re.I)
-                if match:
-                    candidates.append(urljoin(final, match.group(1).strip()))
-
-            for anchor in soup.find_all("a", href=True):
-                hint_parts = [
-                    anchor.get_text(" ", strip=True),
-                    str(anchor.get("aria-label", "")),
-                    str(anchor.get("title", "")),
-                ]
-                image = anchor.find("img")
-                if image:
-                    hint_parts.append(str(image.get("alt", "")))
-                hint = " ".join(hint_parts).lower()
-                href = urljoin(final, str(anchor.get("href", "")).strip())
-                if any(token in hint for token in ("apply", "application", "company site", "career site")):
-                    candidates.append(href)
-
-            for match in re.findall(r"https?://[^\s\"'<>\\]+", html):
-                candidate = match.rstrip("),.;")
-                if probable_job_url(candidate):
-                    candidates.append(candidate)
-
-            for candidate in dict.fromkeys(candidates):
-                if probable_job_url(candidate):
-                    return candidate
+            if response.status_code not in {404, 410} and response.history:
+                final = response.url
+                if is_direct_application_url(final):
+                    return final
         finally:
             response.close()
     except requests.RequestException:
         pass
 
     inferred = candidate_from_zapply_slug(value)
-    return validate_candidate_once(inferred) if inferred else None
+    return validate_candidate_once(inferred)
 
 
 def resolve_listing_urls(urls: list[str]) -> dict[str, str]:
@@ -441,9 +358,6 @@ def repair_document(
     }
 
     stats = {
-        "direct": 0,
-        "listing": 0,
-        "source": 0,
         "applyguy_repaired": 0,
         "source_repaired": 0,
         "intermediary_resolved": 0,
@@ -454,12 +368,7 @@ def repair_document(
     for job in jobs:
         if not isinstance(job, dict):
             continue
-        before = (
-            job.get("url"),
-            job.get("listing_url"),
-            job.get("link_kind"),
-            job.get("resolved_from_url"),
-        )
+        before = (job.get("url"), job.get("listing_url"), job.get("link_kind"), job.get("resolved_from_url"))
         source_keys = set(job.get("source_keys") or [])
         current = job.get("url") or ""
         listing = job.get("listing_url") if is_listing_url(job.get("listing_url")) else None
@@ -467,11 +376,7 @@ def repair_document(
             listing = current
 
         prior = old_jobs.get(job.get("id")) or {}
-        if (
-            is_direct_application_url(current)
-            and prior.get("url") == current
-            and prior.get("link_status") == "dead"
-        ):
+        if is_direct_application_url(current) and prior.get("url") == current and prior.get("link_status") == "dead":
             current = ""
             job["url"] = ""
             stats["known_dead_suppressed"] += 1
@@ -515,24 +420,16 @@ def repair_document(
                         job[key] = prior[key]
                 if prior.get("resolved_from_url") and not job.get("resolved_from_url"):
                     job["resolved_from_url"] = prior["resolved_from_url"]
-            stats["direct"] += 1
         else:
             job["url"] = ""
             if listing:
                 job["listing_url"] = listing
                 job["link_kind"] = "listing"
-                stats["listing"] += 1
             else:
                 job.pop("listing_url", None)
                 job["link_kind"] = "source"
-                stats["source"] += 1
 
-        after = (
-            job.get("url"),
-            job.get("listing_url"),
-            job.get("link_kind"),
-            job.get("resolved_from_url"),
-        )
+        after = (job.get("url"), job.get("listing_url"), job.get("link_kind"), job.get("resolved_from_url"))
         if before != after:
             stats["changed"] += 1
 
@@ -550,8 +447,25 @@ def checked_recently(job: dict[str, Any], reference: datetime) -> bool:
         return False
 
 
+def read_html_prefix(response: requests.Response, limit: int = 64_000) -> str:
+    chunks: list[bytes] = []
+    size = 0
+    for chunk in response.iter_content(chunk_size=16_384):
+        if not chunk:
+            continue
+        remaining = limit - size
+        if remaining <= 0:
+            break
+        chunks.append(chunk[:remaining])
+        size += min(len(chunk), remaining)
+        if size >= limit:
+            break
+    encoding = response.encoding or "utf-8"
+    return b"".join(chunks).decode(encoding, errors="replace")
+
+
 def validate_direct_url(value: str) -> tuple[str, str]:
-    """Return (status, final_url): status is ok, dead, or unknown."""
+    """Return (status, final_url), where status is ok, dead, or unknown."""
     try:
         response = requests.get(
             value,
@@ -567,9 +481,8 @@ def validate_direct_url(value: str) -> tuple[str, str]:
             if response.status_code in {401, 403, 429} or response.status_code >= 500:
                 return "unknown", final
             if 200 <= response.status_code < 400:
-                content_type = response.headers.get("content-type", "").lower()
-                if "html" in content_type:
-                    snippet = read_limited_html(response, limit=64_000).lower()
+                if "html" in response.headers.get("content-type", "").lower():
+                    snippet = read_html_prefix(response).lower()
                     if any(phrase in snippet for phrase in DEAD_PAGE_PHRASES):
                         return "dead", final
                 return "ok", final
@@ -642,11 +555,8 @@ def validate_repaired_links(doc: dict[str, Any], old_doc: dict[str, Any]) -> dic
 def count_link_kinds(doc: dict[str, Any]) -> dict[str, int]:
     counts = {"direct": 0, "listing": 0, "source": 0}
     for job in doc.get("jobs", []):
-        if not isinstance(job, dict):
-            continue
-        kind = job.get("link_kind")
-        if kind in counts:
-            counts[kind] += 1
+        if isinstance(job, dict) and job.get("link_kind") in counts:
+            counts[job["link_kind"]] += 1
     return counts
 
 
@@ -695,10 +605,7 @@ def main() -> int:
 
         live_resolved = resolve_listing_urls(unresolved)
         resolved.update(live_resolved)
-        print(
-            f"Intermediary resolver: {len(live_resolved)} newly resolved; "
-            f"{len(resolved) - len(live_resolved)} cached"
-        )
+        print(f"Intermediary resolver: {len(live_resolved)} newly resolved; {len(resolved) - len(live_resolved)} cached")
 
     stats = repair_document(
         doc,
@@ -723,8 +630,7 @@ def main() -> int:
     )
     print(
         "Link validation: "
-        f"checked={validation['checked']}, ok={validation['ok']}, "
-        f"dead={validation['dead']}, unknown={validation['unknown']}"
+        f"checked={validation['checked']}, ok={validation['ok']}, dead={validation['dead']}, unknown={validation['unknown']}"
     )
     return 0
 
