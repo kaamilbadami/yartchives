@@ -38,7 +38,6 @@ const STATE_NAMES = {
 const STATE_CODE_BY_NAME = Object.fromEntries(Object.entries(STATE_NAMES).map(([code, name]) => [name.toLowerCase(), code.toLowerCase()]));
 const STORAGE_KEY = "yartchives-state-v1";
 const PAGE_SIZE = 40;
-const PRIORITY_STATE = "CT";
 const GEO_DATA_URL = "https://raw.githubusercontent.com/ReadyAPIs-com/curated-us-zips/f9eb7daabdade9b2a9f3cbc80327a5c152fc82d3/data/us-zips.csv";
 
 let feed = { jobs: [], sources: {}, generated_at: null };
@@ -351,11 +350,6 @@ function distanceForJob(job, origin, geo) {
 
 function sortFiltered(jobs, zipMode) {
   jobs.sort((a, b) => {
-    if (!state.location.trim()) {
-      const aPriority = (a.states || []).includes(PRIORITY_STATE) ? 1 : 0;
-      const bPriority = (b.states || []).includes(PRIORITY_STATE) ? 1 : 0;
-      if (aPriority !== bPriority) return bPriority - aPriority;
-    }
     if (zipMode) {
       const ad = Number.isFinite(a._distanceMiles) ? a._distanceMiles : Infinity;
       const bd = Number.isFinite(b._distanceMiles) ? b._distanceMiles : Infinity;
@@ -550,7 +544,7 @@ function updateResultsNote(origin = null) {
     return;
   }
   if (!state.location.trim()) {
-    els.resultsNote.textContent = "Connecticut listings are ranked first when no location filter is selected.";
+    els.resultsNote.textContent = "No location filter is selected. Enter a ZIP code to use radius filtering or sort by distance.";
   } else if (state.freshness === "all") {
     els.resultsNote.textContent = "Any age includes listings whose source does not expose a reliable posting date.";
   } else {

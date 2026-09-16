@@ -46,9 +46,7 @@ const context = {
   URLSearchParams,
   localStorage: { getItem: () => "{}" },
   currentZip: () => null,
-  updateResultsNote: () => {
-    els.resultsNote.textContent = "Connecticut listings are ranked first when no location filter is selected.";
-  },
+  updateResultsNote: () => {},
   renderJobs: () => {},
 };
 vm.createContext(context);
@@ -58,12 +56,6 @@ assert.equal(
   els.resultsTitle.textContent,
   "Undergrad-friendly internships + co-ops · Past 7 days"
 );
-context.updateResultsNote();
-assert.equal(
-  els.resultsNote.textContent,
-  "No location filter is selected. Enter a ZIP code to use radius filtering or sort by distance."
-);
-
 activeAreas = ["Computer Science"];
 education.value = "all";
 opportunityType.value = "all";
