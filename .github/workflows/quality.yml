@@ -18,6 +18,8 @@ on:
       - "apply-next-readiness.js"
       - "apply-next-competition.js"
       - "apply-next-ui.js"
+      - "apply-next-profile-setup.js"
+      - "apply-next-profile-setup.css"
       - "index.html"
       - "styles.css"
       - "location.css"
@@ -73,12 +75,14 @@ jobs:
           node --check apply-next-readiness.js
           node --check apply-next-competition.js
           node --check apply-next-ui.js
+          node --check apply-next-profile-setup.js
           node tests/frontend-utils.test.cjs
           node tests/location-display.test.cjs
           node tests/apply-next.test.cjs
           node tests/apply-next-readiness.test.cjs
           node tests/apply-next-competition.test.cjs
           node tests/apply-next-ui.test.cjs
+          node tests/apply-next-profile-setup.test.cjs
 
       - name: Validate checked-in feed
         run: |
@@ -117,4 +121,4 @@ jobs:
           python scripts/source_links.py data/listings.json
           python scripts/reconcile_workday_duplicates.py data/listings.json
           python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8 --strict-sources
-          python scripts/audit_feed.py data/listings.json
+          python scripts/audit_feed.py
