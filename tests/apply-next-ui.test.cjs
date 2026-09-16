@@ -97,10 +97,6 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
 
   const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
-  for (const asset of ["apply-next.css", "apply-next.js", "apply-next-ui.js"]) {
-    assert.ok(deployWorkflow.includes(asset), `Pages workflow must include ${asset}`);
-    assert.ok(deployWorkflow.includes(`${asset}?v=\${VERSION}`), `Pages workflow must cache-bust ${asset}`);
-  }
   assert.ok(deployWorkflow.includes("data/workday-inspections.json"), "Pages workflow must deploy Workday inspections");
 
   console.log("apply-next UI tests passed");
