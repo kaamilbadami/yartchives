@@ -9,7 +9,7 @@ I got tired of bouncing between separate internship lists, job boards, and sprea
 - Aggregates public internship and early-career feeds into one dataset.
 - Normalizes company, role, location, date, source, and application links.
 - Deduplicates overlapping listings before they ever reach the browser.
-- Supports profiles for Computer Science, **Tech + Business**, Finance/Economics, Mechanical Engineering, Aerospace/Astronautical Engineering, Electrical Engineering, Policy/Government, and Premed/Health.
+- Supports public profiles for Computer Science, **Tech + Business**, Finance/Economics, Mechanical Engineering, Aerospace/Astronautical Engineering, and Electrical/Computer Engineering. Policy/Government and Premed/Health remain internal tags until their dedicated source coverage is strong enough to restore publicly.
 - Keeps saved, applied, and hidden listings in the user's browser — no account required.
 - Refreshes the feed automatically with GitHub Actions instead of making every visitor scrape every source themselves.
 - Keeps the last known data from a source if that source temporarily fails.
@@ -35,6 +35,12 @@ python -m http.server 8000
 ```
 
 Then open `http://localhost:8000`.
+
+## Coverage audits
+
+`scripts/coverage_audit.py` compares a sample of opportunities discovered outside Yartchives against the current feed. It accepts JSON, JSONL, or CSV and produces both machine-readable results and a human-readable action queue. The first intended audit is Connecticut Computer Science coverage using LinkedIn, Handshake, employer sites, and web search as independent discovery surfaces.
+
+Those platforms are used to measure misses, not scraped into the production feed. Recurring misses should be traced to durable employer/ATS sources. See `audit/README.md` for the input format, status definitions, and CT CS command.
 
 ## Automatic refreshes
 
