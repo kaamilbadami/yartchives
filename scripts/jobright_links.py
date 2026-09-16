@@ -3,7 +3,9 @@
 
 The public-sector GitHub feed only exposes Jobright detail URLs, while Jobright's
 unauthenticated visitor search response can expose the original employer/apply
-URL. Prefer an exact Jobright ID match. Some public category-feed IDs are not the
+URL. The current public detail page also exposes the canonical Jobright ID and
+normalized job metadata, though it does not consistently expose an employer URL.
+Prefer an exact Jobright ID match. Some public category-feed IDs are not the
 same identifier returned by visitor search, so a second path accepts exactly one
 result only when normalized title, company, and location all match.
 """
@@ -29,6 +31,7 @@ if str(SCRIPT_DIR) not in sys.path:
 import repair_links as links  # noqa: E402
 
 API_URL = "https://jobright.ai/swan/recommend/visitor-list/jobs"
+DETAIL_SCRIPT_ID = "jobright-helper-job-detail-info"
 TIMEOUT = 15
 WORKERS = 12
 USER_AGENT = (
@@ -112,6 +115,42 @@ def response_jobs(payload: Any) -> list[dict[str, Any]]:
     return [row for row in rows if isinstance(row, dict)]
 
 
+def detail_data_from_html(text: str) -> dict[str, Any] | None:
+    """Read the public detail-page JSON without treating the page as a candidate.
+
+    Jobright's server-rendered detail page currently puts its job object in a
+    script tagged ``jobright-helper-job-detail-info``.  The helper deliberately
+    returns only that structured object; it does not mine arbitrary page links,
+    which could associate a listing with an unrelated employer job.
+    """
+    match = re.search(
+        rf'<script[^>]*\bid=["\']{DETAIL_SCRIPT_ID}["\'][^>]*>(.*?)</script>',
+        text,
+        flags=re.I | re.S,
+    )
+    if not match:
+        return None
+    try:
+        value = json.loads(match.group(1))
+    except ValueError:
+        return None
+    return value if isinstance(value, dict) else None
+
+
+def detail_row(value: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Convert the detail-page object into the same row shape as visitor search."""
+    if not isinstance(value, dict):
+        return None
+    job = value.get("jobResult")
+    if not isinstance(job, dict):
+        return None
+    row: dict[str, Any] = {"jobResult": job}
+    company = value.get("companyResult")
+    if isinstance(company, dict):
+        row["companyResult"] = company
+    return row
+
+
 def row_job_result(row: dict[str, Any]) -> dict[str, Any]:
     value = row.get("jobResult")
     return value if isinstance(value, dict) else row
@@ -151,7 +190,7 @@ def direct_from_exact_metadata(
     """Return a direct link only for one exact title/company/location result."""
     target_title = norm(title)
     target_company = compact(company)
-    matches: list[dict[str, Any]] = []
+    matches: set[str] = set()
     for row in rows:
         job = row_job_result(row)
         if norm(job.get("jobTitle") or job.get("title")) != target_title:
@@ -162,18 +201,79 @@ def direct_from_exact_metadata(
         if not locations_match(location, candidate_location):
             continue
         if direct_from_job(job):
-            matches.append(job)
+            matches.add(direct_from_job(job))
     if len(matches) != 1:
         return None
-    return direct_from_job(matches[0])
+    return next(iter(matches))
+
+
+def metadata_targets(
+    job_record: dict[str, Any], detail: dict[str, Any] | None,
+) -> list[tuple[str, str, str]]:
+    """Return distinct exact-metadata targets, preferring Jobright's own page."""
+    targets: list[tuple[str, str, str]] = []
+    row = detail_row(detail)
+    if row:
+        job = row_job_result(row)
+        targets.append((
+            row_company(row),
+            str(job.get("jobTitle") or job.get("title") or ""),
+            str(job.get("jobLocation") or job.get("location") or ""),
+        ))
+    targets.append((
+        str(job_record.get("company") or ""),
+        str(job_record.get("title") or ""),
+        str(job_record.get("location") or ""),
+    ))
+    unique: list[tuple[str, str, str]] = []
+    for target in targets:
+        if target[0] and target[1] and target[2] and target not in unique:
+            unique.append(target)
+    return unique
+
+
+def search_titles(job_record: dict[str, Any], detail: dict[str, Any] | None) -> list[str]:
+    """Use the source title plus Jobright's normalized title when available."""
+    titles = [clean_title(job_record.get("title"))]
+    row = detail_row(detail)
+    if row:
+        job = row_job_result(row)
+        titles.extend([
+            clean_title(job.get("jobNlpTitle")),
+            clean_title(job.get("jobTitle") or job.get("title")),
+        ])
+    return list(dict.fromkeys(title for title in titles if title))
+
+
+def fetch_detail(listing_url: str) -> dict[str, Any] | None:
+    try:
+        response = requests.get(
+            listing_url,
+            headers={
+                "User-Agent": USER_AGENT,
+                "Accept": "text/html,application/xhtml+xml",
+                "Accept-Language": "en-US,en;q=0.9",
+            },
+            timeout=TIMEOUT,
+        )
+        if response.status_code != 200:
+            return None
+        return detail_data_from_html(response.text)
+    except requests.RequestException:
+        return None
 
 
 def fetch_direct(job_record: dict[str, Any]) -> tuple[str | None, str]:
     listing_url = str(job_record.get("listing_url") or "")
     target_id = jobright_id(listing_url)
-    title = clean_title(job_record.get("title"))
-    if not target_id or not title:
+    if not target_id:
         return None, "none"
+
+    detail = fetch_detail(listing_url)
+    detail_candidate = direct_from_exact_id([detail_row(detail)] if detail_row(detail) else [], target_id)
+    if detail_candidate:
+        validated = links.validate_candidate_once(detail_candidate)
+        return (validated, "jobright-detail-id") if validated else (None, "validation-failed")
 
     params = {
         "sortCondition": "0",
@@ -189,30 +289,33 @@ def fetch_direct(job_record: dict[str, Any]) -> tuple[str | None, str]:
         "Origin": "https://jobright.ai",
         "x-client-type": "web",
     }
-    try:
-        response = requests.post(
-            API_URL,
-            params=params,
-            json=visitor_payload(title),
-            headers=headers,
-            timeout=TIMEOUT,
-        )
-        if response.status_code != 200:
-            return None, f"http-{response.status_code}"
-        rows = response_jobs(response.json())
-    except (requests.RequestException, ValueError):
-        return None, "request-error"
+    rows: list[dict[str, Any]] = []
+    for title in search_titles(job_record, detail):
+        try:
+            response = requests.post(
+                API_URL,
+                params=params,
+                json=visitor_payload(title),
+                headers=headers,
+                timeout=TIMEOUT,
+            )
+            if response.status_code != 200:
+                continue
+            rows.extend(response_jobs(response.json()))
+        except (requests.RequestException, ValueError):
+            continue
+
+    if not rows:
+        return None, "no-match"
 
     direct = direct_from_exact_id(rows, target_id)
     origin = "jobright-id"
     if not direct:
-        direct = direct_from_exact_metadata(
-            rows,
-            str(job_record.get("company") or ""),
-            title,
-            str(job_record.get("location") or ""),
-        )
-        origin = "jobright-metadata"
+        for company, title, location in metadata_targets(job_record, detail):
+            direct = direct_from_exact_metadata(rows, company, title, location)
+            if direct:
+                origin = "jobright-metadata"
+                break
     if not direct:
         return None, "no-match"
 

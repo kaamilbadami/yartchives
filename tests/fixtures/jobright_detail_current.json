@@ -1,0 +1,14 @@
+{
+  "impId": "0_share_detail_example",
+  "jobResult": {
+    "jobId": "6a8de421cc0cf27068525e33",
+    "jobTitle": "Planning Intern | New York, NY",
+    "jobNlpTitle": "Planning Intern",
+    "jobLocation": "New York, NY",
+    "isCompanySiteLink": true
+  },
+  "companyResult": {
+    "companyId": "11009097",
+    "companyName": "IMEG"
+  }
+}
