@@ -36,23 +36,8 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Repair opportunity-table header support
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path("scripts/build_feed.py")
-          text = path.read_text(encoding="utf-8")
-          old = '"role" in header_blob or "title" in header_blob or "position" in header_blob'
-          new = '"role" in header_blob or "title" in header_blob or "position" in header_blob or "opportunity" in header_blob'
-          if old not in text:
-              raise SystemExit("Expected markdown header condition not found")
-          text = text.replace(old, new)
-          old_html = 'any(x in blob for x in ("role", "title", "position"))'
-          new_html = 'any(x in blob for x in ("role", "title", "position", "opportunity"))'
-          text = text.replace(old_html, new_html)
-          path.write_text(text, encoding="utf-8")
-          PY
-          python -m py_compile scripts/build_feed.py
+      - name: Validate feed builder
+        run: python -m py_compile scripts/build_feed.py
 
       - name: Build normalized feed
         env:
@@ -60,14 +45,14 @@ jobs:
           USAJOBS_EMAIL: ${{ secrets.USAJOBS_EMAIL }}
         run: python scripts/build_feed.py
 
-      - name: Commit parser repair and updated feed
+      - name: Commit updated feed
         run: |
-          if git diff --quiet -- scripts/build_feed.py data/listings.json; then
+          if git diff --quiet -- data/listings.json; then
             echo "No feed changes."
             exit 0
           fi
           git config user.name "yartchives-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add scripts/build_feed.py data/listings.json
-          git commit -m "fix: parse opportunity-labeled tables"
+          git add data/listings.json
+          git commit -m "chore: refresh opportunity feed"
           git push
