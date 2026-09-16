@@ -1,4 +1,4 @@
-/* Canonical share-view behavior. Local-only state (saved/applied/hidden) is never shared. */
+/* Canonical public-filter behavior. Local-only state (saved/applied/hidden) is never shared. */
 (() => {
   const AREA_LABELS = {
     cs: "Computer Science",
@@ -10,6 +10,88 @@
     electrical: "Electrical",
     policy: "Policy / Government",
     health: "Premed / Health",
+  };
+
+  const EDUCATION_LABELS = {
+    "undergrad-friendly": "Undergrad-friendly",
+    "explicit-undergrad": "Explicit undergrad",
+    "graduate-only": "Graduate-only",
+  };
+  const OPPORTUNITY_LABELS = {
+    internships: "internships + co-ops",
+    internship: "internships",
+    "co-op": "co-ops",
+    fellowship: "fellowships",
+    research: "research opportunities",
+  };
+  const FRESHNESS_LABELS = {
+    "1": "Past 24 hours",
+    "3": "Past 3 days",
+    "7": "Past 7 days",
+    "30": "Past 30 days",
+  };
+  const STALE_CT_NOTE = "Connecticut listings are ranked first when no location filter is selected.";
+  const NO_LOCATION_NOTE = "No location filter is selected. Enter a ZIP code to use radius filtering or sort by distance.";
+
+  function selectedAreaLabels() {
+    return [...document.querySelectorAll("#profileChips button.active")]
+      .map(button => button.textContent.trim())
+      .filter(label => label && label !== "All");
+  }
+
+  function audienceOpportunityLabel() {
+    const education = document.querySelector("#educationSelect")?.value || "undergrad-friendly";
+    const type = document.querySelector("#opportunityTypeSelect")?.value || "internships";
+    if (education === "all" && type === "all") return "All opportunities";
+    const audience = EDUCATION_LABELS[education] || "";
+    const opportunity = OPPORTUNITY_LABELS[type] || (type === "all" ? "opportunities" : "opportunities");
+    return [audience, opportunity].filter(Boolean).join(" ");
+  }
+
+  function compactValue(value, max = 36) {
+    const text = String(value || "").trim();
+    return text.length > max ? `${text.slice(0, max - 1)}…` : text;
+  }
+
+  function updateResultsTitle() {
+    if (!els?.resultsTitle) return;
+    const parts = [];
+    const areas = selectedAreaLabels();
+    if (areas.length) parts.push(areas.join(" + "));
+    parts.push(audienceOpportunityLabel());
+
+    const freshness = String(state.freshness || "7");
+    if (FRESHNESS_LABELS[freshness]) parts.push(FRESHNESS_LABELS[freshness]);
+
+    const locationValue = compactValue(state.location);
+    if (locationValue) parts.push(locationValue);
+
+    const query = compactValue(state.search);
+    if (query) parts.push(`Search: “${query}”`);
+
+    if (state.status === "saved") parts.push("Saved");
+    else if (state.status === "applied") parts.push("Applied");
+
+    const hidden = document.querySelector("#hiddenToggleBtn")?.classList.contains("active");
+    if (hidden) parts.push("Hidden");
+
+    els.resultsTitle.textContent = parts.filter(Boolean).join(" · ") || "All opportunities";
+  }
+
+  // The core layer still contains copy for an older CT-first ranking rule. The
+  // final public-filter layer replaces it after all other result-note decorators run.
+  const priorUpdateResultsNote = updateResultsNote;
+  updateResultsNote = function (origin = null) {
+    priorUpdateResultsNote(origin);
+    if (els?.resultsNote) {
+      els.resultsNote.textContent = els.resultsNote.textContent.replace(STALE_CT_NOTE, NO_LOCATION_NOTE);
+    }
+  };
+
+  const priorRenderJobs = renderJobs;
+  renderJobs = function () {
+    priorRenderJobs();
+    updateResultsTitle();
   };
 
   // A shared URL should win over a recipient's previously saved career-area state.
@@ -30,6 +112,8 @@
       }
     }
   }
+
+  updateResultsTitle();
 
   const share = document.querySelector("#shareBtn");
   if (!share) return;

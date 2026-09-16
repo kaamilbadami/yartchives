@@ -36,4 +36,5 @@ const cityResult = U.distanceForJob(cityJob, geo.zips.get("06897"), geo);
 assert.equal(cityResult.precision, "city");
 assert.ok(cityResult.miles < 20);
 
+require("./results-language.test.cjs");
 console.log("frontend-utils tests passed");
