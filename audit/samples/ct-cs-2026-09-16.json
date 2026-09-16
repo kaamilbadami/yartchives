@@ -1,0 +1,125 @@
+{
+  "name": "Connecticut Computer Science coverage audit",
+  "collected_at": "2026-09-16T14:42:45Z",
+  "notes": "Independent sample collected on 2026-09-16. Each row is a distinct, apparently open employer or ATS requisition for a Connecticut internship or co-op accessible to undergraduate CS or closely related students. LinkedIn and Indeed were used only as discovery surfaces; the url field retains the authoritative employer/ATS page.",
+  "scope": {
+    "profiles": ["cs"],
+    "states": ["CT"]
+  },
+  "discoveries": [
+    {
+      "company": "CACI",
+      "title": "Software Engineering Co-op - Summer & Fall 2027",
+      "location": "Danbury, CT",
+      "url": "https://searchcareers.caci.com/careers/job/1443153287580?8fold_id=1443153062885&domain=caci.com",
+      "source": "LinkedIn",
+      "discovery_url": "https://www.linkedin.com/jobs/engineering-intern-jobs-connecticut",
+      "source_key": "331354",
+      "expected_profile": "cs",
+      "expected_state": "CT",
+      "expected_opportunity_type": "co-op"
+    },
+    {
+      "company": "CACI",
+      "title": "Embedded Software Engineering Co-Op - Fall 2027",
+      "location": "Danbury, CT",
+      "url": "https://searchcareers.caci.com/careers/job/1443153327577?8fold_id=1443153060892&domain=caci.com",
+      "source": "LinkedIn",
+      "discovery_url": "https://www.linkedin.com/jobs/software-co-op-jobs",
+      "source_key": "331393",
+      "expected_profile": "cs",
+      "expected_state": "CT",
+      "expected_opportunity_type": "co-op"
+    },
+    {
+      "company": "The Hartford",
+      "title": "Tech & Data Program Summer 2027 - Software Engineer Intern (Hartford)",
+      "location": "Hartford, CT",
+      "url": "https://thehartford.wd5.myworkdayjobs.com/careers_external/job/Hartford-CT/Tech---Data-Program-Summer-2027---Software-Engineer-Intern--Hartford-_R2626105-1",
+      "source": "Indeed",
+      "discovery_url": "https://www.indeed.com/jobs?l=Connecticut&q=Summer+Engineering+Internship",
+      "source_key": "R2626105",
+      "expected_profile": "cs",
+      "expected_state": "CT",
+      "expected_opportunity_type": "internship"
+    },
+    {
+      "company": "The Hartford",
+      "title": "Tech & Data Program Summer 2027 - Data Engineer Intern (Hartford)",
+      "location": "Hartford, CT",
+      "url": "https://thehartford.wd5.myworkdayjobs.com/Careers_External/job/Hartford-CT/Tech---Data-Program-Summer-2027---Data-Engineer-Intern--Hartford-_R2626103-1",
+      "source": "Indeed",
+      "discovery_url": "https://www.indeed.com/q-engineering-intern-l-connecticut-jobs.html",
+      "source_key": "R2626103",
+      "expected_profile": "cs",
+      "expected_state": "CT",
+      "expected_opportunity_type": "internship"
+    },
+    {
+      "company": "Castleton Commodities International",
+      "title": "Cybersecurity Internship (Summer 2027)",
+      "location": "Stamford, CT",
+      "url": "https://osv-cci.wd1.myworkdayjobs.com/en-US/CCICareers/job/Cybersecurity-Intern_R1368",
+      "source": "Web search",
+      "source_key": "R1368",
+      "expected_profile": "cs",
+      "expected_state": "CT",
+      "expected_opportunity_type": "internship"
+    },
+    {
+      "company": "Gartner",
+      "title": "Summer 2027 IT Intern (May 2028 Graduates)",
+      "location": "Stamford, CT",
+      "url": "https://jobs.gartner.com/jobs/job/113095-summer-2027-it-intern-may-2028-graduates/",
+      "source": "Web search",
+      "source_key": "113095",
+      "expected_profile": "cs",
+      "expected_state": "CT",
+      "expected_opportunity_type": "internship"
+    },
+    {
+      "company": "Spectrum",
+      "title": "2027 Summer Intern: Revenue Assurance - Corporate",
+      "location": "Stamford, CT",
+      "url": "https://jobs.spectrum.com/job/stamford/2027-summer-intern-revenue-assurance-corporate/4673/100133780992",
+      "source": "Web search",
+      "source_key": "2026-81711",
+      "expected_profile": "cs",
+      "expected_state": "CT",
+      "expected_opportunity_type": "internship"
+    },
+    {
+      "company": "Spectrum",
+      "title": "2027 Summer Intern: Business Analyst",
+      "location": "Stamford, CT",
+      "url": "https://jobs.spectrum.com/job/stamford/2027-summer-intern-business-analyst/4673/100133771872",
+      "source": "Web search",
+      "source_key": "2026-81924",
+      "expected_profile": "cs",
+      "expected_state": "CT",
+      "expected_opportunity_type": "internship"
+    },
+    {
+      "company": "General Dynamics Electric Boat",
+      "title": "Cybersecurity - 2027 Summer Internship",
+      "location": "Groton, CT",
+      "url": "https://careers-gdeb.icims.com/jobs/20338/cybersecurity---2027-summer-internship/job?in_iframe=1",
+      "source": "Web search",
+      "source_key": "2026-20338",
+      "expected_profile": "cs",
+      "expected_state": "CT",
+      "expected_opportunity_type": "internship"
+    },
+    {
+      "company": "IAT Insurance Group",
+      "title": "Network Operations Internship",
+      "location": "Cheshire, CT",
+      "url": "https://iatinsurancegroup.wd1.myworkdayjobs.com/en-US/iat/job/Cheshire-CT/Network-Operations-Internship_JR100371",
+      "source": "Web search",
+      "source_key": "JR100371",
+      "expected_profile": "cs",
+      "expected_state": "CT",
+      "expected_opportunity_type": "internship"
+    }
+  ]
+}
