@@ -1,94 +1,39 @@
 #!/usr/bin/env python3
 """Retrieve and conservatively normalize one public Workday job posting.
 
-Workday career sites expose job details through a public CXS JSON endpoint.  This
+Workday career sites expose job details through a public CXS JSON endpoint. This
 module derives that endpoint from an authoritative ``myworkdayjobs.com`` job URL,
-prefers its structured fields, and keeps requirement wording as evidence instead
-of guessing facts the employer did not state.
-
-The module deliberately does not score jobs.  It creates an inspection boundary
-that Apply Next can consume in a later, separately reviewed scoring change.
+then delegates provider-neutral description/requirement semantics to
+``posting_requirements``.
 """
 
 from __future__ import annotations
 
 import argparse
 import copy
-import html
 import json
 import re
 from datetime import datetime, timezone
-from typing import Any, Callable, Iterable
+from typing import Any, Callable
 from urllib.parse import quote, unquote, urlparse, urlunparse
 
 import requests
-from bs4 import BeautifulSoup
+
+from posting_requirements import (
+    REQUIREMENT_FIELDS,
+    clean_line,
+    empty_requirement_field,
+    extract_requirements,
+    normalize_description,
+)
+
+# Backwards-compatible private alias for callers that predate the shared module.
+_empty_field = empty_requirement_field
 
 TIMEOUT = 25
 INTERFACE = "workday_cxs_json"
 WORKDAY_HOST = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com$", re.I)
 LOCALE = re.compile(r"^[a-z]{2}(?:-[A-Z]{2})?$")
-
-# This vocabulary only annotates exact technology mentions in an already
-# identified qualification statement.  It never creates a requirement by
-# itself, and the original statement is always retained beside the annotation.
-TECHNOLOGIES: tuple[tuple[str, str], ...] = (
-    ("C++", r"(?<![A-Za-z0-9])C\+\+(?![A-Za-z0-9+])"),
-    ("C#", r"(?<![A-Za-z0-9])C#(?![A-Za-z0-9#])"),
-    ("C", r"(?<![A-Za-z0-9+#])C(?![A-Za-z0-9+#])"),
-    ("Python", r"\bPython\b"),
-    ("JavaScript", r"\bJavaScript\b"),
-    ("TypeScript", r"\bTypeScript\b"),
-    ("Java", r"\bJava\b"),
-    ("SQL", r"\bSQL\b"),
-    ("R", r"(?<![A-Za-z0-9])R(?![A-Za-z0-9])"),
-    ("Git", r"\bGit\b"),
-    ("Linux", r"\bLinux\b"),
-    ("Microsoft Office", r"\b(?:Microsoft|MS) Office\b"),
-    ("Excel", r"\bExcel\b"),
-    ("SolidWorks", r"\bSolidWorks\b"),
-    ("CAD", r"\bCAD\b"),
-    ("MATLAB", r"\bMATLAB\b"),
-    ("AWS", r"\bAWS\b|\bAmazon Web Services\b"),
-    ("Azure", r"\bAzure\b"),
-    ("Docker", r"\bDocker\b"),
-    ("Kubernetes", r"\bKubernetes\b"),
-)
-
-REQUIREMENT_FIELDS = (
-    "education",
-    "graduation",
-    "student_status",
-    "major_fields",
-    "citizenship",
-    "work_authorization",
-    "skills",
-    "other_eligibility",
-)
-
-REQUIRED_HEADING = re.compile(
-    r"\b(?:qualifications? (?:you )?must have|required qualifications?|"
-    r"minimum qualifications?|basic qualifications?|what (?:is )?a must have|"
-    r"requirements?)\b",
-    re.I,
-)
-PREFERRED_HEADING = re.compile(
-    r"\b(?:preferred qualifications?|qualifications? we prefer|ideal candidate|"
-    r"nice to have|desired qualifications?|what sets you apart|bonus points?)\b",
-    re.I,
-)
-UNSPECIFIED_HEADING = re.compile(
-    r"\b(?:qualifications?|candidate profile|this job might be for you if|"
-    r"what you bring(?: to the table)?|skills and abilities|education)\b",
-    re.I,
-)
-RESET_HEADING = re.compile(
-    r"\b(?:what you will do|responsibilities|duties|about (?:us|the role)|"
-    r"what we offer|benefits|compensation|salary|employment practices|"
-    r"location information|who are we|job category|target openings|"
-    r"what is the opportunity|what you will learn|learn more)\b",
-    re.I,
-)
 
 
 class UnsupportedWorkdayUrl(ValueError):
@@ -103,10 +48,6 @@ def iso(value: datetime) -> str:
     return value.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
-def clean_line(value: str | None) -> str:
-    return re.sub(r"\s+", " ", value or "").strip(" \t\r\n\u200b")
-
-
 def derive_cxs_endpoint(job_url: str) -> dict[str, str]:
     """Return tenant/site/job metadata derived from a public Workday URL."""
 
@@ -117,7 +58,6 @@ def derive_cxs_endpoint(job_url: str) -> dict[str, str]:
 
     parts = [unquote(part) for part in parsed.path.split("/") if part]
     if parts and parts[0].lower() == "wday":
-        # Accept a CXS URL as input, but still validate its tenant/site/job shape.
         if len(parts) < 7 or parts[1].lower() != "cxs" or parts[4].lower() != "job":
             raise UnsupportedWorkdayUrl("Workday CXS URL does not contain a job path")
         tenant, site = parts[2], parts[3]
@@ -147,203 +87,6 @@ def derive_cxs_endpoint(job_url: str) -> dict[str, str]:
         "endpoint_url": endpoint,
         "canonical_job_url": canonical_job_url,
     }
-
-
-def _decode_description(raw_html: str | None) -> str:
-    # Some tenants double-encode Workday's newline entity as &amp;#xa;.
-    decoded = html.unescape(html.unescape(raw_html or ""))
-    decoded = decoded.replace("&#xa;", "\n").replace("\u00a0", " ")
-    return decoded
-
-
-def normalize_description(raw_html: str | None) -> tuple[str, list[str]]:
-    """Return plain posting text plus stable block-level lines for extraction."""
-
-    soup = BeautifulSoup(_decode_description(raw_html), "html.parser")
-    for br in soup.find_all("br"):
-        br.replace_with("\n")
-    lines = [clean_line(line) for line in soup.get_text("\n").splitlines()]
-    lines = [line for line in lines if line]
-    return "\n".join(lines), lines
-
-
-def _heading_level(line: str) -> tuple[bool, str | None]:
-    candidate = line.rstrip(":").strip()
-    # Headings are short labels, not prose that happens to mention qualifications.
-    if not candidate or len(candidate) > 100 or len(candidate.split()) > 14:
-        return False, None
-    if PREFERRED_HEADING.search(candidate):
-        return True, "preferred"
-    if REQUIRED_HEADING.search(candidate):
-        return True, "required"
-    if UNSPECIFIED_HEADING.search(candidate):
-        return True, "unspecified"
-    if RESET_HEADING.search(candidate):
-        return True, None
-    return False, None
-
-
-def _explicit_level(statement: str, section_level: str | None) -> str | None:
-    lower = statement.lower()
-    # Polarity overrides section headings. For example, a statement under
-    # "Required Qualifications" that says citizenship is not required must not
-    # become positive required evidence merely because of its section.
-    if re.search(
-        r"\bnot required\b|\bisn['’]?t required\b|"
-        r"\b(?:do|does|did|will) not require\b|"
-        r"\bno\b[^,.;:]{0,60}\brequired\b",
-        lower,
-    ):
-        return "not_required"
-    if re.search(
-        r"\b(?:must|requires?|required to|required qualification|minimum of|at least|"
-        r"must be authorized|does not sponsor|will not sponsor|unable to sponsor)\b",
-        lower,
-    ):
-        return "required"
-    if re.search(r"\b(?:preferred|ideally|desired|a plus|nice to have|suggested)\b", lower):
-        return "preferred"
-    return section_level
-
-
-def _sentences(lines: Iterable[str]) -> list[tuple[str, str | None]]:
-    out: list[tuple[str, str | None]] = []
-    section_level: str | None = None
-    for line in lines:
-        is_heading, new_level = _heading_level(line)
-        if is_heading:
-            section_level = new_level
-            continue
-        # Split prose so one explicit authorization sentence does not pull in an
-        # entire employer-description paragraph. List items normally stay whole.
-        # Do not split common initialisms such as "U.S." into fragments; a
-        # fragmented status statement could otherwise be missed or mislabelled.
-        pieces = re.split(r"(?<![A-Z]\.)(?<=[.!?])\s+(?=[A-Z])", line)
-        for piece in pieces:
-            statement = clean_line(piece)
-            if statement:
-                out.append((statement, _explicit_level(statement, section_level)))
-    return out
-
-
-def _empty_field() -> dict[str, Any]:
-    return {
-        "classification": "unknown",
-        "required": [],
-        "preferred": [],
-        "unspecified": [],
-        "not_required": [],
-    }
-
-
-def _finalize_field(field: dict[str, Any]) -> None:
-    present = [
-        level
-        for level in ("required", "preferred", "unspecified", "not_required")
-        if field[level]
-    ]
-    if not present:
-        field["classification"] = "unknown"
-    elif len(present) == 1:
-        field["classification"] = present[0]
-    else:
-        field["classification"] = "mixed"
-
-
-def _add(field: dict[str, Any], level: str | None, statement: str, **extra: Any) -> None:
-    bucket = level if level in {"required", "preferred", "not_required"} else "unspecified"
-    fact: dict[str, Any] = {
-        "statement": statement,
-        "requirement_state": bucket,
-        "negated": bucket == "not_required",
-    }
-    fact.update({key: value for key, value in extra.items() if value})
-    if fact not in field[bucket]:
-        field[bucket].append(fact)
-
-
-def _technology_mentions(statement: str) -> list[str]:
-    return [name for name, pattern in TECHNOLOGIES if re.search(pattern, statement, flags=re.I)]
-
-
-def extract_requirements(lines: Iterable[str]) -> dict[str, dict[str, Any]]:
-    """Extract only stated facts, retaining their exact normalized evidence."""
-
-    result = {key: _empty_field() for key in REQUIREMENT_FIELDS}
-    for statement, level in _sentences(lines):
-        lower = statement.lower()
-        qualification_context = level is not None
-        matched = False
-
-        if re.search(
-            r"\b(?:degree|bachelor(?:'s|s)?|master(?:'s|s)?|ph\.?d\.?|doctorate|"
-            r"associate(?:'s|s)?|B\.?S\.?|B\.?A\.?|M\.?S\.?)\b",
-            statement,
-            flags=re.I,
-        ):
-            _add(result["education"], level, statement)
-            matched = True
-
-        if re.search(r"\b(?:graduat(?:e|ing|ion)|class of)\b", lower) and re.search(
-            r"\b(?:20\d{2}|spring|summer|fall|winter|between|before|after|by)\b", lower
-        ):
-            _add(result["graduation"], level, statement)
-            matched = True
-
-        if re.search(
-            r"\b(?:current(?:ly)? (?:a )?student|actively enrolled|enrolled (?:in|through|at)|"
-            r"pursuing (?:a |an )?(?:degree|bachelor|master|BS|BA|MS)|returning to school)\b",
-            statement,
-            flags=re.I,
-        ):
-            _add(result["student_status"], level, statement)
-            matched = True
-
-        if re.search(
-            r"\b(?:major(?:s|ing)?|degree in|discipline|field of study|academic field|related field)\b",
-            lower,
-        ):
-            _add(result["major_fields"], level, statement)
-            matched = True
-
-        if re.search(
-            r"\b(?:u\.?s\.?|united states) (?:citizen|citizenship|person|national|permanent resident)\b|"
-            r"\b(?:lawful permanent resident|refugee or asylee|asylee status)\b",
-            lower,
-        ) and not re.search(r"without regard to .*\b(?:citizenship|national origin)\b", lower):
-            _add(result["citizenship"], level, statement)
-            matched = True
-
-        if re.search(
-            r"\b(?:authoriz(?:ed|ation) to work|work authoriz(?:ation|ed)|sponsor(?:ship|ed|ing)?|"
-            r"h-?1b|stem opt|opt\b|i-983|work visa|employment eligibility)\b",
-            lower,
-        ):
-            _add(result["work_authorization"], level, statement)
-            matched = True
-
-        technologies = _technology_mentions(statement)
-        skill_language = re.search(
-            r"\b(?:experience|knowledge|proficien(?:cy|t)|skills?|ability to|familiar(?:ity)?|"
-            r"expertise|competency|using|communication|problem[- ]solving)\b",
-            lower,
-        )
-        if qualification_context and (technologies or skill_language):
-            _add(result["skills"], level, statement, technologies=technologies)
-            matched = True
-
-        hard_eligibility = re.search(
-            r"\b(?:gpa|credit hours?|credits? by|background check|drug test|driver'?s license|"
-            r"security clearance|at least \d+ years? old|minimum age|able to work|available to work|"
-            r"work (?:part|full)[- ]time|travel up to|onsite|on-site)\b",
-            lower,
-        )
-        if hard_eligibility or (qualification_context and not matched):
-            _add(result["other_eligibility"], level, statement)
-
-    for field in result.values():
-        _finalize_field(field)
-    return result
 
 
 def extract_locations(info: dict[str, Any]) -> dict[str, Any]:
@@ -414,7 +157,7 @@ def _base_result(job_url: str, inspected_at: datetime) -> dict[str, Any]:
         "retrieval_confidence": "none",
         "error": None,
         "posting": None,
-        "requirements": {key: _empty_field() for key in REQUIREMENT_FIELDS},
+        "requirements": {key: empty_requirement_field() for key in REQUIREMENT_FIELDS},
         "provenance": {
             "provider": "workday",
             "interface": INTERFACE,
@@ -474,8 +217,6 @@ def inspect_workday_url(
 
     result.update(normalized)
     result["status"] = "inspected"
-    # This describes CXS retrieval completeness only. It is deliberately not a
-    # semantic confidence score for the deterministic requirement extraction.
     result["retrieval_confidence"] = (
         "high" if normalized["posting"].get("description") else "medium"
     )
