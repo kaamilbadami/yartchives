@@ -79,9 +79,37 @@ jobs:
             echo "No feed changes."
             exit 0
           fi
+
+          # Preserve the generated artifact before checking whether main moved.
+          cp data/listings.json /tmp/yartchives-generated-listings.json
+          START_SHA="$(git rev-parse HEAD)"
+          git fetch origin main
+          REMOTE_SHA="$(git rev-parse origin/main)"
+
+          if [ "$START_SHA" != "$REMOTE_SHA" ]; then
+            echo "main advanced while this refresh was running."
+            CHANGED="$(git diff --name-only "$START_SHA".."$REMOTE_SHA")"
+            echo "$CHANGED"
+
+            # A previous feed-only bot commit is safe to supersede with this newer
+            # generated feed. Never silently overwrite concurrent code/config work.
+            if [ -n "$CHANGED" ] && [ "$(echo "$CHANGED" | grep -v '^data/listings.json$' || true)" != "" ]; then
+              echo "Non-feed files changed on main; leaving the newer source commit untouched."
+              echo "The next push/scheduled run will rebuild from the new main."
+              exit 0
+            fi
+
+            git reset --hard origin/main
+            cp /tmp/yartchives-generated-listings.json data/listings.json
+          fi
+
+          if git diff --quiet -- data/listings.json; then
+            echo "No feed changes after synchronizing with main."
+            exit 0
+          fi
+
           git config user.name "yartchives-bot"
           git config user.email "actions@users.noreply.github.com"
           git add data/listings.json
           git commit -m "chore: refresh opportunity feed"
-          git pull --rebase origin main
           git push origin main
