@@ -39,7 +39,7 @@ The available source-health schema records `ok`, `configured`, `count`, and `nam
 | RTX / Pratt & Whitney (direct) | yes / yes | 1 | 1 | 1 | unexpectedly tiny; not confirmed failure |
 | Allegion / Stanley Access Technologies (direct) | yes / yes | 1 | 1 | 0 | unexpectedly tiny; not confirmed failure |
 
-The “feed count” is the source adapter’s reported output in `data.listings.json`; “contribution” is recalculated from final `source_keys`. Differences reflect deduplication and source-key assignment behavior.
+The “feed count” is the source adapter’s reported output in `data/listings.json`; “contribution” is recalculated from final `source_keys`. Differences reflect deduplication and source-key assignment behavior.
 
 ## Freshness and source errors
 
@@ -59,7 +59,7 @@ CS contribution/unique counts show the heaviest overlap by non-unique share amon
 
 ## Direct-source assessment
 
-All six configured direct sources are marked healthy. Four yield one or two listings, and two yield zero. Since every direct configuration sets `minimum_expected` to zero, the existing validation cannot flag these as ineffective. The zero-yield Travelers and Avangrid sources are confirmed as low-yield in this snapshot, but their cause is ambiguous: no matching openings, upstream query/filter behavior, or ingestion/API behavior could each explain the result. The one-to-two listing sources are similarly confirmed tiny, not confirmed broken.
+All seven configured direct sources are marked healthy. Five yield one or two listings, and two yield zero. Since every direct configuration sets `minimum_expected` to zero, the existing validation cannot flag these as ineffective. The zero-yield Travelers and Avangrid sources are confirmed as low-yield in this snapshot, but their cause is ambiguous: no matching openings, upstream query/filter behavior, or ingestion/API behavior could each explain the result. The one-to-two listing sources are similarly confirmed tiny, not confirmed broken.
 
 ## Highest-leverage reliability investigations
 
