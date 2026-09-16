@@ -1,0 +1,157 @@
+[
+  {
+    "key": "ct-cci-workday",
+    "name": "Castleton Commodities International (direct)",
+    "company": "Castleton Commodities International",
+    "kind": "workday",
+    "api_url": "https://osv-cci.wd1.myworkdayjobs.com/wday/cxs/osv-cci/CCICareers/jobs",
+    "public_base": "https://osv-cci.wd1.myworkdayjobs.com/en-US/CCICareers",
+    "homepage": "https://osv-cci.wd1.myworkdayjobs.com/en-US/CCICareers",
+    "state": "CT",
+    "profile_hint": ["cs"],
+    "minimum_expected": 2,
+    "search_terms": [
+      "intern software",
+      "intern computer science",
+      "intern cybersecurity",
+      "intern data science",
+      "intern machine learning",
+      "co-op software"
+    ]
+  },
+  {
+    "key": "ct-hartford-workday",
+    "name": "The Hartford (direct)",
+    "company": "The Hartford",
+    "kind": "workday",
+    "api_url": "https://thehartford.wd5.myworkdayjobs.com/wday/cxs/thehartford/Careers_External/jobs",
+    "public_base": "https://thehartford.wd5.myworkdayjobs.com/en-US/Careers_External",
+    "homepage": "https://thehartford.wd5.myworkdayjobs.com/en-US/Careers_External",
+    "state": "CT",
+    "profile_hint": ["cs"],
+    "minimum_expected": 1,
+    "search_terms": [
+      "intern software",
+      "intern computer science",
+      "intern cybersecurity",
+      "intern data engineer",
+      "intern data science",
+      "intern artificial intelligence"
+    ]
+  },
+  {
+    "key": "ct-travelers-workday",
+    "name": "Travelers (direct)",
+    "company": "Travelers",
+    "kind": "workday",
+    "api_url": "https://travelers.wd5.myworkdayjobs.com/wday/cxs/travelers/External/jobs",
+    "public_base": "https://travelers.wd5.myworkdayjobs.com/en-US/External",
+    "homepage": "https://travelers.wd5.myworkdayjobs.com/en-US/External",
+    "state": "CT",
+    "profile_hint": ["cs"],
+    "minimum_expected": 1,
+    "search_terms": [
+      "intern software",
+      "intern computer science",
+      "intern cybersecurity",
+      "intern data engineering",
+      "engineering development program intern",
+      "intern technology"
+    ]
+  },
+  {
+    "key": "ct-avangrid-workday",
+    "name": "Avangrid (direct)",
+    "company": "Avangrid",
+    "kind": "workday",
+    "api_url": "https://iberdrola.wd3.myworkdayjobs.com/wday/cxs/iberdrola/Iberdrola/jobs",
+    "public_base": "https://iberdrola.wd3.myworkdayjobs.com/en-US/Iberdrola",
+    "homepage": "https://iberdrola.wd3.myworkdayjobs.com/en-US/Iberdrola",
+    "state": "CT",
+    "profile_hint": ["cs"],
+    "minimum_expected": 1,
+    "search_terms": [
+      "technology cyber data internship",
+      "intern technology",
+      "intern cybersecurity",
+      "intern data"
+    ]
+  },
+  {
+    "key": "ct-gartner-workday",
+    "name": "Gartner (direct)",
+    "company": "Gartner",
+    "kind": "workday",
+    "api_url": "https://gartner.wd5.myworkdayjobs.com/wday/cxs/gartner/EXT/jobs",
+    "public_base": "https://gartner.wd5.myworkdayjobs.com/en-US/EXT",
+    "homepage": "https://gartner.wd5.myworkdayjobs.com/en-US/EXT",
+    "state": "CT",
+    "profile_hint": ["cs"],
+    "minimum_expected": 1,
+    "search_terms": [
+      "IT intern",
+      "intern software",
+      "intern computer science",
+      "intern cybersecurity",
+      "intern data science"
+    ]
+  },
+  {
+    "key": "ct-otis-workday",
+    "name": "Otis (direct)",
+    "company": "Otis",
+    "kind": "workday",
+    "api_url": "https://otis.wd5.myworkdayjobs.com/wday/cxs/otis/REC_Ext_Gateway/jobs",
+    "public_base": "https://otis.wd5.myworkdayjobs.com/en-US/REC_Ext_Gateway",
+    "homepage": "https://otis.wd5.myworkdayjobs.com/en-US/REC_Ext_Gateway",
+    "state": "CT",
+    "profile_hint": ["cs"],
+    "minimum_expected": 0,
+    "search_terms": [
+      "intern software",
+      "intern embedded",
+      "intern firmware",
+      "intern computer science",
+      "co-op software"
+    ]
+  },
+  {
+    "key": "ct-rtx-workday",
+    "name": "RTX / Pratt & Whitney (direct)",
+    "company": "RTX",
+    "kind": "workday",
+    "api_url": "https://globalhr.wd5.myworkdayjobs.com/wday/cxs/globalhr/rec_rtx_ext_gateway/jobs",
+    "public_base": "https://globalhr.wd5.myworkdayjobs.com/en-US/rec_rtx_ext_gateway",
+    "homepage": "https://globalhr.wd5.myworkdayjobs.com/en-US/rec_rtx_ext_gateway",
+    "state": "CT",
+    "profile_hint": ["cs"],
+    "minimum_expected": 0,
+    "search_terms": [
+      "intern software",
+      "intern computer science",
+      "intern cybersecurity",
+      "intern data science",
+      "intern digital technology",
+      "co-op software"
+    ]
+  },
+  {
+    "key": "ct-allegion-workday",
+    "name": "Allegion / Stanley Access Technologies (direct)",
+    "company": "Allegion",
+    "kind": "workday",
+    "api_url": "https://allegion.wd5.myworkdayjobs.com/wday/cxs/allegion/careers/jobs",
+    "public_base": "https://allegion.wd5.myworkdayjobs.com/en-US/careers",
+    "homepage": "https://allegion.wd5.myworkdayjobs.com/en-US/careers",
+    "state": "CT",
+    "profile_hint": ["cs"],
+    "minimum_expected": 0,
+    "search_terms": [
+      "intern software",
+      "intern embedded",
+      "intern firmware",
+      "intern computer science",
+      "co-op software"
+    ]
+  }
+]
