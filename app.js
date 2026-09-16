@@ -139,7 +139,12 @@ function matchesLocation(job) {
   const tokens = query.split(/[,;/]+/).map(x => x.trim()).filter(Boolean);
   const stateTokens = (job.states || []).map(x => x.toLowerCase());
   const loc = (job.location || "").toLowerCase();
-  return tokens.some(token => stateTokens.includes(token) || loc.includes(token));
+  return tokens.some(token => {
+    // Two-letter state/region abbreviations must match the normalized state
+    // tags exactly. Otherwise "CT" would match the "ct" inside "Acton".
+    if (/^[a-z]{2}$/.test(token)) return stateTokens.includes(token);
+    return stateTokens.includes(token) || loc.includes(token);
+  });
 }
 
 function applyFilters() {
