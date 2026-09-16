@@ -61,6 +61,48 @@ class SourceLinksTests(unittest.TestCase):
         }
         self.assertIsNone(mod.choose_direct(job, indexes))
 
+    def test_duplicate_visible_rows_are_preserved_as_candidates(self):
+        rows = [
+            {
+                "source_key": "speedyapply", "company": "Raytheon",
+                "title": "Software Engineering Co-op - Summer/Fall 2027",
+                "location": "Wilsonville, OR", "url": "https://example.com/jobs/1",
+            },
+            {
+                "source_key": "speedyapply", "company": "Raytheon",
+                "title": "Software Engineering Co-op - Summer/Fall 2027",
+                "location": "Wilsonville, OR", "url": "https://example.com/jobs/2",
+            },
+        ]
+        indexes = mod.build_candidate_indexes(rows)
+        job = {
+            "source_keys": ["speedyapply"], "company": "RTX",
+            "title": "Software Engineering Co-op - Summer/Fall 2027",
+            "location": "Wilsonville, OR",
+        }
+        self.assertEqual(mod.candidate_urls(job, indexes), {
+            "https://example.com/jobs/1", "https://example.com/jobs/2"
+        })
+
+    def test_unique_live_candidate_survives_dead_duplicate(self):
+        candidates = {"https://example.com/jobs/1", "https://example.com/jobs/2"}
+        validation = {
+            "https://example.com/jobs/1": ("dead", "https://example.com/jobs/1"),
+            "https://example.com/jobs/2": ("ok", "https://example.com/jobs/2"),
+        }
+        self.assertEqual(
+            mod.select_unique_viable(candidates, validation),
+            ("https://example.com/jobs/2", "ok"),
+        )
+
+    def test_two_live_duplicate_requisitions_remain_ambiguous(self):
+        candidates = {"https://example.com/jobs/1", "https://example.com/jobs/2"}
+        validation = {
+            "https://example.com/jobs/1": ("ok", "https://example.com/jobs/1"),
+            "https://example.com/jobs/2": ("ok", "https://example.com/jobs/2"),
+        }
+        self.assertIsNone(mod.select_unique_viable(candidates, validation))
+
 
 if __name__ == "__main__":
     unittest.main()
