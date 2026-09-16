@@ -1,0 +1,131 @@
+const assert = require("node:assert/strict");
+const C = require("../apply-next-competition.js");
+
+const profile = {
+  targetTerm: "Summer 2027",
+  opportunityTypes: ["internship", "co-op"],
+  excludeGraduateOnly: true,
+  preferredProfiles: ["cs"],
+  supportedKeywords: ["software", "testing", "systems", "linux", "java", "c"],
+  cautiousKeywords: ["python", "bash"],
+  facts: {
+    graduation: "May 2028",
+    supportedSkills: ["Java", "C", "Linux", "testing"],
+    cautiousSkills: ["Python", "Bash"],
+  },
+  roleFamilies: [
+    { id: "software", label: "Software engineering", priority: 1, keywords: ["software engineer", "software developer"] },
+    { id: "testing", label: "Testing / systems", priority: 1, keywords: ["test engineer", "testing", "systems"] },
+  ],
+  preferredStates: ["NY", "CT", "MD", "DC"],
+  relocationAllowed: true,
+};
+const now = new Date("2026-09-16T16:00:00Z");
+
+function inspectedSkills(required) {
+  return {
+    status: "inspected",
+    posting: { application_status: "available" },
+    requirements: {
+      skills: {
+        classification: required.length ? "required" : "unknown",
+        required: required.map(([statement, technologies]) => ({
+          statement,
+          technologies,
+          requirement_state: "required",
+          negated: false,
+        })),
+        preferred: [], unspecified: [], not_required: [],
+      },
+    },
+  };
+}
+
+const neutral = {
+  company: "SmallCo",
+  title: "Business Operations Intern",
+  profiles: ["cs"],
+  states: ["CT"],
+  location: "Hartford, CT",
+  term: "Summer 2027",
+  posted_at: "2026-09-15T12:00:00Z",
+  link_kind: "direct",
+  url: "https://example.com/neutral",
+};
+assert.equal(C.scoreRoi(neutral, profile).score, 10);
+assert.match(C.scoreRoi(neutral, profile).detail, /Neutral application-value baseline/);
+
+const directFresh = { ...neutral, link_kind: "direct", term: "Summer 2027", posted_at: "2026-09-16T12:00:00Z" };
+const listingOlder = { ...neutral, link_kind: "listing", term: "Fall 2026", posted_at: "2026-08-01T12:00:00Z" };
+assert.equal(C.scoreRoi(directFresh, profile).score, C.scoreRoi(listingOlder, profile).score);
+assert.doesNotMatch(C.scoreRoi(directFresh, profile).detail, /fresh posting|direct application|exact target term/i);
+
+const genericNy = {
+  ...neutral,
+  company: "BigCo",
+  title: "Software Engineering Intern",
+  location: "New York, NY",
+  states: ["NY"],
+};
+assert.equal(C.isGenericRole(genericNy), true);
+assert.equal(C.marketPressure(genericNy).penalty, 2);
+
+const remoteGeneric = { ...genericNy, location: "Remote", states: ["Remote"] };
+assert.ok(C.scoreRoi(remoteGeneric, profile).score < C.scoreRoi(neutral, profile).score);
+
+const footprintJobs = Array.from({ length: 8 }, (_, index) => ({
+  ...genericNy,
+  id: `big-${index}`,
+  title: index === 0 ? "Software Engineering Intern" : `Engineering Intern ${index}`,
+}));
+const context = C.buildCompetitionContext(footprintJobs);
+assert.equal(context.employerCounts.bigco, 8);
+const highPressure = C.scoreRoi(genericNy, profile, context);
+assert.equal(highPressure.competitionPenalty, 5);
+assert.equal(highPressure.score, 5);
+assert.match(highPressure.detail, /large current hiring footprint/);
+
+const differentiated = {
+  ...neutral,
+  company: "FocusedCo",
+  title: "Systems Test Engineer Intern",
+  location: "New York, NY",
+  states: ["NY"],
+  _inspection: inspectedSkills([
+    ["Linux experience required.", ["Linux"]],
+    ["Software testing experience required.", ["testing"]],
+  ]),
+};
+const differentiatedRoi = C.scoreRoi(differentiated, profile);
+assert.equal(C.isSpecializedRole(differentiated), true);
+assert.equal(differentiatedRoi.differentiationBonus, 5);
+assert.equal(differentiatedRoi.score, 13);
+assert.match(differentiatedRoi.detail, /strong required-skill differentiation/);
+assert.match(differentiatedRoi.detail, /specialized role aligns/);
+
+const genericPool = footprintJobs.map((job, index) => ({
+  ...job,
+  posted_at: "2026-09-16T12:00:00Z",
+  term: "Summer 2027",
+  profiles: ["cs"],
+  states: ["NY"],
+  location: "New York, NY",
+  link_kind: "direct",
+  url: `https://example.com/big-${index}`,
+}));
+const specializedOlder = {
+  ...differentiated,
+  posted_at: "2026-09-12T12:00:00Z",
+  link_kind: "direct",
+  url: "https://example.com/focused",
+};
+const ranked = C.rankJobs([...genericPool, specializedOlder], profile, now);
+assert.equal(ranked[0].job.company, "FocusedCo");
+assert.ok(ranked[0].components.roi.score > ranked.find(result => result.job.company === "BigCo").components.roi.score);
+
+const score = C.scoreJob(differentiated, profile, now, C.buildCompetitionContext([differentiated]));
+assert.equal(score.components.roi.score, 13);
+assert.equal(score.competition.penalty, 2);
+assert.equal(score.competition.differentiationBonus, 5);
+
+console.log("apply-next competition tests passed");

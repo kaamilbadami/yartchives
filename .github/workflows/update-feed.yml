@@ -18,6 +18,7 @@ on:
       - "share.js"
       - "apply-next.js"
       - "apply-next-readiness.js"
+      - "apply-next-competition.js"
       - "apply-next-ui.js"
       - "ux.css"
       - "sources.json"
@@ -60,10 +61,12 @@ jobs:
           node --check share.js
           node --check apply-next.js
           node --check apply-next-readiness.js
+          node --check apply-next-competition.js
           node --check apply-next-ui.js
           node tests/frontend-utils.test.cjs
           node tests/apply-next.test.cjs
           node tests/apply-next-readiness.test.cjs
+          node tests/apply-next-competition.test.cjs
           node tests/apply-next-ui.test.cjs
 
       - name: Snapshot existing final feed
