@@ -11,7 +11,9 @@ on:
       - "scripts/**"
       - "tests/**"
       - "frontend-utils.js"
+      - "app.js"
       - "enhancements.js"
+      - "ui.js"
       - "sources.json"
       - "direct_sources.json"
       - "requirements.txt"
@@ -47,6 +49,7 @@ jobs:
           node --check frontend-utils.js
           node --check app.js
           node --check enhancements.js
+          node --check ui.js
           node tests/frontend-utils.test.cjs
 
       - name: Snapshot existing final feed
