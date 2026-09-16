@@ -124,4 +124,14 @@ const scored = R.scoreJob(cPlusPlus, profile, new Date("2026-09-16T16:00:00Z"));
 const componentTotal = Object.values(scored.components).reduce((sum, part) => sum + part.score, 0);
 assert.equal(scored.total, Math.max(0, Math.min(100, componentTotal + scored.readiness.delta)));
 
+const greenhouseEvidence = JSON.parse(JSON.stringify(cPlusPlus));
+greenhouseEvidence.url = "https://job-boards.greenhouse.io/example/jobs/8171041";
+greenhouseEvidence._inspection.provider = "greenhouse";
+greenhouseEvidence._inspection.provenance = { provider: "greenhouse", interface: "greenhouse_job_board_api" };
+const greenhouseScore = R.scoreJob(greenhouseEvidence, profile, new Date("2026-09-16T16:00:00Z"));
+assert.equal(greenhouseScore.readiness.delta, scored.readiness.delta);
+assert.equal(greenhouseScore.components.fit.score, scored.components.fit.score);
+assert.match(greenhouseScore.inspection.label, /^Posting inspected/);
+assert.match(greenhouseScore.inspection.evidence.join(" "), /Required gap: c\+\+/i);
+
 console.log("apply-next readiness tests passed");

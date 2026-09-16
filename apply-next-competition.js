@@ -213,19 +213,26 @@
     return /(?:^|\.)icims\.com(?:\/|$)/i.test(String(job?.url || "").replace(/^https?:\/\//i, ""));
   }
 
+  function isGreenhouseUrl(job) {
+    return /^(?:job-boards|boards)\.greenhouse\.io(?:\/|$)/i.test(
+      String(job?.url || "").replace(/^https?:\/\//i, "")
+    );
+  }
+
   function inspectionProvider(job) {
     const inspection = inspectionForJob(job);
     const explicit = normalize(inspection?.provider || inspection?.provenance?.provider || inspection?.queue?.provider);
-    if (explicit === "workday" || explicit === "icims") return explicit;
+    if (["workday", "icims", "greenhouse"].includes(explicit)) return explicit;
     if (isWorkdayUrl(job)) return "workday";
     if (isIcimsUrl(job)) return "icims";
+    if (isGreenhouseUrl(job)) return "greenhouse";
     return null;
   }
 
   function postingInspectionStatus(job) {
     const provider = inspectionProvider(job);
     if (!provider) return null;
-    const providerLabel = provider === "workday" ? "Workday" : "iCIMS";
+    const providerLabel = ({ workday: "Workday", icims: "iCIMS", greenhouse: "Greenhouse" })[provider];
     const inspection = inspectionForJob(job);
     if (!inspection) {
       return {
@@ -244,7 +251,8 @@
 
     if (inspection.status === "unsupported_url" || queue.state === "unsupported_url") {
       return {
-        label: provider === "icims" ? "Unsupported iCIMS URL" : "Unsupported posting URL",
+        label: ({ icims: "Unsupported iCIMS URL", greenhouse: "Unsupported Greenhouse URL" })[provider]
+          || "Unsupported posting URL",
         detail: `${providerLabel} URL shape is not recognized by the authoritative posting inspector.`,
       };
     }
@@ -337,6 +345,7 @@
     requiredSkillSupport,
     isWorkdayUrl,
     isIcimsUrl,
+    isGreenhouseUrl,
     inspectionProvider,
     postingInspectionStatus,
     workdayInspectionStatus,

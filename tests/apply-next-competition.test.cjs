@@ -206,6 +206,59 @@ const unsupportedIcimsScore = C.scoreJob(unsupportedIcims, profile, now, C.build
 assert.equal(unsupportedIcimsScore.inspection.label, "Unsupported iCIMS URL");
 assert.match(unsupportedIcimsScore.inspection.evidence[0], /not recognized/i);
 
+const queuedGreenhouse = {
+  ...neutral,
+  company: "QueuedGreenhouse",
+  url: "https://job-boards.greenhouse.io/doordashusa/jobs/8171041?gh_src=feed",
+  _inspection: {
+    provider: "greenhouse",
+    status: "queued",
+    retrieval_confidence: "none",
+    posting: null,
+    requirements: {},
+    queue: {
+      provider: "greenhouse",
+      state: "queued",
+      rank: 3,
+      priority_score: 140,
+      reasons: ["Summer 2027", "internship/co-op", "undergrad-friendly"],
+    },
+  },
+};
+const queuedGreenhouseScore = C.scoreJob(
+  queuedGreenhouse,
+  profile,
+  now,
+  C.buildCompetitionContext([queuedGreenhouse])
+);
+assert.equal(C.isGreenhouseUrl(queuedGreenhouse), true);
+assert.equal(C.inspectionProvider(queuedGreenhouse), "greenhouse");
+assert.equal(queuedGreenhouseScore.inspection.label, "Queued for inspection");
+assert.match(queuedGreenhouseScore.inspection.evidence[0], /Queued for bounded Greenhouse inspection/);
+assert.match(queuedGreenhouseScore.inspection.evidence[0], /public priority #3/);
+
+const unsupportedGreenhouse = {
+  ...neutral,
+  company: "OddGreenhouse",
+  url: "https://job-boards.greenhouse.io/doordashusa",
+  _inspection: {
+    provider: "greenhouse",
+    status: "unsupported_url",
+    retrieval_confidence: "none",
+    posting: null,
+    requirements: {},
+    queue: { provider: "greenhouse", state: "unsupported_url", reasons: [] },
+  },
+};
+const unsupportedGreenhouseScore = C.scoreJob(
+  unsupportedGreenhouse,
+  profile,
+  now,
+  C.buildCompetitionContext([unsupportedGreenhouse])
+);
+assert.equal(unsupportedGreenhouseScore.inspection.label, "Unsupported Greenhouse URL");
+assert.match(unsupportedGreenhouseScore.inspection.evidence[0], /not recognized/i);
+
 const unsupportedWorkday = {
   ...neutral,
   company: "OddWorkday",

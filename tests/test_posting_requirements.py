@@ -10,6 +10,7 @@ if str(SCRIPTS) not in sys.path:
 import posting_requirements as shared
 import workday_inspector as workday
 import icims_inspector as icims
+import greenhouse_inspector as greenhouse
 
 
 class PostingRequirementTests(unittest.TestCase):
@@ -18,6 +19,7 @@ class PostingRequirementTests(unittest.TestCase):
         self.assertIs(icims.extract_requirements, shared.extract_requirements)
         self.assertIs(workday.normalize_description, shared.normalize_description)
         self.assertIs(icims.normalize_description, shared.normalize_description)
+        self.assertIs(greenhouse.posting_requirements, shared)
 
     def test_required_preferred_negated_and_unknown_semantics(self):
         result = shared.extract_requirements([
@@ -35,6 +37,15 @@ class PostingRequirementTests(unittest.TestCase):
         self.assertEqual(result["citizenship"]["classification"], "not_required")
         self.assertEqual(result["work_authorization"]["classification"], "not_required")
         self.assertEqual(result["graduation"]["classification"], "unknown")
+
+    def test_quantified_preference_remains_preferred(self):
+        result = shared.extract_requirements([
+            "Preferred but not required:",
+            "At least one prior project using Linux and Git.",
+        ])
+        self.assertEqual(result["skills"]["classification"], "preferred")
+        self.assertEqual(result["skills"]["required"], [])
+        self.assertEqual(result["skills"]["preferred"][0]["technologies"], ["Git", "Linux"])
 
     def test_normalization_preserves_stable_block_lines(self):
         text, lines = shared.normalize_description(

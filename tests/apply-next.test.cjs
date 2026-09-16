@@ -133,9 +133,11 @@ assert.match(inspectedStrongScore.components.fit.detail, /Required posting skill
 
 const unavailable = A.scoreJob({
   ...freshDirect,
+  url: "https://job-boards.greenhouse.io/example/jobs/9999999",
   _inspection: {
-    status: "inspected",
-    posting: { application_status: "unavailable" },
+    provider: "greenhouse",
+    status: "unavailable",
+    posting: null,
     requirements: {},
   },
 }, profile, now);
