@@ -9,27 +9,15 @@ const assets = [...index.matchAll(/(?:src|href)="([^"]+\.(?:js|css))"/g)]
   .filter(asset => !/^https?:\/\//i.test(asset));
 
 assert.ok(assets.length > 0, "index.html should reference local JS/CSS assets");
-
-const copyLine = workflow
-  .split("\n")
-  .map(line => line.trim())
-  .find(line => line.startsWith("cp index.html "));
-assert.ok(copyLine, "Pages workflow should copy index.html and static assets into _site");
+assert.ok(workflow.includes('- "*.js"'), "top-level JS changes should trigger a Pages deploy");
+assert.ok(workflow.includes('- "*.css"'), "top-level CSS changes should trigger a Pages deploy");
+assert.ok(workflow.includes("cp ./*.js ./*.css _site/"), "Pages artifact should package top-level JS/CSS generically");
+assert.ok(workflow.includes("for asset in ./*.css ./*.js; do"), "Pages build should cache-bust packaged JS/CSS generically");
+assert.ok(workflow.includes('?v=${VERSION}'), "Pages build should append the deployment version to local assets");
 
 for (const asset of assets) {
   assert.ok(fs.existsSync(asset), `${asset} is referenced by index.html but does not exist`);
-  assert.ok(
-    copyLine.includes(` ${asset}`),
-    `${asset} is referenced by index.html but is not copied into the Pages artifact`
-  );
-  assert.ok(
-    workflow.includes(`- "${asset}"`),
-    `${asset} is referenced by index.html but does not trigger a Pages deploy when changed`
-  );
-  assert.ok(
-    workflow.includes(`${asset}?v=\${VERSION}`),
-    `${asset} is referenced by index.html but is not cache-busted in the Pages artifact`
-  );
+  assert.equal(asset.includes("/"), false, `${asset} is nested; update the generic Pages asset packaging contract`);
 }
 
 console.log("deploy asset parity tests passed");
