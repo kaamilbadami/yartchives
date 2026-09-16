@@ -51,4 +51,14 @@ const uiSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-ui.js"),
 assert.match(uiSource, /local storage/i);
 assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
 
+const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
+assert.ok(
+  deployWorkflow.includes("cp index.html styles.css location.css ui.css ux.css apply-next.css frontend-utils.js app.js enhancements.js ui.js ux.js share.js apply-next.js apply-next-ui.js .nojekyll _site/"),
+  "Pages artifact must copy all Apply Next assets"
+);
+for (const asset of ["apply-next.css", "apply-next.js", "apply-next-ui.js"]) {
+  assert.ok(deployWorkflow.includes(asset), `Pages workflow must include ${asset}`);
+  assert.ok(deployWorkflow.includes(`${asset}?v=\${VERSION}`), `Pages workflow must cache-bust ${asset}`);
+}
+
 console.log("apply-next UI tests passed");
