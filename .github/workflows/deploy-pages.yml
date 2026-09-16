@@ -14,6 +14,11 @@ on:
       - "data/listings.json"
       - ".nojekyll"
       - ".github/workflows/deploy-pages.yml"
+  workflow_run:
+    workflows:
+      - "Update opportunity feed"
+    types:
+      - completed
   workflow_dispatch:
 
 permissions:
@@ -28,6 +33,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -35,6 +41,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: main
 
       - name: Configure Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d
@@ -45,7 +53,7 @@ jobs:
           mkdir -p _site/data
           cp index.html styles.css location.css frontend-utils.js app.js enhancements.js .nojekyll _site/
           cp data/listings.json _site/data/listings.json
-          VERSION="${GITHUB_SHA::12}"
+          VERSION="$(git rev-parse --short=12 HEAD)"
           sed -i "s|href=\"styles.css\"|href=\"styles.css?v=${VERSION}\"|" _site/index.html
           sed -i "s|href=\"location.css\"|href=\"location.css?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"frontend-utils.js\"|src=\"frontend-utils.js?v=${VERSION}\"|" _site/index.html
