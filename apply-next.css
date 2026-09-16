@@ -1,0 +1,140 @@
+.apply-next-open {
+  white-space: nowrap;
+}
+
+.apply-next-panel {
+  margin: 1rem 0 1.4rem;
+}
+
+.apply-next-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.apply-next-heading h2 {
+  margin: 0.15rem 0 0.35rem;
+}
+
+.apply-next-heading p {
+  margin: 0;
+}
+
+.apply-next-profile-input {
+  width: 100%;
+  min-height: 15rem;
+  box-sizing: border-box;
+  resize: vertical;
+  font: 0.88rem/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.apply-next-profile-actions,
+.apply-next-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+}
+
+.apply-next-note {
+  margin: 0 0 1rem;
+  color: var(--muted, #667085);
+}
+
+.apply-next-list {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.apply-next-card {
+  border: 1px solid var(--line, #d9dde5);
+  border-radius: 14px;
+  padding: 1rem;
+  background: var(--panel, #fff);
+}
+
+.apply-next-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.apply-next-card h3 {
+  margin: 0.12rem 0 0.3rem;
+}
+
+.apply-next-rank {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted, #667085);
+}
+
+.apply-next-score {
+  display: flex;
+  align-items: baseline;
+  flex-shrink: 0;
+  gap: 0.15rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line, #d9dde5);
+  border-radius: 12px;
+}
+
+.apply-next-score strong {
+  font-size: 1.35rem;
+}
+
+.apply-next-score span {
+  font-size: 0.78rem;
+  color: var(--muted, #667085);
+}
+
+.apply-next-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.85rem 0;
+}
+
+.apply-next-component {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.5rem;
+  border-radius: 999px;
+  background: var(--soft, #f3f5f8);
+  font-size: 0.78rem;
+}
+
+.apply-next-why {
+  margin: 0.45rem 0 0.85rem;
+}
+
+.apply-next-why summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.apply-next-why ul {
+  margin: 0.65rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.apply-next-why li + li {
+  margin-top: 0.35rem;
+}
+
+@media (max-width: 720px) {
+  .apply-next-heading,
+  .apply-next-card-top {
+    flex-direction: column;
+  }
+
+  .apply-next-score {
+    align-self: flex-start;
+  }
+}
