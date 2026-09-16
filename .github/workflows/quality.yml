@@ -11,10 +11,12 @@ on:
       - "frontend-utils.js"
       - "enhancements.js"
       - "ui.js"
+      - "ux.js"
       - "index.html"
       - "styles.css"
       - "location.css"
       - "ui.css"
+      - "ux.css"
       - "scripts/**"
       - "tests/**"
       - "sources.json"
@@ -57,6 +59,7 @@ jobs:
           node --check app.js
           node --check enhancements.js
           node --check ui.js
+          node --check ux.js
           node tests/frontend-utils.test.cjs
 
       - name: Validate checked-in feed
