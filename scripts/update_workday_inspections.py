@@ -2,7 +2,7 @@
 """Incrementally inspect authoritative ATS listings into a static cache artifact.
 
 The filename is retained for backwards compatibility, while entries and request
-budgets are provider-aware for Workday and iCIMS.
+budgets are provider-aware for Workday, iCIMS, and Greenhouse.
 """
 
 from __future__ import annotations
@@ -22,19 +22,22 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+from greenhouse_inspector import derive_greenhouse_endpoint, inspect_greenhouse_url  # noqa: E402
 from icims_inspector import derive_icims_endpoint, inspect_icims_url  # noqa: E402
-from workday_inspector import derive_cxs_endpoint, extract_requirements, inspect_workday_url  # noqa: E402
+from posting_requirements import extract_requirements  # noqa: E402
+from workday_inspector import derive_cxs_endpoint, inspect_workday_url  # noqa: E402
 
 ROOT = SCRIPT_DIR.parent
 DEFAULT_FEED = ROOT / "data" / "listings.json"
 DEFAULT_CACHE = ROOT / "data" / "workday-inspections.json"
 DEFAULT_MAX_REQUESTS = 25
 DEFAULT_MAX_ICIMS_REQUESTS = 10
+DEFAULT_MAX_GREENHOUSE_REQUESTS = 10
 DEFAULT_TTL_DAYS = 7
 FAILED_RETRY_HOURS = 6
-CACHE_VERSION = 3
+CACHE_VERSION = 4
 REUSABLE_STATUSES = {"inspected", "unavailable"}
-PROVIDERS = ("workday", "icims")
+PROVIDERS = ("workday", "icims", "greenhouse")
 
 
 def utc_now() -> datetime:
@@ -153,8 +156,43 @@ def icims_identity(job: dict[str, Any]) -> dict[str, str] | None:
     }
 
 
+def _unsupported_greenhouse_identity(url: str) -> dict[str, str] | None:
+    parsed = urlparse(html.unescape(url or ""))
+    host = (parsed.hostname or "").lower()
+    if parsed.scheme.lower() != "https" or host not in {
+        "boards.greenhouse.io",
+        "job-boards.greenhouse.io",
+    }:
+        return None
+    canonical = urlunparse(("https", "job-boards.greenhouse.io", parsed.path.rstrip("/") or "/", "", "", ""))
+    return {
+        "provider": "greenhouse",
+        "canonical_url": canonical,
+        "endpoint_url": canonical,
+        "supported": "false",
+    }
+
+
+def greenhouse_identity(job: dict[str, Any]) -> dict[str, str] | None:
+    if not isinstance(job, dict) or job.get("link_kind") in {"listing", "source"}:
+        return None
+    url = str(job.get("url") or "").strip()
+    if not url:
+        return None
+    try:
+        derived = derive_greenhouse_endpoint(url)
+    except ValueError:
+        return _unsupported_greenhouse_identity(url)
+    return {
+        "provider": "greenhouse",
+        "canonical_url": derived["canonical_job_url"],
+        "endpoint_url": derived["endpoint_url"],
+        "supported": "true",
+    }
+
+
 def posting_identity(job: dict[str, Any]) -> dict[str, str] | None:
-    return workday_identity(job) or icims_identity(job)
+    return workday_identity(job) or icims_identity(job) or greenhouse_identity(job)
 
 
 def provider_for_url(url: str) -> str | None:
@@ -164,6 +202,8 @@ def provider_for_url(url: str) -> str | None:
         return "workday"
     if host.endswith(".icims.com"):
         return "icims"
+    if host in {"boards.greenhouse.io", "job-boards.greenhouse.io"}:
+        return "greenhouse"
     return None
 
 
@@ -174,6 +214,8 @@ def supported_identity(url: str) -> bool:
             derive_cxs_endpoint(url)
         elif provider == "icims":
             derive_icims_endpoint(url)
+        elif provider == "greenhouse":
+            derive_greenhouse_endpoint(url)
         else:
             return False
     except ValueError:
@@ -187,6 +229,8 @@ def inspect_posting_url(url: str) -> dict[str, Any]:
         return inspect_workday_url(url)
     if provider == "icims":
         return inspect_icims_url(url)
+    if provider == "greenhouse":
+        return inspect_greenhouse_url(url)
     return {
         "status": "unsupported_url",
         "retrieval_confidence": "none",
@@ -197,7 +241,7 @@ def inspect_posting_url(url: str) -> dict[str, Any]:
     }
 
 
-def renormalize_cached_icims(entry: dict[str, Any]) -> dict[str, Any]:
+def renormalize_cached_requirements(entry: dict[str, Any]) -> dict[str, Any]:
     """Re-run deterministic extraction from a cached full description without a request."""
 
     out = copy.deepcopy(entry)
@@ -460,7 +504,7 @@ def materialize_queue_entries(
                 "status": "unsupported_url" if queue_info.get("state") == "unsupported_url" else "queued",
                 "retrieval_confidence": "none",
                 "error": (
-                    "iCIMS URL shape is not recognized by the public posting inspector"
+                    f"{provider or 'ATS'} URL shape is not recognized by the public posting inspector"
                     if queue_info.get("state") == "unsupported_url"
                     else None
                 ),
@@ -470,7 +514,11 @@ def materialize_queue_entries(
                 "provenance": {
                     "source_url": canonical,
                     "provider": provider,
-                    "interface": "workday_cxs_json" if provider == "workday" else "icims_jobposting_jsonld",
+                    "interface": {
+                        "workday": "workday_cxs_json",
+                        "icims": "icims_jobposting_jsonld",
+                        "greenhouse": "greenhouse_job_board_api",
+                    }.get(provider),
                 },
             },
             "last_attempted_at": None,
@@ -486,6 +534,7 @@ def refresh_cache(
     max_requests: int = DEFAULT_MAX_REQUESTS,
     max_workday_requests: int | None = None,
     max_icims_requests: int = DEFAULT_MAX_ICIMS_REQUESTS,
+    max_greenhouse_requests: int = DEFAULT_MAX_GREENHOUSE_REQUESTS,
     ttl_days: int = DEFAULT_TTL_DAYS,
     now: Callable[[], datetime] = utc_now,
     inspector: Callable[[str], dict[str, Any]] = inspect_posting_url,
@@ -507,7 +556,9 @@ def refresh_cache(
 
     entries = {key: value for key, value in out["entries"].items() if key in by_url}
     entries = {
-        key: renormalize_cached_icims(value) if provider_for_url(key) == "icims" else value
+        key: renormalize_cached_requirements(value)
+        if provider_for_url(key) in {"icims", "greenhouse"}
+        else value
         for key, value in entries.items()
     }
     out["entries"] = entries
@@ -515,6 +566,7 @@ def refresh_cache(
     provider_caps = {
         "workday": max(0, int(max_requests if max_workday_requests is None else max_workday_requests)),
         "icims": max(0, int(max_icims_requests)),
+        "greenhouse": max(0, int(max_greenhouse_requests)),
     }
     selected: list[str] = []
     for provider in PROVIDERS:
@@ -585,6 +637,8 @@ def refresh_cache(
         "workday_postings": sum(1 for canonical in by_url if provider_for_url(canonical) == "workday"),
         "icims_listings": sum(1 for canonical in listing_index.values() if provider_for_url(canonical) == "icims"),
         "icims_postings": sum(1 for canonical in by_url if provider_for_url(canonical) == "icims"),
+        "greenhouse_listings": sum(1 for canonical in listing_index.values() if provider_for_url(canonical) == "greenhouse"),
+        "greenhouse_postings": sum(1 for canonical in by_url if provider_for_url(canonical) == "greenhouse"),
         "priority_term": out["priority_term"],
         "eligible_for_refresh": len(candidates),
         "requested": requested,
@@ -620,6 +674,7 @@ def main() -> int:
     parser.add_argument("--max-requests", type=int, default=DEFAULT_MAX_REQUESTS)
     parser.add_argument("--max-workday-requests", type=int)
     parser.add_argument("--max-icims-requests", type=int, default=DEFAULT_MAX_ICIMS_REQUESTS)
+    parser.add_argument("--max-greenhouse-requests", type=int, default=DEFAULT_MAX_GREENHOUSE_REQUESTS)
     parser.add_argument("--ttl-days", type=int, default=DEFAULT_TTL_DAYS)
     args = parser.parse_args()
 
@@ -632,6 +687,7 @@ def main() -> int:
         max_requests=args.max_requests,
         max_workday_requests=args.max_workday_requests,
         max_icims_requests=args.max_icims_requests,
+        max_greenhouse_requests=args.max_greenhouse_requests,
         ttl_days=args.ttl_days,
         now=lambda: reference,
     )

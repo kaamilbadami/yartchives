@@ -59,7 +59,8 @@ REQUIRED_HEADING = re.compile(
 )
 PREFERRED_HEADING = re.compile(
     r"\b(?:preferred qualifications?|qualifications? we prefer|ideal candidate|"
-    r"nice to have|desired qualifications?|what sets you apart|bonus points?)\b",
+    r"preferred but not required|nice to have|desired qualifications?|"
+    r"what sets you apart|bonus points?)\b",
     re.I,
 )
 UNSPECIFIED_HEADING = re.compile(
@@ -123,13 +124,15 @@ def _explicit_level(statement: str, section_level: str | None) -> str | None:
     ):
         return "not_required"
     if re.search(
-        r"\b(?:must|requires?|required to|required qualification|minimum of|at least|"
-        r"must be authorized|does not sponsor|will not sponsor|unable to sponsor)\b",
+        r"\b(?:must|requires?|required to|required qualification|must be authorized|"
+        r"does not sponsor|will not sponsor|unable to sponsor)\b",
         lower,
     ):
         return "required"
     if re.search(r"\b(?:preferred|ideally|desired|a plus|nice to have|suggested)\b", lower):
         return "preferred"
+    if re.search(r"\b(?:minimum of|at least)\b", lower):
+        return "preferred" if section_level == "preferred" else "required"
     return section_level
 
 

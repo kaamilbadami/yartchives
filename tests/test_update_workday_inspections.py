@@ -65,6 +65,31 @@ def icims_job(
     }
 
 
+def greenhouse_job(
+    job_id,
+    posting_id="8171041",
+    posted_at="2026-09-16T12:00:00Z",
+    link_kind="direct",
+    *,
+    board="doordashusa",
+    title="Software Engineer Intern",
+    term="Summer 2027",
+    legacy_host=False,
+):
+    host = "boards.greenhouse.io" if legacy_host else "job-boards.greenhouse.io"
+    return {
+        "id": job_id,
+        "company": "Example Greenhouse",
+        "title": title,
+        "url": f"https://{host}/{board}/jobs/{posting_id}?gh_src=feed&utm_source=Simplify",
+        "posted_at": posted_at,
+        "link_kind": link_kind,
+        "term": term,
+        "opportunity_type": "internship",
+        "education_level": "undergrad",
+    }
+
+
 def inspection(url, status="inspected", at="2026-09-16T17:30:00Z"):
     posting = {"application_status": "available"} if status == "inspected" else None
     return {
@@ -84,6 +109,8 @@ class UpdateWorkdayInspectionTests(unittest.TestCase):
             workday_job("wd-old", "REQ-2", "2026-09-15T15:00:00Z"),
             icims_job("icims-new", "1001", "2026-09-16T16:00:00Z"),
             icims_job("icims-old", "1002", "2026-09-14T16:00:00Z"),
+            greenhouse_job("gh-new", "8171041", "2026-09-16T16:30:00Z"),
+            greenhouse_job("gh-old", "8171042", "2026-09-13T16:00:00Z"),
         ]
         calls = []
         updated, stats = mod.refresh_cache(
@@ -91,18 +118,102 @@ class UpdateWorkdayInspectionTests(unittest.TestCase):
             mod.empty_cache(),
             max_workday_requests=1,
             max_icims_requests=1,
+            max_greenhouse_requests=1,
             now=lambda: NOW,
             inspector=lambda url: calls.append(url) or inspection(url),
         )
-        self.assertEqual(len(calls), 2)
+        self.assertEqual(len(calls), 3)
         self.assertEqual(sum("myworkdayjobs.com" in url for url in calls), 1)
         self.assertEqual(sum("icims.com" in url for url in calls), 1)
-        self.assertEqual(stats["provider_requests"], {"workday": 1, "icims": 1})
-        self.assertEqual(stats["provider_caps"], {"workday": 1, "icims": 1})
+        self.assertEqual(sum("greenhouse.io" in url for url in calls), 1)
+        self.assertEqual(
+            stats["provider_requests"],
+            {"workday": 1, "icims": 1, "greenhouse": 1},
+        )
+        self.assertEqual(
+            stats["provider_caps"],
+            {"workday": 1, "icims": 1, "greenhouse": 1},
+        )
         self.assertEqual(stats["workday_listings"], 2)
         self.assertEqual(stats["icims_listings"], 2)
+        self.assertEqual(stats["greenhouse_listings"], 2)
         for entry in updated["entries"].values():
-            self.assertIn(entry["provider"], {"workday", "icims"})
+            self.assertIn(entry["provider"], {"workday", "icims", "greenhouse"})
+
+    def test_greenhouse_tracking_variants_share_one_cache_identity(self):
+        current = greenhouse_job("current", "8171041")
+        legacy = greenhouse_job("legacy", "8171041", legacy_host=True)
+        listing_index, by_url = mod.build_listing_index([current, legacy])
+        canonical = "https://job-boards.greenhouse.io/doordashusa/jobs/8171041"
+        self.assertEqual(listing_index, {"current": canonical, "legacy": canonical})
+        self.assertEqual(list(by_url), [canonical])
+
+    def test_greenhouse_transient_failure_preserves_last_good_inspection(self):
+        job = greenhouse_job("greenhouse-one")
+        canonical = mod.greenhouse_identity(job)["canonical_url"]
+        good = inspection(canonical, at="2026-09-01T00:00:00Z")
+        good["provider"] = "greenhouse"
+        cache = mod.empty_cache()
+        cache["entries"][canonical] = {
+            "provider": "greenhouse",
+            "inspection": good,
+            "last_attempted_at": "2026-09-01T00:00:00Z",
+            "last_success_at": "2026-09-01T00:00:00Z",
+            "last_error": None,
+        }
+        failed = inspection(canonical, status="failed")
+        updated, stats = mod.refresh_cache(
+            {"jobs": [job]},
+            cache,
+            max_workday_requests=0,
+            max_icims_requests=0,
+            max_greenhouse_requests=1,
+            now=lambda: NOW,
+            inspector=lambda url: failed,
+        )
+        self.assertEqual(stats["preserved_last_good"], 1)
+        self.assertEqual(updated["entries"][canonical]["inspection"], good)
+        self.assertTrue(updated["entries"][canonical]["last_error"])
+
+    def test_greenhouse_queue_failure_and_unsupported_states_are_materialized(self):
+        queued = greenhouse_job("queued", "8171041")
+        failed = greenhouse_job("failed", "8171042")
+        unsupported = {
+            **greenhouse_job("unsupported", "8171043"),
+            "url": "https://job-boards.greenhouse.io/doordashusa?gh_src=feed",
+        }
+        failed_canonical = mod.greenhouse_identity(failed)["canonical_url"]
+        cache = mod.empty_cache()
+        cache["entries"][failed_canonical] = {
+            "provider": "greenhouse",
+            "inspection": inspection(failed_canonical, status="failed"),
+            "last_attempted_at": "2026-09-16T16:30:00Z",
+            "last_success_at": None,
+            "last_error": "temporary",
+        }
+        updated, stats = mod.refresh_cache(
+            {"jobs": [queued, failed, unsupported]},
+            cache,
+            max_workday_requests=0,
+            max_icims_requests=0,
+            max_greenhouse_requests=0,
+            now=lambda: NOW,
+        )
+        queued_canonical = mod.greenhouse_identity(queued)["canonical_url"]
+        unsupported_canonical = mod.greenhouse_identity(unsupported)["canonical_url"]
+        self.assertEqual(updated["entries"][queued_canonical]["inspection"]["status"], "queued")
+        self.assertEqual(updated["queue"][queued_canonical]["state"], "queued")
+        self.assertEqual(updated["queue"][failed_canonical]["state"], "retry_cooldown")
+        self.assertEqual(
+            updated["entries"][failed_canonical]["inspection"]["queue"]["state"],
+            "retry_cooldown",
+        )
+        self.assertEqual(updated["queue"][unsupported_canonical]["state"], "unsupported_url")
+        self.assertEqual(
+            updated["entries"][unsupported_canonical]["inspection"]["status"],
+            "unsupported_url",
+        )
+        self.assertEqual(stats["requested"], 0)
 
     def test_icims_transient_failure_preserves_last_good_inspection(self):
         job = icims_job("icims-one", "2001")
@@ -195,12 +306,12 @@ class UpdateWorkdayInspectionTests(unittest.TestCase):
         self.assertEqual(updated["entries"][unsupported_canonical]["inspection"]["status"], "unsupported_url")
         self.assertEqual(stats["requested"], 0)
 
-    def test_bounds_requests_and_ignores_non_direct_or_non_workday(self):
+    def test_bounds_requests_and_ignores_non_direct_or_other_provider(self):
         jobs = [
             workday_job("newest", "REQ-1", "2026-09-16T15:00:00Z"),
             workday_job("older", "REQ-2", "2026-09-15T15:00:00Z"),
             workday_job("listing", "REQ-3", link_kind="listing"),
-            {"id": "greenhouse", "url": "https://boards.greenhouse.io/x/jobs/1", "link_kind": "direct"},
+            {"id": "lever", "url": "https://jobs.lever.co/x/1", "link_kind": "direct"},
         ]
         feed = {"jobs": copy.deepcopy(jobs)}
         original_feed = copy.deepcopy(feed)
