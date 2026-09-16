@@ -18,6 +18,10 @@ RTX_PATH = (
     "/job/US-CT-WINDSOR-LOCKS-B1--1-Hamilton-Rd--BLDG-1/"
     "Software-Engineering-Intern--Summer-2027-_01872775"
 )
+CACI_PATH = (
+    "/job/Colorado-Springs-CO-US/"
+    "Software-Test-Engineer-Intern---Summer-2027_332003"
+)
 
 
 def base_job(job_id, company, url, *, direct=False, source="Simplify", posted="2026-09-16T12:00:00Z"):
@@ -53,10 +57,55 @@ class ReconcileWorkdayDuplicateTests(unittest.TestCase):
             + "?amp%3Bref=Simplify"
         )
         self.assertEqual(mod.workday_canonical_url(with_locale), mod.workday_canonical_url(tracked))
+        self.assertEqual(mod.workday_identity_key(with_locale), mod.workday_identity_key(tracked))
         self.assertEqual(
             mod.workday_canonical_url(with_locale),
             "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway" + RTX_PATH,
         )
+
+    def test_workday_identity_treats_career_site_casing_as_cosmetic(self):
+        lower = "https://caci.wd1.myworkdayjobs.com/external" + CACI_PATH
+        upper = "https://caci.wd1.myworkdayjobs.com/en-US/External" + CACI_PATH
+
+        self.assertNotEqual(mod.workday_canonical_url(lower), mod.workday_canonical_url(upper))
+        self.assertEqual(mod.workday_identity_key(lower), mod.workday_identity_key(upper))
+
+    def test_site_case_variants_collapse_to_one_posting_and_keep_winner_url(self):
+        lower = base_job(
+            "aggregator-copy",
+            "CACI",
+            "https://caci.wd1.myworkdayjobs.com/external" + CACI_PATH,
+            source="Simplify",
+            posted="2026-09-16T11:00:00Z",
+        )
+        lower["title"] = "Software Test Engineer Intern - Summer 2027"
+        lower["location"] = "Colorado Springs, CO"
+        lower["states"] = ["CO"]
+
+        upper = base_job(
+            "direct-copy",
+            "CACI",
+            "https://caci.wd1.myworkdayjobs.com/en-US/External" + CACI_PATH,
+            direct=True,
+            source="CACI direct",
+            posted="2026-09-16T12:00:00Z",
+        )
+        upper["title"] = "Software Test Engineer Intern - Summer 2027"
+        upper["location"] = "Colorado Springs, CO, US"
+        upper["states"] = ["CO"]
+
+        reconciled, stats = mod.reconcile_jobs([lower, upper])
+
+        self.assertEqual(len(reconciled), 1)
+        self.assertEqual(stats["duplicate_groups"], 1)
+        self.assertEqual(stats["records_removed"], 1)
+        job = reconciled[0]
+        self.assertEqual(job["id"], "direct-copy")
+        self.assertEqual(
+            job["url"],
+            "https://caci.wd1.myworkdayjobs.com/External" + CACI_PATH,
+        )
+        self.assertEqual(set(job["source_names"]), {"Simplify", "CACI direct"})
 
     def test_duplicate_group_prefers_direct_employer_company_and_unions_sources(self):
         aggregator = base_job(
