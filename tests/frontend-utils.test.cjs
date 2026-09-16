@@ -37,4 +37,5 @@ assert.equal(cityResult.precision, "city");
 assert.ok(cityResult.miles < 20);
 
 require("./results-language.test.cjs");
+require("./apply-next.test.cjs");
 console.log("frontend-utils tests passed");
