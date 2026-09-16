@@ -13,21 +13,19 @@ import copy
 import html
 import json
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Iterable
 from urllib.parse import unquote, urlencode, urlparse, urlunparse
 
 import requests
 from bs4 import BeautifulSoup
 
-from workday_inspector import (
+from posting_requirements import (
     REQUIREMENT_FIELDS,
-    _empty_field,
     clean_line,
+    empty_requirement_field,
     extract_requirements,
-    iso,
     normalize_description,
-    utc_now,
 )
 
 TIMEOUT = 25
@@ -43,6 +41,14 @@ UNAVAILABLE_TEXT = (
 
 class UnsupportedIcimsUrl(ValueError):
     """Raised when a URL cannot identify a public iCIMS job posting."""
+
+
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def iso(value: datetime) -> str:
+    return value.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
 def derive_icims_endpoint(job_url: str) -> dict[str, str]:
@@ -240,7 +246,7 @@ def _base_result(job_url: str, inspected_at: datetime) -> dict[str, Any]:
         "retrieval_confidence": "none",
         "error": None,
         "posting": None,
-        "requirements": {key: _empty_field() for key in REQUIREMENT_FIELDS},
+        "requirements": {key: empty_requirement_field() for key in REQUIREMENT_FIELDS},
         "provenance": {
             "provider": "icims",
             "interface": INTERFACE,
