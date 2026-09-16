@@ -154,6 +154,64 @@ class CoverageDenominatorTests(unittest.TestCase):
         self.assertIn("Unique external listings (denominator): **1**", rendered)
         self.assertIn("Duplicate observations collapsed: **1**", rendered)
 
+    def test_known_ats_families_are_detected_from_job_urls(self):
+        cases = {
+            "https://acme.wd5.myworkdayjobs.com/en-US/Careers/job/R123": "workday",
+            "https://boards.greenhouse.io/acme/jobs/12345": "greenhouse",
+            "https://jobs.lever.co/acme/1234": "lever",
+            "https://jobs.ashbyhq.com/acme/1234": "ashby",
+            "https://jobs.smartrecruiters.com/Acme/1234": "smartrecruiters",
+            "https://careers-acme.icims.com/jobs/1234/job": "icims",
+            "https://eeho.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/1234": "oracle",
+            "https://jobs.jobvite.com/acme/job/abcd": "jobvite",
+            "https://careers.example.com/jobs/1234": "unknown",
+        }
+        for url, expected in cases.items():
+            with self.subTest(url=url):
+                self.assertEqual(mod.ats_family(url), expected)
+
+    def test_missing_listings_are_grouped_by_ats_family(self):
+        rows = [
+            {
+                "company": "Alpha",
+                "title": "Software Intern",
+                "location": "Hartford, CT",
+                "url": "https://alpha.wd5.myworkdayjobs.com/en-US/Careers/job/R101",
+                "source": "Employer site",
+            },
+            {
+                "company": "Beta",
+                "title": "Software Intern",
+                "location": "Stamford, CT",
+                "url": "https://beta.wd3.myworkdayjobs.com/en-US/Careers/job/R202",
+                "source": "Employer site",
+            },
+            {
+                "company": "Gamma",
+                "title": "Software Intern",
+                "location": "New Haven, CT",
+                "url": "https://boards.greenhouse.io/gamma/jobs/30303",
+                "source": "Employer site",
+            },
+        ]
+
+        report = mod.build_report(
+            rows,
+            {"generated_at": "2026-09-16T00:00:00Z", "content_hash": "x"},
+            [],
+            CATALOG,
+            ["cs"],
+            ["CT"],
+            audit_meta={"name": "CT CS"},
+        )
+
+        self.assertEqual(report["summary"]["missing_by_ats_family"], {"workday": 2, "greenhouse": 1})
+        self.assertEqual([item["ats_family"] for item in report["results"]], ["workday", "workday", "greenhouse"])
+        rendered = mod.markdown(report)
+        self.assertIn("## Missing listings by ATS family", rendered)
+        self.assertIn("`workday`: **2**", rendered)
+        self.assertIn("`greenhouse`: **1**", rendered)
+
 
 if __name__ == "__main__":
     unittest.main()
