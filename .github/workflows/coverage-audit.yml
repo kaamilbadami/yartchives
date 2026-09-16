@@ -88,7 +88,7 @@ jobs:
             json_out="/tmp/yartchives-audit/results/${stem}.json"
             md_out="/tmp/yartchives-audit/results/${stem}.md"
 
-            python scripts/coverage_audit.py "$sample" \
+            python scripts/coverage_audit_runner.py "$sample" \
               --output "$json_out" \
               --markdown-output "$md_out"
 
