@@ -22,16 +22,38 @@ const PROFILE_TITLES = {
   health: "Premed / Health",
 };
 
+const STATE_NAMES = {
+  AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
+  CO: "Colorado", CT: "Connecticut", DE: "Delaware", DC: "District of Columbia",
+  FL: "Florida", GA: "Georgia", HI: "Hawaii", ID: "Idaho", IL: "Illinois",
+  IN: "Indiana", IA: "Iowa", KS: "Kansas", KY: "Kentucky", LA: "Louisiana",
+  ME: "Maine", MD: "Maryland", MA: "Massachusetts", MI: "Michigan", MN: "Minnesota",
+  MS: "Mississippi", MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada",
+  NH: "New Hampshire", NJ: "New Jersey", NM: "New Mexico", NY: "New York",
+  NC: "North Carolina", ND: "North Dakota", OH: "Ohio", OK: "Oklahoma", OR: "Oregon",
+  PA: "Pennsylvania", RI: "Rhode Island", SC: "South Carolina", SD: "South Dakota",
+  TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia",
+  WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming",
+};
+const STATE_CODE_BY_NAME = Object.fromEntries(Object.entries(STATE_NAMES).map(([code, name]) => [name.toLowerCase(), code.toLowerCase()]));
 const STORAGE_KEY = "yartchives-state-v1";
 const PAGE_SIZE = 40;
+const PRIORITY_STATE = "CT";
+const GEO_DATA_URL = "https://raw.githubusercontent.com/ReadyAPIs-com/curated-us-zips/f9eb7daabdade9b2a9f3cbc80327a5c152fc82d3/data/us-zips.csv";
+
 let feed = { jobs: [], sources: {}, generated_at: null };
 let filtered = [];
 let visibleLimit = PAGE_SIZE;
+let filterRequestId = 0;
+let geoIndex = null;
+let geoLoadingPromise = null;
+let geoError = null;
 
 const state = {
   profile: "all",
   search: "",
   location: "",
+  radius: "50",
   freshness: "7",
   status: "all",
   saved: new Set(),
@@ -43,6 +65,7 @@ const els = {
   profileChips: document.querySelector("#profileChips"),
   searchInput: document.querySelector("#searchInput"),
   locationInput: document.querySelector("#locationInput"),
+  radiusInput: document.querySelector("#radiusInput"),
   freshnessSelect: document.querySelector("#freshnessSelect"),
   statusSelect: document.querySelector("#statusSelect"),
   jobs: document.querySelector("#jobs"),
@@ -61,10 +84,30 @@ const els = {
   clearFiltersBtn: document.querySelector("#clearFiltersBtn"),
 };
 
+function normalizePlace(value) {
+  return (value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function currentZip() {
+  const value = state.location.trim();
+  return /^\d{5}$/.test(value) ? value : null;
+}
+
+function radiusMiles() {
+  const parsed = Number(state.radius);
+  return Number.isFinite(parsed) ? Math.min(500, Math.max(5, parsed)) : 50;
+}
+
 function loadSavedState() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-    for (const key of ["profile", "search", "location", "freshness", "status"]) {
+    for (const key of ["profile", "search", "location", "radius", "freshness", "status"]) {
       if (saved[key] !== undefined) state[key] = saved[key];
     }
     state.saved = new Set(saved.saved || []);
@@ -76,6 +119,7 @@ function loadSavedState() {
   if (params.has("profile") && PROFILE_LABELS[params.get("profile")]) state.profile = params.get("profile");
   if (params.has("q")) state.search = params.get("q") || "";
   if (params.has("loc")) state.location = params.get("loc") || "";
+  if (params.has("miles")) state.radius = params.get("miles") || "50";
   if (params.has("fresh")) state.freshness = params.get("fresh") || "7";
 }
 
@@ -84,6 +128,7 @@ function persist() {
     profile: state.profile,
     search: state.search,
     location: state.location,
+    radius: state.radius,
     freshness: state.freshness,
     status: state.status,
     saved: [...state.saved],
@@ -95,6 +140,9 @@ function persist() {
 function syncControls() {
   els.searchInput.value = state.search;
   els.locationInput.value = state.location;
+  els.radiusInput.value = state.radius;
+  els.radiusInput.disabled = !currentZip();
+  els.radiusInput.title = currentZip() ? "Radius from this ZIP code" : "Enter a 5-digit ZIP code to use radius filtering";
   els.freshnessSelect.value = state.freshness;
   els.statusSelect.value = state.status;
   document.querySelectorAll(".quick-locations button").forEach(btn => {
@@ -126,50 +174,250 @@ function searchable(job) {
 }
 
 function jobAgeDays(job) {
-  // Freshness is the actual source/employer posting date only. first_seen is
-  // useful internally, but it does not mean the job itself was posted then.
   if (!job.posted_at) return null;
   const ms = Date.now() - new Date(job.posted_at).getTime();
   return Math.max(0, ms / 86400000);
 }
 
-function matchesLocation(job) {
+function matchesTextLocation(job) {
   const query = state.location.trim().toLowerCase();
   if (!query) return true;
   const tokens = query.split(/[,;/]+/).map(x => x.trim()).filter(Boolean);
   const stateTokens = (job.states || []).map(x => x.toLowerCase());
   const loc = (job.location || "").toLowerCase();
+
   return tokens.some(token => {
-    // Two-letter state/region abbreviations must match the normalized state
-    // tags exactly. Otherwise "CT" would match the "ct" inside "Acton".
+    if (token === "remote") return stateTokens.includes("remote") || loc.includes("remote");
     if (/^[a-z]{2}$/.test(token)) return stateTokens.includes(token);
-    return stateTokens.includes(token) || loc.includes(token);
+    if (STATE_CODE_BY_NAME[token]) return stateTokens.includes(STATE_CODE_BY_NAME[token]);
+    return loc.includes(token);
   });
 }
 
-function applyFilters() {
+function parseCsvLine(line) {
+  const out = [];
+  let cur = "";
+  let quoted = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') {
+      if (quoted && line[i + 1] === '"') {
+        cur += '"';
+        i++;
+      } else {
+        quoted = !quoted;
+      }
+    } else if (ch === "," && !quoted) {
+      out.push(cur);
+      cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  out.push(cur);
+  return out;
+}
+
+async function loadGeoIndex() {
+  if (geoIndex) return geoIndex;
+  if (geoLoadingPromise) return geoLoadingPromise;
+
+  geoLoadingPromise = (async () => {
+    const response = await fetch(GEO_DATA_URL, { cache: "force-cache", mode: "cors" });
+    if (!response.ok) throw new Error(`ZIP data request failed (${response.status})`);
+    const text = await response.text();
+    const lines = text.split(/\r?\n/).filter(Boolean);
+    const headers = parseCsvLine(lines[0]);
+    const col = Object.fromEntries(headers.map((name, i) => [name, i]));
+    for (const needed of ["zip_code", "city", "state", "latitude", "longitude"]) {
+      if (col[needed] === undefined) throw new Error(`ZIP data is missing ${needed}`);
+    }
+
+    const zips = new Map();
+    const cityAcc = new Map();
+    for (let i = 1; i < lines.length; i++) {
+      const row = parseCsvLine(lines[i]);
+      const zip = (row[col.zip_code] || "").padStart(5, "0");
+      const city = row[col.city] || "";
+      const st = (row[col.state] || "").toUpperCase();
+      const lat = Number(row[col.latitude]);
+      const lon = Number(row[col.longitude]);
+      if (!zip || !city || !st || !Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+      const point = { lat, lon, state: st, city };
+      zips.set(zip, point);
+      const key = `${st}|${normalizePlace(city)}`;
+      const acc = cityAcc.get(key) || { lat: 0, lon: 0, count: 0, name: normalizePlace(city), state: st };
+      acc.lat += lat;
+      acc.lon += lon;
+      acc.count += 1;
+      cityAcc.set(key, acc);
+    }
+
+    const cities = new Map();
+    const citiesByState = new Map();
+    for (const [key, acc] of cityAcc.entries()) {
+      const point = { lat: acc.lat / acc.count, lon: acc.lon / acc.count, state: acc.state, city: acc.name };
+      cities.set(key, point);
+      if (!citiesByState.has(acc.state)) citiesByState.set(acc.state, []);
+      citiesByState.get(acc.state).push([acc.name, point]);
+    }
+    for (const list of citiesByState.values()) list.sort((a, b) => b[0].length - a[0].length);
+
+    geoIndex = { zips, cities, citiesByState };
+    geoError = null;
+    return geoIndex;
+  })().catch(error => {
+    geoError = error;
+    geoLoadingPromise = null;
+    throw error;
+  });
+
+  return geoLoadingPromise;
+}
+
+function addCandidate(candidates, value) {
+  const normalized = normalizePlace(value)
+    .replace(/^\d+\s+locations?\s+/, "")
+    .replace(/\b(?:united states|usa|us)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (normalized) candidates.add(normalized);
+}
+
+function coordinatesForJob(job, geo) {
+  if (job._geoResolved) return job._geo || null;
+  job._geoResolved = true;
+
+  const states = (job.states || []).filter(x => /^[A-Z]{2}$/.test(x) && x !== "US");
+  if (!states.length) {
+    job._geo = null;
+    return null;
+  }
+
+  const raw = job.location || "";
+  const normalizedLocation = ` ${normalizePlace(raw)} `;
+  const candidates = new Set();
+  const commaParts = raw.split(",");
+  if (commaParts.length > 1) addCandidate(candidates, commaParts[0]);
+  for (const segment of raw.split(/[\/;|]+/)) addCandidate(candidates, segment.split(",")[0]);
+
+  const found = [];
+  for (const st of states) {
+    const full = STATE_NAMES[st] || "";
+    const beforeState = full
+      ? raw.match(new RegExp(`^(.+?)(?:,|[-\\s]+)(?:${st}|${full.replace(/ /g, "\\s+")})(?:\\b|-)`, "i"))
+      : raw.match(new RegExp(`^(.+?)(?:,|[-\\s]+)${st}(?:\\b|-)`, "i"));
+    if (beforeState) addCandidate(candidates, beforeState[1]);
+
+    const afterState = raw.match(new RegExp(`(?:^|\\b)(?:US|USA)?[-\\s]*${st}[-\\s]+(.+?)(?:[-~,/]|$)`, "i"));
+    if (afterState) addCandidate(candidates, afterState[1].replace(/-\d.*$/, ""));
+
+    for (const candidate of candidates) {
+      const direct = geo.cities.get(`${st}|${candidate}`);
+      if (direct) found.push(direct);
+    }
+
+    if (!found.length) {
+      const cities = geo.citiesByState.get(st) || [];
+      for (const [cityName, point] of cities) {
+        if (cityName.length < 4) continue;
+        if (normalizedLocation.includes(` ${cityName} `)) {
+          found.push(point);
+          break;
+        }
+      }
+    }
+  }
+
+  job._geo = found.length ? found : null;
+  return job._geo;
+}
+
+function milesBetween(a, b) {
+  const toRad = deg => deg * Math.PI / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLon = toRad(b.lon - a.lon);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+  return 3958.7613 * 2 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+function distanceForJob(job, origin, geo) {
+  const points = coordinatesForJob(job, geo);
+  if (!points?.length) return null;
+  return Math.min(...points.map(point => milesBetween(origin, point)));
+}
+
+function sortFiltered(jobs, zipMode) {
+  jobs.sort((a, b) => {
+    if (!state.location.trim()) {
+      const aPriority = (a.states || []).includes(PRIORITY_STATE) ? 1 : 0;
+      const bPriority = (b.states || []).includes(PRIORITY_STATE) ? 1 : 0;
+      if (aPriority !== bPriority) return bPriority - aPriority;
+    }
+    if (zipMode) {
+      const ad = Number.isFinite(a._distanceMiles) ? a._distanceMiles : Infinity;
+      const bd = Number.isFinite(b._distanceMiles) ? b._distanceMiles : Infinity;
+      if (ad !== bd) return ad - bd;
+    }
+    const at = a.posted_at ? new Date(a.posted_at).getTime() : 0;
+    const bt = b.posted_at ? new Date(b.posted_at).getTime() : 0;
+    if (at !== bt) return bt - at;
+    return (a.company || "").localeCompare(b.company || "");
+  });
+}
+
+async function applyFilters() {
+  const requestId = ++filterRequestId;
   const q = state.search.trim().toLowerCase();
   const hasFreshnessLimit = state.freshness !== "all";
   const maxDays = hasFreshnessLimit ? Number(state.freshness) : Infinity;
+  const zip = currentZip();
+  let origin = null;
+  let geo = null;
+
+  if (zip) {
+    els.resultsNote.textContent = `Loading ${radiusMiles()}-mile ZIP radius…`;
+    try {
+      geo = await loadGeoIndex();
+      origin = geo.zips.get(zip) || null;
+    } catch (_) {
+      if (requestId !== filterRequestId) return;
+      filtered = [];
+      renderJobs();
+      updateStats();
+      els.resultsNote.textContent = "ZIP radius data could not be loaded. Try a state/city filter instead.";
+      return;
+    }
+    if (requestId !== filterRequestId) return;
+  }
 
   filtered = feed.jobs.filter(job => {
     if (state.hidden.has(job.id)) return false;
     if (state.profile !== "all" && !(job.profiles || []).includes(state.profile)) return false;
     if (q && !searchable(job).includes(q)) return false;
-    if (!matchesLocation(job)) return false;
     const ageDays = jobAgeDays(job);
-    // Date-unknown listings are useful, but they should never masquerade as
-    // freshly posted. They appear only when the user selects Any age.
     if (hasFreshnessLimit && ageDays === null) return false;
     if (ageDays !== null && ageDays > maxDays) return false;
     if (state.status === "saved" && !state.saved.has(job.id)) return false;
     if (state.status === "applied" && !state.applied.has(job.id)) return false;
-    return true;
+
+    if (zip) {
+      if (!origin) return false;
+      const distance = distanceForJob(job, origin, geo);
+      job._distanceMiles = distance;
+      return distance !== null && distance <= radiusMiles();
+    }
+
+    job._distanceMiles = null;
+    return matchesTextLocation(job);
   });
 
+  sortFiltered(filtered, Boolean(zip));
   renderJobs();
   updateStats();
-  updateResultsNote();
+  updateResultsNote(origin);
 }
 
 function relativeAge(job) {
@@ -194,7 +442,7 @@ function renderJobs() {
   if (!slice.length) {
     const empty = document.createElement("div");
     empty.className = "empty-state";
-    empty.innerHTML = "<strong>No matches.</strong><br>Try a broader profile, location, or freshness window.";
+    empty.innerHTML = "<strong>No matches.</strong><br>Try a broader profile, location, radius, or freshness window.";
     els.jobs.appendChild(empty);
   }
 
@@ -206,7 +454,8 @@ function renderJobs() {
     card.querySelector(".title").textContent = job.title;
     card.querySelector(".location").textContent = job.location || "Location not listed";
     const age = card.querySelector(".age");
-    age.textContent = relativeAge(job);
+    const distance = currentZip() && Number.isFinite(job._distanceMiles) ? ` · ${Math.round(job._distanceMiles)} mi` : "";
+    age.textContent = `${relativeAge(job)}${distance}`;
     age.classList.toggle("unknown", !job.posted_at);
     age.title = job.posted_at ? `Posted: ${new Date(job.posted_at).toLocaleString()}` : "Posting date unavailable from this source";
 
@@ -289,9 +538,20 @@ function updateStats() {
   els.savedCount.textContent = state.saved.size.toLocaleString();
 }
 
-function updateResultsNote() {
+function updateResultsNote(origin = null) {
   if (!els.resultsNote) return;
-  if (state.freshness === "all") {
+  const zip = currentZip();
+  if (zip) {
+    if (!origin) {
+      els.resultsNote.textContent = geoError ? "ZIP radius data unavailable." : `ZIP ${zip} was not found in the radius dataset.`;
+    } else {
+      els.resultsNote.textContent = `Within ${radiusMiles()} miles of ${zip} (${origin.city}, ${origin.state}). Distances use approximate city/ZIP centroids.`;
+    }
+    return;
+  }
+  if (!state.location.trim()) {
+    els.resultsNote.textContent = "Connecticut listings are ranked first when no location filter is selected.";
+  } else if (state.freshness === "all") {
     els.resultsNote.textContent = "Any age includes listings whose source does not expose a reliable posting date.";
   } else {
     els.resultsNote.textContent = "Freshness uses the source/employer posting date. Date-unknown listings are hidden in this view.";
@@ -348,7 +608,15 @@ function setUpEvents() {
     visibleLimit = PAGE_SIZE;
     persist();
     syncControls();
-    applyFilters();
+    clearTimeout(timer);
+    timer = setTimeout(() => applyFilters(), 180);
+  });
+  els.radiusInput.addEventListener("input", e => {
+    state.radius = e.target.value;
+    visibleLimit = PAGE_SIZE;
+    persist();
+    clearTimeout(timer);
+    timer = setTimeout(() => applyFilters(), 120);
   });
   els.freshnessSelect.addEventListener("change", e => {
     state.freshness = e.target.value;
@@ -379,6 +647,7 @@ function setUpEvents() {
     state.profile = "all";
     state.search = "";
     state.location = "";
+    state.radius = "50";
     state.freshness = "7";
     state.status = "all";
     visibleLimit = PAGE_SIZE;
@@ -393,6 +662,7 @@ function setUpEvents() {
     if (state.profile !== "all") url.searchParams.set("profile", state.profile);
     if (state.search) url.searchParams.set("q", state.search);
     if (state.location) url.searchParams.set("loc", state.location);
+    if (currentZip() && state.radius !== "50") url.searchParams.set("miles", state.radius);
     if (state.freshness !== "7") url.searchParams.set("fresh", state.freshness);
     try {
       await navigator.clipboard.writeText(url.toString());
