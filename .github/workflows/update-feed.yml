@@ -13,6 +13,7 @@ on:
       - "frontend-utils.js"
       - "enhancements.js"
       - "sources.json"
+      - "direct_sources.json"
       - "requirements.txt"
       - ".github/workflows/update-feed.yml"
 
@@ -41,18 +42,24 @@ jobs:
 
       - name: Validate code
         run: |
-          python -m py_compile scripts/build_feed.py scripts/enrich_feed.py scripts/repair_links.py scripts/validate_feed.py scripts/audit_feed.py
+          python -m py_compile scripts/build_feed.py scripts/direct_ct_workday.py scripts/enrich_feed.py scripts/repair_links.py scripts/validate_feed.py scripts/audit_feed.py
           python -m unittest discover -s tests -p "test_*.py" -v
           node --check frontend-utils.js
           node --check app.js
           node --check enhancements.js
           node tests/frontend-utils.test.cjs
 
+      - name: Snapshot existing final feed
+        run: cp data/listings.json /tmp/yartchives-old-listings.json
+
       - name: Build normalized feed
         env:
           USAJOBS_API_KEY: ${{ secrets.USAJOBS_API_KEY }}
           USAJOBS_EMAIL: ${{ secrets.USAJOBS_EMAIL }}
         run: python scripts/build_feed.py
+
+      - name: Add direct Connecticut employer coverage
+        run: python scripts/direct_ct_workday.py data/listings.json --old-feed /tmp/yartchives-old-listings.json
 
       - name: Add student-level metadata
         run: python scripts/enrich_feed.py data/listings.json
