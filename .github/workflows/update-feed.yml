@@ -14,6 +14,8 @@ on:
       - "app.js"
       - "enhancements.js"
       - "ui.js"
+      - "ux.js"
+      - "ux.css"
       - "sources.json"
       - "direct_sources.json"
       - "requirements.txt"
@@ -50,6 +52,7 @@ jobs:
           node --check app.js
           node --check enhancements.js
           node --check ui.js
+          node --check ux.js
           node tests/frontend-utils.test.cjs
 
       - name: Snapshot existing final feed
@@ -92,7 +95,6 @@ jobs:
             exit 0
           fi
 
-          # Preserve the generated artifact before checking whether main moved.
           cp data/listings.json /tmp/yartchives-generated-listings.json
           START_SHA="$(git rev-parse HEAD)"
           git fetch origin main
@@ -103,8 +105,6 @@ jobs:
             CHANGED="$(git diff --name-only "$START_SHA".."$REMOTE_SHA")"
             echo "$CHANGED"
 
-            # A previous feed-only bot commit is safe to supersede with this newer
-            # generated feed. Never silently overwrite concurrent code/config work.
             if [ -n "$CHANGED" ] && [ "$(echo "$CHANGED" | grep -v '^data/listings.json$' || true)" != "" ]; then
               echo "Non-feed files changed on main; leaving the newer source commit untouched."
               echo "The next push/scheduled run will rebuild from the new main."
