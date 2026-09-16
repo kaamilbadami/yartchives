@@ -15,6 +15,7 @@ on:
       - "enhancements.js"
       - "ui.js"
       - "ux.js"
+      - "share.js"
       - "ux.css"
       - "sources.json"
       - "direct_sources.json"
@@ -53,6 +54,7 @@ jobs:
           node --check enhancements.js
           node --check ui.js
           node --check ux.js
+          node --check share.js
           node tests/frontend-utils.test.cjs
 
       - name: Snapshot existing final feed
