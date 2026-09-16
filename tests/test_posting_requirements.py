@@ -50,8 +50,9 @@ class PostingRequirementTests(unittest.TestCase):
         ])
         skills = result["skills"]
         self.assertEqual(skills["classification"], "required")
+        technology_fact = next(fact for fact in skills["required"] if fact.get("technologies"))
         self.assertEqual(
-            skills["required"][0]["technologies"],
+            technology_fact["technologies"],
             ["Python", "SQL", "Tableau", "Oracle"],
         )
         self.assertTrue(any("communication skills" in fact["statement"].lower() for fact in skills["required"]))
