@@ -1,25 +1,5 @@
 [
   {
-    "key": "ct-cci-workday",
-    "name": "Castleton Commodities International (direct)",
-    "company": "Castleton Commodities International",
-    "kind": "workday",
-    "api_url": "https://osv-cci.wd1.myworkdayjobs.com/wday/cxs/osv-cci/CCICareers/jobs",
-    "public_base": "https://osv-cci.wd1.myworkdayjobs.com/en-US/CCICareers",
-    "homepage": "https://osv-cci.wd1.myworkdayjobs.com/en-US/CCICareers",
-    "state": "CT",
-    "profile_hint": ["cs"],
-    "minimum_expected": 0,
-    "search_terms": [
-      "intern software",
-      "intern computer science",
-      "intern cybersecurity",
-      "intern data science",
-      "intern machine learning",
-      "co-op software"
-    ]
-  },
-  {
     "key": "ct-hartford-workday",
     "name": "The Hartford (direct)",
     "company": "The Hartford",
@@ -30,14 +10,7 @@
     "state": "CT",
     "profile_hint": ["cs"],
     "minimum_expected": 0,
-    "search_terms": [
-      "intern software",
-      "intern computer science",
-      "intern cybersecurity",
-      "intern data engineer",
-      "intern data science",
-      "intern artificial intelligence"
-    ]
+    "search_terms": ["intern"]
   },
   {
     "key": "ct-travelers-workday",
@@ -51,15 +24,10 @@
     "profile_hint": ["cs"],
     "minimum_expected": 0,
     "title_allow_patterns": [
-      "\\btechnology\\b.*\\bintern"
+      "\\bengineering development program \\(edp\\).*\\bintern\\b",
+      "\\btechnology\\b.*\\bintern\\b"
     ],
-    "search_terms": [
-      "intern software",
-      "intern computer science",
-      "intern cybersecurity",
-      "intern data engineering",
-      "intern technology"
-    ]
+    "search_terms": ["intern"]
   },
   {
     "key": "ct-avangrid-workday",
@@ -73,14 +41,10 @@
     "profile_hint": ["cs"],
     "minimum_expected": 0,
     "title_allow_patterns": [
+      "\\btechnology\\b.*\\bintern\\b",
       "\\bdigital technology\\b"
     ],
-    "search_terms": [
-      "technology cyber data internship",
-      "intern technology",
-      "intern cybersecurity",
-      "intern data"
-    ]
+    "search_terms": ["intern"]
   },
   {
     "key": "ct-gartner-workday",
@@ -93,13 +57,7 @@
     "state": "CT",
     "profile_hint": ["cs"],
     "minimum_expected": 0,
-    "search_terms": [
-      "IT intern",
-      "intern software",
-      "intern computer science",
-      "intern cybersecurity",
-      "intern data science"
-    ]
+    "search_terms": ["intern"]
   },
   {
     "key": "ct-iat-workday",
@@ -112,32 +70,7 @@
     "state": "CT",
     "profile_hint": ["cs"],
     "minimum_expected": 0,
-    "search_terms": [
-      "network operations internship",
-      "intern software",
-      "intern computer science",
-      "intern cybersecurity",
-      "IT intern"
-    ]
-  },
-  {
-    "key": "ct-otis-workday",
-    "name": "Otis (direct)",
-    "company": "Otis",
-    "kind": "workday",
-    "api_url": "https://otis.wd5.myworkdayjobs.com/wday/cxs/otis/REC_Ext_Gateway/jobs",
-    "public_base": "https://otis.wd5.myworkdayjobs.com/en-US/REC_Ext_Gateway",
-    "homepage": "https://otis.wd5.myworkdayjobs.com/en-US/REC_Ext_Gateway",
-    "state": "CT",
-    "profile_hint": ["cs"],
-    "minimum_expected": 0,
-    "search_terms": [
-      "intern software",
-      "intern embedded",
-      "intern firmware",
-      "intern computer science",
-      "co-op software"
-    ]
+    "search_terms": ["intern"]
   },
   {
     "key": "ct-rtx-workday",
@@ -153,15 +86,7 @@
     "title_allow_patterns": [
       "\\bdigital technology\\b"
     ],
-    "search_terms": [
-      "intern software",
-      "intern computer science",
-      "intern cybersecurity",
-      "intern data science",
-      "intern digital technology",
-      "co-op software",
-      "intern database"
-    ]
+    "search_terms": ["intern", "co-op"]
   },
   {
     "key": "ct-allegion-workday",
@@ -174,12 +99,6 @@
     "state": "CT",
     "profile_hint": ["cs"],
     "minimum_expected": 0,
-    "search_terms": [
-      "intern software",
-      "intern embedded",
-      "intern firmware",
-      "intern computer science",
-      "co-op software"
-    ]
+    "search_terms": ["intern", "co-op"]
   }
 ]
