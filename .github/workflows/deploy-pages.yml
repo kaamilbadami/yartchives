@@ -8,7 +8,9 @@ on:
       - "index.html"
       - "styles.css"
       - "location.css"
+      - "frontend-utils.js"
       - "app.js"
+      - "enhancements.js"
       - "data/listings.json"
       - ".nojekyll"
       - ".github/workflows/deploy-pages.yml"
@@ -41,12 +43,14 @@ jobs:
         run: |
           rm -rf _site
           mkdir -p _site/data
-          cp index.html styles.css location.css app.js .nojekyll _site/
+          cp index.html styles.css location.css frontend-utils.js app.js enhancements.js .nojekyll _site/
           cp data/listings.json _site/data/listings.json
           VERSION="${GITHUB_SHA::12}"
           sed -i "s|href=\"styles.css\"|href=\"styles.css?v=${VERSION}\"|" _site/index.html
           sed -i "s|href=\"location.css\"|href=\"location.css?v=${VERSION}\"|" _site/index.html
+          sed -i "s|src=\"frontend-utils.js\"|src=\"frontend-utils.js?v=${VERSION}\"|" _site/index.html
           sed -i "s|src=\"app.js\"|src=\"app.js?v=${VERSION}\"|" _site/index.html
+          sed -i "s|src=\"enhancements.js\"|src=\"enhancements.js?v=${VERSION}\"|" _site/index.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9

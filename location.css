@@ -1,5 +1,7 @@
 .filter-grid {
-  grid-template-columns: minmax(0, 2fr) minmax(160px, 1.15fr) minmax(96px, .55fr) minmax(132px, .9fr) minmax(110px, .8fr);
+  display: grid;
+  grid-template-columns: minmax(220px, 1.7fr) minmax(170px, 1.05fr) minmax(96px, .55fr) minmax(150px, .85fr) minmax(155px, .9fr) minmax(130px, .78fr) minmax(105px, .62fr);
+  gap: 10px;
 }
 
 .field input:disabled {
@@ -16,15 +18,40 @@
   color: #d7e5f9;
 }
 
-@media (max-width: 1050px) {
-  .filter-grid { grid-template-columns: 1.5fr 1fr .65fr 1fr; }
-  .filter-grid .field:last-child { grid-column: span 1; }
+.quick-locations button[data-location="06897"] {
+  border-color: #3f628e;
+}
+
+.quick-locations button[data-location="06897"]:not(.active) {
+  color: #d7e5f9;
+}
+
+.tag-warning {
+  border-color: #684b2a;
+  color: #e8c58d;
+  background: #211b14;
+}
+
+.geo-attribution {
+  margin-top: 12px;
+  font-size: .74rem;
+}
+
+.geo-attribution a {
+  color: inherit;
+}
+
+@media (max-width: 1180px) {
+  .filter-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .search-field { grid-column: span 2; }
 }
 
 @media (max-width: 900px) {
   .filter-grid { grid-template-columns: 1fr 1fr; }
+  .search-field { grid-column: span 2; }
 }
 
 @media (max-width: 620px) {
   .filter-grid { grid-template-columns: 1fr; }
+  .search-field { grid-column: span 1; }
 }

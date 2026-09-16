@@ -37,7 +37,7 @@
     <section class="controls panel">
       <div class="focus-hint">
         <span class="focus-dot" aria-hidden="true"></span>
-        <div><strong>Start narrow.</strong> Pick a profile, location, and 3–7 day window. You can always broaden from there.</div>
+        <div><strong>Start narrow.</strong> Undergraduate-friendly internships/co-ops are the default; then narrow by profile, location, and freshness.</div>
       </div>
 
       <div class="control-block profile-block">
@@ -57,9 +57,29 @@
           <span>Location / ZIP</span>
           <input id="locationInput" type="text" placeholder="CT, Boston, or 06897..." autocomplete="off" inputmode="text" />
         </label>
-        <label class="field">
+        <label class="field radius-field">
           <span>Within miles</span>
           <input id="radiusInput" type="number" min="5" max="500" step="5" value="50" inputmode="numeric" disabled />
+        </label>
+        <label class="field">
+          <span>Student level</span>
+          <select id="educationSelect">
+            <option value="undergrad-friendly" selected>Undergrad-friendly</option>
+            <option value="explicit-undergrad">Explicit undergrad only</option>
+            <option value="all">All levels</option>
+            <option value="graduate-only">Graduate-only</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>Opportunity type</span>
+          <select id="opportunityTypeSelect">
+            <option value="internships" selected>Internships + co-ops</option>
+            <option value="all">All opportunities</option>
+            <option value="internship">Internships only</option>
+            <option value="co-op">Co-ops only</option>
+            <option value="fellowship">Fellowships</option>
+            <option value="research">Research</option>
+          </select>
         </label>
         <label class="field">
           <span>Freshness</span>
@@ -84,6 +104,8 @@
       <div class="quick-locations" aria-label="Quick locations">
         <button type="button" data-location="">Anywhere</button>
         <button type="button" data-location="CT" title="Priority location">CT ★</button>
+        <button type="button" data-location="06897" title="Wilton, Connecticut">Wilton · 06897</button>
+        <button type="button" data-location="20740" title="College Park, Maryland">College Park · 20740</button>
         <button type="button" data-location="Remote">Remote</button>
         <button type="button" data-location="MD">MD</button>
         <button type="button" data-location="DC">DC</button>
@@ -113,7 +135,7 @@
       <summary>Source health</summary>
       <div id="sourceHealth" class="source-health-grid"></div>
     </details>
-    <p class="muted">ZIP and city centroid data: <a href="https://github.com/ReadyAPIs-com/curated-us-zips" target="_blank" rel="noopener noreferrer">Ready APIs curated U.S. ZIP dataset</a> (CC BY 4.0).</p>
+    <p class="muted geo-attribution">ZIP data from <a href="https://github.com/ReadyAPIs-com/curated-us-zips" target="_blank" rel="noopener noreferrer">Ready APIs curated-us-zips</a>, sourced from U.S. Census Bureau, USPS, and SimpleMaps (CC BY 4.0).</p>
   </main>
 
   <template id="jobCardTemplate">
@@ -139,6 +161,8 @@
     </article>
   </template>
 
+  <script src="frontend-utils.js" defer></script>
   <script src="app.js" defer></script>
+  <script src="enhancements.js" defer></script>
 </body>
 </html>
