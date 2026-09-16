@@ -42,7 +42,7 @@ class CoverageAuditTests(unittest.TestCase):
     def classify(self, record, jobs=None, profiles=None, states=None):
         return mod.classify(
             record,
-            mod.Index(jobs or [feed_job()]),
+            mod.Index(jobs if jobs is not None else [feed_job()]),
             self.catalog,
             profiles or [],
             states or [],
@@ -56,6 +56,22 @@ class CoverageAuditTests(unittest.TestCase):
             "url": "https://jobs.acme.com/job/12345?foo=bar&utm_source=linkedin",
         }, profiles=["cs"], states=["CT"])
         self.assertEqual(result["status"], "already_in_yartchives")
+        self.assertEqual(result["reason_code"], "exact_match")
+
+    def test_location_country_suffix_does_not_create_false_miss(self):
+        result = self.classify({
+            "company": "Acme Corp",
+            "title": "Software Engineering Intern",
+            "location": "Hartford, CT, United States",
+            "url": "https://discovery.example/other-url",
+        }, profiles=["cs"], states=["CT"])
+        self.assertEqual(result["status"], "already_in_yartchives")
+
+    def test_full_state_name_and_zip_normalize_to_same_location(self):
+        self.assertEqual(
+            mod.location_key("Hartford, Connecticut 06103, United States"),
+            mod.location_key("Hartford, CT"),
+        )
 
     def test_existing_listing_with_wrong_profile_is_filter_issue(self):
         result = self.classify({
@@ -65,6 +81,7 @@ class CoverageAuditTests(unittest.TestCase):
             "url": "https://jobs.acme.com/job/12345?foo=bar",
         }, jobs=[feed_job(profiles=["tech-business"])], profiles=["cs"], states=["CT"])
         self.assertEqual(result["status"], "filtered_or_misclassified")
+        self.assertEqual(result["reason_code"], "present_but_hidden")
         self.assertIn("missing expected profile", result["reason"])
 
     def test_same_ats_identity_detects_resolution_issue(self):
@@ -85,6 +102,7 @@ class CoverageAuditTests(unittest.TestCase):
             "source": "LinkedIn",
         }, profiles=["cs"], states=["CT"])
         self.assertEqual(result["status"], "employer_exists_but_listing_missing")
+        self.assertEqual(result["reason_code"], "known_employer_missing_role")
 
     def test_linkedin_only_new_employer_is_source_not_covered(self):
         result = self.classify({
@@ -97,7 +115,7 @@ class CoverageAuditTests(unittest.TestCase):
         self.assertEqual(result["status"], "source_not_covered")
         self.assertIn("audit-only", result["recommended_action"])
 
-    def test_configured_direct_employer_missing_listing_is_filter_issue(self):
+    def test_configured_direct_employer_missing_listing_is_pipeline_miss(self):
         result = self.classify({
             "company": "The Hartford",
             "title": "Technology Intern",
@@ -105,8 +123,19 @@ class CoverageAuditTests(unittest.TestCase):
             "url": "https://thehartford.wd5.myworkdayjobs.com/en-US/Careers_External/job/R123",
             "source": "LinkedIn",
         }, jobs=[])
-        self.assertEqual(result["status"], "filtered_or_misclassified")
+        self.assertEqual(result["status"], "configured_source_miss")
+        self.assertEqual(result["reason_code"], "configured_source_listing_absent")
         self.assertIn("configured direct source", result["reason"])
+
+    def test_known_upstream_source_missing_listing_is_pipeline_miss(self):
+        result = self.classify({
+            "company": "NoFeedEmployer",
+            "title": "Software Intern",
+            "location": "Hartford, CT",
+            "url": "https://example.com/jobs/1",
+            "source_key": "simplify",
+        }, jobs=[])
+        self.assertEqual(result["status"], "configured_source_miss")
 
     def test_json_and_csv_inputs(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -140,8 +169,9 @@ class CoverageAuditTests(unittest.TestCase):
             ["CT"],
             audit_meta={"name": "CT CS", "collected_at": "2026-09-16T12:00:00Z"},
         )
-        self.assertEqual(report["schema_version"], 1)
+        self.assertEqual(report["schema_version"], 2)
         self.assertEqual(report["summary"]["status_counts"]["already_in_yartchives"], 1)
+        self.assertEqual(report["summary"]["status_counts"]["configured_source_miss"], 0)
         rendered = mod.markdown(report)
         self.assertIn("# CT CS", rendered)
         self.assertIn("Yartchives feed snapshot", rendered)
