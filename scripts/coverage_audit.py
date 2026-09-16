@@ -2,8 +2,8 @@
 """Compare externally discovered opportunities with the Yartchives feed.
 
 The audit is offline: collect opportunities from LinkedIn, Handshake, web
-search, or employer sites, then pass JSON/JSONL/CSV here. This script does not
-scrape those discovery surfaces.
+search, employer sites, or another independent discovery surface, then pass
+JSON/JSONL/CSV here. This script does not scrape those discovery surfaces.
 """
 from __future__ import annotations
 
@@ -33,6 +33,7 @@ STATUSES = (
     "filtered_or_misclassified",
     "duplicate_resolution_issue",
     "employer_exists_but_listing_missing",
+    "configured_source_miss",
     "source_not_covered",
     "unknown",
 )
@@ -47,6 +48,23 @@ ATS_HINTS = (
     "jobvite.com",
     "oraclecloud.com",
 )
+STATE_NAMES = {
+    "alabama": "al", "alaska": "ak", "arizona": "az", "arkansas": "ar",
+    "california": "ca", "colorado": "co", "connecticut": "ct", "delaware": "de",
+    "florida": "fl", "georgia": "ga", "hawaii": "hi", "idaho": "id",
+    "illinois": "il", "indiana": "in", "iowa": "ia", "kansas": "ks",
+    "kentucky": "ky", "louisiana": "la", "maine": "me", "maryland": "md",
+    "massachusetts": "ma", "michigan": "mi", "minnesota": "mn",
+    "mississippi": "ms", "missouri": "mo", "montana": "mt", "nebraska": "ne",
+    "nevada": "nv", "new hampshire": "nh", "new jersey": "nj",
+    "new mexico": "nm", "new york": "ny", "north carolina": "nc",
+    "north dakota": "nd", "ohio": "oh", "oklahoma": "ok", "oregon": "or",
+    "pennsylvania": "pa", "rhode island": "ri", "south carolina": "sc",
+    "south dakota": "sd", "tennessee": "tn", "texas": "tx", "utah": "ut",
+    "vermont": "vt", "virginia": "va", "washington": "wa",
+    "west virginia": "wv", "wisconsin": "wi", "wyoming": "wy",
+    "district of columbia": "dc",
+}
 
 
 def first(row: dict[str, Any], *keys: str) -> str:
@@ -61,8 +79,8 @@ def as_list(value: Any) -> list[str]:
     if value is None:
         return []
     if isinstance(value, (list, tuple, set)):
-        return [str(x).strip() for x in value if str(x).strip()]
-    return [x.strip() for x in re.split(r"[;,]", str(value)) if x.strip()]
+        return [str(item).strip() for item in value if str(item).strip()]
+    return [item.strip() for item in re.split(r"[;,]", str(value)) if item.strip()]
 
 
 def company_key(value: str) -> str:
@@ -73,12 +91,23 @@ def company_key(value: str) -> str:
     return text
 
 
+def location_key(value: str) -> str:
+    """Normalize superficial location formatting without inventing geography."""
+    text = str(value or "").lower()
+    text = re.sub(r"\bunited states of america\b|\bunited states\b|\bu\.?s\.?a?\.?\b", " ", text)
+    for full_name, abbreviation in sorted(STATE_NAMES.items(), key=lambda item: -len(item[0])):
+        text = re.sub(rf"\b{re.escape(full_name)}\b", abbreviation, text)
+    tokens = re.findall(r"[a-z0-9]+", text)
+    tokens = [token for token in tokens if not re.fullmatch(r"\d{5}(?:\d{4})?", token)]
+    return " ".join(tokens)
+
+
 def signature(row: dict[str, Any]) -> str:
     return "|".join(
         (
             company_key(first(row, "company", "employer", "organization")),
             norm(first(row, "title", "role", "position")),
-            norm(first(row, "location", "locations")),
+            location_key(first(row, "location", "locations")),
         )
     )
 
@@ -117,15 +146,15 @@ def load_rows(path: Path) -> list[dict[str, Any]]:
         with path.open("r", encoding="utf-8-sig", newline="") as file:
             return [dict(row) for row in csv.DictReader(file)]
     if path.suffix.lower() in {".jsonl", ".ndjson"}:
-        out = []
+        rows = []
         for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
             if not line.strip():
                 continue
             row = json.loads(line)
             if not isinstance(row, dict):
                 raise ValueError(f"line {line_number}: expected object")
-            out.append(row)
-        return out
+            rows.append(row)
+        return rows
 
     payload = _json_payload(path)
     if isinstance(payload, list):
@@ -228,19 +257,9 @@ class Index:
 
 def compact(job: dict[str, Any]) -> dict[str, Any]:
     keys = (
-        "id",
-        "company",
-        "title",
-        "location",
-        "url",
-        "listing_url",
-        "profiles",
-        "states",
-        "opportunity_type",
-        "education_level",
-        "source_keys",
-        "link_kind",
-        "posted_at",
+        "id", "company", "title", "location", "url", "listing_url", "profiles",
+        "states", "opportunity_type", "education_level", "source_keys",
+        "link_kind", "posted_at",
     )
     return {key: job.get(key) for key in keys if job.get(key) not in (None, "", [])}
 
@@ -288,6 +307,38 @@ def similar(left: str, right: str) -> float:
     return SequenceMatcher(a=left, b=right).ratio() if left and right else 0.0
 
 
+def location_similarity(left: str, right: str) -> float:
+    left_key, right_key = location_key(left), location_key(right)
+    if not left_key or not right_key:
+        return 0.0
+    if left_key == right_key:
+        return 1.0
+    left_tokens, right_tokens = set(left_key.split()), set(right_key.split())
+    if left_tokens and right_tokens and (left_tokens <= right_tokens or right_tokens <= left_tokens):
+        return 0.96
+    return SequenceMatcher(a=left_key, b=right_key).ratio()
+
+
+def result(
+    base: dict[str, Any],
+    status: str,
+    confidence: str,
+    reason_code: str,
+    reason: str,
+    recommended_action: str,
+    **extra: Any,
+) -> dict[str, Any]:
+    return {
+        **base,
+        "status": status,
+        "confidence": confidence,
+        "reason_code": reason_code,
+        "reason": reason,
+        "recommended_action": recommended_action,
+        **extra,
+    }
+
+
 def classify(
     row: dict[str, Any],
     index: Index,
@@ -295,14 +346,14 @@ def classify(
     profiles: list[str],
     states: list[str],
 ) -> dict[str, Any]:
-    company = first(row, "company", "employer", "organization")
+    company_display = first(row, "company", "employer", "organization")
     title = first(row, "title", "role", "position")
     location = first(row, "location", "locations")
     url = first(row, "url", "apply_url", "listing_url")
     source = first(row, "source", "source_name", "discovered_via")
     expected = expectations(row, profiles, states)
     base = {
-        "company": company,
+        "company": company_display,
         "title": title,
         "location": location,
         "url": url,
@@ -319,69 +370,89 @@ def classify(
         job = exact[0]
         issues = surface_issues(job, expected)
         if issues:
-            return {
-                **base,
-                "status": "filtered_or_misclassified",
-                "confidence": "high",
-                "reason": "; ".join(issues),
-                "matched_job": compact(job),
-                "recommended_action": "Review profile/state/type enrichment or filter metadata.",
-            }
-        return {
-            **base,
-            "status": "already_in_yartchives",
-            "confidence": "high",
-            "reason": "matched by canonical URL or normalized company/title/location",
-            "matched_job": compact(job),
-            "recommended_action": "No coverage fix needed.",
-        }
+            return result(
+                base,
+                "filtered_or_misclassified",
+                "high",
+                "present_but_hidden",
+                "; ".join(issues),
+                "Review profile/state/type enrichment or default filter metadata.",
+                matched_job=compact(job),
+            )
+        return result(
+            base,
+            "already_in_yartchives",
+            "high",
+            "exact_match",
+            "matched by canonical URL or normalized company/title/location",
+            "No coverage fix needed.",
+            matched_job=compact(job),
+        )
 
     identity = url_identity(url)
     if identity and index.ids.get(identity):
         job = index.get(index.ids[identity])[0]
-        return {
-            **base,
-            "status": "duplicate_resolution_issue",
-            "confidence": "high",
-            "reason": "same ATS/listing identifier exists but ordinary URL/signature matching failed",
-            "matched_job": compact(job),
-            "recommended_action": "Add provider-specific canonicalization/deduplication.",
-        }
+        return result(
+            base,
+            "duplicate_resolution_issue",
+            "high",
+            "provider_identity_mismatch",
+            "same ATS/listing identifier exists but ordinary URL/signature matching failed",
+            "Add or improve provider-specific canonicalization/deduplication.",
+            matched_job=compact(job),
+        )
 
-    company = company_key(company)
+    company = company_key(company_display)
     employer_jobs = index.get(index.companies.get(company, [])) if company else []
     if employer_jobs:
         near = [
             (
-                0.7 * similar(title, str(job.get("title") or ""))
-                + 0.3 * similar(location, str(job.get("location") or "")),
+                0.78 * similar(title, str(job.get("title") or ""))
+                + 0.22 * location_similarity(location, str(job.get("location") or "")),
                 job,
             )
             for job in employer_jobs
         ]
         near.sort(key=lambda item: item[0], reverse=True)
-        if near and near[0][0] >= 0.88:
+        if near and near[0][0] >= 0.90:
             score, job = near[0]
-            return {
-                **base,
-                "status": "duplicate_resolution_issue",
-                "confidence": "medium",
-                "match_score": round(score, 3),
-                "reason": "same employer has a very similar title/location",
-                "matched_job": compact(job),
-                "recommended_action": "Verify requisition identity; if the same role, improve normalization.",
-            }
-        return {
-            **base,
-            "status": "employer_exists_but_listing_missing",
-            "confidence": "high",
-            "reason": f"Yartchives has {len(employer_jobs)} listing(s) for this employer but not this role",
-            "candidate_jobs": [compact(job) for job in employer_jobs[:3]],
-            "recommended_action": "Trace the role to the employer ATS and check source filters or add direct coverage.",
-        }
+            issues = surface_issues(job, expected)
+            if issues and similar(title, str(job.get("title") or "")) >= 0.96:
+                return result(
+                    base,
+                    "filtered_or_misclassified",
+                    "medium",
+                    "probable_match_but_hidden",
+                    "; ".join(issues),
+                    "Verify the role identity, then review profile/state/type enrichment.",
+                    match_score=round(score, 3),
+                    matched_job=compact(job),
+                )
+            return result(
+                base,
+                "duplicate_resolution_issue",
+                "medium",
+                "probable_duplicate",
+                "same employer has a very similar title and compatible location",
+                "Verify requisition identity; if it is the same role, improve normalization.",
+                match_score=round(score, 3),
+                matched_job=compact(job),
+            )
+        return result(
+            base,
+            "employer_exists_but_listing_missing",
+            "high",
+            "known_employer_missing_role",
+            f"Yartchives has {len(employer_jobs)} listing(s) for this employer but not this role",
+            "Trace the role to the employer ATS and check source filters or add direct coverage.",
+            candidate_jobs=[compact(job) for job in employer_jobs[:3]],
+        )
 
     source_key = norm(first(row, "source_key"))
     source_name = norm(source)
+    discovery_hostname = host(first(row, "source_url", "discovery_url"))
+    listing_hostname = host(url)
+
     if company and company in catalog["companies"]:
         covered, why = True, "employer has a configured direct source"
     elif source_key:
@@ -390,11 +461,13 @@ def classify(
         covered, why = True, f"source={source_name}"
     elif source_name and any(surface in source_name for surface in DISCOVERY_SURFACES):
         covered, why = False, f"discovery surface '{source_name}' is not ingested"
+    elif discovery_hostname and discovery_hostname in catalog["hosts"]:
+        covered, why = True, f"discovery host={discovery_hostname}"
+    elif listing_hostname and listing_hostname in catalog["hosts"]:
+        covered, why = True, f"listing host={listing_hostname}"
     else:
-        hostname = host(first(row, "source_url", "discovery_url") or url)
-        if hostname in catalog["hosts"]:
-            covered, why = True, f"host={hostname}"
-        elif hostname and any(hint in hostname for hint in ATS_HINTS):
+        hostname = discovery_hostname or listing_hostname
+        if hostname and any(hint in hostname for hint in ATS_HINTS):
             covered, why = False, f"direct ATS host '{hostname}' is not configured"
         elif hostname:
             covered, why = False, f"listing/source host '{hostname}' is not configured"
@@ -402,31 +475,34 @@ def classify(
             covered, why = None, "no source metadata"
 
     if covered is True:
-        return {
-            **base,
-            "status": "filtered_or_misclassified",
-            "confidence": "medium",
-            "reason": f"source appears covered ({why}) but the listing is absent after ingestion",
-            "recommended_action": "Inspect source freshness, adapter filters, and enrichment for this listing.",
-        }
+        return result(
+            base,
+            "configured_source_miss",
+            "medium",
+            "configured_source_listing_absent",
+            f"source appears configured ({why}) but this listing is absent after ingestion",
+            "Inspect source freshness, adapter filters, ingestion errors, and enrichment for this listing.",
+        )
     if covered is False:
         action = "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs."
         if any(surface in source_name for surface in DISCOVERY_SURFACES):
             action += " Keep the discovery platform audit-only rather than scraping it."
-        return {
-            **base,
-            "status": "source_not_covered",
-            "confidence": "high",
-            "reason": why,
-            "recommended_action": action,
-        }
-    return {
-        **base,
-        "status": "unknown",
-        "confidence": "low",
-        "reason": why,
-        "recommended_action": "Add company, title, location, direct URL, and discovery source, then rerun.",
-    }
+        return result(
+            base,
+            "source_not_covered",
+            "high",
+            "uncovered_source",
+            why,
+            action,
+        )
+    return result(
+        base,
+        "unknown",
+        "low",
+        "insufficient_source_context",
+        why,
+        "Add company, title, location, direct URL, and discovery source, then rerun.",
+    )
 
 
 def build_report(
@@ -441,11 +517,11 @@ def build_report(
     index = Index(jobs)
     results = []
     for input_index, row in enumerate(rows, 1):
-        result = classify(row, index, catalog, profiles, states)
-        result["input_index"] = input_index
-        results.append(result)
+        classified = classify(row, index, catalog, profiles, states)
+        classified["input_index"] = input_index
+        results.append(classified)
 
-    counts = Counter(result["status"] for result in results)
+    counts = Counter(item["status"] for item in results)
     total = len(results)
     captured = sum(
         counts[status]
@@ -455,13 +531,14 @@ def build_report(
             "duplicate_resolution_issue",
         )
     )
+    actionable_misses = total - counts["already_in_yartchives"]
     by_source: defaultdict[str, Counter[str]] = defaultdict(Counter)
-    for result in results:
-        source = result.get("source") or host(result.get("url") or "") or "unknown"
-        by_source[source][result["status"]] += 1
+    for item in results:
+        source = item.get("source") or host(item.get("url") or "") or "unknown"
+        by_source[source][item["status"]] += 1
 
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "audit": audit_meta or {},
         "feed": {
@@ -474,6 +551,7 @@ def build_report(
             "external_listings": total,
             "captured_or_probably_captured": captured,
             "visible_under_expected_filters": counts["already_in_yartchives"],
+            "actionable_findings": actionable_misses,
             "capture_rate": round(captured / total, 4) if total else None,
             "visible_rate": round(counts["already_in_yartchives"] / total, 4) if total else None,
             "status_counts": {status: counts[status] for status in STATUSES},
@@ -500,25 +578,26 @@ def markdown(report: dict[str, Any]) -> str:
         + (f" ({summary['capture_rate']:.1%})" if summary["capture_rate"] is not None else ""),
         f"- Visible under expected filters: **{summary['visible_under_expected_filters']}**"
         + (f" ({summary['visible_rate']:.1%})" if summary["visible_rate"] is not None else ""),
+        f"- Actionable findings: **{summary['actionable_findings']}**",
         "",
         "## Status breakdown",
         "",
     ]
     lines += [f"- `{status}`: {summary['status_counts'][status]}" for status in STATUSES]
     lines += ["", "## Action queue", ""]
-    misses = [result for result in report["results"] if result["status"] != "already_in_yartchives"]
-    if not misses:
+    findings = [item for item in report["results"] if item["status"] != "already_in_yartchives"]
+    if not findings:
         lines.append("No misses or filter/classification issues found in this sample.")
-    for result in misses:
+    for item in findings:
         label = " — ".join(
             value
-            for value in (result.get("company"), result.get("title"), result.get("location"))
+            for value in (item.get("company"), item.get("title"), item.get("location"))
             if value
         ) or "Unnamed listing"
         lines += [
-            f"- **{result['status']}**: {label}",
-            f"  - Why: {result['reason']}",
-            f"  - Next: {result['recommended_action']}",
+            f"- **{item['status']}** (`{item['reason_code']}`): {label}",
+            f"  - Why: {item['reason']}",
+            f"  - Next: {item['recommended_action']}",
         ]
     return "\n".join(lines) + "\n"
 
@@ -557,7 +636,10 @@ def main() -> int:
     text = markdown(report)
     print(text, end="")
     if args.output:
-        Path(args.output).write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        Path(args.output).write_text(
+            json.dumps(report, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
     if args.markdown_output:
         Path(args.markdown_output).write_text(text, encoding="utf-8")
     return 0
