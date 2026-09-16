@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://raw.githubusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self'; img-src 'self' data:; connect-src 'self' https://raw.githubusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests" />
   <meta name="referrer" content="no-referrer" />
   <meta name="description" content="Yartchives — a multi-source platform for internships, research, fellowships, and early-career opportunities." />
   <title>Yartchives</title>
@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="ui.css" />
   <link rel="stylesheet" href="ux.css" />
   <link rel="stylesheet" href="apply-next.css" />
+  <link rel="stylesheet" href="apply-next-profile-setup.css" />
 </head>
 <body>
   <header class="site-header">
@@ -176,5 +177,6 @@
   <script src="apply-next-readiness.js" defer></script>
   <script src="apply-next-competition.js" defer></script>
   <script src="apply-next-ui.js" defer></script>
+  <script src="apply-next-profile-setup.js" defer></script>
 </body>
 </html>

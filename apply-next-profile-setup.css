@@ -1,0 +1,71 @@
+.apply-next-profile-wizard {
+  display: grid;
+  gap: 1rem;
+}
+
+.apply-next-profile-section {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.95rem;
+  border: 1px solid var(--line, #d9dde5);
+  border-radius: 12px;
+  background: var(--panel, #fff);
+}
+
+.apply-next-profile-section h3,
+.apply-next-profile-section p {
+  margin: 0;
+}
+
+.apply-next-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.apply-next-profile-field {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.apply-next-profile-field input,
+.apply-next-profile-field select,
+.apply-next-profile-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+}
+
+.apply-next-profile-field textarea {
+  resize: vertical;
+}
+
+.apply-next-profile-checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.9rem;
+}
+
+.apply-next-profile-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.88rem;
+}
+
+.apply-next-profile-subhead {
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.apply-next-profile-status {
+  min-height: 1.2rem;
+}
+
+@media (max-width: 720px) {
+  .apply-next-profile-grid {
+    grid-template-columns: 1fr;
+  }
+}
