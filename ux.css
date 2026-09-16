@@ -56,12 +56,17 @@
 .job-actions {
   display: grid;
   grid-template-columns: repeat(3, minmax(74px, 1fr));
+  grid-template-rows: auto auto;
   gap: 7px;
   min-width: 300px;
   align-content: center;
 }
+.job-actions .save-btn { grid-column: 1; grid-row: 1; }
+.job-actions .applied-btn { grid-column: 2; grid-row: 1; }
+.job-actions .hide-btn { grid-column: 3; grid-row: 1; }
 .job-actions .apply-btn {
   grid-column: 1 / -1;
+  grid-row: 2;
   min-height: 38px;
 }
 .job-actions .hide-btn {
