@@ -429,7 +429,7 @@ def parse_markdown_tables(text: str, source: dict[str, Any], reference: datetime
             is_separator = bool(re.match(r"^\s*\|?\s*:?-{3,}", next_line)) and "|" in next_line
             header_blob = " ".join(norm(x) for x in maybe_headers)
             if is_separator and ("company" in header_blob or "organization" in header_blob) and (
-                "role" in header_blob or "title" in header_blob or "position" in header_blob
+                "role" in header_blob or "title" in header_blob or "position" in header_blob or "opportunity" in header_blob
             ):
                 headers = maybe_headers
                 previous_company = ""
@@ -459,7 +459,7 @@ def parse_html_tables(text: str, source: dict[str, Any], reference: datetime) ->
         header_cells = rows[0].find_all(["th", "td"])
         headers = [clean_text(str(c)) for c in header_cells]
         blob = " ".join(norm(x) for x in headers)
-        if not ("company" in blob or "organization" in blob) or not any(x in blob for x in ("role", "title", "position")):
+        if not ("company" in blob or "organization" in blob) or not any(x in blob for x in ("role", "title", "position", "opportunity")):
             continue
         previous_company = ""
         heading = table.find_previous(["h1", "h2", "h3", "h4"])
