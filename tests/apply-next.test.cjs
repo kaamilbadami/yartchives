@@ -8,6 +8,12 @@ const profile = {
   preferredProfiles: ["cs", "tech-business"],
   supportedKeywords: ["software", "testing", "systems", "linux", "java", "c"],
   cautiousKeywords: ["python", "bash"],
+  facts: {
+    graduation: "May 2028",
+    workAuthorization: "U.S. citizen; no sponsorship needed",
+    supportedSkills: ["Java", "C", "Linux", "testing"],
+    cautiousSkills: ["Python", "Bash"],
+  },
   roleFamilies: [
     { id: "software", label: "Software engineering", priority: 1, keywords: ["software engineer", "software developer"] },
     { id: "testing", label: "Testing / systems", priority: 1, keywords: ["test engineer", "qa", "systems"] },
@@ -81,6 +87,101 @@ const exactTerm = A.scoreEligibility(freshDirect, profile);
 assert.equal(exactTerm.score, 18);
 const unknownTerm = A.scoreEligibility({ ...freshDirect, term: null }, profile);
 assert.ok(exactTerm.score > unknownTerm.score);
+
+const inspectedStrong = {
+  ...freshDirect,
+  company: "Inspected",
+  _inspection: {
+    status: "inspected",
+    retrieval_confidence: "high",
+    posting: { application_status: "available" },
+    requirements: {
+      graduation: {
+        classification: "required",
+        required: [{ statement: "Candidates must graduate between December 2027 and June 2028.", requirement_state: "required", negated: false }],
+        preferred: [], unspecified: [], not_required: [],
+      },
+      education: { classification: "required", required: [{ statement: "Pursuing a Bachelor's degree.", requirement_state: "required", negated: false }], preferred: [], unspecified: [], not_required: [] },
+      student_status: { classification: "unknown", required: [], preferred: [], unspecified: [], not_required: [] },
+      major_fields: { classification: "required", required: [{ statement: "Degree in Computer Science or related field.", requirement_state: "required", negated: false }], preferred: [], unspecified: [], not_required: [] },
+      citizenship: { classification: "unknown", required: [], preferred: [], unspecified: [], not_required: [] },
+      work_authorization: {
+        classification: "required",
+        required: [{ statement: "Applicants must be authorized to work in the U.S. and the company does not sponsor.", requirement_state: "required", negated: false }],
+        preferred: [], unspecified: [], not_required: [],
+      },
+      skills: {
+        classification: "mixed",
+        required: [{ statement: "Experience with C and Linux is required.", technologies: ["C", "Linux"], requirement_state: "required", negated: false }],
+        preferred: [{ statement: "Java experience preferred.", technologies: ["Java"], requirement_state: "preferred", negated: false }],
+        unspecified: [], not_required: [],
+      },
+      other_eligibility: { classification: "unknown", required: [], preferred: [], unspecified: [], not_required: [] },
+    },
+  },
+};
+const inspectedStrongScore = A.scoreJob(inspectedStrong, profile, now);
+const metadataScore = A.scoreJob({ ...freshDirect, company: "Metadata" }, profile, now);
+assert.equal(inspectedStrongScore.excluded, false);
+assert.equal(inspectedStrongScore.inspection.state, "inspected");
+assert.ok(inspectedStrongScore.components.eligibility.score >= metadataScore.components.eligibility.score);
+assert.match(inspectedStrongScore.components.eligibility.detail, /2028 fits/);
+assert.match(inspectedStrongScore.components.eligibility.detail, /work-authorization/);
+assert.match(inspectedStrongScore.components.fit.detail, /Required posting skills supported/);
+
+const unavailable = A.scoreJob({
+  ...freshDirect,
+  _inspection: {
+    status: "inspected",
+    posting: { application_status: "unavailable" },
+    requirements: {},
+  },
+}, profile, now);
+assert.equal(unavailable.excluded, true);
+assert.match(unavailable.reasons[0], /unavailable/i);
+
+const unsupportedRequiredSkill = A.scoreFit({
+  ...freshDirect,
+  _inspection: {
+    status: "inspected",
+    posting: { application_status: "available" },
+    requirements: {
+      skills: {
+        classification: "required",
+        required: [{ statement: "Kubernetes is required.", technologies: ["Kubernetes"], requirement_state: "required", negated: false }],
+        preferred: [], unspecified: [], not_required: [],
+      },
+    },
+  },
+}, profile);
+const metadataFit = A.scoreFit(freshDirect, profile);
+assert.ok(unsupportedRequiredSkill.score < metadataFit.score);
+assert.match(unsupportedRequiredSkill.detail, /not supported by profile/i);
+
+const notRequiredAuth = A.scoreEligibility({
+  ...freshDirect,
+  _inspection: {
+    status: "inspected",
+    posting: { application_status: "available" },
+    requirements: {
+      citizenship: {
+        classification: "not_required",
+        required: [], preferred: [], unspecified: [],
+        not_required: [{ statement: "U.S. citizenship is not required.", requirement_state: "not_required", negated: true }],
+      },
+      work_authorization: {
+        classification: "not_required",
+        required: [], preferred: [], unspecified: [],
+        not_required: [{ statement: "Visa sponsorship is not required.", requirement_state: "not_required", negated: true }],
+      },
+    },
+  },
+}, profile);
+assert.equal(notRequiredAuth.excluded, false);
+assert.match(notRequiredAuth.detail, /not required/);
+
+assert.equal(A.summarizeInspection(freshDirect).state, "metadata-only");
+assert.equal(A.summarizeInspection(inspectedStrong).label, "Posting inspected");
 
 const totalFromParts = Object.values(direct.components).reduce((sum, part) => sum + part.score, 0);
 assert.equal(direct.total, totalFromParts);

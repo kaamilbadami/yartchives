@@ -36,6 +36,58 @@
     return (` ${text} `).includes(` ${needle} `) || text.includes(needle);
   }
 
+  function inspectionForJob(job) {
+    return job?._inspection || job?.inspection || null;
+  }
+
+  function requirementField(inspection, key) {
+    const field = inspection?.requirements?.[key];
+    return field && typeof field === "object" ? field : null;
+  }
+
+  function evidenceFacts(field, bucket) {
+    return Array.isArray(field?.[bucket]) ? field[bucket] : [];
+  }
+
+  function profileSupportedKeywords(profile) {
+    return [...new Set([
+      ...(profile?.supportedKeywords || []),
+      ...(profile?.facts?.supportedSkills || []),
+    ].map(normalize).filter(Boolean))];
+  }
+
+  function profileCautiousKeywords(profile) {
+    return [...new Set([
+      ...(profile?.cautiousKeywords || []),
+      ...(profile?.facts?.cautiousSkills || []),
+    ].map(normalize).filter(Boolean))];
+  }
+
+  function profileFactText(profile) {
+    return normalize([
+      profile?.facts?.graduation,
+      profile?.facts?.degree,
+      profile?.facts?.major,
+      profile?.facts?.workAuthorization,
+      profile?.facts?.citizenship,
+      profile?.workAuthorization,
+      profile?.citizenship,
+    ].filter(Boolean).join(" "));
+  }
+
+  function profileGraduationYear(profile) {
+    const text = [
+      profile?.facts?.graduation,
+      profile?.graduation,
+    ].filter(Boolean).join(" ");
+    const match = text.match(/\b(20\d{2})\b/);
+    return match ? Number(match[1]) : null;
+  }
+
+  function statementYears(statement) {
+    return [...new Set((String(statement || "").match(/\b20\d{2}\b/g) || []).map(Number))].sort();
+  }
+
   function opportunityType(job) {
     if (job?.opportunity_type) return job.opportunity_type;
     const text = normalize(job?.title);
@@ -79,7 +131,103 @@
     return { score: 0, detail: "Older than 60 days" };
   }
 
+  function inspectionAvailability(inspection) {
+    if (!inspection) return "unknown";
+    if (inspection.status === "unavailable") return "unavailable";
+    return inspection?.posting?.application_status || "unknown";
+  }
+
+  function graduationAdjustment(inspection, profile) {
+    const field = requirementField(inspection, "graduation");
+    const gradYear = profileGraduationYear(profile);
+    if (!field) return { delta: 0, detail: null };
+
+    const required = evidenceFacts(field, "required");
+    const preferred = evidenceFacts(field, "preferred");
+    const facts = required.length ? required : preferred;
+    if (!facts.length) return { delta: 0, detail: null };
+
+    const bucket = required.length ? "required" : "preferred";
+    if (!gradYear) {
+      return { delta: 0, detail: `Posting has an explicit ${bucket} graduation condition; profile graduation year is unavailable` };
+    }
+
+    const yearSets = facts.map(fact => statementYears(fact.statement)).filter(years => years.length);
+    if (!yearSets.length) {
+      return { delta: 0, detail: `Posting has an explicit ${bucket} graduation condition` };
+    }
+
+    const matches = facts.some(fact => {
+      const statement = normalize(fact.statement);
+      const years = statementYears(fact.statement);
+      if (!years.length) return false;
+      if (years.length >= 2) return gradYear >= Math.min(...years) && gradYear <= Math.max(...years);
+      const year = years[0];
+      if (/\b(?:after|no earlier than)\b/.test(statement)) return gradYear >= year;
+      if (/\b(?:before|by|no later than)\b/.test(statement)) return gradYear <= year;
+      return gradYear === year;
+    });
+    if (matches) {
+      return { delta: required.length ? 2 : 1, detail: `${gradYear} fits the posting's explicit ${bucket} graduation window` };
+    }
+    if (required.length) {
+      return { delta: -4, detail: `${gradYear} does not match the posting's explicit required graduation year/window` };
+    }
+    return { delta: 0, detail: `${gradYear} does not match the posting's preferred graduation window` };
+  }
+
+  function authorizationAdjustment(inspection, profile) {
+    if (!inspection) return { delta: 0, details: [] };
+    const profileText = profileFactText(profile);
+    const supportsUsAuthorization = /\bu\.?s\.? citizen\b|\bunited states citizen\b|\bpermanent resident\b|\bno sponsorship\b|\bsponsorship (?:is )?not (?:needed|required)\b|\bauthorized to work\b/.test(profileText);
+    const needsSponsorship = /\bneeds? sponsorship\b|\brequires? sponsorship\b|\bvisa sponsorship needed\b/.test(profileText);
+    let delta = 0;
+    const details = [];
+
+    const citizenship = requirementField(inspection, "citizenship");
+    const authorization = requirementField(inspection, "work_authorization");
+    const requiredFacts = [
+      ...evidenceFacts(citizenship, "required"),
+      ...evidenceFacts(authorization, "required"),
+    ];
+    const notRequiredFacts = [
+      ...evidenceFacts(citizenship, "not_required"),
+      ...evidenceFacts(authorization, "not_required"),
+    ];
+
+    if (requiredFacts.length) {
+      const text = normalize(requiredFacts.map(fact => fact.statement).join(" "));
+      const restrictive = /\bu\.?s\.? (?:citizen|person)\b|\bunited states (?:citizen|person)\b|\bauthorized to work\b|\bdoes not sponsor\b|\bwill not sponsor\b|\bno sponsorship\b/.test(text);
+      if (restrictive && supportsUsAuthorization) {
+        delta += 2;
+        details.push("Profile supports the posting's explicit work-authorization/citizenship requirement");
+      } else if (restrictive && needsSponsorship) {
+        delta -= 6;
+        details.push("Profile conflicts with the posting's explicit work-authorization/sponsorship requirement");
+      } else {
+        details.push("Posting has explicit work-authorization/citizenship requirements");
+      }
+    }
+
+    if (notRequiredFacts.length) {
+      details.push("Posting explicitly says a citizenship/sponsorship condition is not required");
+    }
+    return { delta, details };
+  }
+
   function scoreEligibility(job, profile) {
+    const inspection = inspectionForJob(job);
+    const availability = inspectionAvailability(inspection);
+    if (availability === "unavailable") {
+      return {
+        score: 0,
+        excluded: true,
+        detail: inspection?.status === "unavailable"
+          ? "Authoritative Workday posting is unavailable"
+          : "Authoritative Workday posting says applications are unavailable",
+      };
+    }
+
     const type = opportunityType(job);
     const level = educationLevel(job);
     const allowedTypes = profile?.opportunityTypes || ["internship", "co-op", "student"];
@@ -110,7 +258,32 @@
     } else {
       parts.push(`Known term is ${job.term}, not ${profile.targetTerm}`);
     }
-    return { score: Math.min(20, score), excluded: false, detail: parts.join("; ") };
+
+    if (inspection?.status === "inspected") {
+      if (availability === "available") {
+        score += 1;
+        parts.push("Authoritative posting confirms applications are available");
+      }
+      const grad = graduationAdjustment(inspection, profile);
+      score += grad.delta;
+      if (grad.detail) parts.push(grad.detail);
+
+      const auth = authorizationAdjustment(inspection, profile);
+      score += auth.delta;
+      parts.push(...auth.details);
+
+      const education = requirementField(inspection, "education");
+      const student = requirementField(inspection, "student_status");
+      const majors = requirementField(inspection, "major_fields");
+      if (evidenceFacts(education, "required").length || evidenceFacts(student, "required").length) {
+        parts.push("Posting contains explicit education/student-status requirements");
+      }
+      if (evidenceFacts(majors, "required").length || evidenceFacts(majors, "preferred").length) {
+        parts.push("Posting contains explicit degree/major evidence");
+      }
+    }
+
+    return { score: Math.max(0, Math.min(20, score)), excluded: false, detail: parts.join("; ") };
   }
 
   function scoreFit(job, profile) {
@@ -122,17 +295,66 @@
     const reasons = [];
     if (profileOverlap.length) reasons.push(`Career-area overlap: ${profileOverlap.join(", ")}`);
 
-    const supported = [...new Set((profile?.supportedKeywords || []).map(normalize).filter(Boolean))];
-    const matches = supported.filter(keyword => includesKeyword(text, keyword));
+    const metadataSupported = [...new Set((profile?.supportedKeywords || []).map(normalize).filter(Boolean))];
+    const matches = metadataSupported.filter(keyword => includesKeyword(text, keyword));
     score += Math.min(15, matches.length * 3);
-    if (matches.length) reasons.push(`Supported evidence matches: ${matches.slice(0, 5).join(", ")}`);
+    if (matches.length) reasons.push(`Supported metadata matches: ${matches.slice(0, 5).join(", ")}`);
 
-    const cautious = [...new Set((profile?.cautiousKeywords || []).map(normalize).filter(Boolean))];
-    const cautiousMatches = cautious.filter(keyword => includesKeyword(text, keyword));
+    const metadataCautious = [...new Set((profile?.cautiousKeywords || []).map(normalize).filter(Boolean))];
+    const cautiousMatches = metadataCautious.filter(keyword => includesKeyword(text, keyword));
     if (cautiousMatches.length) reasons.push(`Not credited as strengths: ${cautiousMatches.join(", ")}`);
 
+    const inspection = inspectionForJob(job);
+    if (inspection?.status === "inspected") {
+      const supported = profileSupportedKeywords(profile);
+      const cautious = profileCautiousKeywords(profile);
+      const skills = requirementField(inspection, "skills");
+      const required = evidenceFacts(skills, "required");
+      const preferred = evidenceFacts(skills, "preferred");
+      const requiredSupported = new Set();
+      const requiredCautious = new Set();
+      const requiredUnsupported = new Set();
+      const preferredSupported = new Set();
+
+      for (const fact of required) {
+        const statement = normalize(fact.statement);
+        const technologies = Array.isArray(fact.technologies) ? fact.technologies.map(normalize).filter(Boolean) : [];
+        const candidates = technologies.length ? technologies : supported.filter(keyword => includesKeyword(statement, keyword));
+        for (const skill of candidates) {
+          if (supported.some(keyword => keyword === skill || includesKeyword(skill, keyword) || includesKeyword(keyword, skill))) requiredSupported.add(skill);
+          else if (cautious.some(keyword => keyword === skill || includesKeyword(skill, keyword) || includesKeyword(keyword, skill))) requiredCautious.add(skill);
+          else if (technologies.length) requiredUnsupported.add(skill);
+        }
+      }
+      for (const fact of preferred) {
+        const statement = normalize(fact.statement);
+        const technologies = Array.isArray(fact.technologies) ? fact.technologies.map(normalize).filter(Boolean) : [];
+        const candidates = technologies.length ? technologies : supported.filter(keyword => includesKeyword(statement, keyword));
+        for (const skill of candidates) {
+          if (supported.some(keyword => keyword === skill || includesKeyword(skill, keyword) || includesKeyword(keyword, skill))) preferredSupported.add(skill);
+        }
+      }
+
+      if (requiredSupported.size) {
+        score += Math.min(6, requiredSupported.size * 2);
+        reasons.push(`Required posting skills supported: ${[...requiredSupported].slice(0, 4).join(", ")}`);
+      }
+      if (preferredSupported.size) {
+        score += Math.min(3, preferredSupported.size);
+        reasons.push(`Preferred posting skills supported: ${[...preferredSupported].slice(0, 4).join(", ")}`);
+      }
+      if (requiredCautious.size) {
+        score -= Math.min(3, requiredCautious.size);
+        reasons.push(`Required skills only cautiously supported: ${[...requiredCautious].slice(0, 4).join(", ")}`);
+      }
+      if (requiredUnsupported.size) {
+        score -= Math.min(6, requiredUnsupported.size * 2);
+        reasons.push(`Required posting skills not supported by profile: ${[...requiredUnsupported].slice(0, 4).join(", ")}`);
+      }
+    }
+
     if (!reasons.length) reasons.push("No strong evidence match visible in current feed fields");
-    return { score: Math.min(25, score), detail: reasons.join("; ") };
+    return { score: Math.max(0, Math.min(25, score)), detail: reasons.join("; ") };
   }
 
   function scoreRole(job, profile) {
@@ -220,8 +442,36 @@
     return { score: Math.max(0, Math.min(15, score)), detail: reasons.join("; ") };
   }
 
+  function summarizeInspection(job) {
+    const inspection = inspectionForJob(job);
+    if (!inspection) return { state: "metadata-only", label: "Metadata only", evidence: [] };
+    if (inspection.status === "unavailable" || inspectionAvailability(inspection) === "unavailable") {
+      return { state: "unavailable", label: "Posting unavailable", evidence: ["Authoritative Workday posting is no longer available"] };
+    }
+    if (inspection.status !== "inspected") {
+      return { state: "metadata-only", label: "Metadata only", evidence: ["Authoritative posting inspection is not currently available"] };
+    }
+
+    const evidence = [];
+    if (inspectionAvailability(inspection) === "available") evidence.push("Posting confirmed available");
+    const graduation = requirementField(inspection, "graduation");
+    const education = requirementField(inspection, "education");
+    const major = requirementField(inspection, "major_fields");
+    const auth = requirementField(inspection, "work_authorization");
+    const citizenship = requirementField(inspection, "citizenship");
+    const skills = requirementField(inspection, "skills");
+    if (evidenceFacts(graduation, "required").length || evidenceFacts(graduation, "preferred").length) evidence.push("Graduation requirement found");
+    if (evidenceFacts(education, "required").length || evidenceFacts(education, "preferred").length
+      || evidenceFacts(major, "required").length || evidenceFacts(major, "preferred").length) evidence.push("Degree/major requirement found");
+    if (evidenceFacts(auth, "required").length || evidenceFacts(auth, "not_required").length
+      || evidenceFacts(citizenship, "required").length || evidenceFacts(citizenship, "not_required").length) evidence.push("Work authorization/citizenship language found");
+    if (evidenceFacts(skills, "required").length || evidenceFacts(skills, "preferred").length) evidence.push("Required/preferred skill evidence found");
+    return { state: "inspected", label: "Posting inspected", evidence };
+  }
+
   function scoreJob(job, profile, now = new Date()) {
     const eligibility = scoreEligibility(job, profile || {});
+    const inspection = summarizeInspection(job);
     if (eligibility.excluded) {
       return {
         job,
@@ -229,6 +479,7 @@
         excluded: true,
         components: { eligibility },
         reasons: [eligibility.detail],
+        inspection,
       };
     }
 
@@ -248,6 +499,7 @@
       excluded: false,
       components,
       reasons: Object.entries(components).map(([name, component]) => `${name}: ${component.detail}`),
+      inspection,
     };
   }
 
@@ -268,6 +520,13 @@
   return {
     DEFAULT_WEIGHTS,
     normalize,
+    inspectionForJob,
+    requirementField,
+    evidenceFacts,
+    profileSupportedKeywords,
+    profileCautiousKeywords,
+    profileGraduationYear,
+    statementYears,
     opportunityType,
     educationLevel,
     ageDays,
@@ -279,6 +538,7 @@
     linkKind,
     scoreLink,
     scoreRoi,
+    summarizeInspection,
     scoreJob,
     rankJobs,
   };

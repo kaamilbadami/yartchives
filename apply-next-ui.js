@@ -7,7 +7,9 @@
   }
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   const STORAGE_KEY = "yartchives-apply-next-profile-v1";
+  const INSPECTION_URL = "data/workday-inspections.json";
   const TOP_N = 10;
+  let inspectionArtifactPromise = null;
 
   function normalize(value) {
     return String(value || "").trim();
@@ -69,6 +71,47 @@
       .slice(0, 4);
     const bases = (profile?.baseLabels || []).filter(Boolean);
     return [profile?.targetTerm, families.join(" · "), bases.join(" + ")].filter(Boolean).join(" · ");
+  }
+
+  function emptyInspectionArtifact() {
+    return { version: 1, entries: {}, listing_index: {} };
+  }
+
+  async function fetchInspectionArtifact(fetchImpl) {
+    const client = fetchImpl || (typeof fetch === "function" ? fetch : null);
+    if (!client) return emptyInspectionArtifact();
+    try {
+      const response = await client(INSPECTION_URL, { cache: "no-store" });
+      if (!response || !response.ok) return emptyInspectionArtifact();
+      const payload = await response.json();
+      if (!payload || typeof payload !== "object") return emptyInspectionArtifact();
+      return {
+        version: payload.version || 1,
+        entries: payload.entries && typeof payload.entries === "object" ? payload.entries : {},
+        listing_index: payload.listing_index && typeof payload.listing_index === "object" ? payload.listing_index : {},
+      };
+    } catch (_) {
+      return emptyInspectionArtifact();
+    }
+  }
+
+  function loadInspectionArtifact(fetchImpl) {
+    if (fetchImpl) return fetchInspectionArtifact(fetchImpl);
+    if (!inspectionArtifactPromise) inspectionArtifactPromise = fetchInspectionArtifact();
+    return inspectionArtifactPromise;
+  }
+
+  function attachInspections(jobs, artifact) {
+    const index = artifact?.listing_index || {};
+    const entries = artifact?.entries || {};
+    for (const job of jobs || []) {
+      if (!job || typeof job !== "object") continue;
+      delete job._inspection;
+      const canonical = index[job.id];
+      const inspection = canonical && entries[canonical]?.inspection;
+      if (inspection && typeof inspection === "object") job._inspection = inspection;
+    }
+    return jobs;
   }
 
   function element(tag, className, text) {
@@ -171,6 +214,16 @@
       element("h3", "", job.title || "Untitled opportunity"),
       element("p", "muted", job.location || "Location not listed")
     );
+    const evidenceStatus = element(
+      "span",
+      "apply-next-component apply-next-inspection-status",
+      result.inspection?.label || "Metadata only"
+    );
+    evidenceStatus.title = result.inspection?.state === "inspected"
+      ? "Authoritative employer posting evidence is included in this score."
+      : "This score falls back to feed metadata because authoritative posting evidence is unavailable.";
+    titleWrap.append(evidenceStatus);
+
     const score = element("div", "apply-next-score");
     score.append(element("strong", "", String(result.total)), element("span", "", "/100"));
     top.append(titleWrap, score);
@@ -187,6 +240,16 @@
     const details = element("details", "apply-next-why");
     const summary = element("summary", "", "Why this ranks here");
     details.append(summary);
+
+    if (result.inspection?.evidence?.length) {
+      const evidenceHeading = element("p", "muted", "Authoritative posting evidence");
+      const evidenceList = element("ul");
+      for (const evidence of result.inspection.evidence) evidenceList.append(element("li", "", evidence));
+      details.append(evidenceHeading, evidenceList);
+    } else if (result.inspection?.state !== "inspected") {
+      details.append(element("p", "muted", "No authoritative posting inspection is attached; metadata scoring is used as the fallback."));
+    }
+
     const list = element("ul");
     for (const [key, component] of Object.entries(result.components || {})) {
       const item = element("li");
@@ -256,13 +319,16 @@
     panel.append(heading);
 
     const pool = candidatePool(feed.jobs, profile, state);
+    const artifact = await loadInspectionArtifact();
+    attachInspections(pool, artifact);
     await addBaseDistances(pool, profile);
     const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date()).slice(0, TOP_N);
+    const inspectedCount = ranked.filter(result => result.inspection?.state === "inspected").length;
 
     const note = element(
       "p",
       "apply-next-note",
-      `Showing ${ranked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`
+      `Showing ${ranked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`
     );
     panel.append(note);
 
@@ -315,6 +381,7 @@
 
   return {
     STORAGE_KEY,
+    INSPECTION_URL,
     TOP_N,
     validateProfile,
     loadProfile,
@@ -322,6 +389,9 @@
     knownWrongTerm,
     candidatePool,
     profileSummary,
+    emptyInspectionArtifact,
+    loadInspectionArtifact,
+    attachInspections,
     init,
   };
 });

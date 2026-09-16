@@ -21,6 +21,7 @@ on:
       - "apply-next.js"
       - "apply-next-ui.js"
       - "data/listings.json"
+      - "data/workday-inspections.json"
       - ".nojekyll"
       - ".github/workflows/deploy-pages.yml"
   workflow_run:
@@ -62,6 +63,7 @@ jobs:
           mkdir -p _site/data
           cp index.html styles.css location.css ui.css ux.css apply-next.css frontend-utils.js app.js enhancements.js ui.js ux.js location-display.js share.js apply-next.js apply-next-ui.js .nojekyll _site/
           cp data/listings.json _site/data/listings.json
+          cp data/workday-inspections.json _site/data/workday-inspections.json
           VERSION="$(git rev-parse --short=12 HEAD)"
           sed -i "s|href=\"styles.css\"|href=\"styles.css?v=${VERSION}\"|" _site/index.html
           sed -i "s|href=\"location.css\"|href=\"location.css?v=${VERSION}\"|" _site/index.html
