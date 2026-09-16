@@ -38,4 +38,5 @@ assert.ok(cityResult.miles < 20);
 
 require("./results-language.test.cjs");
 require("./apply-next.test.cjs");
+require("./apply-next-ui.test.cjs");
 console.log("frontend-utils tests passed");
