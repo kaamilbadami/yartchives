@@ -3,11 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://raw.githubusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests" />
   <meta name="referrer" content="no-referrer" />
   <meta name="description" content="Yartchives — a multi-source platform for internships, research, fellowships, and early-career opportunities." />
   <title>Yartchives</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="location.css" />
 </head>
 <body>
   <header class="site-header">
@@ -53,8 +54,12 @@
           <input id="searchInput" type="search" placeholder="company, role, skill..." autocomplete="off" />
         </label>
         <label class="field">
-          <span>Location</span>
-          <input id="locationInput" type="text" placeholder="MD, DC, Remote..." autocomplete="off" />
+          <span>Location / ZIP</span>
+          <input id="locationInput" type="text" placeholder="CT, Boston, or 06897..." autocomplete="off" inputmode="text" />
+        </label>
+        <label class="field">
+          <span>Within miles</span>
+          <input id="radiusInput" type="number" min="5" max="500" step="5" value="50" inputmode="numeric" disabled />
         </label>
         <label class="field">
           <span>Freshness</span>
@@ -78,11 +83,11 @@
 
       <div class="quick-locations" aria-label="Quick locations">
         <button type="button" data-location="">Anywhere</button>
+        <button type="button" data-location="CT" title="Priority location">CT ★</button>
         <button type="button" data-location="Remote">Remote</button>
         <button type="button" data-location="MD">MD</button>
         <button type="button" data-location="DC">DC</button>
         <button type="button" data-location="VA">VA</button>
-        <button type="button" data-location="CT">CT</button>
         <button type="button" data-location="NY">NY</button>
         <button type="button" data-location="NJ">NJ</button>
         <button type="button" data-location="MA">MA</button>
@@ -108,6 +113,7 @@
       <summary>Source health</summary>
       <div id="sourceHealth" class="source-health-grid"></div>
     </details>
+    <p class="muted">ZIP and city centroid data: <a href="https://github.com/ReadyAPIs-com/curated-us-zips" target="_blank" rel="noopener noreferrer">Ready APIs curated U.S. ZIP dataset</a> (CC BY 4.0).</p>
   </main>
 
   <template id="jobCardTemplate">
