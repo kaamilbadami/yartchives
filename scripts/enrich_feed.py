@@ -12,6 +12,20 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PATH = ROOT / "data" / "listings.json"
 
+# These upstream repositories explicitly identify themselves as internship feeds.
+# If a row has a generic title such as "Summer Analyst", preserve it in the
+# internships view instead of hiding it merely because the word "intern" is absent.
+INTERNSHIP_FEED_KEYS = {
+    "dreamwork-tech",
+    "dreamwork-business",
+    "zapply",
+    "simplify",
+    "vansh-cscareers",
+    "applyguy",
+    "sndsh",
+    "public-sector",
+}
+
 
 def classify_education(title: str | None) -> str:
     raw = title or ""
@@ -34,7 +48,7 @@ def classify_education(title: str | None) -> str:
     return "unspecified"
 
 
-def classify_opportunity_type(title: str | None) -> str:
+def classify_opportunity_type(title: str | None, source_keys: list[str] | None = None) -> str:
     text = (title or "").lower()
     if re.search(r"\b(co[- ]?op|cooperative education)\b", text):
         return "co-op"
@@ -46,6 +60,8 @@ def classify_opportunity_type(title: str | None) -> str:
         return "research"
     if re.search(r"\bstudent\b", text):
         return "student"
+    if any(key in INTERNSHIP_FEED_KEYS for key in (source_keys or [])):
+        return "internship"
     return "other"
 
 
@@ -59,7 +75,7 @@ def enrich_document(doc: dict[str, Any]) -> bool:
         if not isinstance(job, dict):
             continue
         education = classify_education(job.get("title"))
-        opportunity_type = classify_opportunity_type(job.get("title"))
+        opportunity_type = classify_opportunity_type(job.get("title"), job.get("source_keys") or [])
         if job.get("education_level") != education:
             job["education_level"] = education
             changed = True
