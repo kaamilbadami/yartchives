@@ -11,30 +11,38 @@
 </head>
 <body>
   <header class="site-header">
-    <div>
-      <p class="eyebrow">opportunities, without the tab chaos</p>
+    <div class="brand-block">
+      <div class="brand-row">
+        <span class="brand-mark" aria-hidden="true">Y</span>
+        <p class="eyebrow">opportunities, without the tab chaos</p>
+      </div>
       <h1>Yartchives</h1>
-      <p class="subtitle">Internships, research, fellowships, and early-career opportunities pulled into one place.</p>
+      <p class="subtitle">Internships, research, fellowships, and early-career opportunities pulled into one fast, searchable feed.</p>
     </div>
     <div class="header-actions">
-      <button id="shareBtn" class="ghost-btn" type="button">Share this view</button>
-      <a class="ghost-btn link-btn" href="https://github.com/kaamilbadami/yartchives" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <button id="shareBtn" class="ghost-btn" type="button">Share view</button>
+      <a class="ghost-btn link-btn" href="https://github.com/kaamilbadami/yartchives" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
     </div>
   </header>
 
   <main>
     <section class="stats" aria-label="Feed summary">
-      <div class="stat"><span id="shownCount">0</span><small>shown</small></div>
+      <div class="stat"><span id="shownCount">0</span><small>matches</small></div>
       <div class="stat"><span id="totalCount">0</span><small>indexed</small></div>
-      <div class="stat"><span id="newCount">0</span><small>new this week</small></div>
+      <div class="stat"><span id="newCount">0</span><small>posted this week</small></div>
       <div class="stat"><span id="savedCount">0</span><small>saved</small></div>
     </section>
 
     <section class="controls panel">
+      <div class="focus-hint">
+        <span class="focus-dot" aria-hidden="true"></span>
+        <div><strong>Start narrow.</strong> Pick a profile, location, and 3–7 day window. You can always broaden from there.</div>
+      </div>
+
       <div class="control-block profile-block">
         <div class="control-label-row">
           <label>Profile</label>
-          <span class="muted">A role can belong to more than one profile.</span>
+          <span class="muted">Roles can belong to more than one profile.</span>
         </div>
         <div id="profileChips" class="chips"></div>
       </div>
@@ -85,14 +93,15 @@
       <div>
         <h2 id="resultsTitle">All opportunities</h2>
         <p id="feedMeta" class="muted">Loading feed…</p>
+        <p id="resultsNote" class="results-note"></p>
       </div>
-      <button id="clearFiltersBtn" class="text-btn" type="button">Clear filters</button>
+      <button id="clearFiltersBtn" class="text-btn" type="button">Reset filters</button>
     </section>
 
     <section id="errorBox" class="error-box hidden" role="alert"></section>
     <section id="jobs" class="jobs" aria-live="polite"></section>
     <div class="load-more-wrap">
-      <button id="loadMoreBtn" class="primary-btn hidden" type="button">Load more</button>
+      <button id="loadMoreBtn" class="primary-btn hidden" type="button">Load 40 more</button>
     </div>
 
     <details class="source-health panel">
@@ -118,7 +127,7 @@
       <div class="job-actions">
         <button class="save-btn secondary-btn" type="button">Save</button>
         <button class="applied-btn secondary-btn" type="button">Applied</button>
-        <a class="apply-btn primary-btn" target="_blank" rel="noopener noreferrer">Apply</a>
+        <a class="apply-btn primary-btn" target="_blank" rel="noopener noreferrer">Apply ↗</a>
         <button class="hide-btn icon-btn" type="button" title="Hide listing" aria-label="Hide listing">×</button>
       </div>
     </article>
