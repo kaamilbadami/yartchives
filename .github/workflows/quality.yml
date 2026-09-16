@@ -51,7 +51,7 @@ jobs:
 
       - name: Python tests
         run: |
-          python -m py_compile scripts/build_feed.py scripts/direct_ct_workday.py scripts/enrich_feed.py scripts/repair_links.py scripts/provider_links.py scripts/jobright_links.py scripts/source_links.py scripts/validate_feed.py scripts/audit_feed.py
+          python -m py_compile scripts/build_feed.py scripts/direct_ct_workday.py scripts/enrich_feed.py scripts/repair_links.py scripts/provider_links.py scripts/jobright_links.py scripts/source_links.py scripts/validate_feed.py scripts/audit_feed.py scripts/coverage_audit.py
           python -m unittest discover -s tests -p "test_*.py" -v
 
       - name: Frontend tests
