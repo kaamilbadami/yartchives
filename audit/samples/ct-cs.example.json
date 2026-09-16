@@ -1,0 +1,19 @@
+{
+  "name": "Connecticut Computer Science coverage audit",
+  "collected_at": "YYYY-MM-DDTHH:MM:SSZ",
+  "notes": "Independent sample collected from discovery surfaces; prefer the employer/ATS URL when available.",
+  "scope": {
+    "profiles": ["cs"],
+    "states": ["CT"]
+  },
+  "discoveries": [
+    {
+      "company": "Example Company",
+      "title": "Software Engineering Intern",
+      "location": "Hartford, CT",
+      "url": "https://careers.example.com/jobs/12345",
+      "source": "LinkedIn",
+      "discovery_url": "https://www.linkedin.com/jobs/view/example"
+    }
+  ]
+}
