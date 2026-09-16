@@ -2,10 +2,10 @@
 """Collapse feed records that resolve to the same authoritative Workday posting.
 
 The broad feeds often publish the same Workday job with cosmetic URL differences
-(locale prefixes, tracking query strings, etc.).  Those copies may also disagree
-on employer metadata.  This pass runs after link recovery, groups records by the
-generic Workday CXS identity, and prefers a direct-employer record when one is
-available while preserving merged source/profile metadata.
+(locale prefixes, tracking query strings, career-site casing, etc.). Those copies
+may also disagree on employer metadata. This pass runs after link recovery,
+groups records by a generic Workday identity, and prefers a direct-employer
+record when one is available while preserving merged source/profile metadata.
 """
 
 from __future__ import annotations
@@ -16,6 +16,7 @@ import json
 import sys
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
@@ -42,12 +43,35 @@ FILL_FIELDS = (
 
 
 def workday_canonical_url(url: str | None) -> str | None:
-    """Return the authoritative locale/query-independent Workday job identity."""
+    """Return the authoritative locale/query-independent Workday job URL."""
 
     if not url:
         return None
     try:
         return derive_cxs_endpoint(str(url))["canonical_job_url"]
+    except (ValueError, KeyError, TypeError):
+        return None
+
+
+def workday_identity_key(url: str | None) -> tuple[str, str, str] | None:
+    """Return a grouping identity that tolerates cosmetic career-site casing.
+
+    Workday career-site names appear in feeds with inconsistent casing (for
+    example ``external`` versus ``External``) even when the URLs resolve to the
+    same requisition. The site segment is therefore case-folded for identity
+    only; the winning record's real canonical URL is preserved for navigation.
+    """
+
+    if not url:
+        return None
+    try:
+        derived = derive_cxs_endpoint(str(url))
+        canonical = urlparse(derived["canonical_job_url"])
+        return (
+            canonical.netloc.casefold(),
+            str(derived["site"]).casefold(),
+            str(derived["job_path"]),
+        )
     except (ValueError, KeyError, TypeError):
         return None
 
@@ -136,27 +160,34 @@ def merge_workday_group(canonical_url: str, group: list[dict[str, Any]]) -> dict
 
 
 def reconcile_jobs(jobs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], dict[str, int]]:
-    workday_groups: dict[str, list[dict[str, Any]]] = {}
+    workday_groups: dict[tuple[str, str, str], list[dict[str, Any]]] = {}
     passthrough: list[dict[str, Any]] = []
 
     for job in jobs:
         if not isinstance(job, dict):
             continue
-        canonical = workday_canonical_url(job.get("url"))
-        if not canonical:
+        identity = workday_identity_key(job.get("url"))
+        if not identity:
             passthrough.append(copy.deepcopy(job))
             continue
-        workday_groups.setdefault(canonical, []).append(job)
+        workday_groups.setdefault(identity, []).append(job)
 
     reconciled = passthrough
     duplicate_groups = 0
     removed = 0
-    for canonical, group in workday_groups.items():
+    for group in workday_groups.values():
         if len(group) == 1:
             reconciled.append(copy.deepcopy(group[0]))
             continue
         duplicate_groups += 1
         removed += len(group) - 1
+        winner = max(group, key=authority_rank)
+        canonical = workday_canonical_url(winner.get("url"))
+        if not canonical:
+            reconciled.extend(copy.deepcopy(job) for job in group)
+            duplicate_groups -= 1
+            removed -= len(group) - 1
+            continue
         reconciled.append(merge_workday_group(canonical, group))
 
     reconciled.sort(
