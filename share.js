@@ -30,9 +30,6 @@
     "7": "Past 7 days",
     "30": "Past 30 days",
   };
-  const STALE_CT_NOTE = "Connecticut listings are ranked first when no location filter is selected.";
-  const NO_LOCATION_NOTE = "No location filter is selected. Enter a ZIP code to use radius filtering or sort by distance.";
-
   function selectedAreaLabels() {
     return [...document.querySelectorAll("#profileChips button.active")]
       .map(button => button.textContent.trim())
@@ -77,16 +74,6 @@
 
     els.resultsTitle.textContent = parts.filter(Boolean).join(" · ") || "All opportunities";
   }
-
-  // The core layer still contains copy for an older CT-first ranking rule. The
-  // final public-filter layer replaces it after all other result-note decorators run.
-  const priorUpdateResultsNote = updateResultsNote;
-  updateResultsNote = function (origin = null) {
-    priorUpdateResultsNote(origin);
-    if (els?.resultsNote) {
-      els.resultsNote.textContent = els.resultsNote.textContent.replace(STALE_CT_NOTE, NO_LOCATION_NOTE);
-    }
-  };
 
   const priorRenderJobs = renderJobs;
   renderJobs = function () {
