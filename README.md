@@ -20,9 +20,9 @@ An earlier browser-only prototype fetched and parsed every source on page load. 
 
 ## Sources
 
-Current source adapters include public feeds from Simplify, Zapply, Vansh/CSCareers, SpeedyApply, ApplyGuy, Dreamwork, the Jobright public-sector list, Campus to Career, and other public internship trackers. Each listing keeps source attribution.
+Current source adapters include public feeds from Simplify, Zapply, Vansh/CSCareers, SpeedyApply, ApplyGuy, Dreamwork, the Jobright public-sector list, Campus to Career, other public internship trackers, and the official USAJOBS Search API. Each listing keeps source attribution.
 
-The federal adapter uses the official USAJOBS Search API. It is intentionally disabled until `USAJOBS_API_KEY` and `USAJOBS_EMAIL` repository secrets are configured.
+Federal opportunity data comes from **USAJOBS.gov**. Yartchives stores normalized discovery metadata only and directs users back to USAJOBS or the listed application destination to view and apply.
 
 > Yartchives does not own or republish employer application content. Listings are discovery metadata and links back to the employer or original public source.
 
@@ -42,7 +42,7 @@ Then open `http://localhost:8000`.
 
 ## USAJOBS setup
 
-Yartchives supports the official USAJOBS API for federal student/intern opportunities. Request an API key from the USAJOBS developer portal, then add these repository secrets:
+Yartchives supports the official USAJOBS API for federal student/intern opportunities. The workflow reads credentials from repository secrets:
 
 - `USAJOBS_API_KEY`
 - `USAJOBS_EMAIL`
