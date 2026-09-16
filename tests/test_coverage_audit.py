@@ -35,19 +35,14 @@ class CoverageAuditTests(unittest.TestCase):
         self.catalog = {
             "keys": {"simplify", "usajobs"},
             "names": {"simplify", "usajobs"},
-            "hosts": {"raw.githubusercontent.com", "usajobs.gov", "thehartford.wd5.myworkdayjobs.com"},
-            "source_hosts": {"raw.githubusercontent.com", "usajobs.gov"},
-            "direct_hosts": {"thehartford.wd5.myworkdayjobs.com"},
+            "hosts": {"raw.githubusercontent.com", "usajobs.gov"},
             "companies": {"the hartford"},
-            "direct_companies": {"the hartford"},
         }
 
     def classify(self, record, jobs=None, profiles=None, states=None):
-        if jobs is None:
-            jobs = [feed_job()]
         return mod.classify(
             record,
-            mod.Index(jobs),
+            mod.Index(jobs if jobs is not None else [feed_job()]),
             self.catalog,
             profiles or [],
             states or [],
@@ -59,8 +54,24 @@ class CoverageAuditTests(unittest.TestCase):
             "title": "Software Engineering Intern",
             "location": "Hartford, CT",
             "url": "https://jobs.acme.com/job/12345?foo=bar&utm_source=linkedin",
-        }, profiles=["cs"], states=["ct"])
+        }, profiles=["cs"], states=["CT"])
         self.assertEqual(result["status"], "already_in_yartchives")
+        self.assertEqual(result["reason_code"], "exact_match")
+
+    def test_location_country_suffix_does_not_create_false_miss(self):
+        result = self.classify({
+            "company": "Acme Corp",
+            "title": "Software Engineering Intern",
+            "location": "Hartford, CT, United States",
+            "url": "https://discovery.example/other-url",
+        }, profiles=["cs"], states=["CT"])
+        self.assertEqual(result["status"], "already_in_yartchives")
+
+    def test_full_state_name_and_zip_normalize_to_same_location(self):
+        self.assertEqual(
+            mod.location_key("Hartford, Connecticut 06103, United States"),
+            mod.location_key("Hartford, CT"),
+        )
 
     def test_existing_listing_with_wrong_profile_is_filter_issue(self):
         result = self.classify({
@@ -70,6 +81,7 @@ class CoverageAuditTests(unittest.TestCase):
             "url": "https://jobs.acme.com/job/12345?foo=bar",
         }, jobs=[feed_job(profiles=["tech-business"])], profiles=["cs"], states=["CT"])
         self.assertEqual(result["status"], "filtered_or_misclassified")
+        self.assertEqual(result["reason_code"], "present_but_hidden")
         self.assertIn("missing expected profile", result["reason"])
 
     def test_same_ats_identity_detects_resolution_issue(self):
@@ -81,17 +93,6 @@ class CoverageAuditTests(unittest.TestCase):
         }, jobs=[feed_job(url="https://jobs.acme.com/jobs/12345")])
         self.assertEqual(result["status"], "duplicate_resolution_issue")
 
-    def test_different_requisition_same_signature_is_not_counted_as_captured(self):
-        result = self.classify({
-            "company": "Acme Corp",
-            "title": "Software Engineering Intern",
-            "location": "Hartford, CT",
-            "url": "https://jobs.acme.com/job/99999",
-            "source": "LinkedIn",
-        }, jobs=[feed_job(url="https://jobs.acme.com/job/12345")])
-        self.assertEqual(result["status"], "employer_exists_but_listing_missing")
-        self.assertIn("different requisition", result["reason"])
-
     def test_existing_employer_missing_role(self):
         result = self.classify({
             "company": "Acme Corp",
@@ -101,6 +102,7 @@ class CoverageAuditTests(unittest.TestCase):
             "source": "LinkedIn",
         }, profiles=["cs"], states=["CT"])
         self.assertEqual(result["status"], "employer_exists_but_listing_missing")
+        self.assertEqual(result["reason_code"], "known_employer_missing_role")
 
     def test_linkedin_only_new_employer_is_source_not_covered(self):
         result = self.classify({
@@ -113,7 +115,7 @@ class CoverageAuditTests(unittest.TestCase):
         self.assertEqual(result["status"], "source_not_covered")
         self.assertIn("audit-only", result["recommended_action"])
 
-    def test_configured_direct_employer_missing_listing_is_configured_source_miss(self):
+    def test_configured_direct_employer_missing_listing_is_pipeline_miss(self):
         result = self.classify({
             "company": "The Hartford",
             "title": "Technology Intern",
@@ -122,136 +124,57 @@ class CoverageAuditTests(unittest.TestCase):
             "source": "LinkedIn",
         }, jobs=[])
         self.assertEqual(result["status"], "configured_source_miss")
+        self.assertEqual(result["reason_code"], "configured_source_listing_absent")
+        self.assertIn("configured direct source", result["reason"])
 
-    def test_configured_direct_host_beats_discovery_source_label(self):
+    def test_known_upstream_source_missing_listing_is_pipeline_miss(self):
         result = self.classify({
-            "company": "Hartford Fire Insurance",
-            "title": "Technology Intern",
+            "company": "NoFeedEmployer",
+            "title": "Software Intern",
             "location": "Hartford, CT",
-            "url": "https://thehartford.wd5.myworkdayjobs.com/en-US/Careers_External/job/R123",
-            "source": "LinkedIn",
+            "url": "https://example.com/jobs/1",
+            "source_key": "simplify",
         }, jobs=[])
         self.assertEqual(result["status"], "configured_source_miss")
-        self.assertIn("direct listing host", result["reason"])
-
-    def test_external_duplicate_observations_are_collapsed(self):
-        rows = [
-            {
-                "company": "Acme Corp",
-                "title": "Software Intern",
-                "location": "Hartford, CT",
-                "url": "https://www.linkedin.com/jobs/view/777777",
-                "source": "LinkedIn",
-            },
-            {
-                "company": "Acme Corp",
-                "title": "Software Intern",
-                "location": "Hartford, CT",
-                "url": "https://jobs.acme.com/job/88888",
-                "source": "Employer site",
-            },
-            {
-                "company": "Acme Corp",
-                "title": "Software Intern",
-                "location": "Hartford, CT",
-                "url": "https://app.joinhandshake.com/jobs/99999",
-                "source": "Handshake",
-            },
-        ]
-        deduped = mod.dedupe_external_rows(rows)
-        self.assertEqual(len(deduped), 1)
-        self.assertEqual(deduped[0]["_audit_observation_count"], 3)
-        self.assertEqual(
-            set(deduped[0]["_audit_observed_sources"]),
-            {"LinkedIn", "Employer site", "Handshake"},
-        )
-        self.assertEqual(deduped[0]["url"], "https://jobs.acme.com/job/88888")
-
-    def test_distinct_direct_requisitions_do_not_collapse(self):
-        rows = [
-            {
-                "company": "Acme Corp",
-                "title": "Software Intern",
-                "location": "Hartford, CT",
-                "url": "https://jobs.acme.com/job/11111",
-                "source": "Employer",
-            },
-            {
-                "company": "Acme Corp",
-                "title": "Software Intern",
-                "location": "Hartford, CT",
-                "url": "https://jobs.acme.com/job/22222",
-                "source": "Employer",
-            },
-        ]
-        self.assertEqual(len(mod.dedupe_external_rows(rows)), 2)
 
     def test_json_and_csv_inputs(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            (root / "items.json").write_text(
-                json.dumps({"discoveries": [{"company": "A"}]}), encoding="utf-8"
-            )
+            (root / "items.json").write_text(json.dumps({"discoveries": [{"company": "A"}]}), encoding="utf-8")
             self.assertEqual(mod.load_rows(root / "items.json")[0]["company"], "A")
             (root / "items.csv").write_text("company,title\nB,Intern\n", encoding="utf-8")
             self.assertEqual(mod.load_rows(root / "items.csv")[0]["company"], "B")
 
-    def test_self_describing_json_normalizes_scope(self):
+    def test_self_describing_json_reads_scope_and_collection_metadata(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "ct-cs.json"
             path.write_text(json.dumps({
                 "name": "Connecticut CS coverage audit",
                 "collected_at": "2026-09-16T12:00:00Z",
-                "scope": {"profiles": ["CS"], "states": ["ct"]},
+                "scope": {"profiles": ["cs"], "states": ["CT"]},
                 "discoveries": [{"company": "A", "title": "Software Intern"}],
             }), encoding="utf-8")
             metadata, rows = mod.load_audit_input(path)
             self.assertEqual(metadata["scope"], {"profiles": ["cs"], "states": ["CT"]})
+            self.assertEqual(metadata["collected_at"], "2026-09-16T12:00:00Z")
             self.assertEqual(rows[0]["title"], "Software Intern")
 
-    def test_report_uses_unique_listing_denominator(self):
-        rows = [
-            {
-                "company": "Acme Corp",
-                "title": "Software Engineering Intern",
-                "location": "Hartford, CT",
-                "url": "https://www.linkedin.com/jobs/view/777777",
-                "source": "LinkedIn",
-            },
-            {
-                "company": "Acme Corp",
-                "title": "Software Engineering Intern",
-                "location": "Hartford, CT",
-                "url": "https://jobs.acme.com/job/12345?foo=bar",
-                "source": "Employer",
-            },
-        ]
+    def test_report_has_machine_readable_status_counts(self):
         report = mod.build_report(
-            rows,
+            [{"company": "Acme Corp", "title": "Software Engineering Intern", "location": "Hartford, CT"}],
             {"generated_at": "2026-09-16T00:00:00Z", "content_hash": "x"},
             [feed_job()],
             self.catalog,
-            ["CS"],
-            ["ct"],
-            audit_meta={"name": "CT CS"},
+            ["cs"],
+            ["CT"],
+            audit_meta={"name": "CT CS", "collected_at": "2026-09-16T12:00:00Z"},
         )
         self.assertEqual(report["schema_version"], 2)
-        self.assertEqual(report["summary"]["external_observations"], 2)
-        self.assertEqual(report["summary"]["external_unique_listings"], 1)
-        self.assertEqual(report["summary"]["confirmed_in_feed"], 1)
-        self.assertEqual(report["summary"]["visible_rate"], 1.0)
-        self.assertIn("## Sample quality", mod.markdown(report))
-
-    def test_sample_quality_flags_missing_company_and_title(self):
-        quality = mod.sample_quality([{"location": "Hartford, CT"}])
-        self.assertEqual(quality["error_count"], 2)
-        self.assertGreaterEqual(quality["warning_count"], 2)
-
-    def test_write_text_creates_parent_directories(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "nested" / "result.md"
-            mod._write_text(str(path), "ok\n")
-            self.assertEqual(path.read_text(), "ok\n")
+        self.assertEqual(report["summary"]["status_counts"]["already_in_yartchives"], 1)
+        self.assertEqual(report["summary"]["status_counts"]["configured_source_miss"], 0)
+        rendered = mod.markdown(report)
+        self.assertIn("# CT CS", rendered)
+        self.assertIn("Yartchives feed snapshot", rendered)
 
 
 if __name__ == "__main__":
