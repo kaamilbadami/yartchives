@@ -55,4 +55,4 @@
 
 ## Provenance warnings
 
-- 40 rows lack ideal metadata; see JSON output for row-level details.
+- 40 warning(s) recorded; see JSON output for details.

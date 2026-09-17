@@ -77,7 +77,7 @@ def analyze(document: dict[str, Any]) -> dict[str, Any]:
         missing = [field for field in REQUIRED_ROW_FIELDS if not row.get(field)]
         if missing:
             errors.append(f"row {index} missing required fields: {', '.join(missing)}")
-        if row.get("url_kind") not in AUTHORITATIVE_KINDS | DISCOVERY_KINDS | {"authoritative_search"}:
+        if row.get("url_kind") and row.get("url_kind") not in AUTHORITATIVE_KINDS | DISCOVERY_KINDS | {"authoritative_search"}:
             errors.append(f"row {index} has unsupported url_kind")
         if not row.get("discovery_url"):
             warnings.append(f"row {index} lacks an explicit discovery_url")
@@ -177,7 +177,7 @@ def markdown(report: dict[str, Any]) -> str:
     if report["errors"]:
         lines += ["", "## Errors", ""] + [f"- {value}" for value in report["errors"]]
     if report["warnings"]:
-        lines += ["", "## Provenance warnings", "", f"- {len(report['warnings'])} rows lack ideal metadata; see JSON output for row-level details."]
+        lines += ["", "## Provenance warnings", "", f"- {len(report['warnings'])} warning(s) recorded; see JSON output for details."]
     return "\n".join(lines) + "\n"
 
 
