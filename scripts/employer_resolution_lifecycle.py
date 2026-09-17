@@ -18,10 +18,25 @@ if str(SCRIPT_DIR) not in sys.path:
 from careers_resolver import MAX_PAGES, has_provider_tenant_identity, resolve_employer  # noqa: E402
 from employer_resolution_queue import queue_entry  # noqa: E402
 from employer_universe import validate_universe  # noqa: E402
+from provider_fingerprint import fingerprint_provider  # noqa: E402
 
 DEFAULT_TTL_DAYS = 7
 DEFAULT_EMPLOYER_BUDGET = 20
 DEFAULT_REQUEST_BUDGET = 120
+VERIFIED_ATS_SEED_KEY = "state-of-ats-2026-verified-hosts"
+ATS_FAMILY_NAMES = {
+    "Workday": "workday",
+    "Greenhouse": "greenhouse",
+    "iCIMS": "icims",
+    "Ashby": "ashby",
+    "Oracle Cloud HCM": "oracle",
+    "SuccessFactors": "successfactors",
+    "SmartRecruiters": "smartrecruiters",
+    "Lever": "lever",
+    "Eightfold": "eightfold",
+    "Avature": "avature",
+    "Phenom": "phenom",
+}
 
 
 def _utc_now() -> datetime:
@@ -53,6 +68,58 @@ def _valid_existing_resolution(employer: dict[str, Any]) -> bool:
     if provider.get("status") == "resolved" and not has_provider_tenant_identity(url, provider.get("family")):
         return False
     return True
+
+
+def _verified_provider_fast_path(employer: dict[str, Any], now: datetime) -> bool:
+    """Persist verified provider/tenant identity without spending network budget."""
+    metadata = (employer.get("seed_metadata") or {}).get(VERIFIED_ATS_SEED_KEY)
+    if not isinstance(metadata, dict):
+        return False
+    hints = sorted({
+        str(value).strip()
+        for value in metadata.get("domain_hints", [])
+        if str(value).strip()
+    })
+    if len(hints) != 1:
+        return False
+    hint = hints[0]
+    url = hint if "://" in hint else "https://" + hint.lstrip("/")
+    provider = fingerprint_provider(url)
+    if provider.get("status") != "resolved":
+        return False
+    family = provider.get("family")
+    expected_family = ATS_FAMILY_NAMES.get(str(metadata.get("ats_system") or "").strip())
+    if expected_family and family != expected_family:
+        return False
+    if not has_provider_tenant_identity(url, family):
+        return False
+
+    resolved_at = _timestamp(now)
+    employer["careers_platform"] = family
+    employer["provider"] = provider
+    employer["careers_resolution"] = {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": resolved_at,
+        "last_attempt_at": resolved_at,
+        "evidence": [{
+            "type": "seed",
+            "seed_key": VERIFIED_ATS_SEED_KEY,
+            "domain_hint": hint,
+            "ats_system": metadata.get("ats_system"),
+            "source_url": metadata.get("source_url"),
+        }],
+    }
+    return True
+
+
+def _fresh_provider_resolution(employer: dict[str, Any], now: datetime, ttl_days: int) -> bool:
+    resolution = employer.get("careers_resolution") or {}
+    provider = employer.get("provider") or {}
+    if resolution.get("status") != "provider_resolved" or provider.get("status") != "resolved":
+        return False
+    resolved_at = _parse_timestamp(resolution.get("resolved_at"))
+    return bool(resolved_at and now - resolved_at < timedelta(days=ttl_days))
 
 
 def _fresh_success(employer: dict[str, Any], now: datetime, ttl_days: int) -> bool:
@@ -90,7 +157,7 @@ def _request_count(resolution: dict[str, Any]) -> int:
 def _candidate_rows(universe: dict[str, Any], now: datetime, ttl_days: int) -> list[tuple[dict[str, Any], dict[str, Any]]]:
     rows: list[tuple[dict[str, Any], dict[str, Any]]] = []
     for employer in universe.get("employers", []):
-        if _fresh_success(employer, now, ttl_days):
+        if _fresh_success(employer, now, ttl_days) or _fresh_provider_resolution(employer, now, ttl_days):
             continue
         entry = queue_entry(employer)
         if entry["resolution_readiness"] != "ready":
@@ -121,6 +188,12 @@ def run_lifecycle(
     now = now or _utc_now()
     output = json.loads(json.dumps(universe))
     by_id = {employer["id"]: employer for employer in output.get("employers", [])}
+    fast_path_resolved = 0
+    for employer in output.get("employers", []):
+        if _valid_existing_resolution(employer) or _fresh_provider_resolution(employer, now, ttl_days):
+            continue
+        if _verified_provider_fast_path(employer, now):
+            fast_path_resolved += 1
     candidates = _candidate_rows(output, now, ttl_days)
     attempts = 0
     requests_used = 0
@@ -174,6 +247,7 @@ def run_lifecycle(
     )
     summary = {
         "candidate_employers": len(candidates),
+        "fast_path_provider_resolved": fast_path_resolved,
         "attempted_employers": attempts,
         "requests_used": requests_used,
         "employer_budget": employer_budget,
