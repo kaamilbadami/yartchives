@@ -53,17 +53,23 @@
 
   function customAnchors(profile, rawScores) {
     const zips = (profile?.baseZips || []).map(value => String(value || "").trim()).filter(value => /^\d{5}$/.test(value));
+    if (!zips.length) throw new Error("Custom ZIP scores require at least one Base ZIP.");
     const labels = Array.isArray(profile?.baseLabels) ? profile.baseLabels : [];
-    const scores = String(rawScores || "").split(/[\n,;]+/).map(value => value.trim());
+    const scores = String(rawScores || "").split(/[\n,;]+/).map(value => value.trim()).filter(Boolean);
+    if (scores.length !== zips.length) {
+      throw new Error(`Enter exactly one custom location score for each Base ZIP (${zips.length} total).`);
+    }
     return zips.map((zip, index) => {
-      const score = clampLocationScore(scores[index]);
-      if (score === null) return null;
+      const parsed = Number(scores[index]);
+      if (!Number.isFinite(parsed) || parsed < 0 || parsed > 15) {
+        throw new Error("Custom location scores must be numbers from 0 to 15.");
+      }
       return {
         zip,
         label: String(labels[index] || "").trim() || zip,
-        locationScore: score,
+        locationScore: parsed,
       };
-    }).filter(Boolean);
+    });
   }
 
   function applyLocationPreferences(profile, values = {}) {
