@@ -100,6 +100,27 @@ def _location(item: dict[str, Any]) -> str:
     return _clean(location) or "Location not listed"
 
 
+def _board_token_company(company: str, board_token: str) -> bool:
+    return re.sub(r"[^a-z0-9]+", "", company.casefold()) == re.sub(r"[^a-z0-9]+", "", board_token.casefold())
+
+
+def company_from_board_html(html: str, fallback: str) -> str:
+    text = html or ""
+    patterns = (
+        r"<title>\s*Jobs at\s+(.+?)\s*</title>",
+        r"<h1[^>]*>\s*Current openings at\s+(.+?)\s*</h1>",
+    )
+    for pattern in patterns:
+        match = re.search(pattern, text, flags=re.I | re.S)
+        if not match:
+            continue
+        value = re.sub(r"<[^>]+>", " ", unescape(match.group(1)))
+        value = _clean(re.sub(r"\s+", " ", value))
+        if value:
+            return value
+    return fallback
+
+
 def _looks_us(location: str) -> bool:
     if bf.extract_states(location):
         return True
@@ -158,6 +179,20 @@ def job_from_item(source: dict[str, Any], item: dict[str, Any], reference: datet
 
 
 def fetch_source(client: requests.Session, source: dict[str, Any], reference: datetime) -> list[dict[str, Any]]:
+    source = dict(source)
+    if _board_token_company(_clean(source.get("company")), _clean(source.get("board_token"))):
+        try:
+            board_response = client.get(
+                source["homepage"],
+                headers={"Accept": "text/html,application/xhtml+xml", "User-Agent": bf.USER_AGENT},
+                timeout=TIMEOUT,
+            )
+            if getattr(board_response, "status_code", 200) < 400:
+                source["company"] = company_from_board_html(getattr(board_response, "text", ""), source["company"])
+                source["name"] = f"{source['company']} (auto-discovered Greenhouse)"
+        except requests.RequestException:
+            pass
+
     response = client.get(
         source["api_url"],
         headers={"Accept": "application/json", "User-Agent": bf.USER_AGENT},
