@@ -74,9 +74,12 @@
   }
 
   function humanizeLocationPiece(value) {
-    let text = String(value || "").replace(/\s+/g, " ").trim();
+    const text = String(value || "").replace(/\s+/g, " ").trim();
     if (!text) return null;
     if (/\bremote\b/i.test(text) && /^(?:us|usa|united states)?\s*-?\s*remote/i.test(text)) return "Remote";
+
+    const cityStateCountry = text.match(/^([^,]+),\s*([A-Z]{2}),\s*(?:US|USA|United States)$/i);
+    if (cityStateCountry) return `${titleCase(cityStateCountry[1].trim())}, ${cityStateCountry[2].toUpperCase()}`;
 
     const streetCityState = text.match(/^(?:\d+\s+)?[^,]+,\s*([^,]+),+\s*([A-Z]{2})$/i);
     if (streetCityState) return `${titleCase(streetCityState[1].trim())}, ${streetCityState[2].toUpperCase()}`;
@@ -87,7 +90,7 @@
       if (code) return `${titleCase(cityStateName[1].trim())}, ${code}`;
     }
 
-    const cityState = text.match(/^([^,]+),\s*([A-Z]{2})(?:,\s*(?:US|USA|United States))?$/i);
+    const cityState = text.match(/^([^,]+),\s*([A-Z]{2})$/i);
     if (cityState) return `${titleCase(cityState[1].trim())}, ${cityState[2].toUpperCase()}`;
 
     return text;
