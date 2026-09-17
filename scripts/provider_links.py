@@ -70,6 +70,22 @@ def parse_workday_slug(value: str | None) -> tuple[str, str, str] | None:
     return tenant, site_hint, req_id
 
 
+def workday_req_id_from_url(value: str | None) -> str:
+    """Extract a requisition-like ID from a direct Workday job URL."""
+    if not value:
+        return ""
+    parsed = urlparse(value)
+    host = parsed.netloc.lower()
+    if not re.fullmatch(r"[^.]+\.wd\d+\.myworkdayjobs\.com", host):
+        return ""
+    parts = [part for part in parsed.path.split("/") if part]
+    if not parts:
+        return ""
+    tail = parts[-1]
+    match = WORKDAY_REQ_RE.search(tail)
+    return match.group(1) if match else ""
+
+
 def workday_config_from_url(value: str | None) -> tuple[str, str, str] | None:
     if not value:
         return None
@@ -162,6 +178,16 @@ def workday_site_variants(site_hint: str) -> list[str]:
     title_underscore = "_".join(part[:1].upper() + part[1:] for part in site_hint.split("-"))
     variants.append(title_underscore)
     return list(dict.fromkeys(v for v in variants if v))
+
+
+def recover_stale_workday_direct(value: str | None) -> str | None:
+    """Recover a canonical live URL for the same Workday requisition."""
+    config = workday_config_from_url(value)
+    req_id = workday_req_id_from_url(value)
+    if not config or not req_id:
+        return None
+    tenant, host, site = config
+    return query_workday(host, tenant, site, req_id)
 
 
 def resolve_workday(value: str, registry: dict[str, list[tuple[str, str]]]) -> str | None:
@@ -369,6 +395,12 @@ def resolve_jobright(value: str) -> str | None:
 
 
 def resolve_one(job: dict[str, Any], registry: dict[str, list[tuple[str, str]]]) -> tuple[str, str] | None:
+    dead_url = job.get("dead_url") or ""
+    if workday_config_from_url(dead_url) and workday_req_id_from_url(dead_url):
+        direct = recover_stale_workday_direct(dead_url)
+        if direct:
+            return direct, "stale-workday-requisition"
+
     listing = job.get("listing_url") or ""
     if not links.is_listing_url(listing):
         return None
@@ -408,7 +440,15 @@ def main() -> int:
     registry = build_workday_registry(doc)
     targets = [
         job for job in doc.get("jobs", [])
-        if isinstance(job, dict) and job.get("link_kind") == "listing" and links.is_listing_url(job.get("listing_url"))
+        if isinstance(job, dict)
+        and (
+            (job.get("link_kind") == "listing" and links.is_listing_url(job.get("listing_url")))
+            or (
+                job.get("link_kind") == "source"
+                and workday_config_from_url(job.get("dead_url"))
+                and workday_req_id_from_url(job.get("dead_url"))
+            )
+        )
     ]
 
     resolved: list[tuple[dict[str, Any], str, str]] = []
@@ -432,7 +472,8 @@ def main() -> int:
         status, final = links.validate_direct_url(direct)
         if status == "dead":
             continue
-        job["resolved_from_url"] = listing
+        if listing:
+            job["resolved_from_url"] = listing
         job["url"] = final if links.is_direct_application_url(final) else direct
         job.pop("listing_url", None)
         job["link_kind"] = "direct"
