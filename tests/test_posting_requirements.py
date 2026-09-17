@@ -75,6 +75,17 @@ class PostingRequirementTests(unittest.TestCase):
         )
         self.assertFalse(any("Build Python data pipelines" in fact["statement"] for fact in skills["required"]))
 
+    def test_common_internship_stack_annotations_include_modern_web_and_cloud_tools(self):
+        result = shared.extract_requirements([
+            "What we're looking for:",
+            "Academic or project experience with React, C#/.NET, PostgreSQL, Node.js, GCP, and Jenkins.",
+        ])
+        fact = result["skills"]["required"][0]
+        self.assertEqual(
+            fact["technologies"],
+            ["C#", "React", "Node.js", ".NET", "PostgreSQL", "GCP", "Jenkins"],
+        )
+
     def test_quantified_preference_remains_preferred(self):
         result = shared.extract_requirements([
             "Preferred but not required:",
