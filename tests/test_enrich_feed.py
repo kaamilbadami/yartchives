@@ -106,6 +106,26 @@ class EnrichFeedTests(unittest.TestCase):
         })
         self.assertIn("cs", profiles)
 
+    def test_auto_greenhouse_source_retains_cs_after_strict_adapter(self):
+        for title in (
+            "IT Operations Co-Op",
+            "Winter 2027 Test Automation Engineer Co-op",
+        ):
+            with self.subTest(title=title):
+                profiles = mod.classify_profiles({
+                    "title": title,
+                    "source_keys": ["auto-greenhouse-example"],
+                })
+                self.assertIn("cs", profiles)
+
+    def test_broad_source_profile_tags_are_still_recomputed(self):
+        profiles = mod.classify_profiles({
+            "title": "Marketing Intern",
+            "profiles": ["cs"],
+            "source_keys": ["simplify"],
+        })
+        self.assertEqual(profiles, ["general"])
+
     def test_enrichment_cleans_display_and_uses_degree_marker(self):
         doc = {
             "jobs": [{
