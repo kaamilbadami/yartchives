@@ -16,6 +16,9 @@ const csv = [
   "06897,Wilton,CT,41.1954,-73.4379,18000",
   "20740,College Park,MD,38.9966,-76.9275,32000",
   "06810,Danbury,CT,41.3948,-73.4540,52000",
+  "20166,Sterling,VA,38.9440,-77.4558,30000",
+  "80202,Denver,CO,39.7525,-104.9995,12000",
+  "94105,San Francisco,CA,37.7898,-122.3942,34000",
 ].join("\n");
 const geo = U.buildGeoIndex(csv);
 assert.equal(geo.zips.get("06897").city, "Wilton");
@@ -35,6 +38,26 @@ const cityJob = { location: "Danbury, CT", states: ["CT"] };
 const cityResult = U.distanceForJob(cityJob, geo.zips.get("06897"), geo);
 assert.equal(cityResult.precision, "city");
 assert.ok(cityResult.miles < 20);
+
+const authoritativeMultiLocation = {
+  location: "Denver, CO, US",
+  states: ["CO"],
+  _inspection: {
+    status: "inspected",
+    posting: {
+      locations: {
+        status: "authoritative",
+        values: ["Denver, CO, US", "437 DENVER CO", "Sterling, VA, US"],
+      },
+    },
+  },
+};
+assert.equal(U.locationTextForJob(authoritativeMultiLocation), "Denver, CO, US ; 437 DENVER CO ; Sterling, VA, US");
+assert.deepEqual(U.statesForLocation(U.locationTextForJob(authoritativeMultiLocation)), ["CO", "VA"]);
+const authoritativeDistance = U.distanceForJob(authoritativeMultiLocation, geo.zips.get("20740"), geo);
+assert.equal(authoritativeDistance.point.state, "VA");
+assert.equal(authoritativeDistance.point.city, "sterling");
+assert.ok(authoritativeDistance.miles < 40, `unexpected Sterling distance ${authoritativeDistance.miles}`);
 
 require("./results-language.test.cjs");
 require("./apply-next.test.cjs");

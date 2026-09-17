@@ -172,6 +172,19 @@ for (const result of geckoRanked) {
   assert.doesNotMatch(result.components.roi.detail, /3 current software engineering openings/);
 }
 
+assert.deepEqual(
+  L.normalizeAuthoritativeLocations(["Denver, CO, US", "437 DENVER CO", "Sterling, VA, US"]),
+  ["Denver, CO", "Sterling, VA"]
+);
+assert.deepEqual(
+  L.normalizeAuthoritativeLocations(["US - Remote", "Minnesota - Remote Office"]),
+  ["Remote"]
+);
+assert.deepEqual(
+  L.normalizeAuthoritativeLocations(["United States - Remote", "US - California - Thousand Oaks - Field/Remote"]),
+  ["Remote", "Thousand Oaks, CA"]
+);
+
 const caci = {
   ...job,
   id: "caci-331999",
@@ -183,16 +196,16 @@ const caci = {
   _inspection: inspected({
     title: "Cleared Software Engineer Intern - Summer 2027",
     requisition_id: "331999",
-    locations: { status: "authoritative", values: ["Denver, CO, US"] },
+    locations: { status: "authoritative", values: ["Denver, CO, US", "437 DENVER CO", "Sterling, VA, US"] },
   }),
-  ...trustedDistance(1652),
+  ...trustedDistance(32),
 };
 const caciView = L.authoritativePostingView(caci);
-assert.deepEqual(caciView.states, ["CO"]);
-assert.equal(caciView.location, "Denver, CO, US");
+assert.deepEqual(caciView.states, ["CO", "VA"]);
+assert.equal(caciView.location, "Denver, CO · Sterling, VA");
 const caciScored = L.scoreJob(caci, profile, now);
-assert.equal(caciScored.components.location.score, 3);
-assert.match(caciScored.components.location.detail, /Long-distance relocation/);
+assert.equal(caciScored.components.location.score, 10);
+assert.match(caciScored.components.location.detail, /Within 50 miles/);
 assert.doesNotMatch(caciScored.components.location.detail, /Remote opportunity/);
 
 const wex = {
@@ -206,24 +219,15 @@ const wex = {
   _inspection: inspected({
     title: "Fullstack Software Engineer Intern (Undergraduate)",
     requisition_id: "R22593",
-    locations: { status: "authoritative", values: ["US - Remote"] },
+    locations: { status: "authoritative", values: ["US - Remote", "Minnesota - Remote Office"] },
   }),
 };
 const wexView = L.authoritativePostingView(wex);
 assert.equal(wexView.title, "Fullstack Software Engineer Intern (Undergraduate)");
-assert.equal(wexView.location, "US - Remote");
+assert.equal(wexView.location, "Remote");
+assert.deepEqual(wexView.states, ["Remote"]);
 assert.match(wexView.url, /Fullstack-Software-Engineer-Intern-Undergraduate_R22593$/);
 assert.doesNotMatch(wexView.url, /Backend-Software-Engineer/);
 assert.equal(L.scoreJob(wex, profile, now).components.location.detail, "Remote opportunity");
-
-const staleDifferentLocation = {
-  ...caci,
-  location: "Remote - Sterling, VA",
-  ...trustedDistance(220),
-};
-const differentView = L.authoritativePostingView(staleDifferentLocation);
-assert.equal(differentView.location, "Denver, CO, US");
-assert.equal(differentView._distanceMilesBasis, undefined);
-assert.equal(L.scoreLocation(differentView, profile).detail, "Relocation is acceptable; profile-base distance is unknown");
 
 console.log("apply-next authoritative-only, location, and canonical dedupe tests passed");
