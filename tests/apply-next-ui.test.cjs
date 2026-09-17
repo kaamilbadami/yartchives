@@ -21,10 +21,16 @@ assert.equal(UI.componentMax("roi"), 15);
 assert.equal(UI.componentMax("freshness"), 10);
 assert.equal(UI.componentMax("eligibility"), 0);
 assert.equal(UI.componentMax("link"), 0);
-assert.equal(UI.formatPostedDate("2026-09-15T23:30:00-04:00"), "Posted Sep 16, 2026");
-assert.equal(UI.formatPostedDate("2026-09-15"), "Posted Sep 15, 2026");
-assert.equal(UI.formatPostedDate(""), "");
-assert.equal(UI.formatPostedDate("not-a-date"), "");
+const postedNow = new Date("2026-09-17T12:00:00Z");
+assert.equal(UI.formatPostedDate("2026-09-15T23:30:00-04:00", postedNow), "Posted 9/16 · 1 day ago");
+assert.equal(UI.formatPostedDate("2026-09-15", postedNow), "Posted 9/15 · 2 days ago");
+assert.equal(
+  UI.formatPostedDate("2025-12-31T23:00:00Z", new Date("2026-01-02T01:00:00Z")),
+  "Posted 12/31 · 2 days ago"
+);
+assert.equal(UI.formatPostedDate("", postedNow), "");
+assert.equal(UI.formatPostedDate("not-a-date", postedNow), "");
+assert.equal(UI.formatPostedDate("2026-09-15", "not-a-date"), "");
 
 const values = new Map();
 const storage = {
@@ -107,7 +113,7 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /local storage/i);
   assert.match(uiSource, /Authoritative posting evidence/);
   assert.match(uiSource, /Application Value/);
-  assert.match(uiSource, /Posted \$\{new Intl\.DateTimeFormat/);
+  assert.match(uiSource, /Posted \$\{monthDay\} · \$\{ageLabel\}/);
   assert.match(uiSource, /apply-next-posted-date/);
   assert.match(uiSource, /data\/workday-inspections\.json/);
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
