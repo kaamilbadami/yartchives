@@ -95,7 +95,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -406,7 +406,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -709,7 +709,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -1281,7 +1281,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -1525,7 +1525,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -1753,7 +1753,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -2757,7 +2757,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -3159,7 +3159,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -3287,7 +3287,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -3503,7 +3503,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -3671,7 +3671,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -4016,7 +4016,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -4230,7 +4230,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -4343,7 +4343,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -4817,7 +4817,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -5214,7 +5214,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -5975,7 +5975,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -6181,6 +6181,69 @@
           "source_url": "https://withresumeai.com/ats-checker/conocophillips",
           "upstream_slug": "conocophillips"
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://conocophillips.wd1.myworkdayjobs.com/",
+            "redirect_chain": [
+              {
+                "url": "https://conocophillips.wd1.myworkdayjobs.com/",
+                "status": 406
+              }
+            ],
+            "final_url": "https://conocophillips.wd1.myworkdayjobs.com/",
+            "status": 406,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://conocophillips.wd1.myworkdayjobs.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://conocophillips.wd1.myworkdayjobs.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://conocophillips.wd1.myworkdayjobs.com/careers",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://conocophillips.wd1.myworkdayjobs.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://conocophillips.wd1.myworkdayjobs.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://conocophillips.wd1.myworkdayjobs.com/jobs",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          }
+        ]
       }
     },
     {
@@ -13472,7 +13535,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
@@ -19583,7 +19646,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:21:27Z",
         "evidence": [
           {
             "type": "http",
