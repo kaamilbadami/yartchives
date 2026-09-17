@@ -33,6 +33,14 @@ INTERNSHIP_FEED_KEYS = {
     "public-sector",
 }
 
+# Direct provider-family adapters with strict CS/technology admission filters can
+# preserve that provider evidence through this final semantic pass. Broad source
+# profile tags are intentionally not trusted here.
+STRICT_CS_SOURCE_PREFIXES = (
+    "ct-",
+    "auto-greenhouse-",
+)
+
 # Upstream repositories use these as visual legends. They are source metadata,
 # not part of a company or role name, so Yartchives stores them separately.
 SOURCE_MARKERS = {
@@ -320,9 +328,14 @@ def classify_profiles(job: dict[str, Any]) -> list[str]:
         if _matches_any(section, patterns):
             tags.add(profile)
 
-    # Direct CT adapters already apply strict CS-title filtering before emitting
-    # rows, including a small number of employer-specific technology program names.
-    if any(str(key).startswith("ct-") for key in (job.get("source_keys") or [])):
+    # These direct adapters admit rows only after strict CS/technology title
+    # filtering. Preserve that provider-family evidence without trusting broad
+    # aggregator profile tags or widening global title heuristics.
+    if any(
+        str(key).startswith(prefix)
+        for key in (job.get("source_keys") or [])
+        for prefix in STRICT_CS_SOURCE_PREFIXES
+    ):
         tags.add("cs")
 
     if not tags:
