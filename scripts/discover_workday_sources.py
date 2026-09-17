@@ -25,7 +25,9 @@ from workday_inspector import UnsupportedWorkdayUrl, derive_cxs_endpoint  # noqa
 ROOT = SCRIPT_DIR.parent
 DEFAULT_FEED = ROOT / "data" / "listings.json"
 DEFAULT_CONFIGURED = ROOT / "direct_sources.json"
+DEFAULT_UNIVERSE = ROOT / "employer_universe.json"
 SEARCH_TERMS = ["intern", "co-op", "student"]
+LOCALE = re.compile(r"^[a-z]{2}(?:-[A-Z]{2})?$")
 
 
 def _clean(value: Any) -> str:
@@ -35,7 +37,12 @@ def _clean(value: Any) -> str:
 def _source_identity(source: dict[str, Any]) -> str:
     api_url = _clean(source.get("api_url")).rstrip("/").casefold()
     state = _clean(source.get("state")).upper()
-    return f"{api_url}|{state}" if api_url and state else ""
+    scope = _clean(source.get("scope")).casefold()
+    if api_url and state:
+        return f"{api_url}|state:{state}"
+    if api_url and scope:
+        return f"{api_url}|scope:{scope}"
+    return ""
 
 
 def _job_states(job: dict[str, Any]) -> list[str]:
@@ -86,10 +93,71 @@ def source_from_job(job: dict[str, Any], state: str) -> dict[str, Any] | None:
     }
 
 
-def discover_sources(feed: dict[str, Any], configured: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Return configured sources plus deterministic Workday sites evidenced in-feed."""
+def source_from_employer(employer: dict[str, Any]) -> dict[str, Any] | None:
+    provider = employer.get("provider") or {}
+    resolution = employer.get("careers_resolution") or {}
+    if provider.get("family") != "workday" or resolution.get("status") != "resolved":
+        return None
+
+    url = _clean(employer.get("careers_url"))
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower()
+    if not re.fullmatch(r"[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com", host, flags=re.I):
+        return None
+    parts = [part for part in parsed.path.split("/") if part]
+    if parts and LOCALE.fullmatch(parts[0]):
+        parts = parts[1:]
+    if not parts:
+        return None
+    site = parts[0]
+    tenant = host.split(".", 1)[0]
+    api_url = f"https://{host}/wday/cxs/{quote(tenant, safe='-._~')}/{quote(site, safe='-._~')}/jobs"
+    public_base = f"https://{host}/en-US/{quote(site, safe='-._~')}"
+    company = _clean(employer.get("name")) or tenant
+    slug = re.sub(r"[^a-z0-9]+", "-", f"{tenant}-{site}".casefold()).strip("-")
+    return {
+        "key": f"us-auto-workday-{slug}",
+        "name": f"{company} (resolved Workday, US)",
+        "company": company,
+        "kind": "workday",
+        "api_url": api_url,
+        "public_base": public_base,
+        "homepage": public_base,
+        "scope": "us",
+        "profile_hint": ["cs"],
+        "minimum_expected": 0,
+        "search_terms": list(SEARCH_TERMS),
+        "auto_discovered": True,
+        "universe_discovered": True,
+    }
+
+
+def discover_sources(
+    feed: dict[str, Any],
+    configured: list[dict[str, Any]],
+    universe: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """Return configured plus universe-resolved and feed-evidenced Workday sources."""
     out = [dict(source) for source in configured if isinstance(source, dict)]
     seen = {_source_identity(source) for source in out if _source_identity(source)}
+
+    for employer in sorted((universe or {}).get("employers", []), key=lambda row: _clean(row.get("id"))):
+        if not isinstance(employer, dict):
+            continue
+        source = source_from_employer(employer)
+        if not source:
+            continue
+        identity = _source_identity(source)
+        if not identity or identity in seen:
+            continue
+        out.append(source)
+        seen.add(identity)
+
+    national_apis = {
+        _clean(source.get("api_url")).rstrip("/").casefold()
+        for source in out
+        if _clean(source.get("scope")).casefold() == "us"
+    }
 
     jobs = [job for job in (feed.get("jobs") or []) if isinstance(job, dict)]
     jobs.sort(key=lambda job: (_clean(job.get("company")).casefold(), _clean(job.get("url")).casefold()))
@@ -97,6 +165,8 @@ def discover_sources(feed: dict[str, Any], configured: list[dict[str, Any]]) -> 
         for state in _job_states(job):
             source = source_from_job(job, state)
             if not source:
+                continue
+            if _clean(source.get("api_url")).rstrip("/").casefold() in national_apis:
                 continue
             identity = _source_identity(source)
             if not identity or identity in seen:
@@ -110,18 +180,21 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("feed", nargs="?", type=Path, default=DEFAULT_FEED)
     parser.add_argument("--configured", type=Path, default=DEFAULT_CONFIGURED)
+    parser.add_argument("--universe", type=Path, default=DEFAULT_UNIVERSE)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
     feed = json.loads(args.feed.read_text(encoding="utf-8"))
     configured = json.loads(args.configured.read_text(encoding="utf-8"))
-    sources = discover_sources(feed, configured)
+    universe = json.loads(args.universe.read_text(encoding="utf-8"))
+    sources = discover_sources(feed, configured, universe)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(sources, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     auto_count = sum(bool(source.get("auto_discovered")) for source in sources)
     states = sorted({source.get("state") for source in sources if source.get("auto_discovered") and source.get("state")})
-    print(f"Prepared {len(sources)} direct Workday source(s), including {auto_count} auto-discovered site/state source(s) across {len(states)} state(s).")
+    national = sum(source.get("scope") == "us" for source in sources)
+    print(f"Prepared {len(sources)} direct Workday source(s), including {national} national resolved site(s) and {auto_count - national} state-scoped auto-discovered source(s) across {len(states)} state(s).")
     return 0
 
 
