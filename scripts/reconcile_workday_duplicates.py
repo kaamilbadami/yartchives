@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-"""Collapse feed records that resolve to the same authoritative ATS posting.
+"""Collapse feed records that resolve to the same authoritative posting.
 
 Broad feeds often publish the same employer job with cosmetic URL or metadata
 differences. This pass runs after link recovery, groups records by provider-native
-posting identity for supported ATS families, and prefers the strongest record
-while preserving merged source/profile metadata.
+posting identity for supported ATS families, and also collapses exact metadata
+copies that converge on the same canonical direct URL for unsupported providers.
 
 The historical filename is retained because the workflow already calls this
-entrypoint, but reconciliation is provider-generic for Workday, Greenhouse, and
-iCIMS.
+entrypoint, but reconciliation is provider-generic.
 """
 
 from __future__ import annotations
@@ -20,12 +19,12 @@ import re
 import sys
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+import build_feed as bf  # noqa: E402
 from greenhouse_inspector import derive_greenhouse_endpoint  # noqa: E402
 from icims_inspector import derive_icims_endpoint  # noqa: E402
 from workday_inspector import derive_cxs_endpoint  # noqa: E402
@@ -62,14 +61,7 @@ def workday_canonical_url(url: str | None) -> str | None:
 
 
 def workday_requisition_token(job_path: str | None) -> str | None:
-    """Extract a stable Workday requisition token from the final URL slug.
-
-    Workday can expose one requisition through multiple location/title aliases.
-    Those aliases usually retain the same trailing requisition token (for
-    example ``_331999``, ``_R22593`` or ``_R-255719``). Only sufficiently
-    specific alphanumeric suffixes are accepted; otherwise callers fall back to
-    the full provider path rather than risking an unsafe merge.
-    """
+    """Extract a stable Workday requisition token from the final URL slug."""
 
     if not job_path:
         return None
@@ -79,14 +71,7 @@ def workday_requisition_token(job_path: str | None) -> str | None:
 
 
 def workday_identity_key(url: str | None) -> tuple[str, str, str] | None:
-    """Return a grouping identity for one Workday posting.
-
-    Prefer tenant + career-site + stable requisition token so location/title URL
-    aliases collapse to the same posting. If no safe requisition token exists,
-    retain the historical full-path identity. Career-site casing remains
-    cosmetic for identity only; the winning record's canonical URL is preserved
-    for navigation.
-    """
+    """Return a grouping identity for one Workday posting."""
 
     if not url:
         return None
@@ -162,6 +147,30 @@ def canonical_posting_url(url: str | None) -> str | None:
     return workday_canonical_url(url) or greenhouse_canonical_url(url) or icims_canonical_url(url)
 
 
+def exact_direct_identity_key(job: dict[str, Any]) -> tuple[str, ...] | None:
+    """Identify exact unsupported-provider copies after high-confidence link recovery.
+
+    This deliberately requires both a direct link label and identical normalized
+    company/title/location metadata. It prevents a shared employer landing page
+    from collapsing distinct roles while still handling duplicate source rows
+    that converge on the same recovered application URL.
+    """
+
+    if job.get("link_kind") != "direct" or posting_identity_key(job.get("url")):
+        return None
+    canonical = bf.canonical_url(job.get("url"))
+    if not canonical:
+        return None
+    signature = (
+        bf.norm(job.get("company")),
+        bf.norm(job.get("title")),
+        bf.norm(job.get("location")),
+    )
+    if not all(signature):
+        return None
+    return ("direct-url", canonical, *signature)
+
+
 def authority_rank(job: dict[str, Any]) -> tuple[int, int, int, str, str]:
     """Rank duplicate copies without guessing employer identity from the hostname."""
 
@@ -201,7 +210,7 @@ def _latest_timestamp_record(group: list[dict[str, Any]], field: str) -> dict[st
 
 
 def merge_posting_group(canonical_url: str, group: list[dict[str, Any]]) -> dict[str, Any]:
-    """Merge one authoritative ATS posting group without inventing metadata."""
+    """Merge one posting group without inventing metadata."""
 
     winner = max(group, key=authority_rank)
     merged = copy.deepcopy(winner)
@@ -258,7 +267,7 @@ def reconcile_jobs(jobs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], di
     for job in jobs:
         if not isinstance(job, dict):
             continue
-        identity = posting_identity_key(job.get("url"))
+        identity = posting_identity_key(job.get("url")) or exact_direct_identity_key(job)
         if not identity:
             passthrough.append(copy.deepcopy(job))
             continue
@@ -268,18 +277,21 @@ def reconcile_jobs(jobs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], di
     duplicate_groups = 0
     removed = 0
     provider_postings = {provider: 0 for provider in PROVIDERS}
+    direct_url_postings = 0
 
     for identity, group in posting_groups.items():
         provider = identity[0]
         if provider in provider_postings:
             provider_postings[provider] += 1
+        elif provider == "direct-url":
+            direct_url_postings += 1
         if len(group) == 1:
             reconciled.append(copy.deepcopy(group[0]))
             continue
         duplicate_groups += 1
         removed += len(group) - 1
         winner = max(group, key=authority_rank)
-        canonical = canonical_posting_url(winner.get("url"))
+        canonical = canonical_posting_url(winner.get("url")) or bf.canonical_url(winner.get("url"))
         if not canonical:
             reconciled.extend(copy.deepcopy(job) for job in group)
             duplicate_groups -= 1
@@ -292,10 +304,11 @@ def reconcile_jobs(jobs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], di
         reverse=True,
     )
     return reconciled, {
-        "ats_postings": len(posting_groups),
+        "ats_postings": sum(provider_postings.values()),
         "workday_postings": provider_postings["workday"],
         "greenhouse_postings": provider_postings["greenhouse"],
         "icims_postings": provider_postings["icims"],
+        "direct_url_postings": direct_url_postings,
         "duplicate_groups": duplicate_groups,
         "records_removed": removed,
     }
