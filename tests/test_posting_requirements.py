@@ -95,6 +95,39 @@ class PostingRequirementTests(unittest.TestCase):
         self.assertEqual(result["skills"]["required"], [])
         self.assertEqual(result["skills"]["preferred"][0]["technologies"], ["Git", "Linux"])
 
+    def test_novel_heading_does_not_drop_candidate_skill_evidence(self):
+        result = shared.extract_requirements([
+            "What makes you successful here:",
+            "Hands-on experience with Python, AWS, and Docker in academic or personal projects.",
+        ])
+        skills = result["skills"]
+        self.assertEqual(skills["classification"], "unspecified")
+        self.assertEqual(skills["required"], [])
+        self.assertEqual(skills["preferred"], [])
+        self.assertEqual(
+            skills["unspecified"][0]["technologies"],
+            ["Python", "AWS", "Docker"],
+        )
+
+    def test_unheaded_domain_experience_is_preserved_without_becoming_required(self):
+        result = shared.extract_requirements([
+            "Your superpowers:",
+            "Previous experience in distributed systems and backend services.",
+        ])
+        skills = result["skills"]
+        self.assertEqual(skills["classification"], "unspecified")
+        self.assertEqual(skills["required"], [])
+        self.assertIn("distributed systems", skills["unspecified"][0]["statement"].lower())
+
+    def test_responsibility_language_does_not_become_unheaded_qualification(self):
+        result = shared.extract_requirements([
+            "A day in the life:",
+            "Build Python services on AWS.",
+            "Gain experience using Docker and Kubernetes.",
+        ])
+        self.assertEqual(result["skills"]["classification"], "unknown")
+        self.assertEqual(result["skills"]["unspecified"], [])
+
     def test_normalization_preserves_stable_block_lines(self):
         text, lines = shared.normalize_description(
             "<h2>Required Qualifications</h2><p>C++ required.<br>Linux preferred.</p>"
