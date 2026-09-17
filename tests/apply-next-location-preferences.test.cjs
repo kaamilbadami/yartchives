@@ -36,8 +36,8 @@ const profile = {
 };
 
 assert.deepEqual(L.orderedAnchors(profile), [
-  { zip: "06897", label: "Home", commuteMiles: 50, order: 0 },
-  { zip: "20740", label: "School", commuteMiles: 50, order: 1 },
+  { zip: "06897", label: "Home", commuteMiles: 50, locationScore: null, order: 0 },
+  { zip: "20740", label: "School", commuteMiles: 50, locationScore: null, order: 1 },
 ]);
 
 const explicitProfile = {
@@ -47,8 +47,16 @@ const explicitProfile = {
     { zip: "20740", label: "School", commuteMiles: 20 },
   ],
 };
+assert.equal(L.customLocationMode(explicitProfile), true, "legacy profiles with explicit anchors stay custom");
 assert.equal(L.orderedAnchors(explicitProfile)[0].commuteMiles, 35);
 assert.equal(L.orderedAnchors(explicitProfile)[1].commuteMiles, 20);
+
+const normalWithStaleAnchors = {
+  ...explicitProfile,
+  locationMode: "normal",
+};
+assert.equal(L.customLocationMode(normalWithStaleAnchors), false);
+assert.equal(L.orderedAnchors(normalWithStaleAnchors)[0].commuteMiles, 50, "normal mode ignores stale custom anchors");
 
 const nearPrimary = inspectedJob({
   _locationAnchorDistances: [
@@ -72,6 +80,55 @@ assert.match(primaryScore.detail, /Home/);
 assert.equal(secondaryScore.score, 9);
 assert.match(secondaryScore.detail, /School/);
 assert.ok(primaryScore.score > secondaryScore.score, "primary commute anchor should outrank a secondary anchor");
+
+const customProfile = {
+  ...profile,
+  locationMode: "custom",
+  baseZips: ["06897", "20740", "10001"],
+  baseLabels: ["Home", "School", "NYC"],
+  locationAnchors: [
+    { zip: "06897", label: "Home", locationScore: 15 },
+    { zip: "20740", label: "School", locationScore: 10 },
+    { zip: "10001", label: "NYC", locationScore: 4 },
+  ],
+};
+assert.deepEqual(L.orderedAnchors(customProfile).map(anchor => anchor.locationScore), [15, 10, 4]);
+
+const nearThird = inspectedJob({
+  states: ["NY"],
+  location: "New York, NY",
+  url: "https://example.com/job-third",
+  _locationAnchorDistances: [
+    { zip: "06897", distanceMiles: 70 },
+    { zip: "20740", distanceMiles: 210 },
+    { zip: "10001", distanceMiles: 8 },
+  ],
+});
+assert.equal(L.scoreLocation(nearPrimary, customProfile).score, 10, "15/15 custom anchor maps to legacy 10/10 before dimension scaling");
+assert.equal(L.scoreLocation(nearSecondary, customProfile).score, 10 / 1.5, "10/15 custom anchor maps proportionally before dimension scaling");
+assert.equal(L.scoreLocation(nearThird, customProfile).score, 4 / 1.5, "third and later anchors can have arbitrary scores");
+
+const overlapping = inspectedJob({
+  states: ["MD"],
+  location: "Overlap",
+  url: "https://example.com/overlap",
+  _locationAnchorDistances: [
+    { zip: "06897", distanceMiles: 20 },
+    { zip: "20740", distanceMiles: 15 },
+    { zip: "10001", distanceMiles: 500 },
+  ],
+});
+const reversedScores = {
+  ...customProfile,
+  locationAnchors: [
+    { zip: "06897", label: "Home", locationScore: 7 },
+    { zip: "20740", label: "School", locationScore: 12 },
+    { zip: "10001", label: "NYC", locationScore: 4 },
+  ],
+};
+const overlappingScore = L.scoreLocation(overlapping, reversedScores);
+assert.equal(overlappingScore.score, 8, "overlapping anchors use the highest configured score");
+assert.match(overlappingScore.detail, /School/);
 
 const far = inspectedJob({
   states: ["TX"],
@@ -107,6 +164,17 @@ const captured = inspectedJob({
 });
 assert.equal(L.anchorDistances(captured, explicitProfile)[0].distanceMiles, 12);
 assert.equal(L.scoreLocation(captured, explicitProfile).score, 10);
+
+const unresolvedCaptured = inspectedJob({
+  states: ["NC"],
+  location: "RTP, NC",
+  _applyNextAnchorDistanceSamples: [
+    { distanceMiles: null },
+    { distanceMiles: null },
+  ],
+});
+assert.deepEqual(L.anchorDistances(unresolvedCaptured, explicitProfile), []);
+assert.notEqual(L.scoreLocation(unresolvedCaptured, explicitProfile).score, 10, "unknown distance must not become zero-mile commute");
 
 const scope = {
   distanceForJob(job, origin) {
