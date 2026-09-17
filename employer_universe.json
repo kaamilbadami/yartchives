@@ -95,7 +95,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:11:22Z",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
         "evidence": [
           {
             "type": "http",
@@ -406,7 +406,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:11:22Z",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
         "evidence": [
           {
             "type": "http",
@@ -709,7 +709,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:11:22Z",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
         "evidence": [
           {
             "type": "http",
@@ -1281,7 +1281,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:11:22Z",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
         "evidence": [
           {
             "type": "http",
@@ -1525,7 +1525,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:11:22Z",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
         "evidence": [
           {
             "type": "http",
@@ -1753,7 +1753,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:11:22Z",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
         "evidence": [
           {
             "type": "http",
@@ -2757,7 +2757,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:11:22Z",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
         "evidence": [
           {
             "type": "http",
@@ -3159,7 +3159,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:11:22Z",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
         "evidence": [
           {
             "type": "http",
@@ -3287,7 +3287,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:11:22Z",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
         "evidence": [
           {
             "type": "http",
@@ -3503,7 +3503,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:11:22Z",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
         "evidence": [
           {
             "type": "http",
@@ -3671,7 +3671,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:11:22Z",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
         "evidence": [
           {
             "type": "http",
@@ -4012,6 +4012,69 @@
           "source_url": "https://withresumeai.com/ats-checker/boeing",
           "upstream_slug": "boeing"
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://boeing.wd1.myworkdayjobs.com/",
+            "redirect_chain": [
+              {
+                "url": "https://boeing.wd1.myworkdayjobs.com/",
+                "status": 406
+              }
+            ],
+            "final_url": "https://boeing.wd1.myworkdayjobs.com/",
+            "status": 406,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://boeing.wd1.myworkdayjobs.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://boeing.wd1.myworkdayjobs.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://boeing.wd1.myworkdayjobs.com/careers",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://boeing.wd1.myworkdayjobs.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://boeing.wd1.myworkdayjobs.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://boeing.wd1.myworkdayjobs.com/jobs",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          }
+        ]
       }
     },
     {
@@ -4163,6 +4226,69 @@
           "source_url": "https://withresumeai.com/ats-checker/bristol-myers-squibb",
           "upstream_slug": "bristol-myers-squibb"
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://bristolmyerssquibb.wd5.myworkdayjobs.com/",
+            "redirect_chain": [
+              {
+                "url": "https://bristolmyerssquibb.wd5.myworkdayjobs.com/",
+                "status": 406
+              }
+            ],
+            "final_url": "https://bristolmyerssquibb.wd5.myworkdayjobs.com/",
+            "status": 406,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://bristolmyerssquibb.wd5.myworkdayjobs.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://bristolmyerssquibb.wd5.myworkdayjobs.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://bristolmyerssquibb.wd5.myworkdayjobs.com/careers",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://bristolmyerssquibb.wd5.myworkdayjobs.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://bristolmyerssquibb.wd5.myworkdayjobs.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://bristolmyerssquibb.wd5.myworkdayjobs.com/jobs",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          }
+        ]
       }
     },
     {
@@ -4213,6 +4339,69 @@
           "source_url": "https://withresumeai.com/ats-checker/broadcom",
           "upstream_slug": "broadcom"
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://broadcom.wd1.myworkdayjobs.com/",
+            "redirect_chain": [
+              {
+                "url": "https://broadcom.wd1.myworkdayjobs.com/",
+                "status": 406
+              }
+            ],
+            "final_url": "https://broadcom.wd1.myworkdayjobs.com/",
+            "status": 406,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://broadcom.wd1.myworkdayjobs.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://broadcom.wd1.myworkdayjobs.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://broadcom.wd1.myworkdayjobs.com/careers",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://broadcom.wd1.myworkdayjobs.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://broadcom.wd1.myworkdayjobs.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://broadcom.wd1.myworkdayjobs.com/jobs",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          }
+        ]
       }
     },
     {
@@ -4624,6 +4813,69 @@
           "source_url": "https://withresumeai.com/ats-checker/cardinal-health",
           "upstream_slug": "cardinal-health"
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://cardinalhealth.wd1.myworkdayjobs.com/",
+            "redirect_chain": [
+              {
+                "url": "https://cardinalhealth.wd1.myworkdayjobs.com/",
+                "status": 406
+              }
+            ],
+            "final_url": "https://cardinalhealth.wd1.myworkdayjobs.com/",
+            "status": 406,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://cardinalhealth.wd1.myworkdayjobs.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://cardinalhealth.wd1.myworkdayjobs.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://cardinalhealth.wd1.myworkdayjobs.com/careers",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://cardinalhealth.wd1.myworkdayjobs.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://cardinalhealth.wd1.myworkdayjobs.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://cardinalhealth.wd1.myworkdayjobs.com/jobs",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          }
+        ]
       }
     },
     {
@@ -4958,6 +5210,69 @@
           "source_url": "https://withresumeai.com/ats-checker/centene",
           "upstream_slug": "centene"
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://centene.wd5.myworkdayjobs.com/",
+            "redirect_chain": [
+              {
+                "url": "https://centene.wd5.myworkdayjobs.com/",
+                "status": 406
+              }
+            ],
+            "final_url": "https://centene.wd5.myworkdayjobs.com/",
+            "status": 406,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://centene.wd5.myworkdayjobs.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://centene.wd5.myworkdayjobs.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://centene.wd5.myworkdayjobs.com/careers",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://centene.wd5.myworkdayjobs.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://centene.wd5.myworkdayjobs.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://centene.wd5.myworkdayjobs.com/jobs",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          }
+        ]
       }
     },
     {
@@ -5046,6 +5361,79 @@
           "source_url": "https://withresumeai.com/ats-checker/chevron",
           "upstream_slug": "chevron"
         }
+      },
+      "careers_url": "https://chevron.wd5.myworkdayjobs.com/jobs",
+      "careers_platform": "workday",
+      "provider": {
+        "family": "workday",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "myworkdayjobs.com",
+        "host": "chevron.wd5.myworkdayjobs.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-17T23:15:25Z",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://chevron.wd5.myworkdayjobs.com/",
+            "redirect_chain": [
+              {
+                "url": "https://chevron.wd5.myworkdayjobs.com/",
+                "status": 406
+              }
+            ],
+            "final_url": "https://chevron.wd5.myworkdayjobs.com/",
+            "status": 406,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://chevron.wd5.myworkdayjobs.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://chevron.wd5.myworkdayjobs.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://chevron.wd5.myworkdayjobs.com/careers",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://chevron.wd5.myworkdayjobs.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://chevron.wd5.myworkdayjobs.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://chevron.wd5.myworkdayjobs.com/jobs",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          }
+        ]
       }
     },
     {
@@ -5583,6 +5971,69 @@
           "source_url": "https://withresumeai.com/ats-checker/comcast",
           "upstream_slug": "comcast"
         }
+      },
+      "careers_resolution": {
+        "status": "transient",
+        "attempt_status": "transient",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://comcast.wd5.myworkdayjobs.com/",
+            "redirect_chain": [
+              {
+                "url": "https://comcast.wd5.myworkdayjobs.com/",
+                "status": 406
+              }
+            ],
+            "final_url": "https://comcast.wd5.myworkdayjobs.com/",
+            "status": 406,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://comcast.wd5.myworkdayjobs.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://comcast.wd5.myworkdayjobs.com/careers",
+                "status": 500
+              }
+            ],
+            "final_url": "https://comcast.wd5.myworkdayjobs.com/careers",
+            "status": 500,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://comcast.wd5.myworkdayjobs.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://comcast.wd5.myworkdayjobs.com/jobs",
+                "status": 500
+              }
+            ],
+            "final_url": "https://comcast.wd5.myworkdayjobs.com/jobs",
+            "status": 500,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          }
+        ]
       }
     },
     {
@@ -13021,7 +13472,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:11:22Z",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
         "evidence": [
           {
             "type": "http",
@@ -19132,7 +19583,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:11:22Z",
+        "last_attempt_at": "2026-09-17T23:15:25Z",
         "evidence": [
           {
             "type": "http",
