@@ -83,12 +83,23 @@ assert.equal(context.employerCounts.bigco, 8);
 assert.equal(context.employerRoleCounts["bigco::software engineering"], 8);
 const observedDemand = C.scoreRoi(genericNy, profile, context);
 assert.equal(observedDemand.competitionPenalty, 0);
-assert.equal(observedDemand.demandBonus, 3);
-assert.equal(observedDemand.score, 13);
+assert.equal(observedDemand.demandBonus, 5);
+assert.equal(observedDemand.score, 15);
 assert.deepEqual(observedDemand.observedDemand, { count: 8, role: "software engineering" });
 assert.match(observedDemand.detail, /observed employer demand: 8 current software engineering openings/);
 assert.doesNotMatch(observedDemand.detail, /fallback competition heuristic/);
 assert.doesNotMatch(observedDemand.detail, /acceptance|probability|odds|chance/i);
+
+const mediumDemandJobs = Array.from({ length: 3 }, (_, index) => ({
+  ...genericNy,
+  id: `medium-${index}`,
+  company: "MediumCo",
+  title: `Software Engineering Intern ${index}`,
+}));
+const mediumContext = C.buildCompetitionContext(mediumDemandJobs);
+const mediumDemand = C.scoreRoi(mediumDemandJobs[0], profile, mediumContext);
+assert.equal(mediumDemand.demandBonus, 3);
+assert.equal(mediumDemand.score, 13);
 
 const fallbackContext = {
   employerCounts: { bigco: 8 },
@@ -113,11 +124,18 @@ const differentiated = {
   ]),
 };
 const differentiatedRoi = C.scoreRoi(differentiated, profile);
+const differentProfileRoi = C.scoreRoi(differentiated, {
+  ...profile,
+  supportedKeywords: [],
+  cautiousKeywords: [],
+  facts: { graduation: "May 2028", supportedSkills: [], cautiousSkills: [] },
+});
 assert.equal(C.isSpecializedRole(differentiated), true);
-assert.equal(differentiatedRoi.differentiationBonus, 5);
-assert.equal(differentiatedRoi.score, 13);
-assert.match(differentiatedRoi.detail, /strong required-skill differentiation/);
-assert.match(differentiatedRoi.detail, /specialized role aligns/);
+assert.equal(differentiatedRoi.differentiationBonus, 0);
+assert.equal(differentiatedRoi.score, 8);
+assert.equal(differentProfileRoi.score, differentiatedRoi.score);
+assert.equal(differentProfileRoi.detail, differentiatedRoi.detail);
+assert.doesNotMatch(differentiatedRoi.detail, /required-skill differentiation|specialized role aligns/i);
 
 const genericPool = footprintJobs.map((job, index) => ({
   ...job,
@@ -137,13 +155,13 @@ const specializedOlder = {
 };
 const ranked = C.rankJobs([...genericPool, specializedOlder], profile, now);
 const rankedBigCo = ranked.find(result => result.job.company === "BigCo");
-assert.equal(rankedBigCo.components.roi.demandBonus, 3);
+assert.equal(rankedBigCo.components.roi.demandBonus, 5);
 assert.match(rankedBigCo.components.roi.detail, /observed employer demand/);
 
 const score = C.scoreJob(differentiated, profile, now, C.buildCompetitionContext([differentiated]));
-assert.equal(score.components.roi.score, 13);
+assert.equal(score.components.roi.score, 8);
 assert.equal(score.competition.penalty, 2);
-assert.equal(score.competition.differentiationBonus, 5);
+assert.equal(score.competition.differentiationBonus, 0);
 assert.equal(score.competition.demandBonus, 0);
 assert.equal(score.competition.observedDemand, null);
 
