@@ -147,7 +147,8 @@ def job_from_inspection(source: dict[str, Any], url: str, inspection: dict[str, 
     if not is_target_state(location, source["state"]):
         return None
 
-    posted_at = bf.parse_date(posting.get("date_posted"), reference) if posting.get("date_posted") else None
+    posted_raw = _clean(posting.get("date_posted"))
+    posted_at = bf.parse_relative_date(posted_raw, reference) if posted_raw else None
     direct_source = {
         "key": source["key"],
         "name": source["name"],
@@ -159,7 +160,7 @@ def job_from_inspection(source: dict[str, Any], url: str, inspection: dict[str, 
         title=title,
         location=location,
         url=url,
-        posted_raw=_clean(posting.get("date_posted")),
+        posted_raw=posted_raw,
         source=direct_source,
         section="Auto-discovered iCIMS sibling role",
         function_primary="Computer Science / Technology",
