@@ -92,11 +92,17 @@ jobs:
               --output "$json_out" \
               --markdown-output "$md_out"
 
+            contract_out="/tmp/yartchives-audit/results/${stem}-contract.md"
+            python scripts/coverage_contract.py "$json_out" \
+              --markdown-output "$contract_out"
+
             {
               echo ""
               echo "---"
               echo ""
               cat "$md_out"
+              echo ""
+              cat "$contract_out"
             } >> "$GITHUB_STEP_SUMMARY"
           done < /tmp/yartchives-audit/samples.txt
 

@@ -1,0 +1,562 @@
+{
+  "schema_version": 1,
+  "feed_generated_at": "2026-09-17T14:47:19.071885Z",
+  "summary": {
+    "final_feed_jobs": 5248,
+    "direct_employer_ats_provenance_jobs": 52,
+    "direct_employer_ats_provenance_percent": 1.0,
+    "aggregator_list_only_provenance_jobs": 5196,
+    "aggregator_list_only_provenance_percent": 99.0,
+    "direct_employer_ats_link_jobs": 5033,
+    "direct_employer_ats_link_percent": 95.9,
+    "single_source_jobs": 4242,
+    "single_source_percent": 80.8,
+    "multi_source_jobs": 1006,
+    "multi_source_percent": 19.2
+  },
+  "sources": [
+    {
+      "key": "applyguy",
+      "source": "ApplyGuy",
+      "class": "broad aggregator",
+      "immediate_upstream": "https://raw.githubusercontent.com/ApplyGuy/2027-Internships/main/README.md",
+      "claimed_or_original_source": "https://github.com/ApplyGuy/2027-Internships",
+      "scope": "2027 internships published in ApplyGuy/2027-Internships",
+      "upstream_eligible": 674,
+      "ingested": 674,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 667,
+      "unique_jobs": 267,
+      "unique_percent_of_feed": 5.1,
+      "overlap_jobs": 400,
+      "direct_ats_links": 613,
+      "direct_ats_link_percent": 91.9,
+      "link_quality": {
+        "direct_employer_ats": 613,
+        "unresolved_non_authoritative": 54
+      },
+      "coverage_confidence": "high"
+    },
+    {
+      "key": "campus-to-career",
+      "source": "Campus to Career",
+      "class": "curated GitHub/list",
+      "immediate_upstream": "https://raw.githubusercontent.com/fromcampustocareer/fromcampustocareer-opportunities/main/README.md",
+      "claimed_or_original_source": "https://github.com/fromcampustocareer/fromcampustocareer-opportunities",
+      "scope": "rows in fromcampustocareer/fromcampustocareer-opportunities",
+      "upstream_eligible": 114,
+      "ingested": 114,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 114,
+      "unique_jobs": 67,
+      "unique_percent_of_feed": 1.3,
+      "overlap_jobs": 47,
+      "direct_ats_links": 114,
+      "direct_ats_link_percent": 100.0,
+      "link_quality": {
+        "direct_employer_ats": 114
+      },
+      "coverage_confidence": "high"
+    },
+    {
+      "key": "ct-allegion-workday",
+      "source": "Allegion / Stanley Access Technologies (direct)",
+      "class": "direct employer / ATS",
+      "immediate_upstream": "https://allegion.wd5.myworkdayjobs.com/wday/cxs/allegion/careers/jobs",
+      "claimed_or_original_source": "https://allegion.wd5.myworkdayjobs.com/en-US/careers",
+      "scope": "configured employer's CT student opportunities matching the source-specific CS rules",
+      "upstream_eligible": 1,
+      "ingested": 1,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 1,
+      "unique_jobs": 0,
+      "unique_percent_of_feed": 0.0,
+      "overlap_jobs": 1,
+      "direct_ats_links": 1,
+      "direct_ats_link_percent": 100.0,
+      "link_quality": {
+        "direct_employer_ats": 1
+      },
+      "coverage_confidence": "high"
+    },
+    {
+      "key": "ct-gartner-workday",
+      "source": "Gartner (direct)",
+      "class": "direct employer / ATS",
+      "immediate_upstream": "https://gartner.wd5.myworkdayjobs.com/wday/cxs/gartner/EXT/jobs",
+      "claimed_or_original_source": "https://gartner.wd5.myworkdayjobs.com/en-US/EXT",
+      "scope": "configured employer's CT student opportunities matching the source-specific CS rules",
+      "upstream_eligible": 1,
+      "ingested": 1,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 1,
+      "unique_jobs": 1,
+      "unique_percent_of_feed": 0.0,
+      "overlap_jobs": 0,
+      "direct_ats_links": 1,
+      "direct_ats_link_percent": 100.0,
+      "link_quality": {
+        "direct_employer_ats": 1
+      },
+      "coverage_confidence": "high"
+    },
+    {
+      "key": "ct-hartford-workday",
+      "source": "The Hartford (direct)",
+      "class": "direct employer / ATS",
+      "immediate_upstream": "https://thehartford.wd5.myworkdayjobs.com/wday/cxs/thehartford/Careers_External/jobs",
+      "claimed_or_original_source": "https://thehartford.wd5.myworkdayjobs.com/en-US/Careers_External",
+      "scope": "configured employer's CT student opportunities matching the source-specific CS rules",
+      "upstream_eligible": 2,
+      "ingested": 2,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 2,
+      "unique_jobs": 0,
+      "unique_percent_of_feed": 0.0,
+      "overlap_jobs": 2,
+      "direct_ats_links": 2,
+      "direct_ats_link_percent": 100.0,
+      "link_quality": {
+        "direct_employer_ats": 2
+      },
+      "coverage_confidence": "high"
+    },
+    {
+      "key": "ct-iat-workday",
+      "source": "IAT Insurance Group (direct)",
+      "class": "direct employer / ATS",
+      "immediate_upstream": "https://iatinsurancegroup.wd1.myworkdayjobs.com/wday/cxs/iatinsurancegroup/iat/jobs",
+      "claimed_or_original_source": "https://iatinsurancegroup.wd1.myworkdayjobs.com/en-US/iat",
+      "scope": "configured employer's CT student opportunities matching the source-specific CS rules",
+      "upstream_eligible": 1,
+      "ingested": 1,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 1,
+      "unique_jobs": 1,
+      "unique_percent_of_feed": 0.0,
+      "overlap_jobs": 0,
+      "direct_ats_links": 1,
+      "direct_ats_link_percent": 100.0,
+      "link_quality": {
+        "direct_employer_ats": 1
+      },
+      "coverage_confidence": "high"
+    },
+    {
+      "key": "ct-rtx-workday",
+      "source": "RTX / Pratt & Whitney (direct)",
+      "class": "direct employer / ATS",
+      "immediate_upstream": "https://globalhr.wd5.myworkdayjobs.com/wday/cxs/globalhr/rec_rtx_ext_gateway/jobs",
+      "claimed_or_original_source": "https://globalhr.wd5.myworkdayjobs.com/en-US/rec_rtx_ext_gateway",
+      "scope": "configured employer's CT student opportunities matching the source-specific CS rules",
+      "upstream_eligible": 1,
+      "ingested": 1,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 1,
+      "unique_jobs": 0,
+      "unique_percent_of_feed": 0.0,
+      "overlap_jobs": 1,
+      "direct_ats_links": 1,
+      "direct_ats_link_percent": 100.0,
+      "link_quality": {
+        "direct_employer_ats": 1
+      },
+      "coverage_confidence": "high"
+    },
+    {
+      "key": "dreamwork-business",
+      "source": "Dreamwork Business",
+      "class": "broad aggregator",
+      "immediate_upstream": "https://raw.githubusercontent.com/dreamworkhq/Open-Tech-Internships-2027/main/data/business-listings.json",
+      "claimed_or_original_source": "https://github.com/dreamworkhq/Open-Tech-Internships-2027",
+      "scope": "2027 business internships in Dreamwork's public JSON feed",
+      "upstream_eligible": 587,
+      "ingested": 587,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 585,
+      "unique_jobs": 421,
+      "unique_percent_of_feed": 8.0,
+      "overlap_jobs": 164,
+      "direct_ats_links": 585,
+      "direct_ats_link_percent": 100.0,
+      "link_quality": {
+        "direct_employer_ats": 585
+      },
+      "coverage_confidence": "high"
+    },
+    {
+      "key": "dreamwork-tech",
+      "source": "Dreamwork Tech",
+      "class": "broad aggregator",
+      "immediate_upstream": "https://raw.githubusercontent.com/dreamworkhq/Open-Tech-Internships-2027/main/data/listings.json",
+      "claimed_or_original_source": "https://github.com/dreamworkhq/Open-Tech-Internships-2027",
+      "scope": "2027 technology internships in Dreamwork's public JSON feed",
+      "upstream_eligible": 1959,
+      "ingested": 1959,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 1957,
+      "unique_jobs": 1204,
+      "unique_percent_of_feed": 22.9,
+      "overlap_jobs": 753,
+      "direct_ats_links": 1956,
+      "direct_ats_link_percent": 99.9,
+      "link_quality": {
+        "direct_employer_ats": 1956,
+        "unresolved_non_authoritative": 1
+      },
+      "coverage_confidence": "high"
+    },
+    {
+      "key": "public-sector",
+      "source": "Public Sector",
+      "class": "aggregator-derived mirror/subset",
+      "immediate_upstream": "https://raw.githubusercontent.com/jobright-ai/2026-Public-Sector-Internship/master/README.md",
+      "claimed_or_original_source": "https://github.com/jobright-ai/2026-Public-Sector-Internship",
+      "scope": "rows in jobright-ai/2026-Public-Sector-Internship; broader Jobright inventory is not measurable",
+      "upstream_eligible": 100,
+      "ingested": 100,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 100,
+      "unique_jobs": 100,
+      "unique_percent_of_feed": 1.9,
+      "overlap_jobs": 0,
+      "direct_ats_links": 0,
+      "direct_ats_link_percent": 0.0,
+      "link_quality": {
+        "aggregator_intermediary": 100
+      },
+      "coverage_confidence": "high for repository subset; not measurable for Jobright"
+    },
+    {
+      "key": "simplify",
+      "source": "Simplify",
+      "class": "curated GitHub/list",
+      "immediate_upstream": "https://raw.githubusercontent.com/SimplifyJobs/Summer2027-Internships/dev/README.md",
+      "claimed_or_original_source": "https://github.com/SimplifyJobs/Summer2027-Internships",
+      "scope": "2027 internships published in SimplifyJobs/Summer2027-Internships",
+      "upstream_eligible": 1861,
+      "ingested": 1861,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 1737,
+      "unique_jobs": 1244,
+      "unique_percent_of_feed": 23.7,
+      "overlap_jobs": 493,
+      "direct_ats_links": 1737,
+      "direct_ats_link_percent": 100.0,
+      "link_quality": {
+        "direct_employer_ats": 1737
+      },
+      "coverage_confidence": "high"
+    },
+    {
+      "key": "sndsh",
+      "source": "Summer 2027 Internships",
+      "class": "curated GitHub/list",
+      "immediate_upstream": "https://raw.githubusercontent.com/sndsh404/summer-2027-internships/main/README.md",
+      "claimed_or_original_source": "https://github.com/sndsh404/summer-2027-internships",
+      "scope": "2027 internships published in sndsh404/summer-2027-internships",
+      "upstream_eligible": 125,
+      "ingested": 125,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 125,
+      "unique_jobs": 65,
+      "unique_percent_of_feed": 1.2,
+      "overlap_jobs": 60,
+      "direct_ats_links": 125,
+      "direct_ats_link_percent": 100.0,
+      "link_quality": {
+        "direct_employer_ats": 125
+      },
+      "coverage_confidence": "high"
+    },
+    {
+      "key": "speedyapply",
+      "source": "SpeedyApply",
+      "class": "curated GitHub/list",
+      "immediate_upstream": "https://raw.githubusercontent.com/speedyapply/2027-SWE-College-Jobs/main/README.md",
+      "claimed_or_original_source": "https://github.com/speedyapply/2027-SWE-College-Jobs",
+      "scope": "2027 SWE college jobs published in speedyapply/2027-SWE-College-Jobs",
+      "upstream_eligible": 606,
+      "ingested": 606,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 576,
+      "unique_jobs": 227,
+      "unique_percent_of_feed": 4.3,
+      "overlap_jobs": 349,
+      "direct_ats_links": 560,
+      "direct_ats_link_percent": 97.2,
+      "link_quality": {
+        "direct_employer_ats": 560,
+        "unresolved_non_authoritative": 16
+      },
+      "coverage_confidence": "high"
+    },
+    {
+      "key": "usajobs",
+      "source": "USAJOBS",
+      "class": "direct employer / ATS",
+      "immediate_upstream": "https://data.usajobs.gov/api/Search",
+      "claimed_or_original_source": "https://www.usajobs.gov/Search/Results?k=intern",
+      "scope": "USAJOBS student hiring-path results from the prior 60 days matching explicit student/intern terms",
+      "upstream_eligible": 46,
+      "ingested": 46,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 46,
+      "unique_jobs": 46,
+      "unique_percent_of_feed": 0.9,
+      "overlap_jobs": 0,
+      "direct_ats_links": 46,
+      "direct_ats_link_percent": 100.0,
+      "link_quality": {
+        "direct_employer_ats": 46
+      },
+      "coverage_confidence": "high for API query; broader federal inventory not measured"
+    },
+    {
+      "key": "vansh-cscareers",
+      "source": "Vansh / CSCareers",
+      "class": "curated GitHub/list",
+      "immediate_upstream": "https://raw.githubusercontent.com/vanshb03/Summer2027-Internships/dev/README.md",
+      "claimed_or_original_source": "https://github.com/vanshb03/Summer2027-Internships",
+      "scope": "2027 internships published in vanshb03/Summer2027-Internships",
+      "upstream_eligible": 265,
+      "ingested": 265,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 255,
+      "unique_jobs": 168,
+      "unique_percent_of_feed": 3.2,
+      "overlap_jobs": 87,
+      "direct_ats_links": 214,
+      "direct_ats_link_percent": 83.9,
+      "link_quality": {
+        "direct_employer_ats": 214,
+        "unresolved_non_authoritative": 41
+      },
+      "coverage_confidence": "high"
+    },
+    {
+      "key": "zapply",
+      "source": "Zapply",
+      "class": "broad aggregator",
+      "immediate_upstream": "https://raw.githubusercontent.com/zapplyjobs/Internships-2027/main/README.md",
+      "claimed_or_original_source": "https://github.com/zapplyjobs/Internships-2027",
+      "scope": "2027 internships published in Zapply's GitHub README",
+      "upstream_eligible": 600,
+      "ingested": 600,
+      "coverage_percent": 100.0,
+      "coverage_basis": "production adapter-eligible rows in this feed snapshot; not the platform's wider inventory",
+      "final_canonical_jobs": 588,
+      "unique_jobs": 431,
+      "unique_percent_of_feed": 8.2,
+      "overlap_jobs": 157,
+      "direct_ats_links": 584,
+      "direct_ats_link_percent": 99.3,
+      "link_quality": {
+        "aggregator_intermediary": 4,
+        "direct_employer_ats": 584
+      },
+      "coverage_confidence": "high"
+    }
+  ],
+  "pairwise_overlap": [
+    {
+      "left": "dreamwork-tech",
+      "right": "simplify",
+      "canonical_jobs": 372
+    },
+    {
+      "left": "applyguy",
+      "right": "dreamwork-tech",
+      "canonical_jobs": 274
+    },
+    {
+      "left": "applyguy",
+      "right": "speedyapply",
+      "canonical_jobs": 261
+    },
+    {
+      "left": "dreamwork-tech",
+      "right": "speedyapply",
+      "canonical_jobs": 242
+    },
+    {
+      "left": "applyguy",
+      "right": "simplify",
+      "canonical_jobs": 185
+    },
+    {
+      "left": "simplify",
+      "right": "speedyapply",
+      "canonical_jobs": 152
+    },
+    {
+      "left": "dreamwork-business",
+      "right": "dreamwork-tech",
+      "canonical_jobs": 150
+    },
+    {
+      "left": "dreamwork-tech",
+      "right": "zapply",
+      "canonical_jobs": 115
+    },
+    {
+      "left": "simplify",
+      "right": "zapply",
+      "canonical_jobs": 64
+    },
+    {
+      "left": "dreamwork-business",
+      "right": "simplify",
+      "canonical_jobs": 49
+    },
+    {
+      "left": "dreamwork-tech",
+      "right": "vansh-cscareers",
+      "canonical_jobs": 44
+    },
+    {
+      "left": "applyguy",
+      "right": "zapply",
+      "canonical_jobs": 43
+    },
+    {
+      "left": "campus-to-career",
+      "right": "sndsh",
+      "canonical_jobs": 42
+    },
+    {
+      "left": "simplify",
+      "right": "vansh-cscareers",
+      "canonical_jobs": 33
+    },
+    {
+      "left": "dreamwork-business",
+      "right": "zapply",
+      "canonical_jobs": 21
+    },
+    {
+      "left": "sndsh",
+      "right": "vansh-cscareers",
+      "canonical_jobs": 20
+    },
+    {
+      "left": "dreamwork-tech",
+      "right": "sndsh",
+      "canonical_jobs": 15
+    },
+    {
+      "left": "campus-to-career",
+      "right": "vansh-cscareers",
+      "canonical_jobs": 11
+    },
+    {
+      "left": "speedyapply",
+      "right": "zapply",
+      "canonical_jobs": 11
+    },
+    {
+      "left": "speedyapply",
+      "right": "vansh-cscareers",
+      "canonical_jobs": 10
+    },
+    {
+      "left": "sndsh",
+      "right": "speedyapply",
+      "canonical_jobs": 6
+    },
+    {
+      "left": "campus-to-career",
+      "right": "dreamwork-tech",
+      "canonical_jobs": 5
+    },
+    {
+      "left": "campus-to-career",
+      "right": "dreamwork-business",
+      "canonical_jobs": 3
+    },
+    {
+      "left": "applyguy",
+      "right": "ct-hartford-workday",
+      "canonical_jobs": 2
+    },
+    {
+      "left": "ct-hartford-workday",
+      "right": "dreamwork-tech",
+      "canonical_jobs": 2
+    },
+    {
+      "left": "ct-hartford-workday",
+      "right": "simplify",
+      "canonical_jobs": 2
+    },
+    {
+      "left": "applyguy",
+      "right": "ct-allegion-workday",
+      "canonical_jobs": 1
+    },
+    {
+      "left": "applyguy",
+      "right": "vansh-cscareers",
+      "canonical_jobs": 1
+    },
+    {
+      "left": "campus-to-career",
+      "right": "speedyapply",
+      "canonical_jobs": 1
+    },
+    {
+      "left": "ct-allegion-workday",
+      "right": "dreamwork-tech",
+      "canonical_jobs": 1
+    },
+    {
+      "left": "ct-allegion-workday",
+      "right": "speedyapply",
+      "canonical_jobs": 1
+    },
+    {
+      "left": "ct-hartford-workday",
+      "right": "speedyapply",
+      "canonical_jobs": 1
+    },
+    {
+      "left": "ct-rtx-workday",
+      "right": "simplify",
+      "canonical_jobs": 1
+    },
+    {
+      "left": "dreamwork-business",
+      "right": "speedyapply",
+      "canonical_jobs": 1
+    },
+    {
+      "left": "simplify",
+      "right": "sndsh",
+      "canonical_jobs": 1
+    },
+    {
+      "left": "vansh-cscareers",
+      "right": "zapply",
+      "canonical_jobs": 1
+    }
+  ],
+  "configured_zero_contribution": [
+    "ct-avangrid-workday",
+    "ct-travelers-workday"
+  ]
+}

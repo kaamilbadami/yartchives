@@ -392,6 +392,9 @@ def classify(
         "location": location,
         "url": url,
         "source": source,
+        # Optional benchmark timestamp used to measure discovery delay. Keep it
+        # distinct from collected_at, which only dates the overall sample.
+        "first_discovered_at": first(row, "first_discovered_at", "discovered_at"),
         "expected": expected,
     }
 
