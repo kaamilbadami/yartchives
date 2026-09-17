@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-09-17T18:17:11.558320Z",
+  "generated_at": "2026-09-17T18:36:39.909840Z",
   "audit": {
     "name": "CT / NY / MD / DC undergraduate CS coverage benchmark",
     "collected_at": "2026-09-17T15:30:00Z",
@@ -18,9 +18,9 @@
     }
   },
   "feed": {
-    "generated_at": "2026-09-17T18:11:34.574004Z",
-    "content_hash": "c832aa85569a894238acdd927eb4975fa2658436c8ddd0bc9ad7889082f5f78d",
-    "indexed_jobs": 5728
+    "generated_at": "2026-09-17T18:32:35.335115Z",
+    "content_hash": "ff5502b73098fc3933d79cfd746bd4242ae71be8ae4d378431ff07f6df00adba",
+    "indexed_jobs": 5724
   },
   "scope": {
     "profiles": [
@@ -36,13 +36,13 @@
   "summary": {
     "external_listings": 106,
     "captured_or_probably_captured": 53,
-    "visible_under_expected_filters": 33,
-    "actionable_findings": 73,
+    "visible_under_expected_filters": 34,
+    "actionable_findings": 72,
     "capture_rate": 0.5,
-    "visible_rate": 0.3113,
+    "visible_rate": 0.3208,
     "status_counts": {
-      "already_in_yartchives": 33,
-      "filtered_or_misclassified": 11,
+      "already_in_yartchives": 34,
+      "filtered_or_misclassified": 10,
       "duplicate_resolution_issue": 9,
       "employer_exists_but_listing_missing": 19,
       "configured_source_miss": 1,
@@ -78,9 +78,8 @@
       },
       "Ordinary web search": {
         "employer_exists_but_listing_missing": 6,
-        "already_in_yartchives": 5,
+        "already_in_yartchives": 6,
         "source_not_covered": 3,
-        "filtered_or_misclassified": 1,
         "duplicate_resolution_issue": 2
       }
     },
@@ -115,8 +114,8 @@
         "source_not_covered": 13
       },
       "NY": {
-        "filtered_or_misclassified": 5,
-        "already_in_yartchives": 16,
+        "filtered_or_misclassified": 4,
+        "already_in_yartchives": 17,
         "duplicate_resolution_issue": 6,
         "employer_exists_but_listing_missing": 3,
         "source_not_covered": 4
@@ -757,31 +756,9 @@
       "status": "employer_exists_but_listing_missing",
       "confidence": "high",
       "reason_code": "known_employer_missing_role",
-      "reason": "Yartchives has 3 listing(s) for this employer but not this role",
+      "reason": "Yartchives has 2 listing(s) for this employer but not this role",
       "recommended_action": "Trace the role to the employer ATS and check source filters or add direct coverage.",
       "candidate_jobs": [
-        {
-          "id": "1123dcb95de19d53",
-          "company": "General Dynamics Electric Boat",
-          "title": "Information Technology, Software Engineering, & Computer Science - 2027 Summer Internship",
-          "location": "Groton, CT, US",
-          "url": "https://careers-gdeb.icims.com/jobs/20341/job",
-          "profiles": [
-            "cs"
-          ],
-          "states": [
-            "CT",
-            "RI"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "dreamwork-tech",
-            "simplify"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-16T04:00:00Z"
-        },
         {
           "id": "4859820e8486ce59",
           "company": "General Dynamics Electric Boat",
@@ -2897,11 +2874,11 @@
         ],
         "default_visible": true
       },
-      "status": "filtered_or_misclassified",
+      "status": "already_in_yartchives",
       "confidence": "high",
-      "reason_code": "present_but_hidden",
-      "reason": "missing expected profile 'cs'",
-      "recommended_action": "Review profile/state/type enrichment or default filter metadata.",
+      "reason_code": "exact_match",
+      "reason": "matched by canonical URL or normalized company/title/location",
+      "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "55c24a7a2daea9f4",
         "company": "Audax Group",
@@ -2909,7 +2886,7 @@
         "location": "New York, New York, United States",
         "url": "https://job-boards.greenhouse.io/audaxgroup/jobs/4722759005",
         "profiles": [
-          "general"
+          "cs"
         ],
         "states": [
           "NY",
