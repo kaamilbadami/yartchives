@@ -127,14 +127,17 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
 
         def resolver(entry, *, max_pages):
             calls.append((entry["id"], max_pages))
-            return self.resolved(f"https://{entry['id']}.example/careers", requests=2)
+            return self.resolved(
+                f"https://{entry['id']}.example/careers",
+                requests=min(2, max_pages),
+            )
 
         updated, summary = mod.run_lifecycle(
             universe, now=NOW, employer_budget=3, request_budget=3, resolver=resolver
         )
         self.assertEqual(calls, [("high", 3), ("middle", 1)])
         self.assertEqual(summary["attempted_employers"], 2)
-        self.assertEqual(summary["requests_used"], 4)
+        self.assertEqual(summary["requests_used"], 3)
         self.assertNotIn("careers_url", updated["employers"][0])
 
     def test_resolution_preserves_seed_provenance_and_reports_provider_distribution(self):
