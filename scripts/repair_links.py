@@ -26,6 +26,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 import build_feed as bf  # noqa: E402
+from workday_inspector import UnsupportedWorkdayUrl, derive_cxs_endpoint  # noqa: E402
 
 ROOT = SCRIPT_DIR.parent
 DEFAULT_PATH = ROOT / "data" / "listings.json"
@@ -479,8 +480,50 @@ def read_html_prefix(response: requests.Response, limit: int = 64_000) -> str:
     return b"".join(chunks).decode(encoding, errors="replace")
 
 
+def validate_workday_url(value: str) -> tuple[str, str] | None:
+    """Validate a direct Workday job through the public CXS endpoint.
+
+    Workday's browser shell can return HTTP 200 for stale job slugs. The CXS
+    endpoint is the authoritative job resource and reliably distinguishes a
+    live posting from a stale path.
+    """
+    try:
+        endpoint = derive_cxs_endpoint(value)
+    except UnsupportedWorkdayUrl:
+        return None
+
+    try:
+        response = requests.get(
+            endpoint["endpoint_url"],
+            headers={"User-Agent": USER_AGENT, "Accept": "application/json"},
+            timeout=TIMEOUT,
+            allow_redirects=True,
+        )
+        try:
+            if response.status_code in {404, 410}:
+                return "dead", value
+            if response.status_code in {401, 403, 429} or response.status_code >= 500:
+                return "unknown", value
+            if not 200 <= response.status_code < 300:
+                return "unknown", value
+            payload = response.json()
+            info = payload.get("jobPostingInfo") if isinstance(payload, dict) else None
+            if not isinstance(info, dict):
+                return "unknown", value
+            if info.get("canApply") is False or info.get("posted") is False:
+                return "dead", value
+            return "ok", endpoint["canonical_job_url"]
+        finally:
+            response.close()
+    except (requests.RequestException, ValueError):
+        return "unknown", value
+
+
 def validate_direct_url(value: str) -> tuple[str, str]:
     """Return (status, final_url), where status is ok, dead, or unknown."""
+    workday = validate_workday_url(value)
+    if workday is not None:
+        return workday
     try:
         response = requests.get(
             value,
