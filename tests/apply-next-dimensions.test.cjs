@@ -44,10 +44,29 @@ function job(overrides = {}) {
   };
 }
 
+assert.deepEqual(D.SCORE_MAXIMA, {
+  fit: 40,
+  eligibility: 0,
+  freshness: 10,
+  roi: 15,
+  role: 20,
+  location: 15,
+  link: 0,
+});
+assert.equal(Object.values(D.SCORE_MAXIMA).reduce((sum, value) => sum + value, 0), 100);
+assert.equal(D.scaleScore(25, 25, 40), 40);
+assert.equal(D.scaleScore(10, 10, 20), 20);
+assert.equal(D.scaleScore(15, 15, 10), 10);
+
 const metadataOnly = D.scoreJob(job({ _inspection: undefined }), profile, now);
-assert.equal(metadataOnly.components.fit.score, 12);
-assert.equal(metadataOnly.components.role.score, 10);
+assert.equal(metadataOnly.components.fit.score, 19);
+assert.equal(metadataOnly.components.role.score, 20);
+assert.equal(metadataOnly.components.location.score, 15);
+assert.equal(metadataOnly.components.freshness.score, 10);
+assert.equal(metadataOnly.components.eligibility.score, 0);
+assert.equal(metadataOnly.components.link.score, 0);
 assert.match(metadataOnly.components.fit.detail, /neutral qualification-fit/i);
+assert.deepEqual(metadataOnly.scoreMaxima, D.SCORE_MAXIMA);
 
 const supported = D.scoreJob(job({
   _inspection: inspection([["Java required", ["Java"]]]),
@@ -58,11 +77,12 @@ const unsupported = D.scoreJob(job({
 }), profile, now);
 assert.ok(supported.components.fit.score > unsupported.components.fit.score);
 assert.doesNotMatch(supported.components.fit.detail, /Career-area overlap|Supported metadata matches/i);
+assert.ok(supported.components.fit.score <= D.SCORE_MAXIMA.fit);
 
 const exactTerm = D.scoreJob(job({ _inspection: inspection() }), profile, now);
 const unknownTerm = D.scoreJob(job({ term: null, url: "https://example.com/unknown", _inspection: inspection() }), profile, now);
-assert.equal(exactTerm.components.eligibility.score, 20);
-assert.equal(unknownTerm.components.eligibility.score, 20);
+assert.equal(exactTerm.components.eligibility.score, 0);
+assert.equal(unknownTerm.components.eligibility.score, 0);
 assert.match(exactTerm.components.eligibility.detail, /gate, not a ranking advantage/i);
 
 const demandPool = [
@@ -74,6 +94,7 @@ assert.equal(demandRanked.length, 2);
 assert.match(demandRanked[0].components.roi.detail, /observed employer demand/i);
 assert.doesNotMatch(demandRanked[0].components.roi.detail, /required-skill differentiation|specialized role aligns/i);
 assert.equal(demandRanked[0].competition.differentiationBonus, 0);
+assert.ok(demandRanked[0].components.roi.score <= D.SCORE_MAXIMA.roi);
 
 const direct = D.scoreJob(job({ _inspection: inspection() }), profile, now);
 const listing = D.scoreJob(job({ link_kind: "listing", url: "https://example.com/listing", _inspection: inspection() }), profile, now);
@@ -81,7 +102,7 @@ assert.equal(direct.components.link.score, 0);
 assert.equal(listing.components.link.score, 0);
 assert.match(direct.components.link.detail, /provenance only/i);
 assert.equal(direct.total, listing.total);
-assert.equal(direct.scoringSemantics.neutralScaleOffset, 5);
+assert.equal(direct.scoringSemantics.link, "provenance only");
 
 const cautious = D.scoreJob(job({
   url: "https://example.com/cautious",
@@ -91,4 +112,10 @@ assert.ok(cautious.components.fit.score < supported.components.fit.score);
 assert.ok(cautious.total <= 100);
 assert.ok(!cautious.inspection.evidence.some(x => /^Qualification readiness adjustment:/i.test(x)));
 
-console.log("apply-next dimension separation tests passed");
+for (const result of [metadataOnly, supported, unsupported, exactTerm, unknownTerm, direct, listing, cautious]) {
+  const weightedTotal = Object.values(result.components).reduce((sum, component) => sum + Number(component.score || 0), 0);
+  assert.equal(result.total, weightedTotal);
+  assert.ok(result.total >= 0 && result.total <= 100);
+}
+
+console.log("apply-next dimension weighting tests passed");
