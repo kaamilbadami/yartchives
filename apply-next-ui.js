@@ -15,6 +15,18 @@
     return String(value || "").trim();
   }
 
+  function formatPostedDate(value) {
+    if (!value) return "";
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) return "";
+    return `Posted ${new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      timeZone: "UTC",
+    }).format(date)}`;
+  }
+
   function validateProfile(profile) {
     if (!profile || typeof profile !== "object" || Array.isArray(profile)) {
       return { ok: false, error: "Profile must be a JSON object." };
@@ -226,6 +238,8 @@
       element("h3", "", job.title || "Untitled opportunity"),
       element("p", "muted", job.location || "Location not listed")
     );
+    const postedDate = formatPostedDate(job.posted_at);
+    if (postedDate) titleWrap.append(element("p", "muted apply-next-posted-date", postedDate));
     const evidenceStatus = element(
       "span",
       "apply-next-component apply-next-inspection-status",
@@ -403,6 +417,7 @@
     knownWrongTerm,
     candidatePool,
     profileSummary,
+    formatPostedDate,
     emptyInspectionArtifact,
     loadInspectionArtifact,
     attachInspections,

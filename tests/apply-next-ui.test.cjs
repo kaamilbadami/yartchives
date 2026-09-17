@@ -21,6 +21,10 @@ assert.equal(UI.componentMax("roi"), 15);
 assert.equal(UI.componentMax("freshness"), 10);
 assert.equal(UI.componentMax("eligibility"), 0);
 assert.equal(UI.componentMax("link"), 0);
+assert.equal(UI.formatPostedDate("2026-09-15T23:30:00-04:00"), "Posted Sep 16, 2026");
+assert.equal(UI.formatPostedDate("2026-09-15"), "Posted Sep 15, 2026");
+assert.equal(UI.formatPostedDate(""), "");
+assert.equal(UI.formatPostedDate("not-a-date"), "");
 
 const values = new Map();
 const storage = {
@@ -103,6 +107,8 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /local storage/i);
   assert.match(uiSource, /Authoritative posting evidence/);
   assert.match(uiSource, /Application Value/);
+  assert.match(uiSource, /Posted \$\{new Intl\.DateTimeFormat/);
+  assert.match(uiSource, /apply-next-posted-date/);
   assert.match(uiSource, /data\/workday-inspections\.json/);
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
 
