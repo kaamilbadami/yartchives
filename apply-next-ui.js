@@ -192,7 +192,7 @@
       fit: "Fit",
       eligibility: "Eligibility",
       freshness: "Freshness",
-      roi: "ROI",
+      roi: "Application Value",
       role: "Role",
       location: "Location",
       link: "Link",
@@ -200,7 +200,10 @@
   }
 
   function componentMax(key) {
-    return ({ fit: 25, eligibility: 20, freshness: 15, roi: 15, role: 10, location: 10, link: 5 })[key] || 0;
+    const maxima = (typeof YartchivesApplyNext !== "undefined" && YartchivesApplyNext.SCORE_MAXIMA)
+      ? YartchivesApplyNext.SCORE_MAXIMA
+      : { fit: 40, eligibility: 0, freshness: 10, roi: 15, role: 20, location: 15, link: 0 };
+    return Number(maxima[key] || 0);
   }
 
   function recommendationCard(result, rank) {
@@ -231,8 +234,10 @@
 
     const breakdown = element("div", "apply-next-breakdown");
     for (const [key, component] of Object.entries(result.components || {})) {
+      const max = componentMax(key);
+      if (max <= 0) continue;
       const chip = element("span", "apply-next-component");
-      chip.textContent = `${componentLabel(key)} ${component.score}/${componentMax(key)}`;
+      chip.textContent = `${componentLabel(key)} ${component.score}/${max}`;
       breakdown.append(chip);
     }
     card.append(breakdown);
@@ -392,6 +397,7 @@
     emptyInspectionArtifact,
     loadInspectionArtifact,
     attachInspections,
+    componentMax,
     init,
   };
 });
