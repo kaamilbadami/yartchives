@@ -1353,20 +1353,11 @@
           ]
         }
       },
-      "careers_url": "https://careers.amtrak.com/careers",
-      "careers_platform": "successfactors",
-      "provider": {
-        "family": "successfactors",
-        "status": "resolved",
-        "evidence": "url_or_page_marker",
-        "marker": "successfactors.com",
-        "host": "careers.amtrak.com"
-      },
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-17T22:37:59Z",
-        "last_attempt_at": "2026-09-17T22:37:59Z",
+        "resolved_at": "2026-09-17T23:07:36Z",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
         "evidence": [
           {
             "type": "http",
@@ -1428,6 +1419,15 @@
             "score": 12
           }
         ]
+      },
+      "careers_url": "https://careers.amtrak.com/careers",
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "careers.amtrak.com"
       }
     },
     {
@@ -3422,7 +3422,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:00:07Z",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
         "evidence": [
           {
             "type": "http",
@@ -5071,20 +5071,11 @@
           "upstream_slug": "datadog"
         }
       },
-      "careers_url": "https://www.greenhouse.com/",
-      "careers_platform": "greenhouse",
-      "provider": {
-        "family": "greenhouse",
-        "status": "resolved",
-        "evidence": "url_or_page_marker",
-        "marker": "greenhouse.io",
-        "host": "www.greenhouse.com"
-      },
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-17T22:55:59Z",
-        "last_attempt_at": "2026-09-17T22:55:59Z",
+        "resolved_at": "2026-09-17T23:07:36Z",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
         "evidence": [
           {
             "type": "http",
@@ -5205,6 +5196,15 @@
             "score": -50
           }
         ]
+      },
+      "careers_url": "https://www.greenhouse.com/",
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "www.greenhouse.com"
       }
     },
     {
@@ -6023,20 +6023,11 @@
           "upstream_slug": "duolingo"
         }
       },
-      "careers_url": "https://careers.duolingo.com/careers",
-      "careers_platform": "greenhouse",
-      "provider": {
-        "family": "greenhouse",
-        "status": "resolved",
-        "evidence": "url_or_page_marker",
-        "marker": "greenhouse.io",
-        "host": "careers.duolingo.com"
-      },
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-17T23:00:07Z",
-        "last_attempt_at": "2026-09-17T23:00:07Z",
+        "resolved_at": "2026-09-17T23:07:36Z",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
         "evidence": [
           {
             "type": "http",
@@ -6154,6 +6145,15 @@
             "score": -50
           }
         ]
+      },
+      "careers_url": "https://careers.duolingo.com/careers",
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "careers.duolingo.com"
       }
     },
     {
@@ -6931,6 +6931,92 @@
           "source_url": "https://withresumeai.com/ats-checker/exelon",
           "upstream_slug": "exelon"
         }
+      },
+      "careers_url": "https://careers-exeloncorp.icims.com/jobs/search",
+      "careers_platform": "icims",
+      "provider": {
+        "family": "icims",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "icims.com",
+        "host": "careers-exeloncorp.icims.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-17T23:07:36Z",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers-exeloncorp.icims.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers-exeloncorp.icims.com/",
+                "status": 302
+              },
+              {
+                "url": "https://careers-exeloncorp.icims.com/jobs",
+                "status": 302
+              },
+              {
+                "url": "https://careers-exeloncorp.icims.com/jobs/search?hashed=-625888692",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers-exeloncorp.icims.com/jobs/search?hashed=-625888692",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers-exeloncorp.icims.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers-exeloncorp.icims.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://careers-exeloncorp.icims.com/careers",
+            "status": 404,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers-exeloncorp.icims.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers-exeloncorp.icims.com/jobs",
+                "status": 302
+              },
+              {
+                "url": "https://careers-exeloncorp.icims.com/jobs/search?hashed=-625888692",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers-exeloncorp.icims.com/jobs/search?hashed=-625888692",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          }
+        ]
       }
     },
     {
@@ -7790,6 +7876,103 @@
             "CT"
           ]
         }
+      },
+      "careers_url": "https://jobs.gartner.com/jobs",
+      "careers_platform": "company-branded",
+      "provider": {
+        "family": "custom_unknown",
+        "status": "unresolved",
+        "evidence": "no_known_provider_marker",
+        "host": "jobs.gartner.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-17T23:07:36Z",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://jobs.gartner.com/",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.gartner.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.gartner.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.gartner.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.gartner.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://jobs.gartner.com/teams/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.gartner.com/teams/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.gartner.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.gartner.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.gartner.com/jobs",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://jobs.gartner.com/jobs/",
+            "linked_from": "https://jobs.gartner.com/",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.gartner.com/jobs/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.gartner.com/jobs/",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          }
+        ]
       }
     },
     {
@@ -7948,6 +8131,254 @@
             "CT"
           ]
         }
+      },
+      "careers_url": "https://careers-gdeb.icims.com/jobs/intro",
+      "careers_platform": "icims",
+      "provider": {
+        "family": "icims",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "icims.com",
+        "host": "careers-gdeb.icims.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-17T23:07:36Z",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers-gdeb.icims.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers-gdeb.icims.com/",
+                "status": 302
+              },
+              {
+                "url": "https://careers-gdeb.icims.com/jobs",
+                "status": 302
+              },
+              {
+                "url": "https://careers-gdeb.icims.com/jobs/intro?hashed=-625976242",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers-gdeb.icims.com/jobs/intro?hashed=-625976242",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers-gdeb.icims.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers-gdeb.icims.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://careers-gdeb.icims.com/careers",
+            "status": 404,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers-gdeb.icims.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers-gdeb.icims.com/jobs",
+                "status": 302
+              },
+              {
+                "url": "https://careers-gdeb.icims.com/jobs/intro?hashed=-625976242",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers-gdeb.icims.com/jobs/intro?hashed=-625976242",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers-gdeb.icims.com/jobs?hashed=-625976242",
+            "linked_from": "https://careers-gdeb.icims.com/jobs/intro?hashed=-625976242",
+            "redirect_chain": [
+              {
+                "url": "https://careers-gdeb.icims.com/jobs?hashed=-625976242",
+                "status": 302
+              },
+              {
+                "url": "https://careers-gdeb.icims.com/jobs/intro?hashed=-625976242",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers-gdeb.icims.com/jobs/intro?hashed=-625976242",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 16
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers-gdeb.icims.com/jobs/login?loginOnly=1&redirect=&hashed=-625976242",
+            "linked_from": "https://careers-gdeb.icims.com/jobs/intro?hashed=-625976242",
+            "redirect_chain": [
+              {
+                "url": "https://careers-gdeb.icims.com/jobs/login?loginOnly=1&redirect=&hashed=-625976242",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers-gdeb.icims.com/jobs/login?loginOnly=1&redirect=&hashed=-625976242",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers-gdeb.icims.com/connect?back=intro&hashed=-625976242",
+            "linked_from": "https://careers-gdeb.icims.com/jobs/intro?hashed=-625976242",
+            "redirect_chain": [
+              {
+                "url": "https://careers-gdeb.icims.com/connect?back=intro&hashed=-625976242",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers-gdeb.icims.com/connect?back=intro&hashed=-625976242",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 13
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "http://www.icims.com/platform_help?utm_source=platform&utm_medium=link&utm_content=page1&utm_campaign=platform%20help",
+            "linked_from": "https://careers-gdeb.icims.com/jobs/intro?hashed=-625976242",
+            "redirect_chain": [
+              {
+                "url": "http://www.icims.com/platform_help?utm_source=platform&utm_medium=link&utm_content=page1&utm_campaign=platform%20help",
+                "status": 301
+              },
+              {
+                "url": "https://www.icims.com/platform_help?utm_source=platform&utm_medium=link&utm_content=page1&utm_campaign=platform%20help",
+                "status": 301
+              },
+              {
+                "url": "https://team.icims.com/jobseekerhelp?utm_source=platform&utm_medium=link&utm_content=page1&utm_campaign=platform%20help",
+                "status": 200
+              }
+            ],
+            "final_url": "https://team.icims.com/jobseekerhelp?utm_source=platform&utm_medium=link&utm_content=page1&utm_campaign=platform%20help",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers page content",
+              "linked from employer site"
+            ],
+            "score": 11
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers-gdeb.icims.com/connect?hashed=-625976242",
+            "linked_from": "https://careers-gdeb.icims.com/connect?back=intro&hashed=-625976242",
+            "redirect_chain": [
+              {
+                "url": "https://careers-gdeb.icims.com/connect?hashed=-625976242",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers-gdeb.icims.com/connect?hashed=-625976242",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 13
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers-gdeb.icims.com/connect/login?redirect=welcome&hashed=-625976242",
+            "linked_from": "https://careers-gdeb.icims.com/connect?back=intro&hashed=-625976242",
+            "redirect_chain": [
+              {
+                "url": "https://careers-gdeb.icims.com/connect/login?redirect=welcome&hashed=-625976242",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers-gdeb.icims.com/connect/login?redirect=welcome&hashed=-625976242",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 11
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers-gdeb.icims.com/jobs/intro?hashed=-625976242",
+            "linked_from": "https://careers-gdeb.icims.com/connect?back=intro&hashed=-625976242",
+            "redirect_chain": [
+              {
+                "url": "https://careers-gdeb.icims.com/jobs/intro?hashed=-625976242",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers-gdeb.icims.com/jobs/intro?hashed=-625976242",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 19
+          }
+        ]
       }
     },
     {
@@ -8643,6 +9074,82 @@
             "MD"
           ]
         }
+      },
+      "careers_url": "https://jobs.hii-tsd.com/careers",
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "jobs.hii-tsd.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-17T23:07:36Z",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://jobs.hii-tsd.com/",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.hii-tsd.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.hii-tsd.com/",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.hii-tsd.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.hii-tsd.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.hii-tsd.com/careers",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.hii-tsd.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.hii-tsd.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.hii-tsd.com/jobs",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          }
+        ]
       }
     },
     {
@@ -8944,6 +9451,79 @@
             "CT"
           ]
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers.munichre.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.munichre.com/",
+                "status": 301
+              },
+              {
+                "url": "https://careers.munichre.com/en",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.munichre.com/en",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.munichre.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers.munichre.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://careers.munichre.com/en/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://careers.munichre.com/en/careers",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.munichre.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.munichre.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://careers.munichre.com/en/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://careers.munichre.com/en/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          }
+        ]
       }
     },
     {
@@ -9154,6 +9734,69 @@
             "CT"
           ]
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://iatinsurancegroup.wd1.myworkdayjobs.com/",
+            "redirect_chain": [
+              {
+                "url": "https://iatinsurancegroup.wd1.myworkdayjobs.com/",
+                "status": 406
+              }
+            ],
+            "final_url": "https://iatinsurancegroup.wd1.myworkdayjobs.com/",
+            "status": 406,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://iatinsurancegroup.wd1.myworkdayjobs.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://iatinsurancegroup.wd1.myworkdayjobs.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://iatinsurancegroup.wd1.myworkdayjobs.com/careers",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://iatinsurancegroup.wd1.myworkdayjobs.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://iatinsurancegroup.wd1.myworkdayjobs.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://iatinsurancegroup.wd1.myworkdayjobs.com/jobs",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          }
+        ]
       }
     },
     {
@@ -9455,6 +10098,70 @@
             "DC"
           ]
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://d2joq6sj09wk6y.cloudfront.net/",
+            "redirect_chain": [
+              {
+                "url": "https://d2joq6sj09wk6y.cloudfront.net/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://d2joq6sj09wk6y.cloudfront.net/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://d2joq6sj09wk6y.cloudfront.net/careers",
+            "redirect_chain": [
+              {
+                "url": "https://d2joq6sj09wk6y.cloudfront.net/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://d2joq6sj09wk6y.cloudfront.net/careers",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://d2joq6sj09wk6y.cloudfront.net/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://d2joq6sj09wk6y.cloudfront.net/jobs",
+                "status": 302
+              },
+              {
+                "url": "https://www.impactpool.org/search",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.impactpool.org/search",
+            "status": 200,
+            "signals": [
+              "careers page content"
+            ],
+            "score": 2
+          }
+        ]
       }
     },
     {
@@ -11006,7 +11713,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:00:07Z",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
         "evidence": [
           {
             "type": "http",
@@ -11135,6 +11842,82 @@
             "MD"
           ]
         }
+      },
+      "careers_url": "https://careers.leonardodrs.com/careers",
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "careers.leonardodrs.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-17T23:07:36Z",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers.leonardodrs.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.leonardodrs.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.leonardodrs.com/",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.leonardodrs.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers.leonardodrs.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.leonardodrs.com/careers",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.leonardodrs.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.leonardodrs.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.leonardodrs.com/jobs",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          }
+        ]
       }
     },
     {
@@ -11621,20 +12404,11 @@
           "upstream_slug": "lyft"
         }
       },
-      "careers_url": "https://www.greenhouse.com/",
-      "careers_platform": "greenhouse",
-      "provider": {
-        "family": "greenhouse",
-        "status": "resolved",
-        "evidence": "url_or_page_marker",
-        "marker": "greenhouse.io",
-        "host": "www.greenhouse.com"
-      },
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-17T22:37:59Z",
-        "last_attempt_at": "2026-09-17T22:37:59Z",
+        "resolved_at": "2026-09-17T23:07:36Z",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
         "evidence": [
           {
             "type": "http",
@@ -11748,6 +12522,15 @@
             "score": -50
           }
         ]
+      },
+      "careers_url": "https://www.greenhouse.com/",
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "www.greenhouse.com"
       }
     },
     {
@@ -12134,6 +12917,75 @@
             "MD"
           ]
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://jobapscloud.com/",
+            "redirect_chain": [
+              {
+                "url": "https://jobapscloud.com/",
+                "status": 301
+              },
+              {
+                "url": "http://corp.jobapscloud.com",
+                "status": 301
+              },
+              {
+                "url": "https://corp.jobapscloud.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://corp.jobapscloud.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobapscloud.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://jobapscloud.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://jobapscloud.com/careers",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobapscloud.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://jobapscloud.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://jobapscloud.com/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          }
+        ]
       }
     },
     {
@@ -14301,6 +15153,173 @@
             "MD"
           ]
         }
+      },
+      "careers_url": "https://careers-peraton.icims.com/jobs/search",
+      "careers_platform": "icims",
+      "provider": {
+        "family": "icims",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "icims.com",
+        "host": "careers-peraton.icims.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-17T23:07:36Z",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers.peraton.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.peraton.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.careers.peraton.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.careers.peraton.com/",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.peraton.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers.peraton.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.careers.peraton.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.careers.peraton.com/careers",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.peraton.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.peraton.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.careers.peraton.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.careers.peraton.com/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers-peraton.icims.com/jobs/login?loginOnly=1&redirect=&in_iframe=1&hashed=-626007088",
+            "linked_from": "https://www.careers.peraton.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers-peraton.icims.com/jobs/login?loginOnly=1&redirect=&in_iframe=1&hashed=-626007088",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers-peraton.icims.com/jobs/login?loginOnly=1&redirect=&in_iframe=1&hashed=-626007088",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "linked from employer site"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers-peraton.icims.com/jobs/search?ss=1&searchRelation=keyword_all",
+            "linked_from": "https://www.careers.peraton.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers-peraton.icims.com/jobs/search?ss=1&searchRelation=keyword_all",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers-peraton.icims.com/jobs/search?ss=1&searchRelation=keyword_all",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "linked from employer site"
+            ],
+            "score": 17
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers-peraton.icims.com/jobs/login?loginOnly=1&redirect=&hashed=-626007088",
+            "linked_from": "https://www.careers.peraton.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers-peraton.icims.com/jobs/login?loginOnly=1&redirect=&hashed=-626007088",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers-peraton.icims.com/jobs/login?loginOnly=1&redirect=&hashed=-626007088",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "linked from employer site"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers-peraton.icims.com/jobs/search?ss=1&searchRelation=keyword_all&mobile=false&width=1210&height=500&bga=true&needsRedirect=false&jan1offset=-300&jun1offset=-240",
+            "linked_from": "https://www.careers.peraton.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers-peraton.icims.com/jobs/search?ss=1&searchRelation=keyword_all&mobile=false&width=1210&height=500&bga=true&needsRedirect=false&jan1offset=-300&jun1offset=-240",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers-peraton.icims.com/jobs/search?ss=1&searchRelation=keyword_all&mobile=false&width=1210&height=500&bga=true&needsRedirect=false&jan1offset=-300&jun1offset=-240",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "careers page content",
+              "linked from employer site"
+            ],
+            "score": 14
+          }
+        ]
       }
     },
     {
@@ -14918,6 +15937,69 @@
           "source_url": "https://withresumeai.com/ats-checker/pwc",
           "upstream_slug": "pwc"
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://pwc.wd3.myworkdayjobs.com/",
+            "redirect_chain": [
+              {
+                "url": "https://pwc.wd3.myworkdayjobs.com/",
+                "status": 406
+              }
+            ],
+            "final_url": "https://pwc.wd3.myworkdayjobs.com/",
+            "status": 406,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://pwc.wd3.myworkdayjobs.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://pwc.wd3.myworkdayjobs.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://pwc.wd3.myworkdayjobs.com/careers",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://pwc.wd3.myworkdayjobs.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://pwc.wd3.myworkdayjobs.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://pwc.wd3.myworkdayjobs.com/jobs",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          }
+        ]
       }
     },
     {
@@ -16520,7 +17602,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:00:07Z",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
         "evidence": [
           {
             "type": "http",
@@ -17113,6 +18195,79 @@
             "DC"
           ]
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://usajobs.gov/",
+            "redirect_chain": [
+              {
+                "url": "https://usajobs.gov/",
+                "status": 301
+              },
+              {
+                "url": "https://www.usajobs.gov/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.usajobs.gov/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://usajobs.gov/careers",
+            "redirect_chain": [
+              {
+                "url": "https://usajobs.gov/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.usajobs.gov/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.usajobs.gov/careers",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://usajobs.gov/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://usajobs.gov/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.usajobs.gov/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.usajobs.gov/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          }
+        ]
       }
     },
     {
@@ -17567,7 +18722,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:00:07Z",
+        "last_attempt_at": "2026-09-17T23:07:36Z",
         "evidence": [
           {
             "type": "http",
