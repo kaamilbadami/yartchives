@@ -8,13 +8,13 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_DIR = ROOT / "scripts"
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
-spec = importlib.util.spec_from_file_location("direct_ct_icims", SCRIPT_DIR / "direct_ct_icims.py")
+spec = importlib.util.spec_from_file_location("direct_icims", SCRIPT_DIR / "direct_icims.py")
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 
 
-class DirectCtIcimsTests(unittest.TestCase):
-    def test_discovers_one_evidenced_ct_cs_icims_site(self):
+class DirectIcimsTests(unittest.TestCase):
+    def test_discovers_evidenced_cs_icims_sites_nationally(self):
         feed = {
             "jobs": [
                 {
@@ -40,7 +40,7 @@ class DirectCtIcimsTests(unittest.TestCase):
             ]
         }
         sources = mod.discover_sources(feed)
-        self.assertEqual(len(sources), 1)
+        self.assertEqual(len(sources), 2)
         self.assertEqual(sources[0]["host"], "careers-gdeb.icims.com")
         self.assertEqual(sources[0]["search_url"], "https://careers-gdeb.icims.com/jobs/search")
         self.assertEqual(sources[0]["sitemap_url"], "https://careers-gdeb.icims.com/sitemap.xml")
@@ -125,10 +125,9 @@ class DirectCtIcimsTests(unittest.TestCase):
 
     def test_authoritative_cybersecurity_intern_becomes_direct_job(self):
         source = {
-            "key": "ct-auto-icims-careers-gdeb-icims-com",
+            "key": "auto-icims-careers-gdeb-icims-com",
             "name": "General Dynamics Electric Boat (auto-discovered iCIMS)",
             "company": "General Dynamics Electric Boat",
-            "state": "CT",
             "homepage": "https://careers-gdeb.icims.com/jobs/intro",
         }
         inspection = {
@@ -151,6 +150,29 @@ class DirectCtIcimsTests(unittest.TestCase):
         self.assertIn("CT", job["states"])
         self.assertTrue(job["direct_employer"])
         self.assertEqual(job["posted_at"], "2026-09-03T00:00:00Z")
+
+    def test_non_us_student_role_is_rejected(self):
+        source = {
+            "key": "auto-icims-careers-example-icims-com",
+            "name": "Example (auto-discovered iCIMS)",
+            "company": "Example",
+            "homepage": "https://careers-example.icims.com/jobs/intro",
+        }
+        inspection = {
+            "status": "inspected",
+            "posting": {
+                "title": "Software Engineering Intern",
+                "date_posted": "2026-09-03",
+                "locations": {"status": "authoritative", "values": ["Toronto, ON, Canada"]},
+            },
+        }
+        job = mod.job_from_inspection(
+            source,
+            "https://careers-example.icims.com/jobs/999/job",
+            inspection,
+            datetime(2026, 9, 17, tzinfo=timezone.utc),
+        )
+        self.assertIsNone(job)
 
 
 if __name__ == "__main__":

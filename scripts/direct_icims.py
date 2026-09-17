@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Add CT CS-relevant sibling jobs from iCIMS career sites already evidenced in-feed.
+"""Add US CS-relevant sibling jobs from iCIMS career sites already evidenced in-feed.
 
-This is a targeted gap-filler, not a broad iCIMS crawler. A site becomes eligible
-only when the normalized feed already contains a Connecticut CS listing with an
+This is a provider-family gap-filler, not a broad iCIMS crawler. A site becomes
+eligible only when the normalized feed already contains a CS listing with an
 authoritative public iCIMS URL. We then search that same public career site for
-student roles and merge matching CT CS opportunities using the existing direct
+student roles and merge matching US CS opportunities using the existing direct
 source upsert semantics.
 """
 from __future__ import annotations
@@ -40,7 +40,6 @@ from icims_inspector import UnsupportedIcimsUrl, derive_icims_endpoint, inspect_
 
 ROOT = SCRIPT_DIR.parent
 DEFAULT_FEED = ROOT / "data" / "listings.json"
-DEFAULT_STATE = "CT"
 TIMEOUT = 25
 MAX_SEARCH_PAGES = 5
 JOB_LINK = re.compile(r"^/jobs/(\d+)(?:/[^?#]+)?/job/?$", re.I)
@@ -55,14 +54,14 @@ def _clean(value: Any) -> str:
     return str(value or "").strip()
 
 
-def _job_in_scope(job: dict[str, Any], state: str) -> bool:
-    states = {str(value).upper() for value in (job.get("states") or []) if value}
-    profiles = {str(value).lower() for value in (job.get("profiles") or []) if value}
-    return state.upper() in states and "cs" in profiles
+def _evidences_cs(job: dict[str, Any]) -> bool:
+    return "cs" in {str(value).lower() for value in (job.get("profiles") or []) if value}
 
 
-def source_from_job(job: dict[str, Any], state: str = DEFAULT_STATE) -> dict[str, Any] | None:
-    if not _job_in_scope(job, state):
+def source_from_job(job: dict[str, Any]) -> dict[str, Any] | None:
+    if not _evidences_cs(job):
+        return None
+    if job.get("link_kind") not in {None, "direct"}:
         return None
     try:
         endpoint = derive_icims_endpoint(_clean(job.get("url")))
@@ -72,7 +71,7 @@ def source_from_job(job: dict[str, Any], state: str = DEFAULT_STATE) -> dict[str
     company = _clean(job.get("company")) or host.split(".", 1)[0]
     slug = re.sub(r"[^a-z0-9]+", "-", host.casefold()).strip("-")
     return {
-        "key": f"{state.casefold()}-auto-icims-{slug}",
+        "key": f"auto-icims-{slug}",
         "name": f"{company} (auto-discovered iCIMS)",
         "company": company,
         "kind": "icims",
@@ -80,19 +79,18 @@ def source_from_job(job: dict[str, Any], state: str = DEFAULT_STATE) -> dict[str
         "homepage": f"https://{host}/jobs/intro",
         "search_url": f"https://{host}/jobs/search",
         "sitemap_url": f"https://{host}/sitemap.xml",
-        "state": state.upper(),
         "profile_hint": ["cs"],
         "auto_discovered": True,
     }
 
 
-def discover_sources(feed: dict[str, Any], state: str = DEFAULT_STATE) -> list[dict[str, Any]]:
+def discover_sources(feed: dict[str, Any]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     seen: set[str] = set()
     jobs = [job for job in (feed.get("jobs") or []) if isinstance(job, dict)]
     jobs.sort(key=lambda job: (_clean(job.get("company")).casefold(), _clean(job.get("url")).casefold()))
     for job in jobs:
-        source = source_from_job(job, state)
+        source = source_from_job(job)
         if not source or source["host"] in seen:
             continue
         out.append(source)
@@ -122,6 +120,18 @@ def _slug_text(url: str) -> str:
     if len(parts) < 4 or parts[0].casefold() != "jobs":
         return ""
     return re.sub(r"[-_]+", " ", parts[2]).strip()
+
+
+def _looks_us(location: str) -> bool:
+    if bf.extract_states(location):
+        return True
+    return bool(
+        re.search(
+            r"\b(?:United States|USA|U\.S\.|US Remote|Remote[- ]?US|Remote[- ]?USA)\b",
+            location or "",
+            flags=re.I,
+        )
+    )
 
 
 def extract_sitemap_job_links(raw_xml: str, source: dict[str, Any]) -> list[str]:
@@ -190,7 +200,7 @@ def job_from_inspection(source: dict[str, Any], url: str, inspection: dict[str, 
     location = " ".join(_clean(value) for value in locations if _clean(value)) or "Location not listed"
     if not is_student_opportunity(title) or not is_cs_relevant_title(title):
         return None
-    if not is_target_state(location, source["state"]):
+    if not _looks_us(location):
         return None
 
     posted_raw = _clean(posting.get("date_posted"))
@@ -215,8 +225,6 @@ def job_from_inspection(source: dict[str, Any], url: str, inspection: dict[str, 
     if not job:
         return None
     job["direct_employer"] = True
-    if source["state"] not in job.get("states", []):
-        job["states"] = sorted(set(job.get("states", [])) | {source["state"]})
     return job
 
 
@@ -250,7 +258,7 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Sessio
                 "direct": True,
                 "auto_discovered": True,
             }
-            print(f"{source['name']}: {len(direct_jobs)} direct CT CS-relevant listing(s)")
+            print(f"{source['name']}: {len(direct_jobs)} direct US CS-relevant listing(s)")
         except Exception as exc:
             health[source["key"]] = {
                 "ok": False,
