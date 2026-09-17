@@ -84,7 +84,7 @@ def derive_oracle_hcm_endpoint(job_url: str) -> dict[str, str]:
 
 
 def _append_unique(values: list[str], value: Any) -> None:
-    cleaned = posting_requirements.clean_line(value)
+    cleaned = posting_requirements.clean_line(str(value) if value is not None else "")
     if cleaned and cleaned.casefold() not in {item.casefold() for item in values}:
         values.append(cleaned)
 
@@ -108,6 +108,10 @@ def _locations(item: dict[str, Any]) -> list[str]:
             else:
                 _append_unique(values, child)
     return values
+
+
+def _clean(value: Any) -> str:
+    return posting_requirements.clean_line(str(value) if value is not None else "")
 
 
 def normalize_payload(payload: Any, *, expected_job_id: str) -> dict[str, Any]:
@@ -148,11 +152,11 @@ def normalize_payload(payload: Any, *, expected_job_id: str) -> dict[str, Any]:
 
     description, lines = posting_requirements.normalize_description("\n".join(sections))
     locations = _locations(item)
-    posting_id = posting_requirements.clean_line(item.get("Id")) or expected_job_id
-    requisition_id = posting_requirements.clean_line(item.get("RequisitionId")) or None
+    posting_id = _clean(item.get("Id")) or expected_job_id
+    requisition_id = _clean(item.get("RequisitionId")) or None
     return {
         "posting": {
-            "title": posting_requirements.clean_line(item.get("Title")) or None,
+            "title": _clean(item.get("Title")) or None,
             "description": description or None,
             "requisition_id": requisition_id,
             "posting_id": posting_id,
@@ -163,9 +167,9 @@ def normalize_payload(payload: Any, *, expected_job_id: str) -> dict[str, Any]:
             "can_apply": True,
             "posted": True,
             "application_status": "available",
-            "first_published": posting_requirements.clean_line(item.get("ExternalPostedStartDate")) or None,
-            "updated_at": posting_requirements.clean_line(item.get("LastUpdateDate")) or None,
-            "application_deadline": posting_requirements.clean_line(item.get("ExternalPostedEndDate")) or None,
+            "first_published": _clean(item.get("ExternalPostedStartDate")) or None,
+            "updated_at": _clean(item.get("LastUpdateDate")) or None,
+            "application_deadline": _clean(item.get("ExternalPostedEndDate")) or None,
         },
         "requirements": posting_requirements.extract_requirements(lines),
     }
