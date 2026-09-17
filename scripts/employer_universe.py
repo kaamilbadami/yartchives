@@ -74,7 +74,7 @@ def common_name_aliases(value: str) -> list[str]:
     original_keys = identity_keys(name)
     return sorted(
         (alias for alias in aliases if not identity_keys(alias) & original_keys),
-        key=str.casefold,
+        key=lambda alias: (alias.casefold(), alias),
     )
 
 
@@ -162,7 +162,7 @@ def merge_seed(universe: dict[str, Any], seed: dict[str, Any]) -> dict[str, Any]
         for alias in incoming_names:
             if not identity_keys(alias) & primary_keys:
                 merged_aliases.add(alias)
-        match["aliases"] = sorted(merged_aliases, key=str.casefold)
+        match["aliases"] = sorted(merged_aliases, key=lambda alias: (alias.casefold(), alias))
         match["seed_sets"] = sorted({*(match.get("seed_sets") or []), source_key})
 
         metadata = _seed_metadata(incoming)
