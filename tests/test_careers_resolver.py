@@ -108,7 +108,7 @@ class CareersResolverTests(unittest.TestCase):
 
     def test_shared_provider_root_linked_from_employer_is_not_resolved(self):
         root = "https://acme.example/"
-        shared = "https://www.greenhouse.com/"
+        shared = "https://job-boards.greenhouse.io/"
         html = f'<a href="{shared}">Careers</a>'
         result, _ = self.resolve({
             root: FakeResponse(root, html),
