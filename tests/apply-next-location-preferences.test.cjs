@@ -147,6 +147,50 @@ const overlappingScore = L.scoreLocation(overlapping, reversedScores);
 assert.equal(overlappingScore.score, 8, "overlapping anchors use the highest configured score");
 assert.match(overlappingScore.detail, /School/);
 
+assert.equal(L.customRelocationScore(200, "preferred") * 1.5, 8, "custom preferred relocation starts at 8/15 through 200 miles");
+assert.equal(L.customRelocationScore(300, "preferred") * 1.5, 4, "custom preferred relocation decays linearly between 200 and 400 miles");
+assert.equal(L.customRelocationScore(400, "preferred"), 0, "custom preferred relocation reaches zero at 400 miles");
+assert.equal(L.customRelocationScore(200, "open") * 1.5, 6, "custom open relocation uses the same curve with a lower ceiling");
+assert.equal(L.customRelocationScore(300, "open") * 1.5, 3);
+assert.equal(L.customRelocationScore(400, "open"), 0);
+
+const customMidDistance = inspectedJob({
+  states: ["PA"],
+  location: "Custom mid-distance",
+  url: "https://example.com/custom-mid-distance",
+  _locationAnchorDistances: [
+    { zip: "06897", distanceMiles: 300 },
+    { zip: "20740", distanceMiles: 350 },
+    { zip: "10001", distanceMiles: 325 },
+  ],
+});
+const customFarDistance = inspectedJob({
+  states: ["IN"],
+  location: "Custom far-distance",
+  url: "https://example.com/custom-far-distance",
+  _locationAnchorDistances: [
+    { zip: "06897", distanceMiles: 494 },
+    { zip: "20740", distanceMiles: 560 },
+    { zip: "10001", distanceMiles: 645 },
+  ],
+});
+const customPreferred = { ...customProfile, relocationPreference: "preferred" };
+assert.equal(L.scoreLocation(customMidDistance, customPreferred).score * 1.5, 4, "300-mile custom fallback displays as 4/15");
+assert.equal(L.scoreLocation(customFarDistance, customPreferred).score, 0, "494-mile custom fallback no longer floors at 9/15");
+assert.match(L.scoreLocation(customFarDistance, customPreferred).detail, /about 494 miles/);
+
+const normalFarDistance = inspectedJob({
+  states: ["IN"],
+  location: "Normal far-distance",
+  url: "https://example.com/normal-far-distance",
+  _locationAnchorDistances: [
+    { zip: "06897", distanceMiles: 494 },
+    { zip: "20740", distanceMiles: 560 },
+  ],
+});
+const normalPreferred = { ...normalWithStaleAnchors, relocationPreference: "preferred" };
+assert.equal(L.scoreLocation(normalFarDistance, normalPreferred).score, 6, "Normal mode keeps existing generic relocation semantics");
+
 const far = inspectedJob({
   states: ["TX"],
   location: "Austin, TX",
@@ -166,7 +210,7 @@ assert.equal(L.rankJobs([nearPrimary, far], noRelocation, new Date("2026-09-16T1
 
 const openRelocation = { ...explicitProfile, relocationPreference: "open" };
 assert.equal(L.scoreLocation(far, openRelocation).excluded, undefined);
-assert.ok(L.scoreLocation(far, openRelocation).score > 0);
+assert.equal(L.scoreLocation(far, openRelocation).score, 0, "custom open relocation also decays to zero beyond 400 miles");
 
 const remote = inspectedJob({ states: ["Remote"], location: "Remote", url: "https://example.com/remote" });
 assert.equal(L.scoreLocation(remote, { ...explicitProfile, remotePreference: "preferred" }).score, 10);
