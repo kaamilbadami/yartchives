@@ -46,10 +46,99 @@
     return Math.round((clamp(value, 0, fromMax) / fromMax) * toMax);
   }
 
+  function normalize(value) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/[^a-z0-9+#.]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
   function countListed(detail, label) {
     const match = String(detail || "").match(new RegExp(`${label}: ([^;]+)`, "i"));
     if (!match) return 0;
     return match[1].split(",").map(x => x.trim()).filter(Boolean).length;
+  }
+
+  function inspectionForResult(result) {
+    return result?.job?._inspection || result?.job?.inspection || null;
+  }
+
+  function requirementField(inspection, key) {
+    const field = inspection?.requirements?.[key];
+    return field && typeof field === "object" ? field : null;
+  }
+
+  function evidenceFacts(field, bucket) {
+    return Array.isArray(field?.[bucket]) ? field[bucket] : [];
+  }
+
+  function explicitGraduateOnlyTitle(job) {
+    const title = normalize(job?.title);
+    if (!title) return false;
+    if (/\b(?:undergrad(?:uate)?|bachelor(?:'s|s)?|freshman|sophomore|junior)\b/.test(title)) return false;
+    if (/\bgrad(?:uate)?\s+(?:intern|internship|co ?op)\b/.test(title)) return true;
+    if (/\b(?:intern|internship|co ?op)\b.*\b(?:graduate|grad|phd|doctoral|doctorate|master(?:'s|s)?|mba)\b/.test(title)) return true;
+    if (/\b(?:phd|doctoral|doctorate|master(?:'s|s)?|mba)\b.*\b(?:intern|internship|co ?op)\b/.test(title)) return true;
+    return false;
+  }
+
+  function degreeLevel(value) {
+    const text = normalize(value);
+    if (/\b(?:bachelor|bs|ba)\b/.test(text)) return "bachelor";
+    if (/\b(?:master|ms|mba)\b/.test(text)) return "master";
+    if (/\b(?:phd|doctoral|doctorate)\b/.test(text)) return "doctoral";
+    return null;
+  }
+
+  function statementMatchesDegree(statement, level) {
+    const text = normalize(statement);
+    if (level === "bachelor") return /\b(?:bachelor|undergrad(?:uate)?|bs|ba)\b/.test(text);
+    if (level === "master") return /\b(?:master|graduate|ms|mba)\b/.test(text);
+    if (level === "doctoral") return /\b(?:phd|doctoral|doctorate)\b/.test(text);
+    return false;
+  }
+
+  function authoritativeAcademicSupport(result, profile) {
+    const inspection = inspectionForResult(result);
+    if (inspection?.status !== "inspected") return { bonus: 0, details: [] };
+
+    let bonus = 0;
+    const details = [];
+    const major = normalize(profile?.facts?.major || profile?.major);
+    const degree = degreeLevel(profile?.facts?.degree || profile?.degree);
+    const majors = requirementField(inspection, "major_fields");
+    const education = requirementField(inspection, "education");
+
+    if (major) {
+      const requiredMajors = evidenceFacts(majors, "required");
+      const preferredMajors = evidenceFacts(majors, "preferred");
+      const requiredMatch = requiredMajors.some(fact => normalize(fact?.statement).includes(major));
+      const preferredMatch = preferredMajors.some(fact => normalize(fact?.statement).includes(major));
+      if (requiredMatch) {
+        bonus += 3;
+        details.push(`${profile?.facts?.major || profile?.major} matches a required major`);
+      } else if (preferredMatch) {
+        bonus += 2;
+        details.push(`${profile?.facts?.major || profile?.major} matches a preferred major`);
+      }
+    }
+
+    if (degree) {
+      const requiredEducation = evidenceFacts(education, "required");
+      const preferredEducation = evidenceFacts(education, "preferred");
+      const requiredMatch = requiredEducation.some(fact => statementMatchesDegree(fact?.statement, degree));
+      const preferredMatch = preferredEducation.some(fact => statementMatchesDegree(fact?.statement, degree));
+      if (requiredMatch) {
+        bonus += 2;
+        details.push(`${degree} degree matches a required education level`);
+      } else if (preferredMatch) {
+        bonus += 1;
+        details.push(`${degree} degree matches a preferred education level`);
+      }
+    }
+
+    return { bonus: Math.min(5, bonus), details };
   }
 
   function qualificationPenalty(readiness) {
@@ -65,7 +154,7 @@
       + Math.min(12, domain * 6));
   }
 
-  function qualificationFitLegacy(result) {
+  function qualificationFitLegacy(result, profile) {
     const prior = result?.components?.fit || { score: 0, detail: "" };
     const detail = String(prior.detail || "");
     const inspected = result?.inspection?.state === "inspected";
@@ -77,17 +166,20 @@
     if (/Career-area overlap:/i.test(detail)) positive -= 10;
     positive -= Math.min(15, countListed(detail, "Supported metadata matches") * 3);
     positive = Math.max(0, positive);
+    const academic = authoritativeAcademicSupport(result, profile || {});
+    const support = positive + academic.bonus;
     const penalty = qualificationPenalty(result?.readiness);
-    const score = Math.max(0, Math.min(25, 12 + positive - penalty));
+    const score = Math.max(0, Math.min(25, 12 + support - penalty));
     const parts = [];
-    if (positive) parts.push(`Authoritative qualification support: +${positive}`);
+    if (support) parts.push(`Authoritative qualification support: +${support}`);
+    if (academic.details.length) parts.push(`Academic qualification match: ${academic.details.join(", ")}`);
     if (penalty) parts.push(`Required qualification gaps: -${penalty}`);
     if (!parts.length) parts.push("No authoritative qualification evidence distinguishes this posting");
     return { score, detail: parts.join("; ") };
   }
 
-  function scoreQualificationFit(result) {
-    const legacy = qualificationFitLegacy(result);
+  function scoreQualificationFit(result, profile) {
+    const legacy = qualificationFitLegacy(result, profile);
     return {
       score: scaleScore(legacy.score, LEGACY_MAXIMA.fit, SCORE_MAXIMA.fit),
       detail: legacy.detail,
@@ -121,9 +213,24 @@
     };
   }
 
-  function transform(result) {
-    if (!result || result.excluded || !result.components) return result;
-    const fit = scoreQualificationFit(result);
+  function graduateTitleExclusion(result, profile) {
+    if (!result || profile?.excludeGraduateOnly === false || !explicitGraduateOnlyTitle(result.job)) return null;
+    const eligibility = { score: 0, excluded: true, detail: "Graduate-only opportunity (explicit title)" };
+    return {
+      ...result,
+      total: 0,
+      excluded: true,
+      components: { ...(result.components || {}), eligibility },
+      reasons: [eligibility.detail],
+    };
+  }
+
+  function transform(result, profile = {}) {
+    if (!result) return result;
+    const gradExcluded = graduateTitleExclusion(result, profile);
+    if (gradExcluded) return gradExcluded;
+    if (result.excluded || !result.components) return result;
+    const fit = scoreQualificationFit(result, profile);
     const eligibility = scoreEligibilityGate(result);
     const freshness = rescaleComponent(result.components.freshness, "freshness");
     const roi = scoreApplicationValue(result);
@@ -160,12 +267,12 @@
   }
 
   function scoreJob(job, profile, now = new Date(), context = {}) {
-    return transform(base.scoreJob(job, profile, now, context));
+    return transform(base.scoreJob(job, profile, now, context), profile || {});
   }
 
   function rankJobs(jobs, profile, now = new Date()) {
     return base.rankJobs(jobs || [], profile || {}, now)
-      .map(transform)
+      .map(result => transform(result, profile || {}))
       .filter(x => !x.excluded)
       .sort((a, b) => b.total - a.total
         || (new Date(b.job?.posted_at || 0) - new Date(a.job?.posted_at || 0))
@@ -176,6 +283,8 @@
     SCORE_MAXIMA,
     LEGACY_MAXIMA,
     scaleScore,
+    explicitGraduateOnlyTitle,
+    authoritativeAcademicSupport,
     scoreQualificationFit,
     scoreEligibilityGate,
     scoreApplicationValue,
