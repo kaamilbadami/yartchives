@@ -1,15 +1,15 @@
 # CT / NY / MD / DC undergraduate CS coverage benchmark
 
 External sample collected: `2026-09-17T15:30:00Z`
-Yartchives feed snapshot: `2026-09-17T15:39:02.689294Z`
+Yartchives feed snapshot: `2026-09-17T17:55:06.707339Z`
 Scope: profiles=cs, states=CT,NY,MD,DC
 
 - External observations collected: **106**
 - Unique external listings (denominator): **106**
 - Duplicate observations collapsed: **0**
 - Captured or probably captured: **50** (47.2%)
-- Visible under expected filters: **32** (30.2%)
-- Actionable findings: **74**
+- Visible under expected filters: **33** (31.1%)
+- Actionable findings: **73**
 
 ## Missing listings by ATS family
 
@@ -35,8 +35,8 @@ Scope: profiles=cs, states=CT,NY,MD,DC
 
 ## Status breakdown
 
-- `already_in_yartchives`: 32
-- `filtered_or_misclassified`: 10
+- `already_in_yartchives`: 33
+- `filtered_or_misclassified`: 9
 - `duplicate_resolution_issue`: 8
 - `employer_exists_but_listing_missing`: 22
 - `configured_source_miss`: 1
@@ -82,22 +82,19 @@ Scope: profiles=cs, states=CT,NY,MD,DC
   - Why: missing expected profile 'cs'
   - Next: Review profile/state/type enrichment or default filter metadata.
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): Schonfeld — 2027 Cybersecurity Operations Intern — New York, NY
-  - Why: Yartchives has 12 listing(s) for this employer but not this role
+  - Why: Yartchives has 15 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
 - **duplicate_resolution_issue** (`provider_identity_mismatch`): Schonfeld — 2027 DMFI Technology Intern — New York, NY
   - Why: same ATS/listing identifier exists but ordinary URL/signature matching failed
   - Next: Add or improve provider-specific canonicalization/deduplication.
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): DV Trading — Client Platforms Engineer Intern - Summer 2027 — New York, NY
-  - Why: Yartchives has 9 listing(s) for this employer but not this role
+  - Why: Yartchives has 13 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
 - **duplicate_resolution_issue** (`provider_identity_mismatch`): DV Trading — Quantitative Research Intern - Summer 2027 (DV Equities) — New York, NY
   - Why: same ATS/listing identifier exists but ordinary URL/signature matching failed
   - Next: Add or improve provider-specific canonicalization/deduplication.
 - **filtered_or_misclassified** (`present_but_hidden`): Lyft — Data Analyst Intern (Summer 2027) — New York, NY
   - Why: missing expected profile 'cs'
-  - Next: Review profile/state/type enrichment or default filter metadata.
-- **filtered_or_misclassified** (`present_but_hidden`): Datadog — Software Engineering Intern (Summer) — New York, NY
-  - Why: missing expected state 'NY'
   - Next: Review profile/state/type enrichment or default filter metadata.
 - **duplicate_resolution_issue** (`probable_duplicate`): Figma — Software Engineer Intern (Summer 2027) — New York, NY
   - Why: same employer has a very similar title and compatible location
@@ -175,13 +172,13 @@ Scope: profiles=cs, states=CT,NY,MD,DC
   - Why: source_key=visionist software intern 2027
   - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): AeroVironment — Summer 2027 Software Engineering Intern — Germantown, MD
-  - Why: Yartchives has 10 listing(s) for this employer but not this role
+  - Why: Yartchives has 12 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): AeroVironment — Summer 2027 Software Engineering Intern — Annapolis Junction, MD
-  - Why: Yartchives has 10 listing(s) for this employer but not this role
+  - Why: Yartchives has 12 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): AeroVironment — Summer 2027 Embedded Software Engineering Intern — Annapolis Junction, MD
-  - Why: Yartchives has 10 listing(s) for this employer but not this role
+  - Why: Yartchives has 12 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
 - **source_not_covered** (`uncovered_source`): MITRE — Internships in Computer Science or Software Engineering — Aberdeen, MD
   - Why: source_key=mitre cs swe aberdeen 2027
@@ -256,13 +253,13 @@ Scope: profiles=cs, states=CT,NY,MD,DC
   - Why: source_key=pwc dtds analytics dc 2027
   - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): Amgen — Undergrad Intern Software Engineer - Technology & Medical Organizations (Summer 2027) — Washington, DC
-  - Why: Yartchives has 11 listing(s) for this employer but not this role
+  - Why: Yartchives has 16 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): Supreme Court of the United States — Office of Information Technology - IT Operations Intern — Washington, DC
   - Why: Yartchives has 8 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): Inter-American Development Bank — Undergraduate Emerging Technologies Lab Intern — Washington, DC
-  - Why: Yartchives has 5 listing(s) for this employer but not this role
+  - Why: Yartchives has 6 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): Exelon — 2027 Summer Internship - Data Science/Analytics — Washington, DC
   - Why: Yartchives has 1 listing(s) for this employer but not this role
