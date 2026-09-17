@@ -10,6 +10,7 @@
   const INSPECTION_URL = "data/workday-inspections.json";
   const TOP_N = 10;
   let inspectionArtifactPromise = null;
+  let warmResourcesKey = null;
 
   function normalize(value) {
     return String(value || "").trim();
@@ -43,6 +44,7 @@
     const checked = validateProfile(profile);
     if (!checked.ok) throw new Error(checked.error);
     storage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    warmResourcesKey = null;
     return profile;
   }
 
@@ -81,7 +83,7 @@
     const client = fetchImpl || (typeof fetch === "function" ? fetch : null);
     if (!client) return emptyInspectionArtifact();
     try {
-      const response = await client(INSPECTION_URL, { cache: "no-store" });
+      const response = await client(INSPECTION_URL, { cache: "no-cache" });
       if (!response || !response.ok) return emptyInspectionArtifact();
       const payload = await response.json();
       if (!payload || typeof payload !== "object") return emptyInspectionArtifact();
@@ -99,6 +101,26 @@
     if (fetchImpl) return fetchInspectionArtifact(fetchImpl);
     if (!inspectionArtifactPromise) inspectionArtifactPromise = fetchInspectionArtifact();
     return inspectionArtifactPromise;
+  }
+
+  function warmApplyNextResources(profile) {
+    const tasks = [loadInspectionArtifact()];
+    const zips = (profile?.baseZips || []).filter(value => /^\d{5}$/.test(String(value)));
+    if (zips.length && typeof loadGeoIndex === "function") tasks.push(loadGeoIndex());
+    return Promise.allSettled(tasks);
+  }
+
+  function scheduleWarmResources(profile) {
+    if (!profile) return false;
+    const zips = (profile?.baseZips || []).filter(value => /^\d{5}$/.test(String(value)));
+    const key = JSON.stringify(zips);
+    if (warmResourcesKey === key) return false;
+    warmResourcesKey = key;
+    const run = () => { warmApplyNextResources(profile); };
+    if (typeof requestIdleCallback === "function") requestIdleCallback(run, { timeout: 1500 });
+    else if (typeof setTimeout === "function") setTimeout(run, 0);
+    else run();
+    return true;
   }
 
   function attachInspections(jobs, artifact) {
@@ -159,6 +181,7 @@
       try {
         const parsed = JSON.parse(textarea.value);
         saveProfile(localStorage, parsed);
+        scheduleWarmResources(parsed);
         setProfileError("");
         await renderPanel(panel);
       } catch (error) {
@@ -326,6 +349,7 @@
     clear.type = "button";
     clear.addEventListener("click", () => {
       localStorage.removeItem(STORAGE_KEY);
+      warmResourcesKey = null;
       setupPanel(panel);
     });
     controls.append(edit, clear);
@@ -374,6 +398,9 @@
     const stats = main.querySelector(".stats");
     main.insertBefore(panel, stats ? stats.nextSibling : main.firstChild);
 
+    const savedProfile = loadProfile(localStorage);
+    if (savedProfile) scheduleWarmResources(savedProfile);
+
     button.addEventListener("click", async () => {
       const opening = panel.classList.contains("hidden");
       panel.classList.toggle("hidden", !opening);
@@ -388,7 +415,9 @@
       const priorRenderJobs = renderJobs;
       renderJobs = function () {
         priorRenderJobs();
-        if (!panel.classList.contains("hidden") && loadProfile(localStorage)) renderPanel(panel);
+        const profile = loadProfile(localStorage);
+        if (profile) scheduleWarmResources(profile);
+        if (!panel.classList.contains("hidden") && profile) renderPanel(panel);
       };
     }
   }
@@ -405,6 +434,8 @@
     profileSummary,
     emptyInspectionArtifact,
     loadInspectionArtifact,
+    warmApplyNextResources,
+    scheduleWarmResources,
     attachInspections,
     addBaseDistances,
     componentMax,
