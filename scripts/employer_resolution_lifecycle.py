@@ -50,7 +50,7 @@ def _valid_existing_resolution(employer: dict[str, Any]) -> bool:
     if not url:
         return False
     provider = employer.get("provider") or {}
-    if provider.get("status") == "resolved" and not has_provider_tenant_identity(url):
+    if provider.get("status") == "resolved" and not has_provider_tenant_identity(url, provider.get("family")):
         return False
     return True
 
