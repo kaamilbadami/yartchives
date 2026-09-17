@@ -99,18 +99,18 @@ class EmployerUniverseTests(unittest.TestCase):
         twice = mod.merge_seed(once, seed)
         self.assertEqual(once, twice)
 
-    def test_generic_aliases_merge_common_corporate_names(self):
+    def test_generic_aliases_merge_safe_legal_entity_suffixes(self):
         benchmark = {
             "schema_version": 1,
             "source": {"key": "benchmark", "kind": "coverage_benchmark"},
-            "employers": [{"name": "The Hartford", "evidence_count": 2}],
+            "employers": [{"name": "Leidos", "evidence_count": 2}],
         }
         fortune = {
             "schema_version": 1,
             "source": {"key": "fortune-500-2026", "kind": "fortune_500", "edition": 2026},
             "employers": [{
-                "name": "Hartford Insurance Group",
-                "aliases": mod.common_name_aliases("Hartford Insurance Group"),
+                "name": "Leidos Holdings",
+                "aliases": mod.common_name_aliases("Leidos Holdings"),
                 "rank": 160,
             }],
         }
@@ -119,8 +119,8 @@ class EmployerUniverseTests(unittest.TestCase):
 
         self.assertEqual(len(merged["employers"]), 1)
         employer = merged["employers"][0]
-        self.assertEqual(employer["name"], "The Hartford")
-        self.assertEqual(employer["aliases"], ["Hartford Insurance Group"])
+        self.assertEqual(employer["name"], "Leidos")
+        self.assertEqual(employer["aliases"], ["Leidos Holdings"])
         self.assertEqual(employer["seed_metadata"]["benchmark"], {"evidence_count": 2})
         self.assertEqual(employer["seed_metadata"]["fortune-500-2026"], {"rank": 160})
 
@@ -130,7 +130,9 @@ class EmployerUniverseTests(unittest.TestCase):
             ["Bank of New York", "BNY"],
         )
         self.assertEqual(mod.common_name_aliases("Leidos Holdings"), ["Leidos"])
-        self.assertEqual(mod.common_name_aliases("CACI International"), ["CACI"])
+        self.assertEqual(mod.common_name_aliases("CACI International"), [])
+        self.assertEqual(mod.common_name_aliases("Hartford Insurance Group"), [])
+        self.assertEqual(mod.common_name_aliases("Example Holdings Inc."), ["Example Holdings"])
         self.assertEqual(mod.normalize_name("Mondelēz International"), "mondelez international")
 
     def test_duplicate_employer_in_seed_is_rejected(self):
