@@ -21,6 +21,14 @@ function trustedDistance(miles) {
   return { _distanceMiles: miles, _distanceMilesBasis: "apply-next-profile" };
 }
 
+function inspected() {
+  return {
+    status: "inspected",
+    posting: { application_status: "available" },
+    requirements: {},
+  };
+}
+
 assert.deepEqual(L.scoreLocation({ location: "Baltimore, MD", states: ["MD"], ...trustedDistance(220) }, profile), {
   score: 10,
   detail: "Preferred state: MD",
@@ -39,7 +47,6 @@ assert.equal(L.scoreLocation({ location: "Remote", states: ["Remote"] }, noRemot
 const noRelocation = { ...profile, relocationAllowed: false };
 assert.equal(L.scoreLocation({ location: "Austin, TX", states: ["TX"], ...trustedDistance(1200) }, noRelocation).score, 1);
 
-// Regression: explicit location text wins over contaminated merged state metadata.
 assert.deepEqual(L.explicitLocationStates({ location: "State College, PA" }), ["PA"]);
 const stateCollege = L.scoreLocation({
   location: "State College, PA",
@@ -57,7 +64,6 @@ const rtp = L.scoreLocation({
 assert.equal(rtp.score, 4);
 assert.doesNotMatch(rtp.detail, /Preferred state: CT|Within 50 miles/);
 
-// Regression: stale main-feed distances are ignored unless recalculated from Apply Next profile bases.
 const pittsburghStale = L.scoreLocation({
   location: "Pittsburgh",
   states: ["PA"],
@@ -82,6 +88,7 @@ const job = {
   posted_at: "2026-09-16T12:00:00Z",
   link_kind: "direct",
   url: "https://example.com/apply-far",
+  _inspection: inspected(),
   ...trustedDistance(1200),
 };
 const now = new Date("2026-09-16T16:00:00Z");
@@ -100,11 +107,20 @@ const nearJob = {
   url: "https://example.com/apply-near",
   ...trustedDistance(90),
 };
-const ranked = L.rankJobs([job, nearJob], profile, now);
+const metadataOnly = {
+  ...nearJob,
+  company: "MetadataCo",
+  url: "https://example.com/metadata-only",
+  _inspection: undefined,
+};
+assert.equal(L.hasAuthoritativeInspection(job), true);
+assert.equal(L.hasAuthoritativeInspection(metadataOnly), false);
+const ranked = L.rankJobs([metadataOnly, job, nearJob], profile, now);
+assert.equal(ranked.length, 2);
 assert.equal(ranked[0].job.company, "NearCo");
+assert.ok(ranked.every(result => result.inspection?.state === "inspected"));
 assert.ok(ranked[0].components.location.score > ranked[1].components.location.score);
 
-// Canonical ATS identity must collapse duplicate URL shapes before ranking and demand counts.
 const duolingoA = {
   ...nearJob,
   id: "duo-a",
@@ -142,11 +158,18 @@ const geckoC = {
   location: "Boston, MA",
   states: ["MA"],
 };
+const geckoMetadata = {
+  ...geckoA,
+  id: "gecko-metadata",
+  url: "https://jobs.ashbyhq.com/gecko-robotics/ffffffff-1111-4222-8333-444444444444",
+  _inspection: undefined,
+};
 assert.equal(L.canonicalPostingKey(geckoA), L.canonicalPostingKey(geckoB));
-const geckoRanked = L.rankJobs([geckoA, geckoB, geckoC], profile, now);
+const geckoRanked = L.rankJobs([geckoA, geckoB, geckoC, geckoMetadata], profile, now);
 assert.equal(geckoRanked.length, 2);
 for (const result of geckoRanked) {
   assert.match(result.components.roi.detail, /observed employer demand: 2 current software engineering openings/);
+  assert.doesNotMatch(result.components.roi.detail, /3 current software engineering openings/);
 }
 
-console.log("apply-next location and canonical dedupe tests passed");
+console.log("apply-next authoritative-only, location, and canonical dedupe tests passed");

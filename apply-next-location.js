@@ -103,6 +103,10 @@
     return 1;
   }
 
+  function hasAuthoritativeInspection(job) {
+    return inspectionRank(job) === 3;
+  }
+
   function preferDuplicate(current, candidate) {
     const currentRank = inspectionRank(current);
     const candidateRank = inspectionRank(candidate);
@@ -180,7 +184,7 @@
   }
 
   function rankJobs(jobs, profile, now = new Date()) {
-    const pool = dedupeCanonicalJobs(jobs || []);
+    const pool = dedupeCanonicalJobs(jobs || []).filter(hasAuthoritativeInspection);
     const context = typeof base.buildCompetitionContext === "function"
       ? base.buildCompetitionContext(pool)
       : {};
@@ -202,6 +206,7 @@
     reliableStates,
     canonicalPostingKey,
     dedupeCanonicalJobs,
+    hasAuthoritativeInspection,
     scoreLocation,
     scoreJob,
     rankJobs,
