@@ -1,0 +1,109 @@
+name: Temporary regional benchmark rerun
+
+on:
+  push:
+    branches:
+      - audit/rerun-regional-benchmark-after-profile-icims-fixes
+
+permissions:
+  contents: write
+
+jobs:
+  rerun:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 2
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Rerun benchmark and contract
+        run: |
+          set -euo pipefail
+          cp audit/ct-ny-md-dc-cs-coverage-2026-09-17.json /tmp/previous-report.json
+          python scripts/coverage_audit_runner.py audit/samples/ct-ny-md-dc-cs-2026-09-17.json \
+            --output audit/ct-ny-md-dc-cs-coverage-2026-09-17.json \
+            --markdown-output audit/ct-ny-md-dc-cs-coverage-2026-09-17.md
+          python scripts/coverage_contract.py audit/ct-ny-md-dc-cs-coverage-2026-09-17.json \
+            --json-output audit/coverage-contract-status-ct-ny-md-dc-2026-09-17.json \
+            --markdown-output audit/coverage-contract-status-ct-ny-md-dc-2026-09-17.md
+
+      - name: Write benchmark delta note
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          old = json.loads(Path('/tmp/previous-report.json').read_text())
+          new = json.loads(Path('audit/ct-ny-md-dc-cs-coverage-2026-09-17.json').read_text())
+          os = old['summary']; ns = new['summary']
+          def pct(n, d): return f"{100*n/d:.1f}%" if d else "N/A"
+          old_results = {(r['company'], r['title'], r['location']): r for r in old['results']}
+          new_results = {(r['company'], r['title'], r['location']): r for r in new['results']}
+          changes = []
+          for key, nr in new_results.items():
+              orow = old_results.get(key)
+              if orow and orow.get('status') != nr.get('status'):
+                  changes.append((key, orow.get('status'), nr.get('status')))
+          old_ats = os.get('missing_by_ats_family', {})
+          new_ats = ns.get('missing_by_ats_family', {})
+          lines = [
+              '# Regional benchmark change note', '',
+              f"Previous feed snapshot: `{old['feed']['generated_at']}`",
+              f"Current feed snapshot: `{new['feed']['generated_at']}`", '',
+              '## Benchmark delta', '',
+              f"- Captured or probably captured: **{os['captured_or_probably_captured']}/{os['external_listings']} ({pct(os['captured_or_probably_captured'], os['external_listings'])}) → {ns['captured_or_probably_captured']}/{ns['external_listings']} ({pct(ns['captured_or_probably_captured'], ns['external_listings'])})**.",
+              f"- Visible under expected filters: **{os['visible_under_expected_filters']}/{os['external_listings']} ({pct(os['visible_under_expected_filters'], os['external_listings'])}) → {ns['visible_under_expected_filters']}/{ns['external_listings']} ({pct(ns['visible_under_expected_filters'], ns['external_listings'])})**.",
+              f"- Actionable findings: **{os['actionable_findings']} → {ns['actionable_findings']}**.",
+          ]
+          ats_changes = []
+          for family in sorted(set(old_ats) | set(new_ats)):
+              if old_ats.get(family, 0) != new_ats.get(family, 0):
+                  ats_changes.append(f"- `{family}` true misses: **{old_ats.get(family, 0)} → {new_ats.get(family, 0)}**.")
+          lines.extend(ats_changes)
+          lines.extend(['', '## Status changes', ''])
+          if changes:
+              for (company, title, location), before, after in changes:
+                  lines.append(f"- **{company} — {title}** ({location}): `{before}` → `{after}`.")
+          else:
+              lines.append('- No benchmark listing changed status.')
+          Path('audit/regional-benchmark-changes-2026-09-17.md').write_text('\n'.join(lines) + '\n')
+          PY
+
+      - name: Validate outputs
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tests -p 'test_*.py'
+          python - <<'PY'
+          import json
+          for path in [
+              'audit/ct-ny-md-dc-cs-coverage-2026-09-17.json',
+              'audit/coverage-contract-status-ct-ny-md-dc-2026-09-17.json',
+          ]:
+              json.load(open(path))
+          PY
+          git diff --check
+
+      - name: Commit audit artifacts and remove temporary workflow
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/tmp-regional-benchmark-rerun.yml
+          git add \
+            audit/ct-ny-md-dc-cs-coverage-2026-09-17.json \
+            audit/ct-ny-md-dc-cs-coverage-2026-09-17.md \
+            audit/coverage-contract-status-ct-ny-md-dc-2026-09-17.json \
+            audit/coverage-contract-status-ct-ny-md-dc-2026-09-17.md \
+            audit/regional-benchmark-changes-2026-09-17.md
+          git config user.name yartchives-bot
+          git config user.email actions@users.noreply.github.com
+          git commit -m "audit: refresh regional benchmark after profile and iCIMS fixes"
+          git push
