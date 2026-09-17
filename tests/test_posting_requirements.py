@@ -128,6 +128,21 @@ class PostingRequirementTests(unittest.TestCase):
         self.assertEqual(result["skills"]["classification"], "unknown")
         self.assertEqual(result["skills"]["unspecified"], [])
 
+    def test_extracts_authoritative_term_duration_and_date_range(self):
+        schedule = shared.extract_posting_schedule([
+            "Our site is seeking a Portfolio Analytics Analyst Co-Op for the Spring 2027 season.",
+            "This assignment is intended to be 6 months in duration.",
+            "Available to work 40 hours a week beginning in January through June.",
+        ])
+        self.assertEqual(schedule["status"], "authoritative")
+        self.assertEqual(schedule["terms"], ["Spring 2027"])
+        self.assertEqual(schedule["duration_evidence"], [
+            "This assignment is intended to be 6 months in duration."
+        ])
+        self.assertEqual(schedule["date_range_evidence"], [
+            "Available to work 40 hours a week beginning in January through June."
+        ])
+
     def test_normalization_preserves_stable_block_lines(self):
         text, lines = shared.normalize_description(
             "<h2>Required Qualifications</h2><p>C++ required.<br>Linux preferred.</p>"

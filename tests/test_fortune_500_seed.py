@@ -90,13 +90,13 @@ class Fortune500SeedTests(unittest.TestCase):
         merged = [row for row in fortune if len(row["seed_sets"]) > 1]
         readiness = Counter(queue_entry(row)["resolution_readiness"] for row in fortune)
 
-        self.assertEqual(len(universe["employers"]), 549)
+        self.assertEqual(len(universe["employers"]), 942)
         self.assertEqual(len(fortune), 500)
-        self.assertEqual(len(merged), 7)
-        self.assertEqual(len(fortune) - len(merged), 493)
+        self.assertEqual(len(merged), 147)
+        self.assertEqual(len(fortune) - len(merged), 353)
         self.assertEqual(
             readiness,
-            {"ready": 1, "needs_tenant_identity": 1, "no_domain_hint": 498},
+            {"ready": 127, "needs_tenant_identity": 20, "no_domain_hint": 353},
         )
         bny = next(row for row in universe["employers"] if row["id"] == "bny")
         self.assertIn("coverage-benchmark-2026-09-17", bny["seed_metadata"])

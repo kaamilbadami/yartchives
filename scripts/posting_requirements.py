@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 # way that should invalidate cached requirement facts. The cache updater can
 # re-run this extractor from a stored posting description without another ATS
 # request; entries without a reprocessable description are refreshed normally.
-EXTRACTOR_VERSION = 4
+EXTRACTOR_VERSION = 5
 
 # This vocabulary only annotates exact technology mentions in an already
 # identified qualification statement. It never creates a requirement by itself,
@@ -245,6 +245,44 @@ def _unheaded_candidate_skill_evidence(statement: str) -> bool:
         r"\bcoursework (?:with|in)\b|\bskills? (?:with|in)\b",
         lower,
     ))
+
+
+TERM_PATTERN = re.compile(r"\b(Spring|Summer|Fall|Autumn|Winter)\s+(20\d{2})\b", re.I)
+DURATION_PATTERN = re.compile(r"\b(?:\d+|three|four|five|six|seven|eight|nine|ten|eleven|twelve)[ -]?(?:month|months|week|weeks)\b", re.I)
+DATE_RANGE_PATTERN = re.compile(
+    r"\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\b"
+    r"[^.\n]{0,60}\b(?:through|to|until|thru|-)\b[^.\n]{0,60}"
+    r"\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\b",
+    re.I,
+)
+
+
+def extract_posting_schedule(lines: Iterable[str]) -> dict[str, Any]:
+    """Extract explicit employer-stated term and duration evidence from posting text."""
+
+    terms: list[str] = []
+    duration_evidence: list[str] = []
+    date_range_evidence: list[str] = []
+    for raw in lines:
+        statement = clean_line(raw)
+        if not statement:
+            continue
+        for season, year in TERM_PATTERN.findall(statement):
+            normalized_season = "Fall" if season.casefold() == "autumn" else season[:1].upper() + season[1:].lower()
+            term = f"{normalized_season} {year}"
+            if term not in terms:
+                terms.append(term)
+        if DURATION_PATTERN.search(statement) and statement not in duration_evidence:
+            duration_evidence.append(statement)
+        if DATE_RANGE_PATTERN.search(statement) and statement not in date_range_evidence:
+            date_range_evidence.append(statement)
+
+    return {
+        "status": "authoritative" if terms or duration_evidence or date_range_evidence else "unknown",
+        "terms": terms,
+        "duration_evidence": duration_evidence,
+        "date_range_evidence": date_range_evidence,
+    }
 
 
 def extract_requirements(lines: Iterable[str]) -> dict[str, dict[str, Any]]:

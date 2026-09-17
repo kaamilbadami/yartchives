@@ -134,6 +134,46 @@ assert.match(inspectedStrongScore.components.eligibility.detail, /2028 fits/);
 assert.match(inspectedStrongScore.components.eligibility.detail, /work-authorization/);
 assert.match(inspectedStrongScore.components.fit.detail, /Required posting skills supported/);
 
+const springCoop = {
+  ...freshDirect,
+  company: "Spring co-op",
+  term: null,
+  _inspection: {
+    provider: "workday",
+    status: "inspected",
+    posting: { application_status: "available" },
+    schedule: {
+      status: "authoritative",
+      terms: ["Spring 2027"],
+      duration_evidence: ["This assignment is intended to be 6 months in duration."],
+      date_range_evidence: ["Available to work beginning in January through June."],
+    },
+    requirements: {},
+  },
+};
+const springCoopScore = A.scoreJob(springCoop, profile, now);
+assert.equal(springCoopScore.excluded, true);
+assert.match(springCoopScore.reasons[0], /Authoritative posting term is Spring 2027, not Summer 2027/);
+
+const summerAuthoritative = A.scoreEligibility({
+  ...freshDirect,
+  term: null,
+  _inspection: {
+    status: "inspected",
+    posting: { application_status: "available" },
+    schedule: {
+      status: "authoritative",
+      terms: ["Summer 2027"],
+      duration_evidence: ["12-week internship."],
+      date_range_evidence: [],
+    },
+    requirements: {},
+  },
+}, profile);
+assert.equal(summerAuthoritative.excluded, false);
+assert.match(summerAuthoritative.detail, /Authoritative posting matches Summer 2027/);
+assert.match(summerAuthoritative.detail, /Authoritative schedule: 12-week internship/);
+
 const unavailable = A.scoreJob({
   ...freshDirect,
   url: "https://job-boards.greenhouse.io/example/jobs/9999999",
