@@ -1,15 +1,15 @@
 # CT / NY / MD / DC undergraduate CS coverage benchmark
 
 External sample collected: `2026-09-17T15:30:00Z`
-Yartchives feed snapshot: `2026-09-17T18:11:34.574004Z`
+Yartchives feed snapshot: `2026-09-17T18:32:35.335115Z`
 Scope: profiles=cs, states=CT,NY,MD,DC
 
 - External observations collected: **106**
 - Unique external listings (denominator): **106**
 - Duplicate observations collapsed: **0**
 - Captured or probably captured: **53** (50.0%)
-- Visible under expected filters: **33** (31.1%)
-- Actionable findings: **73**
+- Visible under expected filters: **34** (32.1%)
+- Actionable findings: **72**
 
 ## Missing listings by ATS family
 
@@ -35,8 +35,8 @@ Scope: profiles=cs, states=CT,NY,MD,DC
 
 ## Status breakdown
 
-- `already_in_yartchives`: 33
-- `filtered_or_misclassified`: 11
+- `already_in_yartchives`: 34
+- `filtered_or_misclassified`: 10
 - `duplicate_resolution_issue`: 9
 - `employer_exists_but_listing_missing`: 19
 - `configured_source_miss`: 1
@@ -55,7 +55,7 @@ Scope: profiles=cs, states=CT,NY,MD,DC
   - Why: source_key=2026 81924
   - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): General Dynamics Electric Boat — Cybersecurity - 2027 Summer Internship — Groton, CT
-  - Why: Yartchives has 3 listing(s) for this employer but not this role
+  - Why: Yartchives has 2 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
 - **source_not_covered** (`uncovered_source`): Interactive Brokers — Software Developer Summer Internship - 2027 — Greenwich, CT
   - Why: source_key=4456794958
@@ -111,9 +111,6 @@ Scope: profiles=cs, states=CT,NY,MD,DC
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): Point72 — Quantitative Software Developer Intern — New York, NY
   - Why: Yartchives has 5 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
-- **filtered_or_misclassified** (`present_but_hidden`): Audax Group — IT Operations Co-Op — New York, NY
-  - Why: missing expected profile 'cs'
-  - Next: Review profile/state/type enrichment or default filter metadata.
 - **filtered_or_misclassified** (`present_but_hidden`): BNY — 2027 BNY Summer Internship Program - Engineering (Developer) - New York, NY — New York, NY
   - Why: missing expected profile 'cs'
   - Next: Review profile/state/type enrichment or default filter metadata.
