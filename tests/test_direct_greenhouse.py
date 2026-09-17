@@ -139,8 +139,8 @@ class DirectGreenhouseTests(unittest.TestCase):
     def test_board_list_is_bounded_to_matching_sibling_roles(self):
         source = {
             "key": "auto-greenhouse-example",
-            "name": "Example (auto-discovered Greenhouse)",
-            "company": "Example",
+            "name": "Acme (auto-discovered Greenhouse)",
+            "company": "Acme",
             "board_token": "example",
             "homepage": "https://job-boards.greenhouse.io/example",
             "api_url": "https://boards-api.greenhouse.io/v1/boards/example/jobs",
