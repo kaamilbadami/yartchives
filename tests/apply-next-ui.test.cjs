@@ -14,6 +14,13 @@ const profile = {
 assert.equal(UI.validateProfile(profile).ok, true);
 assert.equal(UI.validateProfile({ roleFamilies: profile.roleFamilies }).ok, false);
 assert.equal(UI.validateProfile({ targetTerm: "Summer 2027", roleFamilies: [] }).ok, false);
+assert.equal(UI.componentMax("fit"), 40);
+assert.equal(UI.componentMax("role"), 20);
+assert.equal(UI.componentMax("location"), 15);
+assert.equal(UI.componentMax("roi"), 15);
+assert.equal(UI.componentMax("freshness"), 10);
+assert.equal(UI.componentMax("eligibility"), 0);
+assert.equal(UI.componentMax("link"), 0);
 
 const values = new Map();
 const storage = {
@@ -87,12 +94,15 @@ assert.equal(jobs[2]._inspection, undefined);
   const index = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
   assert.ok(index.includes('href="apply-next.css"'));
   assert.ok(index.includes('src="apply-next.js"'));
+  assert.ok(index.includes('src="apply-next-dimensions.js"'));
   assert.ok(index.includes('src="apply-next-ui.js"'));
-  assert.ok(index.indexOf('src="apply-next.js"') < index.indexOf('src="apply-next-ui.js"'));
+  assert.ok(index.indexOf('src="apply-next.js"') < index.indexOf('src="apply-next-dimensions.js"'));
+  assert.ok(index.indexOf('src="apply-next-dimensions.js"') < index.indexOf('src="apply-next-ui.js"'));
 
   const uiSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-ui.js"), "utf8");
   assert.match(uiSource, /local storage/i);
   assert.match(uiSource, /Authoritative posting evidence/);
+  assert.match(uiSource, /Application Value/);
   assert.match(uiSource, /data\/workday-inspections\.json/);
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
 
