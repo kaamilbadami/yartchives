@@ -95,6 +95,35 @@ class CoverageAuditTests(unittest.TestCase):
         self.assertEqual(result["status"], "already_in_yartchives")
         self.assertEqual(result["expected"]["states"], ["CT"])
 
+    def test_icims_job_paths_share_provider_identity(self):
+        left = "https://careers-gdeb.icims.com/jobs/20338/cybersecurity---2027-summer-internship/job"
+        right = "https://careers-gdeb.icims.com/jobs/20338/another-display-slug/login"
+        self.assertEqual(mod.url_identity(left), mod.url_identity(right))
+        self.assertEqual(mod.url_identity(left), ("careers-gdeb.icims.com", "icims-job=20338"))
+
+    def test_icims_provider_identity_matches_company_alias(self):
+        record = {
+            "company": "General Dynamics Electric Boat",
+            "title": "Cybersecurity - 2027 Summer Internship",
+            "location": "Groton, CT",
+            "url": "https://careers-gdeb.icims.com/jobs/20338/cybersecurity---2027-summer-internship/job",
+            "expected_profile": "cs",
+            "expected_state": "CT",
+            "expected_opportunity_type": "internship",
+        }
+        jobs = [feed_job(
+            company="General Dynamics",
+            title="Cybersecurity - 2027 Summer Internship",
+            location="Groton, CT, 06340, US",
+            url="https://careers-gdeb.icims.com/jobs/20338/cybersecurity---2027-summer-internship/job?in_iframe=1",
+            profiles=["cs"],
+            states=["CT"],
+            opportunity_type="internship",
+        )]
+        result = self.classify(record, jobs=jobs)
+        self.assertEqual(result["status"], "already_in_yartchives")
+        self.assertEqual(result["reason_code"], "provider_identity_match")
+
     def test_same_ats_identity_detects_resolution_issue(self):
         result = self.classify({
             "company": "Different Display Name",
