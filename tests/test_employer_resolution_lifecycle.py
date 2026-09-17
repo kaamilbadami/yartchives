@@ -49,6 +49,41 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
             ],
         }
 
+    def test_shared_provider_root_is_not_treated_as_fresh_success(self):
+        employer = self.employer(
+            "shared",
+            careers_url="https://www.greenhouse.com/",
+            careers_platform="greenhouse",
+            provider={"status": "resolved", "family": "greenhouse"},
+            careers_resolution={
+                "status": "resolved",
+                "resolved_at": "2026-09-17T19:00:00Z",
+                "last_attempt_at": "2026-09-17T19:00:00Z",
+            },
+        )
+        calls = []
+
+        def resolver(entry, **kwargs):
+            calls.append(entry["id"])
+            return {
+                "status": "unresolved",
+                "url": None,
+                "platform": None,
+                "provider": None,
+                "evidence": [{"type": "http", "status": 404, "requested_url": "https://shared.example"}],
+            }
+
+        updated, summary = mod.run_lifecycle(self.universe([employer]), now=NOW, resolver=resolver)
+        self.assertEqual(calls, ["shared"])
+        row = updated["employers"][0]
+        self.assertNotIn("careers_url", row)
+        self.assertEqual(row["careers_resolution"]["status"], "unresolved")
+        self.assertEqual(summary["outcomes"], {"unresolved": 1})
+
+    def test_default_lifecycle_budgets_are_scaled_but_bounded(self):
+        self.assertEqual(mod.DEFAULT_EMPLOYER_BUDGET, 20)
+        self.assertEqual(mod.DEFAULT_REQUEST_BUDGET, 120)
+
     def test_reuses_fresh_success_without_network_work(self):
         employer = self.employer(
             "fresh",
