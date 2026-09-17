@@ -14,6 +14,12 @@ from typing import Any, Iterable
 
 from bs4 import BeautifulSoup
 
+# Increment whenever extraction semantics or technology annotations change in a
+# way that should invalidate cached requirement facts. The cache updater can
+# re-run this extractor from a stored posting description without another ATS
+# request; entries without a reprocessable description are refreshed normally.
+EXTRACTOR_VERSION = 2
+
 # This vocabulary only annotates exact technology mentions in an already
 # identified qualification statement. It never creates a requirement by itself,
 # and the original statement is always retained beside the annotation.

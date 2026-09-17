@@ -248,11 +248,6 @@
     };
   }
 
-  function unverifiedDomainGapCount(result) {
-    const details = Array.isArray(result?.readiness?.details) ? result.readiness.details : [];
-    return details.filter(detail => /^Unverified required domain experience:/i.test(String(detail))).length;
-  }
-
   function scoreQualificationFit(result, profile) {
     const inspected = result?.inspection?.state === "inspected";
     if (!inspected) {
@@ -274,7 +269,6 @@
       hardGapPenalty += index === 0 ? 5 : (index === 1 ? 3 : 2);
     });
     score -= Math.min(10, hardGapPenalty);
-    score -= Math.min(6, unverifiedDomainGapCount(result) * 3);
     score = Math.round(clamp(score, 0, SCORE_MAXIMA.fit));
 
     const parts = [];
@@ -290,10 +284,36 @@
     if (evidence.cautiousRequired.length) parts.push(`Required skills only cautiously evidenced: ${evidence.cautiousRequired.join(", ")}`);
     if (evidence.learnableGaps.length) parts.push(`Learnable/low-threshold stack gaps: ${evidence.learnableGaps.join(", ")}`);
     if (evidence.hardGaps.length) parts.push(`Unsupported hard required skills: ${evidence.hardGaps.join(", ")}`);
-    const domainGaps = unverifiedDomainGapCount(result);
-    if (domainGaps) parts.push(`Unverified required domain experience: ${domainGaps}`);
     if (!parts.length) parts.push("No specific qualification evidence distinguishes this inspected posting");
     return { score, detail: parts.join("; ") };
+  }
+
+  function alignedReadiness(result, profile) {
+    if (result?.inspection?.state !== "inspected") return result?.readiness || null;
+    const evidence = analyzeQualificationEvidence(result, profile || {});
+    const details = [];
+    for (const skill of evidence.hardGaps) details.push(`Unsupported hard required skill: ${skill}`);
+    for (const skill of evidence.cautiousRequired) details.push(`Required skill only cautiously evidenced: ${skill}`);
+    for (const skill of evidence.learnableGaps) details.push(`Learnable/low-threshold stack gap: ${skill}`);
+    const gapCount = evidence.hardGaps.length + evidence.cautiousRequired.length;
+    const label = evidence.hardGaps.length >= 2
+      ? "Major required gaps"
+      : (gapCount > 0 ? "Some required gaps" : "Ready on known requirements");
+    return { delta: 0, excluded: false, label, details, evidence };
+  }
+
+  function alignInspection(summary, readiness) {
+    if (!summary || summary.state !== "inspected" || !readiness) return summary;
+    const baseLabel = String(summary.label || "Posting inspected").split(" · ")[0];
+    const staleReadiness = /^(?:Qualification readiness adjustment:|Required gap:|Required skill only cautiously supported:|Unverified required domain experience:)/i;
+    const evidence = Array.isArray(summary.evidence)
+      ? summary.evidence.filter(item => !staleReadiness.test(String(item)))
+      : [];
+    return {
+      ...summary,
+      label: `${baseLabel} · ${readiness.label}`,
+      evidence: [...readiness.details, ...evidence],
+    };
   }
 
   function scoreEligibilityGate(result) {
@@ -341,6 +361,7 @@
     if (gradExcluded) return gradExcluded;
     if (result.excluded || !result.components) return result;
     const fit = scoreQualificationFit(result, profile);
+    const readiness = alignedReadiness(result, profile);
     const eligibility = scoreEligibilityGate(result);
     const freshness = rescaleComponent(result.components.freshness, "freshness");
     const roi = scoreApplicationValue(result);
@@ -353,14 +374,13 @@
     const components = { fit, eligibility, freshness, roi, role, location, link };
     const total = Math.max(0, Math.min(100,
       Object.values(components).reduce((sum, c) => sum + Number(c?.score || 0), 0)));
-    const inspection = result.inspection && Array.isArray(result.inspection.evidence)
-      ? { ...result.inspection, evidence: result.inspection.evidence.filter(x => !/^Qualification readiness adjustment:/i.test(String(x))) }
-      : result.inspection;
+    const inspection = alignInspection(result.inspection, readiness);
     return {
       ...result,
       total,
       components,
       inspection,
+      readiness,
       reasons: Object.entries(components).map(([name, c]) => `${name}: ${c.detail}`),
       competition: { ...(result.competition || {}), differentiationBonus: 0 },
       scoringSemantics: {
@@ -397,6 +417,7 @@
     authoritativeAcademicSupport,
     analyzeQualificationEvidence,
     scoreQualificationFit,
+    alignedReadiness,
     scoreEligibilityGate,
     scoreApplicationValue,
     transform,
