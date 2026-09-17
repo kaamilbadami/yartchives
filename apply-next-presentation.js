@@ -1,7 +1,10 @@
 (function (root, factory) {
-  const scoring = typeof module === "object" && module.exports
+  const scoringSource = typeof module === "object" && module.exports
     ? require("./apply-next-dimensions.js")
     : root.YartchivesApplyNext;
+  const scoring = scoringSource && typeof scoringSource === "object"
+    ? { ...scoringSource }
+    : scoringSource;
   const locationPreferences = typeof module === "object" && module.exports
     ? require("./apply-next-location-preferences.js")
     : root.YartchivesApplyNextLocationPreferences;
