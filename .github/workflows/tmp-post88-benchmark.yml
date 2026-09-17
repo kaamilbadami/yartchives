@@ -1,0 +1,81 @@
+name: Temporary post-88 regional benchmark
+
+on:
+  push:
+    branches:
+      - audit/post-88-national-icims
+
+permissions:
+  contents: write
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Rerun regional benchmark
+        run: |
+          set -euo pipefail
+          cp audit/ct-ny-md-dc-cs-coverage-2026-09-17.json /tmp/old-audit.json
+          python scripts/coverage_audit_runner.py audit/samples/ct-ny-md-dc-cs-2026-09-17.json \
+            --output audit/ct-ny-md-dc-cs-coverage-2026-09-17.json \
+            --markdown-output audit/ct-ny-md-dc-cs-coverage-2026-09-17.md
+          python scripts/coverage_contract.py audit/ct-ny-md-dc-cs-coverage-2026-09-17.json \
+            --json-output audit/coverage-contract-status-ct-ny-md-dc-2026-09-17.json \
+            --markdown-output audit/coverage-contract-status-ct-ny-md-dc-2026-09-17.md
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          old = json.loads(Path('/tmp/old-audit.json').read_text())
+          new = json.loads(Path('audit/ct-ny-md-dc-cs-coverage-2026-09-17.json').read_text())
+          os = old['summary']; ns = new['summary']
+          old_rows = {(r.get('company'), r.get('title'), r.get('location')): r for r in old.get('results', [])}
+          changes = []
+          for r in new.get('results', []):
+              key = (r.get('company'), r.get('title'), r.get('location'))
+              prev = old_rows.get(key)
+              if prev and prev.get('status') != r.get('status'):
+                  changes.append((key, prev.get('status'), r.get('status')))
+          lines = [
+              '# Regional benchmark change note', '',
+              f"Previous feed snapshot: `{old['feed']['generated_at']}`",
+              f"Current feed snapshot: `{new['feed']['generated_at']}`", '',
+              '## Benchmark delta', '',
+              f"- Captured or probably captured: **{os['captured_or_probably_captured']}/{os['external_listings']} ({os['capture_rate']*100:.1f}%) → {ns['captured_or_probably_captured']}/{ns['external_listings']} ({ns['capture_rate']*100:.1f}%)**.",
+              f"- Visible under expected filters: **{os['visible_under_expected_filters']}/{os['external_listings']} ({os['visible_rate']*100:.1f}%) → {ns['visible_under_expected_filters']}/{ns['external_listings']} ({ns['visible_rate']*100:.1f}%)**.",
+              f"- Actionable findings: **{os['actionable_findings']} → {ns['actionable_findings']}**.", '',
+              '## Status changes', ''
+          ]
+          if changes:
+              for (company, title, location), before, after in changes:
+                  lines.append(f"- **{company} — {title}** ({location}): `{before}` → `{after}`.")
+          else:
+              lines.append('- No individual benchmark status changes.')
+          lines += ['', '## Provider miss counts', '']
+          old_ats = os.get('missing_by_ats_family') or {}
+          new_ats = ns.get('missing_by_ats_family') or {}
+          for family in sorted(set(old_ats) | set(new_ats)):
+              if old_ats.get(family, 0) != new_ats.get(family, 0):
+                  lines.append(f"- `{family}`: **{old_ats.get(family, 0)} → {new_ats.get(family, 0)}**.")
+          if lines[-1] == '':
+              lines.append('- No provider-family miss-count changes.')
+          Path('audit/regional-benchmark-changes-2026-09-17.md').write_text('\n'.join(lines) + '\n')
+          PY
+          python -m unittest discover -s tests -p "test_*.py" -v
+          git diff --check
+      - name: Commit audit artifacts
+        run: |
+          git config user.name "yartchives-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add audit/ct-ny-md-dc-cs-coverage-2026-09-17.json \
+                  audit/ct-ny-md-dc-cs-coverage-2026-09-17.md \
+                  audit/coverage-contract-status-ct-ny-md-dc-2026-09-17.json \
+                  audit/coverage-contract-status-ct-ny-md-dc-2026-09-17.md \
+                  audit/regional-benchmark-changes-2026-09-17.md
+          git commit -m "Refresh regional benchmark after national iCIMS coverage"
+          git push origin HEAD
