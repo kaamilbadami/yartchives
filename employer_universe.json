@@ -430,7 +430,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-17T23:38:23Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
         "evidence": [
           {
             "type": "http",
@@ -849,7 +849,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:38:23Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
         "evidence": [
           {
             "type": "http",
@@ -1426,7 +1426,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:38:23Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
         "evidence": [
           {
             "type": "http",
@@ -1780,7 +1780,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:38:23Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
         "evidence": [
           {
             "type": "http",
@@ -1867,7 +1867,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:38:23Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
         "evidence": [
           {
             "type": "http",
@@ -3599,6 +3599,71 @@
           "source_url": "https://withresumeai.com/ats-checker/aws",
           "upstream_slug": "aws"
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://www.amazon.jobs/",
+            "redirect_chain": [
+              {
+                "url": "https://www.amazon.jobs/",
+                "status": 302
+              },
+              {
+                "url": "https://www.amazon.jobs/en/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.amazon.jobs/en/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://www.amazon.jobs/careers",
+            "redirect_chain": [
+              {
+                "url": "https://www.amazon.jobs/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.amazon.jobs/careers",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://www.amazon.jobs/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://www.amazon.jobs/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.amazon.jobs/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          }
+        ]
       }
     },
     {
@@ -3621,6 +3686,92 @@
           "source_url": "https://withresumeai.com/ats-checker/bae-systems",
           "upstream_slug": "bae-systems"
         }
+      },
+      "careers_url": "https://jobs.baesystems.com/global/en",
+      "careers_platform": "phenom",
+      "provider": {
+        "family": "phenom",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "phenompeople.com",
+        "host": "jobs.baesystems.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-17T23:48:05Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://jobs.baesystems.com/",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.baesystems.com/",
+                "status": 303
+              },
+              {
+                "url": "https://jobs.baesystems.com/global/en",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.baesystems.com/global/en",
+            "status": 200,
+            "signals": [
+              "phenom provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.baesystems.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.baesystems.com/careers",
+                "status": 303
+              },
+              {
+                "url": "https://jobs.baesystems.com/global/en",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.baesystems.com/global/en",
+            "status": 200,
+            "signals": [
+              "phenom provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.baesystems.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.baesystems.com/jobs",
+                "status": 303
+              },
+              {
+                "url": "https://jobs.baesystems.com/global/en",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.baesystems.com/global/en",
+            "status": 200,
+            "signals": [
+              "phenom provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          }
+        ]
       }
     },
     {
@@ -3643,6 +3794,80 @@
           "source_url": "https://withresumeai.com/ats-checker/bain-and-company",
           "upstream_slug": "bain-and-company"
         }
+      },
+      "careers_url": "https://careers.bain.com/jobs",
+      "careers_platform": "avature",
+      "provider": {
+        "family": "avature",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "avature",
+        "host": "careers.bain.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-17T23:48:05Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers.bain.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.bain.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.bain.com/",
+            "status": 200,
+            "signals": [
+              "avature provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.bain.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers.bain.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://careers.bain.com/careers",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.bain.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.bain.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.bain.com/jobs",
+            "status": 200,
+            "signals": [
+              "avature provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          }
+        ]
       }
     },
     {
@@ -4022,6 +4247,112 @@
           "source_url": "https://withresumeai.com/ats-checker/bcg",
           "upstream_slug": "bcg"
         }
+      },
+      "careers_url": "https://bcg.eightfold.ai/careers/join",
+      "careers_platform": "company-branded",
+      "provider": {
+        "family": "unknown",
+        "status": "ambiguous",
+        "evidence": "multiple_provider_markers",
+        "candidates": [
+          "eightfold",
+          "phenom"
+        ],
+        "host": "bcg.eightfold.ai"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-17T23:48:05Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers.bcg.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.bcg.com/",
+                "status": 301
+              },
+              {
+                "url": "https://careers.bcg.com/global/en/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.bcg.com/global/en/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.bcg.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers.bcg.com/careers",
+                "status": 303
+              },
+              {
+                "url": "https://careers.bcg.com/global/en",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.bcg.com/global/en",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.bcg.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.bcg.com/jobs",
+                "status": 303
+              },
+              {
+                "url": "https://careers.bcg.com/global/en",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.bcg.com/global/en",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://bcg.eightfold.ai/careers/join",
+            "linked_from": "https://careers.bcg.com/global/en/",
+            "redirect_chain": [
+              {
+                "url": "https://bcg.eightfold.ai/careers/join",
+                "status": 200
+              }
+            ],
+            "final_url": "https://bcg.eightfold.ai/careers/join",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "linked from employer site"
+            ],
+            "score": 9
+          }
+        ]
       }
     },
     {
@@ -4574,6 +4905,162 @@
           "source_url": "https://withresumeai.com/ats-checker/booking-com",
           "upstream_slug": "booking-com"
         }
+      },
+      "careers_url": "https://jobs.booking.com/booking/jobs",
+      "careers_platform": "icims",
+      "provider": {
+        "family": "icims",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "icims.com",
+        "host": "jobs.booking.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-17T23:48:05Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://jobs.booking.com/",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.booking.com/",
+                "status": 302
+              },
+              {
+                "url": "https://jobs.booking.com/booking/",
+                "status": 302
+              },
+              {
+                "url": "https://jobs.booking.com/booking/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.booking.com/booking/jobs",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.booking.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.booking.com/careers",
+                "status": 302
+              },
+              {
+                "url": "https://jobs.booking.com/booking/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.booking.com/booking/jobs",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.booking.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.booking.com/jobs",
+                "status": 302
+              },
+              {
+                "url": "https://jobs.booking.com/booking/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.booking.com/booking/jobs",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://jobs.booking.com/booking/jobs",
+            "linked_from": "https://jobs.booking.com/booking/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.booking.com/booking/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.booking.com/booking/jobs",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 19
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://external-workingatbooking.icims.com/jobs/login?loginOnly=1",
+            "linked_from": "https://jobs.booking.com/booking/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://external-workingatbooking.icims.com/jobs/login?loginOnly=1",
+                "status": 200
+              }
+            ],
+            "final_url": "https://external-workingatbooking.icims.com/jobs/login?loginOnly=1",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "linked from employer site"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://internal-workingatbooking.icims.com/jobs/login?loginOnly=1",
+            "linked_from": "https://jobs.booking.com/booking/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://internal-workingatbooking.icims.com/jobs/login?loginOnly=1",
+                "status": 200
+              }
+            ],
+            "final_url": "https://internal-workingatbooking.icims.com/jobs/login?loginOnly=1",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "linked from employer site"
+            ],
+            "score": 12
+          }
+        ]
       }
     },
     {
@@ -4748,6 +5235,100 @@
           "source_url": "https://withresumeai.com/ats-checker/british-airways",
           "upstream_slug": "british-airways"
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://apply.ba.com/",
+            "redirect_chain": [
+              {
+                "url": "https://apply.ba.com/",
+                "status": 301
+              },
+              {
+                "url": "https://apply.ba.com/jobs/",
+                "status": 302
+              },
+              {
+                "url": "https://apply.ba.com/jobs/home/",
+                "status": 301
+              },
+              {
+                "url": "https://careers.ba.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.ba.com/",
+            "status": 200,
+            "signals": [
+              "careers page content"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://apply.ba.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://apply.ba.com/careers",
+                "status": 302
+              },
+              {
+                "url": "https://apply.ba.com/jobs/",
+                "status": 302
+              },
+              {
+                "url": "https://apply.ba.com/jobs/home/",
+                "status": 301
+              },
+              {
+                "url": "https://careers.ba.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.ba.com/",
+            "status": 200,
+            "signals": [
+              "careers page content"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://apply.ba.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://apply.ba.com/jobs",
+                "status": 302
+              },
+              {
+                "url": "https://apply.ba.com/jobs/",
+                "status": 302
+              },
+              {
+                "url": "https://apply.ba.com/jobs/home/",
+                "status": 301
+              },
+              {
+                "url": "https://careers.ba.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.ba.com/",
+            "status": 200,
+            "signals": [
+              "careers page content"
+            ],
+            "score": 2
+          }
+        ]
       }
     },
     {
@@ -5191,6 +5772,103 @@
           "source_url": "https://withresumeai.com/ats-checker/capgemini",
           "upstream_slug": "capgemini"
         }
+      },
+      "careers_url": "https://career5.successfactors.eu/career?company=capgemitecP3&lang=en_US",
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career5.successfactors.eu"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-17T23:48:05Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers.capgemini.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.capgemini.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.capgemini.com/",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.capgemini.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers.capgemini.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.capgemini.com/careers",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.capgemini.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.capgemini.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.capgemini.com/jobs",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://career5.successfactors.eu/career?company=capgemitecP3&clientId=jobs2web&lang=en_US&navBarLevel=MY_PROFILE",
+            "linked_from": "https://careers.capgemini.com/",
+            "redirect_chain": [
+              {
+                "url": "https://career5.successfactors.eu/career?company=capgemitecP3&clientId=jobs2web&lang=en_US&navBarLevel=MY_PROFILE",
+                "status": 200
+              }
+            ],
+            "final_url": "https://career5.successfactors.eu/career?company=capgemitecP3&clientId=jobs2web&lang=en_US&navBarLevel=MY_PROFILE",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers path",
+              "careers page content",
+              "linked from employer site"
+            ],
+            "score": 14
+          }
+        ]
       }
     },
     {
@@ -7700,7 +8378,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:38:23Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
         "evidence": [
           {
             "type": "http",
@@ -7844,8 +8522,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-17T23:38:23Z",
-        "last_attempt_at": "2026-09-17T23:38:23Z",
+        "resolved_at": "2026-09-17T23:48:05Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
         "evidence": [
           {
             "type": "http",
@@ -7952,7 +8630,18 @@
             "type": "http",
             "source": "conventional-path",
             "requested_url": "https://job-boards.greenhouse.io/jobs",
-            "error": "ReadTimeout: HTTPSConnectionPool(host='job-boards.greenhouse.io', port=443): Read timed out. (read timeout=15)"
+            "redirect_chain": [
+              {
+                "url": "https://job-boards.greenhouse.io/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://job-boards.greenhouse.io/jobs",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
           }
         ]
       },
@@ -9330,8 +10019,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-17T23:38:23Z",
-        "last_attempt_at": "2026-09-17T23:38:23Z",
+        "resolved_at": "2026-09-17T23:48:05Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
         "evidence": [
           {
             "type": "http",
@@ -14915,7 +15604,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:38:23Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
         "evidence": [
           {
             "type": "http",
@@ -15655,7 +16344,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-17T23:38:23Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
         "evidence": [
           {
             "type": "http",
@@ -17513,7 +18202,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-17T23:38:23Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
         "evidence": [
           {
             "type": "http",
@@ -17898,8 +18587,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-17T23:38:23Z",
-        "last_attempt_at": "2026-09-17T23:38:23Z",
+        "resolved_at": "2026-09-17T23:48:05Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
         "evidence": [
           {
             "type": "http",
@@ -29121,7 +29810,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:38:23Z",
+        "last_attempt_at": "2026-09-17T23:48:05Z",
         "evidence": [
           {
             "type": "http",
