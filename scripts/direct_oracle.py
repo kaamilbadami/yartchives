@@ -63,7 +63,7 @@ def _oracle_source(employer: dict[str, Any]) -> dict[str, Any] | None:
     if not careers_url:
         return None
     parsed = urlparse(careers_url)
-    if "oraclecloud.com" not in (parsed.hostname or "").casefold() and "americanexpress.com" not in (parsed.hostname or "").casefold():
+    if not parsed.hostname:
         return None
     match = ORACLE_SITE_PATH.search(parsed.path)
     if not match:
