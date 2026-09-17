@@ -46,13 +46,13 @@ class DiscoverWorkdaySourcesTests(unittest.TestCase):
                     "company": "Multi State Employer",
                     "states": ["MD", "VA"],
                     "profiles": ["cs"],
-                    "url": "https://multi.wd1.myworkdayjobs.com/en-US/External/job/Software-Intern_R3",
+                    "url": "https://multi.wd1.myworkdayjobs.com/en-US/External/job/Bethesda-MD/Software-Intern_R3",
                 },
                 {
                     "company": "Mechanical Employer",
                     "states": ["PA"],
                     "profiles": ["mechanical"],
-                    "url": "https://mech.wd1.myworkdayjobs.com/en-US/Careers/job/Mechanical-Intern_R4",
+                    "url": "https://mech.wd1.myworkdayjobs.com/en-US/Careers/job/Pittsburgh-PA/Mechanical-Intern_R4",
                 },
             ]
         }
@@ -77,7 +77,7 @@ class DiscoverWorkdaySourcesTests(unittest.TestCase):
             "state": "CT",
         }]
         feed = {"jobs": [
-            {"company": "Example", "states": ["CT", "NY"], "profiles": ["cs"], "url": "https://example.wd1.myworkdayjobs.com/en-US/Careers/job/Test_R1"}
+            {"company": "Example", "states": ["CT", "NY"], "profiles": ["cs"], "url": "https://example.wd1.myworkdayjobs.com/en-US/Careers/job/New-York-NY/Test_R1"}
         ]}
         sources = mod.discover_sources(feed, configured)
         self.assertEqual(len(sources), 2)
@@ -86,7 +86,7 @@ class DiscoverWorkdaySourcesTests(unittest.TestCase):
     def test_ignores_non_workday_and_non_cs_jobs(self):
         feed = {"jobs": [
             {"company": "Example", "states": ["MD"], "profiles": ["cs"], "url": "https://jobs.example.com/intern/123"},
-            {"company": "Example", "states": ["MD"], "profiles": ["mechanical"], "url": "https://example.wd1.myworkdayjobs.com/en-US/Careers/job/Test_R1"},
+            {"company": "Example", "states": ["MD"], "profiles": ["mechanical"], "url": "https://example.wd1.myworkdayjobs.com/en-US/Careers/job/Baltimore-MD/Test_R1"},
         ]}
         self.assertEqual(mod.discover_sources(feed, []), [])
 
