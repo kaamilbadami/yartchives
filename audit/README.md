@@ -91,4 +91,6 @@ node scripts/apply_next_recall_audit.cjs \
   --markdown-output audit/results/apply-next-recall.md
 ```
 
-Use `--top-n` to test a different visible-set size and `--reference` to reproduce time-sensitive scoring. The command reads local artifacts only and never scrapes LinkedIn, Handshake, or an employer site.
+Use `--top-n` to test a different visible-set size and `--reference` to reproduce time-sensitive scoring. `--authoritative-only` models the former hard gate for a before/after comparison. The command reads local artifacts only and never scrapes LinkedIn, Handshake, or an employer site.
+
+The dated `*-baseline` result captures the authoritative-only behavior inherited from `main`; the matching unsuffixed result captures the same feed/cache after the generic metadata-fallback fix. Keeping both makes the recall impact reviewable without depending on a private browser profile.

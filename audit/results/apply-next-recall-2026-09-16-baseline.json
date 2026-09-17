@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-17T03:14:19.315Z",
+  "generated_at": "2026-09-17T03:14:16.985Z",
   "inputs": {
     "feed_generated_at": "2026-09-17T02:53:17.304905Z",
     "cache_updated_at": "2026-09-17T02:55:09Z",
@@ -13,11 +13,11 @@
     "local_applied_or_hidden_jobs": 0
   },
   "product_behavior": {
-    "authoritative_only_gate_active": false,
+    "authoritative_only_gate_active": true,
     "authoritative_only_gate_detected_in_code": false,
-    "authoritative_only_gate_override": null,
-    "metadata_only_jobs_can_rank": true,
-    "unknown_inspection_evidence_is_a_hard_exclusion": false
+    "authoritative_only_gate_override": true,
+    "metadata_only_jobs_can_rank": false,
+    "unknown_inspection_evidence_is_a_hard_exclusion": true
   },
   "funnel": {
     "full_feed": {
@@ -71,25 +71,25 @@
     },
     "authoritative_only_gate": {
       "entered": 1496,
-      "active": false,
-      "retained": 1496,
-      "dropped": 0,
-      "excluded_solely_because_authoritative_inspection_is_required": 0,
+      "active": true,
+      "retained": 563,
+      "dropped": 933,
+      "excluded_solely_because_authoritative_inspection_is_required": 933,
       "counterfactual_excluded_if_gate_were_enabled": 933
     },
     "ranking": {
-      "entered": 1496,
-      "ranked": 1306,
-      "dropped": 190,
+      "entered": 563,
+      "ranked": 481,
+      "dropped": 82,
       "reasons": {
-        "canonical_duplicate": 190,
+        "canonical_duplicate": 82,
         "scoring_or_location_exclusion": 0
       }
     },
     "visible_top_n": {
-      "entered": 1306,
+      "entered": 481,
       "visible": 10,
-      "ranked_but_below_visible_set": 1296
+      "ranked_but_below_visible_set": 471
     }
   },
   "classifications": {
@@ -99,8 +99,8 @@
     "unsupported_provider_or_source_shape": 647,
     "authoritative_posting_unavailable": 30,
     "inspected_semantically_thin": 102,
-    "excluded_solely_by_authoritative_gate": 0,
-    "ranked_below_visible_set": 1296
+    "excluded_solely_by_authoritative_gate": 933,
+    "ranked_below_visible_set": 471
   },
   "inspection_unsupported_breakdown": {
     "source": 84,
@@ -704,56 +704,6 @@
       },
       {
         "rank": 3,
-        "score": 71,
-        "inspection_state": "not_selected",
-        "id": "8b45128dab0520bf",
-        "company": "Elire",
-        "title": "AI Software Developer Intern - Multiple Teams",
-        "term": null,
-        "url": "https://jobs.jobvite.com/elire/job/oM5LAfwW?nl=1&amp%3Bnl=1&amp%3Bfr=false&amp%3Butm_source=Simplify&amp%3Bref=Simplify"
-      },
-      {
-        "rank": 4,
-        "score": 68,
-        "inspection_state": "not_selected",
-        "id": "fbcb8aa119705ca6",
-        "company": "RTX",
-        "title": "Software Engineering Intern (Summer 2027)",
-        "term": "Summer 2027",
-        "url": null
-      },
-      {
-        "rank": 5,
-        "score": 68,
-        "inspection_state": "not_selected",
-        "id": "eeab373ccf8f6f79",
-        "company": "RTX",
-        "title": "Software Engineering Intern (Summer 2027)",
-        "term": "Summer 2027",
-        "url": null
-      },
-      {
-        "rank": 6,
-        "score": 68,
-        "inspection_state": "not_selected",
-        "id": "b7c5e9d3dd0c91ae",
-        "company": "RTX",
-        "title": "Software Engineering Intern (Summer 2027)",
-        "term": "Summer 2027",
-        "url": null
-      },
-      {
-        "rank": 7,
-        "score": 68,
-        "inspection_state": "not_selected",
-        "id": "012229e58bedd5a2",
-        "company": "RTX",
-        "title": "Software Engineering Intern (Summer 2027)",
-        "term": "Summer 2027",
-        "url": null
-      },
-      {
-        "rank": 8,
         "score": 67,
         "inspection_state": "inspected",
         "id": "62a87b7f5ed41e06",
@@ -763,7 +713,7 @@
         "url": "https://careers-gdms.icims.com/jobs/74993/software-engineering-intern/job"
       },
       {
-        "rank": 9,
+        "rank": 4,
         "score": 67,
         "inspection_state": "inspected",
         "id": "6f5c2e0202f56339",
@@ -773,7 +723,7 @@
         "url": "https://caci.wd1.myworkdayjobs.com/External/job/Denver-CO-US/Cleared-Software-Engineer-Intern-Summer-2027_331999"
       },
       {
-        "rank": 10,
+        "rank": 5,
         "score": 67,
         "inspection_state": "inspected",
         "id": "d60d20682e0751dd",
@@ -781,11 +731,9 @@
         "title": "Internship – Raytheon Systems Security Engineer- Onsite",
         "term": null,
         "url": "https://globalhr.wd5.myworkdayjobs.com/REC_RTX_Ext_Gateway/job/US-MA-WOBURN-WB2--225-Presidential-Way--GODDARD-BLDG/Internship-Raytheon-Systems-Security-Engineer-Onsite_01874703"
-      }
-    ],
-    "first_below_top_n": [
+      },
       {
-        "rank": 11,
+        "rank": 6,
         "score": 67,
         "inspection_state": "inspected",
         "id": "3e6a0b14e56f063b",
@@ -795,7 +743,7 @@
         "url": "https://globalhr.wd5.myworkdayjobs.com/REC_RTX_Ext_Gateway/job/US-MA-MARLBOROUGH-MA2--1001-Boston-Post-Rd--BLDG-2/Internship-Raytheon-Systems-Security-Engineer-Onsite_01874700"
       },
       {
-        "rank": 12,
+        "rank": 7,
         "score": 67,
         "inspection_state": "inspected",
         "id": "cd4f11f04188091a",
@@ -805,7 +753,7 @@
         "url": "https://globalhr.wd5.myworkdayjobs.com/REC_RTX_Ext_Gateway/job/US-MA-TEWKSBURY-TB1--50-Apple-Hill-Dr--ASSABET-BLDG/Internship-Raytheon-Systems-Security-Engineer-Onsite_01874702"
       },
       {
-        "rank": 13,
+        "rank": 8,
         "score": 67,
         "inspection_state": "inspected",
         "id": "5b7a53c6c4aeadaf",
@@ -815,7 +763,7 @@
         "url": "https://globalhr.wd5.myworkdayjobs.com/REC_RTX_Ext_Gateway/job/US-RI-PORTSMOUTH-PS1--1847-W-Main-Rd--NIMITZ-BLDG/Internship-Raytheon-Systems-Security-Engineer-Onsite_01874705"
       },
       {
-        "rank": 14,
+        "rank": 9,
         "score": 67,
         "inspection_state": "inspected",
         "id": "266286c121aefa37",
@@ -825,7 +773,7 @@
         "url": "https://careers-gdms.icims.com/jobs/74953/intern-engineer---software-engineering/job"
       },
       {
-        "rank": 15,
+        "rank": 10,
         "score": 67,
         "inspection_state": "inspected",
         "id": "989b6f9cbe572f15",
@@ -833,6 +781,58 @@
         "title": "Backend Software Engineer Intern - C#/Java & AI Workflows (Undergraduate)",
         "term": null,
         "url": "https://wexinc.wd5.myworkdayjobs.com/wexinc/job/US---Remote/Backend-Software-Engineer-Intern-C-Java-AI-Workflows-Undergraduate_R22586"
+      }
+    ],
+    "first_below_top_n": [
+      {
+        "rank": 11,
+        "score": 67,
+        "inspection_state": "inspected",
+        "id": "16688106f4fa08e6",
+        "company": "WEX",
+        "title": "DevOps & Backend Software Engineer Intern (Undergraduate)",
+        "term": null,
+        "url": "https://wexinc.wd5.myworkdayjobs.com/wexinc/job/US---Remote/DevOps-Backend-Software-Engineer-Intern-Undergraduate_R22584"
+      },
+      {
+        "rank": 12,
+        "score": 66,
+        "inspection_state": "inspected",
+        "id": "ae4b1761d444d53a",
+        "company": "Cisco",
+        "title": "Software Engineer I (Intern) - United States",
+        "term": null,
+        "url": "https://cisco.wd5.myworkdayjobs.com/cisco_careers/job/RTP-North-Carolina-US/Software-Engineer-I-Intern-United-States_2025890"
+      },
+      {
+        "rank": 13,
+        "score": 66,
+        "inspection_state": "inspected_semantically_thin",
+        "id": "091b43df929dff80",
+        "company": "Nelnet",
+        "title": "Intern - Software Engineer - New Ventures - Starting Summer 2027",
+        "term": "Summer 2027",
+        "url": "https://nelnet.wd1.myworkdayjobs.com/MyNelnet/job/Lincoln-NE/Intern-Software-Engineer-New-Ventures-Starting-Summer-2027_R23098"
+      },
+      {
+        "rank": 14,
+        "score": 66,
+        "inspection_state": "inspected",
+        "id": "08ad1459f189cece",
+        "company": "Relay",
+        "title": "Relay Launchpad Intern - Software Engineer (AI/ML)",
+        "term": null,
+        "url": "https://job-boards.greenhouse.io/relaypro/jobs/8176774"
+      },
+      {
+        "rank": 15,
+        "score": 66,
+        "inspection_state": "inspected",
+        "id": "a4e27fc32f3554fb",
+        "company": "Relay",
+        "title": "Relay Launchpad Intern - Software Engineer (Device Team)",
+        "term": null,
+        "url": "https://job-boards.greenhouse.io/relaypro/jobs/8180836"
       }
     ]
   }

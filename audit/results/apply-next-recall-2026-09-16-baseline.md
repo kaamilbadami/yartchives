@@ -10,14 +10,14 @@ Audit profile: cs; target term: Summer 2027; visible set: Top 10.
 - Term / eligibility: 1,496 retained; 470 known wrong-term and 154 known-ineligible/unavailable removed.
 - Inspection pool: 856 selected; 640 relevant candidates have no inspection candidate mapping.
 - Inspection state (eligible candidates): 461 inspected with substantive semantics, 102 inspected but mostly unknown, 273 queued, 13 failed/cooling down, and 7 selected with an unsupported shape.
-- Authoritative-only gate: not active; 0 excluded solely for lacking authoritative inspection (933 would be excluded if such a gate were enabled).
-- Ranking: 1,306 ranked; 190 canonical duplicates collapsed and 0 otherwise excluded during ranking; 10 visible and 1,296 below Top 10.
+- Authoritative-only gate: modeled baseline; 933 excluded solely for lacking authoritative inspection (933 would be excluded if such a gate were enabled).
+- Ranking: 481 ranked; 82 canonical duplicates collapsed and 0 otherwise excluded during ranking; 10 visible and 471 below Top 10.
 
 ## Conclusion
 
-Current Apply Next does not silently erase metadata-only opportunities: unknown inspection evidence is not a hard mismatch, and metadata-only jobs remain rankable.
-The largest inspection-evidence bottleneck is **unsupported_provider_or_source_shape** (647 candidates). This remains an evidence-coverage limitation, but it is not a hard recommendation exclusion.
-The visible-set bottleneck is the deliberate Top 10 cap: 1,296 otherwise-ranked candidates are below it.
+This baseline models the authoritative-only behavior inherited from main before the fix; metadata-only candidates are removed before ranking.
+The largest inspection-evidence bottleneck is **unsupported_provider_or_source_shape** (647 candidates). Because the authoritative-only gate is active, this evidence limitation contributes directly to recommendation loss.
+The visible-set bottleneck is the deliberate Top 10 cap: 471 otherwise-ranked candidates are below it.
 
 Largest unsupported provider/source-shape buckets:
 - source: 84

@@ -114,8 +114,20 @@ assert.equal(report.product_behavior.authoritative_only_gate_active, false);
 assert.equal(report.classifications.excluded_solely_by_authoritative_gate, 0);
 assert.ok(report.funnel.authoritative_only_gate.counterfactual_excluded_if_gate_were_enabled > 0);
 assert.equal(report.funnel.ranking.dropped, 0);
+assert.equal(report.funnel.ranking.reasons.canonical_duplicate, 0);
 assert.equal(report.funnel.visible_top_n.visible, 1);
 assert.equal(report.classifications.ranked_below_visible_set, report.funnel.ranking.ranked - 1);
+
+const authoritativeBaseline = Audit.auditFunnel(
+  { generated_at: "2026-09-16T17:30:00Z", jobs },
+  cache,
+  profile,
+  { topN: 1, authoritativeOnly: true },
+);
+assert.equal(authoritativeBaseline.product_behavior.authoritative_only_gate_active, true);
+assert.equal(authoritativeBaseline.product_behavior.authoritative_only_gate_detected_in_code, false);
+assert.ok(authoritativeBaseline.classifications.excluded_solely_by_authoritative_gate > 0);
+assert.ok(authoritativeBaseline.funnel.ranking.ranked < report.funnel.ranking.ranked);
 
 assert.equal(Audit.semanticCoverage(inspected()).mostly_unknown, true);
 assert.equal(Audit.semanticCoverage(inspected({ requirements: richRequirements })).mostly_unknown, false);

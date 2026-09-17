@@ -310,9 +310,9 @@
   }
 
   function rankJobs(jobs, profile, now = new Date()) {
-    const pool = dedupeCanonicalJobs(jobs || []).filter(hasAuthoritativeInspection);
+    const pool = dedupeCanonicalJobs(jobs || []);
     const context = typeof base.buildCompetitionContext === "function"
-      ? base.buildCompetitionContext(pool)
+      ? base.buildCompetitionContext(pool.filter(hasAuthoritativeInspection))
       : {};
     return pool
       .map(job => scoreJob(job, profile, now, context))

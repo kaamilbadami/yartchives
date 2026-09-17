@@ -116,10 +116,14 @@ const metadataOnly = {
 assert.equal(L.hasAuthoritativeInspection(job), true);
 assert.equal(L.hasAuthoritativeInspection(metadataOnly), false);
 const ranked = L.rankJobs([metadataOnly, job, nearJob], profile, now);
-assert.equal(ranked.length, 2);
+assert.equal(ranked.length, 3);
 assert.equal(ranked[0].job.company, "NearCo");
-assert.ok(ranked.every(result => result.inspection?.state === "inspected"));
-assert.ok(ranked[0].components.location.score > ranked[1].components.location.score);
+assert.ok(ranked.some(result => result.job.company === "MetadataCo"));
+assert.equal(ranked.find(result => result.job.company === "MetadataCo").inspection?.state, "metadata-only");
+assert.ok(
+  ranked.find(result => result.job.company === "NearCo").components.location.score
+    > ranked.find(result => result.job.company === "FarCo").components.location.score
+);
 
 const duolingoA = {
   ...nearJob,
@@ -166,7 +170,7 @@ const geckoMetadata = {
 };
 assert.equal(L.canonicalPostingKey(geckoA), L.canonicalPostingKey(geckoB));
 const geckoRanked = L.rankJobs([geckoA, geckoB, geckoC, geckoMetadata], profile, now);
-assert.equal(geckoRanked.length, 2);
+assert.equal(geckoRanked.length, 3);
 for (const result of geckoRanked) {
   assert.match(result.components.roi.detail, /observed employer demand: 2 current software engineering openings/);
   assert.doesNotMatch(result.components.roi.detail, /3 current software engineering openings/);
@@ -230,4 +234,4 @@ assert.match(wexView.url, /Fullstack-Software-Engineer-Intern-Undergraduate_R225
 assert.doesNotMatch(wexView.url, /Backend-Software-Engineer/);
 assert.equal(L.scoreJob(wex, profile, now).components.location.detail, "Remote opportunity");
 
-console.log("apply-next authoritative-only, location, and canonical dedupe tests passed");
+console.log("apply-next location, metadata fallback, and canonical dedupe tests passed");

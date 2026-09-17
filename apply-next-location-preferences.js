@@ -255,10 +255,10 @@
 
   function rankJobs(jobs, profile, now = new Date()) {
     const pool = typeof base.dedupeCanonicalJobs === "function"
-      ? base.dedupeCanonicalJobs(jobs || []).filter(base.hasAuthoritativeInspection)
+      ? base.dedupeCanonicalJobs(jobs || [])
       : (jobs || []);
     const context = typeof competition?.buildCompetitionContext === "function"
-      ? competition.buildCompetitionContext(pool)
+      ? competition.buildCompetitionContext(pool.filter(job => base.hasAuthoritativeInspection(job)))
       : {};
     return pool
       .map(job => scoreJob(job, profile || {}, now, context))

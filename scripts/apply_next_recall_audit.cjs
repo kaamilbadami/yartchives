@@ -12,7 +12,10 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const ApplyNext = require("../apply-next-competition.js");
+// apply-next-dimensions is the final scoring/ranking layer loaded before the UI.
+// Its CommonJS dependency chain includes the authoritative/location gate.
+const ApplyNext = require("../apply-next-dimensions.js");
+const ApplyNextLocation = require("../apply-next-location.js");
 const ApplyNextUI = require("../apply-next-ui.js");
 
 const ROOT = path.resolve(__dirname, "..");
@@ -255,7 +258,11 @@ function auditFunnel(feed, cache, profile, options = {}) {
     row => row.provider_or_shape,
   );
 
-  const requiresAuthoritativeInspection = detectAuthoritativeGate(profile, reference);
+  const detectedAuthoritativeGate = detectAuthoritativeGate(profile, reference);
+  const hasGateOverride = typeof options.authoritativeOnly === "boolean";
+  const requiresAuthoritativeInspection = hasGateOverride
+    ? options.authoritativeOnly
+    : detectedAuthoritativeGate;
   const authoritativeReady = new Set(eligibleInspectionRows
     .filter(row => row.state === "inspected" || row.state === "inspected_semantically_thin")
     .map(row => row.job.id));
@@ -264,6 +271,7 @@ function auditFunnel(feed, cache, profile, options = {}) {
     ? eligible.filter(job => authoritativeReady.has(job.id))
     : eligible;
 
+  const dedupedForRanking = ApplyNextLocation.dedupeCanonicalJobs(afterGate);
   const ranked = ApplyNext.rankJobs(afterGate, profile, reference);
   const rankedIds = new Set(ranked.map(result => result.job.id));
   const rankingExcluded = afterGate.filter(job => !rankedIds.has(job.id));
@@ -306,6 +314,8 @@ function auditFunnel(feed, cache, profile, options = {}) {
     },
     product_behavior: {
       authoritative_only_gate_active: requiresAuthoritativeInspection,
+      authoritative_only_gate_detected_in_code: detectedAuthoritativeGate,
+      authoritative_only_gate_override: hasGateOverride ? requiresAuthoritativeInspection : null,
       metadata_only_jobs_can_rank: !requiresAuthoritativeInspection,
       unknown_inspection_evidence_is_a_hard_exclusion: requiresAuthoritativeInspection,
     },
@@ -351,6 +361,10 @@ function auditFunnel(feed, cache, profile, options = {}) {
         entered: afterGate.length,
         ranked: ranked.length,
         dropped: rankingExcluded.length,
+        reasons: {
+          canonical_duplicate: afterGate.length - dedupedForRanking.length,
+          scoring_or_location_exclusion: dedupedForRanking.length - ranked.length,
+        },
       },
       visible_top_n: {
         entered: ranked.length,
@@ -405,6 +419,11 @@ function humanSummary(report) {
   const funnel = report.funnel;
   const states = funnel.inspection_state.eligible_candidates;
   const topUnsupported = Object.entries(report.inspection_unsupported_breakdown).slice(0, 5);
+  const gateWasForced = report.product_behavior.authoritative_only_gate_override === true
+    && !report.product_behavior.authoritative_only_gate_detected_in_code;
+  const gateLabel = funnel.authoritative_only_gate.active
+    ? (gateWasForced ? "modeled baseline" : "active")
+    : "not active";
   const lines = [
     "# Apply Next recall audit",
     "",
@@ -418,15 +437,19 @@ function humanSummary(report) {
     `- Term / eligibility: ${funnel.term_and_eligibility_filter.retained.toLocaleString()} retained; ${funnel.term_and_eligibility_filter.reasons.known_wrong_term.toLocaleString()} known wrong-term and ${(funnel.term_and_eligibility_filter.dropped - funnel.term_and_eligibility_filter.reasons.known_wrong_term).toLocaleString()} known-ineligible/unavailable removed.`,
     `- Inspection pool: ${funnel.inspection_candidate_pool.selected_for_inspection.toLocaleString()} selected; ${funnel.inspection_candidate_pool.relevant_but_not_selected.toLocaleString()} relevant candidates have no inspection candidate mapping.`,
     `- Inspection state (eligible candidates): ${(states.inspected || 0).toLocaleString()} inspected with substantive semantics, ${(states.inspected_semantically_thin || 0).toLocaleString()} inspected but mostly unknown, ${(states.queued_bounded_throughput || 0).toLocaleString()} queued, ${(states.inspection_retrieval_failure_or_cooldown || 0).toLocaleString()} failed/cooling down, and ${(states.unsupported_provider_or_source_shape || 0).toLocaleString()} selected with an unsupported shape.`,
-    `- Authoritative-only gate: ${funnel.authoritative_only_gate.active ? "active" : "not active"}; ${funnel.authoritative_only_gate.excluded_solely_because_authoritative_inspection_is_required.toLocaleString()} actually excluded solely for lacking authoritative inspection (${funnel.authoritative_only_gate.counterfactual_excluded_if_gate_were_enabled.toLocaleString()} would be excluded if such a gate were enabled).`,
-    `- Ranking: ${funnel.ranking.ranked.toLocaleString()} ranked; ${funnel.visible_top_n.visible.toLocaleString()} visible and ${funnel.visible_top_n.ranked_but_below_visible_set.toLocaleString()} below Top ${report.inputs.top_n}.`,
+    `- Authoritative-only gate: ${gateLabel}; ${funnel.authoritative_only_gate.excluded_solely_because_authoritative_inspection_is_required.toLocaleString()} excluded solely for lacking authoritative inspection (${funnel.authoritative_only_gate.counterfactual_excluded_if_gate_were_enabled.toLocaleString()} would be excluded if such a gate were enabled).`,
+    `- Ranking: ${funnel.ranking.ranked.toLocaleString()} ranked; ${funnel.ranking.reasons.canonical_duplicate.toLocaleString()} canonical duplicates collapsed and ${funnel.ranking.reasons.scoring_or_location_exclusion.toLocaleString()} otherwise excluded during ranking; ${funnel.visible_top_n.visible.toLocaleString()} visible and ${funnel.visible_top_n.ranked_but_below_visible_set.toLocaleString()} below Top ${report.inputs.top_n}.`,
     "",
     "## Conclusion",
     "",
-    report.product_behavior.metadata_only_jobs_can_rank
+    gateWasForced
+      ? "This baseline models the authoritative-only behavior inherited from main before the fix; metadata-only candidates are removed before ranking."
+      : report.product_behavior.metadata_only_jobs_can_rank
       ? "Current Apply Next does not silently erase metadata-only opportunities: unknown inspection evidence is not a hard mismatch, and metadata-only jobs remain rankable."
       : "Apply Next currently has an authoritative-only gate, so metadata-only candidates are removed before ranking.",
-    `The largest inspection-evidence bottleneck is **${report.biggest_evidence_bottleneck.classification}** (${report.biggest_evidence_bottleneck.count.toLocaleString()} candidates). This is an evidence-coverage limitation, not an actual recommendation exclusion under current behavior.`,
+    report.product_behavior.authoritative_only_gate_active
+      ? `The largest inspection-evidence bottleneck is **${report.biggest_evidence_bottleneck.classification}** (${report.biggest_evidence_bottleneck.count.toLocaleString()} candidates). Because the authoritative-only gate is active, this evidence limitation contributes directly to recommendation loss.`
+      : `The largest inspection-evidence bottleneck is **${report.biggest_evidence_bottleneck.classification}** (${report.biggest_evidence_bottleneck.count.toLocaleString()} candidates). This remains an evidence-coverage limitation, but it is not a hard recommendation exclusion.`,
     `The visible-set bottleneck is the deliberate Top ${report.inputs.top_n} cap: ${funnel.visible_top_n.ranked_but_below_visible_set.toLocaleString()} otherwise-ranked candidates are below it.`,
   ];
   if (topUnsupported.length) {
@@ -446,6 +469,7 @@ function parseArgs(argv) {
     markdownOutput: null,
     topN: 10,
     reference: null,
+    authoritativeOnly: null,
   };
   for (let index = 0; index < argv.length; index += 1) {
     const key = argv[index];
@@ -457,6 +481,7 @@ function parseArgs(argv) {
     else if (key === "--markdown-output") args.markdownOutput = path.resolve(value), index += 1;
     else if (key === "--top-n") args.topN = Number(value), index += 1;
     else if (key === "--reference") args.reference = value, index += 1;
+    else if (key === "--authoritative-only") args.authoritativeOnly = true;
     else if (key === "--help" || key === "-h") args.help = true;
     else throw new Error(`Unknown argument: ${key}`);
   }
@@ -475,6 +500,7 @@ function usage() {
     "  --markdown-output PATH   Write concise Markdown summary",
     "  --top-n N                Visible recommendation count (default: 10)",
     "  --reference ISO_TIME     Override scoring reference time",
+    "  --authoritative-only     Model the former authoritative-only gate for comparison",
   ].join("\n");
 }
 
@@ -487,6 +513,7 @@ function main(argv = process.argv.slice(2)) {
   const report = auditFunnel(readJson(args.feed), readJson(args.cache), readJson(args.profile), {
     topN: args.topN,
     reference: args.reference,
+    authoritativeOnly: args.authoritativeOnly,
   });
   const summary = humanSummary(report);
   if (args.output) {
