@@ -116,6 +116,11 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /Posted \$\{monthDay\} · \$\{ageLabel\}/);
   assert.match(uiSource, /apply-next-posted-date/);
   assert.match(uiSource, /data\/workday-inspections\.json/);
+  assert.doesNotMatch(
+    uiSource,
+    /applied\.addEventListener\("click",[\s\S]*?applyFilters\(\);[\s\S]*?renderPanel\(panel\)/,
+    "Mark applied should rely on the applyFilters/renderJobs panel refresh instead of triggering a second expensive render"
+  );
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
 
   const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
