@@ -213,6 +213,57 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
         )
         self.assertEqual(calls, ["fortune", "ats", "other"])
 
+    def test_verified_workday_tenant_fast_paths_without_network(self):
+        employer = self.employer("verified")
+        employer["seed_sets"].append("state-of-ats-2026-verified-hosts")
+        employer["seed_metadata"]["state-of-ats-2026-verified-hosts"] = {
+            "ats_system": "Workday",
+            "domain_hints": ["verified.wd1.myworkdayjobs.com"],
+            "evidence_method": "Workday tenant probe",
+            "source_url": "https://example.com/verified",
+        }
+        calls = []
+
+        updated, summary = mod.run_lifecycle(
+            self.universe([employer]),
+            now=NOW,
+            resolver=lambda entry, **kwargs: calls.append(entry),
+        )
+
+        self.assertEqual(calls, [])
+        row = updated["employers"][0]
+        self.assertNotIn("careers_url", row)
+        self.assertEqual(row["careers_platform"], "workday")
+        self.assertEqual(row["provider"]["family"], "workday")
+        self.assertEqual(row["careers_resolution"]["status"], "provider_resolved")
+        self.assertEqual(row["careers_resolution"]["attempt_status"], "verified_seed")
+        self.assertEqual(summary["fast_path_provider_resolved"], 1)
+        self.assertEqual(summary["attempted_employers"], 0)
+        self.assertEqual(summary["requests_used"], 0)
+
+    def test_shared_verified_provider_host_is_not_fast_pathed(self):
+        employer = self.employer("shared-greenhouse")
+        employer["seed_sets"].append("state-of-ats-2026-verified-hosts")
+        employer["seed_metadata"]["state-of-ats-2026-verified-hosts"] = {
+            "ats_system": "Greenhouse",
+            "domain_hints": ["job-boards.greenhouse.io"],
+            "evidence_method": "vendor board API",
+            "source_url": "https://example.com/shared-greenhouse",
+        }
+
+        updated, summary = mod.run_lifecycle(
+            self.universe([employer]),
+            now=NOW,
+            resolver=lambda entry, **kwargs: self.fail("shared provider root should not be network-resolved"),
+        )
+
+        row = updated["employers"][0]
+        self.assertNotIn("provider", row)
+        self.assertNotIn("careers_resolution", row)
+        self.assertEqual(summary["fast_path_provider_resolved"], 0)
+        self.assertEqual(summary["attempted_employers"], 0)
+
+
     def test_resolution_preserves_seed_provenance_and_reports_provider_distribution(self):
         employer = self.employer("acme", 2)
         original_metadata = employer["seed_metadata"]
