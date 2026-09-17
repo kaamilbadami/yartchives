@@ -89,6 +89,29 @@ class EmployerUniverseTests(unittest.TestCase):
         self.assertEqual(employer["seed_metadata"]["regional-benchmark"]["evidence_count"], 3)
         self.assertEqual(employer["seed_metadata"]["fortune-500-2026"], {"rank": 10})
 
+    def test_alias_sort_is_stable_when_aliases_differ_only_by_case(self):
+        universe = {
+            "schema_version": 1,
+            "seed_sets": [{"key": "existing", "kind": "catalog"}],
+            "employers": [{
+                "id": "labcorp",
+                "name": "Labcorp",
+                "aliases": ["LabCorp"],
+                "seed_sets": ["existing"],
+            }],
+        }
+        seed = {
+            "schema_version": 1,
+            "source": {"key": "fortune-500-2026", "kind": "fortune_500", "edition": 2026},
+            "employers": [{"name": "Labcorp", "aliases": ["LabCorp"], "rank": 128}],
+        }
+
+        once = mod.merge_seed(universe, seed)
+        twice = mod.merge_seed(once, seed)
+
+        self.assertEqual(once, twice)
+        self.assertEqual(once["employers"][0]["aliases"], ["LabCorp"])
+
     def test_same_seed_is_idempotent(self):
         seed = {
             "schema_version": 1,
