@@ -170,6 +170,12 @@
   }
 
   async function addBaseDistances(jobs, profile) {
+    for (const job of jobs || []) {
+      if (!job || typeof job !== "object") continue;
+      job._distanceMiles = null;
+      delete job._distanceMilesBasis;
+    }
+
     const zips = (profile?.baseZips || []).filter(value => /^\d{5}$/.test(String(value)));
     if (!zips.length || typeof loadGeoIndex !== "function" || typeof distanceForJob !== "function") return;
     try {
@@ -180,7 +186,10 @@
         const distances = origins
           .map(origin => distanceForJob(job, origin, geo))
           .filter(value => Number.isFinite(value));
-        if (distances.length) job._distanceMiles = Math.min(...distances);
+        if (distances.length) {
+          job._distanceMiles = Math.min(...distances);
+          job._distanceMilesBasis = "apply-next-profile";
+        }
       }
     } catch (_) {
       // Location scoring still has state/remote/relocation fallbacks if ZIP data is unavailable.
@@ -397,6 +406,7 @@
     emptyInspectionArtifact,
     loadInspectionArtifact,
     attachInspections,
+    addBaseDistances,
     componentMax,
     init,
   };
