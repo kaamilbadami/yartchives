@@ -13,33 +13,30 @@
   },
   "metrics": {
     "fortune_seed_records": 500,
-    "merged_existing_identities": 10,
-    "new_employers": 490,
-    "employer_universe_total": 546,
+    "merged_existing_identities": 7,
+    "new_employers": 493,
+    "employer_universe_total": 549,
     "fortune_seed_readiness": {
-      "ready": 3,
+      "ready": 1,
       "needs_tenant_identity": 1,
-      "no_domain_hint": 496
+      "no_domain_hint": 498
     },
     "full_universe_readiness": {
       "ready": 20,
       "needs_tenant_identity": 13,
-      "no_domain_hint": 513
+      "no_domain_hint": 516
     },
-    "records_with_derived_aliases": 88,
-    "derived_alias_count": 92
+    "records_with_derived_aliases": 31,
+    "derived_alias_count": 34
   },
   "merged_identity_ids": [
     "american-express",
     "amgen",
     "bny",
-    "caci",
     "doordash",
     "exelon",
-    "interactive-brokers",
     "leidos",
-    "stanley-black-and-decker",
-    "the-hartford"
+    "stanley-black-and-decker"
   ],
   "identity_architecture_finding": "Corporate parent, division, and brand relationships should be modeled explicitly rather than collapsed through broader alias normalization."
 }
