@@ -16,46 +16,146 @@
   }
 })(typeof globalThis !== "undefined" ? globalThis : this, function (base) {
   if (!base || typeof base.scoreJob !== "function") {
-    throw new Error("Apply Next location scoring requires competition scoring to load first.");
+    throw new Error("Apply Next location scoring requires competition scoring first.");
   }
 
   const originalScoreJob = base.scoreJob;
+  const STATE_NAMES = {
+    Alabama: "AL", Alaska: "AK", Arizona: "AZ", Arkansas: "AR", California: "CA",
+    Colorado: "CO", Connecticut: "CT", Delaware: "DE", Florida: "FL", Georgia: "GA",
+    Hawaii: "HI", Idaho: "ID", Illinois: "IL", Indiana: "IN", Iowa: "IA", Kansas: "KS",
+    Kentucky: "KY", Louisiana: "LA", Maine: "ME", Maryland: "MD", Massachusetts: "MA",
+    Michigan: "MI", Minnesota: "MN", Mississippi: "MS", Missouri: "MO", Montana: "MT",
+    Nebraska: "NE", Nevada: "NV", "New Hampshire": "NH", "New Jersey": "NJ",
+    "New Mexico": "NM", "New York": "NY", "North Carolina": "NC", "North Dakota": "ND",
+    Ohio: "OH", Oklahoma: "OK", Oregon: "OR", Pennsylvania: "PA", "Rhode Island": "RI",
+    "South Carolina": "SC", "South Dakota": "SD", Tennessee: "TN", Texas: "TX", Utah: "UT",
+    Vermont: "VT", Virginia: "VA", Washington: "WA", "West Virginia": "WV", Wisconsin: "WI",
+    Wyoming: "WY", "District of Columbia": "DC",
+  };
+  const STATE_CODES = new Set(Object.values(STATE_NAMES));
+
+  function explicitLocationStates(job) {
+    const raw = String(job?.location || "");
+    const found = new Set();
+    for (const [name, code] of Object.entries(STATE_NAMES)) {
+      if (new RegExp(`\\b${name.replace(/ /g, "\\s+")}\\b`, "i").test(raw)) found.add(code);
+    }
+    for (const code of STATE_CODES) {
+      if (new RegExp(`(?:^|[\\s,(/-])${code}(?:$|[\\s,)/-])`, "i").test(raw)) found.add(code);
+    }
+    return [...found];
+  }
+
+  function reliableStates(job) {
+    const explicit = explicitLocationStates(job);
+    if (explicit.length) return new Set(explicit);
+    const metadata = [...new Set((job?.states || []).filter(value => STATE_CODES.has(value)))];
+    return metadata.length === 1 ? new Set(metadata) : new Set();
+  }
+
+  function normalizeUrl(job) {
+    const raw = String(job?.url || "").trim();
+    if (!raw) return "";
+    try {
+      const parsed = new URL(raw);
+      const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+      let path = decodeURIComponent(parsed.pathname).replace(/\/+$/, "");
+
+      const greenhouseId = parsed.searchParams.get("gh_jid") || path.match(/\/jobs\/(\d+)(?:\/|$)/i)?.[1];
+      if (/greenhouse\.io$/i.test(host) && greenhouseId) return `greenhouse:${host}:${greenhouseId}`;
+
+      if (host === "jobs.ashbyhq.com") {
+        const parts = path.split("/").filter(Boolean);
+        if (parts.length >= 2 && /^[0-9a-f-]{32,36}$/i.test(parts[1])) {
+          return `ashby:${parts[0].toLowerCase()}:${parts[1].toLowerCase()}`;
+        }
+      }
+
+      const icimsId = path.match(/\/jobs\/(\d+)(?:\/|$)/i)?.[1];
+      if (/icims\.com$/i.test(host) && icimsId) return `icims:${host}:${icimsId}`;
+
+      if (/myworkdayjobs\.com$/i.test(host)) {
+        path = path.replace(/\/application$/i, "");
+        return `workday:${host}:${path.toLowerCase()}`;
+      }
+
+      path = path.replace(/\/application$/i, "");
+      return `${host}:${path.toLowerCase()}`;
+    } catch (_) {
+      return raw.toLowerCase().replace(/[?#].*$/, "").replace(/\/application\/?$/i, "").replace(/\/+$/, "");
+    }
+  }
+
+  function canonicalPostingKey(job) {
+    const urlKey = normalizeUrl(job);
+    if (urlKey) return urlKey;
+    if (job?.id) return `id:${job.id}`;
+    return [job?.company, job?.title, job?.location]
+      .map(value => String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim())
+      .join("|");
+  }
+
+  function inspectionRank(job) {
+    const status = job?._inspection?.status || job?.inspection?.status;
+    if (status === "inspected") return 3;
+    if (status === "queued" || status === "failed") return 2;
+    return 1;
+  }
+
+  function preferDuplicate(current, candidate) {
+    const currentRank = inspectionRank(current);
+    const candidateRank = inspectionRank(candidate);
+    if (candidateRank !== currentRank) return candidateRank > currentRank ? candidate : current;
+    const currentTime = current?.posted_at ? new Date(current.posted_at).getTime() : 0;
+    const candidateTime = candidate?.posted_at ? new Date(candidate.posted_at).getTime() : 0;
+    return candidateTime > currentTime ? candidate : current;
+  }
+
+  function dedupeCanonicalJobs(jobs) {
+    const byKey = new Map();
+    for (const job of jobs || []) {
+      const key = canonicalPostingKey(job);
+      if (!byKey.has(key)) byKey.set(key, job);
+      else byKey.set(key, preferDuplicate(byKey.get(key), job));
+    }
+    return [...byKey.values()];
+  }
 
   function scoreLocation(job, profile) {
-    const states = new Set(job?.states || []);
+    const rawStates = new Set(job?.states || []);
+    const states = reliableStates(job);
     const preferredStates = profile?.preferredStates || [];
     const stateMatch = preferredStates.find(value => states.has(value));
     if (stateMatch) return { score: 10, detail: `Preferred state: ${stateMatch}` };
 
-    if (states.has("Remote") && profile?.remoteRelevant !== false) {
+    if ((rawStates.has("Remote") || /\bremote\b/i.test(String(job?.location || ""))) && profile?.remoteRelevant !== false) {
       return { score: 9, detail: "Remote opportunity" };
     }
 
     const distance = Number(job?._distanceMiles);
-    const hasDistance = Number.isFinite(distance) && distance >= 0;
+    const hasTrustedDistance = job?._distanceMilesBasis === "apply-next-profile"
+      && Number.isFinite(distance)
+      && distance >= 0;
     const near = Math.max(5, Number(profile?.nearbyMiles || 50));
-    if (hasDistance) {
+    if (hasTrustedDistance) {
       if (distance <= near) return { score: 10, detail: `Within ${near} miles of active base` };
       if (distance <= near * 2) return { score: 8, detail: `Within ${near * 2} miles of active base` };
     }
 
-    if (!states.size || states.has("US")) {
+    if (!states.size && (!rawStates.size || rawStates.has("US"))) {
       return { score: 4, detail: "Location is broad or unknown" };
     }
 
-    if (states.has("Remote") && profile?.remoteRelevant === false) {
+    if ((rawStates.has("Remote") || /\bremote\b/i.test(String(job?.location || ""))) && profile?.remoteRelevant === false) {
       return { score: 2, detail: "Remote work is not preferred" };
     }
 
     if (profile?.relocationAllowed) {
-      if (!hasDistance) return { score: 4, detail: "Relocation is acceptable; distance is unknown" };
+      if (!hasTrustedDistance) return { score: 4, detail: "Relocation is acceptable; profile-base distance is unknown" };
       const rounded = Math.round(distance);
-      if (distance <= near * 4) {
-        return { score: 7, detail: `Relocation about ${rounded} miles from active base` };
-      }
-      if (distance <= near * 8) {
-        return { score: 5, detail: `Relocation about ${rounded} miles from active base` };
-      }
+      if (distance <= near * 4) return { score: 7, detail: `Relocation about ${rounded} miles from active base` };
+      if (distance <= near * 8) return { score: 5, detail: `Relocation about ${rounded} miles from active base` };
       return { score: 3, detail: `Long-distance relocation about ${rounded} miles from active base` };
     }
 
@@ -80,7 +180,7 @@
   }
 
   function rankJobs(jobs, profile, now = new Date()) {
-    const pool = jobs || [];
+    const pool = dedupeCanonicalJobs(jobs || []);
     const context = typeof base.buildCompetitionContext === "function"
       ? base.buildCompetitionContext(pool)
       : {};
@@ -98,6 +198,10 @@
   }
 
   return {
+    explicitLocationStates,
+    reliableStates,
+    canonicalPostingKey,
+    dedupeCanonicalJobs,
     scoreLocation,
     scoreJob,
     rankJobs,
