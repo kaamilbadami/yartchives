@@ -54,6 +54,66 @@
     return metadata.length === 1 ? new Set(metadata) : new Set();
   }
 
+  function inspectionForJob(job) {
+    return job?._inspection || job?.inspection || null;
+  }
+
+  function workdayTitleSlug(value) {
+    return String(value || "")
+      .trim()
+      .replace(/[^A-Za-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  function authoritativeWorkdayUrl(job, posting) {
+    const raw = String(job?.url || "").trim();
+    const requisition = String(posting?.requisition_id || "").trim();
+    const titleSlug = workdayTitleSlug(posting?.title);
+    if (!raw || !requisition || !titleSlug) return raw;
+    try {
+      const parsed = new URL(raw);
+      if (!/myworkdayjobs\.com$/i.test(parsed.hostname)) return raw;
+      const parts = parsed.pathname.split("/");
+      const final = decodeURIComponent(parts[parts.length - 1] || "");
+      const escaped = requisition.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      if (!new RegExp(`_${escaped}$`, "i").test(final)) return raw;
+      parts[parts.length - 1] = `${titleSlug}_${requisition}`;
+      parsed.pathname = parts.join("/");
+      parsed.search = "";
+      parsed.hash = "";
+      return parsed.toString();
+    } catch (_) {
+      return raw;
+    }
+  }
+
+  function authoritativePostingView(job) {
+    const inspection = inspectionForJob(job);
+    if (inspection?.status !== "inspected" || !inspection.posting) return job;
+    const posting = inspection.posting;
+    const view = { ...job };
+
+    if (posting.title) view.title = posting.title;
+
+    const locations = posting.locations;
+    const values = locations?.status === "authoritative" && Array.isArray(locations.values)
+      ? locations.values.map(value => String(value || "").trim()).filter(Boolean)
+      : [];
+    if (values.length) {
+      const priorLocation = String(job?.location || "").trim().toLowerCase();
+      view.location = values.join(" · ");
+      const states = explicitLocationStates(view);
+      view.states = states.length ? states : (/\bremote\b/i.test(view.location) ? ["Remote"] : []);
+      if (priorLocation && priorLocation !== view.location.trim().toLowerCase()) {
+        delete view._distanceMiles;
+        delete view._distanceMilesBasis;
+      }
+    }
+
+    view.url = authoritativeWorkdayUrl(view, posting);
+    return view;
+  }
+
   function normalizeUrl(job) {
     const raw = String(job?.url || "").trim();
     if (!raw) return "";
@@ -77,6 +137,11 @@
 
       if (/myworkdayjobs\.com$/i.test(host)) {
         path = path.replace(/\/application$/i, "");
+        const req = path.match(/_([A-Za-z]+-?\d{4,})$/i)?.[1];
+        if (req) {
+          const site = path.split("/").filter(Boolean)[0] || "";
+          return `workday:${host}:${site.toLowerCase()}:${req.toLowerCase()}`;
+        }
         return `workday:${host}:${path.toLowerCase()}`;
       }
 
@@ -167,10 +232,11 @@
   }
 
   function scoreJob(job, profile, now = new Date(), context = {}) {
-    const result = originalScoreJob(job, profile, now, context);
+    const effectiveJob = authoritativePostingView(job);
+    const result = originalScoreJob(effectiveJob, profile, now, context);
     if (!result || result.excluded || !result.components) return result;
 
-    const location = scoreLocation(job, profile || {});
+    const location = scoreLocation(effectiveJob, profile || {});
     const prior = Number(result.components?.location?.score || 0);
     const components = { ...result.components, location };
     const total = Math.max(0, Math.min(100, Number(result.total || 0) - prior + location.score));
@@ -180,7 +246,7 @@
         : reason)
       : [];
 
-    return { ...result, total, components, reasons };
+    return { ...result, job: effectiveJob, total, components, reasons };
   }
 
   function rankJobs(jobs, profile, now = new Date()) {
@@ -204,6 +270,8 @@
   return {
     explicitLocationStates,
     reliableStates,
+    authoritativeWorkdayUrl,
+    authoritativePostingView,
     canonicalPostingKey,
     dedupeCanonicalJobs,
     hasAuthoritativeInspection,
