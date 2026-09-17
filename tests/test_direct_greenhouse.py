@@ -78,8 +78,8 @@ class DirectGreenhouseTests(unittest.TestCase):
     def test_rejects_nonstudent_noncs_and_nonus_roles(self):
         source = {
             "key": "auto-greenhouse-example",
-            "name": "Example (auto-discovered Greenhouse)",
-            "company": "Example",
+            "name": "Acme (auto-discovered Greenhouse)",
+            "company": "Acme",
             "board_token": "example",
             "homepage": "https://job-boards.greenhouse.io/example",
         }
