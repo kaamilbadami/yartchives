@@ -112,7 +112,7 @@ class EmployerResolutionQueueTests(unittest.TestCase):
         ]
 
         rows = mod.build_queue(universe, ready_only=True)["employers"]
-        self.assertEqual([row["id"] for row in rows], ["both", "fortune", "ats", "other"])
+        self.assertEqual([row["id"] for row in rows], ["fortune", "both", "ats", "other"])
         self.assertEqual(
             [row["resolution_priority_label"] for row in rows],
             ["fortune-500", "fortune-500", "verified-ats", "other"],
