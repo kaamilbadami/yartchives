@@ -9,7 +9,12 @@ const profile = {
   preferredProfiles: ["cs"],
   supportedKeywords: ["software", "java", "systems"],
   cautiousKeywords: ["python"],
-  facts: { supportedSkills: ["Java", "systems"], cautiousSkills: ["Python"] },
+  facts: {
+    degree: "Bachelor of Science",
+    major: "Computer Science",
+    supportedSkills: ["Java", "systems"],
+    cautiousSkills: ["Python"],
+  },
   roleFamilies: [{ id: "software", label: "Software engineering", priority: 1, keywords: ["software engineer"] }],
   preferredStates: ["CT"],
   relocationAllowed: true,
@@ -79,6 +84,35 @@ assert.ok(supported.components.fit.score > unsupported.components.fit.score);
 assert.doesNotMatch(supported.components.fit.detail, /Career-area overlap|Supported metadata matches/i);
 assert.ok(supported.components.fit.score <= D.SCORE_MAXIMA.fit);
 
+const gradIntern = D.scoreJob(job({
+  title: "Grad Intern – Software Engineer – Technology, AI & Data (Summer 2027)",
+  url: "https://example.com/grad",
+  _inspection: inspection(),
+}), profile, now);
+assert.equal(D.explicitGraduateOnlyTitle(gradIntern.job), true);
+assert.equal(gradIntern.excluded, true);
+assert.match(gradIntern.reasons[0], /Graduate-only opportunity/i);
+
+const academicInspection = inspection([], [["Proficient in Java preferred.", ["Java"]]]);
+academicInspection.requirements.education = {
+  required: [{ statement: "Currently enrolled in a full-time Bachelor's Degree program." }],
+  preferred: [], unspecified: [], not_required: [],
+};
+academicInspection.requirements.major_fields = {
+  required: [],
+  preferred: [{ statement: "Degree concentration in Information Technology, Computer Science, Engineering, Business, or related field." }],
+  unspecified: [], not_required: [],
+};
+const academicMatch = D.scoreJob(job({
+  company: "AcademicMatch",
+  url: "https://example.com/academic",
+  _inspection: academicInspection,
+}), profile, now);
+assert.equal(academicMatch.components.fit.score, 27);
+assert.match(academicMatch.components.fit.detail, /Authoritative qualification support: \+5/i);
+assert.match(academicMatch.components.fit.detail, /Academic qualification match/i);
+assert.match(academicMatch.components.fit.detail, /Computer Science matches a preferred major/i);
+
 const exactTerm = D.scoreJob(job({ _inspection: inspection() }), profile, now);
 const unknownTerm = D.scoreJob(job({ term: null, url: "https://example.com/unknown", _inspection: inspection() }), profile, now);
 assert.equal(exactTerm.components.eligibility.score, 0);
@@ -112,7 +146,7 @@ assert.ok(cautious.components.fit.score < supported.components.fit.score);
 assert.ok(cautious.total <= 100);
 assert.ok(!cautious.inspection.evidence.some(x => /^Qualification readiness adjustment:/i.test(x)));
 
-for (const result of [metadataOnly, supported, unsupported, exactTerm, unknownTerm, direct, listing, cautious]) {
+for (const result of [metadataOnly, supported, unsupported, academicMatch, exactTerm, unknownTerm, direct, listing, cautious]) {
   const weightedTotal = Object.values(result.components).reduce((sum, component) => sum + Number(component.score || 0), 0);
   assert.equal(result.total, weightedTotal);
   assert.ok(result.total >= 0 && result.total <= 100);
