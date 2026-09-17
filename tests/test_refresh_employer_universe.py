@@ -115,6 +115,65 @@ class RefreshEmployerUniverseTests(unittest.TestCase):
             ["VA"],
         )
 
+    def test_generic_seed_merges_without_losing_benchmark_metadata(self):
+        universe = {"schema_version": 1, "seed_sets": [], "employers": []}
+        benchmark = {
+            "name": "Regional benchmark",
+            "collected_at": "2026-09-17T15:30:00Z",
+            "scope": {"states": ["MD"]},
+            "discoveries": [{"company": "Leidos", "expected_state": "MD"}],
+        }
+        fortune = {
+            "schema_version": 1,
+            "source": {"key": "fortune-500-2026", "kind": "fortune_500", "edition": 2026},
+            "employers": [{"name": "Leidos Holdings", "aliases": ["Leidos"], "rank": 260}],
+        }
+
+        refreshed = mod.refresh_universe(universe, [benchmark], [fortune])
+        employer = refreshed["employers"][0]
+
+        self.assertEqual(employer["name"], "Leidos")
+        self.assertEqual(employer["aliases"], ["Leidos Holdings"])
+        self.assertEqual(
+            employer["seed_sets"],
+            ["coverage-benchmark-2026-09-17", "fortune-500-2026"],
+        )
+        self.assertEqual(
+            employer["seed_metadata"]["coverage-benchmark-2026-09-17"]["states"],
+            ["MD"],
+        )
+        self.assertEqual(employer["seed_metadata"]["fortune-500-2026"]["rank"], 260)
+
+    def test_refresh_order_and_repeated_refresh_are_deterministic(self):
+        universe = {"schema_version": 1, "seed_sets": [], "employers": []}
+        alpha = {
+            "schema_version": 1,
+            "source": {"key": "alpha", "kind": "catalog"},
+            "employers": [{"name": "Example", "value": 1}],
+        }
+        omega = {
+            "schema_version": 1,
+            "source": {"key": "omega", "kind": "catalog"},
+            "employers": [{"name": "Example Holdings", "aliases": ["Example"], "value": 2}],
+        }
+
+        forward = mod.refresh_universe(universe, seeds=[alpha, omega])
+        reverse = mod.refresh_universe(universe, seeds=[omega, alpha])
+        repeated = mod.refresh_universe(forward, seeds=[omega, alpha])
+
+        self.assertEqual(forward, reverse)
+        self.assertEqual(forward, repeated)
+
+    def test_duplicate_refresh_source_is_rejected(self):
+        universe = {"schema_version": 1, "seed_sets": [], "employers": []}
+        seed = {
+            "schema_version": 1,
+            "source": {"key": "same", "kind": "catalog"},
+            "employers": [{"name": "Example"}],
+        }
+        with self.assertRaises(ValueError):
+            mod.refresh_universe(universe, seeds=[seed, seed])
+
 
 if __name__ == "__main__":
     unittest.main()

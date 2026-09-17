@@ -5,17 +5,77 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import unicodedata
 from pathlib import Path
 from typing import Any
 
 SCHEMA_VERSION = 1
 IDENTITY_FIELDS = {"id", "name", "aliases", "seed_sets", "seed_metadata"}
+LEGAL_ENTITY_SUFFIXES = (
+    ("holding", "company"),
+    ("holdings",),
+    ("holding",),
+    ("corporation",),
+    ("corp",),
+    ("company",),
+    ("co",),
+    ("incorporated",),
+    ("inc",),
+    ("limited",),
+    ("ltd",),
+    ("plc",),
+)
 
 
 def normalize_name(value: str) -> str:
+    value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii")
     value = value.casefold().replace("&", " and ")
     value = re.sub(r"[^a-z0-9]+", " ", value)
     return " ".join(value.split())
+
+
+def identity_keys(value: str) -> set[str]:
+    """Return conservative, deterministic identity keys for one display name."""
+    normalized = normalize_name(value)
+    keys = {normalized} if normalized else set()
+    if normalized.startswith("the "):
+        keys.add(normalized.removeprefix("the "))
+    return keys
+
+
+def common_name_aliases(value: str) -> list[str]:
+    """Derive common aliases without employer-specific rules or external lookups."""
+    name = str(value or "").strip()
+    if not name:
+        return []
+
+    aliases: set[str] = set()
+    parentheticals = [item.strip() for item in re.findall(r"\(([^()]+)\)", name) if item.strip()]
+    without_parentheticals = " ".join(re.sub(r"\s*\([^()]+\)", "", name).split())
+    if without_parentheticals and normalize_name(without_parentheticals) != normalize_name(name):
+        aliases.add(without_parentheticals)
+    aliases.update(parentheticals)
+
+    candidates = [name]
+    if without_parentheticals != name:
+        candidates.append(without_parentheticals)
+    for candidate in candidates:
+        words = candidate.split()
+        normalized_words = [normalize_name(word) for word in words]
+        suffix = next(
+            (parts for parts in LEGAL_ENTITY_SUFFIXES if tuple(normalized_words[-len(parts):]) == parts),
+            None,
+        )
+        if suffix is not None and len(words) > len(suffix):
+            alias = " ".join(words[:-len(suffix)]).rstrip(" ,.-")
+            if alias:
+                aliases.add(alias)
+
+    original_keys = identity_keys(name)
+    return sorted(
+        (alias for alias in aliases if not identity_keys(alias) & original_keys),
+        key=str.casefold,
+    )
 
 
 def employer_id(name: str) -> str:
@@ -40,15 +100,17 @@ def validate_seed(seed: dict[str, Any]) -> None:
     employers = seed.get("employers")
     if not isinstance(employers, list):
         raise ValueError("seed employers must be a list")
-    seen: set[str] = set()
+    seen: dict[str, str] = {}
     for employer in employers:
         name = str((employer or {}).get("name") or "").strip()
         if not name:
             raise ValueError("seed employer requires name")
-        key = normalize_name(name)
-        if key in seen:
-            raise ValueError(f"duplicate employer in seed: {name}")
-        seen.add(key)
+        values = [name, *(employer.get("aliases") or [])]
+        employer_keys = {key for value in values for key in identity_keys(str(value))}
+        for key in employer_keys:
+            if key in seen:
+                raise ValueError(f"duplicate employer identity in seed: {name} conflicts with {seen[key]}")
+            seen[key] = name
 
 
 def merge_seed(universe: dict[str, Any], seed: dict[str, Any]) -> dict[str, Any]:
@@ -57,6 +119,7 @@ def merge_seed(universe: dict[str, Any], seed: dict[str, Any]) -> dict[str, Any]
     result.setdefault("schema_version", SCHEMA_VERSION)
     result.setdefault("seed_sets", [])
     result.setdefault("employers", [])
+    validate_universe(result)
 
     source = dict(seed["source"])
     source_key = source["key"]
@@ -69,15 +132,19 @@ def merge_seed(universe: dict[str, Any], seed: dict[str, Any]) -> dict[str, Any]
         names = [employer.get("name", ""), *(employer.get("aliases") or [])]
         for name in names:
             if name:
-                by_identity[normalize_name(name)] = employer
+                for key in identity_keys(name):
+                    by_identity[key] = employer
 
     for incoming in seed["employers"]:
         name = incoming["name"].strip()
         aliases = [str(alias).strip() for alias in incoming.get("aliases", []) if str(alias).strip()]
         match = None
         for candidate in [name, *aliases]:
-            match = by_identity.get(normalize_name(candidate))
-            if match:
+            for key in identity_keys(candidate):
+                match = by_identity.get(key)
+                if match:
+                    break
+            if match is not None:
                 break
         if match is None:
             match = {
@@ -88,8 +155,12 @@ def merge_seed(universe: dict[str, Any], seed: dict[str, Any]) -> dict[str, Any]
             }
             result["employers"].append(match)
         merged_aliases = {*(match.get("aliases") or [])}
-        for alias in aliases:
-            if normalize_name(alias) != normalize_name(match["name"]):
+        incoming_names = [*aliases]
+        if normalize_name(name) != normalize_name(match["name"]):
+            incoming_names.append(name)
+        primary_keys = identity_keys(match["name"])
+        for alias in incoming_names:
+            if not identity_keys(alias) & primary_keys:
                 merged_aliases.add(alias)
         match["aliases"] = sorted(merged_aliases, key=str.casefold)
         match["seed_sets"] = sorted({*(match.get("seed_sets") or []), source_key})
@@ -105,9 +176,9 @@ def merge_seed(universe: dict[str, Any], seed: dict[str, Any]) -> dict[str, Any]
         else:
             match.pop("seed_metadata", None)
 
-        by_identity[normalize_name(match["name"])] = match
-        for alias in match["aliases"]:
-            by_identity[normalize_name(alias)] = match
+        for value in [match["name"], *match["aliases"]]:
+            for key in identity_keys(value):
+                by_identity[key] = match
 
     result["employers"] = sorted(result["employers"], key=lambda item: item["id"])
     validate_universe(result)
@@ -122,7 +193,7 @@ def validate_universe(universe: dict[str, Any]) -> None:
         raise ValueError("seed_sets require unique keys")
     known_seed_keys = set(seed_keys)
     employer_ids: set[str] = set()
-    identities: set[str] = set()
+    identities: dict[str, str] = {}
     for employer in universe.get("employers", []):
         employer_key = employer.get("id")
         name = str(employer.get("name") or "").strip()
@@ -131,11 +202,16 @@ def validate_universe(universe: dict[str, Any]) -> None:
         if employer_key in employer_ids:
             raise ValueError(f"duplicate employer id: {employer_key}")
         employer_ids.add(employer_key)
-        for value in [name, *(employer.get("aliases") or [])]:
-            normalized = normalize_name(value)
-            if normalized in identities:
-                raise ValueError(f"duplicate employer identity: {value}")
-            identities.add(normalized)
+        employer_identities = {
+            identity
+            for value in [name, *(employer.get("aliases") or [])]
+            for identity in identity_keys(value)
+        }
+        for identity in employer_identities:
+            other_id = identities.get(identity)
+            if other_id is not None and other_id != employer_key:
+                raise ValueError(f"duplicate employer identity: {identity}")
+            identities[identity] = employer_key
         employer_seed_keys = set(employer.get("seed_sets") or [])
         unknown = employer_seed_keys - known_seed_keys
         if unknown:
