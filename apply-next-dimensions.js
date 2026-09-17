@@ -22,9 +22,9 @@
     fit: 40,
     eligibility: 0,
     freshness: 10,
-    roi: 35,
+    roi: 30,
     role: 0,
-    location: 15,
+    location: 20,
     link: 0,
   });
 
@@ -37,7 +37,7 @@
   });
 
   const APPLICATION_VALUE_PARTS = Object.freeze({
-    role: 20,
+    role: 15,
     market: 15,
   });
 
