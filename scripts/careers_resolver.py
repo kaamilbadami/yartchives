@@ -158,7 +158,7 @@ def page_score(candidate: Candidate, final_url: str, html: str, official_domains
     signals: list[str] = []
     score = 0
     direct_provider = provider_for(final_url)
-    if direct_provider["status"] == "resolved" and not has_provider_tenant_identity(final_url) and not candidate.linked_from:
+    if direct_provider["status"] == "resolved" and not has_provider_tenant_identity(final_url):
         return -50, ["shared provider host lacks employer tenant identity"]
     if platform != "company-branded":
         score += 5
