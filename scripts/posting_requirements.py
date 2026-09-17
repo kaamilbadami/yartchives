@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 # way that should invalidate cached requirement facts. The cache updater can
 # re-run this extractor from a stored posting description without another ATS
 # request; entries without a reprocessable description are refreshed normally.
-EXTRACTOR_VERSION = 2
+EXTRACTOR_VERSION = 3
 
 # This vocabulary only annotates exact technology mentions in an already
 # identified qualification statement. It never creates a requirement by itself,
@@ -78,7 +78,8 @@ REQUIRED_HEADING = re.compile(
     r"minimum qualifications?|basic qualifications?|what (?:is )?a must have|"
     r"requirements?|what (?:we(?:'re| are)|we) (?:are )?looking for|"
     r"who (?:we(?:'re| are)|we) (?:are )?looking for|"
-    r"what you(?:'ll| will) need|what we seek)\b",
+    r"what you(?:'ll| will) need|what we seek|"
+    r"experience you(?:'ll| will)? bring)\b",
     re.I,
 )
 PREFERRED_HEADING = re.compile(
