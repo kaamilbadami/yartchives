@@ -191,6 +191,33 @@
     panel.append(actions);
   }
 
+  function locationDisplayValues(job) {
+    const authoritative = (typeof YartchivesUtils !== "undefined" && YartchivesUtils.authoritativeLocationValues)
+      ? YartchivesUtils.authoritativeLocationValues(job)
+      : [];
+    if (authoritative.length > 1) return authoritative;
+    const raw = normalize(job?.location);
+    if (!raw) return [];
+    const split = raw.split(/\s*(?:;|\||·)\s*/).map(normalize).filter(Boolean);
+    return split.length > 1 ? split : [raw];
+  }
+
+  function orderLocationValues(values, primaryDistances, fallbackDistances) {
+    return (values || [])
+      .map((value, index) => ({
+        value,
+        index,
+        primary: Number.isFinite(primaryDistances?.[index]) ? primaryDistances[index] : Infinity,
+        fallback: Number.isFinite(fallbackDistances?.[index]) ? fallbackDistances[index] : Infinity,
+      }))
+      .sort((a, b) => (
+        a.primary - b.primary
+        || a.fallback - b.fallback
+        || a.index - b.index
+      ))
+      .map(item => item.value);
+  }
+
   async function addBaseDistances(jobs, profile) {
     for (const job of jobs || []) {
       if (!job || typeof job !== "object") continue;
@@ -205,12 +232,26 @@
       const origins = zips.map(zip => geo.zips.get(zip)).filter(Boolean);
       if (!origins.length) return;
       for (const job of jobs) {
-        const distances = origins
-          .map(origin => distanceForJob(job, origin, geo))
-          .filter(value => Number.isFinite(value));
-        if (distances.length) {
-          job._distanceMiles = Math.min(...distances);
+        const values = locationDisplayValues(job);
+        const perLocation = values.map(value => {
+          const pseudoJob = { ...job, location: value, _inspection: null };
+          delete pseudoJob._geo;
+          return origins.map(origin => distanceForJob(pseudoJob, origin, geo));
+        });
+        const finiteDistances = perLocation.flat().filter(value => Number.isFinite(value));
+        if (finiteDistances.length) {
+          job._distanceMiles = Math.min(...finiteDistances);
           job._distanceMilesBasis = "apply-next-profile";
+        }
+        if (values.length > 1) {
+          const primary = perLocation.map(distances => distances[0]);
+          const fallback = perLocation.map(distances => {
+            const finite = distances.filter(value => Number.isFinite(value));
+            return finite.length ? Math.min(...finite) : Infinity;
+          });
+          job._displayLocation = orderLocationValues(values, primary, fallback).join(" · ");
+        } else {
+          delete job._displayLocation;
         }
       }
     } catch (_) {
@@ -246,7 +287,7 @@
     titleWrap.append(
       element("p", "apply-next-rank", `#${rank} · ${job.company || "Company not listed"}`),
       element("h3", "", job.title || "Untitled opportunity"),
-      element("p", "muted", job.location || "Location not listed")
+      element("p", "muted", job._displayLocation || job.location || "Location not listed")
     );
     const postedDate = formatPostedDate(job.posted_at);
     if (postedDate) titleWrap.append(element("p", "muted apply-next-posted-date", postedDate));
@@ -426,6 +467,8 @@
     candidatePool,
     profileSummary,
     formatPostedDate,
+    locationDisplayValues,
+    orderLocationValues,
     emptyInspectionArtifact,
     loadInspectionArtifact,
     attachInspections,
