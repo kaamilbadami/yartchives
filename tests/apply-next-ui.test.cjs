@@ -81,7 +81,7 @@ assert.equal(jobs[2]._inspection, undefined);
 (async () => {
   const loaded = await UI.loadInspectionArtifact(async (url, options) => {
     assert.equal(url, UI.INSPECTION_URL);
-    assert.equal(options.cache, "no-store");
+    assert.equal(options.cache, "no-cache", "inspection fetch should revalidate cached data instead of forcing a full no-store download");
     return { ok: true, json: async () => artifact };
   });
   assert.deepEqual(loaded.listing_index, artifact.listing_index);
@@ -90,6 +90,9 @@ assert.equal(jobs[2]._inspection, undefined);
     throw new Error("offline");
   });
   assert.deepEqual(failed, { version: 1, entries: {}, listing_index: {} });
+
+  assert.equal(UI.scheduleWarmResources(profile), true, "saved-profile resources should be scheduled for idle prewarming");
+  assert.equal(UI.scheduleWarmResources(profile), false, "identical resource warmup should not be scheduled twice");
 
   const index = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
   assert.ok(index.includes('href="apply-next.css"'));
@@ -104,6 +107,9 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /Authoritative posting evidence/);
   assert.match(uiSource, /Application Value/);
   assert.match(uiSource, /data\/workday-inspections\.json/);
+  assert.match(uiSource, /requestIdleCallback/);
+  assert.match(uiSource, /loadGeoIndex\(\)/, "Apply Next should prewarm the geo index rather than first loading it on click");
+  assert.doesNotMatch(uiSource, /cache:\s*["']no-store["']/, "Apply Next inspection artifact should no longer force no-store caching");
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
 
   const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
