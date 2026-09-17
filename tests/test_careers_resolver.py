@@ -114,8 +114,9 @@ class CareersResolverTests(unittest.TestCase):
             root: FakeResponse(root, html),
             shared: FakeResponse(shared, "Find jobs"),
         })
-        self.assertEqual(result["status"], "unresolved")
+        self.assertNotEqual(result.get("url"), shared)
         attempt = next(item for item in result["evidence"] if item["requested_url"] == shared)
+        self.assertLess(attempt["score"], 0)
         self.assertIn("lacks employer tenant identity", attempt["signals"][0])
 
     def test_shared_provider_board_path_is_tenant_specific(self):
