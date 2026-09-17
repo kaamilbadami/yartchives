@@ -6,10 +6,10 @@
   const DEFAULT_WEIGHTS = Object.freeze({
     fit: 25,
     eligibility: 20,
-    freshness: 15,
+    freshness: 10,
     roi: 15,
-    role: 10,
-    location: 10,
+    role: 15,
+    location: 20,
     link: 5,
   });
 
@@ -122,12 +122,12 @@
 
   function scoreFreshness(job, now) {
     const age = ageDays(job, now);
-    if (age === null) return { score: 5, detail: "Posting date unknown" };
-    if (age <= 2) return { score: 15, detail: "Posted within 2 days" };
-    if (age <= 7) return { score: 12, detail: "Posted within 7 days" };
-    if (age <= 14) return { score: 9, detail: "Posted within 14 days" };
-    if (age <= 30) return { score: 5, detail: "Posted within 30 days" };
-    if (age <= 60) return { score: 2, detail: "Posted within 60 days" };
+    if (age === null) return { score: 3, detail: "Posting date unknown" };
+    if (age <= 2) return { score: 10, detail: "Posted within 2 days" };
+    if (age <= 7) return { score: 8, detail: "Posted within 7 days" };
+    if (age <= 14) return { score: 6, detail: "Posted within 14 days" };
+    if (age <= 30) return { score: 3, detail: "Posted within 30 days" };
+    if (age <= 60) return { score: 1, detail: "Posted within 60 days" };
     return { score: 0, detail: "Older than 60 days" };
   }
 
@@ -365,8 +365,9 @@
       const keywords = family?.keywords || [];
       if (!keywords.some(keyword => includesKeyword(text, keyword))) continue;
       const priority = Math.max(0, Math.min(1, Number(family.priority ?? 1)));
+      const legacyTenPointScore = Math.round(10 * priority);
       const candidate = {
-        score: Math.round(10 * priority),
+        score: Math.round(legacyTenPointScore * 1.5),
         detail: family.label || family.id || "Preferred role family",
       };
       if (!best || candidate.score > best.score) best = candidate;
@@ -375,27 +376,27 @@
 
     const preferredProfiles = profile?.preferredProfiles || [];
     if ((job?.profiles || []).some(value => preferredProfiles.includes(value))) {
-      return { score: 5, detail: "Preferred career area, but no preferred role-family keyword matched" };
+      return { score: 8, detail: "Preferred career area, but no preferred role-family keyword matched" };
     }
-    return { score: 2, detail: "Outside explicit preferred role families" };
+    return { score: 3, detail: "Outside explicit preferred role families" };
   }
 
   function scoreLocation(job, profile) {
     const states = new Set(job?.states || []);
     const preferredStates = profile?.preferredStates || [];
     if (states.has("Remote") && profile?.remoteRelevant !== false) {
-      return { score: 9, detail: "Remote opportunity" };
+      return { score: 18, detail: "Remote opportunity" };
     }
     if (Number.isFinite(job?._distanceMiles)) {
       const near = Number(profile?.nearbyMiles || 50);
-      if (job._distanceMiles <= near) return { score: 10, detail: `Within ${near} miles of active base` };
-      if (job._distanceMiles <= near * 2) return { score: 8, detail: `Within ${near * 2} miles of active base` };
+      if (job._distanceMiles <= near) return { score: 20, detail: `Within ${near} miles of active base` };
+      if (job._distanceMiles <= near * 2) return { score: 16, detail: `Within ${near * 2} miles of active base` };
     }
     const stateMatch = preferredStates.find(value => states.has(value));
-    if (stateMatch) return { score: 10, detail: `Preferred state: ${stateMatch}` };
-    if (!states.size || states.has("US")) return { score: 5, detail: "Location is broad or unknown" };
-    if (profile?.relocationAllowed) return { score: 6, detail: "Relocation is acceptable" };
-    return { score: 1, detail: "Outside preferred locations" };
+    if (stateMatch) return { score: 20, detail: `Preferred state: ${stateMatch}` };
+    if (!states.size || states.has("US")) return { score: 10, detail: "Location is broad or unknown" };
+    if (profile?.relocationAllowed) return { score: 12, detail: "Relocation is acceptable" };
+    return { score: 2, detail: "Outside preferred locations" };
   }
 
   function linkKind(job) {
@@ -427,7 +428,7 @@
       score -= 2;
       reasons.push("source-only application friction");
     }
-    if (freshness.score >= 12) {
+    if (freshness.score >= 8) {
       score += 3;
       reasons.push("fresh posting");
     }
