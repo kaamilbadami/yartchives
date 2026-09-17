@@ -128,6 +128,10 @@ def url_identity(url: str) -> tuple[str, str] | None:
     except Exception:
         return None
     hostname = parsed.netloc.lower().removeprefix("www.")
+    if hostname.endswith(".icims.com"):
+        match = re.search(r"/jobs/(\d+)(?:/|$)", parsed.path, re.IGNORECASE)
+        if match:
+            return hostname, f"icims-job={match.group(1)}"
     for key, value in parse_qsl(parsed.query):
         if key.lower() in {"jobid", "job_id", "gh_jid", "jid", "requisitionid", "reqid"} and value:
             return hostname, f"{key.lower()}={norm(value)}"
@@ -432,15 +436,52 @@ def classify(
         )
 
     identity = url_identity(url)
-    if identity and index.ids.get(identity):
-        job = index.get(index.ids[identity])[0]
+    identity_jobs = index.get(index.ids.get(identity, [])) if identity else []
+    if identity_jobs:
+        ranked = [
+            (
+                0.78 * similar(title, str(job.get("title") or ""))
+                + 0.22 * location_similarity(location, str(job.get("location") or "")),
+                job,
+            )
+            for job in identity_jobs
+        ]
+        ranked.sort(key=lambda item: item[0], reverse=True)
+        score, job = ranked[0]
+        title_score = similar(title, str(job.get("title") or ""))
+        location_score = location_similarity(location, str(job.get("location") or ""))
+        location_compatible = not location or not job.get("location") or location_score >= 0.80
+        if title_score >= 0.96 and location_compatible:
+            issues = surface_issues(job, expected)
+            if issues:
+                return result(
+                    base,
+                    "filtered_or_misclassified",
+                    "high",
+                    "provider_identity_match_hidden",
+                    "; ".join(issues),
+                    "Review profile/state/type enrichment or default filter metadata.",
+                    match_score=round(score, 3),
+                    matched_job=compact(job),
+                )
+            return result(
+                base,
+                "already_in_yartchives",
+                "high",
+                "provider_identity_match",
+                "matched by authoritative ATS/listing identifier with compatible title and location",
+                "No coverage fix needed.",
+                match_score=round(score, 3),
+                matched_job=compact(job),
+            )
         return result(
             base,
             "duplicate_resolution_issue",
             "high",
             "provider_identity_mismatch",
-            "same ATS/listing identifier exists but ordinary URL/signature matching failed",
-            "Add or improve provider-specific canonicalization/deduplication.",
+            "same ATS/listing identifier exists but title/location evidence is not compatible enough for an exact match",
+            "Verify provider identity and improve canonicalization/deduplication if these are the same role.",
+            match_score=round(score, 3),
             matched_job=compact(job),
         )
 
