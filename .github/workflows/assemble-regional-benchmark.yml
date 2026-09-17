@@ -90,22 +90,25 @@ jobs:
           python - <<'PY'
           from pathlib import Path
 
-          roots = [Path('scripts'), Path('tests'), Path('audit')]
-          for root in roots:
-              if not root.exists():
+          targets = [
+              Path('scripts/coverage_audit.py'),
+              Path('scripts/coverage_audit_runner.py'),
+              Path('tests/test_coverage_audit.py'),
+              Path('tests/test_coverage_denominator.py'),
+              Path('audit/samples/ct-ny-md-dc-cs-2026-09-17.json'),
+              Path('audit/regional-benchmark-changes-2026-09-17.md'),
+              Path('audit/ct-ny-md-dc-cs-coverage-2026-09-17.json'),
+              Path('audit/ct-ny-md-dc-cs-coverage-2026-09-17.md'),
+              Path('audit/coverage-contract-status-ct-ny-md-dc-2026-09-17.json'),
+              Path('audit/coverage-contract-status-ct-ny-md-dc-2026-09-17.md'),
+          ]
+          for path in targets:
+              if not path.exists():
                   continue
-              for path in root.rglob('*'):
-                  if not path.is_file() or path.suffix not in {'.py', '.md', '.json'}:
-                      continue
-                  try:
-                      text = path.read_text()
-                  except UnicodeDecodeError:
-                      continue
-                  normalized = '\n'.join(line.rstrip() for line in text.splitlines())
-                  if text.endswith('\n'):
-                      normalized += '\n'
-                  if normalized != text:
-                      path.write_text(normalized)
+              data = path.read_bytes()
+              data = data.replace(b'\r\n', b'\n').replace(b'\r', b'\n')
+              data = b'\n'.join(line.rstrip(b' \t') for line in data.split(b'\n'))
+              path.write_bytes(data)
           PY
 
       - name: Validate diff
