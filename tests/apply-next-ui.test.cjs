@@ -28,6 +28,23 @@ assert.equal(
   UI.formatPostedDate("2025-12-31T23:00:00Z", new Date("2026-01-02T01:00:00Z")),
   "Posted 12/31 · 2 days ago"
 );
+assert.deepEqual(
+  UI.orderLocationValues(
+    ["St. Louis, MO", "Austin, TX", "Bloomfield, CT"],
+    [1100, 1700, 35],
+    [900, 1300, 35],
+  ),
+  ["Bloomfield, CT", "St. Louis, MO", "Austin, TX"]
+);
+assert.deepEqual(
+  UI.orderLocationValues(
+    ["Morris Plains, NJ", "Bloomfield, CT"],
+    [Infinity, 40],
+    [25, 40],
+  ),
+  ["Bloomfield, CT", "Morris Plains, NJ"]
+);
+
 assert.equal(UI.formatPostedDate("", postedNow), "");
 assert.equal(UI.formatPostedDate("not-a-date", postedNow), "");
 assert.equal(UI.formatPostedDate("2026-09-15", "not-a-date"), "");
