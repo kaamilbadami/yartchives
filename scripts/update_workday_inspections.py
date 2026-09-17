@@ -2,7 +2,7 @@
 """Incrementally inspect authoritative ATS listings into a static cache artifact.
 
 The filename is retained for backwards compatibility, while entries and request
-budgets are provider-aware for Workday, iCIMS, Greenhouse, and Ashby.
+budgets are provider-aware for Workday, iCIMS, Greenhouse, Ashby, and Oracle HCM.
 """
 
 from __future__ import annotations
@@ -25,6 +25,7 @@ if str(SCRIPT_DIR) not in sys.path:
 from ashby_inspector import derive_ashby_endpoint, inspect_ashby_url  # noqa: E402
 from greenhouse_inspector import derive_greenhouse_endpoint, inspect_greenhouse_url  # noqa: E402
 from icims_inspector import derive_icims_endpoint, inspect_icims_url  # noqa: E402
+from oracle_hcm_inspector import derive_oracle_hcm_endpoint, inspect_oracle_hcm_url  # noqa: E402
 from posting_requirements import extract_requirements  # noqa: E402
 from workday_inspector import derive_cxs_endpoint, inspect_workday_url  # noqa: E402
 
@@ -35,11 +36,12 @@ DEFAULT_MAX_REQUESTS = 25
 DEFAULT_MAX_ICIMS_REQUESTS = 10
 DEFAULT_MAX_GREENHOUSE_REQUESTS = 10
 DEFAULT_MAX_ASHBY_REQUESTS = 10
+DEFAULT_MAX_ORACLE_HCM_REQUESTS = 10
 DEFAULT_TTL_DAYS = 7
 FAILED_RETRY_HOURS = 6
-CACHE_VERSION = 5
+CACHE_VERSION = 6
 REUSABLE_STATUSES = {"inspected", "unavailable"}
-PROVIDERS = ("workday", "icims", "greenhouse", "ashby")
+PROVIDERS = ("workday", "icims", "greenhouse", "ashby", "oracle_hcm")
 
 
 def utc_now() -> datetime:
@@ -225,8 +227,50 @@ def ashby_identity(job: dict[str, Any]) -> dict[str, str] | None:
     }
 
 
+def _unsupported_oracle_hcm_identity(url: str) -> dict[str, str] | None:
+    parsed = urlparse(html.unescape(url or ""))
+    host = (parsed.hostname or "").lower()
+    if (
+        parsed.scheme.lower() != "https"
+        or not re.fullmatch(r"[a-z0-9-]+\.fa\.[a-z0-9-]+\.oraclecloud\.com", host, flags=re.I)
+        or "/candidateexperience/" not in parsed.path.lower()
+    ):
+        return None
+    canonical = urlunparse(("https", host, parsed.path.rstrip("/") or "/", "", "", ""))
+    return {
+        "provider": "oracle_hcm",
+        "canonical_url": canonical,
+        "endpoint_url": canonical,
+        "supported": "false",
+    }
+
+
+def oracle_hcm_identity(job: dict[str, Any]) -> dict[str, str] | None:
+    if not isinstance(job, dict) or job.get("link_kind") in {"listing", "source"}:
+        return None
+    url = str(job.get("url") or "").strip()
+    if not url:
+        return None
+    try:
+        derived = derive_oracle_hcm_endpoint(url)
+    except ValueError:
+        return _unsupported_oracle_hcm_identity(url)
+    return {
+        "provider": "oracle_hcm",
+        "canonical_url": derived["canonical_job_url"],
+        "endpoint_url": derived["endpoint_url"],
+        "supported": "true",
+    }
+
+
 def posting_identity(job: dict[str, Any]) -> dict[str, str] | None:
-    return workday_identity(job) or icims_identity(job) or greenhouse_identity(job) or ashby_identity(job)
+    return (
+        workday_identity(job)
+        or icims_identity(job)
+        or greenhouse_identity(job)
+        or ashby_identity(job)
+        or oracle_hcm_identity(job)
+    )
 
 
 def provider_for_url(url: str) -> str | None:
@@ -240,6 +284,8 @@ def provider_for_url(url: str) -> str | None:
         return "greenhouse"
     if host == "jobs.ashbyhq.com":
         return "ashby"
+    if re.fullmatch(r"[a-z0-9-]+\.fa\.[a-z0-9-]+\.oraclecloud\.com", host, flags=re.I):
+        return "oracle_hcm"
     return None
 
 
@@ -254,6 +300,8 @@ def supported_identity(url: str) -> bool:
             derive_greenhouse_endpoint(url)
         elif provider == "ashby":
             derive_ashby_endpoint(url)
+        elif provider == "oracle_hcm":
+            derive_oracle_hcm_endpoint(url)
         else:
             return False
     except ValueError:
@@ -271,6 +319,8 @@ def inspect_posting_url(url: str) -> dict[str, Any]:
         return inspect_greenhouse_url(url)
     if provider == "ashby":
         return inspect_ashby_url(url)
+    if provider == "oracle_hcm":
+        return inspect_oracle_hcm_url(url)
     return {
         "status": "unsupported_url",
         "retrieval_confidence": "none",
@@ -572,6 +622,7 @@ def materialize_queue_entries(
                         "icims": "icims_jobposting_jsonld",
                         "greenhouse": "greenhouse_job_board_api",
                         "ashby": "ashby_public_job_postings_api",
+                        "oracle_hcm": "oracle_hcm_candidate_experience_api",
                     }.get(provider),
                 },
             },
@@ -590,6 +641,7 @@ def refresh_cache(
     max_icims_requests: int = DEFAULT_MAX_ICIMS_REQUESTS,
     max_greenhouse_requests: int = DEFAULT_MAX_GREENHOUSE_REQUESTS,
     max_ashby_requests: int = DEFAULT_MAX_ASHBY_REQUESTS,
+    max_oracle_hcm_requests: int = DEFAULT_MAX_ORACLE_HCM_REQUESTS,
     ttl_days: int = DEFAULT_TTL_DAYS,
     now: Callable[[], datetime] = utc_now,
     inspector: Callable[[str], dict[str, Any]] = inspect_posting_url,
@@ -623,6 +675,7 @@ def refresh_cache(
         "icims": max(0, int(max_icims_requests)),
         "greenhouse": max(0, int(max_greenhouse_requests)),
         "ashby": max(0, int(max_ashby_requests)),
+        "oracle_hcm": max(0, int(max_oracle_hcm_requests)),
     }
     selected: list[str] = []
     for provider in PROVIDERS:
@@ -697,6 +750,8 @@ def refresh_cache(
         "greenhouse_postings": sum(1 for canonical in by_url if provider_for_url(canonical) == "greenhouse"),
         "ashby_listings": sum(1 for canonical in listing_index.values() if provider_for_url(canonical) == "ashby"),
         "ashby_postings": sum(1 for canonical in by_url if provider_for_url(canonical) == "ashby"),
+        "oracle_hcm_listings": sum(1 for canonical in listing_index.values() if provider_for_url(canonical) == "oracle_hcm"),
+        "oracle_hcm_postings": sum(1 for canonical in by_url if provider_for_url(canonical) == "oracle_hcm"),
         "priority_term": out["priority_term"],
         "eligible_for_refresh": len(candidates),
         "requested": requested,
@@ -734,6 +789,7 @@ def main() -> int:
     parser.add_argument("--max-icims-requests", type=int, default=DEFAULT_MAX_ICIMS_REQUESTS)
     parser.add_argument("--max-greenhouse-requests", type=int, default=DEFAULT_MAX_GREENHOUSE_REQUESTS)
     parser.add_argument("--max-ashby-requests", type=int, default=DEFAULT_MAX_ASHBY_REQUESTS)
+    parser.add_argument("--max-oracle-hcm-requests", type=int, default=DEFAULT_MAX_ORACLE_HCM_REQUESTS)
     parser.add_argument("--ttl-days", type=int, default=DEFAULT_TTL_DAYS)
     args = parser.parse_args()
 
@@ -748,6 +804,7 @@ def main() -> int:
         max_icims_requests=args.max_icims_requests,
         max_greenhouse_requests=args.max_greenhouse_requests,
         max_ashby_requests=args.max_ashby_requests,
+        max_oracle_hcm_requests=args.max_oracle_hcm_requests,
         ttl_days=args.ttl_days,
         now=lambda: reference,
     )
