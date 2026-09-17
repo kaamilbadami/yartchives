@@ -29,7 +29,7 @@ API_HOST = "api.ashbyhq.com"
 UUID_RE = re.compile(
     r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$"
 )
-BOARD_RE = re.compile(r"^[A-Za-z0-9._-]+$")
+MAX_BOARD_LENGTH = 200
 
 
 class UnsupportedAshbyUrl(ValueError):
@@ -44,6 +44,15 @@ def iso(value: datetime) -> str:
     return value.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def _valid_board_name(board: str) -> bool:
+    """Accept Ashby board path segments while rejecting path/control delimiters."""
+    if not board or board in {".", ".."} or len(board) > MAX_BOARD_LENGTH:
+        return False
+    if any(char in board for char in "/\\?#"):
+        return False
+    return not any(ord(char) < 32 or ord(char) == 127 for char in board)
+
+
 def derive_ashby_endpoint(job_url: str) -> dict[str, str]:
     parsed = urlparse(html.unescape(job_url or ""))
     host = (parsed.hostname or "").lower()
@@ -52,12 +61,12 @@ def derive_ashby_endpoint(job_url: str) -> dict[str, str]:
 
     parts = [unquote(part) for part in parsed.path.split("/") if part]
     if len(parts) >= 2 and parts[2:] in ([], ["application"], ["apply"]):
-        board = parts[0].strip().lower()
+        board = parts[0].strip()
         posting_id = parts[1].strip().lower()
     else:
         raise UnsupportedAshbyUrl("Ashby URL must identify one hosted public job")
 
-    if not board or board in {".", ".."} or not BOARD_RE.fullmatch(board):
+    if not _valid_board_name(board):
         raise UnsupportedAshbyUrl("Ashby URL contains an invalid board name")
     if not UUID_RE.fullmatch(posting_id):
         raise UnsupportedAshbyUrl("Ashby URL must contain a posting UUID")
