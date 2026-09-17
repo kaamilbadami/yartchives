@@ -78,8 +78,8 @@ class DirectGreenhouseTests(unittest.TestCase):
     def test_rejects_nonstudent_noncs_and_nonus_roles(self):
         source = {
             "key": "auto-greenhouse-example",
-            "name": "Example (auto-discovered Greenhouse)",
-            "company": "Example",
+            "name": "Acme (auto-discovered Greenhouse)",
+            "company": "Acme",
             "board_token": "example",
             "homepage": "https://job-boards.greenhouse.io/example",
         }
@@ -93,11 +93,54 @@ class DirectGreenhouseTests(unittest.TestCase):
             with self.subTest(item=item):
                 self.assertIsNone(mod.job_from_item(source, item, reference))
 
+    def test_board_token_like_company_is_replaced_by_authoritative_board_brand(self):
+        source = {
+            "key": "auto-greenhouse-sage49",
+            "name": "Sage49 (auto-discovered Greenhouse)",
+            "company": "Sage49",
+            "board_token": "sage49",
+            "homepage": "https://job-boards.greenhouse.io/sage49",
+            "api_url": "https://boards-api.greenhouse.io/v1/boards/sage49/jobs",
+        }
+
+        class Response:
+            def __init__(self, *, text="", payload=None):
+                self.text = text
+                self._payload = payload
+                self.status_code = 200
+
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return self._payload
+
+        class Session:
+            def __init__(self):
+                self.calls = []
+
+            def get(self, url, **kwargs):
+                self.calls.append(url)
+                if url == source["homepage"]:
+                    return Response(text="<html><head><title>Jobs at Sage</title></head></html>")
+                return Response(payload={
+                    "jobs": [{
+                        "id": 6131191004,
+                        "title": "Software Engineering Intern (Edge) – Summer 2027",
+                        "location": {"name": "New York, NY"},
+                        "absolute_url": "https://job-boards.greenhouse.io/sage49/jobs/6131191004",
+                    }]
+                })
+
+        jobs = mod.fetch_source(Session(), source, datetime(2026, 9, 17, tzinfo=timezone.utc))
+        self.assertEqual(len(jobs), 1)
+        self.assertEqual(jobs[0]["company"], "Sage")
+
     def test_board_list_is_bounded_to_matching_sibling_roles(self):
         source = {
             "key": "auto-greenhouse-example",
-            "name": "Example (auto-discovered Greenhouse)",
-            "company": "Example",
+            "name": "Acme (auto-discovered Greenhouse)",
+            "company": "Acme",
             "board_token": "example",
             "homepage": "https://job-boards.greenhouse.io/example",
             "api_url": "https://boards-api.greenhouse.io/v1/boards/example/jobs",
