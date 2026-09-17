@@ -175,6 +175,44 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
         self.assertEqual(summary["requests_used"], 3)
         self.assertNotIn("careers_url", updated["employers"][0])
 
+    def test_lifecycle_attempts_fortune_before_verified_ats_before_other(self):
+        fortune = self.employer("fortune", 1)
+        fortune["seed_sets"].append("fortune-500-2026")
+        fortune["seed_metadata"]["fortune-500-2026"] = {
+            "domain_hints": ["fortune.wd1.myworkdayjobs.com"]
+        }
+
+        ats = self.employer("ats", 50)
+        ats["seed_sets"].append("state-of-ats-2026-verified-hosts")
+        ats["seed_metadata"]["state-of-ats-2026-verified-hosts"] = {
+            "domain_hints": ["ats.wd1.myworkdayjobs.com"]
+        }
+
+        other = self.employer("other", 100)
+        universe = {
+            "schema_version": 1,
+            "seed_sets": [
+                {"key": "benchmark", "kind": "coverage_benchmark"},
+                {"key": "fortune-500-2026", "kind": "fortune_500"},
+                {"key": "state-of-ats-2026-verified-hosts", "kind": "external_ats_evidence"},
+            ],
+            "employers": [other, ats, fortune],
+        }
+        calls = []
+
+        def resolver(entry, *, max_pages):
+            calls.append(entry["id"])
+            return self.resolved(f"https://{entry['id']}.example/careers", requests=1)
+
+        mod.run_lifecycle(
+            universe,
+            now=NOW,
+            employer_budget=3,
+            request_budget=3,
+            resolver=resolver,
+        )
+        self.assertEqual(calls, ["fortune", "ats", "other"])
+
     def test_resolution_preserves_seed_provenance_and_reports_provider_distribution(self):
         employer = self.employer("acme", 2)
         original_metadata = employer["seed_metadata"]

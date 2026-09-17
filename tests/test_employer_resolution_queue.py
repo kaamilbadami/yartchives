@@ -18,6 +18,8 @@ class EmployerResolutionQueueTests(unittest.TestCase):
             "seed_sets": [
                 {"key": "benchmark-a", "kind": "coverage_benchmark"},
                 {"key": "benchmark-b", "kind": "coverage_benchmark"},
+                {"key": "fortune-500-2026", "kind": "fortune_500"},
+                {"key": "state-of-ats-2026-verified-hosts", "kind": "external_ats_evidence"},
             ],
             "employers": [],
         }
@@ -86,6 +88,35 @@ class EmployerResolutionQueueTests(unittest.TestCase):
             "needs_tenant_identity": 1,
             "no_domain_hint": 1,
         })
+
+    def test_ready_priority_is_fortune_then_verified_ats_then_other(self):
+        universe = self.universe()
+        universe["employers"] = [
+            self.employer("other", "Other", {"benchmark-a": {
+                "domain_hints": ["other.example"],
+                "evidence_count": 100,
+                "authoritative_evidence_count": 100,
+            }}),
+            self.employer("ats", "ATS", {"state-of-ats-2026-verified-hosts": {
+                "domain_hints": ["ats.wd1.myworkdayjobs.com"],
+                "evidence_count": 1,
+            }}),
+            self.employer("fortune", "Fortune", {"fortune-500-2026": {
+                "domain_hints": ["fortune.wd1.myworkdayjobs.com"],
+                "evidence_count": 1,
+            }}),
+            self.employer("both", "Both", {
+                "fortune-500-2026": {"domain_hints": ["both.wd1.myworkdayjobs.com"]},
+                "state-of-ats-2026-verified-hosts": {"domain_hints": ["both.wd1.myworkdayjobs.com"]},
+            }),
+        ]
+
+        rows = mod.build_queue(universe, ready_only=True)["employers"]
+        self.assertEqual([row["id"] for row in rows], ["fortune", "both", "ats", "other"])
+        self.assertEqual(
+            [row["resolution_priority_label"] for row in rows],
+            ["fortune-500", "fortune-500", "verified-ats", "other"],
+        )
 
     def test_tenant_path_makes_shared_provider_hint_ready(self):
         universe = self.universe()

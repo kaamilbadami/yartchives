@@ -20,6 +20,17 @@ from provider_fingerprint import fingerprint_provider  # noqa: E402
 
 SCHEMA_VERSION = 1
 READINESS_ORDER = {"ready": 0, "needs_tenant_identity": 1, "no_domain_hint": 2}
+PRIORITY_SEEDS = ("fortune-500-2026", "state-of-ats-2026-verified-hosts")
+
+
+def resolution_priority(seed_sets: list[str] | tuple[str, ...] | set[str]) -> tuple[int, str]:
+    seeds = set(seed_sets or [])
+    if "fortune-500-2026" in seeds:
+        return 0, "fortune-500"
+    if "state-of-ats-2026-verified-hosts" in seeds:
+        return 1, "verified-ats"
+    return 2, "other"
+
 
 
 def _url(value: Any) -> str | None:
@@ -110,11 +121,15 @@ def queue_entry(employer: dict[str, Any]) -> dict[str, Any]:
     else:
         readiness = "no_domain_hint"
 
+    seed_sets = sorted(employer.get("seed_sets") or [])
+    priority_rank, priority_label = resolution_priority(seed_sets)
     return {
         "id": employer["id"],
         "name": employer["name"],
         "aliases": sorted(employer.get("aliases") or [], key=str.casefold),
-        "seed_sets": sorted(employer.get("seed_sets") or []),
+        "seed_sets": seed_sets,
+        "resolution_priority": priority_rank,
+        "resolution_priority_label": priority_label,
         "domain_hints": valid_domains,
         "states": sorted(states),
         "evidence_count": evidence_count,
@@ -141,6 +156,7 @@ def build_queue(
     ]
     entries.sort(key=lambda row: (
         READINESS_ORDER[row["resolution_readiness"]],
+        row["resolution_priority"],
         -row["authoritative_evidence_count"],
         -row["evidence_count"],
         row["id"],
