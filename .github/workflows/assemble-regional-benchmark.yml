@@ -85,6 +85,29 @@ jobs:
           path.write_text(text)
           PY
 
+      - name: Normalize recovered text whitespace
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          roots = [Path('scripts'), Path('tests'), Path('audit')]
+          for root in roots:
+              if not root.exists():
+                  continue
+              for path in root.rglob('*'):
+                  if not path.is_file() or path.suffix not in {'.py', '.md', '.json'}:
+                      continue
+                  try:
+                      text = path.read_text()
+                  except UnicodeDecodeError:
+                      continue
+                  normalized = '\n'.join(line.rstrip() for line in text.splitlines())
+                  if text.endswith('\n'):
+                      normalized += '\n'
+                  if normalized != text:
+                      path.write_text(normalized)
+          PY
+
       - name: Validate diff
         run: git diff --check
 
