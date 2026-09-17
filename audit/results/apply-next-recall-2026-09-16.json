@@ -1,0 +1,802 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-17T03:08:23.402Z",
+  "inputs": {
+    "feed_generated_at": "2026-09-16T20:53:36.775214Z",
+    "cache_updated_at": "2026-09-16T20:55:17Z",
+    "reference_time": "2026-09-16T20:55:17.000Z",
+    "target_term": "Summer 2027",
+    "relevance_profiles": [
+      "cs"
+    ],
+    "top_n": 10,
+    "local_applied_or_hidden_jobs": 0
+  },
+  "product_behavior": {
+    "authoritative_only_gate_active": false,
+    "metadata_only_jobs_can_rank": true,
+    "unknown_inspection_evidence_is_a_hard_exclusion": false
+  },
+  "funnel": {
+    "full_feed": {
+      "entered": 4672,
+      "retained": 4672,
+      "dropped": 0
+    },
+    "relevance_filter": {
+      "entered": 4672,
+      "retained": 1947,
+      "dropped": 2725,
+      "reasons": {
+        "genuinely_irrelevant_for_selected_profiles": 2725
+      }
+    },
+    "term_and_eligibility_filter": {
+      "entered": 1947,
+      "retained": 1433,
+      "dropped": 514,
+      "reasons": {
+        "known_wrong_term": 418,
+        "known_ineligible_graduate_only": 96
+      }
+    },
+    "inspection_candidate_pool": {
+      "entered": 1433,
+      "selected_for_inspection": 456,
+      "relevant_but_not_selected": 977,
+      "recommendation_candidates_retained": 1433,
+      "note": "Inspection selection affects evidence coverage, not recommendation eligibility."
+    },
+    "inspection_state": {
+      "all_term_candidates": {
+        "not_selected": 1055,
+        "queued_bounded_throughput": 415,
+        "inspected": 49,
+        "inspected_semantically_thin": 5,
+        "inspection_retrieval_failure_or_cooldown": 5
+      },
+      "eligible_candidates": {
+        "not_selected": 977,
+        "queued_bounded_throughput": 398,
+        "inspected": 48,
+        "inspected_semantically_thin": 5,
+        "inspection_retrieval_failure_or_cooldown": 5
+      }
+    },
+    "authoritative_only_gate": {
+      "entered": 1433,
+      "active": false,
+      "retained": 1433,
+      "dropped": 0,
+      "excluded_solely_because_authoritative_inspection_is_required": 0,
+      "counterfactual_excluded_if_gate_were_enabled": 1380
+    },
+    "ranking": {
+      "entered": 1433,
+      "ranked": 1433,
+      "dropped": 0
+    },
+    "visible_top_n": {
+      "entered": 1433,
+      "visible": 10,
+      "ranked_but_below_visible_set": 1423
+    }
+  },
+  "classifications": {
+    "relevant_but_not_selected_for_inspection": 977,
+    "queued_bounded_throughput": 398,
+    "inspection_retrieval_failure_or_cooldown": 5,
+    "unsupported_provider_or_source_shape": 977,
+    "authoritative_posting_unavailable": 0,
+    "inspected_semantically_thin": 5,
+    "excluded_solely_by_authoritative_gate": 0,
+    "ranked_below_visible_set": 1423
+  },
+  "inspection_unsupported_breakdown": {
+    "job-boards.greenhouse.io": 204,
+    "jobs.ashbyhq.com": 151,
+    "lifeattiktok.com": 72,
+    "jobs.lever.co": 56,
+    "source": 46,
+    "boards.greenhouse.io": 29,
+    "jobs.smartrecruiters.com": 22,
+    "recruiting.paylocity.com": 18,
+    "jobs.bytedance.com": 17,
+    "apply.workable.com": 13,
+    "app.careerpuck.com": 12,
+    "akunacapital.com": 10,
+    "apply.careers.microsoft.com": 9,
+    "ats.rippling.com": 9,
+    "careers.amd.com": 9,
+    "egug.fa.us2.oraclecloud.com": 9,
+    "www.janestreet.com": 9,
+    "www.zipline.com": 9,
+    "corningjobs.corning.com": 7,
+    "eofe.fa.us2.oraclecloud.com": 7,
+    "www.optiver.com": 7,
+    "fa-etbx-saasfaprod1.fa.ocs.oraclecloud.com": 6,
+    "textron.taleo.net": 6,
+    "www.google.com": 6,
+    "careers.duolingo.com": 5,
+    "careers.jhuapl.edu": 5,
+    "eeho.fa.us2.oraclecloud.com": 5,
+    "job-boards.eu.greenhouse.io": 5,
+    "www.akunacapital.com": 5,
+    "www.jumptrading.com": 5,
+    "www.workatastartup.com": 5,
+    "apply.edisoncareers.com": 4,
+    "careers.datadoghq.com": 4,
+    "careers.garmin.com": 4,
+    "jobs.intuit.com": 4,
+    "jobs.jobvite.com": 4,
+    "lunaroutpost.bamboohr.com": 4,
+    "www.drw.com": 4,
+    "career5.successfactors.eu": 3,
+    "careers.principal.com": 3,
+    "careers.roblox.com": 3,
+    "epicgames.com": 3,
+    "hcgn.fa.us2.oraclecloud.com": 3,
+    "hdjq.fa.us2.oraclecloud.com": 3,
+    "jobs.apple.com": 3,
+    "joinbytedance.com": 3,
+    "www.citadel.com": 3,
+    "www.coinbase.com": 3,
+    "www.usajobs.gov": 3,
+    "amazon.jobs": 2,
+    "award.co": 2,
+    "c3.ai": 2,
+    "career2.successfactors.eu": 2,
+    "careers.appian.com": 2,
+    "careers.westinghousenuclear.com": 2,
+    "careers.withwaymo.com": 2,
+    "dms-international.breezy.hr": 2,
+    "ebgj.fa.us2.oraclecloud.com": 2,
+    "ecnf.fa.us2.oraclecloud.com": 2,
+    "eyglobal.yello.co": 2,
+    "fa-euwp-saasfaprod1.fa.ocs.oraclecloud.com": 2,
+    "ibqbjb.fa.ocs.oraclecloud.com": 2,
+    "impulsespace.pinpointhq.com": 2,
+    "innovativesystems.applytojob.com": 2,
+    "jobs.constellationenergy.com": 2,
+    "jobs.postholdings.com": 2,
+    "jobs.statefarm.com": 2,
+    "jpmc.fa.oraclecloud.com": 2,
+    "munichairportusholdingllc.applytojob.com": 2,
+    "ninjaholdings.breezy.hr": 2,
+    "novatechengineering.applytojob.com": 2,
+    "sedarotech.bamboohr.com": 2,
+    "simisinc.applytojob.com": 2,
+    "wd1.myworkdaysite.com": 2,
+    "workforcenow.adp.com": 2,
+    "www.amazon.jobs": 2,
+    "www.epicgames.com": 2,
+    "www.equipmentshare.com": 2,
+    "www.hudsonrivertrading.com": 2,
+    "www.samsara.com": 2,
+    "www.tesla.com": 2,
+    "www.ycombinator.com": 2,
+    "advantage-design-group.breezy.hr": 1,
+    "aerotech.applytojob.com": 1,
+    "apply.deloitte.com": 1,
+    "asuresoftware.bamboohr.com": 1,
+    "blackcape.applytojob.com": 1,
+    "bostonscientific.eightfold.ai": 1,
+    "career41.sapsf.com": 1,
+    "careers.comed.com": 1,
+    "careers.cvent.com": 1,
+    "careers.epic.com": 1,
+    "careers.gov2x.com": 1,
+    "careers.ice.com": 1,
+    "careers.kindermorgan.com": 1,
+    "careers.msasafety.com": 1,
+    "careers.planview.com": 1,
+    "careers.publicisgroupe.com": 1,
+    "careers.qorvo.com": 1,
+    "careers.rivian.com": 1,
+    "careers.spiritaero.com": 1,
+    "cloudfitsoftware.applytojob.com": 1,
+    "dontpaniclabs.bamboohr.com": 1,
+    "drakeandassociates.bamboohr.com": 1,
+    "ebxr.fa.us2.oraclecloud.com": 1,
+    "ecge.fa.us2.oraclecloud.com": 1,
+    "egay.fa.us6.oraclecloud.com": 1,
+    "ejhp.fa.us6.oraclecloud.com": 1,
+    "emit.fa.ca3.oraclecloud.com": 1,
+    "fa-esbv-saasfaprod1.fa.ocs.oraclecloud.com": 1,
+    "fa-esgu-saasfaprod1.fa.ocs.oraclecloud.com": 1,
+    "firy.com": 1,
+    "grnh.se": 1,
+    "jbssolutions.bamboohr.com": 1,
+    "jj.wd5.myworkdayjobs.com": 1,
+    "jobs.baesystems.com": 1,
+    "jobs.eu.lever.co": 1,
+    "jobs.grainger.com": 1,
+    "jobs.gusto.com": 1,
+    "jobs.keysight.com": 1,
+    "jobs.uber.com": 1,
+    "jobs.uhsinc.com": 1,
+    "jobs.ulalaunch.com": 1,
+    "jobs.workable.com": 1,
+    "johndeere.eightfold.ai": 1,
+    "matrix-design-group.breezy.hr": 1,
+    "metecs.applytojob.com": 1,
+    "mobius-llc.com": 1,
+    "nuro.ai": 1,
+    "prospectequities.applytojob.com": 1,
+    "qualcomm.eightfold.ai": 1,
+    "ragleinc.applytojob.com": 1,
+    "recruiting2.ultipro.com": 1,
+    "ro.careers.tsmc.com": 1,
+    "simventions.jibeapply.com": 1,
+    "specialisterne.applytojob.com": 1,
+    "specteraerospace.bamboohr.com": 1,
+    "stokespace.com": 1,
+    "store.epicgames.com": 1,
+    "stripe.com": 1,
+    "tetramem.hrmdirect.com": 1,
+    "twosigma.avature.net": 1,
+    "wd3.myworkdaysite.com": 1,
+    "wd5.myworkdaysite.com": 1,
+    "www.alixpartners.com": 1,
+    "www.artisanpartners.com": 1,
+    "www.citadelsecurities.com": 1,
+    "www.deshaw.com": 1,
+    "www.dropbox.jobs": 1,
+    "www.iex.io": 1,
+    "www.imc.com": 1,
+    "www.ixl.com": 1,
+    "www.quantbot.com": 1,
+    "www.stokespace.com": 1
+  },
+  "biggest_evidence_bottleneck": {
+    "classification": "unsupported_provider_or_source_shape",
+    "count": 977
+  },
+  "examples": {
+    "irrelevant": [
+      {
+        "id": "f635aca59711370a",
+        "company": "Acxiomllc",
+        "title": "Intern - Product Management",
+        "term": null,
+        "url": "https://acxiomllc.wd5.myworkdayjobs.com/acxiomusa/job/New-York/Intern---Product-Management_JR014469"
+      },
+      {
+        "id": "e97264d73e3da20f",
+        "company": "Itron",
+        "title": "Intern - Firmware Engineer (Spring 2027)",
+        "term": "Spring 2027",
+        "url": "https://itron.wd5.myworkdayjobs.com/itron/job/United-States-of-America-South-Carolina-West-Union/Intern----Firmware-Engineer--Spring-2027-_JR102920-1"
+      },
+      {
+        "id": "def96244c063745a",
+        "company": "Elkay",
+        "title": "Product Management Intern - Summer 2027",
+        "term": "Summer 2027",
+        "url": "https://elkay.wd1.myworkdayjobs.com/elkay_external/job/Erie-PA/Product-Management-Intern---Summer-2027_REQ-020103-1"
+      },
+      {
+        "id": "a1374836850e20b7",
+        "company": "Smarty",
+        "title": "Product Management Intern",
+        "term": null,
+        "url": "https://ats.rippling.com/smarty/jobs/e47afb29-f488-466b-ad29-11280c68f749"
+      },
+      {
+        "id": "92552611aabafcc9",
+        "company": "D3 Embedded",
+        "title": "Embedded Systems Design Co-op",
+        "term": null,
+        "url": "https://d3engineering.applytojob.com/apply/uixxAbdlV5"
+      }
+    ],
+    "wrong_term": [
+      {
+        "id": "dbe97f1fe3cde6da",
+        "company": "Nasdaq",
+        "title": "Software Developer/ Engineer Intern - 2027 Summer Internship",
+        "term": "2027",
+        "url": "https://nasdaq.wd1.myworkdayjobs.com/global_external_site/job/GA---Glenridge-Point/Software-Developer--Engineer-Intern---2027-Summer-Internship_R0026972"
+      },
+      {
+        "id": "a2a754615f4293c8",
+        "company": "RTX",
+        "title": "Software Engineering Co-op (Winter/Spring 2027)",
+        "term": "Spring 2027",
+        "url": "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway/job/US-IA-CEDAR-RAPIDS-124--400-Collins-Rd-NE--BLDG-124/Software-Engineering-Co-op--Winter-Spring-2027-_01875464"
+      },
+      {
+        "id": "928c5227b47dccb3",
+        "company": "Bedrock Robotics Inc",
+        "title": "Internship 2027 Software Engineer, Fleet Platform",
+        "term": "2027",
+        "url": "https://jobs.ashbyhq.com/bedrock-robotics/8927dd7e-a48d-49a2-92eb-09ec059432f4"
+      },
+      {
+        "id": "384fe4cf31d75c06",
+        "company": "Cartesian Systems",
+        "title": "IAP Software Engineering Intern 2027",
+        "term": "2027",
+        "url": "https://job-boards.greenhouse.io/cartesiansystems/jobs/4408204009"
+      },
+      {
+        "id": "251ebba106329556",
+        "company": "Insulet",
+        "title": "Co-op - Embedded Software Test Engineering: January-June 2027 - Onsite",
+        "term": "2027",
+        "url": "https://insulet.wd5.myworkdayjobs.com/insuletcareers/job/Acton-Massachusetts/Co-op--Embedded-Software-Test-Engineering--January---June-2027--Onsite-_REQ-2026-18012"
+      }
+    ],
+    "known_ineligible": [
+      {
+        "id": "ab30f11735c98c6b",
+        "company": "LLNL",
+        "title": "Data Science Institute Graduate Student Intern - Summer 2027",
+        "term": "Summer 2027",
+        "url": "https://jobs.smartrecruiters.com/llnl/3743990015289146",
+        "reason": "known_ineligible_graduate_only",
+        "detail": "Graduate-only opportunity"
+      },
+      {
+        "id": "d0add1c86241b3aa",
+        "company": "Google",
+        "title": "Business Data Scientist Intern, PhD, Summer 2027",
+        "term": "Summer 2027",
+        "url": "https://www.google.com/about/careers/applications/jobs/results/134577198026629830",
+        "reason": "known_ineligible_graduate_only",
+        "detail": "Graduate-only opportunity"
+      },
+      {
+        "id": "55fb58f6bde082f5",
+        "company": "Google",
+        "title": "Data Scientist, Research Intern, PhD, Summer 2027",
+        "term": "Summer 2027",
+        "url": "https://www.google.com/about/careers/applications/jobs/results/89965613241246406",
+        "reason": "known_ineligible_graduate_only",
+        "detail": "Graduate-only opportunity"
+      },
+      {
+        "id": "3897d3814bfaa3a9",
+        "company": "Google",
+        "title": "Software Engineering Intern, MS, Summer 2027",
+        "term": "Summer 2027",
+        "url": "https://www.google.com/about/careers/applications/jobs/results/94172495052972742",
+        "reason": "known_ineligible_graduate_only",
+        "detail": "Graduate-only opportunity"
+      },
+      {
+        "id": "28f872970876fa43",
+        "company": "Google",
+        "title": "Data Scientist, Product Intern, MS, Summer 2027",
+        "term": "Summer 2027",
+        "url": "https://www.google.com/about/careers/applications/jobs/results/119184035237765830",
+        "reason": "known_ineligible_graduate_only",
+        "detail": "Graduate-only opportunity"
+      }
+    ],
+    "not_selected_for_inspection": [
+      {
+        "id": "efe867f7cb7e2c9f",
+        "company": "Jj",
+        "title": "Software Engineering Intern - Robotics RD",
+        "term": null,
+        "url": null
+      },
+      {
+        "id": "a4e27fc32f3554fb",
+        "company": "Relay",
+        "title": "Relay Launchpad Intern - Software Engineer (Device Team)",
+        "term": null,
+        "url": "https://job-boards.greenhouse.io/relaypro/jobs/8180836"
+      },
+      {
+        "id": "97926390ddc9876a",
+        "company": "Clockwork.io",
+        "title": "Software Engineer Intern",
+        "term": null,
+        "url": "https://job-boards.greenhouse.io/clockworksystems/jobs/6174230004"
+      },
+      {
+        "id": "8e15bf300a80b471",
+        "company": "Persona",
+        "title": "Software Engineer, Intern (Summer 2027)",
+        "term": "Summer 2027",
+        "url": "https://jobs.ashbyhq.com/persona/eb77c97c-fa9d-4bf0-9566-e5ba4453b7d3"
+      },
+      {
+        "id": "2745a1830dd315ca",
+        "company": "Smarty",
+        "title": "Software Engineer Intern",
+        "term": null,
+        "url": "https://ats.rippling.com/smarty/jobs/76ceddee-de0a-4218-a9fb-976bd420558a"
+      }
+    ],
+    "queued_bounded_throughput": [
+      {
+        "id": "a3a09fa7d1b706f6",
+        "company": "RTX",
+        "title": "Software Engineer Intern",
+        "term": null,
+        "url": "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway/job/US-AZ-TUCSON-805--1151-E-Hermans-Rd--BLDG-805/Software-Engineer-Intern_01874282"
+      },
+      {
+        "id": "7409db3875c30b0b",
+        "company": "Graco",
+        "title": "Software Engineer Intern",
+        "term": null,
+        "url": "https://graco.wd501.myworkdayjobs.com/graco_careers/job/Dayton-Minnesota-USA-French-Lake/Software-Engineer-Intern_R0023556"
+      },
+      {
+        "id": "501504e2a88c4bdd",
+        "company": "Gfs",
+        "title": "Cloud DevOps Internship",
+        "term": null,
+        "url": "https://gfs.wd5.myworkdayjobs.com/usjobs-gen-gfs/job/Atlanta-Georgia/Cloud-DevOps-Internship_R-57259"
+      },
+      {
+        "id": "eabdaec1addff4e2",
+        "company": "KBR",
+        "title": "Image Processing Software Engineer Intern",
+        "term": null,
+        "url": "https://kbr.wd5.myworkdayjobs.com/en-US/KBR_Careers/job/Sioux-Falls-South-Dakota/Image-Processing-Software-Engineer-Intern_R2130067"
+      },
+      {
+        "id": "b74f3ae404e73d98",
+        "company": "Gartner",
+        "title": "Summer 2027 IT Intern (May 2028 Graduates)",
+        "term": "Summer 2027",
+        "url": "https://gartner.wd5.myworkdayjobs.com/en-US/EXT/job/Stamford-CT/Summer-2027-IT-Intern--May-2028-Graduates-_113095"
+      }
+    ],
+    "retrieval_failure_or_cooldown": [
+      {
+        "id": "fbcb8aa119705ca6",
+        "company": "RTX",
+        "title": "Software Engineering Intern (Summer 2027)",
+        "term": "Summer 2027",
+        "url": "https://globalhr.wd5.myworkdayjobs.com/private_posting_no_tmp/job/US-MA-WESTFORD-WFD7--7-Technology-Park-Dr--BLDG-7/Software-Engineering-Intern--Summer-2027-_01867678"
+      },
+      {
+        "id": "cec44ef708ccc5dd",
+        "company": "RTX",
+        "title": "Software Engineer Intern (Summer 2027)",
+        "term": "Summer 2027",
+        "url": "https://globalhr.wd5.myworkdayjobs.com/private_posting_no_tmp/job/US-AZ-TUCSON-801--1151-E-Hermans-Rd--BLDG-801-External-Site/Software-Engineer-Intern--Summer-2027-_01867664"
+      },
+      {
+        "id": "2785be11758b6d88",
+        "company": "Philips",
+        "title": "Intern – Software Engineering – Plymouth, MN – Summer 2027",
+        "term": "Summer 2027",
+        "url": "https://philips.wd3.myworkdayjobs.com/jobs-and-careers/job/Plymouth-Minnesota-United-States/Intern---Software-Engineering---Plymouth--MN---Summer-2027_590403"
+      },
+      {
+        "id": "a763d2a1d372fdd2",
+        "company": "Amgen",
+        "title": "Grad Intern – Data Engineer – Amgen’s Technology & Medical Organizations (Summer 2027)",
+        "term": "Summer 2027",
+        "url": "https://amgen.wd1.myworkdayjobs.com/careers/job/United-States---Remote/Grad-Intern---Data-Engineer---Amgen-s-Technology---Medical-Organizations--Summer-2027-_R-255725"
+      },
+      {
+        "id": "2007137f40bddf13",
+        "company": "RTX",
+        "title": "Software Platform Intern (Summer 2027)",
+        "term": "Summer 2027",
+        "url": "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway/job/US-CO-AURORA-S75--16800-E-Centretech-Pkwy--BLDG-S75/Software-Platform-Intern--Summer-2027-_01870216"
+      }
+    ],
+    "unsupported_provider_or_source_shape": [
+      {
+        "id": "efe867f7cb7e2c9f",
+        "company": "Jj",
+        "title": "Software Engineering Intern - Robotics RD",
+        "term": null,
+        "url": null
+      },
+      {
+        "id": "a4e27fc32f3554fb",
+        "company": "Relay",
+        "title": "Relay Launchpad Intern - Software Engineer (Device Team)",
+        "term": null,
+        "url": "https://job-boards.greenhouse.io/relaypro/jobs/8180836"
+      },
+      {
+        "id": "97926390ddc9876a",
+        "company": "Clockwork.io",
+        "title": "Software Engineer Intern",
+        "term": null,
+        "url": "https://job-boards.greenhouse.io/clockworksystems/jobs/6174230004"
+      },
+      {
+        "id": "8e15bf300a80b471",
+        "company": "Persona",
+        "title": "Software Engineer, Intern (Summer 2027)",
+        "term": "Summer 2027",
+        "url": "https://jobs.ashbyhq.com/persona/eb77c97c-fa9d-4bf0-9566-e5ba4453b7d3"
+      },
+      {
+        "id": "2745a1830dd315ca",
+        "company": "Smarty",
+        "title": "Software Engineer Intern",
+        "term": null,
+        "url": "https://ats.rippling.com/smarty/jobs/76ceddee-de0a-4218-a9fb-976bd420558a"
+      }
+    ],
+    "authoritative_posting_unavailable": [],
+    "inspected_semantically_thin": [
+      {
+        "id": "85da28f50baa3234",
+        "company": "Neogen",
+        "title": "Software or Firmware Engineer Intern",
+        "term": null,
+        "url": "https://neogen.wd5.myworkdayjobs.com/neogencareers/job/Oakdale/Software-or-Firmware-Engineer-Intern_REQ-11064",
+        "semantic": {
+          "known_fields": 0,
+          "unknown_fields": 8,
+          "known_field_names": [],
+          "unknown_field_names": [
+            "graduation",
+            "education",
+            "student_status",
+            "major_fields",
+            "citizenship",
+            "work_authorization",
+            "skills",
+            "other_eligibility"
+          ],
+          "mostly_unknown": true
+        }
+      },
+      {
+        "id": "256319cae08eddf7",
+        "company": "Aspentech",
+        "title": "Software Development Intern - Digital Grid Management - Summer 2027",
+        "term": "Summer 2027",
+        "url": "https://aspentech.wd5.myworkdayjobs.com/aspentech/job/Medina-Minnesota/Software-Development-Intern---Digital-Grid-Management---Summer-2027_R9456",
+        "semantic": {
+          "known_fields": 2,
+          "unknown_fields": 6,
+          "known_field_names": [
+            "education",
+            "work_authorization"
+          ],
+          "unknown_field_names": [
+            "graduation",
+            "student_status",
+            "major_fields",
+            "citizenship",
+            "skills",
+            "other_eligibility"
+          ],
+          "mostly_unknown": true
+        }
+      },
+      {
+        "id": "59b0e6aaf1d73962",
+        "company": "Baxter International",
+        "title": "Associate Data Scientist Co-op",
+        "term": null,
+        "url": "https://baxter.wd1.myworkdayjobs.com/baxter/job/Skaneateles-NY/Associate-Software-Engineer-Co-op_JR-207560-1",
+        "semantic": {
+          "known_fields": 3,
+          "unknown_fields": 5,
+          "known_field_names": [
+            "education",
+            "skills",
+            "other_eligibility"
+          ],
+          "unknown_field_names": [
+            "graduation",
+            "student_status",
+            "major_fields",
+            "citizenship",
+            "work_authorization"
+          ],
+          "mostly_unknown": true
+        }
+      },
+      {
+        "id": "904b084005a2b391",
+        "company": "Western & Southern Financial Group",
+        "title": "Data Engineering and Analytics Intern - Summer 2027",
+        "term": "Summer 2027",
+        "url": "https://careers-westernsouthern.icims.com/jobs/25207/job?mobile=true&amp%3BneedsRedirect=false&amp%3Butm_source=Simplify&amp%3Bref=Simplify",
+        "semantic": {
+          "known_fields": 3,
+          "unknown_fields": 5,
+          "known_field_names": [
+            "education",
+            "skills",
+            "other_eligibility"
+          ],
+          "unknown_field_names": [
+            "graduation",
+            "student_status",
+            "major_fields",
+            "citizenship",
+            "work_authorization"
+          ],
+          "mostly_unknown": true
+        }
+      },
+      {
+        "id": "64fbe164261a8f5e",
+        "company": "Western & Southern",
+        "title": "Data Engineering and Analytics Intern (Summer 2027)",
+        "term": "Summer 2027",
+        "url": "https://careers-westernsouthern.icims.com/jobs/25207/data-engineering-and-analytics-intern-%28summer-2027%29/job",
+        "semantic": {
+          "known_fields": 3,
+          "unknown_fields": 5,
+          "known_field_names": [
+            "education",
+            "skills",
+            "other_eligibility"
+          ],
+          "unknown_field_names": [
+            "graduation",
+            "student_status",
+            "major_fields",
+            "citizenship",
+            "work_authorization"
+          ],
+          "mostly_unknown": true
+        }
+      }
+    ],
+    "top_n": [
+      {
+        "rank": 1,
+        "score": 78,
+        "inspection_state": "inspected",
+        "id": "ffa32a7901741c91",
+        "company": "CACI",
+        "title": "Software Test Engineer Intern - Summer 2027",
+        "term": "Summer 2027",
+        "url": "https://caci.wd1.myworkdayjobs.com/external/job/Colorado-Springs-CO-US/Software-Test-Engineer-Intern---Summer-2027_332003"
+      },
+      {
+        "rank": 2,
+        "score": 77,
+        "inspection_state": "not_selected",
+        "id": "03fd708e6027fba1",
+        "company": "Lunar Outpost",
+        "title": "Embedded Software Engineer Intern - Summer 2027",
+        "term": "Summer 2027",
+        "url": "https://lunaroutpost.bamboohr.com/careers/392?amp%3Bref=Simplify"
+      },
+      {
+        "rank": 3,
+        "score": 76,
+        "inspection_state": "inspected",
+        "id": "091b43df929dff80",
+        "company": "Nelnet",
+        "title": "Intern - Software Engineer - New Ventures - Starting Summer 2027",
+        "term": "Summer 2027",
+        "url": "https://nelnet.wd1.myworkdayjobs.com/mynelnet/job/Lincoln-NE/Intern---Software-Engineer---New-Ventures---Starting-Summer-2026_R23098"
+      },
+      {
+        "rank": 4,
+        "score": 76,
+        "inspection_state": "inspected",
+        "id": "242f1b2f68bd9257",
+        "company": "Plastipak",
+        "title": "Software Engineer Intern",
+        "term": "Summer 2027",
+        "url": "https://plastipak.wd1.myworkdayjobs.com/Plastipak/job/Plastipak-GBTC---Plymouth-MI/Software-Engineering-Intern---Summer-2027_REQ24512"
+      },
+      {
+        "rank": 5,
+        "score": 75,
+        "inspection_state": "not_selected",
+        "id": "8b45128dab0520bf",
+        "company": "Elire",
+        "title": "AI Software Developer Intern - Multiple Teams",
+        "term": null,
+        "url": "https://jobs.jobvite.com/elire/job/oM5LAfwW?nl=1&amp%3Bnl=1&amp%3Bfr=false&amp%3Butm_source=Simplify&amp%3Bref=Simplify"
+      },
+      {
+        "rank": 6,
+        "score": 75,
+        "inspection_state": "not_selected",
+        "id": "2292284a7c3ce4b0",
+        "company": "Lunar Outpost",
+        "title": "Ground Software Engineer Intern - Summer 2027",
+        "term": "Summer 2027",
+        "url": "https://lunaroutpost.bamboohr.com/careers/398?amp%3Bref=Simplify"
+      },
+      {
+        "rank": 7,
+        "score": 75,
+        "inspection_state": "inspected",
+        "id": "ecb2693f213152e7",
+        "company": "Analog Devices",
+        "title": "Embedded Software Engineer Intern",
+        "term": null,
+        "url": "https://analogdevices.wd1.myworkdayjobs.com/External/job/US-MA-Wilmington/Embedded-Software-Engineer-Intern_R266132"
+      },
+      {
+        "rank": 8,
+        "score": 74,
+        "inspection_state": "not_selected",
+        "id": "08ad1459f189cece",
+        "company": "Relay",
+        "title": "Relay Launchpad Intern - Software Engineer (AI/ML)",
+        "term": null,
+        "url": "https://job-boards.greenhouse.io/relaypro/jobs/8176774"
+      },
+      {
+        "rank": 9,
+        "score": 74,
+        "inspection_state": "not_selected",
+        "id": "eb9e1205a9cd025e",
+        "company": "CesiumAstro",
+        "title": "Embedded Software Engineer Intern",
+        "term": null,
+        "url": "https://jobs.lever.co/CesiumAstro/d25bf640-2b2b-48d6-ab79-8a06b246caaa/apply?amp%3Bref=Simplify"
+      },
+      {
+        "rank": 10,
+        "score": 74,
+        "inspection_state": "not_selected",
+        "id": "4b2ae7bce489facb",
+        "company": "CesiumAstro",
+        "title": "Embedded Software Engineer Intern",
+        "term": null,
+        "url": "https://jobs.lever.co/CesiumAstro/96e97f22-a5b2-4e95-af84-b4f765343663/apply?amp%3Bref=Simplify"
+      }
+    ],
+    "first_below_top_n": [
+      {
+        "rank": 11,
+        "score": 74,
+        "inspection_state": "not_selected",
+        "id": "1c94b5621681ecc8",
+        "company": "CesiumAstro",
+        "title": "Summer 2027 - Embedded Software Engineering Internship",
+        "term": "Summer 2027",
+        "url": "https://jobs.lever.co/CesiumAstro/96e97f22-a5b2-4e95-af84-b4f765343663"
+      },
+      {
+        "rank": 12,
+        "score": 74,
+        "inspection_state": "not_selected",
+        "id": "0469796bd4b9c384",
+        "company": "CesiumAstro",
+        "title": "Summer 2027 - Embedded Software Engineering Internship",
+        "term": "Summer 2027",
+        "url": "https://jobs.lever.co/CesiumAstro/d25bf640-2b2b-48d6-ab79-8a06b246caaa"
+      },
+      {
+        "rank": 13,
+        "score": 74,
+        "inspection_state": "queued_bounded_throughput",
+        "id": "630d954d4caead48",
+        "company": "Cisco",
+        "title": "Software Engineer Data & AI I (Intern) - United States",
+        "term": null,
+        "url": "https://cisco.wd5.myworkdayjobs.com/cisco_careers/job/San-Jose-California-US/Software-Engineer-Data---AI-I--Intern----United-States_2024510"
+      },
+      {
+        "rank": 14,
+        "score": 74,
+        "inspection_state": "not_selected",
+        "id": "5c1e4ca742e42452",
+        "company": "Lunaroutpost",
+        "title": "Embedded Software Engineering Intern - Summer 2027",
+        "term": "Summer 2027",
+        "url": "https://lunaroutpost.bamboohr.com/careers/392"
+      },
+      {
+        "rank": 15,
+        "score": 74,
+        "inspection_state": "inspected",
+        "id": "00165371294bfd67",
+        "company": "Amgen",
+        "title": "Undergrad Intern – Software Engineer – Technology, AI & Data (Summer 2027)",
+        "term": "Summer 2027",
+        "url": "https://amgen.wd1.myworkdayjobs.com/Careers/job/United-States---Remote/Undergrad-Intern---Software-Engineer---Amgen-s-Technology---Medical-Organizations--Summer-2027-_R-255719"
+      }
+    ]
+  }
+}

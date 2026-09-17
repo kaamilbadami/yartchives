@@ -66,12 +66,14 @@ jobs:
           node --check apply-next-competition.js
           node --check apply-next-ui.js
           node --check apply-next-profile-setup.js
+          node --check scripts/apply_next_recall_audit.cjs
           node tests/frontend-utils.test.cjs
           node tests/apply-next.test.cjs
           node tests/apply-next-readiness.test.cjs
           node tests/apply-next-competition.test.cjs
           node tests/apply-next-ui.test.cjs
           node tests/apply-next-profile-setup.test.cjs
+          node tests/apply-next-recall-audit.test.cjs
 
       - name: Snapshot existing final feed
         run: cp data/listings.json /tmp/yartchives-old-listings.json

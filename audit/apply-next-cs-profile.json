@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "description": "Repository-safe, generic CS profile for reproducible Apply Next recall audits. Eligibility facts intentionally remain unknown.",
+  "targetTerm": "Summer 2027",
+  "opportunityTypes": [
+    "internship",
+    "co-op"
+  ],
+  "excludeGraduateOnly": true,
+  "facts": {
+    "graduation": "",
+    "degree": "",
+    "major": "",
+    "citizenship": "Unknown / not provided",
+    "workAuthorization": "Unknown / not provided",
+    "securityClearance": "Unknown / not provided",
+    "supportedSkills": [],
+    "cautiousSkills": []
+  },
+  "preferredProfiles": [
+    "cs"
+  ],
+  "supportedKeywords": [
+    "software engineer",
+    "software developer",
+    "test engineer",
+    "quality assurance",
+    "systems",
+    "systems engineer",
+    "infrastructure",
+    "technical ops",
+    "HPC",
+    "scientific computing"
+  ],
+  "cautiousKeywords": [],
+  "roleFamilies": [
+    {
+      "id": "software",
+      "label": "Software engineering",
+      "priority": 1,
+      "keywords": [
+        "software engineer",
+        "software developer"
+      ]
+    },
+    {
+      "id": "testing-systems",
+      "label": "Testing / systems",
+      "priority": 1,
+      "keywords": [
+        "test engineer",
+        "quality assurance",
+        "qa",
+        "systems",
+        "systems engineer"
+      ]
+    },
+    {
+      "id": "infrastructure",
+      "label": "Infrastructure / technical ops",
+      "priority": 0.8,
+      "keywords": [
+        "infrastructure",
+        "technical ops",
+        "IT"
+      ]
+    },
+    {
+      "id": "hpc",
+      "label": "HPC / scientific computing",
+      "priority": 0.75,
+      "keywords": [
+        "HPC",
+        "scientific computing"
+      ]
+    }
+  ],
+  "baseZips": [],
+  "baseLabels": [],
+  "preferredStates": [],
+  "nearbyMiles": 50,
+  "remoteRelevant": true,
+  "relocationAllowed": true
+}

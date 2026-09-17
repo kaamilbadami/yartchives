@@ -78,3 +78,17 @@ Location comparison normalizes superficial U.S. formatting differences such as `
 Treat one-off misses as observations, not proof that a source is bad. Recurring misses from the same employer or ATS family are the signal to add a durable direct source or improve a provider adapter. Recurring `filtered_or_misclassified` results should become regression tests before changing classification/filter logic. Recurring `configured_source_miss` results should be investigated in the ingestion/source pipeline first.
 
 The report records both the external sample's collection time and the Yartchives feed snapshot used for comparison. Coverage percentages are meaningful only for that external sample; they are not claims that Yartchives contains every internship on the internet.
+
+## Apply Next recall audit
+
+`scripts/apply_next_recall_audit.cjs` traces the checked-in feed and inspection cache through relevance, known term/eligibility exclusions, inspection selection and state, the authoritative-evidence gate, ranking, and the visible Top N. It intentionally reports inspection coverage separately from recommendation loss: a metadata-only job is not counted as dropped when current Apply Next still ranks it.
+
+The default profile is the repository-safe `audit/apply-next-cs-profile.json`. It keeps eligibility facts unknown and exists only to make the checked-in audit reproducible. To audit the exact results for a private browser profile, export that profile to a local JSON file and pass it with `--profile`; do not commit private profile data.
+
+```bash
+node scripts/apply_next_recall_audit.cjs \
+  --output audit/results/apply-next-recall.json \
+  --markdown-output audit/results/apply-next-recall.md
+```
+
+Use `--top-n` to test a different visible-set size and `--reference` to reproduce time-sensitive scoring. The command reads local artifacts only and never scrapes LinkedIn, Handshake, or an employer site.
