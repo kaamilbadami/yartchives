@@ -126,14 +126,24 @@ assert.ok(!domainOnly.inspection.evidence.some(x => /^Unverified required domain
 const aeroLike = D.scoreJob(job({
   url: "https://example.com/aero",
   _inspection: inspection([
-    ["Strong foundational knowledge in programming languages such as C++, Java, and Python.", ["C++", "Java", "Python"]],
+    ["Strong foundational knowledge in programming languages such as Python, C++, or Java.", ["Python", "C++", "Java"]],
     ["Experience with data structures, algorithms, and software design principles.", []],
   ]),
 }), profile, now);
-assert.match(aeroLike.components.fit.detail, /Transferable capability: java supports c\+\+/i);
-assert.match(aeroLike.components.fit.detail, /cautiously evidenced: python/i);
-assert.match(aeroLike.inspection.label, /Some required gaps/i);
-assert.doesNotMatch(aeroLike.inspection.label, /Major required gaps/i);
+assert.match(aeroLike.components.fit.detail, /Exact required skills: java/i);
+assert.doesNotMatch(aeroLike.components.fit.detail, /Transferable capability: java supports c\+\+/i);
+assert.doesNotMatch(aeroLike.components.fit.detail, /cautiously evidenced: python/i);
+assert.match(aeroLike.inspection.label, /Ready on known requirements/i);
+
+const conjunctiveLanguages = D.scoreJob(job({
+  url: "https://example.com/conjunctive",
+  _inspection: inspection([
+    ["Strong foundational knowledge in Python, C++, and Java.", ["Python", "C++", "Java"]],
+  ]),
+}), profile, now);
+assert.match(conjunctiveLanguages.components.fit.detail, /Exact required skills: java/i);
+assert.match(conjunctiveLanguages.components.fit.detail, /cautiously evidenced: python/i);
+assert.match(conjunctiveLanguages.inspection.label, /Some required gaps/i);
 
 const gradIntern = D.scoreJob(job({
   title: "Grad Intern – Software Engineer – Technology, AI & Data (Summer 2027)",
@@ -222,7 +232,7 @@ assert.ok(cautious.total <= 100);
 assert.ok(!cautious.inspection.evidence.some(x => /^Qualification readiness adjustment:/i.test(String(x))));
 assert.match(cautious.inspection.label, /Some required gaps/i);
 
-for (const result of [metadataOnly, supported, unsupported, adjacent, learnable, major, domainOnly, aeroLike, academicMatch, wexLike, exactTerm, unknownTerm, direct, listing, cautious]) {
+for (const result of [metadataOnly, supported, unsupported, adjacent, learnable, major, domainOnly, aeroLike, conjunctiveLanguages, academicMatch, wexLike, exactTerm, unknownTerm, direct, listing, cautious]) {
   const weightedTotal = Object.values(result.components).reduce((sum, component) => sum + Number(component.score || 0), 0);
   assert.equal(result.total, weightedTotal);
   assert.ok(result.total >= 0 && result.total <= 100);
