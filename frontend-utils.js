@@ -128,22 +128,45 @@
     if (normalized) candidates.add(normalized);
   }
 
+  function authoritativeLocationValues(job) {
+    const inspection = job?._inspection || job?.inspection;
+    const locations = inspection?.status === "inspected" ? inspection?.posting?.locations : null;
+    if (locations?.status !== "authoritative" || !Array.isArray(locations.values)) return [];
+    return locations.values.map(value => String(value || "").trim()).filter(Boolean);
+  }
+
+  function locationTextForJob(job) {
+    const authoritative = authoritativeLocationValues(job);
+    return authoritative.length ? authoritative.join(" ; ") : (job?.location || "");
+  }
+
+  function statesForLocation(raw, fallback = []) {
+    const found = new Set();
+    const text = String(raw || "");
+    for (const [code, name] of Object.entries(STATE_NAMES)) {
+      if (new RegExp(`(?:^|[\\s,(/-])${code}(?:$|[\\s,)/-])`, "i").test(text)) found.add(code);
+      if (new RegExp(`\\b${name.replace(/ /g, "\\s+")}\\b`, "i").test(text)) found.add(code);
+    }
+    if (found.size) return [...found];
+    return (fallback || []).filter(x => /^[A-Z]{2}$/.test(x) && x !== "US");
+  }
+
   function coordinatesForJob(job, geo) {
-    const raw = job.location || "";
+    const raw = locationTextForJob(job);
     const zipMatches = raw.match(/\b\d{5}(?:-\d{4})?\b/g) || [];
     const zipPoints = zipMatches
       .map(value => geo.zips.get(value.slice(0, 5)))
       .filter(Boolean);
     if (zipPoints.length) return zipPoints;
 
-    const states = (job.states || []).filter(x => /^[A-Z]{2}$/.test(x) && x !== "US");
+    const states = statesForLocation(raw, job.states || []);
     if (!states.length) return null;
 
     const normalizedLocation = ` ${normalizePlace(raw)} `;
     const candidates = new Set();
     const commaParts = raw.split(",");
     if (commaParts.length > 1) addCandidate(candidates, commaParts[0]);
-    for (const segment of raw.split(/[\/;|]+/)) addCandidate(candidates, segment.split(",")[0]);
+    for (const segment of raw.split(/[\/;|·]+/)) addCandidate(candidates, segment.split(",")[0]);
 
     const found = [];
     for (const st of states) {
@@ -156,12 +179,16 @@
       const afterState = raw.match(new RegExp(`(?:^|\\b)(?:US|USA)?[-\\s]*${st}[-\\s]+(.+?)(?:[-~,/]|$)`, "i"));
       if (afterState) addCandidate(candidates, afterState[1].replace(/-\d.*$/, ""));
 
+      let stateFound = false;
       for (const candidate of candidates) {
         const direct = geo.cities.get(`${st}|${candidate}`);
-        if (direct) found.push(direct);
+        if (direct) {
+          found.push(direct);
+          stateFound = true;
+        }
       }
 
-      if (!found.length) {
+      if (!stateFound) {
         const cities = geo.citiesByState.get(st) || [];
         for (const [cityName, point] of cities) {
           if (cityName.length < 4) continue;
@@ -250,6 +277,9 @@
     matchesTextLocation,
     parseCsvLine,
     buildGeoIndex,
+    authoritativeLocationValues,
+    locationTextForJob,
+    statesForLocation,
     coordinatesForJob,
     milesBetween,
     distanceForJob,
