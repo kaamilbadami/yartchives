@@ -24,11 +24,19 @@ TECHNOLOGIES: tuple[tuple[str, str], ...] = (
     ("Python", r"\bPython\b"),
     ("JavaScript", r"\bJavaScript\b"),
     ("TypeScript", r"\bTypeScript\b"),
+    ("React", r"\bReact(?:\.js|JS)?\b"),
+    ("Node.js", r"\bNode(?:\.js|JS)\b"),
+    (".NET", r"(?<![A-Za-z0-9])\.NET\b|\bdotnet\b"),
     ("Java", r"\bJava\b"),
     ("SQL", r"\bSQL\b"),
+    ("PostgreSQL", r"\bPostgreSQL\b|\bPostgres\b"),
+    ("MySQL", r"\bMySQL\b"),
     ("R", r"(?<![A-Za-z0-9])R(?![A-Za-z0-9])"),
     ("Git", r"\bGit\b"),
+    ("GitHub", r"\bGitHub\b"),
+    ("GitLab CI", r"\bGitLab\s+CI\b"),
     ("Linux", r"\bLinux\b"),
+    ("Unix", r"\bUnix\b"),
     ("Microsoft Office", r"\b(?:Microsoft|MS) Office\b"),
     ("Excel", r"\bExcel\b"),
     ("Tableau", r"\bTableau\b"),
@@ -42,8 +50,10 @@ TECHNOLOGIES: tuple[tuple[str, str], ...] = (
     ("MATLAB", r"\bMATLAB\b"),
     ("AWS", r"\bAWS\b|\bAmazon Web Services\b"),
     ("Azure", r"\bAzure\b"),
+    ("GCP", r"\bGCP\b|\bGoogle Cloud(?: Platform)?\b"),
     ("Docker", r"\bDocker\b"),
     ("Kubernetes", r"\bKubernetes\b"),
+    ("Jenkins", r"\bJenkins\b"),
 )
 
 REQUIREMENT_FIELDS = (
@@ -84,9 +94,6 @@ RESET_HEADING = re.compile(
     re.I,
 )
 
-# ATS descriptions commonly contain typographic apostrophes even when the same
-# headings are authored with ASCII punctuation elsewhere. Normalize only the
-# heading candidate so evidence statements retain the employer's original text.
 HEADING_APOSTROPHE_TRANSLATION = str.maketrans({
     "’": "'",
     "‘": "'",
@@ -100,7 +107,6 @@ def clean_line(value: str | None) -> str:
 
 
 def _decode_description(raw_html: str | None) -> str:
-    # Some providers double-encode newline entities in posting descriptions.
     decoded = html.unescape(html.unescape(raw_html or ""))
     decoded = decoded.replace("&#xa;", "\n").replace("\u00a0", " ")
     return decoded
@@ -162,7 +168,6 @@ def _sentences(lines: Iterable[str]) -> list[tuple[str, str | None]]:
         if is_heading:
             section_level = new_level
             continue
-        # Do not split common initialisms such as "U.S." into fragments.
         pieces = re.split(r"(?<![A-Z]\.)(?<=[.!?])\s+(?=[A-Z])", line)
         for piece in pieces:
             statement = clean_line(piece)
