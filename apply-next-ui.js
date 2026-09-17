@@ -15,16 +15,18 @@
     return String(value || "").trim();
   }
 
-  function formatPostedDate(value) {
+  function formatPostedDate(value, nowValue = new Date()) {
     if (!value) return "";
     const date = new Date(value);
-    if (!Number.isFinite(date.getTime())) return "";
-    return `Posted ${new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      timeZone: "UTC",
-    }).format(date)}`;
+    const now = nowValue instanceof Date ? nowValue : new Date(nowValue);
+    if (!Number.isFinite(date.getTime()) || !Number.isFinite(now.getTime())) return "";
+
+    const postedUtcDay = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+    const nowUtcDay = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const daysAgo = Math.max(0, Math.floor((nowUtcDay - postedUtcDay) / 86400000));
+    const monthDay = `${date.getUTCMonth() + 1}/${date.getUTCDate()}`;
+    const ageLabel = `${daysAgo} ${daysAgo === 1 ? "day" : "days"} ago`;
+    return `Posted ${monthDay} · ${ageLabel}`;
   }
 
   function validateProfile(profile) {
