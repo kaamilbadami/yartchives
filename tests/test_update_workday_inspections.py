@@ -119,6 +119,7 @@ class UpdateWorkdayInspectionTests(unittest.TestCase):
             max_workday_requests=1,
             max_icims_requests=1,
             max_greenhouse_requests=1,
+            max_ashby_requests=0,
             now=lambda: NOW,
             inspector=lambda url: calls.append(url) or inspection(url),
         )
@@ -128,11 +129,11 @@ class UpdateWorkdayInspectionTests(unittest.TestCase):
         self.assertEqual(sum("greenhouse.io" in url for url in calls), 1)
         self.assertEqual(
             stats["provider_requests"],
-            {"workday": 1, "icims": 1, "greenhouse": 1},
+            {"workday": 1, "icims": 1, "greenhouse": 1, "ashby": 0},
         )
         self.assertEqual(
             stats["provider_caps"],
-            {"workday": 1, "icims": 1, "greenhouse": 1},
+            {"workday": 1, "icims": 1, "greenhouse": 1, "ashby": 0},
         )
         self.assertEqual(stats["workday_listings"], 2)
         self.assertEqual(stats["icims_listings"], 2)
@@ -210,8 +211,7 @@ class UpdateWorkdayInspectionTests(unittest.TestCase):
         )
         self.assertEqual(updated["queue"][unsupported_canonical]["state"], "unsupported_url")
         self.assertEqual(
-            updated["entries"][unsupported_canonical]["inspection"]["status"],
-            "unsupported_url",
+            updated["entries"][unsupported_canonical]["inspection"]["status"], "unsupported_url",
         )
         self.assertEqual(stats["requested"], 0)
 
