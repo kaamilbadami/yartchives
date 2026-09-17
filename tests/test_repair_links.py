@@ -190,6 +190,27 @@ class RepairLinksTests(unittest.TestCase):
         self.assertEqual(job["link_status"], "ok")
         self.assertEqual(job["link_checked_at"], "2026-09-17T00:00:00Z")
 
+    def test_generic_page_does_not_exist_phrase_is_dead(self):
+        class Response:
+            status_code = 200
+            url = "https://example.wd1.myworkdayjobs.com/Careers/job/x_R-123"
+            headers = {"content-type": "text/html"}
+            encoding = "utf-8"
+
+            def iter_content(self, chunk_size=16384):
+                yield b"<html><body>Page does not exist</body></html>"
+
+            def close(self):
+                pass
+
+        with patch.object(mod.requests, "get", return_value=Response()):
+            status, final = mod.validate_direct_url(
+                "https://example.wd1.myworkdayjobs.com/Careers/job/x_R-123"
+            )
+
+        self.assertEqual(status, "dead")
+        self.assertIn("myworkdayjobs.com", final)
+
 
 if __name__ == "__main__":
     unittest.main()
