@@ -30,10 +30,7 @@
       "order": 3,
       "rank": 3,
       "name": "UnitedHealth Group",
-      "fortune_slug": "/company/unitedhealth-group/",
-      "aliases": [
-        "UnitedHealth"
-      ]
+      "fortune_slug": "/company/unitedhealth-group/"
     },
     {
       "order": 4,
@@ -102,10 +99,7 @@
       "order": 14,
       "rank": 14,
       "name": "Cigna Group",
-      "fortune_slug": "/company/cigna/",
-      "aliases": [
-        "Cigna"
-      ]
+      "fortune_slug": "/company/cigna/"
     },
     {
       "order": 15,
@@ -123,10 +117,7 @@
       "order": 17,
       "rank": 17,
       "name": "Meta Platforms",
-      "fortune_slug": "/company/facebook/",
-      "aliases": [
-        "Meta"
-      ]
+      "fortune_slug": "/company/facebook/"
     },
     {
       "order": 18,
@@ -210,10 +201,7 @@
       "order": 31,
       "rank": 31,
       "name": "StoneX Group",
-      "fortune_slug": "/company/stonex-group/",
-      "aliases": [
-        "StoneX"
-      ]
+      "fortune_slug": "/company/stonex-group/"
     },
     {
       "order": 32,
@@ -243,10 +231,7 @@
       "order": 36,
       "rank": 36,
       "name": "Goldman Sachs Group",
-      "fortune_slug": "/company/goldman-sachs-group/",
-      "aliases": [
-        "Goldman Sachs"
-      ]
+      "fortune_slug": "/company/goldman-sachs-group/"
     },
     {
       "order": 37,
@@ -276,10 +261,7 @@
       "order": 41,
       "rank": 41,
       "name": "Dell Technologies",
-      "fortune_slug": "/company/dell-technologies/",
-      "aliases": [
-        "Dell"
-      ]
+      "fortune_slug": "/company/dell-technologies/"
     },
     {
       "order": 42,
@@ -513,10 +495,7 @@
       "order": 80,
       "rank": 80,
       "name": "Performance Food Group",
-      "fortune_slug": "/company/performance-food-group/",
-      "aliases": [
-        "Performance Food"
-      ]
+      "fortune_slug": "/company/performance-food-group/"
     },
     {
       "order": 81,
@@ -555,10 +534,7 @@
       "order": 86,
       "rank": 86,
       "name": "American Airlines Group",
-      "fortune_slug": "/company/american-airlines-group/",
-      "aliases": [
-        "American Airlines"
-      ]
+      "fortune_slug": "/company/american-airlines-group/"
     },
     {
       "order": 87,
@@ -597,10 +573,7 @@
       "order": 92,
       "rank": 92,
       "name": "Uber Technologies",
-      "fortune_slug": "/company/uber-technologies/",
-      "aliases": [
-        "Uber"
-      ]
+      "fortune_slug": "/company/uber-technologies/"
     },
     {
       "order": 93,
@@ -618,10 +591,7 @@
       "order": 95,
       "rank": 95,
       "name": "Liberty Mutual Insurance Group",
-      "fortune_slug": "/company/liberty-mutual-insurance-group/",
-      "aliases": [
-        "Liberty Mutual"
-      ]
+      "fortune_slug": "/company/liberty-mutual-insurance-group/"
     },
     {
       "order": 96,
@@ -754,28 +724,19 @@
       "order": 116,
       "rank": 116,
       "name": "Honeywell Technologies",
-      "fortune_slug": "/company/honeywell-international/",
-      "aliases": [
-        "Honeywell"
-      ]
+      "fortune_slug": "/company/honeywell-international/"
     },
     {
       "order": 117,
       "rank": 117,
       "name": "Philip Morris International",
-      "fortune_slug": "/company/philip-morris-international/",
-      "aliases": [
-        "Philip Morris"
-      ]
+      "fortune_slug": "/company/philip-morris-international/"
     },
     {
       "order": 118,
       "rank": 118,
       "name": "CBRE Group",
-      "fortune_slug": "/company/cbre-group/",
-      "aliases": [
-        "CBRE"
-      ]
+      "fortune_slug": "/company/cbre-group/"
     },
     {
       "order": 119,
@@ -802,10 +763,7 @@
       "order": 122,
       "rank": 122,
       "name": "Mondelēz International",
-      "fortune_slug": "/company/mondelez-international/",
-      "aliases": [
-        "Mondelēz"
-      ]
+      "fortune_slug": "/company/mondelez-international/"
     },
     {
       "order": 123,
@@ -823,10 +781,7 @@
       "order": 125,
       "rank": 125,
       "name": "Micron Technology",
-      "fortune_slug": "/company/micron-technology/",
-      "aliases": [
-        "Micron"
-      ]
+      "fortune_slug": "/company/micron-technology/"
     },
     {
       "order": 126,
@@ -892,10 +847,7 @@
       "order": 136,
       "rank": 136,
       "name": "PNC Financial Services Group",
-      "fortune_slug": "/company/pnc-financial-services/",
-      "aliases": [
-        "PNC Financial Services"
-      ]
+      "fortune_slug": "/company/pnc-financial-services/"
     },
     {
       "order": 137,
@@ -949,10 +901,7 @@
       "order": 144,
       "rank": 144,
       "name": "Penske Automotive Group",
-      "fortune_slug": "/company/penske-automotive-group/",
-      "aliases": [
-        "Penske Automotive"
-      ]
+      "fortune_slug": "/company/penske-automotive-group/"
     },
     {
       "order": 145,
@@ -1054,10 +1003,7 @@
       "order": 161,
       "rank": 160,
       "name": "Hartford Insurance Group",
-      "fortune_slug": "/company/hartford-financial-services/",
-      "aliases": [
-        "Hartford"
-      ]
+      "fortune_slug": "/company/hartford-financial-services/"
     },
     {
       "order": 162,
@@ -1138,10 +1084,7 @@
       "order": 174,
       "rank": 174,
       "name": "Marriott International",
-      "fortune_slug": "/company/marriott-international/",
-      "aliases": [
-        "Marriott"
-      ]
+      "fortune_slug": "/company/marriott-international/"
     },
     {
       "order": 175,
@@ -1267,10 +1210,7 @@
       "order": 195,
       "rank": 195,
       "name": "WESCO International",
-      "fortune_slug": "/company/wesco-international/",
-      "aliases": [
-        "WESCO"
-      ]
+      "fortune_slug": "/company/wesco-international/"
     },
     {
       "order": 196,
@@ -1360,10 +1300,7 @@
       "order": 210,
       "rank": 210,
       "name": "L3Harris Technologies",
-      "fortune_slug": "/company/harris/",
-      "aliases": [
-        "L3Harris"
-      ]
+      "fortune_slug": "/company/harris/"
     },
     {
       "order": 211,
@@ -1405,10 +1342,7 @@
       "order": 217,
       "rank": 217,
       "name": "GE HealthCare Technologies",
-      "fortune_slug": "/company/ge-healthcare-technologies/",
-      "aliases": [
-        "GE HealthCare"
-      ]
+      "fortune_slug": "/company/ge-healthcare-technologies/"
     },
     {
       "order": 218,
@@ -1432,10 +1366,7 @@
       "order": 221,
       "rank": 221,
       "name": "Altria Group",
-      "fortune_slug": "/company/altria-group/",
-      "aliases": [
-        "Altria"
-      ]
+      "fortune_slug": "/company/altria-group/"
     },
     {
       "order": 222,
@@ -1465,10 +1396,7 @@
       "order": 226,
       "rank": 226,
       "name": "American Family Insurance Group",
-      "fortune_slug": "/company/american-family-insurance-group/",
-      "aliases": [
-        "American Family"
-      ]
+      "fortune_slug": "/company/american-family-insurance-group/"
     },
     {
       "order": 227,
@@ -1480,10 +1408,7 @@
       "order": 228,
       "rank": 228,
       "name": "Edison International",
-      "fortune_slug": "/company/edison-international/",
-      "aliases": [
-        "Edison"
-      ]
+      "fortune_slug": "/company/edison-international/"
     },
     {
       "order": 229,
@@ -1591,10 +1516,7 @@
       "order": 246,
       "rank": 246,
       "name": "Asbury Automotive Group",
-      "fortune_slug": "/company/asbury-automotive-group/",
-      "aliases": [
-        "Asbury Automotive"
-      ]
+      "fortune_slug": "/company/asbury-automotive-group/"
     },
     {
       "order": 247,
@@ -1640,10 +1562,7 @@
       "order": 253,
       "rank": 253,
       "name": "MGM Resorts International",
-      "fortune_slug": "/company/mgm-resorts-international/",
-      "aliases": [
-        "MGM Resorts"
-      ]
+      "fortune_slug": "/company/mgm-resorts-international/"
     },
     {
       "order": 254,
@@ -1667,10 +1586,7 @@
       "order": 257,
       "rank": 257,
       "name": "Omnicom Group",
-      "fortune_slug": "/company/omnicom-group/",
-      "aliases": [
-        "Omnicom"
-      ]
+      "fortune_slug": "/company/omnicom-group/"
     },
     {
       "order": 258,
@@ -1724,10 +1640,7 @@
       "order": 265,
       "rank": 265,
       "name": "EMCOR Group",
-      "fortune_slug": "/company/emcor-group/",
-      "aliases": [
-        "EMCOR"
-      ]
+      "fortune_slug": "/company/emcor-group/"
     },
     {
       "order": 266,
@@ -1757,10 +1670,7 @@
       "order": 270,
       "rank": 270,
       "name": "Markel Group",
-      "fortune_slug": "/company/markel/",
-      "aliases": [
-        "Markel"
-      ]
+      "fortune_slug": "/company/markel/"
     },
     {
       "order": 271,
@@ -1805,10 +1715,7 @@
       "order": 277,
       "rank": 277,
       "name": "C.H. Robinson Worldwide",
-      "fortune_slug": "/company/c-h-robinson-worldwide/",
-      "aliases": [
-        "C.H. Robinson"
-      ]
+      "fortune_slug": "/company/c-h-robinson-worldwide/"
     },
     {
       "order": 278,
@@ -1976,10 +1883,7 @@
       "order": 304,
       "rank": 304,
       "name": "Expedia Group",
-      "fortune_slug": "/company/expedia-group/",
-      "aliases": [
-        "Expedia"
-      ]
+      "fortune_slug": "/company/expedia-group/"
     },
     {
       "order": 305,
@@ -2003,10 +1907,7 @@
       "order": 308,
       "rank": 308,
       "name": "Erie Insurance Group",
-      "fortune_slug": "/company/erie-insurance-group/",
-      "aliases": [
-        "Erie"
-      ]
+      "fortune_slug": "/company/erie-insurance-group/"
     },
     {
       "order": 309,
@@ -2030,10 +1931,7 @@
       "order": 312,
       "rank": 312,
       "name": "Otis Worldwide",
-      "fortune_slug": "/company/otis-worldwide/",
-      "aliases": [
-        "Otis"
-      ]
+      "fortune_slug": "/company/otis-worldwide/"
     },
     {
       "order": 313,
@@ -2090,19 +1988,13 @@
       "order": 321,
       "rank": 321,
       "name": "Western & Southern Financial Group",
-      "fortune_slug": "/company/western-southern-financial/",
-      "aliases": [
-        "Western & Southern"
-      ]
+      "fortune_slug": "/company/western-southern-financial/"
     },
     {
       "order": 322,
       "rank": 322,
       "name": "Alaska Air Group",
-      "fortune_slug": "/company/alaska-air-group/",
-      "aliases": [
-        "Alaska Air"
-      ]
+      "fortune_slug": "/company/alaska-air-group/"
     },
     {
       "order": 323,
@@ -2201,10 +2093,7 @@
       "order": 338,
       "rank": 338,
       "name": "Unum Group",
-      "fortune_slug": "/company/unum-group/",
-      "aliases": [
-        "Unum"
-      ]
+      "fortune_slug": "/company/unum-group/"
     },
     {
       "order": 339,
@@ -2234,10 +2123,7 @@
       "order": 343,
       "rank": 343,
       "name": "DXC Technology",
-      "fortune_slug": "/company/dxc-technology/",
-      "aliases": [
-        "DXC"
-      ]
+      "fortune_slug": "/company/dxc-technology/"
     },
     {
       "order": 344,
@@ -2303,10 +2189,7 @@
       "order": 354,
       "rank": 354,
       "name": "Lumen Technologies",
-      "fortune_slug": "/company/centurylink/",
-      "aliases": [
-        "Lumen"
-      ]
+      "fortune_slug": "/company/centurylink/"
     },
     {
       "order": 355,
@@ -2345,10 +2228,7 @@
       "order": 360,
       "rank": 360,
       "name": "Public Service Enterprise Group",
-      "fortune_slug": "/company/public-service-enterprise-group/",
-      "aliases": [
-        "Public Service Enterprise"
-      ]
+      "fortune_slug": "/company/public-service-enterprise-group/"
     },
     {
       "order": 361,
@@ -2378,10 +2258,7 @@
       "order": 365,
       "rank": 365,
       "name": "Citizens Financial Group",
-      "fortune_slug": "/company/citizens-financial-group/",
-      "aliases": [
-        "Citizens"
-      ]
+      "fortune_slug": "/company/citizens-financial-group/"
     },
     {
       "order": 366,
@@ -2395,7 +2272,6 @@
       "name": "Hilton Worldwide Holdings",
       "fortune_slug": "/company/hilton-worldwide-holdings/",
       "aliases": [
-        "Hilton",
         "Hilton Worldwide"
       ]
     },
@@ -2484,10 +2360,7 @@
       "order": 380,
       "rank": 380,
       "name": "Avis Budget Group",
-      "fortune_slug": "/company/avis-budget-group/",
-      "aliases": [
-        "Avis Budget"
-      ]
+      "fortune_slug": "/company/avis-budget-group/"
     },
     {
       "order": 381,
@@ -2499,10 +2372,7 @@
       "order": 382,
       "rank": 382,
       "name": "Baxter International",
-      "fortune_slug": "/company/baxter-international/",
-      "aliases": [
-        "Baxter"
-      ]
+      "fortune_slug": "/company/baxter-international/"
     },
     {
       "order": 383,
@@ -2622,10 +2492,7 @@
       "order": 402,
       "rank": 402,
       "name": "Jefferies Financial Group",
-      "fortune_slug": "/company/leucadia-national/",
-      "aliases": [
-        "Jefferies"
-      ]
+      "fortune_slug": "/company/leucadia-national/"
     },
     {
       "order": 403,
@@ -2680,10 +2547,7 @@
       "order": 410,
       "rank": 410,
       "name": "Interactive Brokers Group",
-      "fortune_slug": "/company/interactive-brokers-group/",
-      "aliases": [
-        "Interactive Brokers"
-      ]
+      "fortune_slug": "/company/interactive-brokers-group/"
     },
     {
       "order": 411,
@@ -2773,10 +2637,7 @@
       "order": 424,
       "rank": 424,
       "name": "WEC Energy Group",
-      "fortune_slug": "/company/wec-energy-group/",
-      "aliases": [
-        "WEC Energy"
-      ]
+      "fortune_slug": "/company/wec-energy-group/"
     },
     {
       "order": 425,
@@ -2830,10 +2691,7 @@
       "order": 433,
       "rank": 433,
       "name": "QVC Group",
-      "fortune_slug": "/company/qurate-retail/",
-      "aliases": [
-        "QVC"
-      ]
+      "fortune_slug": "/company/qurate-retail/"
     },
     {
       "order": 434,
@@ -2869,10 +2727,7 @@
       "order": 439,
       "rank": 439,
       "name": "Old Republic International",
-      "fortune_slug": "/company/old-republic-international/",
-      "aliases": [
-        "Old Republic"
-      ]
+      "fortune_slug": "/company/old-republic-international/"
     },
     {
       "order": 440,
@@ -2932,10 +2787,7 @@
       "order": 449,
       "rank": 449,
       "name": "TransDigm Group",
-      "fortune_slug": "/company/transdigm-group/",
-      "aliases": [
-        "TransDigm"
-      ]
+      "fortune_slug": "/company/transdigm-group/"
     },
     {
       "order": 450,
@@ -2983,10 +2835,7 @@
       "order": 457,
       "rank": 457,
       "name": "Securian Financial Group",
-      "fortune_slug": "/company/securian-financial-group/",
-      "aliases": [
-        "Securian"
-      ]
+      "fortune_slug": "/company/securian-financial-group/"
     },
     {
       "order": 458,
@@ -2998,10 +2847,7 @@
       "order": 459,
       "rank": 459,
       "name": "CACI International",
-      "fortune_slug": "/company/caci-international/",
-      "aliases": [
-        "CACI"
-      ]
+      "fortune_slug": "/company/caci-international/"
     },
     {
       "order": 460,
@@ -3115,10 +2961,7 @@
       "order": 476,
       "rank": 476,
       "name": "Marvell Technology",
-      "fortune_slug": "/company/marvell-technology/",
-      "aliases": [
-        "Marvell"
-      ]
+      "fortune_slug": "/company/marvell-technology/"
     },
     {
       "order": 477,
@@ -3130,10 +2973,7 @@
       "order": 478,
       "rank": 478,
       "name": "American Financial Group",
-      "fortune_slug": "/company/american-financial-group/",
-      "aliases": [
-        "American"
-      ]
+      "fortune_slug": "/company/american-financial-group/"
     },
     {
       "order": 479,
@@ -3184,19 +3024,13 @@
       "order": 486,
       "rank": 486,
       "name": "APi Group",
-      "fortune_slug": "/company/api-group/",
-      "aliases": [
-        "APi"
-      ]
+      "fortune_slug": "/company/api-group/"
     },
     {
       "order": 487,
       "rank": 487,
       "name": "Roper Technologies",
-      "fortune_slug": "/company/roper-technologies/",
-      "aliases": [
-        "Roper"
-      ]
+      "fortune_slug": "/company/roper-technologies/"
     },
     {
       "order": 488,
@@ -3268,19 +3102,13 @@
       "order": 499,
       "rank": 499,
       "name": "Somnigroup International",
-      "fortune_slug": "/company/tempur-sealy-international/",
-      "aliases": [
-        "Somnigroup"
-      ]
+      "fortune_slug": "/company/tempur-sealy-international/"
     },
     {
       "order": 500,
       "rank": 500,
       "name": "Resideo Technologies",
-      "fortune_slug": "/company/resideo-technologies/",
-      "aliases": [
-        "Resideo"
-      ]
+      "fortune_slug": "/company/resideo-technologies/"
     }
   ]
 }
