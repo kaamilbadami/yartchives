@@ -25,6 +25,7 @@ from posting_requirements import (
     clean_line,
     empty_requirement_field,
     extract_requirements,
+    extract_posting_schedule,
     normalize_description,
 )
 
@@ -233,6 +234,7 @@ def normalize_html(raw_html: str, *, job_id: str) -> dict[str, Any]:
             "date_posted": clean_line(posting.get("datePosted")) or None,
             "valid_through": clean_line(posting.get("validThrough")) or None,
         },
+        "schedule": extract_posting_schedule(lines),
         "requirements": extract_requirements(lines),
         "document_canonical_url": canonical,
         "structured": structured,
