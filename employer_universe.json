@@ -3422,7 +3422,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T22:55:59Z",
+        "last_attempt_at": "2026-09-17T23:00:07Z",
         "evidence": [
           {
             "type": "http",
@@ -6022,6 +6022,138 @@
           "source_url": "https://withresumeai.com/ats-checker/duolingo",
           "upstream_slug": "duolingo"
         }
+      },
+      "careers_url": "https://careers.duolingo.com/careers",
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "careers.duolingo.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-17T23:00:07Z",
+        "last_attempt_at": "2026-09-17T23:00:07Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers.duolingo.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.duolingo.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.duolingo.com/",
+            "status": 200,
+            "signals": [
+              "greenhouse provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.duolingo.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers.duolingo.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.duolingo.com/careers",
+            "status": 200,
+            "signals": [
+              "greenhouse provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.duolingo.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.duolingo.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.duolingo.com/jobs",
+            "status": 200,
+            "signals": [
+              "greenhouse provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://job-boards.greenhouse.io/",
+            "redirect_chain": [
+              {
+                "url": "https://job-boards.greenhouse.io/",
+                "status": 302
+              },
+              {
+                "url": "https://www.greenhouse.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.greenhouse.com/",
+            "status": 200,
+            "signals": [
+              "greenhouse provider fingerprint",
+              "careers page content"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://job-boards.greenhouse.io/careers",
+            "redirect_chain": [
+              {
+                "url": "https://job-boards.greenhouse.io/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://job-boards.greenhouse.io/careers",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://job-boards.greenhouse.io/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://job-boards.greenhouse.io/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://job-boards.greenhouse.io/jobs",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          }
+        ]
       }
     },
     {
@@ -10874,7 +11006,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T22:55:59Z",
+        "last_attempt_at": "2026-09-17T23:00:07Z",
         "evidence": [
           {
             "type": "http",
@@ -16388,7 +16520,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T22:55:59Z",
+        "last_attempt_at": "2026-09-17T23:00:07Z",
         "evidence": [
           {
             "type": "http",
@@ -17435,7 +17567,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T22:55:59Z",
+        "last_attempt_at": "2026-09-17T23:00:07Z",
         "evidence": [
           {
             "type": "http",
