@@ -24,6 +24,7 @@ from posting_requirements import (
     clean_line,
     empty_requirement_field,
     extract_requirements,
+    extract_posting_schedule,
     normalize_description,
 )
 
@@ -150,6 +151,7 @@ def normalize_payload(payload: Any) -> dict[str, Any]:
             "posted": posted,
             "application_status": application_status,
         },
+        "schedule": extract_posting_schedule(lines),
         "requirements": extract_requirements(lines),
     }
 
