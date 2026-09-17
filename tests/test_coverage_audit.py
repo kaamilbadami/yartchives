@@ -243,6 +243,17 @@ class CoverageAuditTests(unittest.TestCase):
         self.assertIn("# CT CS", rendered)
         self.assertIn("Yartchives feed snapshot", rendered)
 
+    def test_discovery_timestamp_is_preserved_for_latency_audits(self):
+        record = {
+            "company": "Acme Corp",
+            "title": "Software Engineering Intern",
+            "location": "Hartford, CT",
+            "url": "https://jobs.acme.com/job/12345",
+            "first_discovered_at": "2026-09-16T10:00:00Z",
+        }
+        result = self.classify(record, jobs=[feed_job()])
+        self.assertEqual(result["first_discovered_at"], "2026-09-16T10:00:00Z")
+
 
 if __name__ == "__main__":
     unittest.main()

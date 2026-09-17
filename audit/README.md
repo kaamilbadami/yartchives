@@ -2,6 +2,43 @@
 
 Yartchives uses external job platforms and web search as **audit surfaces**, not as production scrapers. The goal is to sample opportunities that a student could realistically discover elsewhere, compare them against the current Yartchives feed, and turn recurring misses into durable employer/ATS coverage.
 
+## Source contribution audit
+
+To measure the current production sources themselves, run:
+
+```bash
+python scripts/source_contribution_audit.py \
+  --json-output audit/source-contribution.json \
+  --markdown-output audit/source-contribution.md
+```
+
+This audit reads the production feed's preserved `source_keys`, pre-dedup source
+counts, and link-authority labels. It reports removal-based unique contribution,
+pairwise overlap, and direct-link quality without changing the feed. Its capture
+percentage uses rows accepted by each production adapter as the denominator; it
+must not be interpreted as coverage of a platform's private database or of the
+wider internship market.
+
+## Single-queue coverage contract
+
+`coverage_contract.json` defines the claim Yartchives is trying to earn: one
+discovery queue for current, publicly discoverable US undergraduate CS
+internships and co-ops. The claim is gated on independent benchmark size and
+geographic breadth, capture and visible recall, authoritative-link rate, feed
+and sample freshness, and measured discovery latency.
+
+Run an external audit, then evaluate its machine-readable report:
+
+```bash
+python scripts/coverage_audit_runner.py audit/samples/ct-cs-2026-09-16.json \
+  --output audit/results/ct-cs.json
+python scripts/coverage_contract.py audit/results/ct-cs.json
+```
+
+Use `--require-ready` only when the contract should act as a release gate. A
+benchmark row may include `first_discovered_at`; latency remains unmeasurable
+and the contract remains failed until those timestamps are present.
+
 ## First target: Connecticut Computer Science
 
 Start with a fresh sample of current CT CS internships discovered independently through LinkedIn, Handshake, employer career pages, and ordinary web search. Prefer the employer/ATS application URL when you can get it, while keeping `source` as the place where the opportunity was discovered.

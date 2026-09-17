@@ -68,6 +68,12 @@ is the retrieval/normalization boundary for a later Apply Next integration.
 
 Those platforms are used to measure misses, not scraped into the production feed. Recurring misses should be traced to durable employer/ATS sources. A dedicated **External coverage audit** GitHub Action can run a dated sample and publish the report in the Actions summary, so the audit does not require a local terminal. See `audit/README.md` for the sample format and workflow.
 
+Yartchives does **not yet claim to replace every other discovery source**. The
+machine-readable `coverage_contract.json` defines when it has earned that claim
+for US undergraduate CS internships and co-ops. Until every contract gate
+passes on a fresh, sufficiently large independent benchmark, Apply Next ranks
+the known feed rather than asserting complete market coverage.
+
 ## Automatic refreshes
 
 `.github/workflows/update-feed.yml` runs hourly and can also be triggered manually from the Actions tab. If the normalized feed changes, the workflow commits the new `data/listings.json` back to the repository.
