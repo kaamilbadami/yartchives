@@ -20,132 +20,8 @@ jobs:
           python-version: '3.12'
           cache: pip
       - run: pip install -r requirements.txt
-      - name: Apply provider identity fix and regressions
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-
-          path = Path('scripts/coverage_audit.py')
-          text = path.read_text()
-          old = '''    hostname = parsed.netloc.lower().removeprefix("www.")
-    for key, value in parse_qsl(parsed.query):
-'''
-          new = '''    hostname = parsed.netloc.lower().removeprefix("www.")
-    if hostname.endswith(".icims.com"):
-        match = re.search(r"/jobs/(\\d+)(?:/|$)", parsed.path, re.IGNORECASE)
-        if match:
-            return hostname, f"icims-job={match.group(1)}"
-    for key, value in parse_qsl(parsed.query):
-'''
-          if old not in text:
-              raise SystemExit('url_identity insertion point not found')
-          text = text.replace(old, new, 1)
-
-          old = '''    identity = url_identity(url)
-    if identity and index.ids.get(identity):
-        job = index.get(index.ids[identity])[0]
-        return result(
-            base,
-            "duplicate_resolution_issue",
-            "high",
-            "provider_identity_mismatch",
-            "same ATS/listing identifier exists but ordinary URL/signature matching failed",
-            "Add or improve provider-specific canonicalization/deduplication.",
-            matched_job=compact(job),
-        )
-'''
-          new = '''    identity = url_identity(url)
-    identity_jobs = index.get(index.ids.get(identity, [])) if identity else []
-    if identity_jobs:
-        ranked = [
-            (
-                0.78 * similar(title, str(job.get("title") or ""))
-                + 0.22 * location_similarity(location, str(job.get("location") or "")),
-                job,
-            )
-            for job in identity_jobs
-        ]
-        ranked.sort(key=lambda item: item[0], reverse=True)
-        score, job = ranked[0]
-        title_score = similar(title, str(job.get("title") or ""))
-        location_score = location_similarity(location, str(job.get("location") or ""))
-        location_compatible = not location or not job.get("location") or location_score >= 0.80
-        if title_score >= 0.96 and location_compatible:
-            issues = surface_issues(job, expected)
-            if issues:
-                return result(
-                    base,
-                    "filtered_or_misclassified",
-                    "high",
-                    "provider_identity_match_hidden",
-                    "; ".join(issues),
-                    "Review profile/state/type enrichment or default filter metadata.",
-                    match_score=round(score, 3),
-                    matched_job=compact(job),
-                )
-            return result(
-                base,
-                "already_in_yartchives",
-                "high",
-                "provider_identity_match",
-                "matched by authoritative ATS/listing identifier with compatible title and location",
-                "No coverage fix needed.",
-                match_score=round(score, 3),
-                matched_job=compact(job),
-            )
-        return result(
-            base,
-            "duplicate_resolution_issue",
-            "high",
-            "provider_identity_mismatch",
-            "same ATS/listing identifier exists but title/location evidence is not compatible enough for an exact match",
-            "Verify provider identity and improve canonicalization/deduplication if these are the same role.",
-            match_score=round(score, 3),
-            matched_job=compact(job),
-        )
-'''
-          if old not in text:
-              raise SystemExit('identity classification block not found')
-          path.write_text(text.replace(old, new, 1))
-
-          test_path = Path('tests/test_coverage_audit.py')
-          tests = test_path.read_text()
-          marker = '''    def test_same_ats_identity_detects_resolution_issue(self):
-'''
-          addition = '''    def test_icims_job_paths_share_provider_identity(self):
-        left = "https://careers-gdeb.icims.com/jobs/20338/cybersecurity---2027-summer-internship/job"
-        right = "https://careers-gdeb.icims.com/jobs/20338/another-display-slug/login"
-        self.assertEqual(mod.url_identity(left), mod.url_identity(right))
-        self.assertEqual(mod.url_identity(left), ("careers-gdeb.icims.com", "icims-job=20338"))
-
-    def test_icims_provider_identity_matches_company_alias(self):
-        record = {
-            "company": "General Dynamics Electric Boat",
-            "title": "Cybersecurity - 2027 Summer Internship",
-            "location": "Groton, CT",
-            "url": "https://careers-gdeb.icims.com/jobs/20338/cybersecurity---2027-summer-internship/job",
-            "expected_profile": "cs",
-            "expected_state": "CT",
-            "expected_opportunity_type": "internship",
-        }
-        jobs = [feed_job(
-            company="General Dynamics",
-            title="Cybersecurity - 2027 Summer Internship",
-            location="Groton, CT, 06340, US",
-            url="https://careers-gdeb.icims.com/jobs/20338/cybersecurity---2027-summer-internship/job?in_iframe=1",
-            profiles=["cs"],
-            states=["CT"],
-            opportunity_type="internship",
-        )]
-        result = self.classify(record, jobs=jobs)
-        self.assertEqual(result["status"], "already_in_yartchives")
-        self.assertEqual(result["reason_code"], "provider_identity_match")
-
-'''
-          if marker not in tests:
-              raise SystemExit('test insertion point not found')
-          test_path.write_text(tests.replace(marker, addition + marker, 1))
-          PY
+      - name: Apply patch
+        run: python tmp_apply_identity_fix.py
       - name: Validate
         run: |
           python -m unittest tests.test_coverage_audit -v
@@ -158,11 +34,11 @@ jobs:
           node tests/apply-next-profile-setup.test.cjs
           python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8
           git diff --check
-      - name: Commit fix and remove temporary workflow
+      - name: Commit fix and remove temporary helpers
         run: |
           git config user.name 'yartchives-bot'
           git config user.email 'actions@users.noreply.github.com'
-          git rm .github/workflows/tmp-coverage-audit-identity-fix.yml
+          git rm .github/workflows/tmp-coverage-audit-identity-fix.yml tmp_apply_identity_fix.py
           git add scripts/coverage_audit.py tests/test_coverage_audit.py
           git commit -m 'Fix coverage audit provider identity matching'
           git push origin HEAD
