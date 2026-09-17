@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 SCHEMA_VERSION = 1
+IDENTITY_FIELDS = {"id", "name", "aliases", "seed_sets", "seed_metadata"}
 
 
 def normalize_name(value: str) -> str:
@@ -19,6 +20,15 @@ def normalize_name(value: str) -> str:
 
 def employer_id(name: str) -> str:
     return normalize_name(name).replace(" ", "-")
+
+
+def _seed_metadata(employer: dict[str, Any]) -> dict[str, Any]:
+    """Return deterministic source-specific metadata without identity fields."""
+    return {
+        key: json.loads(json.dumps(employer[key]))
+        for key in sorted(employer)
+        if key not in IDENTITY_FIELDS
+    }
 
 
 def validate_seed(seed: dict[str, Any]) -> None:
@@ -83,6 +93,18 @@ def merge_seed(universe: dict[str, Any], seed: dict[str, Any]) -> dict[str, Any]
                 merged_aliases.add(alias)
         match["aliases"] = sorted(merged_aliases, key=str.casefold)
         match["seed_sets"] = sorted({*(match.get("seed_sets") or []), source_key})
+
+        metadata = _seed_metadata(incoming)
+        seed_metadata = dict(match.get("seed_metadata") or {})
+        if metadata:
+            seed_metadata[source_key] = metadata
+        else:
+            seed_metadata.pop(source_key, None)
+        if seed_metadata:
+            match["seed_metadata"] = {key: seed_metadata[key] for key in sorted(seed_metadata)}
+        else:
+            match.pop("seed_metadata", None)
+
         by_identity[normalize_name(match["name"])] = match
         for alias in match["aliases"]:
             by_identity[normalize_name(alias)] = match
@@ -114,9 +136,18 @@ def validate_universe(universe: dict[str, Any]) -> None:
             if normalized in identities:
                 raise ValueError(f"duplicate employer identity: {value}")
             identities.add(normalized)
-        unknown = set(employer.get("seed_sets") or []) - known_seed_keys
+        employer_seed_keys = set(employer.get("seed_sets") or [])
+        unknown = employer_seed_keys - known_seed_keys
         if unknown:
             raise ValueError(f"unknown seed set(s): {sorted(unknown)}")
+        seed_metadata = employer.get("seed_metadata") or {}
+        if not isinstance(seed_metadata, dict):
+            raise ValueError("seed_metadata must be an object")
+        unknown_metadata = set(seed_metadata) - employer_seed_keys
+        if unknown_metadata:
+            raise ValueError(f"seed_metadata references unknown employer seed set(s): {sorted(unknown_metadata)}")
+        if any(not isinstance(value, dict) for value in seed_metadata.values()):
+            raise ValueError("seed_metadata values must be objects")
 
 
 def main() -> int:
