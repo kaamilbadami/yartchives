@@ -18,6 +18,7 @@ on:
       - "apply-next-readiness.js"
       - "apply-next-competition.js"
       - "apply-next-location.js"
+      - "apply-next-location-preferences.js"
       - "apply-next-ui.js"
       - "apply-next-profile-setup.js"
       - "apply-next-profile-setup.css"
@@ -76,6 +77,7 @@ jobs:
           node --check apply-next-readiness.js
           node --check apply-next-competition.js
           node --check apply-next-location.js
+          node --check apply-next-location-preferences.js
           node --check apply-next-ui.js
           node --check apply-next-profile-setup.js
           node tests/deploy-assets.test.cjs
@@ -85,6 +87,7 @@ jobs:
           node tests/apply-next-readiness.test.cjs
           node tests/apply-next-competition.test.cjs
           node tests/apply-next-location.test.cjs
+          node tests/apply-next-location-preferences.test.cjs
           node tests/apply-next-ui.test.cjs
           node tests/apply-next-profile-setup.test.cjs
 
