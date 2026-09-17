@@ -3418,6 +3418,69 @@
             "CT"
           ]
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T22:55:59Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://osv-cci.wd1.myworkdayjobs.com/",
+            "redirect_chain": [
+              {
+                "url": "https://osv-cci.wd1.myworkdayjobs.com/",
+                "status": 406
+              }
+            ],
+            "final_url": "https://osv-cci.wd1.myworkdayjobs.com/",
+            "status": 406,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://osv-cci.wd1.myworkdayjobs.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://osv-cci.wd1.myworkdayjobs.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://osv-cci.wd1.myworkdayjobs.com/careers",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://osv-cci.wd1.myworkdayjobs.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://osv-cci.wd1.myworkdayjobs.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://osv-cci.wd1.myworkdayjobs.com/jobs",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          }
+        ]
       }
     },
     {
@@ -5007,6 +5070,141 @@
           "source_url": "https://withresumeai.com/ats-checker/datadog",
           "upstream_slug": "datadog"
         }
+      },
+      "careers_url": "https://www.greenhouse.com/",
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "www.greenhouse.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-17T22:55:59Z",
+        "last_attempt_at": "2026-09-17T22:55:59Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers.datadoghq.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.datadoghq.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.datadoghq.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.datadoghq.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers.datadoghq.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://careers.datadoghq.com/careers/",
+                "status": 404
+              }
+            ],
+            "final_url": "https://careers.datadoghq.com/careers/",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.datadoghq.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.datadoghq.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://careers.datadoghq.com/jobs/",
+                "status": 404
+              }
+            ],
+            "final_url": "https://careers.datadoghq.com/jobs/",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://job-boards.greenhouse.io/",
+            "redirect_chain": [
+              {
+                "url": "https://job-boards.greenhouse.io/",
+                "status": 302
+              },
+              {
+                "url": "https://www.greenhouse.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.greenhouse.com/",
+            "status": 200,
+            "signals": [
+              "greenhouse provider fingerprint",
+              "careers page content"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://job-boards.greenhouse.io/careers",
+            "redirect_chain": [
+              {
+                "url": "https://job-boards.greenhouse.io/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://job-boards.greenhouse.io/careers",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://job-boards.greenhouse.io/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://job-boards.greenhouse.io/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://job-boards.greenhouse.io/jobs",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          }
+        ]
       }
     },
     {
@@ -10676,7 +10874,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T22:37:59Z",
+        "last_attempt_at": "2026-09-17T22:55:59Z",
         "evidence": [
           {
             "type": "http",
@@ -16186,6 +16384,67 @@
             "CT"
           ]
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T22:55:59Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://jobs.spectrum.com/",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.spectrum.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.spectrum.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.spectrum.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.spectrum.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://jobs.spectrum.com/careers",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.spectrum.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.spectrum.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://jobs.spectrum.com/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          }
+        ]
       }
     },
     {
@@ -17172,6 +17431,69 @@
             "CT"
           ]
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-17T22:55:59Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://thehartford.wd5.myworkdayjobs.com/",
+            "redirect_chain": [
+              {
+                "url": "https://thehartford.wd5.myworkdayjobs.com/",
+                "status": 406
+              }
+            ],
+            "final_url": "https://thehartford.wd5.myworkdayjobs.com/",
+            "status": 406,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://thehartford.wd5.myworkdayjobs.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://thehartford.wd5.myworkdayjobs.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://thehartford.wd5.myworkdayjobs.com/careers",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://thehartford.wd5.myworkdayjobs.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://thehartford.wd5.myworkdayjobs.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://thehartford.wd5.myworkdayjobs.com/jobs",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          }
+        ]
       }
     },
     {
