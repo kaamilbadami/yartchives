@@ -121,7 +121,15 @@
       delete job._inspection;
       const canonical = index[job.id];
       const inspection = canonical && entries[canonical]?.inspection;
-      if (inspection && typeof inspection === "object") job._inspection = inspection;
+      if (inspection && typeof inspection === "object") {
+        job._inspection = inspection;
+        const authoritativePostedAt = normalize(inspection?.posting?.posted_at);
+        if (authoritativePostedAt) {
+          if (!("_metadataPostedAt" in job)) job._metadataPostedAt = job.posted_at || null;
+          job.posted_at = authoritativePostedAt;
+          job._postedAtBasis = "authoritative";
+        }
+      }
     }
     return jobs;
   }
