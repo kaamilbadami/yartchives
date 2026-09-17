@@ -36,6 +36,11 @@
     return /^\d{5}$/.test(text) ? text : null;
   }
 
+  function clampLocationScore(value) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? Math.max(0, Math.min(15, parsed)) : null;
+  }
+
   function anchorLabel(anchor, index) {
     const label = String(anchor?.label || "").trim();
     if (label && label !== anchor?.zip) return label;
@@ -53,6 +58,7 @@
         zip,
         label: String(anchor?.label || "").trim() || null,
         commuteMiles: Math.max(5, Math.min(500, numberOr(anchor?.commuteMiles ?? anchor?.nearbyMiles, commonMiles))),
+        locationScore: clampLocationScore(anchor?.locationScore ?? anchor?.score),
         order: index,
       };
     }).filter(Boolean);
@@ -64,6 +70,7 @@
       zip,
       label: String(labels[index] || "").trim() || null,
       commuteMiles: commonMiles,
+      locationScore: null,
       order: index,
     }));
   }
@@ -114,7 +121,9 @@
     const byZip = new Map();
     for (const item of values) {
       const zip = normalizeZip(item?.zip || item?.baseZip);
-      const distance = Number(item?.distanceMiles ?? item?.miles);
+      const rawDistance = item?.distanceMiles ?? item?.miles;
+      if (rawDistance === null || rawDistance === undefined || rawDistance === "") continue;
+      const distance = Number(rawDistance);
       if (zip && Number.isFinite(distance) && distance >= 0) byZip.set(zip, distance);
     }
     if (byZip.size) {
@@ -124,7 +133,9 @@
     }
     if (values.length < anchors.length) return [];
     return anchors.map((anchor, index) => {
-      const distance = Number(values[index]?.distanceMiles ?? values[index]?.miles ?? values[index]);
+      const rawDistance = values[index]?.distanceMiles ?? values[index]?.miles ?? values[index];
+      if (rawDistance === null || rawDistance === undefined || rawDistance === "") return null;
+      const distance = Number(rawDistance);
       return Number.isFinite(distance) && distance >= 0 ? { anchor, index, distanceMiles: distance } : null;
     }).filter(Boolean);
   }
@@ -136,7 +147,9 @@
     if (!anchors.length || samples.length < anchors.length) return [];
     const recent = samples.slice(-anchors.length);
     return anchors.map((anchor, index) => {
-      const distance = Number(recent[index]?.distanceMiles);
+      const rawDistance = recent[index]?.distanceMiles;
+      if (rawDistance === null || rawDistance === undefined || rawDistance === "") return null;
+      const distance = Number(rawDistance);
       return Number.isFinite(distance) && distance >= 0 ? { anchor, index, distanceMiles: distance } : null;
     }).filter(Boolean);
   }
@@ -160,7 +173,8 @@
     return { score: 3, detail: "Remote work is not preferred" };
   }
 
-  function anchorScore(index) {
+  function anchorScore(anchor, index) {
+    if (Number.isFinite(anchor?.locationScore)) return anchor.locationScore / 1.5;
     if (index <= 0) return 10;
     if (index === 1) return 9;
     return 8;
@@ -177,7 +191,7 @@
       if (commutable.length) {
         const best = commutable[0];
         return {
-          score: anchorScore(best.index),
+          score: anchorScore(best.anchor, best.index),
           detail: `Within ${best.anchor.commuteMiles} miles of ${anchorLabel(best.anchor, best.index)}`,
           anchor: best.anchor.zip,
         };
