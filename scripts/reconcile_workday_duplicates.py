@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import re
 import sys
 from pathlib import Path
 from typing import Any
@@ -46,6 +47,7 @@ FILL_FIELDS = (
     "resolved_from_url",
 )
 PROVIDERS = ("workday", "greenhouse", "icims")
+WORKDAY_REQUISITION_SUFFIX = re.compile(r"_((?:[A-Za-z]+-?)?\d{4,})$", flags=re.I)
 
 
 def workday_canonical_url(url: str | None) -> str | None:
@@ -59,24 +61,43 @@ def workday_canonical_url(url: str | None) -> str | None:
         return None
 
 
-def workday_identity_key(url: str | None) -> tuple[str, str, str] | None:
-    """Return a grouping identity that tolerates cosmetic career-site casing.
+def workday_requisition_token(job_path: str | None) -> str | None:
+    """Extract a stable Workday requisition token from the final URL slug.
 
-    Workday career-site names appear in feeds with inconsistent casing (for
-    example ``external`` versus ``External``) even when the URLs resolve to the
-    same requisition. The site segment is therefore case-folded for identity
-    only; the winning record's real canonical URL is preserved for navigation.
+    Workday can expose one requisition through multiple location/title aliases.
+    Those aliases usually retain the same trailing requisition token (for
+    example ``_331999``, ``_R22593`` or ``_R-255719``). Only sufficiently
+    specific alphanumeric suffixes are accepted; otherwise callers fall back to
+    the full provider path rather than risking an unsafe merge.
+    """
+
+    if not job_path:
+        return None
+    slug = str(job_path).rstrip("/").rsplit("/", 1)[-1]
+    match = WORKDAY_REQUISITION_SUFFIX.search(slug)
+    return match.group(1).casefold() if match else None
+
+
+def workday_identity_key(url: str | None) -> tuple[str, str, str] | None:
+    """Return a grouping identity for one Workday posting.
+
+    Prefer tenant + career-site + stable requisition token so location/title URL
+    aliases collapse to the same posting. If no safe requisition token exists,
+    retain the historical full-path identity. Career-site casing remains
+    cosmetic for identity only; the winning record's canonical URL is preserved
+    for navigation.
     """
 
     if not url:
         return None
     try:
         derived = derive_cxs_endpoint(str(url))
-        canonical = urlparse(derived["canonical_job_url"])
+        stable = workday_requisition_token(derived["job_path"])
+        path_identity = f"req:{stable}" if stable else f"path:{str(derived['job_path'])}"
         return (
-            canonical.netloc.casefold(),
+            str(derived["tenant"]).casefold(),
             str(derived["site"]).casefold(),
-            str(derived["job_path"]),
+            path_identity,
         )
     except (ValueError, KeyError, TypeError):
         return None
