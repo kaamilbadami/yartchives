@@ -108,6 +108,18 @@ const captured = inspectedJob({
 assert.equal(L.anchorDistances(captured, explicitProfile)[0].distanceMiles, 12);
 assert.equal(L.scoreLocation(captured, explicitProfile).score, 10);
 
+const unknownCaptured = inspectedJob({
+  states: ["NC"],
+  location: "RTP, North Carolina, US",
+  _applyNextAnchorDistanceSamples: [
+    { distanceMiles: null },
+    { distanceMiles: null },
+  ],
+});
+assert.deepEqual(L.anchorDistances(unknownCaptured, explicitProfile), [], "null captured distances must remain unknown instead of becoming zero miles");
+assert.notEqual(L.scoreLocation(unknownCaptured, explicitProfile).score, 10, "unknown RTP distance must not earn a primary-base commute score");
+assert.match(L.scoreLocation(unknownCaptured, explicitProfile).detail, /distance is unavailable|cannot be verified/i);
+
 const scope = {
   distanceForJob(job, origin) {
     return origin.distance;
