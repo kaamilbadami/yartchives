@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 # way that should invalidate cached requirement facts. The cache updater can
 # re-run this extractor from a stored posting description without another ATS
 # request; entries without a reprocessable description are refreshed normally.
-EXTRACTOR_VERSION = 3
+EXTRACTOR_VERSION = 4
 
 # This vocabulary only annotates exact technology mentions in an already
 # identified qualification statement. It never creates a requirement by itself,
@@ -223,6 +223,30 @@ def _technology_mentions(statement: str) -> list[str]:
     return [name for name, pattern in TECHNOLOGIES if re.search(pattern, statement, flags=re.I)]
 
 
+def _unheaded_candidate_skill_evidence(statement: str) -> bool:
+    """Return true for candidate-qualification language even when the heading is novel.
+
+    This is deliberately recall-oriented but conservative: it preserves the fact
+    as ``unspecified`` rather than upgrading it to required/preferred. Common duty
+    phrasing is excluded so technologies in responsibilities do not become gaps.
+    """
+
+    lower = statement.lower().strip()
+    if re.match(
+        r"^(?:you(?:'ll| will)|build|develop|design|create|implement|support|maintain|"
+        r"work on|use|write|deliver|own|help|gain|learn|participate|collaborate)\b",
+        lower,
+    ):
+        return False
+    return bool(re.search(
+        r"\b(?:hands[- ]on |prior |previous |relevant |demonstrated |strong )?experience (?:with|in|using)\b|"
+        r"\b(?:working )?knowledge of\b|\bproficien(?:cy|t) (?:with|in)\b|"
+        r"\bfamiliar(?:ity)? with\b|\bexpertise in\b|\bbackground in\b|"
+        r"\bcoursework (?:with|in)\b|\bskills? (?:with|in)\b",
+        lower,
+    ))
+
+
 def extract_requirements(lines: Iterable[str]) -> dict[str, dict[str, Any]]:
     """Extract only stated facts, retaining their exact normalized evidence."""
 
@@ -287,6 +311,12 @@ def extract_requirements(lines: Iterable[str]) -> dict[str, dict[str, Any]]:
         )
         if qualification_context and (technologies or skill_language):
             _add(result["skills"], level, statement, technologies=technologies)
+            matched = True
+        elif _unheaded_candidate_skill_evidence(statement) and (technologies or skill_language):
+            # Unknown or novel headings must not make useful candidate evidence
+            # disappear. Keep it as unspecified so downstream ranking may use it
+            # positively without treating an uncertain section as a hard gap.
+            _add(result["skills"], None, statement, technologies=technologies)
             matched = True
 
         hard_eligibility = re.search(
