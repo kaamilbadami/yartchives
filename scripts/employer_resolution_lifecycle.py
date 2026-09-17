@@ -97,6 +97,7 @@ def _candidate_rows(universe: dict[str, Any], now: datetime, ttl_days: int) -> l
             continue
         rows.append((employer, entry))
     rows.sort(key=lambda pair: (
+        pair[1]["resolution_priority"],
         -pair[1]["authoritative_evidence_count"],
         -pair[1]["evidence_count"],
         pair[1]["id"],
