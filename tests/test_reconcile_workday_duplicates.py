@@ -24,6 +24,7 @@ CACI_PATH = (
 )
 DOORDASH_URL = "https://job-boards.greenhouse.io/doordashusa/jobs/8171041"
 ICIMS_URL = "https://careers-gdeb.icims.com/jobs/20341/job"
+POINT72_URL = "https://careers.point72.com/CSJobDetail?jobName=quantitative-developer-intern&jobCode=CSS-0013064"
 
 
 def base_job(job_id, company, url, *, direct=False, source="Simplify", posted="2026-09-16T12:00:00Z"):
@@ -200,6 +201,40 @@ class ReconcileWorkdayDuplicateTests(unittest.TestCase):
         self.assertEqual(mod.icims_canonical_url(login_url), ICIMS_URL)
         self.assertEqual(mod.posting_identity_key(job_url), mod.posting_identity_key(login_url))
 
+    def test_exact_unsupported_direct_copies_collapse_after_link_recovery(self):
+        first = base_job("point72-one", "Point72", POINT72_URL, source="Simplify", posted="2026-09-16T11:00:00Z")
+        second = base_job(
+            "point72-two",
+            "Point72",
+            POINT72_URL + "&utm_source=another-feed",
+            source="SpeedyApply",
+            posted="2026-09-16T12:00:00Z",
+        )
+        for job in (first, second):
+            job["title"] = "Quantitative Developer Intern"
+            job["location"] = "New York, NY"
+            job["states"] = ["NY"]
+
+        reconciled, stats = mod.reconcile_jobs([first, second])
+
+        self.assertEqual(len(reconciled), 1)
+        self.assertEqual(stats["direct_url_postings"], 1)
+        self.assertEqual(stats["duplicate_groups"], 1)
+        self.assertEqual(stats["records_removed"], 1)
+        self.assertEqual(set(reconciled[0]["source_names"]), {"Simplify", "SpeedyApply"})
+
+    def test_shared_unsupported_direct_url_does_not_merge_distinct_roles(self):
+        first = base_job("one", "Example", "https://careers.example.com/apply", source="Simplify")
+        second = base_job("two", "Example", "https://careers.example.com/apply", source="SpeedyApply")
+        first["title"] = "Software Engineering Intern"
+        second["title"] = "Data Engineering Intern"
+
+        reconciled, stats = mod.reconcile_jobs([first, second])
+
+        self.assertEqual(len(reconciled), 2)
+        self.assertEqual(stats["duplicate_groups"], 0)
+        self.assertEqual(stats["records_removed"], 0)
+
     def test_distinct_workday_postings_do_not_merge(self):
         first = base_job(
             "one",
@@ -231,6 +266,7 @@ class ReconcileWorkdayDuplicateTests(unittest.TestCase):
         self.assertEqual(stats["workday_postings"], 0)
         self.assertEqual(stats["greenhouse_postings"], 0)
         self.assertEqual(stats["icims_postings"], 0)
+        self.assertEqual(stats["direct_url_postings"], 0)
 
 
 if __name__ == "__main__":
