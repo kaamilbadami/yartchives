@@ -2,7 +2,7 @@
   "schema_version": 1,
   "contract": "US undergraduate CS internship single-queue contract",
   "promise": "A student can use Yartchives as their only discovery queue for current US undergraduate computer-science internships and co-ops without routinely checking other aggregators.",
-  "evaluated_at": "2026-09-17T18:36:40.143628Z",
+  "evaluated_at": "2026-09-17T19:04:00.225352Z",
   "status": "not_ready_as_only_source",
   "ready": false,
   "checks": [
@@ -22,28 +22,28 @@
     },
     {
       "name": "sample_freshness_hours",
-      "actual": 3.1111510077777775,
+      "actual": 3.566729264444444,
       "target": 168,
       "measurable": true,
       "passed": true
     },
     {
       "name": "feed_freshness_hours",
-      "actual": 0.06800236472222222,
+      "actual": 0.08708171666666666,
       "target": 2,
       "measurable": true,
       "passed": true
     },
     {
       "name": "capture_rate",
-      "actual": 0.5,
+      "actual": 0.5094339622641509,
       "target": 0.95,
       "measurable": true,
       "passed": false
     },
     {
       "name": "visible_rate",
-      "actual": 0.32075471698113206,
+      "actual": 0.330188679245283,
       "target": 0.95,
       "measurable": true,
       "passed": false

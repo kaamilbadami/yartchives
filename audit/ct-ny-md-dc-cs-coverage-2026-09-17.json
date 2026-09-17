@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-09-17T18:36:39.909840Z",
+  "generated_at": "2026-09-17T19:03:59.982461Z",
   "audit": {
     "name": "CT / NY / MD / DC undergraduate CS coverage benchmark",
     "collected_at": "2026-09-17T15:30:00Z",
@@ -18,9 +18,9 @@
     }
   },
   "feed": {
-    "generated_at": "2026-09-17T18:32:35.335115Z",
-    "content_hash": "ff5502b73098fc3933d79cfd746bd4242ae71be8ae4d378431ff07f6df00adba",
-    "indexed_jobs": 5724
+    "generated_at": "2026-09-17T18:58:46.731172Z",
+    "content_hash": "baac958b1176c5990b7d0b3ec6e919e830d5365fda7b390e92a0faf71b7d6150",
+    "indexed_jobs": 5738
   },
   "scope": {
     "profiles": [
@@ -35,16 +35,16 @@
   },
   "summary": {
     "external_listings": 106,
-    "captured_or_probably_captured": 53,
-    "visible_under_expected_filters": 34,
-    "actionable_findings": 72,
-    "capture_rate": 0.5,
-    "visible_rate": 0.3208,
+    "captured_or_probably_captured": 54,
+    "visible_under_expected_filters": 35,
+    "actionable_findings": 71,
+    "capture_rate": 0.5094,
+    "visible_rate": 0.3302,
     "status_counts": {
-      "already_in_yartchives": 34,
+      "already_in_yartchives": 35,
       "filtered_or_misclassified": 10,
       "duplicate_resolution_issue": 9,
-      "employer_exists_but_listing_missing": 19,
+      "employer_exists_but_listing_missing": 18,
       "configured_source_miss": 1,
       "source_not_covered": 33,
       "unknown": 0
@@ -77,8 +77,8 @@
         "employer_exists_but_listing_missing": 1
       },
       "Ordinary web search": {
-        "employer_exists_but_listing_missing": 6,
-        "already_in_yartchives": 6,
+        "employer_exists_but_listing_missing": 5,
+        "already_in_yartchives": 7,
         "source_not_covered": 3,
         "duplicate_resolution_issue": 2
       }
@@ -91,13 +91,12 @@
       "employer/custom": 21,
       "greenhouse": 4,
       "workday": 2,
-      "icims": 1,
       "usajobs": 1
     },
     "by_state": {
       "CT": {
-        "already_in_yartchives": 9,
-        "employer_exists_but_listing_missing": 2,
+        "already_in_yartchives": 10,
+        "employer_exists_but_listing_missing": 1,
         "source_not_covered": 8,
         "configured_source_miss": 1
       },
@@ -122,19 +121,19 @@
       }
     },
     "missing_by_state": {
-      "CT": 11,
+      "CT": 10,
       "DC": 14,
       "MD": 21,
       "NY": 7
     },
     "missing_by_reason_code": {
       "uncovered_source": 33,
-      "known_employer_missing_role": 19,
+      "known_employer_missing_role": 18,
       "configured_source_listing_absent": 1
     },
     "missing_by_discovery_source": {
       "LinkedIn": 36,
-      "Ordinary web search": 9,
+      "Ordinary web search": 8,
       "Internships.com": 4,
       "Employer/ATS search": 3,
       "Major aggregator": 1
@@ -753,53 +752,32 @@
         ],
         "default_visible": true
       },
-      "status": "employer_exists_but_listing_missing",
+      "status": "already_in_yartchives",
       "confidence": "high",
-      "reason_code": "known_employer_missing_role",
-      "reason": "Yartchives has 2 listing(s) for this employer but not this role",
-      "recommended_action": "Trace the role to the employer ATS and check source filters or add direct coverage.",
-      "candidate_jobs": [
-        {
-          "id": "4859820e8486ce59",
-          "company": "General Dynamics Electric Boat",
-          "title": "Platform Systems Engineering and Integration – 2027 Engineering Summer Internship",
-          "location": "New London, CT, US",
-          "url": "https://careers-gdeb.icims.com/jobs/20508/platform-systems-engineering-and-integration-%e2%80%93-2027-engineering-summer-internship/job",
-          "profiles": [
-            "general"
-          ],
-          "states": [
-            "CT"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "dreamwork-tech"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-15T04:00:00Z"
-        },
-        {
-          "id": "8b88bc5e7859772c",
-          "company": "General Dynamics Electric Boat",
-          "title": "SSN Electrical Engineering and Design - 2027 Engineering Summer Internship",
-          "location": "Groton, CT, US",
-          "url": "https://careers-gdeb.icims.com/jobs/20330/ssn-electrical-engineering-and-design---2027-engineering-summer-internship/job",
-          "profiles": [
-            "electrical"
-          ],
-          "states": [
-            "CT"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "dreamwork-tech"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-14T04:00:00Z"
-        }
-      ],
+      "reason_code": "provider_identity_match",
+      "reason": "matched by authoritative ATS/listing identifier with compatible title and location",
+      "recommended_action": "No coverage fix needed.",
+      "match_score": 1.0,
+      "matched_job": {
+        "id": "0da388ac705c39d6",
+        "company": "General Dynamics",
+        "title": "Cybersecurity - 2027 Summer Internship",
+        "location": "Groton, CT, 06340, US",
+        "url": "https://careers-gdeb.icims.com/jobs/20338/job",
+        "profiles": [
+          "cs"
+        ],
+        "states": [
+          "CT"
+        ],
+        "opportunity_type": "internship",
+        "education_level": "unspecified",
+        "source_keys": [
+          "auto-icims-careers-gdeb-icims-com"
+        ],
+        "link_kind": "direct",
+        "posted_at": "2026-09-14T04:00:00Z"
+      },
       "input_index": 11,
       "observation_count": 1,
       "observed_sources": [
@@ -1389,8 +1367,9 @@
       "status": "duplicate_resolution_issue",
       "confidence": "high",
       "reason_code": "provider_identity_mismatch",
-      "reason": "same ATS/listing identifier exists but ordinary URL/signature matching failed",
-      "recommended_action": "Add or improve provider-specific canonicalization/deduplication.",
+      "reason": "same ATS/listing identifier exists but title/location evidence is not compatible enough for an exact match",
+      "recommended_action": "Verify provider identity and improve canonicalization/deduplication if these are the same role.",
+      "match_score": 0.651,
       "matched_job": {
         "id": "a3e825e36cf90fad",
         "company": "Schonfeld",
@@ -1905,8 +1884,9 @@
       "status": "duplicate_resolution_issue",
       "confidence": "high",
       "reason_code": "provider_identity_mismatch",
-      "reason": "same ATS/listing identifier exists but ordinary URL/signature matching failed",
-      "recommended_action": "Add or improve provider-specific canonicalization/deduplication.",
+      "reason": "same ATS/listing identifier exists but title/location evidence is not compatible enough for an exact match",
+      "recommended_action": "Verify provider identity and improve canonicalization/deduplication if these are the same role.",
+      "match_score": 0.788,
       "matched_job": {
         "id": "fd7f4ffae20011ed",
         "company": "DV Trading",
@@ -2457,8 +2437,7 @@
           "auto-greenhouse-figma",
           "dreamwork-tech",
           "simplify",
-          "speedyapply",
-          "zapply"
+          "speedyapply"
         ],
         "link_kind": "direct",
         "posted_at": "2026-09-15T00:00:00Z"
@@ -3357,8 +3336,9 @@
       "status": "duplicate_resolution_issue",
       "confidence": "high",
       "reason_code": "provider_identity_mismatch",
-      "reason": "same ATS/listing identifier exists but ordinary URL/signature matching failed",
-      "recommended_action": "Add or improve provider-specific canonicalization/deduplication.",
+      "reason": "same ATS/listing identifier exists but title/location evidence is not compatible enough for an exact match",
+      "recommended_action": "Verify provider identity and improve canonicalization/deduplication if these are the same role.",
+      "match_score": 0.876,
       "matched_job": {
         "id": "d3d66d3a87460317",
         "company": "Johns Hopkins Applied Physics Laboratory",
@@ -3414,8 +3394,9 @@
       "status": "duplicate_resolution_issue",
       "confidence": "high",
       "reason_code": "provider_identity_mismatch",
-      "reason": "same ATS/listing identifier exists but ordinary URL/signature matching failed",
-      "recommended_action": "Add or improve provider-specific canonicalization/deduplication.",
+      "reason": "same ATS/listing identifier exists but title/location evidence is not compatible enough for an exact match",
+      "recommended_action": "Verify provider identity and improve canonicalization/deduplication if these are the same role.",
+      "match_score": 0.886,
       "matched_job": {
         "id": "8b8c68701ad84e14",
         "company": "Johns Hopkins Applied Physics Laboratory",
@@ -3471,8 +3452,9 @@
       "status": "duplicate_resolution_issue",
       "confidence": "high",
       "reason_code": "provider_identity_mismatch",
-      "reason": "same ATS/listing identifier exists but ordinary URL/signature matching failed",
-      "recommended_action": "Add or improve provider-specific canonicalization/deduplication.",
+      "reason": "same ATS/listing identifier exists but title/location evidence is not compatible enough for an exact match",
+      "recommended_action": "Verify provider identity and improve canonicalization/deduplication if these are the same role.",
+      "match_score": 0.716,
       "matched_job": {
         "id": "0415e8a2347d7fef",
         "company": "Johns Hopkins Applied Physics Laboratory",
@@ -5981,8 +5963,7 @@
             "applyguy",
             "dreamwork-tech",
             "simplify",
-            "speedyapply",
-            "zapply"
+            "speedyapply"
           ],
           "link_kind": "direct",
           "posted_at": "2026-09-14T08:43:11.796000Z"

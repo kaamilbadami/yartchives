@@ -1,15 +1,15 @@
 # CT / NY / MD / DC undergraduate CS coverage benchmark
 
 External sample collected: `2026-09-17T15:30:00Z`
-Yartchives feed snapshot: `2026-09-17T18:32:35.335115Z`
+Yartchives feed snapshot: `2026-09-17T18:58:46.731172Z`
 Scope: profiles=cs, states=CT,NY,MD,DC
 
 - External observations collected: **106**
 - Unique external listings (denominator): **106**
 - Duplicate observations collapsed: **0**
-- Captured or probably captured: **53** (50.0%)
-- Visible under expected filters: **34** (32.1%)
-- Actionable findings: **72**
+- Captured or probably captured: **54** (50.9%)
+- Visible under expected filters: **35** (33.0%)
+- Actionable findings: **71**
 
 ## Missing listings by ATS family
 
@@ -17,12 +17,11 @@ Scope: profiles=cs, states=CT,NY,MD,DC
 - `employer/custom`: **21**
 - `greenhouse`: **4**
 - `workday`: **2**
-- `icims`: **1**
 - `usajobs`: **1**
 
 ## Results by benchmark state
 
-- `CT`: **20** listings, **11** missing
+- `CT`: **20** listings, **10** missing
 - `DC`: **25** listings, **14** missing
 - `MD`: **27** listings, **21** missing
 - `NY`: **34** listings, **7** missing
@@ -30,15 +29,15 @@ Scope: profiles=cs, states=CT,NY,MD,DC
 ## Missing listings by reason code
 
 - `uncovered_source`: **33**
-- `known_employer_missing_role`: **19**
+- `known_employer_missing_role`: **18**
 - `configured_source_listing_absent`: **1**
 
 ## Status breakdown
 
-- `already_in_yartchives`: 34
+- `already_in_yartchives`: 35
 - `filtered_or_misclassified`: 10
 - `duplicate_resolution_issue`: 9
-- `employer_exists_but_listing_missing`: 19
+- `employer_exists_but_listing_missing`: 18
 - `configured_source_miss`: 1
 - `source_not_covered`: 33
 - `unknown`: 0
@@ -54,9 +53,6 @@ Scope: profiles=cs, states=CT,NY,MD,DC
 - **source_not_covered** (`uncovered_source`): Spectrum — 2027 Summer Intern: Business Analyst — Stamford, CT
   - Why: source_key=2026 81924
   - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.
-- **employer_exists_but_listing_missing** (`known_employer_missing_role`): General Dynamics Electric Boat — Cybersecurity - 2027 Summer Internship — Groton, CT
-  - Why: Yartchives has 2 listing(s) for this employer but not this role
-  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
 - **source_not_covered** (`uncovered_source`): Interactive Brokers — Software Developer Summer Internship - 2027 — Greenwich, CT
   - Why: source_key=4456794958
   - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
@@ -82,14 +78,14 @@ Scope: profiles=cs, states=CT,NY,MD,DC
   - Why: missing expected profile 'cs'
   - Next: Review profile/state/type enrichment or default filter metadata.
 - **duplicate_resolution_issue** (`provider_identity_mismatch`): Schonfeld — 2027 DMFI Technology Intern — New York, NY
-  - Why: same ATS/listing identifier exists but ordinary URL/signature matching failed
-  - Next: Add or improve provider-specific canonicalization/deduplication.
+  - Why: same ATS/listing identifier exists but title/location evidence is not compatible enough for an exact match
+  - Next: Verify provider identity and improve canonicalization/deduplication if these are the same role.
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): DV Trading — Client Platforms Engineer Intern - Summer 2027 — New York, NY
   - Why: Yartchives has 12 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
 - **duplicate_resolution_issue** (`provider_identity_mismatch`): DV Trading — Quantitative Research Intern - Summer 2027 (DV Equities) — New York, NY
-  - Why: same ATS/listing identifier exists but ordinary URL/signature matching failed
-  - Next: Add or improve provider-specific canonicalization/deduplication.
+  - Why: same ATS/listing identifier exists but title/location evidence is not compatible enough for an exact match
+  - Next: Verify provider identity and improve canonicalization/deduplication if these are the same role.
 - **filtered_or_misclassified** (`present_but_hidden`): Lyft — Data Analyst Intern (Summer 2027) — New York, NY
   - Why: missing expected profile 'cs'
   - Next: Review profile/state/type enrichment or default filter metadata.
@@ -133,14 +129,14 @@ Scope: profiles=cs, states=CT,NY,MD,DC
   - Why: Yartchives has 14 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
 - **duplicate_resolution_issue** (`provider_identity_mismatch`): Johns Hopkins Applied Physics Laboratory — 2027 Internship - Software Developer - Tactical System Prototyping and Deployment — Laurel, MD
-  - Why: same ATS/listing identifier exists but ordinary URL/signature matching failed
-  - Next: Add or improve provider-specific canonicalization/deduplication.
+  - Why: same ATS/listing identifier exists but title/location evidence is not compatible enough for an exact match
+  - Next: Verify provider identity and improve canonicalization/deduplication if these are the same role.
 - **duplicate_resolution_issue** (`provider_identity_mismatch`): Johns Hopkins Applied Physics Laboratory — 2027 Internship - Software Engineer/Data Scientist/Ontologist - Threat Analytic Systems — Laurel, MD
-  - Why: same ATS/listing identifier exists but ordinary URL/signature matching failed
-  - Next: Add or improve provider-specific canonicalization/deduplication.
+  - Why: same ATS/listing identifier exists but title/location evidence is not compatible enough for an exact match
+  - Next: Verify provider identity and improve canonicalization/deduplication if these are the same role.
 - **duplicate_resolution_issue** (`provider_identity_mismatch`): Johns Hopkins Applied Physics Laboratory — 2027 Internship - Decision Science, Software Engineer, System Engineer — Laurel, MD
-  - Why: same ATS/listing identifier exists but ordinary URL/signature matching failed
-  - Next: Add or improve provider-specific canonicalization/deduplication.
+  - Why: same ATS/listing identifier exists but title/location evidence is not compatible enough for an exact match
+  - Next: Verify provider identity and improve canonicalization/deduplication if these are the same role.
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): Johns Hopkins Applied Physics Laboratory — 2027 Internship - Cybersecurity - Mission Engineering — Laurel, MD
   - Why: Yartchives has 14 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
