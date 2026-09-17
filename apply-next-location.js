@@ -93,7 +93,7 @@
 
     const facility = raw.match(/^\d+\s+(.+?)\s+([A-Z]{2})$/);
     if (facility && STATE_CODES.has(facility[2])) {
-      return `${titleCaseWords(facility[1]), facility[2]}`;
+      return `${titleCaseWords(facility[1])}, ${facility[2]}`;
     }
 
     const cityStateCountry = raw.match(/^(.+?),\s*([A-Z]{2})(?:,\s*(?:US|USA|United States))$/i);
