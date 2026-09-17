@@ -151,6 +151,7 @@ def normalize_payload(
             "updated_at": posting_requirements.clean_line(payload.get("updated_at")) or None,
             "application_deadline": posting_requirements.clean_line(payload.get("application_deadline")) or None,
         },
+        "schedule": posting_requirements.extract_posting_schedule(lines),
         "requirements": posting_requirements.extract_requirements(lines),
         "document_url": posting_requirements.clean_line(payload.get("absolute_url")) or None,
         "board_token": board_token,
