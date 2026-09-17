@@ -119,7 +119,7 @@ def company_title_key(job: dict[str, Any]) -> tuple[str, str]:
 
 
 def applyguy_indexes(payload: dict[str, Any]) -> tuple[dict[tuple[str, str], str], dict[str, list[str]]]:
-    exact: dict[tuple[str, str], str] = {}
+    exact_sets: dict[tuple[str, str], set[str]] = {}
     by_title: dict[str, list[str]] = {}
     for row in payload.get("jobs", []):
         if not isinstance(row, dict):
@@ -130,9 +130,10 @@ def applyguy_indexes(payload: dict[str, Any]) -> tuple[dict[tuple[str, str], str
         company = compact(row.get("company"))
         title = norm(row.get("title"))
         if company and title:
-            exact[(company, title)] = direct
+            exact_sets.setdefault((company, title), set()).add(direct)
         if title:
             by_title.setdefault(title, []).append(direct)
+    exact = {key: next(iter(values)) for key, values in exact_sets.items() if len(values) == 1}
     return exact, by_title
 
 
