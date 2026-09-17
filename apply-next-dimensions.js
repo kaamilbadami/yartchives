@@ -194,6 +194,11 @@
     return /\b(?:familiarity|familiar|interest|exposure|foundational|basic understanding|working knowledge|coursework|academic|project experience|school project|willingness to learn|eager to learn)\b/.test(text);
   }
 
+  function alternativeRequirement(statement, technologies) {
+    const text = normalize(statement);
+    return technologies.length > 1 && /\b(?:or|either)\b/.test(text);
+  }
+
   function analyzeQualificationEvidence(result, profile) {
     const inspection = inspectionForResult(result);
     const skills = requirementField(inspection, "skills");
@@ -210,6 +215,31 @@
     function classify(fact, bucket) {
       const technologies = [...new Set((fact?.technologies || []).map(canonicalSkill).filter(Boolean))];
       const statement = String(fact?.statement || "").trim();
+
+      if (bucket === "required" && alternativeRequirement(statement, technologies)) {
+        const exactMatches = technologies.filter(technology => supportedSkills.includes(technology));
+        if (exactMatches.length) {
+          exactMatches.forEach(technology => exactRequired.add(technology));
+          return;
+        }
+        const cautiousMatch = technologies.find(technology => cautiousSkills.includes(technology));
+        if (cautiousMatch) {
+          cautiousRequired.add(cautiousMatch);
+          return;
+        }
+        for (const technology of technologies) {
+          const adjacent = adjacentEvidence(technology, supportedSkills);
+          if (adjacent) {
+            adjacentRequired.set(technology, adjacent);
+            return;
+          }
+        }
+        const group = technologies.join(" / ");
+        if (learnableRequirement(statement)) learnableGaps.add(group);
+        else hardGaps.add(group);
+        return;
+      }
+
       for (const technology of technologies) {
         if (supportedSkills.includes(technology)) {
           if (bucket === "required") exactRequired.add(technology);
