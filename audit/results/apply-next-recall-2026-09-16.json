@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-17T03:14:19.315Z",
+  "generated_at": "2026-09-17T03:16:21.804Z",
   "inputs": {
-    "feed_generated_at": "2026-09-17T02:53:17.304905Z",
-    "cache_updated_at": "2026-09-17T02:55:09Z",
-    "reference_time": "2026-09-17T02:55:09.000Z",
+    "feed_generated_at": "2026-09-17T03:07:28.101490Z",
+    "cache_updated_at": "2026-09-17T03:09:22Z",
+    "reference_time": "2026-09-17T03:09:22.000Z",
     "target_term": "Summer 2027",
     "relevance_profiles": [
       "cs"
@@ -21,65 +21,65 @@
   },
   "funnel": {
     "full_feed": {
-      "entered": 5225,
-      "retained": 5225,
+      "entered": 5226,
+      "retained": 5226,
       "dropped": 0
     },
     "relevance_filter": {
-      "entered": 5225,
+      "entered": 5226,
       "retained": 2120,
-      "dropped": 3105,
+      "dropped": 3106,
       "reasons": {
-        "genuinely_irrelevant_for_selected_profiles": 3105
+        "genuinely_irrelevant_for_selected_profiles": 3106
       }
     },
     "term_and_eligibility_filter": {
       "entered": 2120,
-      "retained": 1496,
-      "dropped": 624,
+      "retained": 1495,
+      "dropped": 625,
       "reasons": {
         "known_wrong_term": 470,
         "known_ineligible_graduate_only": 124,
-        "authoritative_posting_unavailable": 30
+        "authoritative_posting_unavailable": 31
       }
     },
     "inspection_candidate_pool": {
-      "entered": 1496,
-      "selected_for_inspection": 856,
+      "entered": 1495,
+      "selected_for_inspection": 855,
       "relevant_but_not_selected": 640,
-      "recommendation_candidates_retained": 1496,
+      "recommendation_candidates_retained": 1495,
       "note": "Inspection selection affects evidence coverage, not recommendation eligibility."
     },
     "inspection_state": {
       "all_term_candidates": {
         "not_selected": 720,
-        "inspected": 469,
-        "queued_bounded_throughput": 307,
-        "inspected_semantically_thin": 102,
-        "authoritative_posting_unavailable": 30,
-        "inspection_retrieval_failure_or_cooldown": 14,
-        "unsupported_provider_or_source_shape": 8
+        "inspected": 480,
+        "queued_bounded_throughput": 289,
+        "inspected_semantically_thin": 108,
+        "authoritative_posting_unavailable": 31,
+        "inspection_retrieval_failure_or_cooldown": 15,
+        "unsupported_provider_or_source_shape": 7
       },
       "eligible_candidates": {
         "not_selected": 640,
-        "inspected": 461,
-        "queued_bounded_throughput": 273,
-        "inspected_semantically_thin": 102,
-        "inspection_retrieval_failure_or_cooldown": 13,
-        "unsupported_provider_or_source_shape": 7
+        "inspected": 472,
+        "queued_bounded_throughput": 255,
+        "inspected_semantically_thin": 108,
+        "inspection_retrieval_failure_or_cooldown": 14,
+        "unsupported_provider_or_source_shape": 6
       }
     },
     "authoritative_only_gate": {
-      "entered": 1496,
+      "entered": 1495,
       "active": false,
-      "retained": 1496,
+      "retained": 1495,
       "dropped": 0,
       "excluded_solely_because_authoritative_inspection_is_required": 0,
-      "counterfactual_excluded_if_gate_were_enabled": 933
+      "counterfactual_excluded_if_gate_were_enabled": 915
     },
     "ranking": {
-      "entered": 1496,
-      "ranked": 1306,
+      "entered": 1495,
+      "ranked": 1305,
       "dropped": 190,
       "reasons": {
         "canonical_duplicate": 190,
@@ -87,20 +87,20 @@
       }
     },
     "visible_top_n": {
-      "entered": 1306,
+      "entered": 1305,
       "visible": 10,
-      "ranked_but_below_visible_set": 1296
+      "ranked_but_below_visible_set": 1295
     }
   },
   "classifications": {
     "relevant_but_not_selected_for_inspection": 640,
-    "queued_bounded_throughput": 273,
-    "inspection_retrieval_failure_or_cooldown": 13,
-    "unsupported_provider_or_source_shape": 647,
-    "authoritative_posting_unavailable": 30,
-    "inspected_semantically_thin": 102,
+    "queued_bounded_throughput": 255,
+    "inspection_retrieval_failure_or_cooldown": 14,
+    "unsupported_provider_or_source_shape": 646,
+    "authoritative_posting_unavailable": 31,
+    "inspected_semantically_thin": 108,
     "excluded_solely_by_authoritative_gate": 0,
-    "ranked_below_visible_set": 1296
+    "ranked_below_visible_set": 1295
   },
   "inspection_unsupported_breakdown": {
     "source": 84,
@@ -119,11 +119,11 @@
     "www.zipline.com": 9,
     "recruiting2.ultipro.com": 8,
     "corningjobs.corning.com": 7,
-    "greenhouse": 7,
     "www.coinbase.com": 7,
     "www.google.com": 7,
     "www.optiver.com": 7,
     "epicgames.com": 6,
+    "greenhouse": 6,
     "job-boards.eu.greenhouse.io": 6,
     "textron.taleo.net": 6,
     "award.co": 5,
@@ -250,7 +250,7 @@
   },
   "biggest_evidence_bottleneck": {
     "classification": "unsupported_provider_or_source_shape",
-    "count": 647
+    "count": 646
   },
   "examples": {
     "irrelevant": [
@@ -262,42 +262,35 @@
         "url": "https://rockwellautomation.wd1.myworkdayjobs.com/external_rockwell_automation/job/Mequon-Wisconsin-United-States/Intern--Product-Management_R26-6971-1"
       },
       {
-        "id": "be1495a55cc593db",
-        "company": "Invesco",
-        "title": "Early Career Intern - Digital Asset",
+        "id": "ff467d32299ce867",
+        "company": "CVS Health",
+        "title": "Foreign Pharmacy Grad - International Pharmacy Intern",
         "term": null,
-        "url": "https://invesco.wd1.myworkdayjobs.com/IVZ/job/New-York-New-York/Early-Career-Intern---Digital-Asset_R-15476-1"
+        "url": "https://cvshealth.wd1.myworkdayjobs.com/en-US/CVS_Health_Careers/job/AL---Jackson/Foreign-Pharmacy-Grad---International-Pharmacy-Intern_R0982157"
       },
       {
-        "id": "bcd4b83fb464372e",
-        "company": "Motorola Solutions",
-        "title": "Marketing - 2027 Summer Internship",
-        "term": "2027",
-        "url": "https://motorolasolutions.wd5.myworkdayjobs.com/en-US/Careers/job/Chicago-IL/Marketing---2027-Summer-Internship_R68908"
-      },
-      {
-        "id": "8bf472bdb08e2d09",
-        "company": "Gilead Sciences",
-        "title": "Intern - Kite Research - Cell Biology",
+        "id": "f546a54b2accf3e0",
+        "company": "Johnson & Johnson",
+        "title": "Business Excellence Engineer Co-Op",
         "term": null,
-        "url": "https://gilead.wd1.myworkdayjobs.com/gileadcareers/job/United-States---California---Foster-City/Intern---Kite-Research---Cell-Biology_R0054481-1"
+        "url": "https://jj.wd5.myworkdayjobs.com/jj/job/Gurabo-Puerto-Rico-United-States-of-America/Business-Excellence-Engineer-Co-Op_R-097386"
       },
       {
-        "id": "8ae6f099bfd874a2",
-        "company": "Clarios",
-        "title": "Product Engineering: Materials Intern (Summer 2027)",
-        "term": "Summer 2027",
-        "url": "https://clarios.wd5.myworkdayjobs.com/clarioscareers/job/United-States-Wisconsin-Milwaukee/Product-Engineering--Materials-Intern--Summer-2027-_WD49906"
+        "id": "f22277cdc0bc3a4a",
+        "company": "Cox",
+        "title": "Global Employment Practices Intern",
+        "term": null,
+        "url": "https://cox.wd1.myworkdayjobs.com/Cox_External_Career_Site_1/job/Atlanta-GA/Global-Employment-Practices-Intern_R202682425"
+      },
+      {
+        "id": "dec7823976e9c61c",
+        "company": "Cox",
+        "title": "Tax Analyst Intern",
+        "term": null,
+        "url": "https://cox.wd1.myworkdayjobs.com/Cox_External_Career_Site_1/job/Atlanta-GA/Tax-Analyst-Intern_R202682416"
       }
     ],
     "wrong_term": [
-      {
-        "id": "1a8bcf8f24fb4e4c",
-        "company": "RTX",
-        "title": "Software Engineering Co-op (Winter/Spring 2027)",
-        "term": "Spring 2027",
-        "url": "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway/job/US-IA-CEDAR-RAPIDS-124--400-Collins-Rd-NE--BLDG-124/Software-Engineering-Co-op--Winter-Spring-2027-_01875464"
-      },
       {
         "id": "bcd8412f5d12e7ef",
         "company": "Nelnet",
@@ -311,6 +304,13 @@
         "title": "Co-op - Embedded Software Test Engineering: January-June 2027 - Onsite",
         "term": "2027",
         "url": "https://insulet.wd5.myworkdayjobs.com/insuletcareers/job/Acton-Massachusetts/Co-op--Embedded-Software-Test-Engineering--January---June-2027--Onsite-_REQ-2026-18012"
+      },
+      {
+        "id": "1a8bcf8f24fb4e4c",
+        "company": "RTX",
+        "title": "Software Engineering Co-op (Winter/Spring 2027)",
+        "term": "Spring 2027",
+        "url": "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway/job/US-IA-CEDAR-RAPIDS-124--400-Collins-Rd-NE--BLDG-124/Software-Engineering-Co-op--Winter-Spring-2027-_01875464"
       },
       {
         "id": "1049157a39f255c8",

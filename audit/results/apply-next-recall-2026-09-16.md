@@ -1,23 +1,23 @@
 # Apply Next recall audit
 
-Feed snapshot: 2026-09-17T02:53:17.304905Z; inspection cache: 2026-09-17T02:55:09Z.
+Feed snapshot: 2026-09-17T03:07:28.101490Z; inspection cache: 2026-09-17T03:09:22Z.
 Audit profile: cs; target term: Summer 2027; visible set: Top 10.
 
 ## Funnel
 
-- Full feed: 5,225.
-- Relevant: 2,120 retained; 3,105 genuinely outside the selected profile tags.
-- Term / eligibility: 1,496 retained; 470 known wrong-term and 154 known-ineligible/unavailable removed.
-- Inspection pool: 856 selected; 640 relevant candidates have no inspection candidate mapping.
-- Inspection state (eligible candidates): 461 inspected with substantive semantics, 102 inspected but mostly unknown, 273 queued, 13 failed/cooling down, and 7 selected with an unsupported shape.
-- Authoritative-only gate: not active; 0 excluded solely for lacking authoritative inspection (933 would be excluded if such a gate were enabled).
-- Ranking: 1,306 ranked; 190 canonical duplicates collapsed and 0 otherwise excluded during ranking; 10 visible and 1,296 below Top 10.
+- Full feed: 5,226.
+- Relevant: 2,120 retained; 3,106 genuinely outside the selected profile tags.
+- Term / eligibility: 1,495 retained; 470 known wrong-term and 155 known-ineligible/unavailable removed.
+- Inspection pool: 855 selected; 640 relevant candidates have no inspection candidate mapping.
+- Inspection state (eligible candidates): 472 inspected with substantive semantics, 108 inspected but mostly unknown, 255 queued, 14 failed/cooling down, and 6 selected with an unsupported shape.
+- Authoritative-only gate: not active; 0 excluded solely for lacking authoritative inspection (915 would be excluded if such a gate were enabled).
+- Ranking: 1,305 ranked; 190 canonical duplicates collapsed and 0 otherwise excluded during ranking; 10 visible and 1,295 below Top 10.
 
 ## Conclusion
 
 Current Apply Next does not silently erase metadata-only opportunities: unknown inspection evidence is not a hard mismatch, and metadata-only jobs remain rankable.
-The largest inspection-evidence bottleneck is **unsupported_provider_or_source_shape** (647 candidates). This remains an evidence-coverage limitation, but it is not a hard recommendation exclusion.
-The visible-set bottleneck is the deliberate Top 10 cap: 1,296 otherwise-ranked candidates are below it.
+The largest inspection-evidence bottleneck is **unsupported_provider_or_source_shape** (646 candidates). This remains an evidence-coverage limitation, but it is not a hard recommendation exclusion.
+The visible-set bottleneck is the deliberate Top 10 cap: 1,295 otherwise-ranked candidates are below it.
 
 Largest unsupported provider/source-shape buckets:
 - source: 84
