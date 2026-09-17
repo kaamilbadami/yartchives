@@ -190,6 +190,64 @@ class RepairLinksTests(unittest.TestCase):
         self.assertEqual(job["link_status"], "ok")
         self.assertEqual(job["link_checked_at"], "2026-09-17T00:00:00Z")
 
+    def test_old_validation_cache_version_does_not_skip_revalidation(self):
+        url = "https://amgen.wd1.myworkdayjobs.com/Careers/job/Remote/old_R-255719"
+        job = {
+            "id": "amgen-1",
+            "url": url,
+            "link_kind": "direct",
+            "opportunity_type": "internship",
+            "profiles": ["cs"],
+        }
+        old = {
+            "jobs": [{
+                **job,
+                "link_status": "ok",
+                "link_checked_at": "2026-09-17T12:00:00Z",
+                # No link_validation_version: this represents a legacy cached check.
+            }]
+        }
+        checked_at = datetime(2026, 9, 17, 20, 0, tzinfo=timezone.utc)
+        with (
+            patch.object(mod, "now_utc", return_value=checked_at),
+            patch.object(mod, "validate_direct_url", return_value=("dead", url)) as validate,
+        ):
+            stats = mod.validate_repaired_links({"jobs": [job]}, old)
+
+        validate.assert_called_once_with(url)
+        self.assertEqual(stats["checked"], 1)
+        self.assertEqual(stats["dead"], 1)
+        self.assertEqual(job["link_validation_version"], mod.LINK_VALIDATION_VERSION)
+
+    def test_current_validation_cache_version_is_reused_within_ttl(self):
+        url = "https://example.wd1.myworkdayjobs.com/Careers/job/Remote/live_R-123"
+        job = {
+            "id": "example-1",
+            "url": url,
+            "link_kind": "direct",
+            "opportunity_type": "internship",
+            "profiles": ["cs"],
+        }
+        old = {
+            "jobs": [{
+                **job,
+                "link_status": "ok",
+                "link_checked_at": "2026-09-17T12:00:00Z",
+                "link_validation_version": mod.LINK_VALIDATION_VERSION,
+            }]
+        }
+        checked_at = datetime(2026, 9, 17, 20, 0, tzinfo=timezone.utc)
+        with (
+            patch.object(mod, "now_utc", return_value=checked_at),
+            patch.object(mod, "validate_direct_url") as validate,
+        ):
+            stats = mod.validate_repaired_links({"jobs": [job]}, old)
+
+        validate.assert_not_called()
+        self.assertEqual(stats["checked"], 0)
+        self.assertEqual(job["link_status"], "ok")
+        self.assertEqual(job["link_validation_version"], mod.LINK_VALIDATION_VERSION)
+
     def test_generic_page_does_not_exist_phrase_is_dead(self):
         class Response:
             status_code = 200
