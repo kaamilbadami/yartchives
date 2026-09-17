@@ -36,6 +36,23 @@
     location: 10,
   });
 
+  const GENERIC_PROFILE_TERMS = new Set([
+    "software", "software engineer", "software developer", "systems", "system", "engineering",
+    "engineer", "technology", "technical", "data", "analytics", "testing", "test engineer", "qa",
+    "infrastructure", "technical ops", "it",
+  ]);
+
+  const CAPABILITY_FAMILIES = Object.freeze({
+    programming: ["c", "c++", "c#", "java", "python", "go", "rust"],
+    web: ["javascript", "typescript", "react", "node.js", "nodejs"],
+    data: ["sql", "postgresql", "mysql", "oracle", "snowflake", "databricks", "spark", "r"],
+    cloud: ["aws", "azure", "gcp"],
+    containers: ["docker", "kubernetes"],
+    os: ["linux", "unix"],
+    ci: ["jenkins", "gitlab ci", "github actions"],
+    analytics: ["tableau", "power bi", "excel", "r", "sql"],
+  });
+
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, Number(value || 0)));
   }
@@ -54,10 +71,20 @@
       .trim();
   }
 
-  function countListed(detail, label) {
-    const match = String(detail || "").match(new RegExp(`${label}: ([^;]+)`, "i"));
-    if (!match) return 0;
-    return match[1].split(",").map(x => x.trim()).filter(Boolean).length;
+  function canonicalSkill(value) {
+    const skill = normalize(value);
+    const aliases = {
+      cpp: "c++",
+      "c plus plus": "c++",
+      csharp: "c#",
+      "c sharp": "c#",
+      js: "javascript",
+      ts: "typescript",
+      golang: "go",
+      nodejs: "node.js",
+      postgres: "postgresql",
+    };
+    return aliases[skill] || skill;
   }
 
   function inspectionForResult(result) {
@@ -141,49 +168,132 @@
     return { bonus: Math.min(5, bonus), details };
   }
 
-  function qualificationPenalty(readiness) {
-    const details = Array.isArray(readiness?.details) ? readiness.details : [];
-    const unsupported = details.filter(x => /^Required gap:/i.test(x)).length;
-    const cautious = details.filter(x => /^Required skill only cautiously supported:/i.test(x)).length;
-    const domain = details.filter(x => /^Unverified required domain experience:/i.test(x)).length;
-    let unsupportedPenalty = 0;
-    for (let i = 0; i < unsupported; i += 1) unsupportedPenalty += i === 0 ? 10 : (i === 1 ? 6 : 4);
-    return Math.min(30,
-      Math.min(20, unsupportedPenalty)
-      + Math.min(8, cautious * 4)
-      + Math.min(12, domain * 6));
+  function profileSkills(profile, key, fallbackKey) {
+    return [...new Set([
+      ...(profile?.facts?.[key] || []),
+      ...(profile?.[fallbackKey] || []),
+    ].map(canonicalSkill).filter(skill => skill && !GENERIC_PROFILE_TERMS.has(skill)))];
   }
 
-  function qualificationFitLegacy(result, profile) {
-    const prior = result?.components?.fit || { score: 0, detail: "" };
-    const detail = String(prior.detail || "");
-    const inspected = result?.inspection?.state === "inspected";
-    if (!inspected) {
-      return { score: 12, detail: "Qualification evidence not yet authoritative; neutral qualification-fit score" };
+  function capabilityFamily(skill) {
+    const canonical = canonicalSkill(skill);
+    for (const [family, members] of Object.entries(CAPABILITY_FAMILIES)) {
+      if (members.includes(canonical)) return family;
+    }
+    return null;
+  }
+
+  function adjacentEvidence(skill, supportedSkills) {
+    const family = capabilityFamily(skill);
+    if (!family) return null;
+    return supportedSkills.find(candidate => candidate !== canonicalSkill(skill) && capabilityFamily(candidate) === family) || null;
+  }
+
+  function learnableRequirement(statement) {
+    const text = normalize(statement);
+    return /\b(?:familiarity|familiar|interest|exposure|foundational|basic understanding|working knowledge|coursework|academic|project experience|school project|willingness to learn|eager to learn)\b/.test(text);
+  }
+
+  function analyzeQualificationEvidence(result, profile) {
+    const inspection = inspectionForResult(result);
+    const skills = requirementField(inspection, "skills");
+    const supportedSkills = profileSkills(profile, "supportedSkills", "supportedKeywords");
+    const cautiousSkills = profileSkills(profile, "cautiousSkills", "cautiousKeywords");
+    const exactRequired = new Set();
+    const adjacentRequired = new Map();
+    const cautiousRequired = new Set();
+    const hardGaps = new Set();
+    const learnableGaps = new Set();
+    const exactPreferred = new Set();
+    const adjacentPreferred = new Map();
+
+    function classify(fact, bucket) {
+      const technologies = [...new Set((fact?.technologies || []).map(canonicalSkill).filter(Boolean))];
+      const statement = String(fact?.statement || "").trim();
+      for (const technology of technologies) {
+        if (supportedSkills.includes(technology)) {
+          if (bucket === "required") exactRequired.add(technology);
+          else exactPreferred.add(technology);
+          continue;
+        }
+        if (bucket === "required" && cautiousSkills.includes(technology)) {
+          cautiousRequired.add(technology);
+          continue;
+        }
+        const adjacent = adjacentEvidence(technology, supportedSkills);
+        if (adjacent) {
+          if (bucket === "required") adjacentRequired.set(technology, adjacent);
+          else adjacentPreferred.set(technology, adjacent);
+          continue;
+        }
+        if (bucket === "required") {
+          if (learnableRequirement(statement)) learnableGaps.add(technology);
+          else hardGaps.add(technology);
+        }
+      }
     }
 
-    let positive = Number(prior.score || 0);
-    if (/Career-area overlap:/i.test(detail)) positive -= 10;
-    positive -= Math.min(15, countListed(detail, "Supported metadata matches") * 3);
-    positive = Math.max(0, positive);
-    const academic = authoritativeAcademicSupport(result, profile || {});
-    const support = positive + academic.bonus;
-    const penalty = qualificationPenalty(result?.readiness);
-    const score = Math.max(0, Math.min(25, 12 + support - penalty));
-    const parts = [];
-    if (support) parts.push(`Authoritative qualification support: +${support}`);
-    if (academic.details.length) parts.push(`Academic qualification match: ${academic.details.join(", ")}`);
-    if (penalty) parts.push(`Required qualification gaps: -${penalty}`);
-    if (!parts.length) parts.push("No authoritative qualification evidence distinguishes this posting");
-    return { score, detail: parts.join("; ") };
+    for (const fact of evidenceFacts(skills, "required")) classify(fact, "required");
+    for (const fact of evidenceFacts(skills, "preferred")) classify(fact, "preferred");
+    for (const fact of evidenceFacts(skills, "unspecified")) classify(fact, "preferred");
+
+    return {
+      exactRequired: [...exactRequired],
+      adjacentRequired: [...adjacentRequired.entries()],
+      cautiousRequired: [...cautiousRequired],
+      hardGaps: [...hardGaps],
+      learnableGaps: [...learnableGaps],
+      exactPreferred: [...exactPreferred],
+      adjacentPreferred: [...adjacentPreferred.entries()],
+    };
+  }
+
+  function unverifiedDomainGapCount(result) {
+    const details = Array.isArray(result?.readiness?.details) ? result.readiness.details : [];
+    return details.filter(detail => /^Unverified required domain experience:/i.test(String(detail))).length;
   }
 
   function scoreQualificationFit(result, profile) {
-    const legacy = qualificationFitLegacy(result, profile);
-    return {
-      score: scaleScore(legacy.score, LEGACY_MAXIMA.fit, SCORE_MAXIMA.fit),
-      detail: legacy.detail,
-    };
+    const inspected = result?.inspection?.state === "inspected";
+    if (!inspected) {
+      return { score: 19, detail: "Qualification evidence not yet authoritative; neutral qualification-fit score" };
+    }
+
+    const academic = authoritativeAcademicSupport(result, profile || {});
+    const evidence = analyzeQualificationEvidence(result, profile || {});
+    let score = 18 + academic.bonus;
+
+    score += Math.min(9, evidence.exactRequired.length * 3);
+    score += Math.min(6, evidence.adjacentRequired.length * 1.5);
+    score += Math.min(3, evidence.exactPreferred.length);
+    score += Math.min(2, evidence.adjacentPreferred.length * 0.5);
+    score -= Math.min(3, evidence.cautiousRequired.length);
+
+    let hardGapPenalty = 0;
+    evidence.hardGaps.forEach((_, index) => {
+      hardGapPenalty += index === 0 ? 5 : (index === 1 ? 3 : 2);
+    });
+    score -= Math.min(10, hardGapPenalty);
+    score -= Math.min(6, unverifiedDomainGapCount(result) * 3);
+    score = Math.round(clamp(score, 0, SCORE_MAXIMA.fit));
+
+    const parts = [];
+    if (academic.details.length) parts.push(`Academic match: ${academic.details.join(", ")}`);
+    if (evidence.exactRequired.length) parts.push(`Exact required skills: ${evidence.exactRequired.join(", ")}`);
+    if (evidence.adjacentRequired.length) {
+      parts.push(`Transferable capability: ${evidence.adjacentRequired.map(([needed, evidenceSkill]) => `${evidenceSkill} supports ${needed}`).join(", ")}`);
+    }
+    if (evidence.exactPreferred.length) parts.push(`Exact preferred skills: ${evidence.exactPreferred.join(", ")}`);
+    if (evidence.adjacentPreferred.length) {
+      parts.push(`Adjacent preferred skills: ${evidence.adjacentPreferred.map(([needed, evidenceSkill]) => `${evidenceSkill}→${needed}`).join(", ")}`);
+    }
+    if (evidence.cautiousRequired.length) parts.push(`Required skills only cautiously evidenced: ${evidence.cautiousRequired.join(", ")}`);
+    if (evidence.learnableGaps.length) parts.push(`Learnable/low-threshold stack gaps: ${evidence.learnableGaps.join(", ")}`);
+    if (evidence.hardGaps.length) parts.push(`Unsupported hard required skills: ${evidence.hardGaps.join(", ")}`);
+    const domainGaps = unverifiedDomainGapCount(result);
+    if (domainGaps) parts.push(`Unverified required domain experience: ${domainGaps}`);
+    if (!parts.length) parts.push("No specific qualification evidence distinguishes this inspected posting");
+    return { score, detail: parts.join("; ") };
   }
 
   function scoreEligibilityGate(result) {
@@ -254,7 +364,7 @@
       reasons: Object.entries(components).map(([name, c]) => `${name}: ${c.detail}`),
       competition: { ...(result.competition || {}), differentiationBonus: 0 },
       scoringSemantics: {
-        fit: "qualification evidence only",
+        fit: "qualification evidence: exact screening evidence plus transferable capability",
         role: "role preference only",
         eligibility: "gate",
         applicationValue: "market evidence only",
@@ -285,6 +395,7 @@
     scaleScore,
     explicitGraduateOnlyTitle,
     authoritativeAcademicSupport,
+    analyzeQualificationEvidence,
     scoreQualificationFit,
     scoreEligibilityGate,
     scoreApplicationValue,

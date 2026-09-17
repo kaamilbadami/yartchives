@@ -81,8 +81,25 @@ const unsupported = D.scoreJob(job({
   _inspection: inspection([["Rust required", ["Rust"]]]),
 }), profile, now);
 assert.ok(supported.components.fit.score > unsupported.components.fit.score);
-assert.doesNotMatch(supported.components.fit.detail, /Career-area overlap|Supported metadata matches/i);
+assert.match(supported.components.fit.detail, /Exact required skills: java/i);
+assert.match(unsupported.components.fit.detail, /Unsupported hard required skills: rust/i);
 assert.ok(supported.components.fit.score <= D.SCORE_MAXIMA.fit);
+
+const adjacent = D.scoreJob(job({
+  url: "https://example.com/adjacent",
+  _inspection: inspection([["Experience with C# required", ["C#"]]]),
+}), profile, now);
+assert.ok(adjacent.components.fit.score > unsupported.components.fit.score);
+assert.ok(adjacent.components.fit.score < supported.components.fit.score);
+assert.match(adjacent.components.fit.detail, /Transferable capability: java supports c#/i);
+
+const learnable = D.scoreJob(job({
+  url: "https://example.com/learnable",
+  _inspection: inspection([["Familiarity or interest in React is expected", ["React"]]]),
+}), profile, now);
+assert.equal(learnable.components.fit.score, 18);
+assert.match(learnable.components.fit.detail, /Learnable\/low-threshold stack gaps: react/i);
+assert.doesNotMatch(learnable.components.fit.detail, /Unsupported hard required skills/i);
 
 const gradIntern = D.scoreJob(job({
   title: "Grad Intern – Software Engineer – Technology, AI & Data (Summer 2027)",
@@ -108,10 +125,31 @@ const academicMatch = D.scoreJob(job({
   url: "https://example.com/academic",
   _inspection: academicInspection,
 }), profile, now);
-assert.equal(academicMatch.components.fit.score, 27);
-assert.match(academicMatch.components.fit.detail, /Authoritative qualification support: \+5/i);
-assert.match(academicMatch.components.fit.detail, /Academic qualification match/i);
+assert.equal(academicMatch.components.fit.score, 24);
+assert.match(academicMatch.components.fit.detail, /Academic match/i);
 assert.match(academicMatch.components.fit.detail, /Computer Science matches a preferred major/i);
+assert.match(academicMatch.components.fit.detail, /Exact preferred skills: java/i);
+
+const wexLikeInspection = inspection([
+  ["Academic or project experience with React, C#/.NET, and SQL.", ["React", "C#", ".NET", "SQL"]],
+]);
+wexLikeInspection.requirements.education = {
+  required: [{ statement: "Currently pursuing a Bachelor's degree." }],
+  preferred: [], unspecified: [], not_required: [],
+};
+wexLikeInspection.requirements.major_fields = {
+  required: [{ statement: "Bachelor's degree in Computer Science, Software Engineering, or related field." }],
+  preferred: [], unspecified: [], not_required: [],
+};
+const wexLike = D.scoreJob(job({
+  company: "WEX-like",
+  url: "https://example.com/wex-like",
+  _inspection: wexLikeInspection,
+}), profile, now);
+assert.ok(wexLike.components.fit.score >= 25);
+assert.match(wexLike.components.fit.detail, /Transferable capability: java supports c#/i);
+assert.match(wexLike.components.fit.detail, /Learnable\/low-threshold stack gaps:/i);
+assert.doesNotMatch(wexLike.components.fit.detail, /Unsupported hard required skills/i);
 
 const exactTerm = D.scoreJob(job({ _inspection: inspection() }), profile, now);
 const unknownTerm = D.scoreJob(job({ term: null, url: "https://example.com/unknown", _inspection: inspection() }), profile, now);
@@ -137,19 +175,21 @@ assert.equal(listing.components.link.score, 0);
 assert.match(direct.components.link.detail, /provenance only/i);
 assert.equal(direct.total, listing.total);
 assert.equal(direct.scoringSemantics.link, "provenance only");
+assert.match(direct.scoringSemantics.fit, /screening evidence plus transferable capability/i);
 
 const cautious = D.scoreJob(job({
   url: "https://example.com/cautious",
   _inspection: inspection([["Python required", ["Python"]]]),
 }), profile, now);
 assert.ok(cautious.components.fit.score < supported.components.fit.score);
+assert.match(cautious.components.fit.detail, /cautiously evidenced: python/i);
 assert.ok(cautious.total <= 100);
 assert.ok(!cautious.inspection.evidence.some(x => /^Qualification readiness adjustment:/i.test(x)));
 
-for (const result of [metadataOnly, supported, unsupported, academicMatch, exactTerm, unknownTerm, direct, listing, cautious]) {
+for (const result of [metadataOnly, supported, unsupported, adjacent, learnable, academicMatch, wexLike, exactTerm, unknownTerm, direct, listing, cautious]) {
   const weightedTotal = Object.values(result.components).reduce((sum, component) => sum + Number(component.score || 0), 0);
   assert.equal(result.total, weightedTotal);
   assert.ok(result.total >= 0 && result.total <= 100);
 }
 
-console.log("apply-next dimension weighting tests passed");
+console.log("apply-next evidence-based dimension tests passed");
