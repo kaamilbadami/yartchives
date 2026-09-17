@@ -1,0 +1,173 @@
+(function (root, factory) {
+  const scoring = typeof module === "object" && module.exports
+    ? require("./apply-next-dimensions.js")
+    : root.YartchivesApplyNext;
+  const locationPreferences = typeof module === "object" && module.exports
+    ? require("./apply-next-location-preferences.js")
+    : root.YartchivesApplyNextLocationPreferences;
+  const utils = typeof module === "object" && module.exports
+    ? require("./frontend-utils.js")
+    : root.YartchivesUtils;
+  const api = factory(scoring, locationPreferences, utils);
+  if (typeof module === "object" && module.exports) module.exports = api;
+  else {
+    root.YartchivesApplyNextPresentation = api;
+    if (root.YartchivesApplyNext) {
+      root.YartchivesApplyNext.scoreJob = api.scoreJob;
+      root.YartchivesApplyNext.rankJobs = api.rankJobs;
+    }
+    api.captureMatchedLocationPoints(root);
+  }
+})(typeof globalThis !== "undefined" ? globalThis : this, function (scoring, locationPreferences, utils) {
+  if (!scoring || typeof scoring.scoreJob !== "function" || typeof scoring.rankJobs !== "function") {
+    throw new Error("Apply Next presentation requires final scoring dimensions first.");
+  }
+
+  const STATE_NAMES = utils?.STATE_NAMES || {};
+  const STATE_BY_NAME = Object.fromEntries(
+    Object.entries(STATE_NAMES).map(([code, name]) => [String(name).toLowerCase(), code])
+  );
+
+  function titleCase(value) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/\b[a-z]/g, ch => ch.toUpperCase());
+  }
+
+  function captureMatchedLocationPoints(scope) {
+    if (!scope || typeof scope.distanceForJob !== "function" || !utils?.distanceForJob) return false;
+    if (scope.distanceForJob.__yartchivesMatchedPointCapture) return true;
+    const prior = scope.distanceForJob;
+    const wrapped = function (job, origin, geo) {
+      const distance = prior(job, origin, geo);
+      try {
+        const resolved = utils.distanceForJob(job, origin, geo);
+        const samples = Array.isArray(job?._applyNextAnchorDistanceSamples)
+          ? job._applyNextAnchorDistanceSamples
+          : [];
+        const latest = samples[samples.length - 1];
+        if (latest && resolved?.point) {
+          latest.point = {
+            city: resolved.point.city || null,
+            state: resolved.point.state || null,
+          };
+        }
+      } catch (_) {
+        // Distance scoring remains authoritative even if display-point enrichment fails.
+      }
+      return distance;
+    };
+    wrapped.__yartchivesMatchedPointCapture = true;
+    wrapped.__yartchivesPriorDistanceForJob = prior;
+    scope.distanceForJob = wrapped;
+    return true;
+  }
+
+  function canonicalApplyUrl(job) {
+    const inspection = job?._inspection || job?.inspection;
+    const provider = String(inspection?.provider || inspection?.provenance?.provider || "").toLowerCase();
+    const canonical = String(inspection?.provenance?.canonical_job_url || "").trim();
+    if (provider === "workday" && /^https:\/\/[^/]+\.myworkdayjobs\.com\//i.test(canonical)) {
+      return canonical;
+    }
+    return String(job?.url || "").trim();
+  }
+
+  function humanizeLocationPiece(value) {
+    let text = String(value || "").replace(/\s+/g, " ").trim();
+    if (!text) return null;
+    if (/\bremote\b/i.test(text) && /^(?:us|usa|united states)?\s*-?\s*remote/i.test(text)) return "Remote";
+
+    const streetCityState = text.match(/^(?:\d+\s+)?[^,]+,\s*([^,]+),+\s*([A-Z]{2})$/i);
+    if (streetCityState) return `${titleCase(streetCityState[1].trim())}, ${streetCityState[2].toUpperCase()}`;
+
+    const cityStateName = text.match(/^([^,]+),\s*([A-Za-z ]+)$/);
+    if (cityStateName) {
+      const code = STATE_BY_NAME[cityStateName[2].trim().toLowerCase()];
+      if (code) return `${titleCase(cityStateName[1].trim())}, ${code}`;
+    }
+
+    const cityState = text.match(/^([^,]+),\s*([A-Z]{2})(?:,\s*(?:US|USA|United States))?$/i);
+    if (cityState) return `${titleCase(cityState[1].trim())}, ${cityState[2].toUpperCase()}`;
+
+    return text;
+  }
+
+  function locationPieces(job) {
+    const raw = String(job?.location || "");
+    const pieces = raw.split(/\s*·\s*|\s*;\s*|\s*\|\s*/).map(humanizeLocationPiece).filter(Boolean);
+    const out = [];
+    const seen = new Set();
+    for (const piece of pieces) {
+      const cityOnly = piece.match(/^([^,]+)$/)?.[1]?.toLowerCase();
+      if (cityOnly && out.some(existing => existing.toLowerCase().startsWith(`${cityOnly},`))) continue;
+      const key = piece.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(piece);
+    }
+    return out;
+  }
+
+  function matchedPointForResult(result, profile) {
+    const anchorZip = result?.locationDecision?.anchor;
+    if (!anchorZip || !locationPreferences?.orderedAnchors) return null;
+    const anchors = locationPreferences.orderedAnchors(profile || {});
+    const index = anchors.findIndex(anchor => anchor.zip === anchorZip);
+    if (index < 0) return null;
+    const samples = Array.isArray(result?.job?._applyNextAnchorDistanceSamples)
+      ? result.job._applyNextAnchorDistanceSamples
+      : [];
+    if (samples.length < anchors.length) return null;
+    return samples.slice(-anchors.length)[index]?.point || null;
+  }
+
+  function displayLocation(result, profile) {
+    const pieces = locationPieces(result?.job);
+    const point = matchedPointForResult(result, profile);
+    let preferred = point?.city && point?.state ? `${titleCase(point.city)}, ${String(point.state).toUpperCase()}` : null;
+    if (preferred) {
+      const exact = pieces.find(piece => piece.toLowerCase() === preferred.toLowerCase());
+      if (exact) preferred = exact;
+    }
+    if (!preferred) preferred = pieces[0] || "Location not listed";
+    const remainder = pieces.filter(piece => piece.toLowerCase() !== preferred.toLowerCase()).length;
+    return {
+      text: remainder ? `${preferred} + ${remainder} more` : preferred,
+      preferred,
+      all: pieces,
+    };
+  }
+
+  function presentResult(result, profile) {
+    if (!result?.job) return result;
+    const location = displayLocation(result, profile || {});
+    const job = {
+      ...result.job,
+      url: canonicalApplyUrl(result.job),
+      location: location.text,
+      _displayLocation: location,
+    };
+    return { ...result, job };
+  }
+
+  function scoreJob(job, profile, now = new Date(), context = {}) {
+    return presentResult(scoring.scoreJob(job, profile, now, context), profile || {});
+  }
+
+  function rankJobs(jobs, profile, now = new Date()) {
+    return scoring.rankJobs(jobs || [], profile || {}, now).map(result => presentResult(result, profile || {}));
+  }
+
+  return {
+    captureMatchedLocationPoints,
+    canonicalApplyUrl,
+    humanizeLocationPiece,
+    locationPieces,
+    matchedPointForResult,
+    displayLocation,
+    presentResult,
+    scoreJob,
+    rankJobs,
+  };
+});
