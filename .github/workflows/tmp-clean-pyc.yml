@@ -1,0 +1,24 @@
+name: Temporary bytecode cleanup
+
+on:
+  push:
+    branches:
+      - feat/national-icims-enumeration
+
+permissions:
+  contents: write
+
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Remove generated Python bytecode
+        run: |
+          find scripts tests -type f -name '*.pyc' -delete
+          find scripts tests -type d -name '__pycache__' -empty -delete
+          git config user.name "yartchives-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -u scripts tests
+          git commit -m "Remove generated Python bytecode"
+          git push origin HEAD
