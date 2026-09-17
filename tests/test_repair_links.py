@@ -193,7 +193,7 @@ class RepairLinksTests(unittest.TestCase):
     def test_generic_page_does_not_exist_phrase_is_dead(self):
         class Response:
             status_code = 200
-            url = "https://example.wd1.myworkdayjobs.com/Careers/job/x_R-123"
+            url = "https://jobs.example.com/careers/123"
             headers = {"content-type": "text/html"}
             encoding = "utf-8"
 
@@ -205,11 +205,50 @@ class RepairLinksTests(unittest.TestCase):
 
         with patch.object(mod.requests, "get", return_value=Response()):
             status, final = mod.validate_direct_url(
-                "https://example.wd1.myworkdayjobs.com/Careers/job/x_R-123"
+                "https://jobs.example.com/careers/123"
             )
 
         self.assertEqual(status, "dead")
-        self.assertIn("myworkdayjobs.com", final)
+        self.assertIn("jobs.example.com", final)
+
+    def test_stale_workday_slug_uses_cxs_and_is_dead_on_404(self):
+        class Response:
+            status_code = 404
+            url = "https://amgen.wd1.myworkdayjobs.com/wday/cxs/amgen/Careers/job/United-States---Remote/old_R-255719"
+
+            def close(self):
+                pass
+
+        stale = (
+            "https://amgen.wd1.myworkdayjobs.com/Careers/job/United-States---Remote/"
+            "Undergrad-Intern-Software-Engineer-Technology-AI-Data-Summer-2027_R-255719"
+        )
+        with patch.object(mod.requests, "get", return_value=Response()) as get:
+            status, final = mod.validate_direct_url(stale)
+
+        self.assertEqual(status, "dead")
+        self.assertEqual(final, stale)
+        self.assertIn("/wday/cxs/amgen/Careers/job/", get.call_args.args[0])
+
+    def test_live_workday_cxs_posting_is_ok(self):
+        class Response:
+            status_code = 200
+
+            def json(self):
+                return {"jobPostingInfo": {"canApply": True, "posted": True}}
+
+            def close(self):
+                pass
+
+        live = "https://example.wd1.myworkdayjobs.com/Careers/job/Remote/live_R-123"
+        with patch.object(mod.requests, "get", return_value=Response()):
+            status, final = mod.validate_direct_url(live)
+
+        self.assertEqual(status, "ok")
+        self.assertEqual(
+            final,
+            "https://example.wd1.myworkdayjobs.com/Careers/job/Remote/live_R-123",
+        )
 
 
 if __name__ == "__main__":
