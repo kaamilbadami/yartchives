@@ -72,6 +72,36 @@ class StableJobIdentityTests(unittest.TestCase):
 
         self.assertEqual(mod.deterministic_job_id(first), mod.deterministic_job_id(second))
 
+    def test_duplicate_current_identity_preserves_old_id_once_and_falls_back_deterministically(self):
+        old = [{
+            "id": "existing-point72-id",
+            "company": "Point72",
+            "title": "Quantitative Developer Intern",
+            "location": "New York, NY",
+            "url": "https://job-boards.greenhouse.io/point72/jobs/1234567",
+            "first_seen": "2026-09-01T00:00:00Z",
+        }]
+        duplicate = {
+            "company": "Point72",
+            "title": "Quantitative Developer Intern",
+            "location": "New York, NY",
+            "url": "https://job-boards.greenhouse.io/point72/jobs/1234567",
+        }
+        refreshed = [dict(duplicate), dict(duplicate), dict(duplicate)]
+
+        jobs, stats = mod.stabilize_jobs(refreshed, old)
+        repeat, repeat_stats = mod.stabilize_jobs(refreshed, old)
+
+        ids = [job["id"] for job in jobs]
+        self.assertEqual(ids[0], "existing-point72-id")
+        self.assertEqual(len(set(ids)), 3)
+        self.assertEqual(ids, [job["id"] for job in repeat])
+        self.assertEqual(stats, {"preserved": 1, "generated": 2, "total": 3})
+        self.assertEqual(repeat_stats, stats)
+        self.assertEqual(jobs[0]["first_seen"], "2026-09-01T00:00:00Z")
+        self.assertNotIn("first_seen", jobs[1])
+        self.assertNotIn("first_seen", jobs[2])
+
     def test_metadata_fallback_remains_available_without_a_url(self):
         job = {"company": "Example", "title": "Software Intern", "location": "Remote", "url": None}
         self.assertEqual(len(mod.deterministic_job_id(job)), 16)
