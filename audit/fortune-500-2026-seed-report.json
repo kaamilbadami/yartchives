@@ -1,0 +1,45 @@
+{
+  "generated_at": "2026-09-17T21:40:00Z",
+  "job_enumeration_run": false,
+  "careers_resolution_run": false,
+  "source": {
+    "publisher": "Fortune Media IP Limited",
+    "edition": 2026,
+    "source_url": "https://fortune.com/ranking/fortune500/2026/",
+    "published_at": "2026-06-03 05:10:23",
+    "retrieved_at": "2026-09-17T21:40:00Z",
+    "selection": "First 500 rows by order from props.pageProps.franchiseSearch.items",
+    "selection_sha256": "50a5abf698e3e495cb9bf129385e5db13a0b9233d191e6142d01de0f06b180e3"
+  },
+  "metrics": {
+    "fortune_seed_records": 500,
+    "merged_existing_identities": 10,
+    "new_employers": 490,
+    "employer_universe_total": 546,
+    "fortune_seed_readiness": {
+      "ready": 3,
+      "needs_tenant_identity": 1,
+      "no_domain_hint": 496
+    },
+    "full_universe_readiness": {
+      "ready": 20,
+      "needs_tenant_identity": 13,
+      "no_domain_hint": 513
+    },
+    "records_with_derived_aliases": 88,
+    "derived_alias_count": 92
+  },
+  "merged_identity_ids": [
+    "american-express",
+    "amgen",
+    "bny",
+    "caci",
+    "doordash",
+    "exelon",
+    "interactive-brokers",
+    "leidos",
+    "stanley-black-and-decker",
+    "the-hartford"
+  ],
+  "identity_architecture_finding": "Corporate parent, division, and brand relationships should be modeled explicitly rather than collapsed through broader alias normalization."
+}

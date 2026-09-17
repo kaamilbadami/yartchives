@@ -99,11 +99,57 @@ class EmployerUniverseTests(unittest.TestCase):
         twice = mod.merge_seed(once, seed)
         self.assertEqual(once, twice)
 
+    def test_generic_aliases_merge_common_corporate_names(self):
+        benchmark = {
+            "schema_version": 1,
+            "source": {"key": "benchmark", "kind": "coverage_benchmark"},
+            "employers": [{"name": "The Hartford", "evidence_count": 2}],
+        }
+        fortune = {
+            "schema_version": 1,
+            "source": {"key": "fortune-500-2026", "kind": "fortune_500", "edition": 2026},
+            "employers": [{
+                "name": "Hartford Insurance Group",
+                "aliases": mod.common_name_aliases("Hartford Insurance Group"),
+                "rank": 160,
+            }],
+        }
+
+        merged = mod.merge_seed(mod.merge_seed(self.empty_universe(), benchmark), fortune)
+
+        self.assertEqual(len(merged["employers"]), 1)
+        employer = merged["employers"][0]
+        self.assertEqual(employer["name"], "The Hartford")
+        self.assertEqual(employer["aliases"], ["Hartford Insurance Group"])
+        self.assertEqual(employer["seed_metadata"]["benchmark"], {"evidence_count": 2})
+        self.assertEqual(employer["seed_metadata"]["fortune-500-2026"], {"rank": 160})
+
+    def test_common_alias_rules_cover_parentheticals_and_suffixes(self):
+        self.assertEqual(
+            mod.common_name_aliases("Bank of New York (BNY)"),
+            ["Bank of New York", "BNY"],
+        )
+        self.assertEqual(mod.common_name_aliases("Leidos Holdings"), ["Leidos"])
+        self.assertEqual(mod.common_name_aliases("CACI International"), ["CACI"])
+        self.assertEqual(mod.normalize_name("Mondelēz International"), "mondelez international")
+
     def test_duplicate_employer_in_seed_is_rejected(self):
         seed = {
             "schema_version": 1,
             "source": {"key": "fortune-500-2026", "kind": "fortune_500", "edition": 2026},
             "employers": [{"name": "Example Inc."}, {"name": "example inc"}],
+        }
+        with self.assertRaises(ValueError):
+            mod.validate_seed(seed)
+
+    def test_alias_collision_in_seed_is_rejected(self):
+        seed = {
+            "schema_version": 1,
+            "source": {"key": "example", "kind": "catalog"},
+            "employers": [
+                {"name": "Example Holdings", "aliases": ["Example"]},
+                {"name": "Example"},
+            ],
         }
         with self.assertRaises(ValueError):
             mod.validate_seed(seed)

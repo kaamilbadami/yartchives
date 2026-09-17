@@ -82,6 +82,20 @@ the known feed rather than asserting complete market coverage.
 python scripts/careers_resolver.py employer-seed.json --output employer-seed.resolved.json
 ```
 
+## Employer seed catalogs
+
+`data/employer-seeds/fortune-500-2026.json` freezes the 500 employer names and ranks from Fortune Media's edition-pinned 2026 ranking page. It is an employer-discovery seed only: the catalog contains no careers URLs, ATS tenants, source configurations, or job listings. The source URL, edition, publication and retrieval timestamps, extraction rule, and a checksum of the selected rank/name/slug rows are recorded in the catalog.
+
+The checked-in catalog can be reproduced from the official page with an explicit retrieval timestamp:
+
+```bash
+python scripts/fortune_500_seed.py \
+  --retrieved-at 2026-09-17T21:40:00Z \
+  --output data/employer-seeds/fortune-500-2026.json
+```
+
+`scripts/refresh_employer_universe.py` accepts independent benchmarks and generic `--seed` catalogs. It sorts inputs by source key before merging, preserves metadata from every contributing seed, and is idempotent. Common aliases are derived through generic parenthetical-name and terminal corporate-descriptor rules rather than employer-specific patches.
+
 ## Automatic refreshes
 
 `.github/workflows/update-feed.yml` runs hourly and can also be triggered manually from the Actions tab. If the normalized feed changes, the workflow commits the new `data/listings.json` back to the repository.
