@@ -81,10 +81,13 @@ def platform_for(url: str, html: str = "") -> str:
     return provider["family"] if provider["status"] == "resolved" else "company-branded"
 
 
-def has_provider_tenant_identity(url: str) -> bool:
+def has_provider_tenant_identity(url: str, family: str | None = None) -> bool:
     """Return false for shared ATS roots that do not identify an employer."""
     parsed = urlparse(url)
-    family = provider_for(url)["family"]
+    host = (parsed.hostname or "").lower()
+    family = family or provider_for(url)["family"]
+    if host in {"greenhouse.com", "www.greenhouse.com"}:
+        family = "greenhouse"
     parts = [part for part in parsed.path.split("/") if part]
     query = parse_qs(parsed.query.lower())
     if family == "greenhouse":
@@ -158,7 +161,7 @@ def page_score(candidate: Candidate, final_url: str, html: str, official_domains
     signals: list[str] = []
     score = 0
     direct_provider = provider_for(final_url)
-    if direct_provider["status"] == "resolved" and not has_provider_tenant_identity(final_url) and not candidate.linked_from:
+    if direct_provider["status"] == "resolved" and not has_provider_tenant_identity(final_url):
         return -50, ["shared provider host lacks employer tenant identity"]
     if platform != "company-branded":
         score += 5

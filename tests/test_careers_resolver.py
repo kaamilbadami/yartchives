@@ -106,6 +106,19 @@ class CareersResolverTests(unittest.TestCase):
         attempt = next(item for item in result["evidence"] if item["requested_url"] == host)
         self.assertIn("lacks employer tenant identity", attempt["signals"][0])
 
+    def test_shared_provider_root_linked_from_employer_is_not_resolved(self):
+        root = "https://acme.example/"
+        shared = "https://job-boards.greenhouse.io/"
+        html = f'<a href="{shared}">Careers</a>'
+        result, _ = self.resolve({
+            root: FakeResponse(root, html),
+            shared: FakeResponse(shared, "Find jobs"),
+        })
+        self.assertNotEqual(result.get("url"), shared)
+        attempt = next(item for item in result["evidence"] if item["requested_url"] == shared)
+        self.assertLess(attempt["score"], 0)
+        self.assertIn("lacks employer tenant identity", attempt["signals"][0])
+
     def test_shared_provider_board_path_is_tenant_specific(self):
         board = "https://job-boards.greenhouse.io/acme"
         session = FakeSession({board: FakeResponse(board, "Careers at Acme")})
