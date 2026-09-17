@@ -15,13 +15,13 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from careers_resolver import MAX_PAGES, resolve_employer  # noqa: E402
+from careers_resolver import MAX_PAGES, has_provider_tenant_identity, resolve_employer  # noqa: E402
 from employer_resolution_queue import queue_entry  # noqa: E402
 from employer_universe import validate_universe  # noqa: E402
 
 DEFAULT_TTL_DAYS = 7
-DEFAULT_EMPLOYER_BUDGET = 5
-DEFAULT_REQUEST_BUDGET = 30
+DEFAULT_EMPLOYER_BUDGET = 20
+DEFAULT_REQUEST_BUDGET = 120
 
 
 def _utc_now() -> datetime:
@@ -45,9 +45,19 @@ def _timestamp(value: datetime) -> str:
     return value.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def _valid_existing_resolution(employer: dict[str, Any]) -> bool:
+    url = str(employer.get("careers_url") or "").strip()
+    if not url:
+        return False
+    provider = employer.get("provider") or {}
+    if provider.get("status") == "resolved" and not has_provider_tenant_identity(url):
+        return False
+    return True
+
+
 def _fresh_success(employer: dict[str, Any], now: datetime, ttl_days: int) -> bool:
     resolution = employer.get("careers_resolution") or {}
-    if resolution.get("status") != "resolved" or not employer.get("careers_url"):
+    if resolution.get("status") != "resolved" or not _valid_existing_resolution(employer):
         return False
     resolved_at = _parse_timestamp(resolution.get("resolved_at"))
     return bool(resolved_at and now - resolved_at < timedelta(days=ttl_days))
@@ -119,6 +129,10 @@ def run_lifecycle(
         if attempts >= employer_budget or requests_used >= request_budget:
             break
         employer = by_id[entry["id"]]
+        if not _valid_existing_resolution(employer):
+            employer.pop("careers_url", None)
+            employer.pop("careers_platform", None)
+            employer.pop("provider", None)
         max_pages = min(MAX_PAGES, request_budget - requests_used)
         resolution = resolver(entry, max_pages=max_pages)
         requests_used += _request_count(resolution)
