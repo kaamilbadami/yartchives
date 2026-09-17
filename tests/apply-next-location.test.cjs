@@ -81,7 +81,7 @@ const job = {
   term: "Summer 2027",
   posted_at: "2026-09-16T12:00:00Z",
   link_kind: "direct",
-  url: "https://example.com/apply",
+  url: "https://example.com/apply-far",
   ...trustedDistance(1200),
 };
 const now = new Date("2026-09-16T16:00:00Z");
@@ -92,7 +92,14 @@ assert.equal(after.components.location.score, 3);
 assert.equal(after.total, before.total - 3);
 assert.match(after.components.location.detail, /Long-distance relocation/);
 
-const nearJob = { ...job, company: "NearCo", states: ["PA"], location: "York, PA", ...trustedDistance(90) };
+const nearJob = {
+  ...job,
+  company: "NearCo",
+  states: ["PA"],
+  location: "York, PA",
+  url: "https://example.com/apply-near",
+  ...trustedDistance(90),
+};
 const ranked = L.rankJobs([job, nearJob], profile, now);
 assert.equal(ranked[0].job.company, "NearCo");
 assert.ok(ranked[0].components.location.score > ranked[1].components.location.score);
