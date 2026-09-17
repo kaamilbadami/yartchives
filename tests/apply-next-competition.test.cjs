@@ -80,10 +80,26 @@ const footprintJobs = Array.from({ length: 8 }, (_, index) => ({
 }));
 const context = C.buildCompetitionContext(footprintJobs);
 assert.equal(context.employerCounts.bigco, 8);
-const highPressure = C.scoreRoi(genericNy, profile, context);
-assert.equal(highPressure.competitionPenalty, 5);
-assert.equal(highPressure.score, 5);
-assert.match(highPressure.detail, /large current hiring footprint/);
+assert.equal(context.employerRoleCounts["bigco::software engineering"], 8);
+const observedDemand = C.scoreRoi(genericNy, profile, context);
+assert.equal(observedDemand.competitionPenalty, 0);
+assert.equal(observedDemand.demandBonus, 3);
+assert.equal(observedDemand.score, 13);
+assert.deepEqual(observedDemand.observedDemand, { count: 8, role: "software engineering" });
+assert.match(observedDemand.detail, /observed employer demand: 8 current software engineering openings/);
+assert.doesNotMatch(observedDemand.detail, /fallback competition heuristic/);
+assert.doesNotMatch(observedDemand.detail, /acceptance|probability|odds|chance/i);
+
+const fallbackContext = {
+  employerCounts: { bigco: 8 },
+  employerRoleCounts: {},
+};
+const fallbackPressure = C.scoreRoi(genericNy, profile, fallbackContext);
+assert.equal(fallbackPressure.competitionPenalty, 5);
+assert.equal(fallbackPressure.demandBonus, 0);
+assert.equal(fallbackPressure.score, 5);
+assert.match(fallbackPressure.detail, /fallback competition heuristic/);
+assert.match(fallbackPressure.detail, /large current hiring footprint/);
 
 const differentiated = {
   ...neutral,
@@ -120,13 +136,16 @@ const specializedOlder = {
   url: "https://example.com/focused",
 };
 const ranked = C.rankJobs([...genericPool, specializedOlder], profile, now);
-assert.equal(ranked[0].job.company, "FocusedCo");
-assert.ok(ranked[0].components.roi.score > ranked.find(result => result.job.company === "BigCo").components.roi.score);
+const rankedBigCo = ranked.find(result => result.job.company === "BigCo");
+assert.equal(rankedBigCo.components.roi.demandBonus, 3);
+assert.match(rankedBigCo.components.roi.detail, /observed employer demand/);
 
 const score = C.scoreJob(differentiated, profile, now, C.buildCompetitionContext([differentiated]));
 assert.equal(score.components.roi.score, 13);
 assert.equal(score.competition.penalty, 2);
 assert.equal(score.competition.differentiationBonus, 5);
+assert.equal(score.competition.demandBonus, 0);
+assert.equal(score.competition.observedDemand, null);
 
 const queuedWorkday = {
   ...neutral,
