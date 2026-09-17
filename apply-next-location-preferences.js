@@ -25,14 +25,34 @@
   }
 
   const MAX_CAPTURED_SAMPLES = 24;
-  const CUSTOM_RELOCATION_FULL_SCORE_MILES = 200;
-  const CUSTOM_RELOCATION_ZERO_SCORE_MILES = 400;
-  const CONFIGURED_LOCATION_MAX = 15;
   const FINAL_LOCATION_MAX = 20;
+  const DEFAULT_REMOTE_SCORE = 20;
+  const DEFAULT_RELOCATION_SCORE = 8;
+  const DEFAULT_UNKNOWN_SCORE = 10;
+  const DEFAULT_MIN_COMMUTE_SCORE = 16;
+  const LOCATION_PREFERENCES_VERSION = 2;
+
+  const RELOCATION_REGIONS = Object.freeze({
+    new_england: Object.freeze({ label: "New England", states: Object.freeze(["CT", "ME", "MA", "NH", "RI", "VT"]) }),
+    mid_atlantic: Object.freeze({ label: "Mid-Atlantic", states: Object.freeze(["DE", "DC", "MD", "NJ", "NY", "PA", "VA", "WV"]) }),
+    southeast: Object.freeze({ label: "Southeast", states: Object.freeze(["AL", "AR", "FL", "GA", "KY", "LA", "MS", "NC", "SC", "TN"]) }),
+    midwest: Object.freeze({ label: "Midwest", states: Object.freeze(["IL", "IN", "IA", "KS", "MI", "MN", "MO", "NE", "ND", "OH", "SD", "WI"]) }),
+    south_central: Object.freeze({ label: "South Central", states: Object.freeze(["OK", "TX"]) }),
+    mountain_west: Object.freeze({ label: "Mountain West", states: Object.freeze(["AZ", "CO", "ID", "MT", "NV", "NM", "UT", "WY"]) }),
+    west_coast: Object.freeze({ label: "West Coast / Pacific", states: Object.freeze(["AK", "CA", "HI", "OR", "WA"]) }),
+  });
+
+  const REGION_BY_STATE = Object.freeze(Object.fromEntries(
+    Object.entries(RELOCATION_REGIONS).flatMap(([region, meta]) => meta.states.map(state => [state, region]))
+  ));
 
   function numberOr(value, fallback) {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, Number(value || 0)));
   }
 
   function normalizeZip(value) {
@@ -40,18 +60,14 @@
     return /^\d{5}$/.test(text) ? text : null;
   }
 
-  function clampLocationScore(value) {
+  function clampFinalScore(value, fallback = DEFAULT_UNKNOWN_SCORE) {
     const parsed = Number(value);
-    return Number.isFinite(parsed) ? Math.max(0, Math.min(CONFIGURED_LOCATION_MAX, parsed)) : null;
-  }
-
-  function configuredToFinalScore(value) {
-    return Math.round((Math.max(0, Math.min(CONFIGURED_LOCATION_MAX, Number(value || 0))) / CONFIGURED_LOCATION_MAX) * FINAL_LOCATION_MAX);
+    return Number.isFinite(parsed) ? Math.round(clamp(parsed, 0, FINAL_LOCATION_MAX)) : fallback;
   }
 
   function customLocationMode(profile) {
     const mode = String(profile?.locationMode || "").trim().toLowerCase();
-    if (mode === "normal") return false;
+    if (mode === "normal" || mode === "default") return false;
     if (mode === "custom") return true;
     return Array.isArray(profile?.locationAnchors) && profile.locationAnchors.length > 0;
   }
@@ -61,6 +77,25 @@
     if (label && label !== anchor?.zip) return label;
     const ordinal = index === 0 ? "Primary base" : (index === 1 ? "Secondary base" : `Base ${index + 1}`);
     return anchor?.zip ? `${ordinal} (${anchor.zip})` : ordinal;
+  }
+
+  function legacyAnchorScore(value) {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return null;
+    return Math.round((clamp(parsed, 0, 15) / 15) * FINAL_LOCATION_MAX);
+  }
+
+  function anchorFinalScore(profile, anchor, index) {
+    const raw = anchor?.locationScore ?? anchor?.score;
+    if (Number.isFinite(Number(raw))) {
+      return Number(profile?.locationPreferencesVersion || 0) >= LOCATION_PREFERENCES_VERSION
+        ? clampFinalScore(raw)
+        : legacyAnchorScore(raw);
+    }
+    if (!customLocationMode(profile)) return FINAL_LOCATION_MAX;
+    if (index === 0) return FINAL_LOCATION_MAX;
+    if (index === 1) return 18;
+    return 16;
   }
 
   function orderedAnchors(profile) {
@@ -73,7 +108,7 @@
         zip,
         label: String(anchor?.label || "").trim() || null,
         commuteMiles: Math.max(5, Math.min(500, numberOr(anchor?.commuteMiles ?? anchor?.nearbyMiles, commonMiles))),
-        locationScore: clampLocationScore(anchor?.locationScore ?? anchor?.score),
+        locationScore: anchorFinalScore(profile, anchor, index),
         order: index,
       };
     }).filter(Boolean);
@@ -85,21 +120,9 @@
       zip,
       label: String(labels[index] || "").trim() || null,
       commuteMiles: commonMiles,
-      locationScore: null,
+      locationScore: FINAL_LOCATION_MAX,
       order: index,
     }));
-  }
-
-  function relocationPreference(profile) {
-    const explicit = String(profile?.relocationPreference || "").trim().toLowerCase();
-    if (["not_open", "open", "preferred"].includes(explicit)) return explicit;
-    return profile?.relocationAllowed === false ? "not_open" : "open";
-  }
-
-  function remotePreference(profile) {
-    const explicit = String(profile?.remotePreference || "").trim().toLowerCase();
-    if (["preferred", "acceptable", "not_preferred"].includes(explicit)) return explicit;
-    return profile?.remoteRelevant === false ? "not_preferred" : "acceptable";
   }
 
   function captureGlobalDistanceSamples(scope) {
@@ -172,107 +195,128 @@
   function anchorDistances(job, profile) {
     const anchors = orderedAnchors(profile);
     if (!anchors.length) return [];
-    return explicitAnchorDistances(job, anchors).length
-      ? explicitAnchorDistances(job, anchors)
-      : capturedAnchorDistances(job, anchors);
+    const explicit = explicitAnchorDistances(job, anchors);
+    return explicit.length ? explicit : capturedAnchorDistances(job, anchors);
   }
 
   function isRemote(job) {
     return (job?.states || []).includes("Remote") || /\bremote\b/i.test(String(job?.location || ""));
   }
 
-  function remoteScore(profile) {
-    const preference = remotePreference(profile);
-    if (preference === "preferred") return { score: 20, detail: "Remote work is preferred" };
-    if (preference === "acceptable") return { score: 16, detail: "Remote work is acceptable" };
-    return { score: 6, detail: "Remote work is not preferred" };
+  function reliableState(job) {
+    const states = typeof base.reliableStates === "function" ? [...base.reliableStates(job)] : [];
+    return states.length === 1 ? states[0] : null;
   }
 
-  function anchorScore(anchor, index) {
-    if (Number.isFinite(anchor?.locationScore)) return configuredToFinalScore(anchor.locationScore);
-    if (index <= 0) return 20;
-    if (index === 1) return 18;
-    return 16;
+  function regionForState(state) {
+    return REGION_BY_STATE[String(state || "").toUpperCase()] || null;
   }
 
-  function customRelocationScore(distanceMiles, relocation) {
-    const maxConfiguredScore = relocation === "preferred" ? 8 : 6;
-    if (distanceMiles <= CUSTOM_RELOCATION_FULL_SCORE_MILES) return configuredToFinalScore(maxConfiguredScore);
-    if (distanceMiles >= CUSTOM_RELOCATION_ZERO_SCORE_MILES) return 0;
-    const remaining = (CUSTOM_RELOCATION_ZERO_SCORE_MILES - distanceMiles)
-      / (CUSTOM_RELOCATION_ZERO_SCORE_MILES - CUSTOM_RELOCATION_FULL_SCORE_MILES);
-    return configuredToFinalScore(maxConfiguredScore * remaining);
+  function regionScore(profile, job) {
+    const region = regionForState(reliableState(job));
+    const scores = profile?.relocationRegionScores && typeof profile.relocationRegionScores === "object"
+      ? profile.relocationRegionScores
+      : {};
+    if (region && Number.isFinite(Number(scores[region]))) {
+      return { score: clampFinalScore(scores[region]), region };
+    }
+    return { score: clampFinalScore(profile?.relocationScore, DEFAULT_RELOCATION_SCORE), region };
   }
 
-  function scoreWithAnchors(job, profile, anchors) {
-    if (isRemote(job)) return remoteScore(profile);
+  function defaultCommuteScore(distanceMiles, commuteMiles) {
+    const limit = Math.max(5, Number(commuteMiles || 50));
+    if (!Number.isFinite(distanceMiles) || distanceMiles < 0) return DEFAULT_UNKNOWN_SCORE;
+    if (distanceMiles > limit) return DEFAULT_RELOCATION_SCORE;
+    const ratio = clamp(distanceMiles / limit, 0, 1);
+    return Math.round(FINAL_LOCATION_MAX - ((FINAL_LOCATION_MAX - DEFAULT_MIN_COMMUTE_SCORE) * ratio));
+  }
 
+  function scoreDefaultLocation(job, profile) {
+    if (isRemote(job)) return { score: DEFAULT_REMOTE_SCORE, detail: "Remote opportunity" };
+
+    const anchors = orderedAnchors(profile);
+    const home = anchors[0];
+    if (!home) return { score: DEFAULT_UNKNOWN_SCORE, detail: "Home commute base is not configured" };
+
+    const distances = anchorDistances(job, { ...profile, baseZips: [home.zip], baseLabels: [home.label || home.zip], locationAnchors: [] });
+    const distance = distances[0]?.distanceMiles;
+    if (!Number.isFinite(distance)) {
+      return { score: DEFAULT_UNKNOWN_SCORE, detail: "Commute distance is not yet verified" };
+    }
+
+    if (distance <= home.commuteMiles) {
+      const score = defaultCommuteScore(distance, home.commuteMiles);
+      return {
+        score,
+        detail: `Commutable from ${anchorLabel(home, 0)}: about ${Math.round(distance)} miles`,
+      };
+    }
+
+    return {
+      score: DEFAULT_RELOCATION_SCORE,
+      detail: `Outside the ${home.commuteMiles}-mile commute range; would require moving`,
+    };
+  }
+
+  function customRemoteScore(profile) {
+    if (Number.isFinite(Number(profile?.remoteScore))) return clampFinalScore(profile.remoteScore);
+    const legacy = String(profile?.remotePreference || "").trim().toLowerCase();
+    if (legacy === "not_preferred") return 6;
+    if (legacy === "acceptable") return 16;
+    return 20;
+  }
+
+  function scoreCustomLocation(job, profile) {
+    if (isRemote(job)) {
+      const score = customRemoteScore(profile);
+      return { score, detail: `Remote score: ${score}/20` };
+    }
+
+    const anchors = orderedAnchors(profile);
+    if (!anchors.length) return { score: DEFAULT_UNKNOWN_SCORE, detail: "No custom commute bases are configured" };
     const distances = anchorDistances(job, profile);
+
     if (distances.length === anchors.length) {
       const commutable = distances
         .filter(item => item.distanceMiles <= item.anchor.commuteMiles)
-        .sort((a, b) => anchorScore(b.anchor, b.index) - anchorScore(a.anchor, a.index)
-          || a.index - b.index
-          || a.distanceMiles - b.distanceMiles);
+        .sort((a, b) => b.anchor.locationScore - a.anchor.locationScore
+          || a.distanceMiles - b.distanceMiles
+          || a.index - b.index);
       if (commutable.length) {
         const best = commutable[0];
         return {
-          score: anchorScore(best.anchor, best.index),
+          score: best.anchor.locationScore,
           detail: `Within ${best.anchor.commuteMiles} miles of ${anchorLabel(best.anchor, best.index)}`,
           anchor: best.anchor.zip,
         };
       }
 
-      const relocation = relocationPreference(profile);
       const nearest = distances.slice().sort((a, b) => a.distanceMiles - b.distanceMiles)[0];
-      const rounded = Math.round(nearest.distanceMiles);
-      if (relocation === "not_open") {
+      if (profile?.excludeRelocation === true) {
         return {
           score: 0,
           excluded: true,
-          detail: `Outside all commute bases; relocation is turned off (nearest is about ${rounded} miles from ${anchorLabel(nearest.anchor, nearest.index)})`,
+          detail: `Outside every custom commute base; moving is excluded (nearest base is about ${Math.round(nearest.distanceMiles)} miles away)`,
         };
       }
 
-      if (customLocationMode(profile)) {
-        const score = customRelocationScore(nearest.distanceMiles, relocation);
-        return {
-          score,
-          detail: `Custom relocation distance: nearest base is about ${rounded} miles away`,
-        };
-      }
-
-      const ratio = nearest.distanceMiles / Math.max(5, nearest.anchor.commuteMiles);
-      if (relocation === "preferred") {
-        const score = ratio <= 2 ? 16 : (ratio <= 4 ? 14 : 12);
-        return { score, detail: `Relocation is preferred; nearest base is about ${rounded} miles away` };
-      }
-      const score = ratio <= 2 ? 12 : (ratio <= 4 ? 8 : 4);
-      return { score, detail: `Relocation is acceptable; nearest base is about ${rounded} miles away` };
+      const relocation = regionScore(profile, job);
+      const regionLabel = relocation.region ? RELOCATION_REGIONS[relocation.region]?.label : null;
+      return {
+        score: relocation.score,
+        detail: regionLabel
+          ? `${regionLabel} relocation preference: ${relocation.score}/20`
+          : `Default relocation preference: ${relocation.score}/20`,
+      };
     }
 
-    const states = typeof base.reliableStates === "function" ? base.reliableStates(job) : new Set();
-    const preferredStates = profile?.preferredStates || [];
-    const stateMatch = preferredStates.find(value => states.has(value));
-    if (stateMatch) {
-      return { score: 12, detail: `Preferred state: ${stateMatch}; commute to an anchor is not yet verified` };
-    }
-
-    const rawStates = new Set(job?.states || []);
-    if (!states.size && (!rawStates.size || rawStates.has("US"))) {
-      return { score: 8, detail: "Location is broad or unknown; anchor commute cannot be verified" };
-    }
-
-    if (relocationPreference(profile) === "not_open") {
-      return { score: 4, detail: "Location is outside known anchor evidence; relocation is turned off but distance is unverified" };
-    }
-    return { score: 8, detail: "Anchor commute distance is unavailable; relocation remains possible" };
+    return { score: DEFAULT_UNKNOWN_SCORE, detail: "Location is known, but commute distance to custom bases is not yet verified" };
   }
 
   function scoreLocation(job, profile) {
-    const anchors = orderedAnchors(profile);
-    if (!anchors.length) return base.scoreLocation(job, profile || {});
-    return scoreWithAnchors(job, profile || {}, anchors);
+    return customLocationMode(profile)
+      ? scoreCustomLocation(job, profile || {})
+      : scoreDefaultLocation(job, profile || {});
   }
 
   function scoreJob(job, profile, now = new Date(), context = {}) {
@@ -323,13 +367,21 @@
 
   return {
     ...base,
+    FINAL_LOCATION_MAX,
+    DEFAULT_REMOTE_SCORE,
+    DEFAULT_RELOCATION_SCORE,
+    DEFAULT_UNKNOWN_SCORE,
+    DEFAULT_MIN_COMMUTE_SCORE,
+    LOCATION_PREFERENCES_VERSION,
+    RELOCATION_REGIONS,
     orderedAnchors,
-    relocationPreference,
-    remotePreference,
     customLocationMode,
-    customRelocationScore,
     captureGlobalDistanceSamples,
     anchorDistances,
+    regionForState,
+    defaultCommuteScore,
+    scoreDefaultLocation,
+    scoreCustomLocation,
     scoreLocation,
     scoreJob,
     rankJobs,
