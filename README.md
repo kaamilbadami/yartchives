@@ -94,6 +94,16 @@ python scripts/fortune_500_seed.py \
   --output data/employer-seeds/fortune-500-2026.json
 ```
 
+`data/employer-seeds/state-of-ats-2026-verified-hosts.json` is a second deterministic employer seed sourced from the MIT-licensed State of ATS 2026 dataset at a pinned upstream revision. Yartchives keeps only rows with `verified=true` and a nonempty published `apply_host`, preserves the upstream evidence method/date and ATS label, and passes the recorded host into the generic careers resolver as a domain hint. The checked-in snapshot contains 548 such rows; unverified rows and verified rows without host evidence are excluded. The upstream MIT notice is retained alongside the seed.
+
+The snapshot can be rebuilt from the pinned upstream CSV with:
+
+```bash
+python scripts/state_of_ats_seed.py /path/to/pinned/companies.csv \
+  --require-pinned-count \
+  --output data/employer-seeds/state-of-ats-2026-verified-hosts.json
+```
+
 `scripts/refresh_employer_universe.py` accepts independent benchmarks and generic `--seed` catalogs. It sorts inputs by source key before merging, preserves metadata from every contributing seed, and is idempotent. Common aliases are derived through generic parenthetical-name and conservative legal-entity suffix rules rather than employer-specific patches. Semantic business terms such as `Group`, `International`, `Technologies`, and `Worldwide` are not stripped automatically.
 
 ## Automatic refreshes
