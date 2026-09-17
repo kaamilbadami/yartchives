@@ -94,6 +94,23 @@ python scripts/coverage_audit.py audit/samples/ct-cs-2026-09-16.json \
 
 For CSV/JSONL, or to override a JSON sample's declared scope, pass `--profile cs --state CT`.
 
+Before comparing a structured benchmark with the feed, validate its sampling
+constraints and produce concentration/provenance statistics:
+
+```bash
+python scripts/benchmark_quality.py \
+  audit/samples/northeast-midatlantic-cs-2026-09-17.json \
+  --json-output audit/benchmark-quality.json \
+  --markdown-output audit/benchmark-quality.md \
+  --require-valid
+```
+
+The validator reads optional `sampling_method.quality_constraints` from the
+sample. It reports state, discovery-source, employer, city, ATS, and URL-kind
+distributions without reading the Yartchives feed. The coverage workflow runs
+this validation before its feed comparison so a failed benchmark gate cannot
+silently produce a coverage percentage.
+
 ## Status meanings
 
 - `already_in_yartchives` — the current feed matches the external opportunity by canonical URL or normalized company/title/location and it is visible under the expected filters.

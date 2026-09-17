@@ -1,0 +1,787 @@
+{
+  "schema_version": 1,
+  "name": "Independent Northeast / Mid-Atlantic undergraduate CS coverage benchmark",
+  "sample_size": 142,
+  "scope_states": [
+    "CT",
+    "NY",
+    "NJ",
+    "PA",
+    "DE",
+    "MD",
+    "DC",
+    "VA",
+    "MA",
+    "RI"
+  ],
+  "state_distribution": {
+    "NY": {
+      "count": 34,
+      "share": 0.2394
+    },
+    "MD": {
+      "count": 27,
+      "share": 0.1901
+    },
+    "DC": {
+      "count": 25,
+      "share": 0.1761
+    },
+    "CT": {
+      "count": 20,
+      "share": 0.1408
+    },
+    "DE": {
+      "count": 6,
+      "share": 0.0423
+    },
+    "MA": {
+      "count": 6,
+      "share": 0.0423
+    },
+    "NJ": {
+      "count": 6,
+      "share": 0.0423
+    },
+    "PA": {
+      "count": 6,
+      "share": 0.0423
+    },
+    "RI": {
+      "count": 6,
+      "share": 0.0423
+    },
+    "VA": {
+      "count": 6,
+      "share": 0.0423
+    }
+  },
+  "discovery_source_distribution": {
+    "Ordinary web search": {
+      "count": 53,
+      "share": 0.3732
+    },
+    "LinkedIn": {
+      "count": 51,
+      "share": 0.3592
+    },
+    "Employer/ATS search": {
+      "count": 23,
+      "share": 0.162
+    },
+    "Internships.com": {
+      "count": 11,
+      "share": 0.0775
+    },
+    "Indeed": {
+      "count": 3,
+      "share": 0.0211
+    },
+    "Major aggregator": {
+      "count": 1,
+      "share": 0.007
+    }
+  },
+  "employer_distribution": {
+    "Johns Hopkins Applied Physics Laboratory": {
+      "count": 5,
+      "share": 0.0352
+    },
+    "Palantir Technologies": {
+      "count": 5,
+      "share": 0.0352
+    },
+    "Schonfeld": {
+      "count": 5,
+      "share": 0.0352
+    },
+    "The Nuclear Company": {
+      "count": 5,
+      "share": 0.0352
+    },
+    "Amtrak": {
+      "count": 4,
+      "share": 0.0282
+    },
+    "CACI": {
+      "count": 4,
+      "share": 0.0282
+    },
+    "DV Trading": {
+      "count": 4,
+      "share": 0.0282
+    },
+    "Textron Systems": {
+      "count": 4,
+      "share": 0.0282
+    },
+    "AeroVironment": {
+      "count": 3,
+      "share": 0.0211
+    },
+    "Citizens": {
+      "count": 3,
+      "share": 0.0211
+    },
+    "Exelon": {
+      "count": 3,
+      "share": 0.0211
+    },
+    "Figma": {
+      "count": 3,
+      "share": 0.0211
+    },
+    "Lyft": {
+      "count": 3,
+      "share": 0.0211
+    },
+    "Point72": {
+      "count": 3,
+      "share": 0.0211
+    },
+    "PwC": {
+      "count": 3,
+      "share": 0.0211
+    },
+    "Anduril": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "BNY": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "Federal Reserve Bank of Philadelphia": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "General Dynamics Mission Systems": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "IAT Insurance Group": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "Interactive Brokers": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "Leidos": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "MITRE": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "NSA": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "Sage": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "Spectrum": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "The Hartford": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "Aerotech": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Agilent Technologies": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Allegion": {
+      "count": 1,
+      "share": 0.007
+    },
+    "American Express": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Amgen": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Appian": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Audax Group": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Avangrid": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Barclays": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Capital One": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Castleton Commodities International": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Cencora": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Crum & Forster": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Cyvl": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Datadog": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Delmarva Digital": {
+      "count": 1,
+      "share": 0.007
+    },
+    "DoorDash": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Duolingo": {
+      "count": 1,
+      "share": 0.007
+    },
+    "FM": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Garda Capital Partners": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Gartner": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Gemini": {
+      "count": 1,
+      "share": 0.007
+    },
+    "General Dynamics Electric Boat": {
+      "count": 1,
+      "share": 0.007
+    },
+    "General Dynamics Information Technology": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Good Molecules": {
+      "count": 1,
+      "share": 0.007
+    },
+    "HII Mission Technologies": {
+      "count": 1,
+      "share": 0.007
+    },
+    "HSB - Hartford Steam Boiler": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Hologic": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Huntington Ingalls Industries": {
+      "count": 1,
+      "share": 0.007
+    },
+    "ICF": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Inter-American Development Bank": {
+      "count": 1,
+      "share": 0.007
+    },
+    "JPMorgan Chase": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Johnson & Johnson": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Keurig Dr Pepper": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Leonardo DRS": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Liberty Mutual": {
+      "count": 1,
+      "share": 0.007
+    },
+    "LiquidPiston": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Manulife John Hancock": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Maryland State Department of Education": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Nightwing": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Otis Elevator Co.": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Peraton": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Peraton Labs": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Perpay": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Phoebe": {
+      "count": 1,
+      "share": 0.007
+    },
+    "RTX": {
+      "count": 1,
+      "share": 0.007
+    },
+    "S&P Global": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Selective Insurance": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Shield AI": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Siemens Mobility": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Stanley Black & Decker": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Supreme Court of the United States": {
+      "count": 1,
+      "share": 0.007
+    },
+    "The Campbell's Company": {
+      "count": 1,
+      "share": 0.007
+    },
+    "TikTok USDS Joint Venture": {
+      "count": 1,
+      "share": 0.007
+    },
+    "UPS": {
+      "count": 1,
+      "share": 0.007
+    },
+    "URBN": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Verizon": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Viam": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Visionist": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Westinghouse Electric Company": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Workiva": {
+      "count": 1,
+      "share": 0.007
+    }
+  },
+  "city_distribution": {
+    "New York": {
+      "count": 34,
+      "share": 0.2394
+    },
+    "Washington": {
+      "count": 25,
+      "share": 0.1761
+    },
+    "Laurel": {
+      "count": 6,
+      "share": 0.0423
+    },
+    "Annapolis Junction": {
+      "count": 4,
+      "share": 0.0282
+    },
+    "Danbury": {
+      "count": 4,
+      "share": 0.0282
+    },
+    "Hartford": {
+      "count": 4,
+      "share": 0.0282
+    },
+    "Hunt Valley": {
+      "count": 4,
+      "share": 0.0282
+    },
+    "Johnston": {
+      "count": 4,
+      "share": 0.0282
+    },
+    "Stamford": {
+      "count": 4,
+      "share": 0.0282
+    },
+    "Wilmington": {
+      "count": 3,
+      "share": 0.0211
+    },
+    "Boston": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "Columbia": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "Farmington": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "Fort Meade": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "Greenwich": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "McLean": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "Newark": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "Philadelphia": {
+      "count": 2,
+      "share": 0.0141
+    },
+    "Aberdeen": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Baltimore": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Basking Ridge": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Burlington": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Cambridge": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Camden": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Cheshire": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Conshohocken": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Cranberry Township": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Falls Church": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Frederick": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Gaithersburg": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Germantown": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Groton": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Herndon": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Mahwah": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Middletown": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Morristown": {
+      "count": 1,
+      "share": 0.007
+    },
+    "New Castle": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Newport News": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Odenton": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Orange": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Owings Mills": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Pittsburgh": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Pittsfield": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Providence": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Raritan": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Reston": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Silver Spring": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Somerville": {
+      "count": 1,
+      "share": 0.007
+    },
+    "State College": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Suffield": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Towson": {
+      "count": 1,
+      "share": 0.007
+    },
+    "Windsor Mill": {
+      "count": 1,
+      "share": 0.007
+    }
+  },
+  "ats_distribution": {
+    "employer/custom": {
+      "count": 85,
+      "share": 0.5986
+    },
+    "greenhouse": {
+      "count": 30,
+      "share": 0.2113
+    },
+    "workday": {
+      "count": 15,
+      "share": 0.1056
+    },
+    "icims": {
+      "count": 5,
+      "share": 0.0352
+    },
+    "lever": {
+      "count": 5,
+      "share": 0.0352
+    },
+    "ashby": {
+      "count": 2,
+      "share": 0.0141
+    }
+  },
+  "url_counts": {
+    "authoritative": 95,
+    "authoritative_search": 7,
+    "discovery_surface": 40,
+    "unknown": 0
+  },
+  "authoritative_url_rate": 0.669,
+  "explicit_discovery_provenance": {
+    "count": 102,
+    "rate": 0.7183
+  },
+  "concentration": {
+    "largest_state_share": 0.2394,
+    "largest_discovery_source_share": 0.3732,
+    "largest_employer_share": 0.0352,
+    "largest_city_share": 0.2394,
+    "largest_ats_share": 0.5986
+  },
+  "checks": {
+    "minimum_sample_size": {
+      "actual": 142,
+      "threshold": 120,
+      "operator": ">=",
+      "passed": true
+    },
+    "minimum_per_state": {
+      "actual": 6,
+      "threshold": 6,
+      "operator": ">=",
+      "passed": true
+    },
+    "maximum_state_share": {
+      "actual": 0.2394,
+      "threshold": 0.25,
+      "operator": "<=",
+      "passed": true
+    },
+    "maximum_discovery_source_share": {
+      "actual": 0.3732,
+      "threshold": 0.4,
+      "operator": "<=",
+      "passed": true
+    },
+    "maximum_employer_share": {
+      "actual": 0.0352,
+      "threshold": 0.05,
+      "operator": "<=",
+      "passed": true
+    },
+    "maximum_city_share": {
+      "actual": 0.2394,
+      "threshold": 0.25,
+      "operator": "<=",
+      "passed": true
+    },
+    "minimum_authoritative_url_rate": {
+      "actual": 0.669,
+      "threshold": 0.65,
+      "operator": ">=",
+      "passed": true
+    },
+    "minimum_explicit_discovery_provenance_rate": {
+      "actual": 0.7183,
+      "threshold": 0.7,
+      "operator": ">=",
+      "passed": true
+    }
+  },
+  "valid": true,
+  "errors": [],
+  "warnings": [
+    "row 7 lacks an explicit discovery_url",
+    "row 8 lacks an explicit discovery_url",
+    "row 9 lacks an explicit discovery_url",
+    "row 10 lacks an explicit discovery_url",
+    "row 11 lacks an explicit discovery_url",
+    "row 12 lacks an explicit discovery_url",
+    "row 21 lacks an explicit discovery_url",
+    "row 22 lacks an explicit discovery_url",
+    "row 23 lacks an explicit discovery_url",
+    "row 24 lacks an explicit discovery_url",
+    "row 25 lacks an explicit discovery_url",
+    "row 28 lacks an explicit discovery_url",
+    "row 29 lacks an explicit discovery_url",
+    "row 30 lacks an explicit discovery_url",
+    "row 31 lacks an explicit discovery_url",
+    "row 32 lacks an explicit discovery_url",
+    "row 33 lacks an explicit discovery_url",
+    "row 34 lacks an explicit discovery_url",
+    "row 35 lacks an explicit discovery_url",
+    "row 36 lacks an explicit discovery_url",
+    "row 39 lacks an explicit discovery_url",
+    "row 40 lacks an explicit discovery_url",
+    "row 41 lacks an explicit discovery_url",
+    "row 42 lacks an explicit discovery_url",
+    "row 43 lacks an explicit discovery_url",
+    "row 44 lacks an explicit discovery_url",
+    "row 45 lacks an explicit discovery_url",
+    "row 46 lacks an explicit discovery_url",
+    "row 47 lacks an explicit discovery_url",
+    "row 55 lacks an explicit discovery_url",
+    "row 57 lacks an explicit discovery_url",
+    "row 58 lacks an explicit discovery_url",
+    "row 59 lacks an explicit discovery_url",
+    "row 77 lacks an explicit discovery_url",
+    "row 85 lacks an explicit discovery_url",
+    "row 86 lacks an explicit discovery_url",
+    "row 88 lacks an explicit discovery_url",
+    "row 93 lacks an explicit discovery_url",
+    "row 104 lacks an explicit discovery_url",
+    "row 105 lacks an explicit discovery_url"
+  ]
+}

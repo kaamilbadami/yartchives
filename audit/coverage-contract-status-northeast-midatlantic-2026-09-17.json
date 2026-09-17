@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "contract": "US undergraduate CS internship single-queue contract",
+  "promise": "A student can use Yartchives as their only discovery queue for current US undergraduate computer-science internships and co-ops without routinely checking other aggregators.",
+  "evaluated_at": "2026-09-17T21:10:59.655297Z",
+  "status": "not_ready_as_only_source",
+  "ready": false,
+  "checks": [
+    {
+      "name": "benchmark_size",
+      "actual": 142,
+      "target": 200,
+      "measurable": true,
+      "passed": false
+    },
+    {
+      "name": "geographic_breadth",
+      "actual": 10,
+      "target": 10,
+      "measurable": true,
+      "passed": true
+    },
+    {
+      "name": "sample_freshness_hours",
+      "actual": 1.1832375825,
+      "target": 168,
+      "measurable": true,
+      "passed": true
+    },
+    {
+      "name": "feed_freshness_hours",
+      "actual": 1.0043152988888888,
+      "target": 2,
+      "measurable": true,
+      "passed": true
+    },
+    {
+      "name": "capture_rate",
+      "actual": 0.5,
+      "target": 0.95,
+      "measurable": true,
+      "passed": false
+    },
+    {
+      "name": "visible_rate",
+      "actual": 0.34507042253521125,
+      "target": 0.95,
+      "measurable": true,
+      "passed": false
+    },
+    {
+      "name": "authoritative_link_rate",
+      "actual": 0.9859154929577465,
+      "target": 0.95,
+      "measurable": true,
+      "passed": true
+    },
+    {
+      "name": "median_discovery_latency_hours",
+      "actual": null,
+      "target": 6,
+      "measurable": false,
+      "passed": false
+    }
+  ],
+  "evidence": {
+    "reports": 1,
+    "unique_benchmark_listings": 142,
+    "states": [
+      "CT",
+      "DC",
+      "DE",
+      "MA",
+      "MD",
+      "NJ",
+      "NY",
+      "PA",
+      "RI",
+      "VA"
+    ],
+    "latency_observations": 0
+  }
+}
