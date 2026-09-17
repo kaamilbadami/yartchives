@@ -1,6 +1,7 @@
 import importlib.util
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "provider_links.py"
 spec = importlib.util.spec_from_file_location("provider_links", MODULE_PATH)
@@ -50,6 +51,43 @@ class ProviderLinksTests(unittest.TestCase):
     def test_jobright_does_not_accept_aggregator_as_direct(self):
         html = '<script type="application/json">{"applyUrl":"https://jobright.ai/jobs/info/abc"}</script>'
         self.assertEqual(mod.jobright_candidates_from_html(html), [])
+
+    def test_recover_stale_workday_direct_uses_same_requisition(self):
+        stale = (
+            "https://amgen.wd1.myworkdayjobs.com/Careers/job/"
+            "United-States---Remote/Undergrad-Intern-Software-Engineer_R-255719"
+        )
+        recovered = (
+            "https://amgen.wd1.myworkdayjobs.com/en-US/Careers/job/"
+            "United-States---Remote/Undergrad-Intern-Software-Engineer_R-255719"
+        )
+
+        self.assertEqual(mod.workday_req_id_from_url(stale), "R-255719")
+        with patch.object(mod, "query_workday", return_value=recovered) as query:
+            self.assertEqual(mod.recover_stale_workday_direct(stale), recovered)
+
+        query.assert_called_once_with("amgen.wd1.myworkdayjobs.com", "amgen", "Careers", "R-255719")
+
+    def test_source_job_with_dead_workday_url_is_recovery_target(self):
+        job = {
+            "company": "Amgen",
+            "title": "Undergrad Intern - Software Engineer",
+            "link_kind": "source",
+            "url": "",
+            "dead_url": (
+                "https://amgen.wd1.myworkdayjobs.com/Careers/job/"
+                "United-States---Remote/Undergrad-Intern-Software-Engineer_R-255719"
+            ),
+        }
+        recovered = (
+            "https://amgen.wd1.myworkdayjobs.com/en-US/Careers/job/"
+            "United-States---Remote/Undergrad-Intern-Software-Engineer_R-255719"
+        )
+        with patch.object(mod, "recover_stale_workday_direct", return_value=recovered):
+            self.assertEqual(
+                mod.resolve_one(job, {}),
+                (recovered, "stale-workday-requisition"),
+            )
 
 
 if __name__ == "__main__":

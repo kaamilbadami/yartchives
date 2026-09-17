@@ -56,6 +56,7 @@ SOURCE_HOSTS = {"github.com", "www.github.com", "raw.githubusercontent.com"}
 DEAD_PAGE_PHRASES = (
     "the page you are looking for doesn't exist",
     "the page you are looking for does not exist",
+    "page does not exist",
     "this job is no longer available",
     "this position is no longer available",
     "job is no longer available",
