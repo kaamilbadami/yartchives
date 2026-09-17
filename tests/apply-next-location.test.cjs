@@ -21,10 +21,10 @@ function trustedDistance(miles) {
   return { _distanceMiles: miles, _distanceMilesBasis: "apply-next-profile" };
 }
 
-function inspected() {
+function inspected(posting = {}) {
   return {
     status: "inspected",
-    posting: { application_status: "available" },
+    posting: { application_status: "available", ...posting },
     requirements: {},
   };
 }
@@ -171,5 +171,59 @@ for (const result of geckoRanked) {
   assert.match(result.components.roi.detail, /observed employer demand: 2 current software engineering openings/);
   assert.doesNotMatch(result.components.roi.detail, /3 current software engineering openings/);
 }
+
+const caci = {
+  ...job,
+  id: "caci-331999",
+  company: "CACI",
+  title: "Cleared Software Engineer Intern - Summer 2027",
+  location: "Denver, CO, US",
+  states: ["Remote", "VA", "CO"],
+  url: "https://caci.wd1.myworkdayjobs.com/External/job/Denver-CO-US/Cleared-Software-Engineer-Intern---Summer-2027_331999",
+  _inspection: inspected({
+    title: "Cleared Software Engineer Intern - Summer 2027",
+    requisition_id: "331999",
+    locations: { status: "authoritative", values: ["Denver, CO, US"] },
+  }),
+  ...trustedDistance(1652),
+};
+const caciView = L.authoritativePostingView(caci);
+assert.deepEqual(caciView.states, ["CO"]);
+assert.equal(caciView.location, "Denver, CO, US");
+const caciScored = L.scoreJob(caci, profile, now);
+assert.equal(caciScored.components.location.score, 3);
+assert.match(caciScored.components.location.detail, /Long-distance relocation/);
+assert.doesNotMatch(caciScored.components.location.detail, /Remote opportunity/);
+
+const wex = {
+  ...job,
+  id: "wex-r22593",
+  company: "WEX",
+  title: "Fullstack Software Engineer Intern (Undergraduate)",
+  location: "US - Remote",
+  states: ["Remote"],
+  url: "https://wexinc.wd5.myworkdayjobs.com/WEXInc/job/US---Remote/Backend-Software-Engineer-Intern--Undergraduate-_R22593",
+  _inspection: inspected({
+    title: "Fullstack Software Engineer Intern (Undergraduate)",
+    requisition_id: "R22593",
+    locations: { status: "authoritative", values: ["US - Remote"] },
+  }),
+};
+const wexView = L.authoritativePostingView(wex);
+assert.equal(wexView.title, "Fullstack Software Engineer Intern (Undergraduate)");
+assert.equal(wexView.location, "US - Remote");
+assert.match(wexView.url, /Fullstack-Software-Engineer-Intern-Undergraduate_R22593$/);
+assert.doesNotMatch(wexView.url, /Backend-Software-Engineer/);
+assert.equal(L.scoreJob(wex, profile, now).components.location.detail, "Remote opportunity");
+
+const staleDifferentLocation = {
+  ...caci,
+  location: "Remote - Sterling, VA",
+  ...trustedDistance(220),
+};
+const differentView = L.authoritativePostingView(staleDifferentLocation);
+assert.equal(differentView.location, "Denver, CO, US");
+assert.equal(differentView._distanceMilesBasis, undefined);
+assert.equal(L.scoreLocation(differentView, profile).detail, "Relocation is acceptable; profile-base distance is unknown");
 
 console.log("apply-next authoritative-only, location, and canonical dedupe tests passed");
