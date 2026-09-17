@@ -53,29 +53,28 @@ assert.deepEqual(D.SCORE_MAXIMA, {
   fit: 40,
   eligibility: 0,
   freshness: 10,
-  roi: 35,
+  roi: 30,
   role: 0,
-  location: 15,
+  location: 20,
   link: 0,
 });
-assert.deepEqual(D.APPLICATION_VALUE_PARTS, { role: 20, market: 15 });
+assert.deepEqual(D.APPLICATION_VALUE_PARTS, { role: 15, market: 15 });
 assert.equal(Object.values(D.SCORE_MAXIMA).reduce((sum, value) => sum + value, 0), 100);
-assert.equal(D.scaleScore(25, 25, 40), 40);
-assert.equal(D.scaleScore(10, 10, 20), 20);
-assert.equal(D.scaleScore(15, 15, 10), 10);
+assert.equal(D.LEGACY_MAXIMA, undefined);
+assert.equal(D.scaleScore, undefined);
 
 const metadataOnly = D.scoreJob(job({ _inspection: undefined }), profile, now);
 assert.equal(metadataOnly.components.fit.score, 19);
 assert.equal(metadataOnly.components.role, undefined);
-assert.equal(metadataOnly.components.roi.score, 30);
-assert.equal(metadataOnly.applicationValue.role.score, 20);
+assert.equal(metadataOnly.components.roi.score, 25);
+assert.equal(metadataOnly.applicationValue.role.score, 15);
 assert.equal(metadataOnly.applicationValue.market.score, 10);
-assert.equal(metadataOnly.components.location.score, 15);
+assert.equal(metadataOnly.components.location.score, 20);
 assert.equal(metadataOnly.components.freshness.score, 10);
 assert.equal(metadataOnly.components.eligibility.score, 0);
 assert.equal(metadataOnly.components.link.score, 0);
 assert.match(metadataOnly.components.fit.detail, /neutral qualification-fit/i);
-assert.match(metadataOnly.components.roi.detail, /Role value 20\/20/i);
+assert.match(metadataOnly.components.roi.detail, /Role value 15\/15/i);
 assert.match(metadataOnly.components.roi.detail, /Market opportunity 10\/15/i);
 assert.deepEqual(metadataOnly.scoreMaxima, D.SCORE_MAXIMA);
 
@@ -215,12 +214,12 @@ const demandPool = [
 const demandRanked = D.rankJobs(demandPool, profile, now);
 assert.equal(demandRanked.length, 2);
 assert.equal(demandRanked[0].components.role, undefined);
-assert.match(demandRanked[0].components.roi.detail, /Role value 20\/20/i);
+assert.match(demandRanked[0].components.roi.detail, /Role value 15\/15/i);
 assert.match(demandRanked[0].components.roi.detail, /Market opportunity/i);
 assert.match(demandRanked[0].components.roi.detail, /observed employer demand/i);
 assert.doesNotMatch(demandRanked[0].components.roi.detail, /required-skill differentiation|specialized role aligns/i);
 assert.equal(demandRanked[0].competition.differentiationBonus, 0);
-assert.equal(demandRanked[0].applicationValue.role.score, 20);
+assert.equal(demandRanked[0].applicationValue.role.score, 15);
 assert.ok(demandRanked[0].applicationValue.market.score <= 15);
 assert.ok(demandRanked[0].components.roi.score <= D.SCORE_MAXIMA.roi);
 

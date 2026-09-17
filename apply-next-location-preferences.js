@@ -27,6 +27,8 @@
   const MAX_CAPTURED_SAMPLES = 24;
   const CUSTOM_RELOCATION_FULL_SCORE_MILES = 200;
   const CUSTOM_RELOCATION_ZERO_SCORE_MILES = 400;
+  const CONFIGURED_LOCATION_MAX = 15;
+  const FINAL_LOCATION_MAX = 20;
 
   function numberOr(value, fallback) {
     const parsed = Number(value);
@@ -40,7 +42,11 @@
 
   function clampLocationScore(value) {
     const parsed = Number(value);
-    return Number.isFinite(parsed) ? Math.max(0, Math.min(15, parsed)) : null;
+    return Number.isFinite(parsed) ? Math.max(0, Math.min(CONFIGURED_LOCATION_MAX, parsed)) : null;
+  }
+
+  function configuredToFinalScore(value) {
+    return Math.round((Math.max(0, Math.min(CONFIGURED_LOCATION_MAX, Number(value || 0))) / CONFIGURED_LOCATION_MAX) * FINAL_LOCATION_MAX);
   }
 
   function customLocationMode(profile) {
@@ -177,25 +183,25 @@
 
   function remoteScore(profile) {
     const preference = remotePreference(profile);
-    if (preference === "preferred") return { score: 10, detail: "Remote work is preferred" };
-    if (preference === "acceptable") return { score: 8, detail: "Remote work is acceptable" };
-    return { score: 3, detail: "Remote work is not preferred" };
+    if (preference === "preferred") return { score: 20, detail: "Remote work is preferred" };
+    if (preference === "acceptable") return { score: 16, detail: "Remote work is acceptable" };
+    return { score: 6, detail: "Remote work is not preferred" };
   }
 
   function anchorScore(anchor, index) {
-    if (Number.isFinite(anchor?.locationScore)) return anchor.locationScore / 1.5;
-    if (index <= 0) return 10;
-    if (index === 1) return 9;
-    return 8;
+    if (Number.isFinite(anchor?.locationScore)) return configuredToFinalScore(anchor.locationScore);
+    if (index <= 0) return 20;
+    if (index === 1) return 18;
+    return 16;
   }
 
   function customRelocationScore(distanceMiles, relocation) {
-    const maxDisplayScore = relocation === "preferred" ? 8 : 6;
-    if (distanceMiles <= CUSTOM_RELOCATION_FULL_SCORE_MILES) return maxDisplayScore / 1.5;
+    const maxConfiguredScore = relocation === "preferred" ? 8 : 6;
+    if (distanceMiles <= CUSTOM_RELOCATION_FULL_SCORE_MILES) return configuredToFinalScore(maxConfiguredScore);
     if (distanceMiles >= CUSTOM_RELOCATION_ZERO_SCORE_MILES) return 0;
     const remaining = (CUSTOM_RELOCATION_ZERO_SCORE_MILES - distanceMiles)
       / (CUSTOM_RELOCATION_ZERO_SCORE_MILES - CUSTOM_RELOCATION_FULL_SCORE_MILES);
-    return (maxDisplayScore * remaining) / 1.5;
+    return configuredToFinalScore(maxConfiguredScore * remaining);
   }
 
   function scoreWithAnchors(job, profile, anchors) {
@@ -238,10 +244,10 @@
 
       const ratio = nearest.distanceMiles / Math.max(5, nearest.anchor.commuteMiles);
       if (relocation === "preferred") {
-        const score = ratio <= 2 ? 8 : (ratio <= 4 ? 7 : 6);
+        const score = ratio <= 2 ? 16 : (ratio <= 4 ? 14 : 12);
         return { score, detail: `Relocation is preferred; nearest base is about ${rounded} miles away` };
       }
-      const score = ratio <= 2 ? 6 : (ratio <= 4 ? 4 : 2);
+      const score = ratio <= 2 ? 12 : (ratio <= 4 ? 8 : 4);
       return { score, detail: `Relocation is acceptable; nearest base is about ${rounded} miles away` };
     }
 
@@ -249,18 +255,18 @@
     const preferredStates = profile?.preferredStates || [];
     const stateMatch = preferredStates.find(value => states.has(value));
     if (stateMatch) {
-      return { score: 6, detail: `Preferred state: ${stateMatch}; commute to an anchor is not yet verified` };
+      return { score: 12, detail: `Preferred state: ${stateMatch}; commute to an anchor is not yet verified` };
     }
 
     const rawStates = new Set(job?.states || []);
     if (!states.size && (!rawStates.size || rawStates.has("US"))) {
-      return { score: 4, detail: "Location is broad or unknown; anchor commute cannot be verified" };
+      return { score: 8, detail: "Location is broad or unknown; anchor commute cannot be verified" };
     }
 
     if (relocationPreference(profile) === "not_open") {
-      return { score: 2, detail: "Location is outside known anchor evidence; relocation is turned off but distance is unverified" };
+      return { score: 4, detail: "Location is outside known anchor evidence; relocation is turned off but distance is unverified" };
     }
-    return { score: 4, detail: "Anchor commute distance is unavailable; relocation remains possible" };
+    return { score: 8, detail: "Anchor commute distance is unavailable; relocation remains possible" };
   }
 
   function scoreLocation(job, profile) {

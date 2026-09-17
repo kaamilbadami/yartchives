@@ -75,9 +75,9 @@ const nearSecondary = inspectedJob({
 });
 const primaryScore = L.scoreLocation(nearPrimary, explicitProfile);
 const secondaryScore = L.scoreLocation(nearSecondary, explicitProfile);
-assert.equal(primaryScore.score, 10);
+assert.equal(primaryScore.score, 20);
 assert.match(primaryScore.detail, /Home/);
-assert.equal(secondaryScore.score, 9);
+assert.equal(secondaryScore.score, 18);
 assert.match(secondaryScore.detail, /School/);
 assert.ok(primaryScore.score > secondaryScore.score, "primary commute anchor should outrank a secondary anchor");
 
@@ -121,9 +121,9 @@ const nearThird = inspectedJob({
     { zip: "10001", distanceMiles: 8 },
   ],
 });
-assert.equal(L.scoreLocation(customNearPrimary, customProfile).score, 10, "15/15 custom anchor maps to legacy 10/10 before dimension scaling");
-assert.equal(L.scoreLocation(customNearSecondary, customProfile).score, 10 / 1.5, "10/15 custom anchor maps proportionally before dimension scaling");
-assert.equal(L.scoreLocation(nearThird, customProfile).score, 4 / 1.5, "third and later anchors can have arbitrary scores");
+assert.equal(L.scoreLocation(customNearPrimary, customProfile).score, 20, "15/15 configured anchor maps directly to 20/20 final location score");
+assert.equal(L.scoreLocation(customNearSecondary, customProfile).score, 13, "10/15 configured anchor maps once to the final 20-point range");
+assert.equal(L.scoreLocation(nearThird, customProfile).score, 5, "third and later anchors keep arbitrary configured scores on the final range");
 
 const overlapping = inspectedJob({
   states: ["MD"],
@@ -144,14 +144,14 @@ const reversedScores = {
   ],
 };
 const overlappingScore = L.scoreLocation(overlapping, reversedScores);
-assert.equal(overlappingScore.score, 8, "overlapping anchors use the highest configured score");
+assert.equal(overlappingScore.score, 16, "overlapping anchors use the highest configured score on the final range");
 assert.match(overlappingScore.detail, /School/);
 
-assert.equal(L.customRelocationScore(200, "preferred") * 1.5, 8, "custom preferred relocation starts at 8/15 through 200 miles");
-assert.equal(L.customRelocationScore(300, "preferred") * 1.5, 4, "custom preferred relocation decays linearly between 200 and 400 miles");
+assert.equal(L.customRelocationScore(200, "preferred"), 11, "custom preferred relocation starts at the configured 8/15 equivalent on the final range");
+assert.equal(L.customRelocationScore(300, "preferred"), 5, "custom preferred relocation decays linearly between 200 and 400 miles");
 assert.equal(L.customRelocationScore(400, "preferred"), 0, "custom preferred relocation reaches zero at 400 miles");
-assert.equal(L.customRelocationScore(200, "open") * 1.5, 6, "custom open relocation uses the same curve with a lower ceiling");
-assert.equal(L.customRelocationScore(300, "open") * 1.5, 3);
+assert.equal(L.customRelocationScore(200, "open"), 8, "custom open relocation uses the same curve with a lower ceiling");
+assert.equal(L.customRelocationScore(300, "open"), 4);
 assert.equal(L.customRelocationScore(400, "open"), 0);
 
 const customMidDistance = inspectedJob({
@@ -175,8 +175,8 @@ const customFarDistance = inspectedJob({
   ],
 });
 const customPreferred = { ...customProfile, relocationPreference: "preferred" };
-assert.equal(L.scoreLocation(customMidDistance, customPreferred).score * 1.5, 4, "300-mile custom fallback displays as 4/15");
-assert.equal(L.scoreLocation(customFarDistance, customPreferred).score, 0, "494-mile custom fallback no longer floors at 9/15");
+assert.equal(L.scoreLocation(customMidDistance, customPreferred).score, 5, "300-mile custom fallback emits the final 20-point score directly");
+assert.equal(L.scoreLocation(customFarDistance, customPreferred).score, 0, "494-mile custom fallback remains zero");
 assert.match(L.scoreLocation(customFarDistance, customPreferred).detail, /about 494 miles/);
 
 const normalFarDistance = inspectedJob({
@@ -189,7 +189,7 @@ const normalFarDistance = inspectedJob({
   ],
 });
 const normalPreferred = { ...normalWithStaleAnchors, relocationPreference: "preferred" };
-assert.equal(L.scoreLocation(normalFarDistance, normalPreferred).score, 6, "Normal mode keeps existing generic relocation semantics");
+assert.equal(L.scoreLocation(normalFarDistance, normalPreferred).score, 12, "Normal mode keeps the same final generic relocation semantics");
 
 const far = inspectedJob({
   states: ["TX"],
@@ -213,9 +213,9 @@ assert.equal(L.scoreLocation(far, openRelocation).excluded, undefined);
 assert.equal(L.scoreLocation(far, openRelocation).score, 0, "custom open relocation also decays to zero beyond 400 miles");
 
 const remote = inspectedJob({ states: ["Remote"], location: "Remote", url: "https://example.com/remote" });
-assert.equal(L.scoreLocation(remote, { ...explicitProfile, remotePreference: "preferred" }).score, 10);
-assert.equal(L.scoreLocation(remote, { ...explicitProfile, remotePreference: "acceptable" }).score, 8);
-assert.equal(L.scoreLocation(remote, { ...explicitProfile, remotePreference: "not_preferred" }).score, 3);
+assert.equal(L.scoreLocation(remote, { ...explicitProfile, remotePreference: "preferred" }).score, 20);
+assert.equal(L.scoreLocation(remote, { ...explicitProfile, remotePreference: "acceptable" }).score, 16);
+assert.equal(L.scoreLocation(remote, { ...explicitProfile, remotePreference: "not_preferred" }).score, 6);
 
 const captured = inspectedJob({
   _applyNextAnchorDistanceSamples: [
@@ -224,7 +224,7 @@ const captured = inspectedJob({
   ],
 });
 assert.equal(L.anchorDistances(captured, explicitProfile)[0].distanceMiles, 12);
-assert.equal(L.scoreLocation(captured, explicitProfile).score, 10);
+assert.equal(L.scoreLocation(captured, explicitProfile).score, 20);
 
 const unresolvedCaptured = inspectedJob({
   states: ["NC"],
@@ -235,7 +235,7 @@ const unresolvedCaptured = inspectedJob({
   ],
 });
 assert.deepEqual(L.anchorDistances(unresolvedCaptured, explicitProfile), []);
-assert.notEqual(L.scoreLocation(unresolvedCaptured, explicitProfile).score, 10, "unknown distance must not become zero-mile commute");
+assert.notEqual(L.scoreLocation(unresolvedCaptured, explicitProfile).score, 20, "unknown distance must not become zero-mile commute");
 
 const scope = {
   distanceForJob(job, origin) {
@@ -257,7 +257,7 @@ const legacy = {
   relocationAllowed: true,
 };
 assert.deepEqual(L.scoreLocation({ location: "Stamford, CT", states: ["CT"] }, legacy), {
-  score: 10,
+  score: 20,
   detail: "Preferred state: CT",
 });
 

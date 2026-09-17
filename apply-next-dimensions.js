@@ -28,14 +28,6 @@
     link: 0,
   });
 
-  const LEGACY_MAXIMA = Object.freeze({
-    fit: 25,
-    freshness: 15,
-    roi: 15,
-    role: 10,
-    location: 10,
-  });
-
   const APPLICATION_VALUE_PARTS = Object.freeze({
     role: 15,
     market: 15,
@@ -60,12 +52,6 @@
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, Number(value || 0)));
-  }
-
-  function scaleScore(value, fromMax, toMax) {
-    if (!toMax) return 0;
-    if (!fromMax) return clamp(value, 0, toMax);
-    return Math.round((clamp(value, 0, fromMax) / fromMax) * toMax);
   }
 
   function normalize(value) {
@@ -390,21 +376,13 @@
     const market = result?.components?.roi || { score: 10, detail: "Neutral application-value baseline" };
     const role = result?.components?.role || { score: 0, detail: "No role-preference evidence" };
     const marketScore = clamp(market.score, 0, APPLICATION_VALUE_PARTS.market);
-    const roleScore = scaleScore(role.score, LEGACY_MAXIMA.role, APPLICATION_VALUE_PARTS.role);
+    const roleScore = clamp(role.score, 0, APPLICATION_VALUE_PARTS.role);
     const score = clamp(roleScore + marketScore, 0, SCORE_MAXIMA.roi);
     return {
       score,
       roleScore,
       marketScore,
       detail: `Role value ${roleScore}/${APPLICATION_VALUE_PARTS.role}: ${role.detail || "No role-preference evidence"}; Market opportunity ${marketScore}/${APPLICATION_VALUE_PARTS.market}: ${market.detail || "Neutral application-value baseline"}`,
-    };
-  }
-
-  function rescaleComponent(component, key) {
-    const source = component || { score: 0, detail: "" };
-    return {
-      ...source,
-      score: scaleScore(source.score, LEGACY_MAXIMA[key], SCORE_MAXIMA[key]),
     };
   }
 
@@ -428,9 +406,15 @@
     const fit = scoreQualificationFit(result, profile);
     const readiness = alignedReadiness(result, profile);
     const eligibility = scoreEligibilityGate(result);
-    const freshness = rescaleComponent(result.components.freshness, "freshness");
+    const freshness = {
+      ...(result.components.freshness || { detail: "Posting date unavailable" }),
+      score: clamp(result.components.freshness?.score, 0, SCORE_MAXIMA.freshness),
+    };
     const roi = scoreApplicationValue(result);
-    const location = rescaleComponent(result.components.location, "location");
+    const location = {
+      ...(result.components.location || { detail: "Location evidence unavailable" }),
+      score: clamp(result.components.location?.score, 0, SCORE_MAXIMA.location),
+    };
     const link = {
       score: 0,
       detail: `${result.components.link?.detail || "Link provenance unavailable"}; provenance only, not a ranking signal`,
@@ -478,9 +462,7 @@
 
   return {
     SCORE_MAXIMA,
-    LEGACY_MAXIMA,
     APPLICATION_VALUE_PARTS,
-    scaleScore,
     explicitGraduateOnlyTitle,
     authoritativeAcademicSupport,
     analyzeQualificationEvidence,

@@ -30,22 +30,22 @@ function inspected(posting = {}) {
 }
 
 assert.deepEqual(L.scoreLocation({ location: "Baltimore, MD", states: ["MD"], ...trustedDistance(220) }, profile), {
-  score: 10,
+  score: 20,
   detail: "Preferred state: MD",
 });
-assert.equal(L.scoreLocation({ location: "Remote", states: ["Remote"] }, profile).score, 9);
-assert.equal(L.scoreLocation({ location: "York, PA", states: ["PA"], ...trustedDistance(35) }, profile).score, 10);
-assert.equal(L.scoreLocation({ location: "York, PA", states: ["PA"], ...trustedDistance(90) }, profile).score, 8);
-assert.equal(L.scoreLocation({ location: "Boston, MA", states: ["MA"], ...trustedDistance(160) }, profile).score, 7);
-assert.equal(L.scoreLocation({ location: "Raleigh, NC", states: ["NC"], ...trustedDistance(330) }, profile).score, 5);
-assert.equal(L.scoreLocation({ location: "Austin, TX", states: ["TX"], ...trustedDistance(1200) }, profile).score, 3);
-assert.equal(L.scoreLocation({ location: "United States", states: ["US"] }, profile).score, 4);
-assert.equal(L.scoreLocation({ location: "Denver, CO", states: ["CO"] }, profile).score, 4);
+assert.equal(L.scoreLocation({ location: "Remote", states: ["Remote"] }, profile).score, 18);
+assert.equal(L.scoreLocation({ location: "York, PA", states: ["PA"], ...trustedDistance(35) }, profile).score, 20);
+assert.equal(L.scoreLocation({ location: "York, PA", states: ["PA"], ...trustedDistance(90) }, profile).score, 16);
+assert.equal(L.scoreLocation({ location: "Boston, MA", states: ["MA"], ...trustedDistance(160) }, profile).score, 14);
+assert.equal(L.scoreLocation({ location: "Raleigh, NC", states: ["NC"], ...trustedDistance(330) }, profile).score, 10);
+assert.equal(L.scoreLocation({ location: "Austin, TX", states: ["TX"], ...trustedDistance(1200) }, profile).score, 6);
+assert.equal(L.scoreLocation({ location: "United States", states: ["US"] }, profile).score, 8);
+assert.equal(L.scoreLocation({ location: "Denver, CO", states: ["CO"] }, profile).score, 8);
 
 const noRemote = { ...profile, remoteRelevant: false };
-assert.equal(L.scoreLocation({ location: "Remote", states: ["Remote"] }, noRemote).score, 2);
+assert.equal(L.scoreLocation({ location: "Remote", states: ["Remote"] }, noRemote).score, 4);
 const noRelocation = { ...profile, relocationAllowed: false };
-assert.equal(L.scoreLocation({ location: "Austin, TX", states: ["TX"], ...trustedDistance(1200) }, noRelocation).score, 1);
+assert.equal(L.scoreLocation({ location: "Austin, TX", states: ["TX"], ...trustedDistance(1200) }, noRelocation).score, 2);
 
 assert.deepEqual(L.explicitLocationStates({ location: "State College, PA" }), ["PA"]);
 const stateCollege = L.scoreLocation({
@@ -53,7 +53,7 @@ const stateCollege = L.scoreLocation({
   states: ["CT", "PA"],
   _distanceMiles: 22,
 }, profile);
-assert.equal(stateCollege.score, 4);
+assert.equal(stateCollege.score, 8);
 assert.doesNotMatch(stateCollege.detail, /Preferred state: CT|Within 50 miles/);
 
 const rtp = L.scoreLocation({
@@ -61,7 +61,7 @@ const rtp = L.scoreLocation({
   states: ["CT", "NC"],
   _distanceMiles: 12,
 }, profile);
-assert.equal(rtp.score, 4);
+assert.equal(rtp.score, 8);
 assert.doesNotMatch(rtp.detail, /Preferred state: CT|Within 50 miles/);
 
 const pittsburghStale = L.scoreLocation({
@@ -69,14 +69,14 @@ const pittsburghStale = L.scoreLocation({
   states: ["PA"],
   _distanceMiles: 18,
 }, profile);
-assert.equal(pittsburghStale.score, 4);
+assert.equal(pittsburghStale.score, 8);
 assert.doesNotMatch(pittsburghStale.detail, /Within 50 miles/);
 const pittsburghTrusted = L.scoreLocation({
   location: "Pittsburgh",
   states: ["PA"],
   ...trustedDistance(18),
 }, profile);
-assert.equal(pittsburghTrusted.score, 10);
+assert.equal(pittsburghTrusted.score, 20);
 
 const job = {
   company: "FarCo",
@@ -94,9 +94,9 @@ const job = {
 const now = new Date("2026-09-16T16:00:00Z");
 const before = base.scoreJob(job, profile, now);
 const after = L.scoreJob(job, profile, now);
-assert.equal(before.components.location.score, 6);
-assert.equal(after.components.location.score, 3);
-assert.equal(after.total, before.total - 3);
+assert.equal(before.components.location.score, 12);
+assert.equal(after.components.location.score, 6);
+assert.equal(after.total, before.total - 6);
 assert.match(after.components.location.detail, /Long-distance relocation/);
 
 const nearJob = {
@@ -204,7 +204,7 @@ const caciView = L.authoritativePostingView(caci);
 assert.deepEqual(caciView.states, ["CO", "VA"]);
 assert.equal(caciView.location, "Denver, CO · Sterling, VA");
 const caciScored = L.scoreJob(caci, profile, now);
-assert.equal(caciScored.components.location.score, 10);
+assert.equal(caciScored.components.location.score, 20);
 assert.match(caciScored.components.location.detail, /Within 50 miles/);
 assert.doesNotMatch(caciScored.components.location.detail, /Remote opportunity/);
 

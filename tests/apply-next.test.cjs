@@ -75,13 +75,16 @@ const listing = A.scoreJob({ ...freshDirect, company: "E", link_kind: "listing" 
 assert.ok(direct.total > listing.total);
 assert.equal(direct.components.link.score, 5);
 assert.equal(listing.components.link.score, 2);
+assert.equal(direct.components.freshness.score, 10);
+assert.equal(direct.components.role.score, 15);
+assert.equal(direct.components.location.score, 20);
 
 const remote = A.scoreLocation({ states: ["Remote"] }, profile);
-assert.equal(remote.score, 9);
+assert.equal(remote.score, 18);
 const nearby = A.scoreLocation({ states: ["PA"], _distanceMiles: 28 }, profile);
-assert.equal(nearby.score, 10);
+assert.equal(nearby.score, 20);
 const relocation = A.scoreLocation({ states: ["CA"] }, profile);
-assert.equal(relocation.score, 6);
+assert.equal(relocation.score, 12);
 
 const exactTerm = A.scoreEligibility(freshDirect, profile);
 assert.equal(exactTerm.score, 18);

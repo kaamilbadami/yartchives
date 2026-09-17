@@ -256,10 +256,10 @@
     const states = reliableStates(job);
     const preferredStates = profile?.preferredStates || [];
     const stateMatch = preferredStates.find(value => states.has(value));
-    if (stateMatch) return { score: 10, detail: `Preferred state: ${stateMatch}` };
+    if (stateMatch) return { score: 20, detail: `Preferred state: ${stateMatch}` };
 
     if ((rawStates.has("Remote") || /\bremote\b/i.test(String(job?.location || ""))) && profile?.remoteRelevant !== false) {
-      return { score: 9, detail: "Remote opportunity" };
+      return { score: 18, detail: "Remote opportunity" };
     }
 
     const distance = Number(job?._distanceMiles);
@@ -268,27 +268,27 @@
       && distance >= 0;
     const near = Math.max(5, Number(profile?.nearbyMiles || 50));
     if (hasTrustedDistance) {
-      if (distance <= near) return { score: 10, detail: `Within ${near} miles of active base` };
-      if (distance <= near * 2) return { score: 8, detail: `Within ${near * 2} miles of active base` };
+      if (distance <= near) return { score: 20, detail: `Within ${near} miles of active base` };
+      if (distance <= near * 2) return { score: 16, detail: `Within ${near * 2} miles of active base` };
     }
 
     if (!states.size && (!rawStates.size || rawStates.has("US"))) {
-      return { score: 4, detail: "Location is broad or unknown" };
+      return { score: 8, detail: "Location is broad or unknown" };
     }
 
     if ((rawStates.has("Remote") || /\bremote\b/i.test(String(job?.location || ""))) && profile?.remoteRelevant === false) {
-      return { score: 2, detail: "Remote work is not preferred" };
+      return { score: 4, detail: "Remote work is not preferred" };
     }
 
     if (profile?.relocationAllowed) {
-      if (!hasTrustedDistance) return { score: 4, detail: "Relocation is acceptable; profile-base distance is unknown" };
+      if (!hasTrustedDistance) return { score: 8, detail: "Relocation is acceptable; profile-base distance is unknown" };
       const rounded = Math.round(distance);
-      if (distance <= near * 4) return { score: 7, detail: `Relocation about ${rounded} miles from active base` };
-      if (distance <= near * 8) return { score: 5, detail: `Relocation about ${rounded} miles from active base` };
-      return { score: 3, detail: `Long-distance relocation about ${rounded} miles from active base` };
+      if (distance <= near * 4) return { score: 14, detail: `Relocation about ${rounded} miles from active base` };
+      if (distance <= near * 8) return { score: 10, detail: `Relocation about ${rounded} miles from active base` };
+      return { score: 6, detail: `Long-distance relocation about ${rounded} miles from active base` };
     }
 
-    return { score: 1, detail: "Outside preferred locations" };
+    return { score: 2, detail: "Outside preferred locations" };
   }
 
   function scoreJob(job, profile, now = new Date(), context = {}) {
