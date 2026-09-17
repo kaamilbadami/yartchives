@@ -11,18 +11,10 @@ from typing import Any
 
 SCHEMA_VERSION = 1
 IDENTITY_FIELDS = {"id", "name", "aliases", "seed_sets", "seed_metadata"}
-CORPORATE_SUFFIXES = (
-    ("insurance", "group"),
-    ("financial", "group"),
+LEGAL_ENTITY_SUFFIXES = (
     ("holding", "company"),
     ("holdings",),
     ("holding",),
-    ("group",),
-    ("international",),
-    ("technologies",),
-    ("technology",),
-    ("platforms",),
-    ("worldwide",),
     ("corporation",),
     ("corp",),
     ("company",),
@@ -69,16 +61,13 @@ def common_name_aliases(value: str) -> list[str]:
         candidates.append(without_parentheticals)
     for candidate in candidates:
         words = candidate.split()
-        while words:
-            normalized_words = [normalize_name(word) for word in words]
-            suffix = next(
-                (parts for parts in CORPORATE_SUFFIXES if tuple(normalized_words[-len(parts):]) == parts),
-                None,
-            )
-            if suffix is None or len(words) <= len(suffix):
-                break
-            words = words[:-len(suffix)]
-            alias = " ".join(words).rstrip(" ,.-")
+        normalized_words = [normalize_name(word) for word in words]
+        suffix = next(
+            (parts for parts in LEGAL_ENTITY_SUFFIXES if tuple(normalized_words[-len(parts):]) == parts),
+            None,
+        )
+        if suffix is not None and len(words) > len(suffix):
+            alias = " ".join(words[:-len(suffix)]).rstrip(" ,.-")
             if alias:
                 aliases.add(alias)
 
