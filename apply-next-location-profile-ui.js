@@ -16,6 +16,10 @@
     ["open", "Open to relocating for a worthwhile role"],
     ["preferred", "Prefer relocating for the right role"],
   ];
+  const LOCATION_MODE_OPTIONS = [
+    ["normal", "Normal location ranking"],
+    ["custom", "Custom ZIP scores"],
+  ];
 
   function normalizedRemotePreference(profile) {
     const explicit = String(profile?.remotePreference || "").trim().toLowerCase();
@@ -29,6 +33,39 @@
     return profile?.relocationAllowed === false ? "not_open" : "open";
   }
 
+  function normalizedLocationMode(profile) {
+    const explicit = String(profile?.locationMode || "").trim().toLowerCase();
+    if (LOCATION_MODE_OPTIONS.some(([value]) => value === explicit)) return explicit;
+    return Array.isArray(profile?.locationAnchors) && profile.locationAnchors.length ? "custom" : "normal";
+  }
+
+  function clampLocationScore(value) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? Math.max(0, Math.min(15, parsed)) : null;
+  }
+
+  function scoreList(profile) {
+    const byZip = new Map((profile?.locationAnchors || [])
+      .map(anchor => [String(anchor?.zip || anchor?.baseZip || "").trim(), clampLocationScore(anchor?.locationScore ?? anchor?.score)])
+      .filter(([zip, score]) => /^\d{5}$/.test(zip) && score !== null));
+    return (profile?.baseZips || []).map(zip => byZip.has(String(zip)) ? byZip.get(String(zip)) : "").join(", ");
+  }
+
+  function customAnchors(profile, rawScores) {
+    const zips = (profile?.baseZips || []).map(value => String(value || "").trim()).filter(value => /^\d{5}$/.test(value));
+    const labels = Array.isArray(profile?.baseLabels) ? profile.baseLabels : [];
+    const scores = String(rawScores || "").split(/[\n,;]+/).map(value => value.trim());
+    return zips.map((zip, index) => {
+      const score = clampLocationScore(scores[index]);
+      if (score === null) return null;
+      return {
+        zip,
+        label: String(labels[index] || "").trim() || zip,
+        locationScore: score,
+      };
+    }).filter(Boolean);
+  }
+
   function applyLocationPreferences(profile, values = {}) {
     const remotePreference = REMOTE_OPTIONS.some(([value]) => value === values.remotePreference)
       ? values.remotePreference
@@ -36,10 +73,18 @@
     const relocationPreference = RELOCATION_OPTIONS.some(([value]) => value === values.relocationPreference)
       ? values.relocationPreference
       : normalizedRelocationPreference(profile);
+    const locationMode = LOCATION_MODE_OPTIONS.some(([value]) => value === values.locationMode)
+      ? values.locationMode
+      : normalizedLocationMode(profile);
+    const locationAnchors = locationMode === "custom"
+      ? customAnchors(profile, values.anchorScores ?? scoreList(profile))
+      : [];
     return {
       ...profile,
       remotePreference,
       relocationPreference,
+      locationMode,
+      locationAnchors,
       remoteRelevant: remotePreference !== "not_preferred",
       relocationAllowed: relocationPreference !== "not_open",
     };
@@ -98,14 +143,33 @@
     grid.className = "apply-next-profile-grid apply-next-location-preference-grid";
     const remote = makeSelect("remotePreference", REMOTE_OPTIONS, normalizedRemotePreference(profile));
     const relocation = makeSelect("relocationPreference", RELOCATION_OPTIONS, normalizedRelocationPreference(profile));
+    const locationMode = makeSelect("locationMode", LOCATION_MODE_OPTIONS, normalizedLocationMode(profile));
+    const anchorScores = document.createElement("input");
+    anchorScores.name = "anchorScores";
+    anchorScores.type = "text";
+    anchorScores.autocomplete = "off";
+    anchorScores.placeholder = "15, 10, 6";
+    anchorScores.value = scoreList(profile);
+    const scoreField = makeField("ZIP scores out of 15, in the same order", anchorScores);
+
+    function syncMode() {
+      const custom = locationMode.value === "custom";
+      scoreField.hidden = !custom;
+      anchorScores.disabled = !custom;
+    }
+    locationMode.addEventListener("change", syncMode);
+    syncMode();
+
     grid.append(
+      makeField("Location ranking", locationMode),
+      scoreField,
       makeField("Remote work", remote),
       makeField("Relocation", relocation)
     );
 
     const note = document.createElement("p");
     note.className = "muted apply-next-location-preference-note";
-    note.textContent = "Base ZIP order matters: the first is your primary commute base, the second is your next choice. Jobs outside every commute base are excluded when relocation is set to Not open.";
+    note.textContent = "Normal uses Yartchives' default anchor ordering. Custom assigns each Base ZIP its own 0–15 location score; enter one score per ZIP in the same order. Jobs within multiple anchors use the highest applicable score.";
     locationSection.append(grid, note);
     form.dataset.locationPreferencesEnhanced = "true";
   }
@@ -123,6 +187,8 @@
       const values = {
         remotePreference: form?.querySelector('[name="remotePreference"]')?.value,
         relocationPreference: form?.querySelector('[name="relocationPreference"]')?.value,
+        locationMode: form?.querySelector('[name="locationMode"]')?.value,
+        anchorScores: form?.querySelector('[name="anchorScores"]')?.value,
       };
       return prior.call(ui, storage, applyLocationPreferences(profile, values));
     };
@@ -151,8 +217,13 @@
   return {
     REMOTE_OPTIONS,
     RELOCATION_OPTIONS,
+    LOCATION_MODE_OPTIONS,
     normalizedRemotePreference,
     normalizedRelocationPreference,
+    normalizedLocationMode,
+    clampLocationScore,
+    scoreList,
+    customAnchors,
     applyLocationPreferences,
     init,
   };
