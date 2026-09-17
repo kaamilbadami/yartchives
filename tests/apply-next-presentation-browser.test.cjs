@@ -21,6 +21,36 @@ const job = {};
 assert.equal(scope.distanceForJob(job, { city: "college park", state: "MD" }, {}), 12);
 assert.equal(priorCalls, 1);
 
+const staleMetadataJob = {
+  location: "Stamford, CT · RTP, North Carolina, US",
+  states: ["CT", "NC"],
+  _inspection: {
+    status: "inspected",
+    posting: {
+      locations: { status: "authoritative", values: ["RTP, North Carolina, US"] },
+    },
+  },
+};
+const authoritativeScope = {
+  distanceForJob(target) {
+    target._applyNextAnchorDistanceSamples = [{ distanceMiles: 8 }];
+    return 8;
+  },
+};
+assert.equal(P.captureMatchedLocationPoints(authoritativeScope), true);
+const geo = {
+  zips: new Map(),
+  cities: new Map([["CT|stamford", { lat: 41.05, lon: -73.54, state: "CT", city: "stamford" }]]),
+  citiesByState: new Map([["CT", [["stamford", { lat: 41.05, lon: -73.54, state: "CT", city: "stamford" }]]], ["NC", []]]),
+};
+const authoritativeDistance = authoritativeScope.distanceForJob(
+  staleMetadataJob,
+  { lat: 41.2, lon: -73.4, state: "CT", city: "wilton" },
+  geo
+);
+assert.equal(authoritativeDistance, null, "authoritative RTP-only posting must not inherit stale Stamford distance");
+assert.equal(staleMetadataJob._applyNextAnchorDistanceSamples[0].distanceMiles, null);
+
 const browserScript = fs.readFileSync(path.join(__dirname, "..", "apply-next-presentation.js"), "utf8");
 let browserScoreCalls = 0;
 let browserRankCalls = 0;
@@ -43,6 +73,7 @@ const browserScope = {
   },
   YartchivesUtils: {
     STATE_NAMES: { MD: "Maryland" },
+    authoritativeLocationValues() { return []; },
     distanceForJob() {
       return null;
     },
