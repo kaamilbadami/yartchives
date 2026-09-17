@@ -84,6 +84,17 @@ class CoverageAuditTests(unittest.TestCase):
         self.assertEqual(result["reason_code"], "present_but_hidden")
         self.assertIn("missing expected profile", result["reason"])
 
+    def test_row_state_overrides_multi_state_sample_scope(self):
+        result = self.classify({
+            "company": "Acme Corp",
+            "title": "Software Engineering Intern",
+            "location": "Hartford, CT",
+            "url": "https://jobs.acme.com/job/12345?foo=bar",
+            "expected_state": "CT",
+        }, profiles=["cs"], states=["CT", "NY", "MD", "DC"])
+        self.assertEqual(result["status"], "already_in_yartchives")
+        self.assertEqual(result["expected"]["states"], ["CT"])
+
     def test_same_ats_identity_detects_resolution_issue(self):
         result = self.classify({
             "company": "Different Display Name",

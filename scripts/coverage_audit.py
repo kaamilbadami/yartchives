@@ -271,9 +271,14 @@ def expectations(row: dict[str, Any], profiles: list[str], states: list[str]) ->
         if isinstance(raw_visible, str)
         else bool(raw_visible)
     )
+    row_profiles = as_list(row.get("expected_profiles") or row.get("expected_profile"))
+    row_states = as_list(row.get("expected_states") or row.get("expected_state"))
     return {
-        "profiles": profiles or as_list(row.get("expected_profiles") or row.get("expected_profile")),
-        "states": states or as_list(row.get("expected_states") or row.get("expected_state")),
+        # Per-listing expectations are required for benchmarks whose top-level
+        # scope contains multiple profiles or states. The sample scope remains
+        # the fallback for compact single-scope inputs.
+        "profiles": row_profiles or profiles,
+        "states": row_states or states,
         "opportunity_types": as_list(
             row.get("expected_opportunity_types") or row.get("expected_opportunity_type")
         ),

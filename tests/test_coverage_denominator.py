@@ -164,7 +164,11 @@ class CoverageDenominatorTests(unittest.TestCase):
             "https://careers-acme.icims.com/jobs/1234/job": "icims",
             "https://eeho.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/1234": "oracle",
             "https://jobs.jobvite.com/acme/job/abcd": "jobvite",
-            "https://careers.example.com/jobs/1234": "unknown",
+            "https://jobs.acme.successfactors.com/job/1234": "successfactors",
+            "https://acme.taleo.net/careersection/jobdetail.ftl?job=1234": "taleo",
+            "https://jobs.acme.eightfold.ai/careers/job/1234": "eightfold",
+            "https://www.usajobs.gov/job/1234": "usajobs",
+            "https://careers.example.com/jobs/1234": "employer/custom",
         }
         for url, expected in cases.items():
             with self.subTest(url=url):
@@ -211,6 +215,46 @@ class CoverageDenominatorTests(unittest.TestCase):
         self.assertIn("## Missing listings by ATS family", rendered)
         self.assertIn("`workday`: **2**", rendered)
         self.assertIn("`greenhouse`: **1**", rendered)
+
+    def test_regional_misses_are_grouped_by_state_reason_and_discovery_source(self):
+        rows = [
+            {
+                "company": "Alpha",
+                "title": "Software Intern",
+                "location": "Hartford, CT",
+                "url": "https://alpha.example/jobs/1",
+                "source": "Web search",
+                "expected_state": "CT",
+            },
+            {
+                "company": "Beta",
+                "title": "Cybersecurity Intern",
+                "location": "New York, NY",
+                "url": "https://beta.example/jobs/2",
+                "source": "LinkedIn",
+                "expected_state": "NY",
+            },
+        ]
+        report = mod.build_report(
+            rows,
+            {"generated_at": "2026-09-17T00:00:00Z", "content_hash": "x"},
+            [],
+            CATALOG,
+            ["cs"],
+            ["CT", "NY"],
+            audit_meta={"name": "Regional CS"},
+        )
+        self.assertEqual(report["summary"]["missing_by_state"], {"CT": 1, "NY": 1})
+        self.assertEqual(report["summary"]["missing_by_reason_code"], {"uncovered_source": 2})
+        self.assertEqual(
+            report["summary"]["missing_by_discovery_source"],
+            {"LinkedIn": 1, "Web search": 1},
+        )
+        self.assertEqual(sum(report["summary"]["by_state"]["CT"].values()), 1)
+        rendered = mod.markdown(report)
+        self.assertIn("## Results by benchmark state", rendered)
+        self.assertIn("`CT`: **1** listings, **1** missing", rendered)
+        self.assertIn("## Missing listings by reason code", rendered)
 
 
 if __name__ == "__main__":

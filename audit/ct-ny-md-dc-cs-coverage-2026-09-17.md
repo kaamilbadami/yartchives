@@ -1,0 +1,269 @@
+# CT / NY / MD / DC undergraduate CS coverage benchmark
+
+External sample collected: `2026-09-17T15:30:00Z`
+Yartchives feed snapshot: `2026-09-17T15:39:02.689294Z`
+Scope: profiles=cs, states=CT,NY,MD,DC
+
+- External observations collected: **106**
+- Unique external listings (denominator): **106**
+- Duplicate observations collapsed: **0**
+- Captured or probably captured: **50** (47.2%)
+- Visible under expected filters: **32** (30.2%)
+- Actionable findings: **74**
+
+## Missing listings by ATS family
+
+- `discovery-only`: **24**
+- `employer/custom`: **21**
+- `greenhouse`: **7**
+- `workday`: **2**
+- `icims`: **1**
+- `usajobs`: **1**
+
+## Results by benchmark state
+
+- `CT`: **20** listings, **11** missing
+- `DC`: **25** listings, **15** missing
+- `MD`: **27** listings, **21** missing
+- `NY`: **34** listings, **9** missing
+
+## Missing listings by reason code
+
+- `uncovered_source`: **33**
+- `known_employer_missing_role`: **22**
+- `configured_source_listing_absent`: **1**
+
+## Status breakdown
+
+- `already_in_yartchives`: 32
+- `filtered_or_misclassified`: 10
+- `duplicate_resolution_issue`: 8
+- `employer_exists_but_listing_missing`: 22
+- `configured_source_miss`: 1
+- `source_not_covered`: 33
+- `unknown`: 0
+
+## Action queue
+
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Castleton Commodities International — Cybersecurity Internship (Summer 2027) — Stamford, CT
+  - Why: Yartchives has 4 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **source_not_covered** (`uncovered_source`): Spectrum — 2027 Summer Intern: Revenue Assurance - Corporate — Stamford, CT
+  - Why: source_key=2026 81711
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.
+- **source_not_covered** (`uncovered_source`): Spectrum — 2027 Summer Intern: Business Analyst — Stamford, CT
+  - Why: source_key=2026 81924
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): General Dynamics Electric Boat — Cybersecurity - 2027 Summer Internship — Groton, CT
+  - Why: Yartchives has 3 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **source_not_covered** (`uncovered_source`): Interactive Brokers — Software Developer Summer Internship - 2027 — Greenwich, CT
+  - Why: source_key=4456794958
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): Interactive Brokers — Cybersecurity Internship 2027 — Greenwich, CT
+  - Why: source_key=4450266402
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): Otis Elevator Co. — Embedded Software Engineering Intern — Farmington, CT
+  - Why: source_key=4462304550
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): HSB - Hartford Steam Boiler — Data Science Intern — Hartford, CT
+  - Why: source_key=14193
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): LiquidPiston — Electrical Engineering Intern - Spring 2027 — Suffield, CT
+  - Why: source_key=4459970155
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **configured_source_miss** (`configured_source_listing_absent`): Avangrid — 2027 Technology, Cyber & Data Internship Program — Orange, CT
+  - Why: source appears configured (employer has a configured direct source) but this listing is absent after ingestion
+  - Next: Inspect source freshness, adapter filters, ingestion errors, and enrichment for this listing.
+- **source_not_covered** (`uncovered_source`): Selective Insurance — IT E&S Insurance Product Delivery Summer Internship — Hartford, CT
+  - Why: source_key=selective it product delivery 2027
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **filtered_or_misclassified** (`present_but_hidden`): Schonfeld — 2027 Business Analytics Intern — New York, NY
+  - Why: missing expected profile 'cs'
+  - Next: Review profile/state/type enrichment or default filter metadata.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Schonfeld — 2027 Cybersecurity Operations Intern — New York, NY
+  - Why: Yartchives has 12 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **duplicate_resolution_issue** (`provider_identity_mismatch`): Schonfeld — 2027 DMFI Technology Intern — New York, NY
+  - Why: same ATS/listing identifier exists but ordinary URL/signature matching failed
+  - Next: Add or improve provider-specific canonicalization/deduplication.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): DV Trading — Client Platforms Engineer Intern - Summer 2027 — New York, NY
+  - Why: Yartchives has 9 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **duplicate_resolution_issue** (`provider_identity_mismatch`): DV Trading — Quantitative Research Intern - Summer 2027 (DV Equities) — New York, NY
+  - Why: same ATS/listing identifier exists but ordinary URL/signature matching failed
+  - Next: Add or improve provider-specific canonicalization/deduplication.
+- **filtered_or_misclassified** (`present_but_hidden`): Lyft — Data Analyst Intern (Summer 2027) — New York, NY
+  - Why: missing expected profile 'cs'
+  - Next: Review profile/state/type enrichment or default filter metadata.
+- **filtered_or_misclassified** (`present_but_hidden`): Datadog — Software Engineering Intern (Summer) — New York, NY
+  - Why: missing expected state 'NY'
+  - Next: Review profile/state/type enrichment or default filter metadata.
+- **duplicate_resolution_issue** (`probable_duplicate`): Figma — Software Engineer Intern (Summer 2027) — New York, NY
+  - Why: same employer has a very similar title and compatible location
+  - Next: Verify requisition identity; if it is the same role, improve normalization.
+- **duplicate_resolution_issue** (`probable_duplicate`): Figma — Software Engineer Intern (Winter 2027) — New York, NY
+  - Why: same employer has a very similar title and compatible location
+  - Next: Verify requisition identity; if it is the same role, improve normalization.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Point72 — Machine Learning Researcher - Intern — New York, NY
+  - Why: Yartchives has 5 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **filtered_or_misclassified** (`present_but_hidden`): Point72 — Quantitative Researcher Intern — New York, NY
+  - Why: missing expected profile 'cs'
+  - Next: Review profile/state/type enrichment or default filter metadata.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Point72 — Quantitative Software Developer Intern — New York, NY
+  - Why: Yartchives has 5 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Audax Group — IT Operations Co-Op — New York, NY
+  - Why: Yartchives has 4 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **filtered_or_misclassified** (`present_but_hidden`): BNY — 2027 BNY Summer Internship Program - Engineering (Developer) - New York, NY — New York, NY
+  - Why: missing expected profile 'cs'
+  - Next: Review profile/state/type enrichment or default filter metadata.
+- **duplicate_resolution_issue** (`probable_duplicate`): BNY — 2027 BNY Summer Internship Program - Engineering (Production Services) - New York, NY — New York, NY
+  - Why: same employer has a very similar title and compatible location
+  - Next: Verify requisition identity; if it is the same role, improve normalization.
+- **source_not_covered** (`uncovered_source`): Good Molecules — Full Stack Engineering Intern — New York, NY
+  - Why: source_key=1023521130
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.
+- **source_not_covered** (`uncovered_source`): Gemini — Blockchain & Web3 Software Engineering Intern — New York, NY
+  - Why: source_key=gemini blockchain 2027
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.
+- **source_not_covered** (`uncovered_source`): Federal Reserve Bank of Philadelphia — 2027 Summer Intern - Technology Group - Junior — New York, NY
+  - Why: source_key=1014424208
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.
+- **source_not_covered** (`uncovered_source`): Federal Reserve Bank of Philadelphia — 2027 Summer Intern - Technology Group - Sophomore — New York, NY
+  - Why: source_key=1014424209
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Johns Hopkins Applied Physics Laboratory — 2027 Internship - Software Development - Multi-Mission Planning Development — Laurel, MD
+  - Why: Yartchives has 14 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **duplicate_resolution_issue** (`provider_identity_mismatch`): Johns Hopkins Applied Physics Laboratory — 2027 Internship - Software Developer - Tactical System Prototyping and Deployment — Laurel, MD
+  - Why: same ATS/listing identifier exists but ordinary URL/signature matching failed
+  - Next: Add or improve provider-specific canonicalization/deduplication.
+- **duplicate_resolution_issue** (`provider_identity_mismatch`): Johns Hopkins Applied Physics Laboratory — 2027 Internship - Software Engineer/Data Scientist/Ontologist - Threat Analytic Systems — Laurel, MD
+  - Why: same ATS/listing identifier exists but ordinary URL/signature matching failed
+  - Next: Add or improve provider-specific canonicalization/deduplication.
+- **duplicate_resolution_issue** (`provider_identity_mismatch`): Johns Hopkins Applied Physics Laboratory — 2027 Internship - Decision Science, Software Engineer, System Engineer — Laurel, MD
+  - Why: same ATS/listing identifier exists but ordinary URL/signature matching failed
+  - Next: Add or improve provider-specific canonicalization/deduplication.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Johns Hopkins Applied Physics Laboratory — 2027 Internship - Cybersecurity - Mission Engineering — Laurel, MD
+  - Why: Yartchives has 14 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Leidos — Cybersecurity Analyst Intern — Odenton, MD
+  - Why: Yartchives has 10 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **source_not_covered** (`uncovered_source`): Leonardo DRS — Summer 2027 Software Engineering Intern — Frederick, MD
+  - Why: source_key=115335
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): Textron Systems — 2027 Intern - Software Engineer (Electronic Systems) - Hunt Valley, MD — Hunt Valley, MD
+  - Why: source_key=textron es software 2027
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): Textron Systems — 2027 Co-Op - Software Engineer (Uncrewed Land & Air) - Hunt Valley, MD — Hunt Valley, MD
+  - Why: source_key=342620
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): Textron Systems — 2027 Intern - Software Engineer (Sea Systems) - Hunt Valley, MD — Hunt Valley, MD
+  - Why: source_key=textron sea software 2027
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): Textron Systems — 2027 Intern - Firmware Engineer (Weapons) - Hunt Valley, MD — Hunt Valley, MD
+  - Why: source_key=textron firmware weapons 2027
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): HII Mission Technologies — Software Engineer Intern (Multiple Levels) - 30069 — Columbia, MD
+  - Why: source_key=30069
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): Visionist — Software Engineer Intern — Columbia, MD
+  - Why: source_key=visionist software intern 2027
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): AeroVironment — Summer 2027 Software Engineering Intern — Germantown, MD
+  - Why: Yartchives has 10 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): AeroVironment — Summer 2027 Software Engineering Intern — Annapolis Junction, MD
+  - Why: Yartchives has 10 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): AeroVironment — Summer 2027 Embedded Software Engineering Intern — Annapolis Junction, MD
+  - Why: Yartchives has 10 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **source_not_covered** (`uncovered_source`): MITRE — Internships in Computer Science or Software Engineering — Aberdeen, MD
+  - Why: source_key=mitre cs swe aberdeen 2027
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): MITRE — Internships in Cybersecurity and Information Security — Gaithersburg, MD
+  - Why: source_key=mitre cyber gaithersburg 2027
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Exelon — 2027 Summer Internship - Cyber Security (Owings Mills, Maryland) — Owings Mills, MD
+  - Why: Yartchives has 1 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Exelon — 2027 Summer Internship - Data Science/Analytics — Windsor Mill, MD
+  - Why: Yartchives has 1 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **source_not_covered** (`uncovered_source`): Maryland State Department of Education — Office of IT, Cybersecurity Intern — Baltimore, MD
+  - Why: source_key=26 005302 0011
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.
+- **source_not_covered** (`uncovered_source`): Peraton Labs — Summer 2027 Cyber Research Intern — Silver Spring, MD
+  - Why: source_key=2026 170120
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): NSA — Summer 2027 Internship Program - Cryptanalysis and Signals Analysis — Fort Meade, MD
+  - Why: source_key=nsa cryptanalysis signals 2027
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): NSA — 2027 Summer Internship Program - Data Center Facility Management — Fort Meade, MD
+  - Why: source_key=4454899399
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **filtered_or_misclassified** (`present_but_hidden`): Palantir Technologies — Forward Deployed Software Engineer, Internship - Defense Tech — Washington, DC
+  - Why: missing expected state 'DC'
+  - Next: Review profile/state/type enrichment or default filter metadata.
+- **filtered_or_misclassified** (`present_but_hidden`): Palantir Technologies — Forward Deployed Software Engineer, Internship - US Government — Washington, DC
+  - Why: missing expected state 'DC'
+  - Next: Review profile/state/type enrichment or default filter metadata.
+- **filtered_or_misclassified** (`present_but_hidden`): Palantir Technologies — Software Engineer, Internship — Washington, DC
+  - Why: missing expected state 'DC'
+  - Next: Review profile/state/type enrichment or default filter metadata.
+- **filtered_or_misclassified** (`present_but_hidden`): Palantir Technologies — Software Engineer, Internship - Production Infrastructure — Washington, DC
+  - Why: missing expected state 'DC'
+  - Next: Review profile/state/type enrichment or default filter metadata.
+- **filtered_or_misclassified** (`present_but_hidden`): The Nuclear Company — Spring 2027 AI Applied Research Internship — Washington, DC
+  - Why: missing expected profile 'cs'
+  - Next: Review profile/state/type enrichment or default filter metadata.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Anduril — Winter 2027 Technical Program Management Co-op — Washington, DC
+  - Why: Yartchives has 9 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Anduril — Winter 2027 Test Automation Engineer Co-op — Washington, DC
+  - Why: Yartchives has 9 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **source_not_covered** (`uncovered_source`): Amtrak — Fall 2026/Spring 2027 - Software Engineering Intern - 90413041 - Washington — Washington, DC
+  - Why: source_key=90413041
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): Amtrak — Spring 2027 - Software Engineering Intern - 90413037 - Washington — Washington, DC
+  - Why: source_key=90413037
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): Amtrak — Fall 2026/Spring 2027 - AI Engineer Intern - 90413047 - Washington — Washington, DC
+  - Why: source_key=90413047
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): Amtrak — Fall 2026/Spring 2027 - Data & AI Insights Engineer Intern - 90413049 - Washington — Washington, DC
+  - Why: source_key=90413049
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Shield AI — Summer 2027 - Software Engineer Intern — Washington, DC
+  - Why: Yartchives has 4 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **source_not_covered** (`uncovered_source`): TikTok USDS Joint Venture — Security Engineer Intern (Security & Privacy) - 2027 Summer — Washington, DC
+  - Why: source_key=tiktok usds security dc 2027
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): PwC — Technology Consulting - Intern - Summer 2027 — Washington, DC
+  - Why: source_key=4461560565
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): PwC — Cybersecurity Consulting Intern - Summer 2027 — Washington, DC
+  - Why: source_key=pwc cyber consulting dc 2027
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **source_not_covered** (`uncovered_source`): PwC — Deals - DTDS - Analytics Intern - Summer 2027 — Washington, DC
+  - Why: source_key=pwc dtds analytics dc 2027
+  - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Amgen — Undergrad Intern Software Engineer - Technology & Medical Organizations (Summer 2027) — Washington, DC
+  - Why: Yartchives has 11 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Supreme Court of the United States — Office of Information Technology - IT Operations Intern — Washington, DC
+  - Why: Yartchives has 8 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Inter-American Development Bank — Undergraduate Emerging Technologies Lab Intern — Washington, DC
+  - Why: Yartchives has 5 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Exelon — 2027 Summer Internship - Data Science/Analytics — Washington, DC
+  - Why: Yartchives has 1 listing(s) for this employer but not this role
+  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
