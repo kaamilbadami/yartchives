@@ -65,8 +65,7 @@ class UpdateFeedWorkflowTests(unittest.TestCase):
         tail = text[final_commit:]
 
         self.assertIn(
-            "grep -Ev '^data/(listings|workday-inspections)\\.json    unittest.main()
- || true",
+            "grep -Ev '^data/(listings|workday-inspections)\\.json$' || true",
             tail,
         )
         self.assertEqual(tail.count("git reset --hard origin/main"), 1)
