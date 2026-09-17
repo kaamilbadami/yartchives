@@ -64,8 +64,192 @@
   min-height: 1.2rem;
 }
 
+.apply-next-location-intro,
+.apply-next-location-panel {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.apply-next-location-mode-toggle {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.25rem;
+  width: min(100%, 360px);
+  padding: 0.25rem;
+  border: 1px solid var(--line, #d9dde5);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--panel, #fff) 82%, var(--line, #d9dde5));
+}
+
+.apply-next-location-mode-button {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.55rem 0.9rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.apply-next-location-mode-button[aria-pressed="true"] {
+  background: var(--panel, #fff);
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+}
+
+.apply-next-location-panel {
+  padding: 0.9rem;
+  border: 1px solid var(--line, #d9dde5);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--panel, #fff) 94%, #f5f7fb);
+}
+
+.apply-next-location-summary-chip {
+  width: fit-content;
+  padding: 0.28rem 0.55rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent, #315efb) 12%, transparent);
+  color: var(--accent, #315efb);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.apply-next-location-panel-heading {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.apply-next-location-anchor-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.apply-next-location-anchor-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1.15fr) minmax(110px, 0.9fr) minmax(90px, 0.7fr) auto;
+  gap: 0.65rem;
+  align-items: end;
+  padding: 0.75rem;
+  border: 1px solid var(--line, #d9dde5);
+  border-radius: 12px;
+  background: var(--panel, #fff);
+}
+
+.apply-next-location-remove {
+  align-self: center;
+  margin-top: 1.1rem;
+}
+
+.apply-next-location-add {
+  width: fit-content;
+}
+
+.apply-next-location-score-grid {
+  margin-top: 0.2rem;
+}
+
+.apply-next-location-field-hint {
+  color: var(--muted, #6b7280);
+  font-size: 0.76rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.apply-next-location-hard-limit {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.7rem 0.75rem;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel, #fff) 70%, #eef2f7);
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.apply-next-location-hard-limit input {
+  margin-top: 0.12rem;
+}
+
+.apply-next-location-regions {
+  border-top: 1px solid var(--line, #d9dde5);
+  padding-top: 0.8rem;
+}
+
+.apply-next-location-regions summary {
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.apply-next-location-regions[open] summary {
+  margin-bottom: 0.6rem;
+}
+
+.apply-next-location-region-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.apply-next-location-region-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "title input"
+    "states input";
+  gap: 0.16rem 0.7rem;
+  align-items: center;
+  padding: 0.7rem;
+  border: 1px solid var(--line, #d9dde5);
+  border-radius: 11px;
+  background: var(--panel, #fff);
+}
+
+.apply-next-location-region-title {
+  grid-area: title;
+  font-size: 0.86rem;
+  font-weight: 750;
+}
+
+.apply-next-location-region-states {
+  grid-area: states;
+  color: var(--muted, #6b7280);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.apply-next-location-region-card input {
+  grid-area: input;
+  width: 76px;
+  box-sizing: border-box;
+  font: inherit;
+}
+
 @media (max-width: 720px) {
-  .apply-next-profile-grid {
+  .apply-next-profile-grid,
+  .apply-next-location-region-grid {
     grid-template-columns: 1fr;
+  }
+
+  .apply-next-location-anchor-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .apply-next-location-remove {
+    margin-top: 0;
+    justify-self: start;
+  }
+}
+
+@media (max-width: 480px) {
+  .apply-next-location-anchor-row {
+    grid-template-columns: 1fr;
+  }
+
+  .apply-next-location-mode-toggle {
+    width: 100%;
   }
 }
