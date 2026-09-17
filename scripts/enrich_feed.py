@@ -39,6 +39,7 @@ INTERNSHIP_FEED_KEYS = {
 STRICT_CS_SOURCE_PREFIXES = (
     "ct-",
     "auto-greenhouse-",
+    "auto-icims-",
 )
 
 # Upstream repositories use these as visual legends. They are source metadata,
