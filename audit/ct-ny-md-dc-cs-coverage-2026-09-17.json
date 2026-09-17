@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-09-17T18:02:07.423216Z",
+  "generated_at": "2026-09-17T18:17:11.558320Z",
   "audit": {
     "name": "CT / NY / MD / DC undergraduate CS coverage benchmark",
     "collected_at": "2026-09-17T15:30:00Z",
@@ -18,9 +18,9 @@
     }
   },
   "feed": {
-    "generated_at": "2026-09-17T17:55:06.707339Z",
-    "content_hash": "3b32204861c446789fc4341463777d0245dfff516c195e2001780321394a62fc",
-    "indexed_jobs": 5717
+    "generated_at": "2026-09-17T18:11:34.574004Z",
+    "content_hash": "c832aa85569a894238acdd927eb4975fa2658436c8ddd0bc9ad7889082f5f78d",
+    "indexed_jobs": 5728
   },
   "scope": {
     "profiles": [
@@ -35,26 +35,26 @@
   },
   "summary": {
     "external_listings": 106,
-    "captured_or_probably_captured": 50,
+    "captured_or_probably_captured": 53,
     "visible_under_expected_filters": 33,
     "actionable_findings": 73,
-    "capture_rate": 0.4717,
+    "capture_rate": 0.5,
     "visible_rate": 0.3113,
     "status_counts": {
       "already_in_yartchives": 33,
-      "filtered_or_misclassified": 9,
-      "duplicate_resolution_issue": 8,
-      "employer_exists_but_listing_missing": 22,
+      "filtered_or_misclassified": 11,
+      "duplicate_resolution_issue": 9,
+      "employer_exists_but_listing_missing": 19,
       "configured_source_miss": 1,
       "source_not_covered": 33,
       "unknown": 0
     },
     "by_source": {
       "Employer/ATS search": {
-        "filtered_or_misclassified": 5,
-        "employer_exists_but_listing_missing": 5,
+        "filtered_or_misclassified": 6,
         "already_in_yartchives": 9,
-        "duplicate_resolution_issue": 4
+        "duplicate_resolution_issue": 5,
+        "employer_exists_but_listing_missing": 3
       },
       "Indeed": {
         "already_in_yartchives": 3
@@ -77,9 +77,10 @@
         "employer_exists_but_listing_missing": 1
       },
       "Ordinary web search": {
-        "employer_exists_but_listing_missing": 7,
+        "employer_exists_but_listing_missing": 6,
         "already_in_yartchives": 5,
         "source_not_covered": 3,
+        "filtered_or_misclassified": 1,
         "duplicate_resolution_issue": 2
       }
     },
@@ -89,7 +90,7 @@
     "missing_by_ats_family": {
       "discovery-only": 24,
       "employer/custom": 21,
-      "greenhouse": 7,
+      "greenhouse": 4,
       "workday": 2,
       "icims": 1,
       "usajobs": 1
@@ -102,9 +103,9 @@
         "configured_source_miss": 1
       },
       "DC": {
-        "filtered_or_misclassified": 5,
+        "filtered_or_misclassified": 6,
         "already_in_yartchives": 5,
-        "employer_exists_but_listing_missing": 7,
+        "employer_exists_but_listing_missing": 6,
         "source_not_covered": 8
       },
       "MD": {
@@ -114,29 +115,29 @@
         "source_not_covered": 13
       },
       "NY": {
-        "filtered_or_misclassified": 4,
-        "employer_exists_but_listing_missing": 5,
+        "filtered_or_misclassified": 5,
         "already_in_yartchives": 16,
-        "duplicate_resolution_issue": 5,
+        "duplicate_resolution_issue": 6,
+        "employer_exists_but_listing_missing": 3,
         "source_not_covered": 4
       }
     },
     "missing_by_state": {
       "CT": 11,
-      "DC": 15,
+      "DC": 14,
       "MD": 21,
-      "NY": 9
+      "NY": 7
     },
     "missing_by_reason_code": {
       "uncovered_source": 33,
-      "known_employer_missing_role": 22,
+      "known_employer_missing_role": 19,
       "configured_source_listing_absent": 1
     },
     "missing_by_discovery_source": {
       "LinkedIn": 36,
-      "Ordinary web search": 10,
-      "Employer/ATS search": 5,
+      "Ordinary web search": 9,
       "Internships.com": 4,
+      "Employer/ATS search": 3,
       "Major aggregator": 1
     }
   },
@@ -1291,68 +1292,31 @@
         ],
         "default_visible": true
       },
-      "status": "employer_exists_but_listing_missing",
+      "status": "already_in_yartchives",
       "confidence": "high",
-      "reason_code": "known_employer_missing_role",
-      "reason": "Yartchives has 15 listing(s) for this employer but not this role",
-      "recommended_action": "Trace the role to the employer ATS and check source filters or add direct coverage.",
-      "candidate_jobs": [
-        {
-          "id": "fc2d895c9c390909",
-          "company": "Schonfeld",
-          "title": "Quant Developer Intern - Discretionary Macro Fixed Income",
-          "location": "London, UK",
-          "url": "https://job-boards.greenhouse.io/schonfeld/jobs/8207942?amp%3Bref=Simplify",
-          "profiles": [
-            "general"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "simplify"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-17T00:00:00Z"
-        },
-        {
-          "id": "d4c5c89e7a0ff281",
-          "company": "Schonfeld",
-          "title": "2027 Platform Engineering Intern",
-          "location": "New York, New York, United States",
-          "url": "https://job-boards.greenhouse.io/schonfeld/jobs/8171699",
-          "profiles": [
-            "cs"
-          ],
-          "states": [
-            "NY",
-            "US"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "dreamwork-tech"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-10T16:09:58Z"
-        },
-        {
-          "id": "d700d7202a5c8628",
-          "company": "Schonfeld",
-          "title": "Quantitative Researcher Intern",
-          "location": "London, UK",
-          "url": "https://job-boards.greenhouse.io/schonfeld/jobs/8187178?amp%3Bref=Simplify",
-          "profiles": [
-            "general"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "graduate-only",
-          "source_keys": [
-            "simplify"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-09T00:00:00Z"
-        }
-      ],
+      "reason_code": "exact_match",
+      "reason": "matched by canonical URL or normalized company/title/location",
+      "recommended_action": "No coverage fix needed.",
+      "matched_job": {
+        "id": "045cd0bbf73e5e5d",
+        "company": "Schonfeld",
+        "title": "2027 Cybersecurity Operations Intern",
+        "location": "New York, New York, United States",
+        "url": "https://job-boards.greenhouse.io/schonfeld/jobs/8171696",
+        "profiles": [
+          "cs"
+        ],
+        "states": [
+          "NY",
+          "US"
+        ],
+        "opportunity_type": "internship",
+        "education_level": "unspecified",
+        "source_keys": [
+          "auto-greenhouse-schonfeld"
+        ],
+        "link_kind": "direct"
+      },
       "input_index": 22,
       "observation_count": 1,
       "observed_sources": [
@@ -1393,8 +1357,8 @@
       "matched_job": {
         "id": "42b0f40d6ed0829d",
         "company": "Schonfeld",
-        "title": "Data Science Intern",
-        "location": "NYC",
+        "title": "2027 Data Science Intern",
+        "location": "New York, New York, United States",
         "url": "https://job-boards.greenhouse.io/schonfeld/jobs/8171692",
         "profiles": [
           "cs"
@@ -1406,6 +1370,7 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
+          "auto-greenhouse-schonfeld",
           "dreamwork-tech",
           "simplify"
         ],
@@ -1563,9 +1528,9 @@
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "f136b6080eb78c37",
-        "company": "SAGE",
-        "title": "Software Engineering Intern - Edge - Summer 2027",
-        "location": "New York City, NY",
+        "company": "Sage49",
+        "title": "Software Engineering Intern (Edge) – Summer 2027",
+        "location": "New York, New York, United States",
         "url": "https://job-boards.greenhouse.io/sage49/jobs/6131191004",
         "profiles": [
           "cs"
@@ -1578,6 +1543,7 @@
         "education_level": "unspecified",
         "source_keys": [
           "applyguy",
+          "auto-greenhouse-sage49",
           "dreamwork-tech",
           "simplify",
           "speedyapply"
@@ -1624,9 +1590,9 @@
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "6b135cefd8ffbe73",
-        "company": "SAGE",
-        "title": "Software Engineering Intern - Full Stack - Summer 2027",
-        "location": "New York City, NY",
+        "company": "Sage49",
+        "title": "Software Engineering Intern (Full Stack) – Summer 2027",
+        "location": "New York, New York, United States",
         "url": "https://job-boards.greenhouse.io/sage49/jobs/6131185004",
         "profiles": [
           "cs"
@@ -1639,6 +1605,7 @@
         "education_level": "unspecified",
         "source_keys": [
           "applyguy",
+          "auto-greenhouse-sage49",
           "dreamwork-tech",
           "simplify",
           "speedyapply"
@@ -1685,9 +1652,9 @@
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "2d4edfc8e5e5d4fa",
-        "company": "Viam",
-        "title": "Software Engineering Intern - Summer 2027",
-        "location": "New York City, NY",
+        "company": "Viamrobotics",
+        "title": "Software Engineering Intern (Summer 2027)",
+        "location": "New York, NY",
         "url": "https://job-boards.greenhouse.io/viamrobotics/jobs/6185046004",
         "profiles": [
           "cs"
@@ -1699,6 +1666,7 @@
         "education_level": "unspecified",
         "source_keys": [
           "applyguy",
+          "auto-greenhouse-viamrobotics",
           "dreamwork-tech",
           "simplify",
           "speedyapply"
@@ -1745,9 +1713,9 @@
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "184b0f97d36f0c39",
-        "company": "Garda Capital Partners",
+        "company": "Gardacp",
         "title": "Software Engineer Intern",
-        "location": "New York City, NY",
+        "location": "New York, New York, United States",
         "url": "https://job-boards.greenhouse.io/gardacp/jobs/6146213004",
         "profiles": [
           "cs"
@@ -1760,6 +1728,7 @@
         "education_level": "unspecified",
         "source_keys": [
           "applyguy",
+          "auto-greenhouse-gardacp",
           "dreamwork-tech",
           "simplify",
           "speedyapply"
@@ -1807,8 +1776,8 @@
       "matched_job": {
         "id": "8eec891f2a7f97f5",
         "company": "DoorDash",
-        "title": "Software Engineer Intern - Summer 2027",
-        "location": "5 locations Seattle, WA / SF / LA / NYC / Sunnyvale, CA",
+        "title": "Software Engineer, Intern (Summer 2027) - US",
+        "location": "New York, NY; San Francisco, CA; Sunnyvale, CA; Los Angeles, CA; Seattle, WA",
         "url": "https://job-boards.greenhouse.io/doordashusa/jobs/8171041",
         "profiles": [
           "cs"
@@ -1823,6 +1792,7 @@
         "education_level": "unspecified",
         "source_keys": [
           "applyguy",
+          "auto-greenhouse-doordashusa",
           "dreamwork-tech",
           "simplify",
           "speedyapply",
@@ -1866,7 +1836,7 @@
       "status": "employer_exists_but_listing_missing",
       "confidence": "high",
       "reason_code": "known_employer_missing_role",
-      "reason": "Yartchives has 13 listing(s) for this employer but not this role",
+      "reason": "Yartchives has 12 listing(s) for this employer but not this role",
       "recommended_action": "Trace the role to the employer ATS and check source filters or add direct coverage.",
       "candidate_jobs": [
         {
@@ -1887,29 +1857,6 @@
           "posted_at": "2026-09-12T00:00:00Z"
         },
         {
-          "id": "4ba7fc776facc064",
-          "company": "DV Trading",
-          "title": "Software Developer Intern",
-          "location": "NYC",
-          "url": "https://job-boards.greenhouse.io/dvtrading/jobs/4733138005",
-          "profiles": [
-            "cs"
-          ],
-          "states": [
-            "NY"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "applyguy",
-            "dreamwork-tech",
-            "simplify",
-            "speedyapply"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-12T00:00:00Z"
-        },
-        {
           "id": "49dd3e268c5bfd49",
           "company": "DV Trading",
           "title": "Quantitative Trading Intern - DV Equities",
@@ -1925,6 +1872,25 @@
           ],
           "link_kind": "direct",
           "posted_at": "2026-09-12T00:00:00Z"
+        },
+        {
+          "id": "4c861ffa7a72536f",
+          "company": "DV Trading",
+          "title": "Quantitative Trading Intern - Summer 2027 - DV Equities",
+          "location": "New York City, NY",
+          "profiles": [
+            "finance-econ"
+          ],
+          "states": [
+            "NY"
+          ],
+          "opportunity_type": "internship",
+          "education_level": "unspecified",
+          "source_keys": [
+            "speedyapply-ai"
+          ],
+          "link_kind": "source",
+          "posted_at": "2026-09-11T00:00:00Z"
         }
       ],
       "input_index": 31,
@@ -2020,9 +1986,9 @@
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "4ba7fc776facc064",
-        "company": "DV Trading",
-        "title": "Software Developer Intern",
-        "location": "NYC",
+        "company": "Dvtrading",
+        "title": "Software Developer Intern - Summer 2027 (DV Equities)",
+        "location": "New York",
         "url": "https://job-boards.greenhouse.io/dvtrading/jobs/4733138005",
         "profiles": [
           "cs"
@@ -2034,6 +2000,7 @@
         "education_level": "unspecified",
         "source_keys": [
           "applyguy",
+          "auto-greenhouse-dvtrading",
           "dreamwork-tech",
           "simplify",
           "speedyapply"
@@ -2093,6 +2060,7 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
+          "auto-greenhouse-dvtrading",
           "dreamwork-tech",
           "simplify",
           "speedyapply",
@@ -2425,17 +2393,18 @@
         ],
         "default_visible": true
       },
-      "status": "already_in_yartchives",
-      "confidence": "high",
-      "reason_code": "exact_match",
-      "reason": "matched by canonical URL or normalized company/title/location",
-      "recommended_action": "No coverage fix needed.",
+      "status": "duplicate_resolution_issue",
+      "confidence": "medium",
+      "reason_code": "probable_duplicate",
+      "reason": "same employer has a very similar title and compatible location",
+      "recommended_action": "Verify requisition identity; if it is the same role, improve normalization.",
+      "match_score": 0.991,
       "matched_job": {
         "id": "e37c434b51ff595e",
         "company": "Figma",
         "title": "Data Science Intern (2027)",
         "location": "San Francisco, CA • New York, NY",
-        "url": "https://boards.greenhouse.io/figma/jobs/6178857004?gh_jid=6178857004",
+        "url": "https://job-boards.greenhouse.io/figma/jobs/6178857004",
         "profiles": [
           "cs"
         ],
@@ -2446,11 +2415,12 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
+          "auto-greenhouse-figma",
           "dreamwork-tech",
           "zapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-15T00:00:00Z"
+        "posted_at": "2026-09-14T17:36:27Z"
       },
       "input_index": 40,
       "observation_count": 1,
@@ -2507,6 +2477,7 @@
         "education_level": "unspecified",
         "source_keys": [
           "applyguy",
+          "auto-greenhouse-figma",
           "dreamwork-tech",
           "simplify",
           "speedyapply",
@@ -2552,13 +2523,13 @@
       "reason_code": "probable_duplicate",
       "reason": "same employer has a very similar title and compatible location",
       "recommended_action": "Verify requisition identity; if it is the same role, improve normalization.",
-      "match_score": 0.905,
+      "match_score": 0.991,
       "matched_job": {
-        "id": "87e5c5ae4a796960",
+        "id": "8cf27e2e94bfe349",
         "company": "Figma",
-        "title": "Software Engineer Intern (Summer 2027)",
+        "title": "Software Engineer Intern (Winter 2027)",
         "location": "San Francisco, CA • New York, NY",
-        "url": "https://job-boards.greenhouse.io/figma/jobs/6143238004",
+        "url": "https://job-boards.greenhouse.io/figma/jobs/6131089004",
         "profiles": [
           "cs"
         ],
@@ -2569,14 +2540,12 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
-          "applyguy",
+          "auto-greenhouse-figma",
           "dreamwork-tech",
-          "simplify",
-          "speedyapply",
-          "zapply"
+          "speedyapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-15T00:00:00Z"
+        "posted_at": "2026-08-11T00:00:00Z"
       },
       "input_index": 42,
       "observation_count": 1,
@@ -2928,77 +2897,31 @@
         ],
         "default_visible": true
       },
-      "status": "employer_exists_but_listing_missing",
+      "status": "filtered_or_misclassified",
       "confidence": "high",
-      "reason_code": "known_employer_missing_role",
-      "reason": "Yartchives has 4 listing(s) for this employer but not this role",
-      "recommended_action": "Trace the role to the employer ATS and check source filters or add direct coverage.",
-      "candidate_jobs": [
-        {
-          "id": "ab3c4e3b01d1b393",
-          "company": "Audax Group",
-          "title": "Data Engineer CO-OP",
-          "location": "Boston, MA",
-          "url": "https://boards.greenhouse.io/audaxgroup/jobs/4722779005",
-          "profiles": [
-            "cs"
-          ],
-          "states": [
-            "MA"
-          ],
-          "opportunity_type": "co-op",
-          "education_level": "unspecified",
-          "source_keys": [
-            "applyguy",
-            "dreamwork-tech",
-            "speedyapply-ai"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-08-25T17:54:24Z"
-        },
-        {
-          "id": "a14a814c357e22e2",
-          "company": "Audax Group",
-          "title": "Data Analytics Co-Op",
-          "location": "Boston, MA",
-          "url": "https://boards.greenhouse.io/audaxgroup/jobs/4722880005",
-          "profiles": [
-            "tech-business"
-          ],
-          "states": [
-            "MA"
-          ],
-          "opportunity_type": "co-op",
-          "education_level": "unspecified",
-          "source_keys": [
-            "dreamwork-business",
-            "dreamwork-tech",
-            "speedyapply-ai"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-08-25T15:04:19Z"
-        },
-        {
-          "id": "da60503bb915ec88",
-          "company": "Audax Group",
-          "title": "Data Engineer Co-Op",
-          "location": "Boston, Massachusetts",
-          "url": "https://boards.greenhouse.io/audaxgroup/jobs/4722770005",
-          "profiles": [
-            "cs"
-          ],
-          "states": [
-            "MA"
-          ],
-          "opportunity_type": "co-op",
-          "education_level": "unspecified",
-          "source_keys": [
-            "dreamwork-tech"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-08-25T09:24:34Z"
-        }
-      ],
+      "reason_code": "present_but_hidden",
+      "reason": "missing expected profile 'cs'",
+      "recommended_action": "Review profile/state/type enrichment or default filter metadata.",
+      "matched_job": {
+        "id": "55c24a7a2daea9f4",
+        "company": "Audax Group",
+        "title": "IT Operations Co-Op",
+        "location": "New York, New York, United States",
+        "url": "https://job-boards.greenhouse.io/audaxgroup/jobs/4722759005",
+        "profiles": [
+          "general"
+        ],
+        "states": [
+          "NY",
+          "US"
+        ],
+        "opportunity_type": "co-op",
+        "education_level": "unspecified",
+        "source_keys": [
+          "auto-greenhouse-audaxgroup"
+        ],
+        "link_kind": "direct"
+      },
       "input_index": 47,
       "observation_count": 1,
       "observed_sources": [
@@ -5335,6 +5258,7 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
+          "auto-greenhouse-thenuclearcompany",
           "dreamwork-tech"
         ],
         "link_kind": "direct",
@@ -5392,6 +5316,7 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
+          "auto-greenhouse-thenuclearcompany",
           "dreamwork-tech"
         ],
         "link_kind": "direct",
@@ -5436,8 +5361,8 @@
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "93d962f94b8cd1d7",
-        "company": "The Nuclear Company",
-        "title": "Software Engineering Intern - Product - Platform",
+        "company": "Thenuclearcompany",
+        "title": "Summer 2027 Software Engineering Intern",
         "location": "Washington, DC",
         "url": "https://job-boards.greenhouse.io/thenuclearcompany/jobs/5383236008",
         "profiles": [
@@ -5449,6 +5374,7 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
+          "auto-greenhouse-thenuclearcompany",
           "dreamwork-tech",
           "simplify"
         ],
@@ -5490,39 +5416,14 @@
       "status": "employer_exists_but_listing_missing",
       "confidence": "high",
       "reason_code": "known_employer_missing_role",
-      "reason": "Yartchives has 9 listing(s) for this employer but not this role",
+      "reason": "Yartchives has 8 listing(s) for this employer but not this role",
       "recommended_action": "Trace the role to the employer ATS and check source filters or add direct coverage.",
       "candidate_jobs": [
-        {
-          "id": "3d12055c7a7e837a",
-          "company": "Anduril",
-          "title": "2027 Flight Software Engineer Intern",
-          "location": "Costa Mesa, California, United...",
-          "url": "https://job-boards.greenhouse.io/andurilindustries/jobs/5239083007",
-          "profiles": [
-            "cs"
-          ],
-          "states": [
-            "CA",
-            "US"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "applyguy",
-            "dreamwork-tech",
-            "simplify",
-            "speedyapply",
-            "zapply"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-16T00:00:00Z"
-        },
         {
           "id": "aae53e00706ca19e",
           "company": "Anduril",
           "title": "Winter 2027 Software Engineer Co-op",
-          "location": "Quincy, MA",
+          "location": "Quincy, Massachusetts, United States",
           "url": "https://job-boards.greenhouse.io/andurilindustries/jobs/5236563007",
           "profiles": [
             "cs"
@@ -5535,31 +5436,60 @@
           "education_level": "unspecified",
           "source_keys": [
             "applyguy",
+            "auto-greenhouse-andurilindustries",
             "dreamwork-tech",
-            "speedyapply"
+            "speedyapply",
+            "zapply"
           ],
           "link_kind": "direct",
           "posted_at": "2026-09-16T00:00:00Z"
         },
         {
-          "id": "8b6750fcbee4bf76",
+          "id": "3d12055c7a7e837a",
           "company": "Anduril",
-          "title": "Winter 2027 Systems Engineer Co-op",
-          "location": "Quincy, Massachusetts, United...",
-          "url": "https://job-boards.greenhouse.io/andurilindustries/jobs/5236599007?gh_jid=5236599007",
+          "title": "2027 Flight Software Engineer Intern",
+          "location": "Costa Mesa, California, United States",
+          "url": "https://job-boards.greenhouse.io/andurilindustries/jobs/5239083007",
           "profiles": [
-            "general"
+            "cs"
           ],
           "states": [
-            "MA"
+            "CA",
+            "US"
           ],
-          "opportunity_type": "co-op",
+          "opportunity_type": "internship",
           "education_level": "unspecified",
           "source_keys": [
+            "applyguy",
+            "auto-greenhouse-andurilindustries",
+            "dreamwork-tech",
+            "simplify",
+            "speedyapply",
             "zapply"
           ],
           "link_kind": "direct",
           "posted_at": "2026-09-16T00:00:00Z"
+        },
+        {
+          "id": "235792092a9c0a74",
+          "company": "Anduril",
+          "title": "Winter 2027 Test Automation Engineer Co-op",
+          "location": "Washington, District of Columbia, United States",
+          "url": "https://boards.greenhouse.io/andurilindustries/jobs/5236573007?gh_jid=5236573007",
+          "profiles": [
+            "general"
+          ],
+          "states": [
+            "DC",
+            "US"
+          ],
+          "opportunity_type": "co-op",
+          "education_level": "unspecified",
+          "source_keys": [
+            "dreamwork-tech"
+          ],
+          "link_kind": "direct",
+          "posted_at": "2026-09-15T17:54:42Z"
         }
       ],
       "input_index": 92,
@@ -5594,81 +5524,32 @@
         ],
         "default_visible": true
       },
-      "status": "employer_exists_but_listing_missing",
+      "status": "filtered_or_misclassified",
       "confidence": "high",
-      "reason_code": "known_employer_missing_role",
-      "reason": "Yartchives has 9 listing(s) for this employer but not this role",
-      "recommended_action": "Trace the role to the employer ATS and check source filters or add direct coverage.",
-      "candidate_jobs": [
-        {
-          "id": "3d12055c7a7e837a",
-          "company": "Anduril",
-          "title": "2027 Flight Software Engineer Intern",
-          "location": "Costa Mesa, California, United...",
-          "url": "https://job-boards.greenhouse.io/andurilindustries/jobs/5239083007",
-          "profiles": [
-            "cs"
-          ],
-          "states": [
-            "CA",
-            "US"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "applyguy",
-            "dreamwork-tech",
-            "simplify",
-            "speedyapply",
-            "zapply"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-16T00:00:00Z"
-        },
-        {
-          "id": "aae53e00706ca19e",
-          "company": "Anduril",
-          "title": "Winter 2027 Software Engineer Co-op",
-          "location": "Quincy, MA",
-          "url": "https://job-boards.greenhouse.io/andurilindustries/jobs/5236563007",
-          "profiles": [
-            "cs"
-          ],
-          "states": [
-            "MA",
-            "US"
-          ],
-          "opportunity_type": "co-op",
-          "education_level": "unspecified",
-          "source_keys": [
-            "applyguy",
-            "dreamwork-tech",
-            "speedyapply"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-16T00:00:00Z"
-        },
-        {
-          "id": "8b6750fcbee4bf76",
-          "company": "Anduril",
-          "title": "Winter 2027 Systems Engineer Co-op",
-          "location": "Quincy, Massachusetts, United...",
-          "url": "https://job-boards.greenhouse.io/andurilindustries/jobs/5236599007?gh_jid=5236599007",
-          "profiles": [
-            "general"
-          ],
-          "states": [
-            "MA"
-          ],
-          "opportunity_type": "co-op",
-          "education_level": "unspecified",
-          "source_keys": [
-            "zapply"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-16T00:00:00Z"
-        }
-      ],
+      "reason_code": "present_but_hidden",
+      "reason": "missing expected profile 'cs'",
+      "recommended_action": "Review profile/state/type enrichment or default filter metadata.",
+      "matched_job": {
+        "id": "235792092a9c0a74",
+        "company": "Anduril",
+        "title": "Winter 2027 Test Automation Engineer Co-op",
+        "location": "Washington, District of Columbia, United States",
+        "url": "https://boards.greenhouse.io/andurilindustries/jobs/5236573007?gh_jid=5236573007",
+        "profiles": [
+          "general"
+        ],
+        "states": [
+          "DC",
+          "US"
+        ],
+        "opportunity_type": "co-op",
+        "education_level": "unspecified",
+        "source_keys": [
+          "dreamwork-tech"
+        ],
+        "link_kind": "direct",
+        "posted_at": "2026-09-15T17:54:42Z"
+      },
       "input_index": 93,
       "observation_count": 1,
       "observed_sources": [
