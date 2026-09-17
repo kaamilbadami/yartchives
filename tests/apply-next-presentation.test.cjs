@@ -15,6 +15,7 @@ assert.equal(P.canonicalApplyUrl(workdayJob), canonicalCisco, "Workday display l
 assert.equal(P.humanizeLocationPiece("Medina, Minnesota"), "Medina, MN");
 assert.equal(P.humanizeLocationPiece("Innovators Way, Simi Valley,, CA"), "Simi Valley, CA");
 assert.equal(P.humanizeLocationPiece("Denver, CO, US"), "Denver, CO");
+assert.equal(P.humanizeLocationPiece("RTP, North Carolina, US"), "Rtp, NC");
 assert.deepEqual(P.locationPieces({ location: "Medina, Minnesota · Medina" }), ["Medina, MN"]);
 
 const profile = {
@@ -34,7 +35,9 @@ const aeroResult = {
 };
 const aeroDisplay = P.displayLocation(aeroResult, profile);
 assert.equal(aeroDisplay.preferred, "Annapolis Junction, MD");
-assert.match(aeroDisplay.text, /^Annapolis Junction, MD \+ \d+ more$/);
+assert.equal(aeroDisplay.all[0], "Annapolis Junction, MD");
+assert.match(aeroDisplay.text, /^Annapolis Junction, MD · /);
+assert.doesNotMatch(aeroDisplay.text, /\+ \d+ more/);
 assert.doesNotMatch(aeroDisplay.text, /Innovators Way/);
 
 const caciResult = {
@@ -47,7 +50,21 @@ const caciResult = {
   },
   locationDecision: { anchor: "20740" },
 };
-assert.equal(P.displayLocation(caciResult, profile).text, "Sterling, VA + 1 more");
+assert.equal(P.displayLocation(caciResult, profile).text, "Sterling, VA · Denver, CO");
+
+const authoritativeCisco = {
+  location: "Stamford, CT · RTP, North Carolina, US",
+  _inspection: {
+    status: "inspected",
+    posting: {
+      locations: {
+        status: "authoritative",
+        values: ["RTP, North Carolina, US"],
+      },
+    },
+  },
+};
+assert.deepEqual(P.locationPieces(authoritativeCisco), ["Rtp, NC"], "authoritative posting locations must replace stale feed metadata for display");
 
 const presented = P.presentResult({
   ...aeroResult,
