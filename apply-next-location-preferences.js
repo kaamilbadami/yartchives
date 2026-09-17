@@ -25,6 +25,8 @@
   }
 
   const MAX_CAPTURED_SAMPLES = 24;
+  const CUSTOM_RELOCATION_FULL_SCORE_MILES = 200;
+  const CUSTOM_RELOCATION_ZERO_SCORE_MILES = 400;
 
   function numberOr(value, fallback) {
     const parsed = Number(value);
@@ -187,6 +189,15 @@
     return 8;
   }
 
+  function customRelocationScore(distanceMiles, relocation) {
+    const maxDisplayScore = relocation === "preferred" ? 8 : 6;
+    if (distanceMiles <= CUSTOM_RELOCATION_FULL_SCORE_MILES) return maxDisplayScore / 1.5;
+    if (distanceMiles >= CUSTOM_RELOCATION_ZERO_SCORE_MILES) return 0;
+    const remaining = (CUSTOM_RELOCATION_ZERO_SCORE_MILES - distanceMiles)
+      / (CUSTOM_RELOCATION_ZERO_SCORE_MILES - CUSTOM_RELOCATION_FULL_SCORE_MILES);
+    return (maxDisplayScore * remaining) / 1.5;
+  }
+
   function scoreWithAnchors(job, profile, anchors) {
     if (isRemote(job)) return remoteScore(profile);
 
@@ -214,6 +225,14 @@
           score: 0,
           excluded: true,
           detail: `Outside all commute bases; relocation is turned off (nearest is about ${rounded} miles from ${anchorLabel(nearest.anchor, nearest.index)})`,
+        };
+      }
+
+      if (customLocationMode(profile)) {
+        const score = customRelocationScore(nearest.distanceMiles, relocation);
+        return {
+          score,
+          detail: `Custom relocation distance: nearest base is about ${rounded} miles away`,
         };
       }
 
@@ -302,6 +321,7 @@
     relocationPreference,
     remotePreference,
     customLocationMode,
+    customRelocationScore,
     captureGlobalDistanceSamples,
     anchorDistances,
     scoreLocation,
