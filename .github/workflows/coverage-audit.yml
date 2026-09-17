@@ -87,6 +87,13 @@ jobs:
             stem="${base%.*}"
             json_out="/tmp/yartchives-audit/results/${stem}.json"
             md_out="/tmp/yartchives-audit/results/${stem}.md"
+            quality_json="/tmp/yartchives-audit/results/${stem}-benchmark-quality.json"
+            quality_md="/tmp/yartchives-audit/results/${stem}-benchmark-quality.md"
+
+            python scripts/benchmark_quality.py "$sample" \
+              --json-output "$quality_json" \
+              --markdown-output "$quality_md" \
+              --require-valid
 
             python scripts/coverage_audit_runner.py "$sample" \
               --output "$json_out" \
@@ -99,6 +106,8 @@ jobs:
             {
               echo ""
               echo "---"
+              echo ""
+              cat "$quality_md"
               echo ""
               cat "$md_out"
               echo ""
