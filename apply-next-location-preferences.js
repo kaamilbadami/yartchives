@@ -136,7 +136,9 @@
     if (!anchors.length || samples.length < anchors.length) return [];
     const recent = samples.slice(-anchors.length);
     return anchors.map((anchor, index) => {
-      const distance = Number(recent[index]?.distanceMiles);
+      const rawDistance = recent[index]?.distanceMiles;
+      if (rawDistance === null || rawDistance === undefined || rawDistance === "") return null;
+      const distance = Number(rawDistance);
       return Number.isFinite(distance) && distance >= 0 ? { anchor, index, distanceMiles: distance } : null;
     }).filter(Boolean);
   }
