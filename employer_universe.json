@@ -2,11 +2,1076 @@
   "schema_version": 1,
   "seed_sets": [
     {
+      "key": "coverage-benchmark-2026-09-17",
+      "kind": "coverage_benchmark",
+      "name": "CT / NY / MD / DC undergraduate CS coverage benchmark",
+      "collected_at": "2026-09-17T15:30:00Z",
+      "states": [
+        "CT",
+        "DC",
+        "MD",
+        "NY"
+      ]
+    },
+    {
       "key": "fortune-500-2026",
       "kind": "fortune_500",
       "edition": 2026,
       "status": "planned"
     }
   ],
-  "employers": []
+  "employers": [
+    {
+      "id": "aerovironment",
+      "name": "AeroVironment",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 3,
+          "states": [
+            "MD"
+          ]
+        }
+      }
+    },
+    {
+      "id": "allegion",
+      "name": "Allegion",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "CT"
+          ]
+        }
+      }
+    },
+    {
+      "id": "american-express",
+      "name": "American Express",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "amgen",
+      "name": "Amgen",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "DC"
+          ]
+        }
+      }
+    },
+    {
+      "id": "amtrak",
+      "name": "Amtrak",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 2,
+          "domain_hints": [
+            "careers.amtrak.com"
+          ],
+          "evidence_count": 4,
+          "states": [
+            "DC"
+          ]
+        }
+      }
+    },
+    {
+      "id": "anduril",
+      "name": "Anduril",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 2,
+          "domain_hints": [
+            "boards.greenhouse.io"
+          ],
+          "evidence_count": 2,
+          "states": [
+            "DC"
+          ]
+        }
+      }
+    },
+    {
+      "id": "audax-group",
+      "name": "Audax Group",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "job-boards.greenhouse.io"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "avangrid",
+      "name": "Avangrid",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "CT"
+          ]
+        }
+      }
+    },
+    {
+      "id": "bny",
+      "name": "BNY",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 2,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "caci",
+      "name": "CACI",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 2,
+          "domain_hints": [
+            "searchcareers.caci.com"
+          ],
+          "evidence_count": 4,
+          "states": [
+            "CT"
+          ]
+        }
+      }
+    },
+    {
+      "id": "castleton-commodities-international",
+      "name": "Castleton Commodities International",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "osv-cci.wd1.myworkdayjobs.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "CT"
+          ]
+        }
+      }
+    },
+    {
+      "id": "datadog",
+      "name": "Datadog",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "careers.datadoghq.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "doordash",
+      "name": "DoorDash",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "job-boards.greenhouse.io"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "duolingo",
+      "name": "Duolingo",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "careers.duolingo.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "dv-trading",
+      "name": "DV Trading",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 4,
+          "domain_hints": [
+            "job-boards.greenhouse.io"
+          ],
+          "evidence_count": 4,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "exelon",
+      "name": "Exelon",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 3,
+          "states": [
+            "DC",
+            "MD"
+          ]
+        }
+      }
+    },
+    {
+      "id": "federal-reserve-bank-of-philadelphia",
+      "name": "Federal Reserve Bank of Philadelphia",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 2,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "figma",
+      "name": "Figma",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 3,
+          "domain_hints": [
+            "boards.greenhouse.io"
+          ],
+          "evidence_count": 3,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "garda-capital-partners",
+      "name": "Garda Capital Partners",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "job-boards.greenhouse.io"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "gartner",
+      "name": "Gartner",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "jobs.gartner.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "CT"
+          ]
+        }
+      }
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "general-dynamics-electric-boat",
+      "name": "General Dynamics Electric Boat",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "careers-gdeb.icims.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "CT"
+          ]
+        }
+      }
+    },
+    {
+      "id": "good-molecules",
+      "name": "Good Molecules",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hii-mission-technologies",
+      "name": "HII Mission Technologies",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "jobs.hii-tsd.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "MD"
+          ]
+        }
+      }
+    },
+    {
+      "id": "hsb-hartford-steam-boiler",
+      "name": "HSB - Hartford Steam Boiler",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "careers.munichre.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "CT"
+          ]
+        }
+      }
+    },
+    {
+      "id": "iat-insurance-group",
+      "name": "IAT Insurance Group",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "iatinsurancegroup.wd1.myworkdayjobs.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "CT"
+          ]
+        }
+      }
+    },
+    {
+      "id": "inter-american-development-bank",
+      "name": "Inter-American Development Bank",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "d2joq6sj09wk6y.cloudfront.net"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "DC"
+          ]
+        }
+      }
+    },
+    {
+      "id": "interactive-brokers",
+      "name": "Interactive Brokers",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 2,
+          "states": [
+            "CT"
+          ]
+        }
+      }
+    },
+    {
+      "id": "johns-hopkins-applied-physics-laboratory",
+      "name": "Johns Hopkins Applied Physics Laboratory",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 5,
+          "domain_hints": [
+            "careers.jhuapl.edu"
+          ],
+          "evidence_count": 5,
+          "states": [
+            "MD"
+          ]
+        }
+      }
+    },
+    {
+      "id": "leidos",
+      "name": "Leidos",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 2,
+          "domain_hints": [
+            "leidos.wd5.myworkdayjobs.com"
+          ],
+          "evidence_count": 2,
+          "states": [
+            "MD"
+          ]
+        }
+      }
+    },
+    {
+      "id": "leonardo-drs",
+      "name": "Leonardo DRS",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "careers.leonardodrs.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "MD"
+          ]
+        }
+      }
+    },
+    {
+      "id": "liquidpiston",
+      "name": "LiquidPiston",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "CT"
+          ]
+        }
+      }
+    },
+    {
+      "id": "lyft",
+      "name": "Lyft",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 3,
+          "domain_hints": [
+            "app.careerpuck.com"
+          ],
+          "evidence_count": 3,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "maryland-state-department-of-education",
+      "name": "Maryland State Department of Education",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "jobapscloud.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "MD"
+          ]
+        }
+      }
+    },
+    {
+      "id": "mitre",
+      "name": "MITRE",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 2,
+          "states": [
+            "MD"
+          ]
+        }
+      }
+    },
+    {
+      "id": "nightwing",
+      "name": "Nightwing",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "MD"
+          ]
+        }
+      }
+    },
+    {
+      "id": "nsa",
+      "name": "NSA",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 2,
+          "states": [
+            "MD"
+          ]
+        }
+      }
+    },
+    {
+      "id": "otis-elevator-co",
+      "name": "Otis Elevator Co.",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "CT"
+          ]
+        }
+      }
+    },
+    {
+      "id": "palantir-technologies",
+      "name": "Palantir Technologies",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 5,
+          "domain_hints": [
+            "jobs.lever.co"
+          ],
+          "evidence_count": 5,
+          "states": [
+            "DC"
+          ]
+        }
+      }
+    },
+    {
+      "id": "peraton-labs",
+      "name": "Peraton Labs",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "careers.peraton.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "MD"
+          ]
+        }
+      }
+    },
+    {
+      "id": "phoebe",
+      "name": "Phoebe",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "jobs.ashbyhq.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "point72",
+      "name": "Point72",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 3,
+          "domain_hints": [
+            "boards.greenhouse.io"
+          ],
+          "evidence_count": 3,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "pwc",
+      "name": "PwC",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 3,
+          "states": [
+            "DC"
+          ]
+        }
+      }
+    },
+    {
+      "id": "sage",
+      "name": "Sage",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 2,
+          "domain_hints": [
+            "job-boards.greenhouse.io"
+          ],
+          "evidence_count": 2,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "schonfeld",
+      "name": "Schonfeld",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 5,
+          "domain_hints": [
+            "job-boards.greenhouse.io"
+          ],
+          "evidence_count": 5,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "selective-insurance",
+      "name": "Selective Insurance",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "CT"
+          ]
+        }
+      }
+    },
+    {
+      "id": "shield-ai",
+      "name": "Shield AI",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "DC"
+          ]
+        }
+      }
+    },
+    {
+      "id": "spectrum",
+      "name": "Spectrum",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 2,
+          "domain_hints": [
+            "jobs.spectrum.com"
+          ],
+          "evidence_count": 2,
+          "states": [
+            "CT"
+          ]
+        }
+      }
+    },
+    {
+      "id": "stanley-black-and-decker",
+      "name": "Stanley Black & Decker",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "MD"
+          ]
+        }
+      }
+    },
+    {
+      "id": "supreme-court-of-the-united-states",
+      "name": "Supreme Court of the United States",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "usajobs.gov"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "DC"
+          ]
+        }
+      }
+    },
+    {
+      "id": "textron-systems",
+      "name": "Textron Systems",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 4,
+          "states": [
+            "MD"
+          ]
+        }
+      }
+    },
+    {
+      "id": "the-hartford",
+      "name": "The Hartford",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 2,
+          "domain_hints": [
+            "thehartford.wd5.myworkdayjobs.com"
+          ],
+          "evidence_count": 2,
+          "states": [
+            "CT"
+          ]
+        }
+      }
+    },
+    {
+      "id": "the-nuclear-company",
+      "name": "The Nuclear Company",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 5,
+          "domain_hints": [
+            "job-boards.greenhouse.io"
+          ],
+          "evidence_count": 5,
+          "states": [
+            "DC"
+          ]
+        }
+      }
+    },
+    {
+      "id": "tiktok-usds-joint-venture",
+      "name": "TikTok USDS Joint Venture",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "DC"
+          ]
+        }
+      }
+    },
+    {
+      "id": "viam",
+      "name": "Viam",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "job-boards.greenhouse.io"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "NY"
+          ]
+        }
+      }
+    },
+    {
+      "id": "visionist",
+      "name": "Visionist",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "MD"
+          ]
+        }
+      }
+    }
+  ]
 }
