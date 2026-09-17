@@ -112,10 +112,10 @@ jobs:
           USAJOBS_EMAIL: ${{ secrets.USAJOBS_EMAIL }}
         run: python scripts/build_feed.py
 
-      - name: Discover US Workday career sites already evidenced in the feed
-        run: python scripts/discover_workday_sources.py data/listings.json --configured direct_sources.json --output /tmp/yartchives-direct-sources.json
+      - name: Discover resolved and feed-evidenced US Workday career sites
+        run: python scripts/discover_workday_sources.py data/listings.json --configured direct_sources.json --universe employer_universe.json --output /tmp/yartchives-direct-sources.json
 
-      - name: Add direct Workday employer coverage in evidenced states
+      - name: Add direct Workday employer coverage
         run: python scripts/direct_ct_workday.py data/listings.json --old-feed /tmp/yartchives-old-listings.json --sources /tmp/yartchives-direct-sources.json
 
       - name: Add sibling US iCIMS coverage from evidenced career sites

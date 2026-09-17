@@ -83,6 +83,48 @@ class DiscoverWorkdaySourcesTests(unittest.TestCase):
         self.assertEqual(len(sources), 2)
         self.assertEqual(sorted(source["state"] for source in sources), ["CT", "NY"])
 
+    def test_resolved_universe_workday_site_becomes_national_source(self):
+        universe = {
+            "employers": [{
+                "id": "amgen",
+                "name": "Amgen",
+                "careers_url": "https://amgen.wd1.myworkdayjobs.com/careers",
+                "provider": {"status": "resolved", "family": "workday"},
+                "careers_resolution": {"status": "resolved"},
+            }]
+        }
+        sources = mod.discover_sources({"jobs": []}, [], universe)
+        self.assertEqual(len(sources), 1)
+        source = sources[0]
+        self.assertEqual(source["scope"], "us")
+        self.assertEqual(source["company"], "Amgen")
+        self.assertEqual(
+            source["api_url"],
+            "https://amgen.wd1.myworkdayjobs.com/wday/cxs/amgen/careers/jobs",
+        )
+        self.assertEqual(source["public_base"], "https://amgen.wd1.myworkdayjobs.com/en-US/careers")
+
+    def test_national_universe_site_suppresses_feed_state_duplicate(self):
+        universe = {
+            "employers": [{
+                "id": "example",
+                "name": "Example",
+                "careers_url": "https://example.wd1.myworkdayjobs.com/en-US/Careers",
+                "provider": {"status": "resolved", "family": "workday"},
+                "careers_resolution": {"status": "resolved"},
+            }]
+        }
+        feed = {"jobs": [{
+            "company": "Example",
+            "states": ["MD"],
+            "profiles": ["cs"],
+            "url": "https://example.wd1.myworkdayjobs.com/en-US/Careers/job/Bethesda-MD/Software-Intern_R1",
+        }]}
+        sources = mod.discover_sources(feed, [], universe)
+        self.assertEqual(len(sources), 1)
+        self.assertEqual(sources[0]["scope"], "us")
+        self.assertNotIn("state", sources[0])
+
     def test_ignores_non_workday_and_non_cs_jobs(self):
         feed = {"jobs": [
             {"company": "Example", "states": ["MD"], "profiles": ["cs"], "url": "https://jobs.example.com/intern/123"},

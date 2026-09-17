@@ -124,6 +124,18 @@ def is_target_state(location: str, state: str) -> bool:
     return any(re.search(rf"\b{re.escape(name)}\b", location, flags=re.I) for name in full_names)
 
 
+def is_us_location(location: str) -> bool:
+    if not location:
+        return False
+    if bf.extract_states(location):
+        return True
+    return bool(re.search(
+        r"\b(?:United States(?: of America)?|USA|U\.S\.|US Remote|Remote[- ]?US|Remote[- ]?USA)\b",
+        location,
+        flags=re.I,
+    ))
+
+
 def public_job_url(source: dict[str, Any], external_path: str | None) -> str:
     if not external_path:
         return source.get("homepage", "")
@@ -142,7 +154,10 @@ def fetch_workday_source(
 
     seen_paths: set[str] = set()
     out: list[dict[str, Any]] = []
-    state = source.get("state", "CT")
+    state = str(source.get("state") or "").upper()
+    national_scope = str(source.get("scope") or "").casefold() == "us"
+    if not state and not national_scope:
+        state = "CT"
 
     for term in source.get("search_terms", ["intern"]):
         offset = 0
@@ -173,7 +188,10 @@ def fetch_workday_source(
                     continue
                 if not is_cs_relevant_title(title, source):
                     continue
-                if not is_target_state(location, state):
+                if state:
+                    if not is_target_state(location, state):
+                        continue
+                elif national_scope and not is_us_location(location):
                     continue
 
                 posted_raw = normalize_posted(item.get("postedOn"))
@@ -191,7 +209,7 @@ def fetch_workday_source(
                 )
                 if not job:
                     continue
-                if state not in job.get("states", []):
+                if state and state not in job.get("states", []):
                     job["states"] = sorted(set(job.get("states", [])) | {state})
                 job["direct_employer"] = True
                 out.append(job)
@@ -320,7 +338,7 @@ def enrich_direct_sources(
             minimum = int(source.get("minimum_expected") or 0)
             if len(direct_jobs) < minimum:
                 raise RuntimeError(
-                    f"expected at least {minimum} matching CT student listing(s), got {len(direct_jobs)}"
+                    f"expected at least {minimum} matching student listing(s), got {len(direct_jobs)}"
                 )
             for job in direct_jobs:
                 upsert_direct_job(jobs, job, old_jobs_by_id, reference)
@@ -331,7 +349,8 @@ def enrich_direct_sources(
                 "name": source["name"],
                 "direct": True,
             }
-            print(f"{source['name']}: {len(direct_jobs)} direct CT CS-relevant listing(s)")
+            scope_label = source.get("state") or ("US" if source.get("scope") == "us" else "configured")
+            print(f"{source['name']}: {len(direct_jobs)} direct {scope_label} CS-relevant listing(s)")
         except Exception as exc:
             health[source["key"]] = {
                 "ok": False,

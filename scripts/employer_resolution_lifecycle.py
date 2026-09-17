@@ -122,6 +122,18 @@ def _fresh_provider_resolution(employer: dict[str, Any], now: datetime, ttl_days
     return bool(resolved_at and now - resolved_at < timedelta(days=ttl_days))
 
 
+def _provider_resolution_needs_completion(employer: dict[str, Any]) -> bool:
+    """Workday tenant identity is useful but still needs a career-site slug."""
+    resolution = employer.get("careers_resolution") or {}
+    provider = employer.get("provider") or {}
+    return (
+        resolution.get("status") == "provider_resolved"
+        and provider.get("status") == "resolved"
+        and provider.get("family") == "workday"
+        and not str(employer.get("careers_url") or "").strip()
+    )
+
+
 def _fresh_success(employer: dict[str, Any], now: datetime, ttl_days: int) -> bool:
     resolution = employer.get("careers_resolution") or {}
     if resolution.get("status") != "resolved" or not _valid_existing_resolution(employer):
@@ -157,7 +169,9 @@ def _request_count(resolution: dict[str, Any]) -> int:
 def _candidate_rows(universe: dict[str, Any], now: datetime, ttl_days: int) -> list[tuple[dict[str, Any], dict[str, Any]]]:
     rows: list[tuple[dict[str, Any], dict[str, Any]]] = []
     for employer in universe.get("employers", []):
-        if _fresh_success(employer, now, ttl_days) or _fresh_provider_resolution(employer, now, ttl_days):
+        if _fresh_success(employer, now, ttl_days):
+            continue
+        if _fresh_provider_resolution(employer, now, ttl_days) and not _provider_resolution_needs_completion(employer):
             continue
         entry = queue_entry(employer)
         if entry["resolution_readiness"] != "ready":
@@ -203,7 +217,7 @@ def run_lifecycle(
         if attempts >= employer_budget or requests_used >= request_budget:
             break
         employer = by_id[entry["id"]]
-        if not _valid_existing_resolution(employer):
+        if not _valid_existing_resolution(employer) and employer.get("careers_url"):
             employer.pop("careers_url", None)
             employer.pop("careers_platform", None)
             employer.pop("provider", None)
@@ -229,8 +243,19 @@ def run_lifecycle(
 
         previous = employer.get("careers_resolution") or {}
         status = _attempt_status(resolution)
+        preserved_provider_resolution = (
+            not employer.get("careers_url")
+            and (employer.get("provider") or {}).get("status") == "resolved"
+            and previous.get("status") == "provider_resolved"
+        )
         lifecycle = {
-            "status": "resolved" if employer.get("careers_url") else status,
+            "status": (
+                "resolved"
+                if employer.get("careers_url")
+                else "provider_resolved"
+                if preserved_provider_resolution
+                else status
+            ),
             "attempt_status": status,
             "last_attempt_at": attempted_at,
             "evidence": resolution.get("evidence") or [],

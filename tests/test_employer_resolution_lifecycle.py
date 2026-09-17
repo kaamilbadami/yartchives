@@ -214,12 +214,12 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
             request_budget=3,
             resolver=resolver,
         )
-        self.assertEqual(calls, ["fortune", "other"])
+        self.assertEqual(calls, ["fortune", "ats", "other"])
         ats_row = next(row for row in updated["employers"] if row["id"] == "ats")
-        self.assertEqual(ats_row["careers_resolution"]["status"], "provider_resolved")
+        self.assertEqual(ats_row["careers_resolution"]["status"], "resolved")
         self.assertEqual(summary["fast_path_provider_resolved"], 1)
 
-    def test_verified_workday_tenant_fast_paths_without_network(self):
+    def test_verified_workday_tenant_fast_paths_then_completes_site(self):
         employer = self.employer("verified")
         employer["seed_sets"].append("state-of-ats-2026-verified-hosts")
         employer["seed_metadata"]["state-of-ats-2026-verified-hosts"] = {
@@ -230,22 +230,26 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
         }
         calls = []
 
+        def resolver(entry, **kwargs):
+            calls.append(entry["id"])
+            return self.resolved("https://verified.wd1.myworkdayjobs.com/careers", requests=1)
+
         updated, summary = mod.run_lifecycle(
             self.universe([employer]),
             now=NOW,
-            resolver=lambda entry, **kwargs: calls.append(entry),
+            resolver=resolver,
         )
 
-        self.assertEqual(calls, [])
+        self.assertEqual(calls, ["verified"])
         row = updated["employers"][0]
-        self.assertNotIn("careers_url", row)
+        self.assertEqual(row["careers_url"], "https://verified.wd1.myworkdayjobs.com/careers")
         self.assertEqual(row["careers_platform"], "workday")
         self.assertEqual(row["provider"]["family"], "workday")
-        self.assertEqual(row["careers_resolution"]["status"], "provider_resolved")
-        self.assertEqual(row["careers_resolution"]["attempt_status"], "verified_seed")
+        self.assertEqual(row["careers_resolution"]["status"], "resolved")
+        self.assertEqual(row["careers_resolution"]["attempt_status"], "resolved")
         self.assertEqual(summary["fast_path_provider_resolved"], 1)
-        self.assertEqual(summary["attempted_employers"], 0)
-        self.assertEqual(summary["requests_used"], 0)
+        self.assertEqual(summary["attempted_employers"], 1)
+        self.assertEqual(summary["requests_used"], 1)
 
     def test_shared_verified_provider_host_is_not_fast_pathed(self):
         employer = {
@@ -275,6 +279,60 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
         self.assertEqual(summary["fast_path_provider_resolved"], 0)
         self.assertEqual(summary["attempted_employers"], 0)
 
+
+    def test_fresh_workday_provider_resolution_is_completed_and_preserved_on_failure(self):
+        employer = self.employer(
+            "workday-known",
+            careers_platform="workday",
+            provider={"status": "resolved", "family": "workday", "host": "workday-known.wd1.myworkdayjobs.com"},
+            careers_resolution={
+                "status": "provider_resolved",
+                "attempt_status": "verified_seed",
+                "resolved_at": "2026-09-17T19:00:00Z",
+                "last_attempt_at": "2026-09-17T19:00:00Z",
+            },
+        )
+        calls = []
+
+        def resolver(entry, **kwargs):
+            calls.append(entry["id"])
+            return {
+                "status": "unresolved",
+                "url": None,
+                "platform": None,
+                "provider": None,
+                "evidence": [{"type": "http", "status": 404, "requested_url": "https://workday-known.wd1.myworkdayjobs.com/careers"}],
+            }
+
+        updated, summary = mod.run_lifecycle(self.universe([employer]), now=NOW, resolver=resolver)
+        self.assertEqual(calls, ["workday-known"])
+        row = updated["employers"][0]
+        self.assertEqual(row["provider"]["family"], "workday")
+        self.assertEqual(row["careers_resolution"]["status"], "provider_resolved")
+        self.assertEqual(row["careers_resolution"]["attempt_status"], "unresolved")
+        self.assertEqual(summary["attempted_employers"], 1)
+
+    def test_fresh_nonworkday_provider_resolution_stays_network_free(self):
+        employer = self.employer(
+            "eightfold-known",
+            careers_platform="eightfold",
+            provider={"status": "resolved", "family": "eightfold", "host": "eightfold-known.eightfold.ai"},
+            careers_resolution={
+                "status": "provider_resolved",
+                "attempt_status": "verified_seed",
+                "resolved_at": "2026-09-17T19:00:00Z",
+                "last_attempt_at": "2026-09-17T19:00:00Z",
+            },
+        )
+        calls = []
+        updated, summary = mod.run_lifecycle(
+            self.universe([employer]),
+            now=NOW,
+            resolver=lambda entry, **kwargs: calls.append(entry),
+        )
+        self.assertEqual(calls, [])
+        self.assertEqual(updated["employers"][0]["careers_resolution"]["status"], "provider_resolved")
+        self.assertEqual(summary["attempted_employers"], 0)
 
     def test_resolution_preserves_seed_provenance_and_reports_provider_distribution(self):
         employer = self.employer("acme", 2)

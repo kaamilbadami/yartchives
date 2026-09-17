@@ -120,6 +120,23 @@ class DirectWorkdayTests(unittest.TestCase):
         self.assertTrue(jobs[0]["url"].startswith("https://example.test/en-US/Careers/job/"))
         self.assertEqual(jobs[0]["posted_raw"], "3 Days")
 
+    def test_us_scope_keeps_us_roles_across_states(self):
+        ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
+        source = dict(self.source)
+        source.pop("state", None)
+        source["scope"] = "us"
+        jobs = mod.fetch_workday_source(FakeSession(), source, ref)
+        self.assertEqual(len(jobs), 2)
+        self.assertEqual({job["title"] for job in jobs}, {"Software Engineering Intern - Summer 2027"})
+        self.assertEqual({tuple(job["states"]) for job in jobs}, {("CT",), ("NY",)})
+        self.assertTrue(all(job["direct_employer"] for job in jobs))
+
+    def test_us_location_accepts_states_and_remote_us(self):
+        self.assertTrue(mod.is_us_location("New York, NY"))
+        self.assertTrue(mod.is_us_location("United States of America"))
+        self.assertTrue(mod.is_us_location("Remote-US"))
+        self.assertFalse(mod.is_us_location("London, United Kingdom"))
+
     def test_direct_url_replaces_intermediary_url(self):
         ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
         incoming = mod.bf.base_job(
