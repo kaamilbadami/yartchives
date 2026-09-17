@@ -41,6 +41,13 @@
     return Number.isFinite(parsed) ? Math.max(0, Math.min(15, parsed)) : null;
   }
 
+  function customLocationMode(profile) {
+    const mode = String(profile?.locationMode || "").trim().toLowerCase();
+    if (mode === "normal") return false;
+    if (mode === "custom") return true;
+    return Array.isArray(profile?.locationAnchors) && profile.locationAnchors.length > 0;
+  }
+
   function anchorLabel(anchor, index) {
     const label = String(anchor?.label || "").trim();
     if (label && label !== anchor?.zip) return label;
@@ -50,7 +57,7 @@
 
   function orderedAnchors(profile) {
     const commonMiles = Math.max(5, Math.min(500, numberOr(profile?.nearbyMiles, 50)));
-    const explicit = Array.isArray(profile?.locationAnchors) ? profile.locationAnchors : [];
+    const explicit = customLocationMode(profile) && Array.isArray(profile?.locationAnchors) ? profile.locationAnchors : [];
     const anchors = explicit.map((anchor, index) => {
       const zip = normalizeZip(anchor?.zip || anchor?.baseZip);
       if (!zip) return null;
@@ -187,7 +194,9 @@
     if (distances.length === anchors.length) {
       const commutable = distances
         .filter(item => item.distanceMiles <= item.anchor.commuteMiles)
-        .sort((a, b) => a.index - b.index || a.distanceMiles - b.distanceMiles);
+        .sort((a, b) => anchorScore(b.anchor, b.index) - anchorScore(a.anchor, a.index)
+          || a.index - b.index
+          || a.distanceMiles - b.distanceMiles);
       if (commutable.length) {
         const best = commutable[0];
         return {
@@ -292,6 +301,7 @@
     orderedAnchors,
     relocationPreference,
     remotePreference,
+    customLocationMode,
     captureGlobalDistanceSamples,
     anchorDistances,
     scoreLocation,
