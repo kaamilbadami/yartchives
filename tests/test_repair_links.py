@@ -1,6 +1,8 @@
 import importlib.util
+from datetime import datetime, timezone
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "repair_links.py"
 spec = importlib.util.spec_from_file_location("repair_links", MODULE_PATH)
@@ -149,6 +151,44 @@ class RepairLinksTests(unittest.TestCase):
             "https://zapply.jobs/l/d/greenhouse-singlestore-8205514?s=gh-internships-2027"
         )
         self.assertEqual(inferred, "https://job-boards.greenhouse.io/singlestore/jobs/8205514")
+
+    def test_all_direct_cs_internships_are_eligible_for_validation(self):
+        job = {
+            "url": "https://employer.example/jobs/cs-intern",
+            "link_kind": "direct",
+            "opportunity_type": "internship",
+            "profiles": ["cs"],
+        }
+        self.assertTrue(mod.should_validate_direct_link(job))
+
+    def test_unrecovered_non_cs_link_is_not_added_to_validation_queue(self):
+        job = {
+            "url": "https://employer.example/jobs/finance-intern",
+            "link_kind": "direct",
+            "opportunity_type": "internship",
+            "profiles": ["finance-econ"],
+        }
+        self.assertFalse(mod.should_validate_direct_link(job))
+
+    def test_validation_checks_cs_link_without_a_recovery_origin(self):
+        job = {
+            "id": "cs-1",
+            "url": "https://employer.example/jobs/cs-intern",
+            "link_kind": "direct",
+            "opportunity_type": "internship",
+            "profiles": ["cs"],
+        }
+        checked_at = datetime(2026, 9, 17, tzinfo=timezone.utc)
+        with (
+            patch.object(mod, "now_utc", return_value=checked_at),
+            patch.object(mod, "validate_direct_url", return_value=("ok", job["url"])) as validate,
+        ):
+            stats = mod.validate_repaired_links({"jobs": [job]}, {"jobs": []})
+
+        validate.assert_called_once_with(job["url"])
+        self.assertEqual(stats, {"checked": 1, "ok": 1, "dead": 0, "unknown": 0})
+        self.assertEqual(job["link_status"], "ok")
+        self.assertEqual(job["link_checked_at"], "2026-09-17T00:00:00Z")
 
 
 if __name__ == "__main__":

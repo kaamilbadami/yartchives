@@ -36,6 +36,7 @@ VALIDATION_TTL_HOURS = 24
 MAX_VALIDATIONS_PER_RUN = 750
 NETWORK_WORKERS = 24
 USER_AGENT = "Yartchives/1.0 link-repair (+https://github.com/kaamilbadami/yartchives)"
+VALIDATED_LINK_ORIGINS = {"applyguy-feed", "source-feed", "redirect-resolved"}
 
 AGGREGATOR_HOSTS = {
     "simplify.jobs",
@@ -448,6 +449,18 @@ def checked_recently(job: dict[str, Any], reference: datetime) -> bool:
         return False
 
 
+def should_validate_direct_link(job: dict[str, Any]) -> bool:
+    """Include recovered links plus every direct CS internship posting."""
+    if job.get("link_kind") != "direct" or not is_direct_application_url(job.get("url")):
+        return False
+    if job.get("link_origin") in VALIDATED_LINK_ORIGINS:
+        return True
+    return (
+        job.get("opportunity_type") == "internship"
+        and "cs" in (job.get("profiles") or [])
+    )
+
+
 def read_html_prefix(response: requests.Response, limit: int = 64_000) -> str:
     chunks: list[bytes] = []
     size = 0
@@ -518,9 +531,7 @@ def validate_repaired_links(doc: dict[str, Any], old_doc: dict[str, Any]) -> dic
     targets: list[dict[str, Any]] = []
 
     for job in jobs:
-        if job.get("link_kind") != "direct" or not is_direct_application_url(job.get("url")):
-            continue
-        if job.get("link_origin") not in {"applyguy-feed", "source-feed", "redirect-resolved"}:
+        if not should_validate_direct_link(job):
             continue
         prior = old_by_id.get(job.get("id")) or {}
         if prior.get("url") == job.get("url") and checked_recently(prior, reference):
