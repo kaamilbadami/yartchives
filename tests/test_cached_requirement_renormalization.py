@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from pathlib import Path
 import sys
 import unittest
@@ -8,28 +7,13 @@ SCRIPTS = ROOT / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-import update_workday_inspections as updater
-
-
-NOW = datetime(2026, 9, 16, 22, 30, tzinfo=timezone.utc)
+import migrate_cached_requirements as migration
+from posting_requirements import EXTRACTOR_VERSION
 
 
 class CachedRequirementRenormalizationTests(unittest.TestCase):
-    def test_cached_workday_description_is_renormalized_without_a_request(self):
-        job = {
-            "id": "avis-like",
-            "company": "Example",
-            "title": "IT Data Analytics Intern",
-            "url": "https://tenant.wd5.myworkdayjobs.com/Careers/job/NJ/IT-Data-Analytics-Intern_REQ-1",
-            "posted_at": "2026-09-16T12:00:00Z",
-            "link_kind": "direct",
-            "term": None,
-            "opportunity_type": "internship",
-            "education_level": "unspecified",
-        }
-        canonical = updater.workday_identity(job)["canonical_url"]
-        cache = updater.empty_cache()
-        cache["entries"][canonical] = {
+    def inspected_entry(self, description):
+        return {
             "provider": "workday",
             "inspection": {
                 "provider": "workday",
@@ -38,39 +22,62 @@ class CachedRequirementRenormalizationTests(unittest.TestCase):
                 "error": None,
                 "posting": {
                     "application_status": "available",
-                    "description": (
-                        "What we're looking for:\n"
-                        "Foundational knowledge of Python, SQL/PLSQL, Tableau, and Oracle "
-                        "(coursework or project experience acceptable).\n"
-                        "Strong communication skills and the ability to collaborate across teams."
-                    ),
+                    "description": description,
                 },
                 "requirements": {},
-                "provenance": {"source_url": canonical, "inspected_at": "2026-09-16T20:00:00Z"},
+                "provenance": {"inspected_at": "2026-09-16T20:00:00Z"},
             },
             "last_attempted_at": "2026-09-16T20:00:00Z",
             "last_success_at": "2026-09-16T20:00:00Z",
             "last_error": None,
         }
-        calls = []
-        updated, stats = updater.refresh_cache(
-            {"jobs": [job]},
-            cache,
-            max_workday_requests=25,
-            max_icims_requests=0,
-            max_greenhouse_requests=0,
-            now=lambda: NOW,
-            inspector=lambda url: calls.append(url),
+
+    def test_cached_description_is_renormalized_with_current_extractor(self):
+        entry = self.inspected_entry(
+            "Qualifications:\n"
+            "Academic or project experience with React, C#/.NET, and SQL.\n"
+            "Familiarity or interest in AI agent frameworks and LLMs."
+        )
+        cache = {"entries": {"https://example.test/job": entry}}
+
+        updated, stats = migration.migrate_cache(cache)
+
+        self.assertEqual(stats["migrated"], 1)
+        migrated = updated["entries"]["https://example.test/job"]
+        self.assertEqual(migrated["requirements_extractor_version"], EXTRACTOR_VERSION)
+        skills = migrated["inspection"]["requirements"]["skills"]
+        self.assertEqual(skills["classification"], "unspecified")
+        self.assertEqual(
+            skills["unspecified"][0]["technologies"],
+            ["C#", "React", ".NET", "SQL"],
         )
 
-        self.assertEqual(calls, [])
-        self.assertEqual(stats["requested"], 0)
-        skills = updated["entries"][canonical]["inspection"]["requirements"]["skills"]
-        self.assertEqual(skills["classification"], "required")
-        self.assertEqual(
-            skills["required"][0]["technologies"],
-            ["Python", "SQL", "Tableau", "Oracle"],
-        )
+    def test_entry_without_reprocessable_description_is_invalidated_for_refresh(self):
+        entry = self.inspected_entry(None)
+        entry["inspection"]["requirements"] = {
+            "skills": {"classification": "required", "required": [{"statement": "Old stale fact"}]}
+        }
+        cache = {"entries": {"https://example.test/job": entry}}
+
+        updated, stats = migration.migrate_cache(cache)
+
+        self.assertEqual(stats["invalidated"], 1)
+        migrated = updated["entries"]["https://example.test/job"]
+        self.assertEqual(migrated["inspection"]["status"], "stale_requirements")
+        self.assertIsNone(migrated["last_success_at"])
+        self.assertIsNone(migrated["last_attempted_at"])
+        self.assertIn("extractor", migrated["last_error"].lower())
+
+    def test_current_version_is_idempotent(self):
+        entry = self.inspected_entry("Qualifications:\nJava experience required.")
+        entry["requirements_extractor_version"] = EXTRACTOR_VERSION
+        entry["inspection"]["requirements"] = {"sentinel": True}
+        cache = {"entries": {"https://example.test/job": entry}}
+
+        updated, stats = migration.migrate_cache(cache)
+
+        self.assertEqual(stats["current"], 1)
+        self.assertEqual(updated["entries"]["https://example.test/job"]["inspection"]["requirements"], {"sentinel": True})
 
 
 if __name__ == "__main__":
