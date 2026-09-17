@@ -265,6 +265,43 @@
     ].filter(Boolean).join(" "));
   }
 
+  function profileClassStanding(profile) {
+    const text = normalize(profile?.facts?.classStanding || profile?.classStanding);
+    if (!text || /unknown|not provided/.test(text)) return "";
+    if (/\b(?:freshman|first year|first-year)\b/.test(text)) return "freshman";
+    if (/\bsophomore\b/.test(text)) return "sophomore";
+    if (/\bjunior\b/.test(text)) return "junior";
+    if (/\b(?:senior|final year|final-year)\b/.test(text)) return "senior";
+    if (/\bgraduate\b/.test(text)) return "graduate";
+    return "";
+  }
+
+  function classStandingGate(job, profile) {
+    const inspection = inspectionForJob(job);
+    const standing = requirementField(inspection, "class_standing");
+    const required = evidenceFacts(standing, "required");
+    if (!required.length) return { excluded: false, penalty: 0, details: [] };
+
+    const requirementText = normalize(required.map(fact => fact.statement).join(" "));
+    const accepted = new Set();
+    if (/\b(?:freshman|first year|first-year)\b/.test(requirementText)) accepted.add("freshman");
+    if (/\bsophomore\b/.test(requirementText)) accepted.add("sophomore");
+    if (/\bjunior\b/.test(requirementText)) accepted.add("junior");
+    if (/\b(?:senior|final year|final-year)\b/.test(requirementText)) accepted.add("senior");
+    if (/\bgraduate\b/.test(requirementText)) accepted.add("graduate");
+    if (!accepted.size) return { excluded: false, penalty: 0, details: [] };
+
+    const profileStanding = profileClassStanding(profile);
+    const label = [...accepted].join(" or ");
+    if (!profileStanding) {
+      return { excluded: false, penalty: 5, details: [`Unverified requirement: ${label} class standing`] };
+    }
+    if (!accepted.has(profileStanding)) {
+      return { excluded: true, penalty: 0, details: [`Known eligibility conflict: posting requires ${label} class standing`] };
+    }
+    return { excluded: false, penalty: 0, details: [] };
+  }
+
   function clearanceGate(job, profile) {
     const inspection = inspectionForJob(job);
     const other = requirementField(inspection, "other_eligibility");
@@ -334,9 +371,13 @@
     if (clearance.excluded) {
       return { delta: 0, excluded: true, label: "Known requirement conflict", details: clearance.details };
     }
+    const classStanding = classStandingGate(job, profile);
+    if (classStanding.excluded) {
+      return { delta: 0, excluded: true, label: "Known requirement conflict", details: classStanding.details };
+    }
 
-    details.push(...auth.details, ...clearance.details);
-    const unverifiedPenalty = Math.min(10, auth.penalty + clearance.penalty);
+    details.push(...auth.details, ...clearance.details, ...classStanding.details);
+    const unverifiedPenalty = Math.min(10, auth.penalty + clearance.penalty + classStanding.penalty);
     const totalPenalty = Math.min(30, skillPenalty + cautiousPenalty + domainPenalty + unverifiedPenalty);
     const label = totalPenalty >= 16 || skills.unsupported.length >= 2
       ? "Major required gaps"
@@ -414,6 +455,8 @@
     scoreFit,
     authorizationGate,
     clearanceGate,
+    profileClassStanding,
+    classStandingGate,
     scoreReadiness,
     scoreJob,
     rankJobs,
