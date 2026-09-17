@@ -34,6 +34,9 @@
     Wyoming: "WY", "District of Columbia": "DC",
   };
   const STATE_CODES = new Set(Object.values(STATE_NAMES));
+  const STATE_CODE_BY_NAME = Object.fromEntries(
+    Object.entries(STATE_NAMES).map(([name, code]) => [name.toLowerCase(), code])
+  );
 
   function explicitLocationStates(job) {
     const raw = String(job?.location || "");
@@ -56,6 +59,67 @@
 
   function inspectionForJob(job) {
     return job?._inspection || job?.inspection || null;
+  }
+
+  function titleCaseWords(value) {
+    return String(value || "").toLowerCase().replace(/\b[a-z]/g, ch => ch.toUpperCase());
+  }
+
+  function stateCode(value) {
+    const text = String(value || "").trim();
+    if (STATE_CODES.has(text.toUpperCase())) return text.toUpperCase();
+    return STATE_CODE_BY_NAME[text.toLowerCase()] || null;
+  }
+
+  function normalizeAuthoritativeLocation(value, { globalRemote = false } = {}) {
+    const raw = String(value || "").replace(/\s+/g, " ").trim();
+    if (!raw) return null;
+    if (/^(?:united states|usa|us)\s*-\s*remote$/i.test(raw) || /^remote$/i.test(raw)) return "Remote";
+
+    const remoteOffice = raw.match(/^(.+?)\s*-\s*remote office$/i);
+    if (remoteOffice) {
+      const code = stateCode(remoteOffice[1]);
+      if (globalRemote) return null;
+      return code ? `Remote (${code})` : `Remote (${remoteOffice[1].trim()})`;
+    }
+
+    const workdayParts = raw.split(/\s+-\s+/).map(part => part.trim()).filter(Boolean);
+    if (workdayParts.length >= 3 && /^(?:united states|usa|us)$/i.test(workdayParts[0])) {
+      const code = stateCode(workdayParts[1]);
+      const city = workdayParts[2];
+      if (code && city && !/^remote$/i.test(city)) return `${city}, ${code}`;
+      if (/^remote$/i.test(city)) return globalRemote ? null : "Remote";
+    }
+
+    const facility = raw.match(/^\d+\s+(.+?)\s+([A-Z]{2})$/);
+    if (facility && STATE_CODES.has(facility[2])) {
+      return `${titleCaseWords(facility[1]), facility[2]}`;
+    }
+
+    const cityStateCountry = raw.match(/^(.+?),\s*([A-Z]{2})(?:,\s*(?:US|USA|United States))$/i);
+    if (cityStateCountry && STATE_CODES.has(cityStateCountry[2].toUpperCase())) {
+      return `${cityStateCountry[1].trim()}, ${cityStateCountry[2].toUpperCase()}`;
+    }
+
+    return raw;
+  }
+
+  function normalizeAuthoritativeLocations(values) {
+    const raw = Array.isArray(values)
+      ? values.map(value => String(value || "").trim()).filter(Boolean)
+      : [];
+    const globalRemote = raw.some(value => /^(?:united states|usa|us)\s*-\s*remote$/i.test(value) || /^remote$/i.test(value));
+    const normalized = [];
+    const seen = new Set();
+    for (const value of raw) {
+      const cleaned = normalizeAuthoritativeLocation(value, { globalRemote });
+      if (!cleaned) continue;
+      const key = cleaned.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      normalized.push(cleaned);
+    }
+    return normalized;
   }
 
   function workdayTitleSlug(value) {
@@ -97,17 +161,13 @@
 
     const locations = posting.locations;
     const values = locations?.status === "authoritative" && Array.isArray(locations.values)
-      ? locations.values.map(value => String(value || "").trim()).filter(Boolean)
+      ? normalizeAuthoritativeLocations(locations.values)
       : [];
     if (values.length) {
-      const priorLocation = String(job?.location || "").trim().toLowerCase();
       view.location = values.join(" · ");
       const states = explicitLocationStates(view);
-      view.states = states.length ? states : (/\bremote\b/i.test(view.location) ? ["Remote"] : []);
-      if (priorLocation && priorLocation !== view.location.trim().toLowerCase()) {
-        delete view._distanceMiles;
-        delete view._distanceMilesBasis;
-      }
+      const remote = /\bremote\b/i.test(view.location);
+      view.states = [...states, ...(remote ? ["Remote"] : [])];
     }
 
     view.url = authoritativeWorkdayUrl(view, posting);
@@ -270,6 +330,8 @@
   return {
     explicitLocationStates,
     reliableStates,
+    normalizeAuthoritativeLocation,
+    normalizeAuthoritativeLocations,
     authoritativeWorkdayUrl,
     authoritativePostingView,
     canonicalPostingKey,
