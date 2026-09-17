@@ -69,6 +69,44 @@ class CoverageContractTests(unittest.TestCase):
         self.assertTrue(checks["capture_rate"]["passed"])
         self.assertFalse(checks["visible_rate"]["passed"])
 
+    def test_same_requisition_across_reports_counts_once(self):
+        duplicate = {
+            "company": "Example Corp",
+            "title": "Software Engineering Intern",
+            "location": "Hartford, CT",
+            "url": "https://example.wd1.myworkdayjobs.com/jobs/job/Hartford/R12345",
+            "status": "already_in_yartchives",
+            "first_discovered_at": "2026-09-17T10:00:00Z",
+            "matched_job": {
+                "first_seen": "2026-09-17T11:00:00Z",
+                "link_kind": "direct",
+            },
+        }
+        first_report = report([duplicate])
+        second_report = report([
+            {
+                **duplicate,
+                "url": "https://example.wd1.myworkdayjobs.com/en-US/jobs/job/Hartford/R12345",
+            },
+            {
+                "company": "Another Corp",
+                "title": "Data Intern",
+                "location": "New Haven, CT",
+                "url": "https://jobs.example.com/requisitions/67890",
+                "status": "source_not_covered",
+            },
+        ])
+
+        status = mod.evaluate(contract(minimum_capture_rate=0.5, minimum_visible_rate=0.5), [first_report, second_report], self.NOW)
+        checks = {check["name"]: check for check in status["checks"]}
+
+        self.assertEqual(status["evidence"]["unique_benchmark_listings"], 2)
+        self.assertEqual(checks["benchmark_size"]["actual"], 2)
+        self.assertEqual(checks["capture_rate"]["actual"], 0.5)
+        self.assertEqual(checks["visible_rate"]["actual"], 0.5)
+        self.assertEqual(checks["authoritative_link_rate"]["actual"], 1.0)
+        self.assertEqual(status["evidence"]["latency_observations"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -5,12 +5,22 @@ from __future__ import annotations
 import argparse
 import json
 import statistics
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from scripts.coverage_audit import canonical_url, company_key, signature, url_identity  # noqa: E402
+
 DEFAULT_CONTRACT = ROOT / "coverage_contract.json"
+CAPTURED_STATUSES = {
+    "already_in_yartchives",
+    "filtered_or_misclassified",
+    "duplicate_resolution_issue",
+}
 
 
 def parse_time(value: Any) -> datetime | None:
@@ -31,19 +41,44 @@ def _gate(name: str, actual: Any, target: Any, passed: bool, measurable: bool = 
     return {"name": name, "actual": actual, "target": target, "measurable": measurable, "passed": bool(passed and measurable)}
 
 
+def listing_identity(result: dict[str, Any]) -> tuple[str, ...] | None:
+    """Return a stable identity shared by the same listing across reports."""
+    for key in ("requisition_id", "requisition", "job_id", "jobid", "req_id"):
+        value = str(result.get(key) or "").strip().lower()
+        if value:
+            company = company_key(str(result.get("company") or ""))
+            return ("requisition", company, value)
+
+    url = str(result.get("url") or "").strip()
+    provider_identity = url_identity(url)
+    if provider_identity:
+        return ("provider", *provider_identity)
+    if url:
+        return ("url", canonical_url(url))
+
+    fallback = signature(result)
+    return ("signature", fallback) if fallback != "||" else None
+
+
+def deduplicate_results(reports: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    unique: dict[tuple[str, ...], dict[str, Any]] = {}
+    for report_index, report in enumerate(reports):
+        for result_index, result in enumerate(report.get("results") or []):
+            identity = listing_identity(result) or ("row", str(report_index), str(result_index))
+            unique.setdefault(identity, result)
+    return list(unique.values())
+
+
 def evaluate(contract: dict[str, Any], reports: list[dict[str, Any]], now: datetime) -> dict[str, Any]:
     gates = contract["gates"]
-    results = [result for report in reports for result in (report.get("results") or [])]
-    unique_total = sum(int((report.get("summary") or {}).get("external_unique_listings") or 0) for report in reports)
-    captured = sum(
-        result.get("status") in {"already_in_yartchives", "filtered_or_misclassified", "duplicate_resolution_issue"}
-        for result in results
-    )
+    results = deduplicate_results(reports)
+    unique_total = len(results)
+    captured = sum(result.get("status") in CAPTURED_STATUSES for result in results)
     visible = sum(result.get("status") == "already_in_yartchives" for result in results)
     authoritative = sum(
         (result.get("matched_job") or {}).get("link_kind") == "direct"
         for result in results
-        if result.get("status") in {"already_in_yartchives", "filtered_or_misclassified", "duplicate_resolution_issue"}
+        if result.get("status") in CAPTURED_STATUSES
     )
     capture_rate = captured / unique_total if unique_total else None
     visible_rate = visible / unique_total if unique_total else None
