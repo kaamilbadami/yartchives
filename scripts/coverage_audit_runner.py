@@ -31,6 +31,10 @@ ATS_HOST_HINTS: dict[str, tuple[str, ...]] = {
     "icims": ("icims.com",),
     "oracle": ("oraclecloud.com",),
     "jobvite": ("jobvite.com",),
+    "successfactors": ("successfactors.com",),
+    "taleo": ("taleo.net",),
+    "eightfold": ("eightfold.ai",),
+    "usajobs": ("usajobs.gov",),
 }
 MISSING_STATUSES = {
     "configured_source_miss",
@@ -71,7 +75,9 @@ def ats_family(url: str) -> str:
     for family, hints in ATS_HOST_HINTS.items():
         if any(hostname == hint or hostname.endswith(f".{hint}") for hint in hints):
             return family
-    return "unknown"
+    if is_discovery_surface(url):
+        return "discovery-only"
+    return "employer/custom"
 
 
 def ats_family_for_result(result: dict[str, Any]) -> str:
@@ -80,9 +86,14 @@ def ats_family_for_result(result: dict[str, Any]) -> str:
     candidates.extend(str(value) for value in (result.get("observation_urls") or []))
     for candidate in candidates:
         family = ats_family(candidate)
-        if family != "unknown":
+        if family not in {"employer/custom", "discovery-only"}:
             return family
-    return "unknown"
+    return ats_family(candidates[0]) if candidates else "employer/custom"
+
+
+def result_states(result: dict[str, Any]) -> list[str]:
+    """Return the row-level benchmark states used for regional breakdowns."""
+    return [str(state).upper() for state in ((result.get("expected") or {}).get("states") or [])]
 
 
 def _row_quality(row: dict[str, Any]) -> tuple[int, int]:
@@ -230,6 +241,34 @@ def build_report(
         family: count
         for family, count in sorted(missing_by_ats.items(), key=lambda item: (-item[1], item[0]))
     }
+    by_state: defaultdict[str, Counter[str]] = defaultdict(Counter)
+    missing_by_state: Counter[str] = Counter()
+    missing_by_reason: Counter[str] = Counter()
+    missing_by_discovery_source: Counter[str] = Counter()
+    for result in report["results"]:
+        states_for_result = result_states(result) or ["unknown"]
+        for state in states_for_result:
+            by_state[state][result["status"]] += 1
+            if result.get("status") in MISSING_STATUSES:
+                missing_by_state[state] += 1
+        if result.get("status") in MISSING_STATUSES:
+            missing_by_reason[str(result.get("reason_code") or "unknown")] += 1
+            missing_by_discovery_source[str(result.get("source") or "unknown")] += 1
+
+    summary["by_state"] = {
+        state: dict(counts) for state, counts in sorted(by_state.items())
+    }
+    summary["missing_by_state"] = dict(sorted(missing_by_state.items()))
+    summary["missing_by_reason_code"] = {
+        reason: count
+        for reason, count in sorted(missing_by_reason.items(), key=lambda item: (-item[1], item[0]))
+    }
+    summary["missing_by_discovery_source"] = {
+        source: count
+        for source, count in sorted(
+            missing_by_discovery_source.items(), key=lambda item: (-item[1], item[0])
+        )
+    }
 
     return report
 
@@ -254,7 +293,24 @@ def markdown(report: dict[str, Any]) -> str:
     else:
         ats_lines.append("No missing listings in this sample.")
     ats_section = "\n".join(ats_lines) + "\n\n"
-    return text.replace("## Status breakdown\n", ats_section + "## Status breakdown\n", 1)
+    state_lines = ["## Results by benchmark state", ""]
+    for state, counts in summary.get("by_state", {}).items():
+        total = sum(counts.values())
+        missing = (summary.get("missing_by_state") or {}).get(state, 0)
+        state_lines.append(f"- `{state}`: **{total}** listings, **{missing}** missing")
+    reason_lines = ["", "## Missing listings by reason code", ""]
+    reason_counts = summary.get("missing_by_reason_code") or {}
+    reason_lines.extend(
+        (f"- `{reason}`: **{count}**" for reason, count in reason_counts.items()),
+    )
+    if not reason_counts:
+        reason_lines.append("No missing listings in this sample.")
+    breakdown_section = "\n".join(state_lines + reason_lines) + "\n\n"
+    return text.replace(
+        "## Status breakdown\n",
+        ats_section + breakdown_section + "## Status breakdown\n",
+        1,
+    )
 
 
 def _write_text(path: str, content: str) -> None:
