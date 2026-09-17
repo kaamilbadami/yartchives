@@ -79,7 +79,7 @@ jobs:
         run: python scripts/refresh_employer_universe.py employer_universe.json audit/samples/ct-ny-md-dc-cs-2026-09-17.json --seed data/employer-seeds/fortune-500-2026.json --seed data/employer-seeds/state-of-ats-2026-verified-hosts.json
 
       - name: Refresh bounded employer careers resolutions
-        run: python scripts/employer_resolution_lifecycle.py employer_universe.json --ttl-days 7 --employer-budget 5 --request-budget 30
+        run: python scripts/employer_resolution_lifecycle.py employer_universe.json --ttl-days 7 --employer-budget 20 --request-budget 120
 
       - name: Persist employer universe before long feed build
         run: |
