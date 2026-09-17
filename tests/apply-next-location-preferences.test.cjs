@@ -94,6 +94,23 @@ const customProfile = {
 };
 assert.deepEqual(L.orderedAnchors(customProfile).map(anchor => anchor.locationScore), [15, 10, 4]);
 
+const customNearPrimary = inspectedJob({
+  _locationAnchorDistances: [
+    { zip: "06897", distanceMiles: 18 },
+    { zip: "20740", distanceMiles: 240 },
+    { zip: "10001", distanceMiles: 65 },
+  ],
+});
+const customNearSecondary = inspectedJob({
+  states: ["MD"],
+  location: "Washington, DC",
+  url: "https://example.com/custom-secondary",
+  _locationAnchorDistances: [
+    { zip: "06897", distanceMiles: 260 },
+    { zip: "20740", distanceMiles: 9 },
+    { zip: "10001", distanceMiles: 220 },
+  ],
+});
 const nearThird = inspectedJob({
   states: ["NY"],
   location: "New York, NY",
@@ -104,8 +121,8 @@ const nearThird = inspectedJob({
     { zip: "10001", distanceMiles: 8 },
   ],
 });
-assert.equal(L.scoreLocation(nearPrimary, customProfile).score, 10, "15/15 custom anchor maps to legacy 10/10 before dimension scaling");
-assert.equal(L.scoreLocation(nearSecondary, customProfile).score, 10 / 1.5, "10/15 custom anchor maps proportionally before dimension scaling");
+assert.equal(L.scoreLocation(customNearPrimary, customProfile).score, 10, "15/15 custom anchor maps to legacy 10/10 before dimension scaling");
+assert.equal(L.scoreLocation(customNearSecondary, customProfile).score, 10 / 1.5, "10/15 custom anchor maps proportionally before dimension scaling");
 assert.equal(L.scoreLocation(nearThird, customProfile).score, 4 / 1.5, "third and later anchors can have arbitrary scores");
 
 const overlapping = inspectedJob({
