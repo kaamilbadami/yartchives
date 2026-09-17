@@ -74,6 +74,14 @@ for US undergraduate CS internships and co-ops. Until every contract gate
 passes on a fresh, sufficiently large independent benchmark, Apply Next ranks
 the known feed rather than asserting complete market coverage.
 
+## Employer careers-site resolution
+
+`scripts/careers_resolver.py` enriches a raw registry list, an employer seed, or `employer_universe.json` from its domain hints. It follows redirects and employer-owned careers links, reuses the generic provider fingerprinting layer, and adds `careers_url`, `careers_platform`, `provider`, and complete request/redirect evidence. It resolves only careers landing pages: individual job URLs are rejected and ATS job/search APIs are never queried.
+
+```bash
+python scripts/careers_resolver.py employer-seed.json --output employer-seed.resolved.json
+```
+
 ## Automatic refreshes
 
 `.github/workflows/update-feed.yml` runs hourly and can also be triggered manually from the Actions tab. If the normalized feed changes, the workflow commits the new `data/listings.json` back to the repository.
