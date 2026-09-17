@@ -32,6 +32,7 @@ WORKERS = 14
 USER_AGENT = "Yartchives/1.0 provider-link-recovery (+https://github.com/kaamilbadami/yartchives)"
 WORKDAY_SHARDS = ("wd1", "wd2", "wd3", "wd5", "wd10", "wd12")
 WORKDAY_REQ_RE = re.compile(r"-(JR-?\d+|REQ-?\d+|WD-?\d+|R-?\d+|\d{6,})$", re.I)
+DIRECT_WORKDAY_REQ_RE = re.compile(r"(?:_|-)(JR-?\d+|REQ-?\d+|WD-?\d+|R-?\d+|\d{6,})$", re.I)
 LOCALE_RE = re.compile(r"^[a-z]{2}-[A-Z]{2}$")
 
 
@@ -82,7 +83,7 @@ def workday_req_id_from_url(value: str | None) -> str:
     if not parts:
         return ""
     tail = parts[-1]
-    match = WORKDAY_REQ_RE.search(tail)
+    match = DIRECT_WORKDAY_REQ_RE.search(tail)
     return match.group(1) if match else ""
 
 
