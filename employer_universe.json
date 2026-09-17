@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "seed_sets": [
+    {
+      "key": "fortune-500-2026",
+      "kind": "fortune_500",
+      "edition": 2026,
+      "status": "planned"
+    }
+  ],
+  "employers": []
+}
