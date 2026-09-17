@@ -42,23 +42,37 @@
     if (scope.distanceForJob.__yartchivesMatchedPointCapture) return true;
     const prior = scope.distanceForJob;
     const wrapped = function (job, origin, geo) {
-      const distance = prior(job, origin, geo);
+      const fallbackDistance = prior(job, origin, geo);
       try {
+        const authoritativeValues = typeof utils.authoritativeLocationValues === "function"
+          ? utils.authoritativeLocationValues(job)
+          : [];
         const resolved = utils.distanceForJob(job, origin, geo);
+        const authoritativeDistance = Number(resolved?.miles);
+        const hasAuthoritativeLocations = authoritativeValues.length > 0;
+        const distance = hasAuthoritativeLocations
+          ? (Number.isFinite(authoritativeDistance) ? authoritativeDistance : null)
+          : fallbackDistance;
         const samples = Array.isArray(job?._applyNextAnchorDistanceSamples)
           ? job._applyNextAnchorDistanceSamples
           : [];
         const latest = samples[samples.length - 1];
-        if (latest && resolved?.point) {
+        if (latest && hasAuthoritativeLocations) {
+          latest.distanceMiles = Number.isFinite(authoritativeDistance) ? authoritativeDistance : null;
+          latest.point = resolved?.point ? {
+            city: resolved.point.city || null,
+            state: resolved.point.state || null,
+          } : null;
+        } else if (latest && resolved?.point) {
           latest.point = {
             city: resolved.point.city || null,
             state: resolved.point.state || null,
           };
         }
+        return distance;
       } catch (_) {
-        // Distance scoring remains authoritative even if display-point enrichment fails.
+        return fallbackDistance;
       }
-      return distance;
     };
     wrapped.__yartchivesMatchedPointCapture = true;
     wrapped.__yartchivesPriorDistanceForJob = prior;
@@ -84,6 +98,12 @@
     const cityStateCountry = text.match(/^([^,]+),\s*([A-Z]{2}),\s*(?:US|USA|United States)$/i);
     if (cityStateCountry) return `${titleCase(cityStateCountry[1].trim())}, ${cityStateCountry[2].toUpperCase()}`;
 
+    const cityStateNameCountry = text.match(/^([^,]+),\s*([A-Za-z ]+),\s*(?:US|USA|United States)$/i);
+    if (cityStateNameCountry) {
+      const code = STATE_BY_NAME[cityStateNameCountry[2].trim().toLowerCase()];
+      if (code) return `${titleCase(cityStateNameCountry[1].trim())}, ${code}`;
+    }
+
     const streetCityState = text.match(/^(?:\d+\s+)?[^,]+,\s*([^,]+),+\s*([A-Z]{2})$/i);
     if (streetCityState) return `${titleCase(streetCityState[1].trim())}, ${streetCityState[2].toUpperCase()}`;
 
@@ -99,9 +119,18 @@
     return text;
   }
 
+  function rawLocationValues(job) {
+    const authoritative = typeof utils?.authoritativeLocationValues === "function"
+      ? utils.authoritativeLocationValues(job)
+      : [];
+    return authoritative.length ? authoritative : [String(job?.location || "")];
+  }
+
   function locationPieces(job) {
-    const raw = String(job?.location || "");
-    const pieces = raw.split(/\s*·\s*|\s*;\s*|\s*\|\s*/).map(humanizeLocationPiece).filter(Boolean);
+    const pieces = rawLocationValues(job)
+      .flatMap(raw => String(raw || "").split(/\s*·\s*|\s*;\s*|\s*\|\s*/))
+      .map(humanizeLocationPiece)
+      .filter(Boolean);
     const out = [];
     const seen = new Set();
     for (const piece of pieces) {
@@ -131,17 +160,18 @@
   function displayLocation(result, profile) {
     const pieces = locationPieces(result?.job);
     const point = matchedPointForResult(result, profile);
-    let preferred = point?.city && point?.state ? `${titleCase(point.city)}, ${String(point.state).toUpperCase()}` : null;
-    if (preferred) {
-      const exact = pieces.find(piece => piece.toLowerCase() === preferred.toLowerCase());
-      if (exact) preferred = exact;
-    }
-    if (!preferred) preferred = pieces[0] || "Location not listed";
-    const remainder = pieces.filter(piece => piece.toLowerCase() !== preferred.toLowerCase()).length;
+    const matched = point?.city && point?.state
+      ? pieces.find(piece => piece.toLowerCase() === `${titleCase(point.city)}, ${String(point.state).toUpperCase()}`.toLowerCase()) || null
+      : null;
+    const ordered = matched
+      ? [matched, ...pieces.filter(piece => piece.toLowerCase() !== matched.toLowerCase())]
+      : pieces;
+    const preferred = matched || ordered[0] || "Location not listed";
     return {
-      text: remainder ? `${preferred} + ${remainder} more` : preferred,
+      text: ordered.length ? ordered.join(" · ") : preferred,
       preferred,
-      all: pieces,
+      all: ordered,
+      matched: matched || null,
     };
   }
 
@@ -169,6 +199,7 @@
     captureMatchedLocationPoints,
     canonicalApplyUrl,
     humanizeLocationPiece,
+    rawLocationValues,
     locationPieces,
     matchedPointForResult,
     displayLocation,
