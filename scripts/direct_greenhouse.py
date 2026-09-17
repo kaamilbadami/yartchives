@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+from html import unescape
 import json
 import re
 import sys
