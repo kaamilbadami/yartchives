@@ -128,9 +128,10 @@
 
   function authoritativeAcademicSupport(result, profile) {
     const inspection = inspectionForResult(result);
-    if (inspection?.status !== "inspected") return { bonus: 0, details: [] };
+    if (inspection?.status !== "inspected") return { bonus: 0, details: [], requiredMatches: 0 };
 
     let bonus = 0;
+    let requiredMatches = 0;
     const details = [];
     const major = normalize(profile?.facts?.major || profile?.major);
     const degree = degreeLevel(profile?.facts?.degree || profile?.degree);
@@ -144,6 +145,7 @@
       const preferredMatch = preferredMajors.some(fact => normalize(fact?.statement).includes(major));
       if (requiredMatch) {
         bonus += 3;
+        requiredMatches += 1;
         details.push(`${profile?.facts?.major || profile?.major} matches a required major`);
       } else if (preferredMatch) {
         bonus += 2;
@@ -158,6 +160,7 @@
       const preferredMatch = preferredEducation.some(fact => statementMatchesDegree(fact?.statement, degree));
       if (requiredMatch) {
         bonus += 2;
+        requiredMatches += 1;
         details.push(`${degree} degree matches a required education level`);
       } else if (preferredMatch) {
         bonus += 1;
@@ -165,7 +168,7 @@
       }
     }
 
-    return { bonus: Math.min(5, bonus), details };
+    return { bonus: Math.min(5, bonus), details, requiredMatches };
   }
 
   function profileSkills(profile, key, fallbackKey) {
@@ -278,6 +281,31 @@
     };
   }
 
+  function requiredCoverageBonus(result, evidence, academic) {
+    const inspection = inspectionForResult(result);
+    if (inspection?.status !== "inspected") return { bonus: 0, detail: "" };
+
+    const requiredFactCount = evidenceFacts(requirementField(inspection, "skills"), "required").length
+      + evidenceFacts(requirementField(inspection, "education"), "required").length
+      + evidenceFacts(requirementField(inspection, "major_fields"), "required").length;
+    const positiveRequiredSignals = evidence.exactRequired.length
+      + evidence.adjacentRequired.length
+      + Number(academic?.requiredMatches || 0);
+    const unresolvedRequired = evidence.hardGaps.length + evidence.cautiousRequired.length;
+
+    if (!requiredFactCount || !positiveRequiredSignals || unresolvedRequired) {
+      return { bonus: 0, detail: "" };
+    }
+
+    const bonus = evidence.learnableGaps.length
+      ? Math.min(5, 3 + positiveRequiredSignals)
+      : Math.min(7, 4 + positiveRequiredSignals);
+    const detail = evidence.learnableGaps.length
+      ? "Known hard requirements satisfied; remaining required gaps are learnable/low-threshold"
+      : "All known required evidence is satisfied";
+    return { bonus, detail };
+  }
+
   function scoreQualificationFit(result, profile) {
     const inspected = result?.inspection?.state === "inspected";
     if (!inspected) {
@@ -286,7 +314,8 @@
 
     const academic = authoritativeAcademicSupport(result, profile || {});
     const evidence = analyzeQualificationEvidence(result, profile || {});
-    let score = 18 + academic.bonus;
+    const coverage = requiredCoverageBonus(result, evidence, academic);
+    let score = 18 + academic.bonus + coverage.bonus;
 
     score += Math.min(9, evidence.exactRequired.length * 3);
     score += Math.min(6, evidence.adjacentRequired.length * 1.5);
@@ -303,6 +332,7 @@
 
     const parts = [];
     if (academic.details.length) parts.push(`Academic match: ${academic.details.join(", ")}`);
+    if (coverage.detail) parts.push(`Required coverage: ${coverage.detail}`);
     if (evidence.exactRequired.length) parts.push(`Exact required skills: ${evidence.exactRequired.join(", ")}`);
     if (evidence.adjacentRequired.length) {
       parts.push(`Transferable capability: ${evidence.adjacentRequired.map(([needed, evidenceSkill]) => `${evidenceSkill} supports ${needed}`).join(", ")}`);
@@ -446,6 +476,7 @@
     explicitGraduateOnlyTitle,
     authoritativeAcademicSupport,
     analyzeQualificationEvidence,
+    requiredCoverageBonus,
     scoreQualificationFit,
     alignedReadiness,
     scoreEligibilityGate,
