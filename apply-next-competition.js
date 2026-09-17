@@ -194,7 +194,7 @@
     if (count >= 4) {
       return {
         observed: true,
-        bonus: 3,
+        bonus: 5,
         count,
         role,
         detail: `observed employer demand: ${count} current ${role} openings`,
@@ -203,7 +203,7 @@
     if (count >= 2) {
       return {
         observed: true,
-        bonus: 2,
+        bonus: 3,
         count,
         role,
         detail: `observed employer demand: ${count} current ${role} openings`,
@@ -216,7 +216,7 @@
     let score = 10;
     const reasons = ["Neutral application-value baseline"];
     let competitionPenalty = 0;
-    let differentiationBonus = 0;
+    const differentiationBonus = 0;
     let demandBonus = 0;
 
     const demand = observedDemand(job, context);
@@ -243,27 +243,12 @@
       }
     }
 
-    const skillSupport = requiredSkillSupport(job, profile || {});
-    if (skillSupport.supported.length >= 2) {
-      differentiationBonus += 3;
-      reasons.push(`strong required-skill differentiation: ${skillSupport.supported.slice(0, 3).join(", ")}`);
-    } else if (skillSupport.supported.length === 1) {
-      differentiationBonus += 2;
-      reasons.push(`required-skill differentiation: ${skillSupport.supported[0]}`);
-    }
-
-    if (isSpecializedRole(job) && skillSupport.supported.length) {
-      differentiationBonus += 2;
-      reasons.push("specialized role aligns with supported experience");
-    }
-
     competitionPenalty = Math.min(5, competitionPenalty);
-    differentiationBonus = Math.min(5, differentiationBonus);
-    demandBonus = Math.min(3, demandBonus);
-    score = Math.max(0, Math.min(15, score - competitionPenalty + differentiationBonus + demandBonus));
+    demandBonus = Math.min(5, demandBonus);
+    score = Math.max(0, Math.min(15, score - competitionPenalty + demandBonus));
 
-    if (!demand.observed && !competitionPenalty && !differentiationBonus) {
-      reasons.push("no observed employer/role demand evidence; no strong fallback competition or differentiation signal available");
+    if (!demand.observed && !competitionPenalty) {
+      reasons.push("no observed employer/role demand evidence or strong fallback competition signal available");
     }
     return {
       score,
