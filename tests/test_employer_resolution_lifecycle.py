@@ -18,7 +18,10 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
     def universe(self, employers):
         return {
             "schema_version": 1,
-            "seed_sets": [{"key": "benchmark", "kind": "coverage_benchmark"}],
+            "seed_sets": [
+                {"key": "benchmark", "kind": "coverage_benchmark"},
+                {"key": "state-of-ats-2026-verified-hosts", "kind": "external_ats_evidence"},
+            ],
             "employers": employers,
         }
 
