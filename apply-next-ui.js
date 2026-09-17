@@ -317,12 +317,10 @@
     });
     const applied = element("button", "secondary-btn", "Mark applied");
     applied.type = "button";
-    applied.addEventListener("click", async () => {
+    applied.addEventListener("click", () => {
       state.applied.add(job.id);
       persist();
       applyFilters();
-      const panel = document.querySelector("#applyNextPanel");
-      if (panel) await renderPanel(panel);
     });
     actions.append(saved, applied);
     card.append(actions);
