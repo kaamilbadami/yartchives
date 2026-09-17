@@ -1,13 +1,13 @@
 # CT / NY / MD / DC undergraduate CS coverage benchmark
 
 External sample collected: `2026-09-17T15:30:00Z`
-Yartchives feed snapshot: `2026-09-17T17:55:06.707339Z`
+Yartchives feed snapshot: `2026-09-17T18:11:34.574004Z`
 Scope: profiles=cs, states=CT,NY,MD,DC
 
 - External observations collected: **106**
 - Unique external listings (denominator): **106**
 - Duplicate observations collapsed: **0**
-- Captured or probably captured: **50** (47.2%)
+- Captured or probably captured: **53** (50.0%)
 - Visible under expected filters: **33** (31.1%)
 - Actionable findings: **73**
 
@@ -15,7 +15,7 @@ Scope: profiles=cs, states=CT,NY,MD,DC
 
 - `discovery-only`: **24**
 - `employer/custom`: **21**
-- `greenhouse`: **7**
+- `greenhouse`: **4**
 - `workday`: **2**
 - `icims`: **1**
 - `usajobs`: **1**
@@ -23,22 +23,22 @@ Scope: profiles=cs, states=CT,NY,MD,DC
 ## Results by benchmark state
 
 - `CT`: **20** listings, **11** missing
-- `DC`: **25** listings, **15** missing
+- `DC`: **25** listings, **14** missing
 - `MD`: **27** listings, **21** missing
-- `NY`: **34** listings, **9** missing
+- `NY`: **34** listings, **7** missing
 
 ## Missing listings by reason code
 
 - `uncovered_source`: **33**
-- `known_employer_missing_role`: **22**
+- `known_employer_missing_role`: **19**
 - `configured_source_listing_absent`: **1**
 
 ## Status breakdown
 
 - `already_in_yartchives`: 33
-- `filtered_or_misclassified`: 9
-- `duplicate_resolution_issue`: 8
-- `employer_exists_but_listing_missing`: 22
+- `filtered_or_misclassified`: 11
+- `duplicate_resolution_issue`: 9
+- `employer_exists_but_listing_missing`: 19
 - `configured_source_miss`: 1
 - `source_not_covered`: 33
 - `unknown`: 0
@@ -81,14 +81,11 @@ Scope: profiles=cs, states=CT,NY,MD,DC
 - **filtered_or_misclassified** (`present_but_hidden`): Schonfeld — 2027 Business Analytics Intern — New York, NY
   - Why: missing expected profile 'cs'
   - Next: Review profile/state/type enrichment or default filter metadata.
-- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Schonfeld — 2027 Cybersecurity Operations Intern — New York, NY
-  - Why: Yartchives has 15 listing(s) for this employer but not this role
-  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
 - **duplicate_resolution_issue** (`provider_identity_mismatch`): Schonfeld — 2027 DMFI Technology Intern — New York, NY
   - Why: same ATS/listing identifier exists but ordinary URL/signature matching failed
   - Next: Add or improve provider-specific canonicalization/deduplication.
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): DV Trading — Client Platforms Engineer Intern - Summer 2027 — New York, NY
-  - Why: Yartchives has 13 listing(s) for this employer but not this role
+  - Why: Yartchives has 12 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
 - **duplicate_resolution_issue** (`provider_identity_mismatch`): DV Trading — Quantitative Research Intern - Summer 2027 (DV Equities) — New York, NY
   - Why: same ATS/listing identifier exists but ordinary URL/signature matching failed
@@ -96,6 +93,9 @@ Scope: profiles=cs, states=CT,NY,MD,DC
 - **filtered_or_misclassified** (`present_but_hidden`): Lyft — Data Analyst Intern (Summer 2027) — New York, NY
   - Why: missing expected profile 'cs'
   - Next: Review profile/state/type enrichment or default filter metadata.
+- **duplicate_resolution_issue** (`probable_duplicate`): Figma — Data Science Intern (2027) — New York, NY
+  - Why: same employer has a very similar title and compatible location
+  - Next: Verify requisition identity; if it is the same role, improve normalization.
 - **duplicate_resolution_issue** (`probable_duplicate`): Figma — Software Engineer Intern (Summer 2027) — New York, NY
   - Why: same employer has a very similar title and compatible location
   - Next: Verify requisition identity; if it is the same role, improve normalization.
@@ -111,9 +111,9 @@ Scope: profiles=cs, states=CT,NY,MD,DC
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): Point72 — Quantitative Software Developer Intern — New York, NY
   - Why: Yartchives has 5 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
-- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Audax Group — IT Operations Co-Op — New York, NY
-  - Why: Yartchives has 4 listing(s) for this employer but not this role
-  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **filtered_or_misclassified** (`present_but_hidden`): Audax Group — IT Operations Co-Op — New York, NY
+  - Why: missing expected profile 'cs'
+  - Next: Review profile/state/type enrichment or default filter metadata.
 - **filtered_or_misclassified** (`present_but_hidden`): BNY — 2027 BNY Summer Internship Program - Engineering (Developer) - New York, NY — New York, NY
   - Why: missing expected profile 'cs'
   - Next: Review profile/state/type enrichment or default filter metadata.
@@ -220,11 +220,11 @@ Scope: profiles=cs, states=CT,NY,MD,DC
   - Why: missing expected profile 'cs'
   - Next: Review profile/state/type enrichment or default filter metadata.
 - **employer_exists_but_listing_missing** (`known_employer_missing_role`): Anduril — Winter 2027 Technical Program Management Co-op — Washington, DC
-  - Why: Yartchives has 9 listing(s) for this employer but not this role
+  - Why: Yartchives has 8 listing(s) for this employer but not this role
   - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
-- **employer_exists_but_listing_missing** (`known_employer_missing_role`): Anduril — Winter 2027 Test Automation Engineer Co-op — Washington, DC
-  - Why: Yartchives has 9 listing(s) for this employer but not this role
-  - Next: Trace the role to the employer ATS and check source filters or add direct coverage.
+- **filtered_or_misclassified** (`present_but_hidden`): Anduril — Winter 2027 Test Automation Engineer Co-op — Washington, DC
+  - Why: missing expected profile 'cs'
+  - Next: Review profile/state/type enrichment or default filter metadata.
 - **source_not_covered** (`uncovered_source`): Amtrak — Fall 2026/Spring 2027 - Software Engineering Intern - 90413041 - Washington — Washington, DC
   - Why: source_key=90413041
   - Next: Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.

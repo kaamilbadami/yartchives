@@ -8,9 +8,9 @@ A student can use Yartchives as their only discovery queue for current US underg
 |---|---:|---:|:---:|:---:|
 | benchmark_size | 106 | 200 | yes | no |
 | geographic_breadth | 4 | 10 | yes | no |
-| sample_freshness_hours | 2.5354641708333334 | 168 | yes | yes |
-| feed_freshness_hours | 0.11693435444444444 | 2 | yes | yes |
-| capture_rate | 0.4716981132075472 | 0.95 | yes | no |
+| sample_freshness_hours | 2.7866083972222224 | 168 | yes | yes |
+| feed_freshness_hours | 0.09367117388888889 | 2 | yes | yes |
+| capture_rate | 0.5 | 0.95 | yes | no |
 | visible_rate | 0.3113207547169811 | 0.95 | yes | no |
 | authoritative_link_rate | 1.0 | 0.95 | yes | yes |
 | median_discovery_latency_hours | N/A | 6 | no | no |
