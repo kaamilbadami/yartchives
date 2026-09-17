@@ -207,14 +207,17 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
             calls.append(entry["id"])
             return self.resolved(f"https://{entry['id']}.example/careers", requests=1)
 
-        mod.run_lifecycle(
+        updated, summary = mod.run_lifecycle(
             universe,
             now=NOW,
             employer_budget=3,
             request_budget=3,
             resolver=resolver,
         )
-        self.assertEqual(calls, ["fortune", "ats", "other"])
+        self.assertEqual(calls, ["fortune", "other"])
+        ats_row = next(row for row in updated["employers"] if row["id"] == "ats")
+        self.assertEqual(ats_row["careers_resolution"]["status"], "provider_resolved")
+        self.assertEqual(summary["fast_path_provider_resolved"], 1)
 
     def test_verified_workday_tenant_fast_paths_without_network(self):
         employer = self.employer("verified")
@@ -245,13 +248,19 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
         self.assertEqual(summary["requests_used"], 0)
 
     def test_shared_verified_provider_host_is_not_fast_pathed(self):
-        employer = self.employer("shared-greenhouse")
-        employer["seed_sets"].append("state-of-ats-2026-verified-hosts")
-        employer["seed_metadata"]["state-of-ats-2026-verified-hosts"] = {
-            "ats_system": "Greenhouse",
-            "domain_hints": ["job-boards.greenhouse.io"],
-            "evidence_method": "vendor board API",
-            "source_url": "https://example.com/shared-greenhouse",
+        employer = {
+            "id": "shared-greenhouse",
+            "name": "Shared Greenhouse",
+            "aliases": [],
+            "seed_sets": ["state-of-ats-2026-verified-hosts"],
+            "seed_metadata": {
+                "state-of-ats-2026-verified-hosts": {
+                    "ats_system": "Greenhouse",
+                    "domain_hints": ["job-boards.greenhouse.io"],
+                    "evidence_method": "vendor board API",
+                    "source_url": "https://example.com/shared-greenhouse",
+                }
+            },
         }
 
         updated, summary = mod.run_lifecycle(
