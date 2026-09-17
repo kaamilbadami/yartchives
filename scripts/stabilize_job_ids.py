@@ -46,6 +46,17 @@ def deterministic_job_id(job: dict[str, Any]) -> str:
     return hashlib.sha1(stable_identity_basis(job).encode("utf-8")).hexdigest()[:16]
 
 
+def collision_job_id(job: dict[str, Any], ordinal: int) -> str:
+    basis = "|".join((
+        stable_identity_basis(job),
+        canonical_listing_url(job),
+        *metadata_signature(job),
+        "collision",
+        str(ordinal),
+    ))
+    return hashlib.sha1(basis.encode("utf-8")).hexdigest()[:16]
+
+
 def unique_index(
     jobs: list[dict[str, Any]],
     key_fn: Callable[[dict[str, Any]], Hashable | None],
@@ -99,19 +110,21 @@ def stabilize_jobs(
             old_by_signature=old_by_signature,
         )
         prior_id = str(prior.get("id") or "") if prior else ""
-        job_id = prior_id or deterministic_job_id(job)
+        preserved_prior = bool(prior_id and prior_id not in used_ids)
+        job_id = prior_id if preserved_prior else deterministic_job_id(job)
 
-        # Provider reconciliation and feed dedupe should make collisions impossible,
-        # but never publish duplicate IDs if an upstream source violates that contract.
-        if job_id in used_ids:
-            collision_basis = f"{stable_identity_basis(job)}|{canonical_listing_url(job)}|{'|'.join(metadata_signature(job))}"
-            job_id = hashlib.sha1(collision_basis.encode("utf-8")).hexdigest()[:16]
-        if job_id in used_ids:
-            raise ValueError(f"Unable to assign a unique stable ID for {job.get('company')} / {job.get('title')}")
+        # A broader upstream can legitimately surface multiple current rows that
+        # converge on one provider or historical identity. Preserve the historical
+        # ID for at most one row, then assign deterministic unique fallbacks rather
+        # than failing the entire feed refresh.
+        ordinal = 1
+        while job_id in used_ids:
+            job_id = collision_job_id(job, ordinal)
+            ordinal += 1
 
         job["id"] = job_id
         used_ids.add(job_id)
-        if prior_id:
+        if preserved_prior:
             preserved += 1
             if prior.get("first_seen"):
                 job["first_seen"] = prior["first_seen"]
