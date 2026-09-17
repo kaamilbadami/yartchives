@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 # way that should invalidate cached requirement facts. The cache updater can
 # re-run this extractor from a stored posting description without another ATS
 # request; entries without a reprocessable description are refreshed normally.
-EXTRACTOR_VERSION = 4
+EXTRACTOR_VERSION = 5
 
 # This vocabulary only annotates exact technology mentions in an already
 # identified qualification statement. It never creates a requirement by itself,
@@ -66,6 +66,7 @@ REQUIREMENT_FIELDS = (
     "education",
     "graduation",
     "student_status",
+    "class_standing",
     "major_fields",
     "citizenship",
     "work_authorization",
@@ -278,6 +279,16 @@ def extract_requirements(lines: Iterable[str]) -> dict[str, dict[str, Any]]:
             flags=re.I,
         ):
             _add(result["student_status"], level, statement)
+            matched = True
+
+        if re.search(
+            r"\b(?:freshman|first[- ]year|sophomore|junior|senior|final[- ]year|upperclass(?:man|men|student)?)\b",
+            lower,
+        ) and (
+            qualification_context
+            or re.search(r"\b(?:currently|must|required|pursuing|enrolled)\b", lower)
+        ):
+            _add(result["class_standing"], level, statement)
             matched = True
 
         if re.search(
