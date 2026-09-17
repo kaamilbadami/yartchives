@@ -288,9 +288,7 @@
     {
       "id": "alaska-air-group",
       "name": "Alaska Air Group",
-      "aliases": [
-        "Alaska Air"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -397,9 +395,7 @@
     {
       "id": "altria-group",
       "name": "Altria Group",
-      "aliases": [
-        "Altria"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -461,9 +457,7 @@
     {
       "id": "american-airlines-group",
       "name": "American Airlines Group",
-      "aliases": [
-        "American Airlines"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -516,9 +510,7 @@
     {
       "id": "american-family-insurance-group",
       "name": "American Family Insurance Group",
-      "aliases": [
-        "American Family"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -533,9 +525,7 @@
     {
       "id": "american-financial-group",
       "name": "American Financial Group",
-      "aliases": [
-        "American"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -703,9 +693,7 @@
     {
       "id": "api-group",
       "name": "APi Group",
-      "aliases": [
-        "APi"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -840,9 +828,7 @@
     {
       "id": "asbury-automotive-group",
       "name": "Asbury Automotive Group",
-      "aliases": [
-        "Asbury Automotive"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -1014,9 +1000,7 @@
     {
       "id": "avis-budget-group",
       "name": "Avis Budget Group",
-      "aliases": [
-        "Avis Budget"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -1091,9 +1075,7 @@
     {
       "id": "baxter-international",
       "name": "Baxter International",
-      "aliases": [
-        "Baxter"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -1425,9 +1407,7 @@
     {
       "id": "c-h-robinson-worldwide",
       "name": "C.H. Robinson Worldwide",
-      "aliases": [
-        "C.H. Robinson"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -1442,12 +1422,9 @@
     {
       "id": "caci",
       "name": "CACI",
-      "aliases": [
-        "CACI International"
-      ],
+      "aliases": [],
       "seed_sets": [
-        "coverage-benchmark-2026-09-17",
-        "fortune-500-2026"
+        "coverage-benchmark-2026-09-17"
       ],
       "seed_metadata": {
         "coverage-benchmark-2026-09-17": {
@@ -1459,7 +1436,17 @@
           "states": [
             "CT"
           ]
-        },
+        }
+      }
+    },
+    {
+      "id": "caci-international",
+      "name": "CACI International",
+      "aliases": [],
+      "seed_sets": [
+        "fortune-500-2026"
+      ],
+      "seed_metadata": {
         "fortune-500-2026": {
           "fortune_slug": "/company/caci-international/",
           "order": 459,
@@ -1625,9 +1612,7 @@
     {
       "id": "cbre-group",
       "name": "CBRE Group",
-      "aliases": [
-        "CBRE"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -1822,9 +1807,7 @@
     {
       "id": "cigna-group",
       "name": "Cigna Group",
-      "aliases": [
-        "Cigna"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -1899,9 +1882,7 @@
     {
       "id": "citizens-financial-group",
       "name": "Citizens Financial Group",
-      "aliases": [
-        "Citizens"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -2450,9 +2431,7 @@
     {
       "id": "dell-technologies",
       "name": "Dell Technologies",
-      "aliases": [
-        "Dell"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -2713,9 +2692,7 @@
     {
       "id": "dxc-technology",
       "name": "DXC Technology",
-      "aliases": [
-        "DXC"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -2790,9 +2767,7 @@
     {
       "id": "edison-international",
       "name": "Edison International",
-      "aliases": [
-        "Edison"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -2837,9 +2812,7 @@
     {
       "id": "emcor-group",
       "name": "EMCOR Group",
-      "aliases": [
-        "EMCOR"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -2976,9 +2949,7 @@
     {
       "id": "erie-insurance-group",
       "name": "Erie Insurance Group",
-      "aliases": [
-        "Erie"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -2992,7 +2963,7 @@
     },
     {
       "id": "estee-lauder",
-      "name": "Est\u00e9e Lauder",
+      "name": "Estée Lauder",
       "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
@@ -3062,9 +3033,7 @@
     {
       "id": "expedia-group",
       "name": "Expedia Group",
-      "aliases": [
-        "Expedia"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -3506,9 +3475,7 @@
     {
       "id": "ge-healthcare-technologies",
       "name": "GE HealthCare Technologies",
-      "aliases": [
-        "GE HealthCare"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -3695,9 +3662,7 @@
     {
       "id": "goldman-sachs-group",
       "name": "Goldman Sachs Group",
-      "aliases": [
-        "Goldman Sachs"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -3851,6 +3816,21 @@
       }
     },
     {
+      "id": "hartford-insurance-group",
+      "name": "Hartford Insurance Group",
+      "aliases": [],
+      "seed_sets": [
+        "fortune-500-2026"
+      ],
+      "seed_metadata": {
+        "fortune-500-2026": {
+          "fortune_slug": "/company/hartford-financial-services/",
+          "order": 161,
+          "rank": 160
+        }
+      }
+    },
+    {
       "id": "hca-healthcare",
       "name": "HCA Healthcare",
       "aliases": [],
@@ -3966,7 +3946,6 @@
       "id": "hilton-worldwide-holdings",
       "name": "Hilton Worldwide Holdings",
       "aliases": [
-        "Hilton",
         "Hilton Worldwide"
       ],
       "seed_sets": [
@@ -3998,9 +3977,7 @@
     {
       "id": "honeywell-technologies",
       "name": "Honeywell Technologies",
-      "aliases": [
-        "Honeywell"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -4257,12 +4234,9 @@
     {
       "id": "interactive-brokers",
       "name": "Interactive Brokers",
-      "aliases": [
-        "Interactive Brokers Group"
-      ],
+      "aliases": [],
       "seed_sets": [
-        "coverage-benchmark-2026-09-17",
-        "fortune-500-2026"
+        "coverage-benchmark-2026-09-17"
       ],
       "seed_metadata": {
         "coverage-benchmark-2026-09-17": {
@@ -4271,7 +4245,17 @@
           "states": [
             "CT"
           ]
-        },
+        }
+      }
+    },
+    {
+      "id": "interactive-brokers-group",
+      "name": "Interactive Brokers Group",
+      "aliases": [],
+      "seed_sets": [
+        "fortune-500-2026"
+      ],
+      "seed_metadata": {
         "fortune-500-2026": {
           "fortune_slug": "/company/interactive-brokers-group/",
           "order": 410,
@@ -4449,9 +4433,7 @@
     {
       "id": "jefferies-financial-group",
       "name": "Jefferies Financial Group",
-      "aliases": [
-        "Jefferies"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -4746,9 +4728,7 @@
     {
       "id": "l3harris-technologies",
       "name": "L3Harris Technologies",
-      "aliases": [
-        "L3Harris"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -4903,9 +4883,7 @@
     {
       "id": "liberty-mutual-insurance-group",
       "name": "Liberty Mutual Insurance Group",
-      "aliases": [
-        "Liberty Mutual"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -5074,9 +5052,7 @@
     {
       "id": "lumen-technologies",
       "name": "Lumen Technologies",
-      "aliases": [
-        "Lumen"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -5171,9 +5147,7 @@
     {
       "id": "markel-group",
       "name": "Markel Group",
-      "aliases": [
-        "Markel"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -5188,9 +5162,7 @@
     {
       "id": "marriott-international",
       "name": "Marriott International",
-      "aliases": [
-        "Marriott"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -5220,9 +5192,7 @@
     {
       "id": "marvell-technology",
       "name": "Marvell Technology",
-      "aliases": [
-        "Marvell"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -5377,9 +5347,7 @@
     {
       "id": "meta-platforms",
       "name": "Meta Platforms",
-      "aliases": [
-        "Meta"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -5409,9 +5377,7 @@
     {
       "id": "mgm-resorts-international",
       "name": "MGM Resorts International",
-      "aliases": [
-        "MGM Resorts"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -5426,9 +5392,7 @@
     {
       "id": "micron-technology",
       "name": "Micron Technology",
-      "aliases": [
-        "Micron"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -5519,10 +5483,8 @@
     },
     {
       "id": "mondelez-international",
-      "name": "Mondel\u0113z International",
-      "aliases": [
-        "Mondel\u0113z"
-      ],
+      "name": "Mondelēz International",
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -5963,9 +5925,7 @@
     {
       "id": "old-republic-international",
       "name": "Old Republic International",
-      "aliases": [
-        "Old Republic"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -5980,9 +5940,7 @@
     {
       "id": "omnicom-group",
       "name": "Omnicom Group",
-      "aliases": [
-        "Omnicom"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -6089,9 +6047,7 @@
     {
       "id": "otis-worldwide",
       "name": "Otis Worldwide",
-      "aliases": [
-        "Otis"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -6278,9 +6234,7 @@
     {
       "id": "penske-automotive-group",
       "name": "Penske Automotive Group",
-      "aliases": [
-        "Penske Automotive"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -6330,9 +6284,7 @@
     {
       "id": "performance-food-group",
       "name": "Performance Food Group",
-      "aliases": [
-        "Performance Food"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -6392,9 +6344,7 @@
     {
       "id": "philip-morris-international",
       "name": "Philip Morris International",
-      "aliases": [
-        "Philip Morris"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -6461,9 +6411,7 @@
     {
       "id": "pnc-financial-services-group",
       "name": "PNC Financial Services Group",
-      "aliases": [
-        "PNC Financial Services"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -6635,9 +6583,7 @@
     {
       "id": "public-service-enterprise-group",
       "name": "Public Service Enterprise Group",
-      "aliases": [
-        "Public Service Enterprise"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -6759,9 +6705,7 @@
     {
       "id": "qvc-group",
       "name": "QVC Group",
-      "aliases": [
-        "QVC"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -6866,9 +6810,7 @@
     {
       "id": "resideo-technologies",
       "name": "Resideo Technologies",
-      "aliases": [
-        "Resideo"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -6898,9 +6840,7 @@
     {
       "id": "roper-technologies",
       "name": "Roper Technologies",
-      "aliases": [
-        "Roper"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -7060,9 +7000,7 @@
     {
       "id": "securian-financial-group",
       "name": "Securian Financial Group",
-      "aliases": [
-        "Securian"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -7188,9 +7126,7 @@
     {
       "id": "somnigroup-international",
       "name": "Somnigroup International",
-      "aliases": [
-        "Somnigroup"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -7383,9 +7319,7 @@
     {
       "id": "stonex-group",
       "name": "StoneX Group",
-      "aliases": [
-        "StoneX"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -7617,12 +7551,9 @@
     {
       "id": "the-hartford",
       "name": "The Hartford",
-      "aliases": [
-        "Hartford Insurance Group"
-      ],
+      "aliases": [],
       "seed_sets": [
-        "coverage-benchmark-2026-09-17",
-        "fortune-500-2026"
+        "coverage-benchmark-2026-09-17"
       ],
       "seed_metadata": {
         "coverage-benchmark-2026-09-17": {
@@ -7634,11 +7565,6 @@
           "states": [
             "CT"
           ]
-        },
-        "fortune-500-2026": {
-          "fortune_slug": "/company/hartford-financial-services/",
-          "order": 161,
-          "rank": 160
         }
       }
     },
@@ -7787,9 +7713,7 @@
     {
       "id": "transdigm-group",
       "name": "TransDigm Group",
-      "aliases": [
-        "TransDigm"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -7864,9 +7788,7 @@
     {
       "id": "uber-technologies",
       "name": "Uber Technologies",
-      "aliases": [
-        "Uber"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -7988,9 +7910,7 @@
     {
       "id": "unitedhealth-group",
       "name": "UnitedHealth Group",
-      "aliases": [
-        "UnitedHealth"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -8020,9 +7940,7 @@
     {
       "id": "unum-group",
       "name": "Unum Group",
-      "aliases": [
-        "Unum"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -8363,9 +8281,7 @@
     {
       "id": "wec-energy-group",
       "name": "WEC Energy Group",
-      "aliases": [
-        "WEC Energy"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -8410,9 +8326,7 @@
     {
       "id": "wesco-international",
       "name": "WESCO International",
-      "aliases": [
-        "WESCO"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
@@ -8427,9 +8341,7 @@
     {
       "id": "western-and-southern-financial-group",
       "name": "Western & Southern Financial Group",
-      "aliases": [
-        "Western & Southern"
-      ],
+      "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
       ],
