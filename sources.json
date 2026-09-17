@@ -45,6 +45,7 @@
     "key": "speedyapply-ai",
     "name": "SpeedyApply AI/ML",
     "kind": "markdown",
+    "profile_hint": ["cs"],
     "url": "https://raw.githubusercontent.com/speedyapply/2027-AI-College-Jobs/main/README.md",
     "homepage": "https://github.com/speedyapply/2027-AI-College-Jobs"
   },

@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 import unittest
 from bs4 import BeautifulSoup
@@ -72,6 +73,11 @@ class StaticContractTests(unittest.TestCase):
         text = (ROOT / "enhancements.js").read_text(encoding="utf-8")
         self.assertIn('summary.textContent = "State fallback"', text)
         self.assertIn('radiusField.classList.toggle("hidden", !currentZip())', text)
+
+    def test_ai_source_is_cs_adjacent(self):
+        sources = json.loads((ROOT / "sources.json").read_text(encoding="utf-8"))
+        source = next(row for row in sources if row["key"] == "speedyapply-ai")
+        self.assertIn("cs", source.get("profile_hint", []))
 
 
 if __name__ == "__main__":
