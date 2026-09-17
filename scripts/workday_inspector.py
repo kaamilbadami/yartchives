@@ -127,6 +127,8 @@ def normalize_payload(payload: Any) -> dict[str, Any]:
     description, lines = normalize_description(info.get("jobDescription"))
     requisition_id = clean_line(info.get("jobReqId")) or None
     posting_id = clean_line(info.get("jobPostingId")) or None
+    posted_at = clean_line(info.get("startDate")) or None
+    posted_on_text = clean_line(info.get("postedOn")) or None
     can_apply = info.get("canApply") if isinstance(info.get("canApply"), bool) else None
     posted = info.get("posted") if isinstance(info.get("posted"), bool) else None
     if can_apply is False or posted is False:
@@ -141,6 +143,8 @@ def normalize_payload(payload: Any) -> dict[str, Any]:
             "description": description or None,
             "requisition_id": requisition_id,
             "posting_id": posting_id,
+            "posted_at": posted_at,
+            "posted_on_text": posted_on_text,
             "locations": extract_locations(info),
             "can_apply": can_apply,
             "posted": posted,
