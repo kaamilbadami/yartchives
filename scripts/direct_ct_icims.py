@@ -44,6 +44,7 @@ DEFAULT_STATE = "CT"
 TIMEOUT = 25
 MAX_SEARCH_PAGES = 5
 JOB_LINK = re.compile(r"^/jobs/(\d+)(?:/[^?#]+)?/job/?$", re.I)
+SITEMAP_LOC = re.compile(r"<loc>\s*(https?://[^<]+)\s*</loc>", re.I)
 
 
 def now_utc() -> datetime:
@@ -78,6 +79,7 @@ def source_from_job(job: dict[str, Any], state: str = DEFAULT_STATE) -> dict[str
         "host": host,
         "homepage": f"https://{host}/jobs/intro",
         "search_url": f"https://{host}/jobs/search",
+        "sitemap_url": f"https://{host}/sitemap.xml",
         "state": state.upper(),
         "profile_hint": ["cs"],
         "auto_discovered": True,
@@ -115,6 +117,43 @@ def extract_job_links(raw_html: str, base_url: str) -> list[str]:
     return [links[key] for key in sorted(links, key=lambda value: int(value))]
 
 
+def _slug_text(url: str) -> str:
+    parts = [part for part in urlparse(url).path.split("/") if part]
+    if len(parts) < 4 or parts[0].casefold() != "jobs":
+        return ""
+    return re.sub(r"[-_]+", " ", parts[2]).strip()
+
+
+def extract_sitemap_job_links(raw_xml: str, source: dict[str, Any]) -> list[str]:
+    links: dict[str, str] = {}
+    for raw_url in SITEMAP_LOC.findall(raw_xml or ""):
+        parsed = urlparse(raw_url.strip())
+        if parsed.netloc.casefold() != source["host"].casefold():
+            continue
+        if not JOB_LINK.fullmatch(parsed.path):
+            continue
+        slug_text = _slug_text(raw_url)
+        if not is_student_opportunity(slug_text) or not is_cs_relevant_title(slug_text):
+            continue
+        canonical = urlunparse((parsed.scheme or "https", parsed.netloc, parsed.path.rstrip("/"), "", "", ""))
+        try:
+            info = derive_icims_endpoint(canonical)
+        except UnsupportedIcimsUrl:
+            continue
+        links[info["job_id"]] = info["canonical_job_url"]
+    return [links[key] for key in sorted(links, key=lambda value: int(value))]
+
+
+def sitemap_site(client: requests.Session, source: dict[str, Any]) -> list[str]:
+    response = client.get(
+        source["sitemap_url"],
+        headers={"Accept": "application/xml,text/xml;q=0.9,*/*;q=0.1", "User-Agent": bf.USER_AGENT},
+        timeout=TIMEOUT,
+    )
+    response.raise_for_status()
+    return extract_sitemap_job_links(response.text, source)
+
+
 def search_site(client: requests.Session, source: dict[str, Any]) -> list[str]:
     seen: dict[str, str] = {}
     for page in range(MAX_SEARCH_PAGES):
@@ -132,7 +171,14 @@ def search_site(client: requests.Session, source: dict[str, Any]) -> list[str]:
             seen.setdefault(job_id, link)
         if not links or len(seen) == before:
             break
-    return list(seen.values())
+    if seen:
+        return list(seen.values())
+
+    # Some classic iCIMS portals render the search result list client-side, so a
+    # normal HTTP response contains the search shell but zero posting anchors.
+    # Their public sitemap still exposes canonical posting URLs. Prefilter by the
+    # URL slug before inspecting details so this fallback stays request-bounded.
+    return sitemap_site(client, source)
 
 
 def job_from_inspection(source: dict[str, Any], url: str, inspection: dict[str, Any], reference: datetime) -> dict[str, Any] | None:

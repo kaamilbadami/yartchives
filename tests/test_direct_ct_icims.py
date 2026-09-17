@@ -43,6 +43,7 @@ class DirectCtIcimsTests(unittest.TestCase):
         self.assertEqual(len(sources), 1)
         self.assertEqual(sources[0]["host"], "careers-gdeb.icims.com")
         self.assertEqual(sources[0]["search_url"], "https://careers-gdeb.icims.com/jobs/search")
+        self.assertEqual(sources[0]["sitemap_url"], "https://careers-gdeb.icims.com/sitemap.xml")
 
     def test_extract_job_links_dedupes_ids_and_ignores_non_jobs(self):
         html = """
@@ -58,6 +59,68 @@ class DirectCtIcimsTests(unittest.TestCase):
                 "https://careers-gdeb.icims.com/jobs/20338/job",
                 "https://careers-gdeb.icims.com/jobs/20341/job",
             ],
+        )
+
+    def test_sitemap_fallback_prefilters_to_student_cs_slugs(self):
+        source = {
+            "host": "careers-gdeb.icims.com",
+            "search_url": "https://careers-gdeb.icims.com/jobs/search",
+            "sitemap_url": "https://careers-gdeb.icims.com/sitemap.xml",
+        }
+        sitemap = """<?xml version="1.0" encoding="UTF-8"?>
+        <urlset>
+          <url><loc>https://careers-gdeb.icims.com/jobs/20338/cybersecurity---2027-summer-internship/job</loc></url>
+          <url><loc>https://careers-gdeb.icims.com/jobs/20341/information-technology-software-engineering-2027-summer-internship/job</loc></url>
+          <url><loc>https://careers-gdeb.icims.com/jobs/20500/test-quality-and-certification-program-rep/job</loc></url>
+          <url><loc>https://careers-gdeb.icims.com/jobs/20733/2027-human-resources-summer-internship/job</loc></url>
+          <url><loc>https://other.icims.com/jobs/99999/software-engineering-intern/job</loc></url>
+        </urlset>"""
+        links = mod.extract_sitemap_job_links(sitemap, source)
+        self.assertEqual(
+            links,
+            [
+                "https://careers-gdeb.icims.com/jobs/20338/job",
+                "https://careers-gdeb.icims.com/jobs/20341/job",
+            ],
+        )
+
+    def test_empty_search_shell_falls_back_to_sitemap(self):
+        source = {
+            "host": "careers-gdeb.icims.com",
+            "search_url": "https://careers-gdeb.icims.com/jobs/search",
+            "sitemap_url": "https://careers-gdeb.icims.com/sitemap.xml",
+        }
+
+        class Response:
+            def __init__(self, text):
+                self.text = text
+
+            def raise_for_status(self):
+                return None
+
+        class Session:
+            def __init__(self):
+                self.calls = []
+
+            def get(self, url, **kwargs):
+                self.calls.append((url, kwargs))
+                if url == source["search_url"]:
+                    return Response("<html><body>Search jobs</body></html>")
+                if url == source["sitemap_url"]:
+                    return Response(
+                        "<urlset><url><loc>"
+                        "https://careers-gdeb.icims.com/jobs/20338/"
+                        "cybersecurity---2027-summer-internship/job"
+                        "</loc></url></urlset>"
+                    )
+                raise AssertionError(url)
+
+        session = Session()
+        links = mod.search_site(session, source)
+        self.assertEqual(links, ["https://careers-gdeb.icims.com/jobs/20338/job"])
+        self.assertEqual(
+            [call[0] for call in session.calls],
+            [source["search_url"], source["sitemap_url"]],
         )
 
     def test_authoritative_cybersecurity_intern_becomes_direct_job(self):
