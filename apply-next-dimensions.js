@@ -22,8 +22,8 @@
     fit: 40,
     eligibility: 0,
     freshness: 10,
-    roi: 15,
-    role: 20,
+    roi: 35,
+    role: 0,
     location: 15,
     link: 0,
   });
@@ -34,6 +34,11 @@
     roi: 15,
     role: 10,
     location: 10,
+  });
+
+  const APPLICATION_VALUE_PARTS = Object.freeze({
+    role: 20,
+    market: 15,
   });
 
   const GENERIC_PROFILE_TERMS = new Set([
@@ -382,17 +387,17 @@
   }
 
   function scoreApplicationValue(result) {
-    const prior = result?.components?.roi || { score: 10, detail: "Neutral application-value baseline" };
-    const duplicateQualificationBonus = Math.max(0, Number(result?.competition?.differentiationBonus || 0));
-    const score = Math.max(0, Math.min(SCORE_MAXIMA.roi, Number(prior.score || 0) - duplicateQualificationBonus));
-    const detail = String(prior.detail || "")
-      .split(";")
-      .map(x => x.trim())
-      .filter(Boolean)
-      .filter(x => !/required-skill differentiation:/i.test(x))
-      .filter(x => !/specialized role aligns with supported experience/i.test(x))
-      .join("; ") || "Neutral application-value baseline";
-    return { score, detail };
+    const market = result?.components?.roi || { score: 10, detail: "Neutral application-value baseline" };
+    const role = result?.components?.role || { score: 0, detail: "No role-preference evidence" };
+    const marketScore = clamp(market.score, 0, APPLICATION_VALUE_PARTS.market);
+    const roleScore = scaleScore(role.score, LEGACY_MAXIMA.role, APPLICATION_VALUE_PARTS.role);
+    const score = clamp(roleScore + marketScore, 0, SCORE_MAXIMA.roi);
+    return {
+      score,
+      roleScore,
+      marketScore,
+      detail: `Role value ${roleScore}/${APPLICATION_VALUE_PARTS.role}: ${role.detail || "No role-preference evidence"}; Market opportunity ${marketScore}/${APPLICATION_VALUE_PARTS.market}: ${market.detail || "Neutral application-value baseline"}`,
+    };
   }
 
   function rescaleComponent(component, key) {
@@ -425,13 +430,12 @@
     const eligibility = scoreEligibilityGate(result);
     const freshness = rescaleComponent(result.components.freshness, "freshness");
     const roi = scoreApplicationValue(result);
-    const role = rescaleComponent(result.components.role, "role");
     const location = rescaleComponent(result.components.location, "location");
     const link = {
       score: 0,
       detail: `${result.components.link?.detail || "Link provenance unavailable"}; provenance only, not a ranking signal`,
     };
-    const components = { fit, eligibility, freshness, roi, role, location, link };
+    const components = { fit, eligibility, freshness, roi, location, link };
     const total = Math.max(0, Math.min(100,
       Object.values(components).reduce((sum, c) => sum + Number(c?.score || 0), 0)));
     const inspection = alignInspection(result.inspection, readiness);
@@ -443,11 +447,14 @@
       readiness,
       reasons: Object.entries(components).map(([name, c]) => `${name}: ${c.detail}`),
       competition: { ...(result.competition || {}), differentiationBonus: 0 },
+      applicationValue: {
+        role: { score: roi.roleScore, max: APPLICATION_VALUE_PARTS.role },
+        market: { score: roi.marketScore, max: APPLICATION_VALUE_PARTS.market },
+      },
       scoringSemantics: {
         fit: "qualification evidence: exact screening evidence plus transferable capability",
-        role: "role preference only",
         eligibility: "gate",
-        applicationValue: "market evidence only",
+        applicationValue: "role preference plus market/opportunity evidence",
         location: "logistics/desirability",
         freshness: "timing",
         link: "provenance only",
@@ -472,6 +479,7 @@
   return {
     SCORE_MAXIMA,
     LEGACY_MAXIMA,
+    APPLICATION_VALUE_PARTS,
     scaleScore,
     explicitGraduateOnlyTitle,
     authoritativeAcademicSupport,
