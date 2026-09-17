@@ -215,6 +215,22 @@
     return { delta, details };
   }
 
+  function authoritativeSchedule(inspection) {
+    const schedule = inspection?.schedule;
+    if (!schedule || typeof schedule !== "object") return null;
+    const terms = Array.isArray(schedule.terms)
+      ? [...new Set(schedule.terms.map(normalize).filter(Boolean))]
+      : [];
+    const durationEvidence = Array.isArray(schedule.duration_evidence)
+      ? schedule.duration_evidence.filter(Boolean)
+      : [];
+    const dateRangeEvidence = Array.isArray(schedule.date_range_evidence)
+      ? schedule.date_range_evidence.filter(Boolean)
+      : [];
+    if (!terms.length && !durationEvidence.length && !dateRangeEvidence.length) return null;
+    return { terms, durationEvidence, dateRangeEvidence };
+  }
+
   function scoreEligibility(job, profile) {
     const inspection = inspectionForJob(job);
     const availability = inspectionAvailability(inspection);
@@ -246,9 +262,22 @@
 
     const targetTerm = normalize(profile?.targetTerm);
     const jobTerm = normalize(job?.term);
+    const authoritative = inspection?.status === "inspected" ? authoritativeSchedule(inspection) : null;
     if (!targetTerm) {
       score += 7;
       parts.push("No target term configured");
+    } else if (authoritative?.terms?.length) {
+      if (authoritative.terms.includes(targetTerm)) {
+        score += 7;
+        parts.push(`Authoritative posting matches ${profile.targetTerm}`);
+      } else {
+        const stated = inspection.schedule.terms.join(", ");
+        return {
+          score: 0,
+          excluded: true,
+          detail: `Authoritative posting term is ${stated}, not ${profile.targetTerm}`,
+        };
+      }
     } else if (jobTerm === targetTerm) {
       score += 7;
       parts.push(`Matches ${profile.targetTerm}`);
@@ -257,6 +286,14 @@
       parts.push("Term unknown");
     } else {
       parts.push(`Known term is ${job.term}, not ${profile.targetTerm}`);
+    }
+
+    if (authoritative?.durationEvidence?.length || authoritative?.dateRangeEvidence?.length) {
+      const scheduleEvidence = [
+        ...(authoritative.durationEvidence || []),
+        ...(authoritative.dateRangeEvidence || []),
+      ][0];
+      if (scheduleEvidence) parts.push(`Authoritative schedule: ${scheduleEvidence}`);
     }
 
     if (inspection?.status === "inspected") {
@@ -532,6 +569,7 @@
     educationLevel,
     ageDays,
     scoreFreshness,
+    authoritativeSchedule,
     scoreEligibility,
     scoreFit,
     scoreRole,
