@@ -34,6 +34,7 @@ SOURCES_PATH = ROOT / "sources.json"
 APPLYGUY_JSON = "https://raw.githubusercontent.com/ApplyGuy/2027-Internships/main/data/internships.json"
 TIMEOUT = 12
 VALIDATION_TTL_HOURS = 24
+LINK_VALIDATION_VERSION = 2
 MAX_VALIDATIONS_PER_RUN = 750
 NETWORK_WORKERS = 24
 USER_AGENT = "Yartchives/1.0 link-repair (+https://github.com/kaamilbadami/yartchives)"
@@ -578,9 +579,14 @@ def validate_repaired_links(doc: dict[str, Any], old_doc: dict[str, Any]) -> dic
         if not should_validate_direct_link(job):
             continue
         prior = old_by_id.get(job.get("id")) or {}
-        if prior.get("url") == job.get("url") and checked_recently(prior, reference):
+        if (
+            prior.get("url") == job.get("url")
+            and prior.get("link_validation_version") == LINK_VALIDATION_VERSION
+            and checked_recently(prior, reference)
+        ):
             job["link_status"] = prior.get("link_status", "unknown")
             job["link_checked_at"] = prior.get("link_checked_at")
+            job["link_validation_version"] = LINK_VALIDATION_VERSION
             continue
         targets.append(job)
 
@@ -600,6 +606,7 @@ def validate_repaired_links(doc: dict[str, Any], old_doc: dict[str, Any]) -> dic
             stats[status] += 1
             job["link_status"] = status
             job["link_checked_at"] = iso(reference)
+            job["link_validation_version"] = LINK_VALIDATION_VERSION
             if status == "dead":
                 downgrade_dead_link(job)
             elif is_direct_application_url(final):
