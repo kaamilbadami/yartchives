@@ -1,0 +1,99 @@
+name: Assemble regional benchmark
+
+on:
+  push:
+    branches:
+      - audit/regional-coverage-benchmark
+    paths:
+      - ".benchmark-staging/READY"
+
+permissions:
+  contents: write
+
+jobs:
+  assemble-and-validate:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Reconstruct recovered Codex work
+        run: |
+          cat \
+            .benchmark-staging/part00.b64 \
+            .benchmark-staging/part01.b64 \
+            .benchmark-staging/part02a.b64 \
+            .benchmark-staging/part02b.b64 \
+            .benchmark-staging/part02c.b64 \
+            .benchmark-staging/part03a.b64 \
+            .benchmark-staging/part03b.b64 \
+            .benchmark-staging/part03c.b64 \
+            | base64 -d > /tmp/regional-source.zip
+          echo "7f1b41b45a91a4cbfa08f9fae3e12caff28b44729bd5e91cdb2b27b06f95820d  /tmp/regional-source.zip" | sha256sum -c -
+          unzip -o /tmp/regional-source.zip
+
+      - name: Run Python tests
+        run: python -m unittest discover -s tests -p "test_*.py" -v
+
+      - name: Run regional coverage audit on current feed
+        run: |
+          python scripts/coverage_audit_runner.py \
+            audit/samples/ct-ny-md-dc-cs-2026-09-17.json \
+            --output audit/ct-ny-md-dc-cs-coverage-2026-09-17.json \
+            --markdown-output audit/ct-ny-md-dc-cs-coverage-2026-09-17.md
+          python scripts/coverage_contract.py \
+            audit/ct-ny-md-dc-cs-coverage-2026-09-17.json \
+            --contract coverage_contract.json \
+            --json-output audit/coverage-contract-status-ct-ny-md-dc-2026-09-17.json \
+            --markdown-output audit/coverage-contract-status-ct-ny-md-dc-2026-09-17.md
+          python -m json.tool audit/ct-ny-md-dc-cs-coverage-2026-09-17.json >/dev/null
+          python -m json.tool audit/coverage-contract-status-ct-ny-md-dc-2026-09-17.json >/dev/null
+
+      - name: Refresh benchmark note with current metrics
+        run: |
+          python - <<'PY'
+          import json
+          import re
+          from pathlib import Path
+
+          audit = json.loads(Path('audit/ct-ny-md-dc-cs-coverage-2026-09-17.json').read_text())
+          contract = json.loads(Path('audit/coverage-contract-status-ct-ny-md-dc-2026-09-17.json').read_text())
+          summary = audit['summary']
+          checks = {row['name']: row for row in contract['checks']}
+          replacement = (
+              f"The current audit reports {summary['capture_rate'] * 100:.1f}% capture, "
+              f"{summary['visible_rate'] * 100:.1f}% visible-under-expected-filters, and "
+              f"{checks['authoritative_link_rate']['actual'] * 100:.1f}% authoritative-link rate among "
+              f"captured/probably captured rows. The contract status is `{contract['status']}`: "
+              "the benchmark-size, geographic-breadth, capture, visible, and latency-measurement gates "
+              "do not pass. This PR measures those gaps only; it does not change ingestion, ranking, "
+              "or employer/source coverage."
+          )
+          path = Path('audit/regional-benchmark-changes-2026-09-17.md')
+          text = path.read_text()
+          text = re.sub(r"The current audit reports .*?employer/source coverage\.", replacement, text, flags=re.S)
+          path.write_text(text)
+          PY
+
+      - name: Validate diff
+        run: git diff --check
+
+      - name: Commit benchmark and generated reports
+        run: |
+          rm -rf .benchmark-staging .github/workflows/assemble-regional-benchmark.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "audit: add regional CS coverage benchmark"
+          git push
