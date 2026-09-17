@@ -53,11 +53,12 @@ assert.deepEqual(D.SCORE_MAXIMA, {
   fit: 40,
   eligibility: 0,
   freshness: 10,
-  roi: 15,
-  role: 20,
+  roi: 35,
+  role: 0,
   location: 15,
   link: 0,
 });
+assert.deepEqual(D.APPLICATION_VALUE_PARTS, { role: 20, market: 15 });
 assert.equal(Object.values(D.SCORE_MAXIMA).reduce((sum, value) => sum + value, 0), 100);
 assert.equal(D.scaleScore(25, 25, 40), 40);
 assert.equal(D.scaleScore(10, 10, 20), 20);
@@ -65,12 +66,17 @@ assert.equal(D.scaleScore(15, 15, 10), 10);
 
 const metadataOnly = D.scoreJob(job({ _inspection: undefined }), profile, now);
 assert.equal(metadataOnly.components.fit.score, 19);
-assert.equal(metadataOnly.components.role.score, 20);
+assert.equal(metadataOnly.components.role, undefined);
+assert.equal(metadataOnly.components.roi.score, 30);
+assert.equal(metadataOnly.applicationValue.role.score, 20);
+assert.equal(metadataOnly.applicationValue.market.score, 10);
 assert.equal(metadataOnly.components.location.score, 15);
 assert.equal(metadataOnly.components.freshness.score, 10);
 assert.equal(metadataOnly.components.eligibility.score, 0);
 assert.equal(metadataOnly.components.link.score, 0);
 assert.match(metadataOnly.components.fit.detail, /neutral qualification-fit/i);
+assert.match(metadataOnly.components.roi.detail, /Role value 20\/20/i);
+assert.match(metadataOnly.components.roi.detail, /Market opportunity 10\/15/i);
 assert.deepEqual(metadataOnly.scoreMaxima, D.SCORE_MAXIMA);
 
 const supported = D.scoreJob(job({
@@ -208,10 +214,24 @@ const demandPool = [
 ];
 const demandRanked = D.rankJobs(demandPool, profile, now);
 assert.equal(demandRanked.length, 2);
+assert.equal(demandRanked[0].components.role, undefined);
+assert.match(demandRanked[0].components.roi.detail, /Role value 20\/20/i);
+assert.match(demandRanked[0].components.roi.detail, /Market opportunity/i);
 assert.match(demandRanked[0].components.roi.detail, /observed employer demand/i);
 assert.doesNotMatch(demandRanked[0].components.roi.detail, /required-skill differentiation|specialized role aligns/i);
 assert.equal(demandRanked[0].competition.differentiationBonus, 0);
+assert.equal(demandRanked[0].applicationValue.role.score, 20);
+assert.ok(demandRanked[0].applicationValue.market.score <= 15);
 assert.ok(demandRanked[0].components.roi.score <= D.SCORE_MAXIMA.roi);
+
+const lowerRoleProfile = {
+  ...profile,
+  roleFamilies: [{ id: "software", label: "Software engineering", priority: 0.5, keywords: ["software engineer"] }],
+};
+const lowerRole = D.scoreJob(job({ url: "https://example.com/lower-role", _inspection: inspection() }), lowerRoleProfile, now);
+assert.equal(lowerRole.applicationValue.market.score, metadataOnly.applicationValue.market.score);
+assert.ok(lowerRole.applicationValue.role.score < metadataOnly.applicationValue.role.score);
+assert.ok(lowerRole.components.roi.score < metadataOnly.components.roi.score);
 
 const direct = D.scoreJob(job({ _inspection: inspection() }), profile, now);
 const listing = D.scoreJob(job({ link_kind: "listing", url: "https://example.com/listing", _inspection: inspection() }), profile, now);
@@ -221,6 +241,8 @@ assert.match(direct.components.link.detail, /provenance only/i);
 assert.equal(direct.total, listing.total);
 assert.equal(direct.scoringSemantics.link, "provenance only");
 assert.match(direct.scoringSemantics.fit, /screening evidence plus transferable capability/i);
+assert.match(direct.scoringSemantics.applicationValue, /role preference plus market\/opportunity evidence/i);
+assert.equal(direct.scoringSemantics.role, undefined);
 
 const cautious = D.scoreJob(job({
   url: "https://example.com/cautious",
@@ -232,10 +254,11 @@ assert.ok(cautious.total <= 100);
 assert.ok(!cautious.inspection.evidence.some(x => /^Qualification readiness adjustment:/i.test(String(x))));
 assert.match(cautious.inspection.label, /Some required gaps/i);
 
-for (const result of [metadataOnly, supported, unsupported, adjacent, learnable, major, domainOnly, aeroLike, conjunctiveLanguages, academicMatch, wexLike, exactTerm, unknownTerm, direct, listing, cautious]) {
+for (const result of [metadataOnly, supported, unsupported, adjacent, learnable, major, domainOnly, aeroLike, conjunctiveLanguages, academicMatch, wexLike, exactTerm, unknownTerm, direct, listing, cautious, lowerRole]) {
   const weightedTotal = Object.values(result.components).reduce((sum, component) => sum + Number(component.score || 0), 0);
   assert.equal(result.total, weightedTotal);
   assert.ok(result.total >= 0 && result.total <= 100);
+  assert.equal(result.components.role, undefined);
 }
 
 console.log("apply-next evidence-based dimension tests passed");
