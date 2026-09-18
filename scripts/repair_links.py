@@ -513,7 +513,11 @@ def validate_workday_url(value: str) -> tuple[str, str] | None:
                 return "unknown", value
             if info.get("canApply") is False or info.get("posted") is False:
                 return "dead", value
-            return "ok", endpoint["canonical_job_url"]
+            if not urlparse(value).path.rstrip("/").casefold().endswith("/apply"):
+                # A live Workday job page is not a verified application destination.
+                # Force provider recovery to resolve the current requisition path.
+                return "dead", value
+            return "ok", value
         finally:
             response.close()
     except (requests.RequestException, ValueError):

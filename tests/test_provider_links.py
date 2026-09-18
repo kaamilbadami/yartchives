@@ -68,6 +68,41 @@ class ProviderLinksTests(unittest.TestCase):
 
         query.assert_called_once_with("amgen.wd1.myworkdayjobs.com", "amgen", "Careers", "R-255719")
 
+    def test_amgen_r255719_recovers_exact_current_apply_route(self):
+        stale = (
+            "https://amgen.wd1.myworkdayjobs.com/Careers/job/United-States---Remote/"
+            "Undergrad-Intern-Software-Engineer-Technology-AI-Data-Summer-2027_R-255719"
+        )
+        external_path = (
+            "/job/United-States---Remote/"
+            "Undergrad-Intern---Software-Engineer---Amgen-s-Technology---Medical-Organizations--Summer-2027-_R-255719"
+        )
+        expected = (
+            "https://amgen.wd1.myworkdayjobs.com/Careers"
+            + external_path
+            + "/apply"
+        )
+
+        class Response:
+            status_code = 200
+
+            def json(self):
+                return {"jobPostings": [{"externalPath": external_path}]}
+
+        with (
+            patch.object(mod.requests, "post", return_value=Response()),
+            patch.object(mod.links, "validate_candidate_once", side_effect=lambda value: value),
+        ):
+            recovered = mod.query_workday(
+                "amgen.wd1.myworkdayjobs.com",
+                "amgen",
+                "Careers",
+                "R-255719",
+            )
+
+        self.assertEqual(recovered, expected)
+
+
     def test_source_job_with_dead_workday_url_is_recovery_target(self):
         job = {
             "company": "Amgen",
