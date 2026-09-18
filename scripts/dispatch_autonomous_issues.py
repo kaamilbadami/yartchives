@@ -12,7 +12,7 @@ from typing import Any, Callable, Iterable, NamedTuple
 from urllib import parse, request
 
 PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
-MAX_ACTIVE = 2
+MAX_ACTIVE = 5
 AUTONOMOUS_MARKER = "<!-- autonomous-task -->"
 JULES_API_ROOT = "https://jules.googleapis.com/v1alpha"
 JULES_ACTIVE_LABEL = "jules-session"
@@ -304,7 +304,15 @@ def select_tasks(issues: Iterable[dict[str, Any]], max_active: int = MAX_ACTIVE)
         for issue in issue_list
         if (task := reserved_codex_task(issue)) is not None
     ]
-    active_areas = {task.area for task in [*active_jules, *reserved_codex]}
+    feedback_waiting = [
+        task
+        for issue in issue_list
+        if JULES_FEEDBACK_LABEL in label_names(issue)
+        and (task := task_from_issue(issue)) is not None
+    ]
+    active_areas = {
+        task.area for task in [*active_jules, *reserved_codex, *feedback_waiting]
+    }
     candidates: list[Task] = []
     for issue in issue_list:
         if str(issue.get("state") or "open") != "open":
