@@ -117,6 +117,22 @@ jobs:
               ],
               check=True,
           )
+          subprocess.run(
+              [
+                  "gh",
+                  "label",
+                  "create",
+                  "jules",
+                  "--repo",
+                  repo,
+                  "--color",
+                  "715CD7",
+                  "--description",
+                  "Dispatch this issue to Google Jules",
+                  "--force",
+              ],
+              check=True,
+          )
 
           issues = gh_json(
               "api",
@@ -133,6 +149,21 @@ jobs:
           )
 
           if existing:
+              subprocess.run(
+                  [
+                      "gh",
+                      "issue",
+                      "edit",
+                      str(existing["number"]),
+                      "--repo",
+                      repo,
+                      "--add-label",
+                      "agent-ready",
+                      "--add-label",
+                      "jules",
+                  ],
+                  check=True,
+              )
               subprocess.run(
                   [
                       "gh",
@@ -168,6 +199,8 @@ jobs:
                       "workflow-failure",
                       "--label",
                       "agent-ready",
+                      "--label",
+                      "jules",
                   ],
                   check=True,
               )
