@@ -57,30 +57,25 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
     )
 
 
-def active_area(issue: dict[str, Any]) -> str | None:
-    labels = label_names(issue)
-    if "jules" not in labels:
+def active_backlog_task(issue: dict[str, Any]) -> Task | None:
+    """Return active Jules work only when it belongs to the autonomous backlog."""
+    if "jules" not in label_names(issue):
         return None
-    task = task_from_issue(issue)
-    if task:
-        return task.area
-    title = str(issue.get("title") or "").casefold()
-    body = str(issue.get("body") or "").casefold()
-    if "update opportunity feed" in title or "update opportunity feed" in body:
-        return "feed"
-    if "quality checks" in title or "quality checks" in body:
-        return "quality"
-    return "unknown"
+    return task_from_issue(issue)
 
 
 def select_tasks(issues: Iterable[dict[str, Any]], max_active: int = MAX_ACTIVE) -> list[Task]:
     issue_list = list(issues)
-    active = [issue for issue in issue_list if "jules" in label_names(issue)]
+    active = [
+        task
+        for issue in issue_list
+        if (task := active_backlog_task(issue)) is not None
+    ]
     slots = max(0, max_active - len(active))
     if slots == 0:
         return []
 
-    active_areas = {area for issue in active if (area := active_area(issue))}
+    active_areas = {task.area for task in active}
     candidates: list[Task] = []
     for issue in issue_list:
         if str(issue.get("state") or "open") != "open":
