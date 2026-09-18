@@ -146,10 +146,20 @@
   }
 
   function locationPieces(job) {
+    const stateCodes = [...new Set((job?.states || [])
+      .map(value => String(value || "").toUpperCase())
+      .filter(value => STATE_NAMES[value]))];
     const pieces = rawLocationValues(job)
       .flatMap(raw => String(raw || "").split(/\s*·\s*|\s*;\s*|\s*\|\s*/))
       .map(humanizeLocationPiece)
-      .filter(Boolean);
+      .filter(Boolean)
+      .map(piece => {
+        if (piece === "Remote" || piece.includes(",")) return piece;
+        if (stateCodes.length === 1 && /^[A-Za-z][A-Za-z .'-]+$/.test(piece)) {
+          return `${titleCase(piece)}, ${stateCodes[0]}`;
+        }
+        return piece;
+      });
     const out = [];
     const seen = new Set();
     for (const piece of pieces) {
