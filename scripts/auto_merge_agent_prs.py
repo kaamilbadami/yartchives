@@ -217,7 +217,7 @@ def main() -> int:
         if not exact_head_quality_passed(runs, head_sha):
             if exact_head_quality_in_flight(runs, head_sha):
                 print(f"PR #{number} already has exact-head Quality checks in flight.")
-                return 0
+                continue
             should_redispatch = (
                 exact_head_quality_action_required(runs, head_sha)
                 or not exact_head_quality_present(runs, head_sha)
@@ -232,7 +232,7 @@ def main() -> int:
                     f"Dispatched Quality checks manually for PR #{number} because the "
                     "exact-head run was missing or required manual approval."
                 )
-                return 0
+                continue
 
         eligible, reason = eligible_pr(
             pr,
@@ -265,7 +265,7 @@ def main() -> int:
                 f"Updated PR #{number} onto current {base_ref} and dispatched fresh "
                 "Quality checks on the updated branch."
             )
-            return 0
+            continue
 
         fresh = gh_json("api", f"repos/{repo}/pulls/{number}")
         if fresh.get("mergeable") is not True or str(fresh.get("mergeable_state") or "") not in {

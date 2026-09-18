@@ -38,6 +38,12 @@ const autoMergeWorkflow = fs.readFileSync(".github/workflows/auto-merge-agent-pr
 assert.equal(qualityWorkflow.includes("jules-review:"), false, "Routine Quality runs should not spend Jules quota on PR review");
 assert.match(
   autoMergeWorkflow,
+  /workflow_run\.conclusion == 'success'[\s\S]*?workflow_run\.conclusion == 'action_required'/,
+  "Auto-merge recovery should run for successful and action-required Quality completions"
+);
+
+assert.match(
+  autoMergeWorkflow,
   /workflow_run:[\s\S]*?workflows:[\s\S]*?- Quality checks[\s\S]*?types:[\s\S]*?- completed/,
   "Autonomous PR merger should wake only after Quality checks complete"
 );

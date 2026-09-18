@@ -163,6 +163,21 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                 )
                 self.assertFalse(ok)
 
+    def test_main_continues_past_in_flight_and_redispatched_ci(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            'print(f"PR #{number} already has exact-head Quality checks in flight.")\n                continue',
+            source,
+        )
+        self.assertIn(
+            '"exact-head run was missing or required manual approval."\n                )\n                continue',
+            source,
+        )
+        self.assertIn(
+            '"Quality checks on the updated branch."\n            )\n            continue',
+            source,
+        )
+
     def test_codex_review_ready_is_also_terminal(self):
         self.assertTrue(
             mod.autonomous_issue_ready(
