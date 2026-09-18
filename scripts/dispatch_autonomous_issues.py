@@ -15,6 +15,10 @@ MAX_ACTIVE = 2
 AUTONOMOUS_MARKER = "<!-- autonomous-task -->"
 JULES_API_ROOT = "https://jules.googleapis.com/v1alpha"
 JULES_ACTIVE_LABEL = "jules-session"
+JULES_REVIEW_READY_LABEL = "jules-review-ready"
+JULES_FAILED_LABEL = "jules-failed"
+JULES_SESSION_MARKER = "<!-- jules-session-id: {session_id} -->"
+JULES_TERMINAL_STATES = {"COMPLETED", "FAILED"}
 CODEX_RESERVED_LABEL = "codex"
 CODEX_WORKER_PREFIX = "codex-worker-"
 
@@ -69,6 +73,106 @@ def active_jules_task(issue: dict[str, Any]) -> Task | None:
     return task_from_issue(issue)
 
 
+def session_id_from_comments(comments: Iterable[dict[str, Any]]) -> str | None:
+    """Read the persisted Jules session ID from new or legacy dispatcher comments."""
+    marker = re.compile(r"<!--\s*jules-session-id:\s*([^\s>]+)\s*-->")
+    legacy = re.compile(r"created Jules session ['\x60]?([^'\x60\s]+)['\x60]?")
+    for comment in reversed(list(comments)):
+        body = str(comment.get("body") or "")
+        match = marker.search(body) or legacy.search(body)
+        if match:
+            return match.group(1)
+    return None
+
+
+def pull_request_url(session: dict[str, Any]) -> str | None:
+    for output in session.get("outputs", []):
+        if not isinstance(output, dict):
+            continue
+        pull_request = output.get("pullRequest")
+        if isinstance(pull_request, dict) and pull_request.get("url"):
+            return str(pull_request["url"])
+    return None
+
+
+def replace_issue_labels_in_memory(
+    issue: dict[str, Any],
+    *,
+    remove: Iterable[str] = (),
+    add: Iterable[str] = (),
+) -> None:
+    labels = set(label_names(issue))
+    labels.difference_update(remove)
+    labels.update(add)
+    issue["labels"] = [{"name": label} for label in sorted(labels)]
+
+
+def reconcile_jules_sessions(
+    issues: list[dict[str, Any]],
+    *,
+    repo: str,
+    api_key: str,
+    load_comments: Callable[[int], list[dict[str, Any]]],
+    get_session: Callable[..., dict[str, Any]] = jules_json,
+    run_gh: Callable[..., None] = gh_run,
+) -> None:
+    """Release terminal Jules sessions before selecting more autonomous work."""
+    for issue in issues:
+        labels = label_names(issue)
+        if JULES_ACTIVE_LABEL not in labels:
+            continue
+
+        number = int(issue["number"])
+        session_id = session_id_from_comments(load_comments(number))
+        if not session_id:
+            print(
+                f"Keeping #{number} active: no persisted Jules session ID could be found."
+            )
+            continue
+
+        session = get_session(api_key, f"/sessions/{session_id}")
+        state = str(session.get("state") or "STATE_UNSPECIFIED")
+        if state not in JULES_TERMINAL_STATES:
+            print(f"Jules session {session_id} for #{number} is still {state}.")
+            continue
+
+        terminal_label = (
+            JULES_REVIEW_READY_LABEL if state == "COMPLETED" else JULES_FAILED_LABEL
+        )
+        run_gh(
+            "issue", "edit", str(number), "--repo", repo,
+            "--remove-label", JULES_ACTIVE_LABEL,
+            "--remove-label", "jules",
+            "--add-label", terminal_label,
+        )
+        replace_issue_labels_in_memory(
+            issue,
+            remove=(JULES_ACTIVE_LABEL, "jules"),
+            add=(terminal_label,),
+        )
+
+        pr_url = pull_request_url(session)
+        if state == "COMPLETED":
+            detail = (
+                f"Jules completed session `{session_id}` and released this automation slot."
+            )
+            if pr_url:
+                detail += f"\n\nPull request: {pr_url}"
+            else:
+                detail += "\n\nNo pull request output was reported by the Jules API."
+        else:
+            detail = (
+                f"Jules session `{session_id}` ended in FAILED state and released this "
+                "automation slot. It will not be retried automatically."
+            )
+
+        run_gh(
+            "issue", "comment", str(number), "--repo", repo,
+            "--body", detail,
+        )
+        print(f"Reconciled Jules session {session_id} for #{number}: {state}.")
+
+
 def has_codex_reservation(labels: frozenset[str]) -> bool:
     return CODEX_RESERVED_LABEL in labels or any(
         label.startswith(CODEX_WORKER_PREFIX) for label in labels
@@ -107,7 +211,14 @@ def select_tasks(issues: Iterable[dict[str, Any]], max_active: int = MAX_ACTIVE)
         if not task:
             continue
         if (
-            task.labels & {JULES_ACTIVE_LABEL, "blocked", "needs-product-decision"}
+            task.labels
+            & {
+                JULES_ACTIVE_LABEL,
+                JULES_REVIEW_READY_LABEL,
+                JULES_FAILED_LABEL,
+                "blocked",
+                "needs-product-decision",
+            }
             or has_codex_reservation(task.labels)
         ):
             continue
@@ -272,10 +383,11 @@ def dispatch_task(
         "issue", "comment", str(task.number), "--repo", repo,
         "--body",
         (
+            f"{JULES_SESSION_MARKER.format(session_id=session_id)}\n"
             f"Autonomous dispatcher created Jules session '{session_id}' for this "
             f"{task.priority} task in area '{task.area}'.\n\n"
             f"Jules session: {session_url}\n\n"
-            "The issue is counted as active only after this session is created successfully."
+            "The issue is counted as active only while the Jules API reports it non-terminal."
         ),
     )
     return session
@@ -285,7 +397,9 @@ def ensure_labels(repo: str) -> None:
     for name, color, description in (
         ("agent-ready", "0E8A16", "Bounded task suitable for an automated coding agent"),
         ("jules", "715CD7", "Assigned to Google Jules"),
-        (JULES_ACTIVE_LABEL, "5319E7", "A real Jules API session was created for this issue"),
+        (JULES_ACTIVE_LABEL, "5319E7", "A real Jules API session is actively using a Jules slot"),
+        (JULES_REVIEW_READY_LABEL, "8250DF", "Jules finished; review the resulting GitHub PR"),
+        (JULES_FAILED_LABEL, "D73A4A", "Jules session failed and requires follow-up"),
         (CODEX_RESERVED_LABEL, "0969DA", "Reserved for a scheduled Codex worker"),
         ("codex-worker-1", "1F6FEB", "Reserved for Codex scheduled worker 1"),
         ("codex-worker-2", "54AEFF", "Reserved for Codex scheduled worker 2"),
@@ -307,12 +421,25 @@ def main() -> int:
         f"repos/{repo}/issues?state=open&per_page=100",
     )
     issues = [issue for issue in issues if "pull_request" not in issue]
+    api_key = os.environ["JULES_API_KEY"]
+
+    def load_comments(number: int) -> list[dict[str, Any]]:
+        return gh_paginated_json(
+            "api",
+            f"repos/{repo}/issues/{number}/comments?per_page=100",
+        )
+
+    reconcile_jules_sessions(
+        issues,
+        repo=repo,
+        api_key=api_key,
+        load_comments=load_comments,
+    )
     selected = select_tasks(issues)
     if not selected:
         print("No safe autonomous task is currently dispatchable.")
         return 0
 
-    api_key = os.environ["JULES_API_KEY"]
     source_name = find_jules_source(api_key, repo)
     for task in selected:
         session = dispatch_task(
