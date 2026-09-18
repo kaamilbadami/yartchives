@@ -234,6 +234,47 @@ def print_stale_unavailable_report(report: dict) -> None:
             )
 
 
+
+def ats_extraction_report(inspections: dict) -> dict:
+    entries = inspections.get("entries") if isinstance(inspections.get("entries"), dict) else {}
+    providers = {}
+    for canonical, entry in entries.items():
+        provider = entry.get("provider") or "unknown"
+        if provider not in providers:
+            providers[provider] = {
+                "total": 0,
+                "success": 0,
+                "unavailable": 0,
+                "unsupported_shape": 0,
+                "retrieval_failure": 0,
+                "parsing_failure": 0
+            }
+
+        providers[provider]["total"] += 1
+
+        inspection = entry.get("inspection")
+        if not isinstance(inspection, dict):
+            continue
+
+        status = inspection.get("status")
+        error = inspection.get("error")
+        posting = inspection.get("posting")
+
+        if status in {"ok", "inspected"} or posting is not None:
+            providers[provider]["success"] += 1
+        elif status == "unavailable" or (error and "Workday returned HTTP 404" in str(error)):
+            providers[provider]["unavailable"] += 1
+        elif error:
+            error_str = str(error).lower()
+            if "not recognized" in error_str or "unsupported" in error_str:
+                providers[provider]["unsupported_shape"] += 1
+            elif any(err in error_str for err in ["httperror", "returned http", "timed out", "connectionerror"]):
+                providers[provider]["retrieval_failure"] += 1
+            else:
+                providers[provider]["parsing_failure"] += 1
+
+    return providers
+
 def destination_link_report(doc: dict) -> dict:
     jobs = [job for job in doc.get("jobs", []) if isinstance(job, dict)]
     kinds = Counter()
@@ -307,6 +348,7 @@ def build_audit_report(doc: dict, inspections: dict | None = None, reference: da
     reference = reference or parse_time(doc.get("generated_at")) or datetime.now(timezone.utc)
     stale = stale_unavailable_report(doc, inspections, reference)
     dates = posting_date_report(doc, reference)
+    ats_extraction = ats_extraction_report(inspections or {})
     links = destination_link_report(doc)
 
     return {
@@ -345,6 +387,7 @@ def build_audit_report(doc: dict, inspections: dict | None = None, reference: da
             "age_review_90d_count": len(stale["age_review_90d"]),
             "missing_posted_at_count": len(stale["missing_posted_at"]),
         },
+        "ats_extraction": ats_extraction,
         "destinations_and_links": {
             "link_kinds": links["link_kinds"],
             "workday_direct_total": len(links["workday_direct"]),
@@ -421,9 +464,27 @@ def render_markdown_report(report: dict) -> str:
     for source_key, count in list(dest["source_only_by_source_key"].items())[:10]:
         lines.append(f"- `{source_key}`: **{count}**")
 
+
     lines.extend([
         "",
-        "## 3. Missing dates and provenance",
+        "## 3. ATS-family extraction failure rates",
+        "",
+        "| Provider | Total | Success | Rate | Unavailable | Unsupported Shape | Retrieval Failure | Parsing Failure |",
+        "|----------|-------|---------|------|-------------|-------------------|-------------------|-----------------|",
+    ])
+
+    for provider, stats in sorted(report.get("ats_extraction", {}).items()):
+        total = stats['total']
+        success = stats['success']
+        rate = f"{(success / total * 100):.1f}%" if total > 0 else "N/A"
+        lines.append(
+            f"| `{provider}` | {total} | {success} | {rate} | {stats['unavailable']} | "
+            f"{stats['unsupported_shape']} | {stats['retrieval_failure']} | {stats['parsing_failure']} |"
+        )
+
+    lines.extend([
+        "",
+        "## 4. Missing dates and provenance",
         "",
         f"- Missing posting timestamp (`posted_at`): **{dates['missing_date_count']}**",
         f"- Missing provenance label (`posted_date_provenance`): **{dates['missing_provenance_count']}**",
@@ -439,17 +500,17 @@ def render_markdown_report(report: dict) -> str:
 
     lines.extend([
         "",
-        "## 4. Suspicious date normalization",
+        "## 5. Suspicious date normalization",
         "",
         f"- Future dates (`posted_at > reference`): **{dates['future_date_count']}**",
         f"- Source conflicts (7d+ observation spread): **{dates['conflicting_observations_count']}**",
         f"- Aggregator overriding authoritative date: **{dates['aggregator_overrides_authoritative_count']}**",
         "",
-        "## 5. Root causes and remediation",
+        "## 6. Root causes and remediation",
         "",
-        "- **Largest generic provider cause**: Workday direct-apply contract violations (static URLs from aggregators lack verification timestamps and `/apply` target paths until validated through Workday inspectors).",
-        "- **Generic defect fixed**: `build_feed.py` date merging was updated to enforce provenance hierarchy (`authoritative_employer` / `authoritative_government` > `aggregator`), preventing aggregator timestamps from overwriting authoritative dates during deduplication.",
-        "- **Prioritized follow-up**: Extend static Workday link repair workflows and resolve source-only/no-link postings from aggregator lists.",
+        "- **Largest generic provider cause**: Workday HTTP retrieval failures (403 Forbidden).",
+        "- **Generic defect fixed**: Workday inspector `inspect_workday_url` was incorrectly logging an HTTP error for 404/410 closed jobs instead of just marking them as unavailable. Now sets `error` to None.",
+        "- **Prioritized follow-up**: Investigate Workday 403 Forbidden errors to improve retrieval success rates.",
         "",
     ])
     return "\n".join(lines)
