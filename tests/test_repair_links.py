@@ -305,8 +305,44 @@ class RepairLinksTests(unittest.TestCase):
         self.assertEqual(status, "ok")
         self.assertEqual(
             final,
-            "https://example.wd1.myworkdayjobs.com/Careers/job/Remote/live_R-123",
+            "https://example.wd1.myworkdayjobs.com/en-US/Careers/job/Remote/live_R-123",
         )
+
+    def test_amgen_r255719_final_apply_url_is_locale_qualified(self):
+        class Response:
+            status_code = 200
+
+            def json(self):
+                return {"jobPostingInfo": {"canApply": True, "posted": True}}
+
+            def close(self):
+                pass
+
+        bad = (
+            "https://amgen.wd1.myworkdayjobs.com/Careers/job/United-States---Remote/"
+            "Undergrad-Intern-Software-Engineer-Technology-AI-Data-Summer-2027_R-255719"
+        )
+        expected = (
+            "https://amgen.wd1.myworkdayjobs.com/en-US/Careers/job/United-States---Remote/"
+            "Undergrad-Intern-Software-Engineer-Technology-AI-Data-Summer-2027_R-255719"
+        )
+        job = {
+            "id": "amgen-r-255719",
+            "company": "Amgen",
+            "title": "Undergrad Intern - Software Engineer - Technology, AI & Data (Summer 2027)",
+            "location": "Remote",
+            "profiles": ["cs"],
+            "opportunity_type": "internship",
+            "link_kind": "direct",
+            "url": bad,
+        }
+
+        with patch.object(mod.requests, "get", return_value=Response()):
+            stats = mod.validate_repaired_links({"jobs": [job]}, {"jobs": []})
+
+        self.assertEqual(stats["ok"], 1)
+        self.assertEqual(job["url"], expected)
+        self.assertEqual(job["link_status"], "ok")
 
 
 if __name__ == "__main__":
