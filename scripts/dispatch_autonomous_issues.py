@@ -15,6 +15,8 @@ MAX_ACTIVE = 2
 AUTONOMOUS_MARKER = "<!-- autonomous-task -->"
 JULES_API_ROOT = "https://jules.googleapis.com/v1alpha"
 JULES_ACTIVE_LABEL = "jules-session"
+CODEX_RESERVED_LABEL = "codex"
+CODEX_WORKER_PREFIX = "codex-worker-"
 
 
 class Task(NamedTuple):
@@ -60,25 +62,43 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
     )
 
 
-def active_backlog_task(issue: dict[str, Any]) -> Task | None:
+def active_jules_task(issue: dict[str, Any]) -> Task | None:
     """Return active Jules work only after a real Jules session exists."""
     if JULES_ACTIVE_LABEL not in label_names(issue):
         return None
     return task_from_issue(issue)
 
 
+def has_codex_reservation(labels: frozenset[str]) -> bool:
+    return CODEX_RESERVED_LABEL in labels or any(
+        label.startswith(CODEX_WORKER_PREFIX) for label in labels
+    )
+
+
+def reserved_codex_task(issue: dict[str, Any]) -> Task | None:
+    """Return autonomous work reserved for one of the Codex scheduled workers."""
+    if not has_codex_reservation(label_names(issue)):
+        return None
+    return task_from_issue(issue)
+
+
 def select_tasks(issues: Iterable[dict[str, Any]], max_active: int = MAX_ACTIVE) -> list[Task]:
     issue_list = list(issues)
-    active = [
+    active_jules = [
         task
         for issue in issue_list
-        if (task := active_backlog_task(issue)) is not None
+        if (task := active_jules_task(issue)) is not None
     ]
-    slots = max(0, max_active - len(active))
+    slots = max(0, max_active - len(active_jules))
     if slots == 0:
         return []
 
-    active_areas = {task.area for task in active}
+    reserved_codex = [
+        task
+        for issue in issue_list
+        if (task := reserved_codex_task(issue)) is not None
+    ]
+    active_areas = {task.area for task in [*active_jules, *reserved_codex]}
     candidates: list[Task] = []
     for issue in issue_list:
         if str(issue.get("state") or "open") != "open":
@@ -86,7 +106,10 @@ def select_tasks(issues: Iterable[dict[str, Any]], max_active: int = MAX_ACTIVE)
         task = task_from_issue(issue)
         if not task:
             continue
-        if task.labels & {JULES_ACTIVE_LABEL, "blocked", "needs-product-decision"}:
+        if (
+            task.labels & {JULES_ACTIVE_LABEL, "blocked", "needs-product-decision"}
+            or has_codex_reservation(task.labels)
+        ):
             continue
         candidates.append(task)
 
@@ -263,6 +286,9 @@ def ensure_labels(repo: str) -> None:
         ("agent-ready", "0E8A16", "Bounded task suitable for an automated coding agent"),
         ("jules", "715CD7", "Assigned to Google Jules"),
         (JULES_ACTIVE_LABEL, "5319E7", "A real Jules API session was created for this issue"),
+        (CODEX_RESERVED_LABEL, "0969DA", "Reserved for a scheduled Codex worker"),
+        ("codex-worker-1", "1F6FEB", "Reserved for Codex scheduled worker 1"),
+        ("codex-worker-2", "54AEFF", "Reserved for Codex scheduled worker 2"),
         ("blocked", "B60205", "Blocked by another task or prerequisite"),
         ("needs-product-decision", "FBCA04", "Requires product judgment before autonomous execution"),
         ("autonomous-backlog", "1D76DB", "Approved backlog item eligible for autonomous dispatch"),
