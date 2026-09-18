@@ -60,6 +60,39 @@ class AutonomousDispatcherTests(unittest.TestCase):
         selected = mod.select_tasks(issues, max_active=2)
         self.assertEqual([task.number for task in selected], [1, 2])
 
+    def test_codex_reservation_blocks_jules_without_consuming_jules_wip(self):
+        issues = [
+            issue(
+                1,
+                "reserved evidence",
+                body=task_body("P1", "evidence"),
+                labels=("codex", "codex-worker-1"),
+            ),
+            issue(2, "same evidence", body=task_body("P0", "evidence")),
+            issue(3, "frontend", body=task_body("P1", "frontend-state")),
+            issue(4, "feed quality", body=task_body("P1", "feed-quality")),
+        ]
+
+        selected = mod.select_tasks(issues, max_active=2)
+
+        self.assertEqual([task.number for task in selected], [3, 4])
+
+    def test_worker_specific_codex_label_reserves_task_without_general_label(self):
+        issues = [
+            issue(
+                1,
+                "reserved worker two",
+                body=task_body("P1", "evidence"),
+                labels=("codex-worker-2",),
+            ),
+            issue(2, "same evidence", body=task_body("P0", "evidence")),
+            issue(3, "different area", body=task_body("P1", "performance")),
+        ]
+
+        selected = mod.select_tasks(issues, max_active=2)
+
+        self.assertEqual([task.number for task in selected], [3])
+
     def test_non_backlog_jules_work_does_not_consume_backlog_wip(self):
         issues = [
             issue(
