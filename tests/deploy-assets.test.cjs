@@ -48,13 +48,18 @@ assert.match(
 );
 assert.match(
   autoMergeWorkflow,
-  /contents:\s*write[\s\S]*?pull-requests:\s*write/,
-  "Autonomous PR merger needs only the write permissions required to update and merge PRs"
+  /actions:\s*write[\s\S]*?contents:\s*write[\s\S]*?pull-requests:\s*write/,
+  "Autonomous PR merger needs actions write to redispatch CI plus merge permissions"
 );
 assert.match(
   autoMergeWorkflow,
   /run:\s*python scripts\/auto_merge_agent_prs\.py/,
   "Autonomous PR merge decisions should stay in tested Python policy"
+);
+assert.match(
+  fs.readFileSync("scripts/auto_merge_agent_prs.py", "utf8"),
+  /workflow", "run", "quality\.yml"/,
+  "Automated branch updates should explicitly redispatch Quality checks because token-generated PR events are suppressed"
 );
 
 assert.match(
