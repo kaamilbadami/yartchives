@@ -1,0 +1,463 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-18T21:53:48.731Z",
+  "methodology": "Final Apply Next scoring path with a deterministic representative profile. The final scorer admits only inspected postings, so metadata-only recommendations are a regression signal.",
+  "feed_jobs": 5915,
+  "ranked_candidates": 1944,
+  "top_10": {
+    "requested_candidates": 10,
+    "available_candidates": 10,
+    "authoritative_candidates": 10,
+    "authoritative_coverage_percent": 100,
+    "metadata_only_candidates": 0,
+    "metadata_only_classification": {
+      "throughput": 0,
+      "retrieval_failure": 0,
+      "unsupported_provider_or_url_shape": 0,
+      "unavailable_posting": 0,
+      "stale_cache": 0,
+      "no_inspection": 0
+    },
+    "recommendations": [
+      {
+        "id": "04d3328758901887",
+        "company": "Talos",
+        "title": "Software Engineer Intern, RFQ",
+        "score": 83,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "3e380352d757cfdc",
+        "company": "Talos",
+        "title": "Software Engineer Intern, Dealer",
+        "score": 83,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "a30c9e1b34a37320",
+        "company": "Workiva",
+        "title": "Summer 2027 Intern - Software Engineering",
+        "score": 83,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "368e4f62b3560aa1",
+        "company": "Superhuman",
+        "title": "Software Engineering Intern - Summer 2027",
+        "score": 82,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "f136b6080eb78c37",
+        "company": "Sage",
+        "title": "Software Engineering Intern (Edge) – Summer 2027",
+        "score": 81,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "1123dcb95de19d53",
+        "company": "General Dynamics",
+        "title": "Information Technology, Software Engineering, & Computer Science - 2027 Summer Internship",
+        "score": 80,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "de89b95173f80df9",
+        "company": "RTX",
+        "title": "Software Engineering Intern (Summer 2027)",
+        "score": 80,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "74609e10f0a5bafc",
+        "company": "N1",
+        "title": "Software Engineer Intern (Backend, Rust)",
+        "score": 80,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "04a28c9f0d87d9de",
+        "company": "WEX",
+        "title": "Fullstack Software Engineer Intern (Undergraduate)",
+        "score": 79,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "ded1791e1c0a40b5",
+        "company": "Kudu Dynamics",
+        "title": "Software Developer Co-op",
+        "score": 78,
+        "evidence_state": "inspected"
+      }
+    ]
+  },
+  "top_50": {
+    "requested_candidates": 50,
+    "available_candidates": 50,
+    "authoritative_candidates": 50,
+    "authoritative_coverage_percent": 100,
+    "metadata_only_candidates": 0,
+    "metadata_only_classification": {
+      "throughput": 0,
+      "retrieval_failure": 0,
+      "unsupported_provider_or_url_shape": 0,
+      "unavailable_posting": 0,
+      "stale_cache": 0,
+      "no_inspection": 0
+    },
+    "recommendations": [
+      {
+        "id": "04d3328758901887",
+        "company": "Talos",
+        "title": "Software Engineer Intern, RFQ",
+        "score": 83,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "3e380352d757cfdc",
+        "company": "Talos",
+        "title": "Software Engineer Intern, Dealer",
+        "score": 83,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "a30c9e1b34a37320",
+        "company": "Workiva",
+        "title": "Summer 2027 Intern - Software Engineering",
+        "score": 83,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "368e4f62b3560aa1",
+        "company": "Superhuman",
+        "title": "Software Engineering Intern - Summer 2027",
+        "score": 82,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "f136b6080eb78c37",
+        "company": "Sage",
+        "title": "Software Engineering Intern (Edge) – Summer 2027",
+        "score": 81,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "1123dcb95de19d53",
+        "company": "General Dynamics",
+        "title": "Information Technology, Software Engineering, & Computer Science - 2027 Summer Internship",
+        "score": 80,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "de89b95173f80df9",
+        "company": "RTX",
+        "title": "Software Engineering Intern (Summer 2027)",
+        "score": 80,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "74609e10f0a5bafc",
+        "company": "N1",
+        "title": "Software Engineer Intern (Backend, Rust)",
+        "score": 80,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "04a28c9f0d87d9de",
+        "company": "WEX",
+        "title": "Fullstack Software Engineer Intern (Undergraduate)",
+        "score": 79,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "ded1791e1c0a40b5",
+        "company": "Kudu Dynamics",
+        "title": "Software Developer Co-op",
+        "score": 78,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "62d7ed390ef9b19e",
+        "company": "Raytheon",
+        "title": "Software Engineer Intern (Summer 2027)",
+        "score": 78,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "5620347a9d864382",
+        "company": "RTX",
+        "title": "Skillbridge: Heat Transfer and Thermodynamic Systems Intern",
+        "score": 78,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "dd330df63152542e",
+        "company": "RTX",
+        "title": "Software Engineering Intern (Summer 2027)",
+        "score": 78,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "4ba7fc776facc064",
+        "company": "Dvtrading",
+        "title": "Software Developer Intern - Summer 2027 (DV Equities)",
+        "score": 78,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "1d707d3bf30cc1ea",
+        "company": "Gecko Robotics",
+        "title": "Full Stack Software Engineering Intern",
+        "score": 77,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "7be0d1631f90fec5",
+        "company": "Rilla",
+        "title": "Software Engineering Intern, 2028 Grads",
+        "score": 77,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "347318d4cf4eff15",
+        "company": "Robinhood",
+        "title": "Software Engineering Intern, Backend (Summer 2027)",
+        "score": 77,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "5655c3e950fdb2ee",
+        "company": "Robinhood",
+        "title": "Software Engineering Intern, Web (Summer 2027)",
+        "score": 77,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "141bfe73ea4a6cb6",
+        "company": "Saab",
+        "title": "Software Engineer Co-Op (Summer 2027)",
+        "score": 77,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "6b135cefd8ffbe73",
+        "company": "Sage",
+        "title": "Software Engineering Intern (Full Stack) – Summer 2027",
+        "score": 77,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "8eec891f2a7f97f5",
+        "company": "DoorDash",
+        "title": "Software Engineer, Intern (Summer 2027) - US",
+        "score": 76,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "84a832dee14d6350",
+        "company": "Robinhood",
+        "title": "Software Engineering Intern, iOS (Summer 2027)",
+        "score": 76,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "27b55c7b694a4c7e",
+        "company": "Robinhood",
+        "title": "Software Engineering Intern, Android (Summer 2027)",
+        "score": 76,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "d276dd7ae2d7b3b0",
+        "company": "Raytheon",
+        "title": "Receiver, Exciter, & Processing Architecture Software Engineer Intern (Summer 2027)",
+        "score": 75,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "e5f2d2502f49ceef",
+        "company": "Talos",
+        "title": "Software Engineer Intern, Trading",
+        "score": 75,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "93d962f94b8cd1d7",
+        "company": "Thenuclearcompany",
+        "title": "Summer 2027 Software Engineering Intern",
+        "score": 75,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "22d8405874a745cd",
+        "company": "Thenuclearcompany",
+        "title": "Spring 2027 Software Engineering Intern",
+        "score": 75,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "d69556be302a749c",
+        "company": "LSEG",
+        "title": "Engineering Summer Internship Programme",
+        "score": 74,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "56792e1d264c7790",
+        "company": "RTX",
+        "title": "Flight Controls Systems Engineering Intern (Summer 2027) - Onsite",
+        "score": 74,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "909df38bc023ca0a",
+        "company": "RTX",
+        "title": "Flight Controls Systems Intern (Summer 2027) - Onsite",
+        "score": 74,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "44aa2ccd26424593",
+        "company": "RTX",
+        "title": "Systems Engineering Coop - Spring/Summer- Onsite",
+        "score": 74,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "a271318616c1a312",
+        "company": "RTX",
+        "title": "Software Engineering Co-op (Spring/Summer 2027)",
+        "score": 74,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "87e5c5ae4a796960",
+        "company": "Figma",
+        "title": "Software Engineer Intern (Summer 2027)",
+        "score": 74,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "68b49e24164a1736",
+        "company": "Cigna",
+        "title": "The Cigna Group's Technology Development Program - Software Engineering Track Summer Internship",
+        "score": 74,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "5efa0983e96a8ad3",
+        "company": "Schonfeld",
+        "title": "2027 Software Engineering Intern",
+        "score": 74,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "f0870881b5888998",
+        "company": "AeroVironment",
+        "title": "Summer 2027 Embedded Software Engineering Intern",
+        "score": 74,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "7a7ad19032672add",
+        "company": "RTX",
+        "title": "Software Development Intern (Summer 2027)",
+        "score": 73,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "83f2424f7981aa73",
+        "company": "Peraton",
+        "title": "Summer 2027 Cyber Research Intern",
+        "score": 73,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "08436b1d874a18d6",
+        "company": "Netsmart",
+        "title": "Software Engineer Intern (Summer 2027 Internship)",
+        "score": 72,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "46ae99cb7ed2a2f7",
+        "company": "Sharkninjaoperatingllc",
+        "title": "Applied AI & Analytics Co-op Opportunities",
+        "score": 72,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "20b1622c953efe35",
+        "company": "Booz Allen Hamilton",
+        "title": "Systems Administrator Intern",
+        "score": 72,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "cafdaa28c19e3543",
+        "company": "Raytheon",
+        "title": "Software Engineering Intern (Summer 2027)",
+        "score": 72,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "9976812ec5198e01",
+        "company": "Ttmtech",
+        "title": "Software Engineering Internship",
+        "score": 72,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "a3a09fa7d1b706f6",
+        "company": "RTX (Raytheon)",
+        "title": "Software Engineer Intern",
+        "score": 72,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "946a63dfb0f99903",
+        "company": "RTX (Raytheon)",
+        "title": "Software Engineering Intern (Summer 2027)",
+        "score": 72,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "9ea90c3c9fbc097f",
+        "company": "Viavisolutions",
+        "title": "Software Engineering Co-Op",
+        "score": 72,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "16688106f4fa08e6",
+        "company": "WEX",
+        "title": "DevOps & Backend Software Engineer Intern (Undergraduate)",
+        "score": 72,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "9871547b205ab1a2",
+        "company": "Saab",
+        "title": "Software Engineering Co-Op (Spring - Summer 2027)",
+        "score": 72,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "e69a97d8017a68bc",
+        "company": "AeroVironment",
+        "title": "Quality Engineering Intern",
+        "score": 71,
+        "evidence_state": "inspected"
+      },
+      {
+        "id": "500c122b90b585b7",
+        "company": "RTX (Raytheon)",
+        "title": "Software Engineering Intern (Summer 2027)",
+        "score": 71,
+        "evidence_state": "inspected"
+      }
+    ]
+  },
+  "finding": "No metadata-only recommendation was admitted by the final Apply Next scoring path.",
+  "follow_up": "No generic defect dominates. Keep the authoritative-only admission gate; audit the inspection queue separately for throughput and provider coverage."
+}
