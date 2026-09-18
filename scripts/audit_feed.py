@@ -118,6 +118,92 @@ def stale_unavailable_report(
     }
 
 
+def posting_date_report(doc: dict, reference: datetime | None = None) -> dict:
+    jobs = [job for job in doc.get("jobs", []) if isinstance(job, dict)]
+    reference = reference or parse_time(doc.get("generated_at")) or datetime.now(timezone.utc)
+
+    by_provenance: Counter[str] = Counter()
+    missing_date = []
+    missing_provenance = []
+    future_dates = []
+    conflicting_observations = []
+    aggregator_overrides_authoritative = []
+
+    for job in jobs:
+        posted = parse_time(job.get("posted_at"))
+        provenance = str(job.get("posted_date_provenance") or "").strip()
+        if posted is None:
+            missing_date.append(job)
+        elif not provenance:
+            missing_provenance.append(job)
+        else:
+            by_provenance[provenance] += 1
+
+        if posted is not None and posted > reference:
+            future_dates.append(job)
+
+        observations = [row for row in (job.get("posted_date_observations") or []) if isinstance(row, dict)]
+        parsed = []
+        for row in observations:
+            value = parse_time(row.get("posted_at"))
+            if value is not None:
+                parsed.append((value, row))
+        if len(parsed) >= 2:
+            oldest = min(value for value, _ in parsed)
+            newest = max(value for value, _ in parsed)
+            if (newest - oldest).total_seconds() >= 7 * 86400:
+                conflicting_observations.append(job)
+
+        authoritative = [
+            (value, row)
+            for value, row in parsed
+            if str(row.get("provenance") or "").startswith("authoritative_")
+        ]
+        if posted is not None and provenance == "aggregator" and authoritative:
+            newest_authoritative = max(value for value, _ in authoritative)
+            if posted > newest_authoritative:
+                aggregator_overrides_authoritative.append(job)
+
+    return {
+        "total_jobs": len(jobs),
+        "by_provenance": dict(sorted(by_provenance.items())),
+        "missing_date": missing_date,
+        "missing_provenance": missing_provenance,
+        "future_dates": future_dates,
+        "conflicting_observations": conflicting_observations,
+        "aggregator_overrides_authoritative": aggregator_overrides_authoritative,
+    }
+
+
+def print_posting_date_report(report: dict) -> None:
+    print("\n=== Posting-date provenance audit ===")
+    provenance = ", ".join(
+        f"{key}={value}" for key, value in report["by_provenance"].items()
+    ) or "none"
+    print(f"Date provenance: {provenance}")
+    print(
+        "Date quality review: "
+        f"missing-date={len(report['missing_date'])}, "
+        f"missing-provenance={len(report['missing_provenance'])}, "
+        f"future-date={len(report['future_dates'])}, "
+        f"7d+-source-conflict={len(report['conflicting_observations'])}, "
+        f"aggregator-newer-than-authoritative={len(report['aggregator_overrides_authoritative'])}"
+    )
+    samples = [
+        ("MISSING PROVENANCE", report["missing_provenance"]),
+        ("FUTURE DATE", report["future_dates"]),
+        ("DATE CONFLICT", report["conflicting_observations"]),
+        ("AGGREGATOR OVERRIDES AUTHORITATIVE", report["aggregator_overrides_authoritative"]),
+    ]
+    for label, jobs in samples:
+        for job in jobs[:5]:
+            print(
+                f"- {label}: {job.get('company')} — {job.get('title')} — "
+                f"posted={job.get('posted_at')!r} — source={job.get('posted_date_source_key')!r} — "
+                f"id={job.get('id')}"
+            )
+
+
 def print_stale_unavailable_report(report: dict) -> None:
     print("\n=== Stale / unavailable posting audit ===")
     print(
@@ -249,6 +335,7 @@ def main() -> int:
     ]
 
     print_stale_unavailable_report(stale_unavailable_report(doc, inspections, reference))
+    print_posting_date_report(posting_date_report(doc, reference))
 
     print("\nLink quality:", ", ".join(f"{k}={v}" for k, v in kinds.items()))
     print(

@@ -210,6 +210,7 @@ def job_from_inspection(source: dict[str, Any], url: str, inspection: dict[str, 
         "name": source["name"],
         "url": source["homepage"],
         "profile_hint": ["cs"],
+        "posted_date_provenance": "authoritative_employer",
     }
     job = bf.base_job(
         company=source["company"],

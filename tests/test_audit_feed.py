@@ -119,5 +119,76 @@ class StaleUnavailableAuditTests(unittest.TestCase):
         self.assertEqual([j["id"] for j in report["missing_posted_at"]], ["missing-date"])
 
 
+class PostingDateAuditTests(unittest.TestCase):
+    def test_reports_authority_missing_provenance_and_source_conflicts(self):
+        doc = {
+            "generated_at": "2026-09-18T12:00:00Z",
+            "jobs": [
+                {
+                    "id": "authoritative",
+                    "company": "A",
+                    "title": "Intern",
+                    "posted_at": "2026-09-15T12:00:00Z",
+                    "posted_date_provenance": "authoritative_employer",
+                    "posted_date_source_key": "direct-a",
+                    "posted_date_observations": [
+                        {
+                            "source_key": "direct-a",
+                            "posted_at": "2026-09-15T12:00:00Z",
+                            "provenance": "authoritative_employer",
+                        }
+                    ],
+                },
+                {
+                    "id": "override",
+                    "company": "B",
+                    "title": "Intern",
+                    "posted_at": "2026-09-17T12:00:00Z",
+                    "posted_date_provenance": "aggregator",
+                    "posted_date_source_key": "agg",
+                    "posted_date_observations": [
+                        {
+                            "source_key": "direct-b",
+                            "posted_at": "2026-09-01T12:00:00Z",
+                            "provenance": "authoritative_employer",
+                        },
+                        {
+                            "source_key": "agg",
+                            "posted_at": "2026-09-17T12:00:00Z",
+                            "provenance": "aggregator",
+                        },
+                    ],
+                },
+                {
+                    "id": "legacy",
+                    "company": "C",
+                    "title": "Intern",
+                    "posted_at": "2026-09-16T12:00:00Z",
+                },
+                {
+                    "id": "future",
+                    "company": "D",
+                    "title": "Intern",
+                    "posted_at": "2026-09-19T12:00:00Z",
+                    "posted_date_provenance": "aggregator",
+                },
+            ],
+        }
+
+        report = mod.posting_date_report(
+            doc,
+            datetime(2026, 9, 18, 12, tzinfo=timezone.utc),
+        )
+
+        self.assertEqual(report["by_provenance"], {
+            "aggregator": 2,
+            "authoritative_employer": 1,
+        })
+        self.assertEqual([j["id"] for j in report["missing_provenance"]], ["legacy"])
+        self.assertEqual([j["id"] for j in report["future_dates"]], ["future"])
+        self.assertEqual([j["id"] for j in report["conflicting_observations"]], ["override"])
+        self.assertEqual([j["id"] for j in report["aggregator_overrides_authoritative"]], ["override"])
+
+
 if __name__ == "__main__":
     unittest.main()

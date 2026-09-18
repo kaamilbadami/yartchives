@@ -196,13 +196,15 @@ def fetch_workday_source(
 
                 posted_raw = normalize_posted(item.get("postedOn"))
                 posted_at = bf.parse_relative_date(posted_raw, reference)
+                date_source = dict(source)
+                date_source["posted_date_provenance"] = "authoritative_employer"
                 job = bf.base_job(
                     company=source["company"],
                     title=title,
                     location=location,
                     url=public_job_url(source, external_path),
                     posted_raw=posted_raw,
-                    source=source,
+                    source=date_source,
                     section=f"Direct employer match: {term}",
                     function_primary="Computer Science / Technology",
                     posted_at=posted_at,

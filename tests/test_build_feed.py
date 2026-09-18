@@ -24,6 +24,72 @@ class BuildFeedTests(unittest.TestCase):
         url = "https://example.com/jobs/123?utm_source=x&foo=bar&ref=abc"
         self.assertEqual(mod.canonical_url(url), "https://example.com/jobs/123?foo=bar")
 
+    def test_base_job_records_posting_date_provenance(self):
+        ref = datetime(2026, 9, 18, 12, 0, tzinfo=timezone.utc)
+        source = {
+            "key": "direct-example",
+            "name": "Example",
+            "url": "https://example.com/jobs",
+            "posted_date_provenance": "authoritative_employer",
+        }
+        job = mod.base_job(
+            company="Example",
+            title="Software Intern",
+            location="Remote",
+            url="https://example.com/jobs/1",
+            posted_raw="2026-09-17",
+            posted_at=datetime(2026, 9, 17, tzinfo=timezone.utc),
+            source=source,
+        )
+        self.assertEqual(job["posted_date_source_key"], "direct-example")
+        self.assertEqual(job["posted_date_provenance"], "authoritative_employer")
+        self.assertEqual(job["posted_date_observations"][0]["posted_at"], "2026-09-17T00:00:00Z")
+
+    def test_merge_preserves_all_date_observations_and_winner_provenance(self):
+        target = {
+            "source_keys": ["direct-example"],
+            "source_names": ["Example"],
+            "source_urls": ["https://example.com"],
+            "profiles": ["cs"],
+            "states": ["CT"],
+            "posted_at": "2026-09-01T00:00:00Z",
+            "posted_raw": "2026-09-01",
+            "posted_date_source_key": "direct-example",
+            "posted_date_source_name": "Example",
+            "posted_date_provenance": "authoritative_employer",
+            "posted_date_observations": [{
+                "source_key": "direct-example",
+                "source_name": "Example",
+                "posted_raw": "2026-09-01",
+                "posted_at": "2026-09-01T00:00:00Z",
+                "provenance": "authoritative_employer",
+            }],
+        }
+        incoming = {
+            "source_key": "aggregator",
+            "source_name": "Aggregator",
+            "source_url": "https://aggregator.example",
+            "profiles": ["cs"],
+            "states": ["CT"],
+            "posted_at": "2026-09-17T00:00:00Z",
+            "posted_raw": "1d",
+            "posted_date_source_key": "aggregator",
+            "posted_date_source_name": "Aggregator",
+            "posted_date_provenance": "aggregator",
+            "posted_date_observations": [{
+                "source_key": "aggregator",
+                "source_name": "Aggregator",
+                "posted_raw": "1d",
+                "posted_at": "2026-09-17T00:00:00Z",
+                "provenance": "aggregator",
+            }],
+        }
+        mod.merge_job(target, incoming)
+        self.assertEqual(target["posted_at"], "2026-09-17T00:00:00Z")
+        self.assertEqual(target["posted_date_source_key"], "aggregator")
+        self.assertEqual(target["posted_date_provenance"], "aggregator")
+        self.assertEqual(len(target["posted_date_observations"]), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

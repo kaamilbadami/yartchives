@@ -303,6 +303,16 @@ def base_job(*, company: str, title: str, location: str, url: str | None, posted
         return None
     if company in {"↳", "", "—", "-"}:
         company = "Company not listed"
+    date_provenance = source.get("posted_date_provenance") or ("authoritative_government" if source.get("key") == "usajobs" else "aggregator")
+    date_observation = None
+    if posted_at or clean_text(posted_raw):
+        date_observation = {
+            "source_key": source["key"],
+            "source_name": source["name"],
+            "posted_raw": clean_text(posted_raw),
+            "posted_at": iso(posted_at),
+            "provenance": date_provenance,
+        }
     job = {
         "company": company,
         "title": title,
@@ -310,6 +320,10 @@ def base_job(*, company: str, title: str, location: str, url: str | None, posted
         "url": canonical_url(url),
         "posted_raw": clean_text(posted_raw),
         "posted_at": iso(posted_at),
+        "posted_date_source_key": source["key"] if posted_at or clean_text(posted_raw) else None,
+        "posted_date_source_name": source["name"] if posted_at or clean_text(posted_raw) else None,
+        "posted_date_provenance": date_provenance if posted_at or clean_text(posted_raw) else None,
+        "posted_date_observations": [date_observation] if date_observation else [],
         "section": clean_text(section),
         "function_primary": clean_text(function_primary),
         "source_key": source["key"],
@@ -574,10 +588,27 @@ def merge_job(target: dict[str, Any], incoming: dict[str, Any]) -> None:
         new_host = urlparse(incoming["url"]).netloc.lower()
         if old_host in AGGREGATOR_HOSTS and new_host not in AGGREGATOR_HOSTS:
             target["url"] = incoming["url"]
-    # Prefer the newest explicit posting timestamp.
+    observations = list(target.get("posted_date_observations") or [])
+    seen_observations = {
+        (row.get("source_key"), row.get("posted_at"), row.get("posted_raw"))
+        for row in observations if isinstance(row, dict)
+    }
+    for row in incoming.get("posted_date_observations") or []:
+        if not isinstance(row, dict):
+            continue
+        key = (row.get("source_key"), row.get("posted_at"), row.get("posted_raw"))
+        if key not in seen_observations:
+            observations.append(dict(row))
+            seen_observations.add(key)
+    target["posted_date_observations"] = observations
+
+    # Prefer the newest explicit posting timestamp, while preserving which source supplied it.
     if incoming.get("posted_at") and (not target.get("posted_at") or incoming["posted_at"] > target["posted_at"]):
         target["posted_at"] = incoming["posted_at"]
         target["posted_raw"] = incoming.get("posted_raw", "")
+        target["posted_date_source_key"] = incoming.get("posted_date_source_key")
+        target["posted_date_source_name"] = incoming.get("posted_date_source_name")
+        target["posted_date_provenance"] = incoming.get("posted_date_provenance")
     for key in ("salary_min", "salary_max", "salary_period", "remote_type", "term"):
         if not target.get(key) and incoming.get(key) is not None:
             target[key] = incoming.get(key)
