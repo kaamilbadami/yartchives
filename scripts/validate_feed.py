@@ -5,11 +5,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
-WORKDAY_HOST_RE = __import__("re").compile(r"^[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com$", __import__("re").I)
+WORKDAY_HOST_RE = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com$", re.I)
 
 ALLOWED_EDUCATION = {"undergrad", "graduate-only", "unspecified"}
 ALLOWED_TYPES = {"internship", "co-op", "fellowship", "research", "student", "other"}
@@ -44,19 +45,6 @@ def workday_direct_contract_errors(job: dict, label: str) -> list[str]:
         )
     if not str(job.get("link_checked_at") or "").strip():
         errors.append(f"link-quality: {label} Workday direct URL has no validation timestamp: {url}")
-    workday_direct = [
-        job for job in jobs
-        if isinstance(job, dict) and job.get("link_kind") == "direct" and is_workday_url(job.get("url"))
-    ]
-    workday_violations = sum(
-        bool(workday_direct_contract_errors(job, f"job {job.get('id') or i}"))
-        for i, job in enumerate(workday_direct)
-    )
-    print(
-        "Link-quality contract: "
-        f"workday_direct={len(workday_direct)}, workday_violations={workday_violations}"
-    )
-
     return errors
 
 
@@ -147,6 +135,20 @@ def validate(
             errors.append(f"source {source.get('name', key)} failed: {source.get('error', 'unknown error')}")
     if healthy < minimum_healthy_sources:
         errors.append(f"healthy source count {healthy} is below minimum {minimum_healthy_sources}")
+
+    workday_direct = [
+        job for job in jobs
+        if isinstance(job, dict) and job.get("link_kind") == "direct" and is_workday_url(job.get("url"))
+    ]
+    workday_violations = sum(
+        bool(workday_direct_contract_errors(job, f"job {job.get('id') or i}"))
+        for i, job in enumerate(workday_direct)
+    )
+    print(
+        "Link-quality contract: "
+        f"workday_direct={len(workday_direct)}, workday_violations={workday_violations}, "
+        f"enforced={str(enforce_link_contract).lower()}"
+    )
 
     return errors
 
