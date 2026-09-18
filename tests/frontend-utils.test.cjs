@@ -63,3 +63,8 @@ require("./results-language.test.cjs");
 require("./apply-next.test.cjs");
 require("./apply-next-ui.test.cjs");
 console.log("frontend-utils tests passed");
+
+
+const appSource = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+assert.match(appSource, /job\.link_kind === "employer_job"/);
+assert.match(appSource, /View posting ↗/);
