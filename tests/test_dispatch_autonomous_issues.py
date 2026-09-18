@@ -381,6 +381,76 @@ class AutonomousDispatcherTests(unittest.TestCase):
         selected = mod.select_tasks(issues, max_active=2)
         self.assertEqual([task.number for task in selected], [154])
 
+    def test_failed_session_surfaces_jules_failure_diagnostics(self):
+        issues = [
+            issue(
+                176,
+                "listing lifecycle",
+                body=task_body("P1", "listing-lifecycle"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [{"body": "<!-- jules-session-id: failed1 -->"}],
+            get_session=lambda api_key, path: {
+                "id": "failed1",
+                "state": "FAILED",
+                "failureReason": "Internal execution stopped after feedback.",
+            },
+            load_activities=lambda session_id: [
+                {
+                    "createTime": "2026-09-18T23:44:00Z",
+                    "agentMessaged": {"agentMessage": "Applying the narrowed generic fix."},
+                },
+                {
+                    "createTime": "2026-09-18T23:45:00Z",
+                    "error": {"message": "Workspace became unavailable."},
+                },
+            ],
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        comment = gh_calls[1][-1]
+        self.assertIn("Failure diagnostics:", comment)
+        self.assertIn("Internal execution stopped after feedback.", comment)
+        self.assertIn("Workspace became unavailable.", comment)
+        self.assertIn("jules-failed", mod.label_names(issues[0]))
+
+    def test_failed_session_still_reconciles_when_diagnostics_cannot_be_loaded(self):
+        issues = [
+            issue(
+                178,
+                "frontend state",
+                body=task_body("P1", "frontend-state"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+
+        def fail_activities(session_id):
+            raise RuntimeError("Jules activities endpoint unavailable")
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [{"body": "<!-- jules-session-id: failed2 -->"}],
+            get_session=lambda api_key, path: {"id": "failed2", "state": "FAILED"},
+            load_activities=fail_activities,
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertIn("jules-failed", mod.label_names(issues[0]))
+        self.assertIn(
+            "Could not load Jules failure diagnostics: Jules activities endpoint unavailable",
+            gh_calls[1][-1],
+        )
+
     def test_feedback_waiting_session_releases_slot_and_surfaces_latest_question(self):
         issues = [
             issue(
