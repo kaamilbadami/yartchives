@@ -410,7 +410,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
             {
                 "id": 22,
                 "body": (
-                    "<!-- jules-feedback: ask1 -->\\n"
+                    "<!-- jules-feedback: ask1 -->\n"
                     "Keep Recommended as default and make Newest transient UI state."
                 ),
             },
@@ -448,8 +448,8 @@ class AutonomousDispatcherTests(unittest.TestCase):
         sent = []
         comments = [
             {"id": 1, "body": "<!-- jules-session-id: ask1 -->"},
-            {"id": 22, "body": "<!-- jules-feedback: ask1 -->\\nUse transient state."},
-            {"id": 23, "body": "<!-- jules-feedback-sent: 22 -->\\nForwarded."},
+            {"id": 22, "body": "<!-- jules-feedback: ask1 -->\nUse transient state."},
+            {"id": 23, "body": "<!-- jules-feedback-sent: 22 -->\nForwarded."},
         ]
 
         mod.reconcile_jules_sessions(
@@ -469,7 +469,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
     def test_feedback_marker_must_match_waiting_session(self):
         comments = [
-            {"id": 22, "body": "<!-- jules-feedback: other-session -->\\nWrong session."},
+            {"id": 22, "body": "<!-- jules-feedback: other-session -->\nWrong session."},
         ]
         self.assertIsNone(mod.pending_feedback_from_comments(comments, "ask1"))
 
