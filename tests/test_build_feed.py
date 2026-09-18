@@ -45,7 +45,7 @@ class BuildFeedTests(unittest.TestCase):
         self.assertEqual(job["posted_date_provenance"], "authoritative_employer")
         self.assertEqual(job["posted_date_observations"][0]["posted_at"], "2026-09-17T00:00:00Z")
 
-    def test_merge_preserves_all_date_observations_and_winner_provenance(self):
+    def test_merge_preserves_authoritative_date_over_newer_aggregator_date(self):
         target = {
             "source_keys": ["direct-example"],
             "source_names": ["Example"],
@@ -85,9 +85,56 @@ class BuildFeedTests(unittest.TestCase):
             }],
         }
         mod.merge_job(target, incoming)
-        self.assertEqual(target["posted_at"], "2026-09-17T00:00:00Z")
-        self.assertEqual(target["posted_date_source_key"], "aggregator")
-        self.assertEqual(target["posted_date_provenance"], "aggregator")
+        # Authoritative employer date is preserved over newer aggregator date
+        self.assertEqual(target["posted_at"], "2026-09-01T00:00:00Z")
+        self.assertEqual(target["posted_date_source_key"], "direct-example")
+        self.assertEqual(target["posted_date_provenance"], "authoritative_employer")
+        self.assertEqual(len(target["posted_date_observations"]), 2)
+
+    def test_merge_upgrades_aggregator_date_to_authoritative_date(self):
+        target = {
+            "source_keys": ["aggregator"],
+            "source_names": ["Aggregator"],
+            "source_urls": ["https://aggregator.example"],
+            "profiles": ["cs"],
+            "states": ["CT"],
+            "posted_at": "2026-09-17T00:00:00Z",
+            "posted_raw": "1d",
+            "posted_date_source_key": "aggregator",
+            "posted_date_source_name": "Aggregator",
+            "posted_date_provenance": "aggregator",
+            "posted_date_observations": [{
+                "source_key": "aggregator",
+                "source_name": "Aggregator",
+                "posted_raw": "1d",
+                "posted_at": "2026-09-17T00:00:00Z",
+                "provenance": "aggregator",
+            }],
+        }
+        incoming = {
+            "source_key": "direct-example",
+            "source_name": "Example",
+            "source_url": "https://example.com",
+            "profiles": ["cs"],
+            "states": ["CT"],
+            "posted_at": "2026-09-01T00:00:00Z",
+            "posted_raw": "2026-09-01",
+            "posted_date_source_key": "direct-example",
+            "posted_date_source_name": "Example",
+            "posted_date_provenance": "authoritative_employer",
+            "posted_date_observations": [{
+                "source_key": "direct-example",
+                "source_name": "Example",
+                "posted_raw": "2026-09-01",
+                "posted_at": "2026-09-01T00:00:00Z",
+                "provenance": "authoritative_employer",
+            }],
+        }
+        mod.merge_job(target, incoming)
+        # Incoming authoritative employer date upgrades target even if older than aggregator timestamp
+        self.assertEqual(target["posted_at"], "2026-09-01T00:00:00Z")
+        self.assertEqual(target["posted_date_source_key"], "direct-example")
+        self.assertEqual(target["posted_date_provenance"], "authoritative_employer")
         self.assertEqual(len(target["posted_date_observations"]), 2)
 
 

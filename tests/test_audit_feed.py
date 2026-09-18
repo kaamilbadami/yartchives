@@ -190,5 +190,51 @@ class PostingDateAuditTests(unittest.TestCase):
         self.assertEqual([j["id"] for j in report["aggregator_overrides_authoritative"]], ["override"])
 
 
+class BuildAuditReportTests(unittest.TestCase):
+    def test_builds_and_renders_comprehensive_audit_report(self):
+        doc = {
+            "generated_at": "2026-09-18T12:00:00Z",
+            "sources": {"direct-source": {"ok": True}},
+            "jobs": [
+                {
+                    "id": "job1",
+                    "company": "Company A",
+                    "title": "Software Intern",
+                    "location": "CT",
+                    "link_kind": "direct",
+                    "url": "https://example.wd1.myworkdayjobs.com/en-US/careers/job/CT/Role_R123",
+                    "posted_at": "2026-09-15T12:00:00Z",
+                    "posted_date_provenance": "authoritative_employer",
+                    "source_keys": ["direct-source"],
+                },
+                {
+                    "id": "job2",
+                    "company": "Company B",
+                    "title": "Data Intern",
+                    "location": "NY",
+                    "link_kind": "source",
+                    "url": "",
+                    "posted_at": None,
+                    "source_keys": ["speedyapply-ai"],
+                },
+            ],
+        }
+
+        report = mod.build_audit_report(
+            doc,
+            {},
+            datetime(2026, 9, 18, 12, tzinfo=timezone.utc),
+        )
+
+        self.assertEqual(report["summary"]["total_jobs"], 2)
+        self.assertEqual(report["summary"]["broken_destinations"]["workday_contract_violations"], 1)
+        self.assertEqual(report["summary"]["missing_dates"]["missing_posted_at"], 1)
+
+        rendered = mod.render_markdown_report(report)
+        self.assertIn("# Yartchives feed quality audit report", rendered)
+        self.assertIn("Total indexed jobs: **2**", rendered)
+        self.assertIn("Missing posting timestamp (`posted_at`): **1**", rendered)
+
+
 if __name__ == "__main__":
     unittest.main()
