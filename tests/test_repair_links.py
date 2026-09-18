@@ -17,7 +17,7 @@ validate_spec.loader.exec_module(validate_mod)
 
 
 class RepairLinksTests(unittest.TestCase):
-    def test_applyguy_original_listing_becomes_direct(self):
+    def test_applyguy_workday_job_page_becomes_employer_job(self):
         doc = {
             "jobs": [{
                 "id": "1",
@@ -37,12 +37,12 @@ class RepairLinksTests(unittest.TestCase):
         }
         stats = mod.repair_document(doc, payload)
         job = doc["jobs"][0]
-        self.assertEqual(job["link_kind"], "direct")
+        self.assertEqual(job["link_kind"], "employer_job")
         self.assertEqual(job["link_origin"], "applyguy-feed")
         self.assertIn("myworkdayjobs.com", job["url"])
         self.assertEqual(stats["applyguy_repaired"], 1)
 
-    def test_zapply_resolution_becomes_direct_and_keeps_provenance(self):
+    def test_zapply_workday_job_page_becomes_employer_job_and_keeps_provenance(self):
         listing = "https://zapply.jobs/l/d/workday-caci-external-331393?s=gh-internships-2027"
         direct = "https://caci.wd1.myworkdayjobs.com/external/job/Danbury-CT/Embedded-Software_331393"
         doc = {
@@ -58,7 +58,7 @@ class RepairLinksTests(unittest.TestCase):
         mod.repair_document(doc, resolved_urls={mod.listing_cache_key(listing): direct})
         job = doc["jobs"][0]
         self.assertEqual(job["url"], direct)
-        self.assertEqual(job["link_kind"], "direct")
+        self.assertEqual(job["link_kind"], "employer_job")
         self.assertEqual(job["link_origin"], "redirect-resolved")
         self.assertEqual(job["resolved_from_url"], listing)
         self.assertNotIn("listing_url", job)
