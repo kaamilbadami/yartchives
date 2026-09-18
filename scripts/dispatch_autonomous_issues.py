@@ -21,6 +21,7 @@ JULES_FAILED_LABEL = "jules-failed"
 JULES_FEEDBACK_LABEL = "jules-needs-feedback"
 JULES_SESSION_MARKER = "<!-- jules-session-id: {session_id} -->"
 JULES_TERMINAL_STATES = {"COMPLETED", "FAILED"}
+JULES_PRODUCTIVE_STATES = {"QUEUED", "PLANNING", "IN_PROGRESS"}
 CODEX_RESERVED_LABEL = "codex"
 CODEX_WORKER_PREFIX = "codex-worker-"
 DEFAULT_POLL_SECONDS = 30
@@ -220,7 +221,7 @@ def reconcile_jules_sessions(
             continue
 
         if state not in JULES_TERMINAL_STATES:
-            if JULES_FEEDBACK_LABEL in labels:
+            if JULES_FEEDBACK_LABEL in labels and state in JULES_PRODUCTIVE_STATES:
                 run_gh(
                     "issue", "edit", str(number), "--repo", repo,
                     "--remove-label", JULES_FEEDBACK_LABEL,
