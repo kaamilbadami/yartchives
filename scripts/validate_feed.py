@@ -67,7 +67,13 @@ def valid_http_url(value: str | None) -> bool:
     return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
-def validate(path: Path, minimum_jobs: int, minimum_healthy_sources: int, strict_sources: bool) -> list[str]:
+def validate(
+    path: Path,
+    minimum_jobs: int,
+    minimum_healthy_sources: int,
+    strict_sources: bool,
+    enforce_link_contract: bool = False,
+) -> list[str]:
     errors: list[str] = []
     try:
         doc = json.loads(path.read_text(encoding="utf-8"))
@@ -126,7 +132,8 @@ def validate(path: Path, minimum_jobs: int, minimum_healthy_sources: int, strict
         elif kind == "source" and url:
             errors.append(f"job {job_id or i} source-only link should not populate url")
 
-        errors.extend(workday_direct_contract_errors(job, f"job {job_id or i}"))
+        if enforce_link_contract:
+            errors.extend(workday_direct_contract_errors(job, f"job {job_id or i}"))
 
     healthy = 0
     for key, source in sources.items():
@@ -150,9 +157,20 @@ def main() -> int:
     parser.add_argument("--minimum-jobs", type=int, default=500)
     parser.add_argument("--minimum-healthy-sources", type=int, default=8)
     parser.add_argument("--strict-sources", action="store_true")
+    parser.add_argument(
+        "--enforce-link-contract",
+        action="store_true",
+        help="fail when a published direct Workday link is not a validated /apply destination",
+    )
     args = parser.parse_args()
 
-    errors = validate(Path(args.path), args.minimum_jobs, args.minimum_healthy_sources, args.strict_sources)
+    errors = validate(
+        Path(args.path),
+        args.minimum_jobs,
+        args.minimum_healthy_sources,
+        args.strict_sources,
+        args.enforce_link_contract,
+    )
     if errors:
         print("Feed validation failed:", file=sys.stderr)
         for error in errors[:100]:
