@@ -98,6 +98,16 @@ for (const [name, content] of [["quality", qualityWorkflow], ["feed", feedWorkfl
   );
 }
 
+assert.ok(
+  feedWorkflow.includes(`python scripts/refresh_employer_universe.py employer_universe.json ${primaryBenchmark}`),
+  "Employer-universe refresh should seed from the same frozen 142-role Northeast/Mid-Atlantic benchmark used for primary coverage measurement"
+);
+assert.equal(
+  feedWorkflow.includes(`python scripts/refresh_employer_universe.py employer_universe.json ${legacyBenchmark}`),
+  false,
+  "Employer-universe refresh should not remain pinned to the 106-role legacy benchmark"
+);
+
 assert.equal(
   /\n\s*workflow_run:\s*\n/.test(workflow),
   false,
