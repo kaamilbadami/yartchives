@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from html import unescape
 import json
 import re
@@ -39,7 +40,8 @@ from greenhouse_inspector import UnsupportedGreenhouseUrl, derive_greenhouse_end
 
 ROOT = SCRIPT_DIR.parent
 DEFAULT_FEED = ROOT / "data" / "listings.json"
-TIMEOUT = 25
+TIMEOUT = 12
+NETWORK_WORKERS = 12
 API_HOST = "https://boards-api.greenhouse.io"
 
 
@@ -220,6 +222,30 @@ def fetch_source(client: requests.Session, source: dict[str, Any], reference: da
     return out
 
 
+def fetch_sources_concurrently(
+    sources: list[dict[str, Any]],
+    reference: datetime,
+) -> dict[str, tuple[list[dict[str, Any]] | None, Exception | None]]:
+    """Fetch independent Greenhouse boards in parallel, with one retry session per board."""
+    if not sources:
+        return {}
+
+    results: dict[str, tuple[list[dict[str, Any]] | None, Exception | None]] = {}
+    workers = min(NETWORK_WORKERS, len(sources))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {
+            pool.submit(fetch_source, retry_session(), source, reference): source
+            for source in sources
+        }
+        for future in as_completed(futures):
+            source = futures[future]
+            try:
+                results[source["key"]] = (future.result(), None)
+            except Exception as exc:
+                results[source["key"]] = (None, exc)
+    return results
+
+
 def apply_authoritative_board_brand(
     jobs: list[dict[str, Any]],
     incoming: dict[str, Any],
@@ -245,9 +271,14 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Sessio
     old_jobs = old_doc.get("jobs", []) if isinstance(old_doc, dict) else []
     old_jobs_by_id = {j.get("id"): j for j in old_jobs if isinstance(j, dict) and j.get("id")}
 
-    for source in discover_sources(doc):
-        try:
-            direct_jobs = fetch_source(client, source, reference)
+    sources = discover_sources(doc)
+    fetched = fetch_sources_concurrently(sources, reference)
+    print(f"Greenhouse enumeration: {len(sources)} board(s), up to {min(NETWORK_WORKERS, len(sources)) if sources else 0} concurrent")
+
+    # Merge in deterministic source order even though network retrieval is concurrent.
+    for source in sources:
+        direct_jobs, exc = fetched.get(source["key"], (None, RuntimeError("missing fetch result")))
+        if exc is None and direct_jobs is not None:
             for job in direct_jobs:
                 upsert_direct_job(jobs, job, old_jobs_by_id, reference)
                 apply_authoritative_board_brand(jobs, job, source["board_token"])
@@ -260,18 +291,19 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Sessio
                 "auto_discovered": True,
             }
             print(f"{source['name']}: {len(direct_jobs)} direct US CS student listing(s)")
-        except Exception as exc:
-            health[source["key"]] = {
-                "ok": False,
-                "configured": True,
-                "count": 0,
-                "name": source["name"],
-                "direct": True,
-                "auto_discovered": True,
-                "error": f"{type(exc).__name__}: {exc}",
-            }
-            carry_failed_source(jobs, old_jobs, source["key"])
-            print(f"{source['name']}: FAILED: {exc}", file=sys.stderr)
+            continue
+
+        health[source["key"]] = {
+            "ok": False,
+            "configured": True,
+            "count": 0,
+            "name": source["name"],
+            "direct": True,
+            "auto_discovered": True,
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+        carry_failed_source(jobs, old_jobs, source["key"])
+        print(f"{source['name']}: FAILED: {exc}", file=sys.stderr)
     return doc
 
 
