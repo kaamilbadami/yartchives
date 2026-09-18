@@ -36,29 +36,29 @@ class AutonomousDispatcherTests(unittest.TestCase):
             issue(11, "P1 frontend", body=task_body("P1", "frontend-state")),
             issue(12, "P1 coverage", body=task_body("P1", "coverage")),
         ]
-
         selected = mod.select_tasks(issues, max_active=2)
-
         self.assertEqual([task.number for task in selected], [11, 12])
 
-    def test_active_autonomous_jules_work_counts_against_wip_limit(self):
+    def test_real_jules_sessions_count_against_wip_limit(self):
+        issues = [
+            issue(1, "active feed", body=task_body("P1", "feed"), labels=("jules", "jules-session")),
+            issue(2, "active quality", body=task_body("P1", "quality"), labels=("jules", "jules-session")),
+            issue(3, "roadmap", body=task_body("P1", "frontend-state")),
+        ]
+        self.assertEqual(mod.select_tasks(issues, max_active=2), [])
+
+    def test_legacy_jules_labels_without_session_do_not_consume_wip_or_block_retry(self):
         issues = [
             issue(
                 1,
-                "active feed",
-                body=task_body("P1", "feed"),
-                labels=("jules",),
+                "stale dispatch",
+                body=task_body("P1", "frontend-state"),
+                labels=("jules", "agent-ready", "autonomous-backlog"),
             ),
-            issue(
-                2,
-                "active quality",
-                body=task_body("P1", "quality"),
-                labels=("jules",),
-            ),
-            issue(3, "roadmap", body=task_body("P1", "frontend-state")),
+            issue(2, "coverage", body=task_body("P1", "coverage")),
         ]
-
-        self.assertEqual(mod.select_tasks(issues, max_active=2), [])
+        selected = mod.select_tasks(issues, max_active=2)
+        self.assertEqual([task.number for task in selected], [1, 2])
 
     def test_non_backlog_jules_work_does_not_consume_backlog_wip(self):
         issues = [
@@ -74,9 +74,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
             ),
             issue(3, "roadmap", body=task_body("P1", "frontend-state")),
         ]
-
         selected = mod.select_tasks(issues, max_active=2)
-
         self.assertEqual([task.number for task in selected], [3])
 
     def test_active_area_blocks_overlapping_task_but_allows_other_area(self):
@@ -85,38 +83,117 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 1,
                 "active frontend",
                 body=task_body("P1", "frontend-state"),
-                labels=("jules",),
+                labels=("jules", "jules-session"),
             ),
             issue(2, "another frontend", body=task_body("P0", "frontend-state")),
             issue(3, "coverage", body=task_body("P1", "coverage")),
         ]
-
         selected = mod.select_tasks(issues, max_active=2)
-
         self.assertEqual([task.number for task in selected], [3])
 
     def test_blocked_or_product_decision_tasks_are_not_dispatched(self):
         issues = [
             issue(1, "blocked", body=task_body("P0", "feed"), labels=("blocked",)),
-            issue(
-                2,
-                "decision",
-                body=task_body("P0", "ranking"),
-                labels=("needs-product-decision",),
-            ),
+            issue(2, "decision", body=task_body("P0", "ranking"), labels=("needs-product-decision",)),
             issue(3, "safe", body=task_body("P1", "coverage")),
         ]
-
         selected = mod.select_tasks(issues, max_active=2)
-
         self.assertEqual([task.number for task in selected], [3])
 
-    def test_paginated_issue_pages_are_flattened_without_json_stream_assumptions(self):
-        pages = [
-            [{"number": 1}, {"number": 2}],
-            [{"number": 3}],
-        ]
+    def test_finds_connected_jules_source_by_github_repo(self):
+        calls = []
 
+        def fake_get(api_key, path):
+            calls.append((api_key, path))
+            return {
+                "sources": [
+                    {
+                        "name": "sources/github/kaamilbadami/yartchives",
+                        "githubRepo": {"owner": "kaamilbadami", "repo": "yartchives"},
+                    }
+                ]
+            }
+
+        source = mod.find_jules_source("secret", "kaamilbadami/yartchives", fake_get)
+        self.assertEqual(source, "sources/github/kaamilbadami/yartchives")
+        self.assertEqual(calls[0][0], "secret")
+        self.assertIn("/sources?pageSize=100", calls[0][1])
+
+    def test_create_session_uses_main_auto_pr_and_full_issue_context(self):
+        task = mod.Task(
+            149,
+            "Make Mark Applied update Apply Next immediately",
+            task_body("P1", "apply-next-ui") + "\nFix the interaction.",
+            "P1",
+            "apply-next-ui",
+            frozenset(),
+        )
+        captured = {}
+
+        def fake_post(api_key, path, *, method="GET", payload=None):
+            captured.update(api_key=api_key, path=path, method=method, payload=payload)
+            return {"id": "abc123", "url": "https://jules.google.com/session/abc123"}
+
+        session = mod.create_jules_session(
+            "secret",
+            "sources/github/kaamilbadami/yartchives",
+            "kaamilbadami/yartchives",
+            task,
+            fake_post,
+        )
+        self.assertEqual(session["id"], "abc123")
+        self.assertEqual(captured["method"], "POST")
+        self.assertEqual(captured["path"], "/sessions")
+        self.assertEqual(captured["payload"]["automationMode"], "AUTO_CREATE_PR")
+        self.assertFalse(captured["payload"]["requirePlanApproval"])
+        self.assertEqual(
+            captured["payload"]["sourceContext"]["githubRepoContext"]["startingBranch"],
+            "main",
+        )
+        self.assertIn("Fix the interaction.", captured["payload"]["prompt"])
+        self.assertIn("Closes #149", captured["payload"]["prompt"])
+
+    def test_failed_session_creation_does_not_mark_issue_active(self):
+        task = mod.Task(149, "Task", task_body("P1", "frontend"), "P1", "frontend", frozenset())
+        gh_calls = []
+
+        def fail_create(*args, **kwargs):
+            raise RuntimeError("quota exceeded")
+
+        with self.assertRaisesRegex(RuntimeError, "quota exceeded"):
+            mod.dispatch_task(
+                task,
+                repo="kaamilbadami/yartchives",
+                api_key="secret",
+                source_name="source",
+                create_session=fail_create,
+                run_gh=lambda *args: gh_calls.append(args),
+            )
+        self.assertEqual(gh_calls, [])
+
+    def test_successful_session_creation_marks_issue_active_and_links_session(self):
+        task = mod.Task(149, "Task", task_body("P1", "frontend"), "P1", "frontend", frozenset())
+        gh_calls = []
+        session = mod.dispatch_task(
+            task,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            source_name="source",
+            create_session=lambda *args, **kwargs: {
+                "id": "abc123",
+                "url": "https://jules.google.com/session/abc123",
+            },
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+        self.assertEqual(session["id"], "abc123")
+        self.assertIn("jules-session", gh_calls[0])
+        self.assertIn("jules", gh_calls[0])
+        self.assertIn("agent-ready", gh_calls[0])
+        self.assertIn("autonomous-backlog", gh_calls[0])
+        self.assertIn("https://jules.google.com/session/abc123", gh_calls[1][-1])
+
+    def test_paginated_issue_pages_are_flattened_without_json_stream_assumptions(self):
+        pages = [[{"number": 1}, {"number": 2}], [{"number": 3}]]
         self.assertEqual(
             mod.flatten_paginated_pages(pages),
             [{"number": 1}, {"number": 2}, {"number": 3}],
@@ -132,9 +209,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
             issue(2, "not approved", body=task_body("P0", "feed", autonomous=False)),
             issue(3, "safe", body=task_body("P2", "coverage")),
         ]
-
         selected = mod.select_tasks(issues, max_active=2)
-
         self.assertEqual([task.number for task in selected], [3])
 
 
