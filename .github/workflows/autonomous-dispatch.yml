@@ -31,4 +31,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
+          JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
         run: python scripts/dispatch_autonomous_issues.py
