@@ -311,6 +311,112 @@ class AutonomousDispatcherTests(unittest.TestCase):
         selected = mod.select_tasks(issues, max_active=2)
         self.assertEqual([task.number for task in selected], [154])
 
+    def test_feedback_waiting_session_releases_slot_and_surfaces_latest_question(self):
+        issues = [
+            issue(
+                151,
+                "freshness",
+                body=task_body("P1", "apply-next-ui"),
+                labels=("jules", "jules-session", "agent-ready"),
+            ),
+            issue(154, "feed quality", body=task_body("P1", "feed-quality")),
+        ]
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [{"body": "<!-- jules-session-id: ask1 -->"}],
+            get_session=lambda api_key, path: {
+                "id": "ask1",
+                "state": "AWAITING_USER_FEEDBACK",
+                "url": "https://jules.google.com/session/ask1",
+            },
+            load_activities=lambda session_id: [
+                {
+                    "createTime": "2026-09-18T22:00:00Z",
+                    "agentMessaged": {"agentMessage": "Older status."},
+                },
+                {
+                    "createTime": "2026-09-18T22:01:00Z",
+                    "agentMessaged": {
+                        "agentMessage": "Should freshness use posted_at or discovered_at?"
+                    },
+                },
+            ],
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        labels = mod.label_names(issues[0])
+        self.assertNotIn("jules-session", labels)
+        self.assertIn("jules-needs-feedback", labels)
+        self.assertIn("jules", labels)
+        self.assertIn("jules-needs-feedback", gh_calls[0])
+        self.assertIn(
+            "Should freshness use posted_at or discovered_at?",
+            gh_calls[1][-1],
+        )
+        self.assertEqual(
+            [task.number for task in mod.select_tasks(issues, max_active=2)],
+            [154],
+        )
+
+    def test_feedback_waiting_reconciliation_is_idempotent(self):
+        issues = [
+            issue(
+                151,
+                "freshness",
+                body=task_body("P1", "apply-next-ui"),
+                labels=("jules", "jules-needs-feedback", "agent-ready"),
+            )
+        ]
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [{"body": "<!-- jules-session-id: ask1 -->"}],
+            get_session=lambda api_key, path: {
+                "id": "ask1",
+                "state": "AWAITING_USER_FEEDBACK",
+            },
+            load_activities=lambda session_id: self.fail(
+                "activities should not be loaded twice while feedback is still pending"
+            ),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(gh_calls, [])
+        self.assertIn("jules-needs-feedback", mod.label_names(issues[0]))
+
+    def test_feedback_waiting_session_becomes_active_again_after_user_reply(self):
+        issues = [
+            issue(
+                151,
+                "freshness",
+                body=task_body("P1", "apply-next-ui"),
+                labels=("jules", "jules-needs-feedback", "agent-ready"),
+            )
+        ]
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [{"body": "<!-- jules-session-id: ask1 -->"}],
+            get_session=lambda api_key, path: {"id": "ask1", "state": "IN_PROGRESS"},
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        labels = mod.label_names(issues[0])
+        self.assertIn("jules-session", labels)
+        self.assertNotIn("jules-needs-feedback", labels)
+        self.assertIn("jules-session", gh_calls[0])
+        self.assertEqual(mod.select_tasks(issues, max_active=2), [])
+
     def test_nonterminal_session_remains_active(self):
         issues = [
             issue(
