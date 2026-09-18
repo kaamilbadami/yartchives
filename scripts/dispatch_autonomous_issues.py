@@ -113,10 +113,15 @@ def reconcile_jules_sessions(
     repo: str,
     api_key: str,
     load_comments: Callable[[int], list[dict[str, Any]]],
-    get_session: Callable[..., dict[str, Any]] = jules_json,
-    run_gh: Callable[..., None] = gh_run,
+    get_session: Callable[..., dict[str, Any]] | None = None,
+    run_gh: Callable[..., None] | None = None,
 ) -> None:
     """Release terminal Jules sessions before selecting more autonomous work."""
+    if get_session is None:
+        get_session = jules_json
+    if run_gh is None:
+        run_gh = gh_run
+
     for issue in issues:
         labels = label_names(issue)
         if JULES_ACTIVE_LABEL not in labels:
