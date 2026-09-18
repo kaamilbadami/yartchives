@@ -41,14 +41,43 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
         self.assertEqual([task.number for task in selected], [11, 12])
 
-    def test_active_jules_work_counts_against_wip_limit(self):
+    def test_active_autonomous_jules_work_counts_against_wip_limit(self):
         issues = [
-            issue(1, "active feed", labels=("jules",)),
-            issue(2, "active quality", labels=("jules",)),
+            issue(
+                1,
+                "active feed",
+                body=task_body("P1", "feed"),
+                labels=("jules",),
+            ),
+            issue(
+                2,
+                "active quality",
+                body=task_body("P1", "quality"),
+                labels=("jules",),
+            ),
             issue(3, "roadmap", body=task_body("P1", "frontend-state")),
         ]
 
         self.assertEqual(mod.select_tasks(issues, max_active=2), [])
+
+    def test_non_backlog_jules_work_does_not_consume_backlog_wip(self):
+        issues = [
+            issue(
+                1,
+                "[workflow failure] Update opportunity feed: Validate code",
+                labels=("workflow-failure", "agent-ready", "jules"),
+            ),
+            issue(
+                2,
+                "[workflow failure] Update opportunity feed: Validate generated feed",
+                labels=("workflow-failure", "agent-ready", "jules"),
+            ),
+            issue(3, "roadmap", body=task_body("P1", "frontend-state")),
+        ]
+
+        selected = mod.select_tasks(issues, max_active=2)
+
+        self.assertEqual([task.number for task in selected], [3])
 
     def test_active_area_blocks_overlapping_task_but_allows_other_area(self):
         issues = [
@@ -81,7 +110,6 @@ class AutonomousDispatcherTests(unittest.TestCase):
         selected = mod.select_tasks(issues, max_active=2)
 
         self.assertEqual([task.number for task in selected], [3])
-
 
     def test_paginated_issue_pages_are_flattened_without_json_stream_assumptions(self):
         pages = [
