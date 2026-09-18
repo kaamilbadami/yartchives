@@ -104,7 +104,7 @@ def task_lock_keys(task: Task) -> frozenset[str]:
     additional resources with `resources: foo, bar`; otherwise known areas use
     conservative shared-resource defaults for cross-area hot paths.
     """
-    resources = task.resources or AREA_RESOURCE_LOCKS.get(task.area, frozenset())
+    resources = AREA_RESOURCE_LOCKS.get(task.area, frozenset()) | task.resources
     return frozenset(
         {f"area:{task.area}", *(f"resource:{resource}" for resource in resources)}
     )
