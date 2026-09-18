@@ -224,6 +224,139 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertIn("agent-ready", gh_calls[0])
         self.assertIn("autonomous-backlog", gh_calls[0])
         self.assertIn("https://jules.google.com/session/abc123", gh_calls[1][-1])
+        self.assertIn("<!-- jules-session-id: abc123 -->", gh_calls[1][-1])
+
+    def test_session_id_parser_supports_new_marker_and_legacy_comment(self):
+        self.assertEqual(
+            mod.session_id_from_comments(
+                [{"body": "<!-- jules-session-id: abc123 -->\nCreated."}]
+            ),
+            "abc123",
+        )
+        self.assertEqual(
+            mod.session_id_from_comments(
+                [{"body": "Autonomous dispatcher created Jules session 'legacy456' for this task."}]
+            ),
+            "legacy456",
+        )
+
+    def test_completed_session_releases_slot_and_surfaces_pull_request(self):
+        issues = [
+            issue(
+                149,
+                "active frontend",
+                body=task_body("P1", "apply-next-ui"),
+                labels=("jules", "jules-session", "agent-ready"),
+            ),
+            issue(154, "feed quality", body=task_body("P1", "feed-quality")),
+        ]
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [
+                {"body": "Autonomous dispatcher created Jules session 'abc123' for this task."}
+            ],
+            get_session=lambda api_key, path: {
+                "id": "abc123",
+                "state": "COMPLETED",
+                "outputs": [
+                    {
+                        "pullRequest": {
+                            "url": "https://github.com/kaamilbadami/yartchives/pull/999"
+                        }
+                    }
+                ],
+            },
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        labels = mod.label_names(issues[0])
+        self.assertNotIn("jules-session", labels)
+        self.assertNotIn("jules", labels)
+        self.assertIn("jules-review-ready", labels)
+        self.assertIn("jules-review-ready", gh_calls[0])
+        self.assertIn("https://github.com/kaamilbadami/yartchives/pull/999", gh_calls[1][-1])
+        self.assertEqual(
+            [task.number for task in mod.select_tasks(issues, max_active=2)],
+            [154],
+        )
+
+    def test_failed_session_releases_slot_without_becoming_retry_candidate(self):
+        issues = [
+            issue(
+                152,
+                "active feed",
+                body=task_body("P1", "feed"),
+                labels=("jules", "jules-session"),
+            ),
+            issue(154, "feed quality", body=task_body("P1", "feed-quality")),
+        ]
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [{"body": "<!-- jules-session-id: failed1 -->"}],
+            get_session=lambda api_key, path: {"id": "failed1", "state": "FAILED"},
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        labels = mod.label_names(issues[0])
+        self.assertIn("jules-failed", labels)
+        self.assertNotIn("jules-session", labels)
+        selected = mod.select_tasks(issues, max_active=2)
+        self.assertEqual([task.number for task in selected], [154])
+
+    def test_nonterminal_session_remains_active(self):
+        issues = [
+            issue(
+                149,
+                "active frontend",
+                body=task_body("P1", "apply-next-ui"),
+                labels=("jules", "jules-session"),
+            ),
+            issue(154, "feed quality", body=task_body("P1", "feed-quality")),
+        ]
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [{"body": "<!-- jules-session-id: abc123 -->"}],
+            get_session=lambda api_key, path: {"id": "abc123", "state": "IN_PROGRESS"},
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(gh_calls, [])
+        self.assertIn("jules-session", mod.label_names(issues[0]))
+
+    def test_missing_session_id_keeps_slot_occupied_to_avoid_duplicate_dispatch(self):
+        issues = [
+            issue(
+                149,
+                "active frontend",
+                body=task_body("P1", "apply-next-ui"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [],
+            get_session=lambda *args: self.fail("session API should not be called"),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(gh_calls, [])
+        self.assertIn("jules-session", mod.label_names(issues[0]))
 
     def test_paginated_issue_pages_are_flattened_without_json_stream_assumptions(self):
         pages = [[{"number": 1}, {"number": 2}], [{"number": 3}]]
