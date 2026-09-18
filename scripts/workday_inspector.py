@@ -63,6 +63,8 @@ def derive_cxs_endpoint(job_url: str) -> dict[str, str]:
             raise UnsupportedWorkdayUrl("Workday CXS URL does not contain a job path")
         tenant, site = parts[2], parts[3]
         job_parts = parts[4:]
+        if job_parts and job_parts[-1].casefold() == "apply":
+            job_parts = job_parts[:-1]
     else:
         if parts and LOCALE.fullmatch(parts[0]):
             parts = parts[1:]
@@ -75,18 +77,22 @@ def derive_cxs_endpoint(job_url: str) -> dict[str, str]:
         tenant = host.split(".", 1)[0]
         site = parts[0]
         job_parts = parts[job_index:]
+        if job_parts and job_parts[-1].casefold() == "apply":
+            job_parts = job_parts[:-1]
 
     encoded = [quote(part, safe="-._~") for part in (tenant, site, *job_parts)]
     endpoint_path = "/wday/cxs/" + "/".join(encoded)
     endpoint = urlunparse(("https", host, endpoint_path, "", "", ""))
     canonical_job_path = "/" + "/".join(quote(part, safe="-._~") for part in ("en-US", site, *job_parts))
     canonical_job_url = urlunparse(("https", host, canonical_job_path, "", "", ""))
+    canonical_apply_url = canonical_job_url.rstrip("/") + "/apply"
     return {
         "tenant": tenant,
         "site": site,
         "job_path": "/" + "/".join(job_parts),
         "endpoint_url": endpoint,
         "canonical_job_url": canonical_job_url,
+        "canonical_apply_url": canonical_apply_url,
     }
 
 
