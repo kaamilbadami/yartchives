@@ -575,6 +575,19 @@ def fetch_usajobs(s: requests.Session, reference: datetime) -> tuple[list[dict[s
     return out, {"ok": True, "configured": True, "count": len(out)}
 
 
+PROVENANCE_PRIORITY = {
+    "authoritative_employer": 3,
+    "authoritative_government": 3,
+    "aggregator": 1,
+}
+
+
+def _provenance_rank(provenance: str | None) -> int:
+    if not provenance:
+        return 0
+    return PROVENANCE_PRIORITY.get(provenance, 2 if str(provenance).startswith("authoritative_") else 1)
+
+
 def merge_job(target: dict[str, Any], incoming: dict[str, Any]) -> None:
     target["source_keys"] = sorted(set(target.get("source_keys", [])) | {incoming["source_key"]})
     target["source_names"] = sorted(set(target.get("source_names", [])) | {incoming["source_name"]})
@@ -602,8 +615,22 @@ def merge_job(target: dict[str, Any], incoming: dict[str, Any]) -> None:
             seen_observations.add(key)
     target["posted_date_observations"] = observations
 
-    # Prefer the newest explicit posting timestamp, while preserving which source supplied it.
-    if incoming.get("posted_at") and (not target.get("posted_at") or incoming["posted_at"] > target["posted_at"]):
+    # Prefer authoritative dates over aggregator dates. When provenance ranks match, prefer the newest timestamp.
+    target_prov = target.get("posted_date_provenance")
+    incoming_prov = incoming.get("posted_date_provenance")
+    target_rank = _provenance_rank(target_prov)
+    incoming_rank = _provenance_rank(incoming_prov)
+
+    should_update_date = False
+    if incoming.get("posted_at"):
+        if not target.get("posted_at"):
+            should_update_date = True
+        elif incoming_rank > target_rank:
+            should_update_date = True
+        elif incoming_rank == target_rank and incoming["posted_at"] > target["posted_at"]:
+            should_update_date = True
+
+    if should_update_date:
         target["posted_at"] = incoming["posted_at"]
         target["posted_raw"] = incoming.get("posted_raw", "")
         target["posted_date_source_key"] = incoming.get("posted_date_source_key")

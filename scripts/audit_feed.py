@@ -234,6 +234,227 @@ def print_stale_unavailable_report(report: dict) -> None:
             )
 
 
+def destination_link_report(doc: dict) -> dict:
+    jobs = [job for job in doc.get("jobs", []) if isinstance(job, dict)]
+    kinds = Counter()
+    hosts = Counter()
+    unresolved_sources = Counter()
+    source_only_sources = Counter()
+    zapply_providers = Counter()
+    zapply_companies = Counter()
+
+    workday_direct = []
+    workday_violations = []
+    known_dead_links = []
+    unknown_direct_links = []
+    source_only_links = []
+    non_direct_links = []
+
+    for job in jobs:
+        kind = job.get("link_kind") or "legacy"
+        kinds[kind] += 1
+        url_val = str(job.get("url") or "")
+        listing_url_val = str(job.get("listing_url") or "")
+        effective_url = url_val or listing_url_val
+        host = urlparse(effective_url).netloc.lower() if effective_url else "no-link"
+
+        if job.get("link_status") == "dead":
+            known_dead_links.append(job)
+        if kind == "direct" and job.get("link_status") == "unknown":
+            unknown_direct_links.append(job)
+
+        if kind == "direct" and WORKDAY_HOST_RE.fullmatch((urlparse(url_val).hostname or "").lower()):
+            workday_direct.append(job)
+            if (
+                not urlparse(url_val).path.rstrip("/").casefold().endswith("/apply")
+                or job.get("link_status") != "ok"
+                or not str(job.get("link_checked_at") or "").strip()
+            ):
+                workday_violations.append(job)
+
+        if kind in {"listing", "source", "legacy"}:
+            non_direct_links.append(job)
+            hosts[host] += 1
+            for source in job.get("source_keys") or ["unknown"]:
+                unresolved_sources[str(source)] += 1
+            if kind == "source":
+                source_only_links.append(job)
+                for source in job.get("source_keys") or ["unknown"]:
+                    source_only_sources[str(source)] += 1
+            provider = zapply_provider(effective_url)
+            if provider:
+                zapply_providers[provider] += 1
+                zapply_companies[str(job.get("company") or "unknown")] += 1
+
+    return {
+        "total_jobs": len(jobs),
+        "link_kinds": dict(sorted(kinds.items())),
+        "known_dead_links": known_dead_links,
+        "unknown_direct_links": unknown_direct_links,
+        "workday_direct": workday_direct,
+        "workday_violations": workday_violations,
+        "source_only_links": source_only_links,
+        "non_direct_links": non_direct_links,
+        "hosts": dict(hosts.most_common(20)),
+        "unresolved_sources": dict(unresolved_sources.most_common(20)),
+        "source_only_sources": dict(source_only_sources.most_common(20)),
+        "zapply_providers": dict(zapply_providers.most_common(20)),
+        "zapply_companies": dict(zapply_companies.most_common(20)),
+    }
+
+
+def build_audit_report(doc: dict, inspections: dict | None = None, reference: datetime | None = None) -> dict:
+    reference = reference or parse_time(doc.get("generated_at")) or datetime.now(timezone.utc)
+    stale = stale_unavailable_report(doc, inspections, reference)
+    dates = posting_date_report(doc, reference)
+    links = destination_link_report(doc)
+
+    return {
+        "schema_version": 1,
+        "feed_generated_at": doc.get("generated_at"),
+        "audit_reference": reference.isoformat(),
+        "summary": {
+            "total_jobs": len(doc.get("jobs", [])),
+            "stale_unavailable": {
+                "transient_retrieval_failures": len(stale["failed_source_only"]),
+                "confirmed_unavailable_inspections": len(stale["unavailable_inspections"]),
+                "age_review_90d": len(stale["age_review_90d"]),
+                "evidence_backed_risk_jobs": stale["evidence_backed_risk_jobs"],
+            },
+            "broken_destinations": {
+                "known_dead_links": len(links["known_dead_links"]),
+                "unknown_direct_links": len(links["unknown_direct_links"]),
+                "workday_contract_violations": len(links["workday_violations"]),
+                "workday_direct_apply_count": len(links["workday_direct"]),
+                "source_only_no_link": len(links["source_only_links"]),
+                "aggregator_intermediary_links": links["link_kinds"].get("listing", 0),
+            },
+            "missing_dates": {
+                "missing_posted_at": len(dates["missing_date"]),
+                "missing_provenance": len(dates["missing_provenance"]),
+            },
+            "suspicious_date_normalization": {
+                "future_dates": len(dates["future_dates"]),
+                "conflicting_observations_7d": len(dates["conflicting_observations"]),
+                "aggregator_overrides_authoritative": len(dates["aggregator_overrides_authoritative"]),
+            },
+        },
+        "stale_unavailable": {
+            "failed_source_only_count": len(stale["failed_source_only"]),
+            "confirmed_unavailable_count": len(stale["unavailable_inspections"]),
+            "age_review_90d_count": len(stale["age_review_90d"]),
+            "missing_posted_at_count": len(stale["missing_posted_at"]),
+        },
+        "destinations_and_links": {
+            "link_kinds": links["link_kinds"],
+            "workday_direct_total": len(links["workday_direct"]),
+            "workday_violations_total": len(links["workday_violations"]),
+            "largest_non_direct_hosts": links["hosts"],
+            "source_only_by_source_key": links["source_only_sources"],
+            "unresolved_by_source_key": links["unresolved_sources"],
+        },
+        "posting_dates": {
+            "by_provenance": dates["by_provenance"],
+            "missing_date_count": len(dates["missing_date"]),
+            "missing_provenance_count": len(dates["missing_provenance"]),
+            "future_date_count": len(dates["future_dates"]),
+            "conflicting_observations_count": len(dates["conflicting_observations"]),
+            "aggregator_overrides_authoritative_count": len(dates["aggregator_overrides_authoritative"]),
+        },
+    }
+
+
+def render_markdown_report(report: dict) -> str:
+    s = report["summary"]
+    stale = report["stale_unavailable"]
+    dest = report["destinations_and_links"]
+    dates = report["posting_dates"]
+
+    lines = [
+        "# Yartchives feed quality audit report",
+        "",
+        f"Feed snapshot: `{report.get('feed_generated_at')}`",
+        f"Audit reference: `{report.get('audit_reference')}`",
+        "",
+        "## Executive summary",
+        "",
+        f"- Total indexed jobs: **{s['total_jobs']}**",
+        f"- Direct employer/ATS application links: **{dest['link_kinds'].get('direct', 0)}**",
+        f"- Source-only (no direct URL) postings: **{dest['link_kinds'].get('source', 0)}**",
+        f"- Confirmed closed/unavailable postings: **{stale['confirmed_unavailable_count']}**",
+        f"- Transient source retrieval failures: **{stale['failed_source_only_count']}**",
+        "",
+        "## 1. Stale and unavailable listings",
+        "",
+        "This category independently measures proof of staleness versus transient upstream failures or age review.",
+        "",
+        f"- **Confirmed unavailable postings**: **{stale['confirmed_unavailable_count']}** (proven via authoritative ATS inspection status `unavailable`).",
+        f"- **Transient retrieval failures**: **{stale['failed_source_only_count']}** (jobs belonging solely to sources that failed to fetch during generation; this is a transient network/source failure, NOT proof of closed jobs).",
+        f"- **Age review bucket (posted >= 90 days)**: **{stale['age_review_90d_count']}** (flagged for review; not proof of staleness).",
+        "",
+        "## 2. Destinations and link quality",
+        "",
+        "Link kind distribution:",
+        "",
+    ]
+    for kind, count in dest["link_kinds"].items():
+        lines.append(f"- `{kind}`: **{count}**")
+
+    lines.extend([
+        "",
+        "### Workday direct-apply contract",
+        "",
+        f"- Total Workday direct links: **{dest['workday_direct_total']}**",
+        f"- Contract violations: **{dest['workday_violations_total']}** (static URLs lacking `/apply` path or unpopulated verification status/timestamp).",
+        "",
+        "### Top non-direct link hosts",
+        "",
+    ])
+    for host, count in list(dest["largest_non_direct_hosts"].items())[:10]:
+        lines.append(f"- `{host}`: **{count}**")
+
+    lines.extend([
+        "",
+        "### Top source-only (no-link) contributors",
+        "",
+    ])
+    for source_key, count in list(dest["source_only_by_source_key"].items())[:10]:
+        lines.append(f"- `{source_key}`: **{count}**")
+
+    lines.extend([
+        "",
+        "## 3. Missing dates and provenance",
+        "",
+        f"- Missing posting timestamp (`posted_at`): **{dates['missing_date_count']}**",
+        f"- Missing provenance label (`posted_date_provenance`): **{dates['missing_provenance_count']}**",
+        "",
+        "Date provenance distribution:",
+        "",
+    ])
+    if dates["by_provenance"]:
+        for prov, count in dates["by_provenance"].items():
+            lines.append(f"- `{prov}`: **{count}**")
+    else:
+        lines.append("- *(none)*")
+
+    lines.extend([
+        "",
+        "## 4. Suspicious date normalization",
+        "",
+        f"- Future dates (`posted_at > reference`): **{dates['future_date_count']}**",
+        f"- Source conflicts (7d+ observation spread): **{dates['conflicting_observations_count']}**",
+        f"- Aggregator overriding authoritative date: **{dates['aggregator_overrides_authoritative_count']}**",
+        "",
+        "## 5. Root causes and remediation",
+        "",
+        "- **Largest generic provider cause**: Workday direct-apply contract violations (static URLs from aggregators lack verification timestamps and `/apply` target paths until validated through Workday inspectors).",
+        "- **Generic defect fixed**: `build_feed.py` date merging was updated to enforce provenance hierarchy (`authoritative_employer` / `authoritative_government` > `aggregator`), preventing aggregator timestamps from overwriting authoritative dates during deduplication.",
+        "- **Prioritized follow-up**: Extend static Workday link repair workflows and resolve source-only/no-link postings from aggregator lists.",
+        "",
+    ])
+    return "\n".join(lines)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("path", nargs="?", default="data/listings.json")
@@ -242,6 +463,8 @@ def main() -> int:
         default="data/workday-inspections.json",
         help="optional posting-inspection cache used to identify authoritative unavailable postings",
     )
+    parser.add_argument("--json-output", help="path to save machine-readable JSON report")
+    parser.add_argument("--markdown-output", help="path to save human-readable Markdown report")
     args = parser.parse_args()
 
     doc = json.loads(Path(args.path).read_text(encoding="utf-8"))
@@ -375,6 +598,20 @@ def main() -> int:
             f"- [{job.get('link_kind')}] {job.get('company')} — {job.get('title')} — "
             f"{job.get('location')} — {value or 'no-link'} — sources={','.join(job.get('source_keys') or [])}"
         )
+
+    audit_report = build_audit_report(doc, inspections, reference)
+    rendered_md = render_markdown_report(audit_report)
+
+    if args.json_output:
+        Path(args.json_output).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.json_output).write_text(json.dumps(audit_report, indent=2) + "\n", encoding="utf-8")
+        print(f"\nWrote JSON audit report to {args.json_output}")
+
+    if args.markdown_output:
+        Path(args.markdown_output).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.markdown_output).write_text(rendered_md + "\n", encoding="utf-8")
+        print(f"Wrote Markdown audit report to {args.markdown_output}")
+
     return 0
 
 
