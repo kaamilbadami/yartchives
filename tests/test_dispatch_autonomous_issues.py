@@ -20,11 +20,13 @@ def issue(number, title, *, body="", labels=(), state="open"):
     }
 
 
-def task_body(priority, area, autonomous=True):
+def task_body(priority, area, autonomous=True, resources=None):
+    resource_line = f"resources: {resources}\n" if resources else ""
     return (
         "<!-- autonomous-task -->\n"
         f"priority: {priority}\n"
         f"area: {area}\n"
+        f"{resource_line}"
         f"autonomous: {'true' if autonomous else 'false'}\n"
     )
 
@@ -124,7 +126,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
         selected = mod.select_tasks(issues, max_active=2)
         self.assertEqual([task.number for task in selected], [3])
 
-    def test_feedback_waiting_area_stays_reserved_without_consuming_wip(self):
+    def test_feedback_waiting_session_reserves_wip_and_overlap_locks(self):
         issues = [
             issue(
                 1,
@@ -137,17 +139,53 @@ class AutonomousDispatcherTests(unittest.TestCase):
             issue(4, "performance", body=task_body("P1", "performance")),
         ]
 
+        selected = mod.select_tasks(issues, max_active=2)
+
+        self.assertEqual([task.number for task in selected], [3])
+
+    def test_shared_resource_lock_blocks_cross_area_overlap(self):
+        issues = [
+            issue(
+                1,
+                "active feed",
+                body=task_body("P1", "feed"),
+                labels=("jules", "jules-session"),
+            ),
+            issue(2, "dedupe", body=task_body("P0", "dedupe")),
+            issue(3, "coverage", body=task_body("P1", "coverage")),
+        ]
+
         selected = mod.select_tasks(issues, max_active=3)
 
-        self.assertEqual([task.number for task in selected], [3, 4])
+        self.assertEqual([task.number for task in selected], [3])
+
+    def test_explicit_resource_metadata_blocks_unrelated_areas(self):
+        issues = [
+            issue(
+                1,
+                "active custom",
+                body=task_body("P1", "alpha", resources="shared-hot-file"),
+                labels=("jules", "jules-session"),
+            ),
+            issue(
+                2,
+                "other area same resource",
+                body=task_body("P0", "beta", resources="shared-hot-file"),
+            ),
+            issue(3, "independent", body=task_body("P1", "gamma")),
+        ]
+
+        selected = mod.select_tasks(issues, max_active=3)
+
+        self.assertEqual([task.number for task in selected], [3])
 
     def test_default_wip_allows_five_distinct_areas(self):
         issues = [
             issue(1, "feed", body=task_body("P1", "feed")),
             issue(2, "coverage", body=task_body("P1", "coverage")),
             issue(3, "performance", body=task_body("P1", "performance")),
-            issue(4, "identity", body=task_body("P1", "identity")),
-            issue(5, "evidence", body=task_body("P1", "evidence")),
+            issue(4, "evidence", body=task_body("P1", "evidence")),
+            issue(5, "automation", body=task_body("P1", "automation")),
             issue(6, "dedupe", body=task_body("P1", "dedupe")),
         ]
 
