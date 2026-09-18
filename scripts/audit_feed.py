@@ -11,6 +11,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from provider_fingerprint import fingerprint_provider
+
+
 PROFILES = ["cs", "tech-business", "finance-econ", "mechanical", "aero", "electrical", "policy", "health"]
 INTERNSHIP_TYPES = {"internship", "co-op", "student"}
 WORKDAY_HOST_RE = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com$", re.I)
@@ -234,8 +240,12 @@ def print_stale_unavailable_report(report: dict) -> None:
             )
 
 
-def destination_link_report(doc: dict) -> dict:
+def destination_link_report(doc: dict, inspections: dict | None = None) -> dict:
     jobs = [job for job in doc.get("jobs", []) if isinstance(job, dict)]
+    inspections = inspections if isinstance(inspections, dict) else {}
+    listing_index = inspections.get("listing_index") if isinstance(inspections.get("listing_index"), dict) else {}
+    entries = inspections.get("entries") if isinstance(inspections.get("entries"), dict) else {}
+
     kinds = Counter()
     hosts = Counter()
     unresolved_sources = Counter()
@@ -249,6 +259,10 @@ def destination_link_report(doc: dict) -> dict:
     unknown_direct_links = []
     source_only_links = []
     non_direct_links = []
+
+    link_rates = Counter()
+    provider_rates = {}
+    source_rates = {}
 
     for job in jobs:
         kind = job.get("link_kind") or "legacy"
@@ -272,6 +286,42 @@ def destination_link_report(doc: dict) -> dict:
             ):
                 workday_violations.append(job)
 
+        if kind == "direct":
+            status = job.get("link_status")
+            job_id = str(job.get("id") or "")
+
+            canonical = listing_index.get(job_id)
+            entry = entries.get(canonical) if canonical else None
+            inspection = entry.get("inspection") if isinstance(entry, dict) else None
+
+            state = "unverified"
+            if status == "ok":
+                state = "reachable"
+            elif status == "dead":
+                state = "broken"
+            elif status == "unknown":
+                state = "transient"
+
+            if isinstance(inspection, dict) and inspection.get("status") == "unavailable":
+                state = "broken"
+
+            link_rates[state] += 1
+
+            fingerprint = fingerprint_provider(url_val)
+            provider_name = fingerprint.get("family", "unknown")
+            if provider_name == "custom_unknown":
+                provider_name = "unknown"
+
+            if provider_name not in provider_rates:
+                provider_rates[provider_name] = Counter()
+            provider_rates[provider_name][state] += 1
+
+            for src in job.get("source_keys") or ["unknown"]:
+                src_str = str(src)
+                if src_str not in source_rates:
+                    source_rates[src_str] = Counter()
+                source_rates[src_str][state] += 1
+
         if kind in {"listing", "source", "legacy"}:
             non_direct_links.append(job)
             hosts[host] += 1
@@ -289,6 +339,9 @@ def destination_link_report(doc: dict) -> dict:
     return {
         "total_jobs": len(jobs),
         "link_kinds": dict(sorted(kinds.items())),
+        "link_rates": dict(link_rates),
+        "provider_rates": {k: dict(v) for k, v in provider_rates.items()},
+        "source_rates": {k: dict(v) for k, v in source_rates.items()},
         "known_dead_links": known_dead_links,
         "unknown_direct_links": unknown_direct_links,
         "workday_direct": workday_direct,
@@ -303,17 +356,18 @@ def destination_link_report(doc: dict) -> dict:
     }
 
 
+
 def build_audit_report(doc: dict, inspections: dict | None = None, reference: datetime | None = None) -> dict:
     reference = reference or parse_time(doc.get("generated_at")) or datetime.now(timezone.utc)
     stale = stale_unavailable_report(doc, inspections, reference)
     dates = posting_date_report(doc, reference)
-    links = destination_link_report(doc)
+    links = destination_link_report(doc, inspections)
 
     return {
         "schema_version": 1,
         "feed_generated_at": doc.get("generated_at"),
         "audit_reference": reference.isoformat(),
-        "summary": {
+                "summary": {
             "total_jobs": len(doc.get("jobs", [])),
             "stale_unavailable": {
                 "transient_retrieval_failures": len(stale["failed_source_only"]),
@@ -322,6 +376,10 @@ def build_audit_report(doc: dict, inspections: dict | None = None, reference: da
                 "evidence_backed_risk_jobs": stale["evidence_backed_risk_jobs"],
             },
             "broken_destinations": {
+                "reachable": links.get("link_rates", {}).get("reachable", 0),
+                "broken": links.get("link_rates", {}).get("broken", 0),
+                "transient": links.get("link_rates", {}).get("transient", 0),
+                "unverified": links.get("link_rates", {}).get("unverified", 0),
                 "known_dead_links": len(links["known_dead_links"]),
                 "unknown_direct_links": len(links["unknown_direct_links"]),
                 "workday_contract_violations": len(links["workday_violations"]),
@@ -345,8 +403,11 @@ def build_audit_report(doc: dict, inspections: dict | None = None, reference: da
             "age_review_90d_count": len(stale["age_review_90d"]),
             "missing_posted_at_count": len(stale["missing_posted_at"]),
         },
-        "destinations_and_links": {
+                "destinations_and_links": {
             "link_kinds": links["link_kinds"],
+            "link_rates": links["link_rates"],
+            "provider_rates": links["provider_rates"],
+            "source_rates": links["source_rates"],
             "workday_direct_total": len(links["workday_direct"]),
             "workday_violations_total": len(links["workday_violations"]),
             "largest_non_direct_hosts": links["hosts"],
@@ -399,6 +460,45 @@ def render_markdown_report(report: dict) -> str:
     ]
     for kind, count in dest["link_kinds"].items():
         lines.append(f"- `{kind}`: **{count}**")
+
+    rates = dest.get("link_rates", {})
+    total_direct = sum(rates.values())
+    lines.extend([
+        "",
+        "### Broken-link rates (direct links only)",
+        "",
+        f"- Reachable: **{rates.get('reachable', 0)}**",
+        f"- Broken/closed: **{rates.get('broken', 0)}**",
+        f"- Transiently unreachable: **{rates.get('transient', 0)}**",
+        f"- Unverified: **{rates.get('unverified', 0)}**",
+        "",
+        "**By top provider families:**",
+    ])
+
+    prov_rates = dest.get("provider_rates", {})
+    sorted_provs = sorted(prov_rates.items(), key=lambda x: sum(x[1].values()), reverse=True)[:10]
+    for prov, counts in sorted_provs:
+        t = sum(counts.values())
+        r = counts.get('reachable', 0)
+        b = counts.get('broken', 0)
+        u = counts.get('transient', 0)
+        v = counts.get('unverified', 0)
+        lines.append(f"- `{prov}` ({t} total): {r} reachable, {b} broken, {u} transient, {v} unverified")
+
+    lines.extend([
+        "",
+        "**By top source families:**",
+    ])
+
+    src_rates = dest.get("source_rates", {})
+    sorted_srcs = sorted(src_rates.items(), key=lambda x: sum(x[1].values()), reverse=True)[:10]
+    for src, counts in sorted_srcs:
+        t = sum(counts.values())
+        r = counts.get('reachable', 0)
+        b = counts.get('broken', 0)
+        u = counts.get('transient', 0)
+        v = counts.get('unverified', 0)
+        lines.append(f"- `{src}` ({t} total): {r} reachable, {b} broken, {u} transient, {v} unverified")
 
     lines.extend([
         "",

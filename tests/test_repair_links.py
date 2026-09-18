@@ -275,6 +275,26 @@ class RepairLinksTests(unittest.TestCase):
         self.assertEqual(status, "dead")
         self.assertIn("jobs.example.com", final)
 
+    def test_generic_posting_null_phrase_is_dead(self):
+        class Response:
+            status_code = 200
+            url = "https://jobs.ashbyhq.com/example/123"
+            headers = {"content-type": "text/html"}
+            encoding = "utf-8"
+
+            def iter_content(self, chunk_size=16384):
+                yield b'<html><body><script>window.__INITIAL_STATE__={"posting":null};</script></body></html>'
+
+            def close(self):
+                pass
+
+        with patch.object(mod.requests, "get", return_value=Response()):
+            status, final = mod.validate_direct_url(
+                "https://jobs.ashbyhq.com/example/123"
+            )
+
+        self.assertEqual(status, "dead")
+
     def test_stale_workday_slug_uses_cxs_and_is_dead_on_404(self):
         class Response:
             status_code = 404

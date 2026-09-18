@@ -64,6 +64,7 @@ DEAD_PAGE_PHRASES = (
     "job is no longer available",
     "job not found",
     "position has been filled",
+    '"posting":null',
 )
 
 

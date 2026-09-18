@@ -190,6 +190,77 @@ class PostingDateAuditTests(unittest.TestCase):
         self.assertEqual([j["id"] for j in report["aggregator_overrides_authoritative"]], ["override"])
 
 
+class DestinationLinkReportTests(unittest.TestCase):
+    def test_destination_link_report_metrics(self):
+        doc = {
+            "jobs": [
+                {
+                    "id": "1",
+                    "link_kind": "direct",
+                    "link_status": "ok",
+                    "url": "https://careers.google.com/jobs/results/123",
+                    "source_keys": ["src-a"]
+                },
+                {
+                    "id": "2",
+                    "link_kind": "direct",
+                    "link_status": "dead",
+                    "url": "https://jobs.ashbyhq.com/example/456",
+                    "source_keys": ["src-a"]
+                },
+                {
+                    "id": "3",
+                    "link_kind": "direct",
+                    "link_status": "unknown",
+                    "url": "https://job-boards.greenhouse.io/test/jobs/123",
+                    "source_keys": ["src-b"]
+                },
+                {
+                    "id": "4",
+                    "link_kind": "direct",
+                    "url": "https://example.com/careers/abc",
+                    "source_keys": ["src-a", "src-c"]
+                },
+                {
+                    "id": "5",
+                    "link_kind": "direct",
+                    "link_status": "ok",
+                    "url": "https://careers.company.com/job/5",
+                    "source_keys": ["src-b"]
+                }
+            ]
+        }
+
+        inspections = {
+            "listing_index": {"5": "workday:5"},
+            "entries": {
+                "workday:5": {
+                    "inspection": {"status": "unavailable"}
+                }
+            }
+        }
+
+        report = mod.destination_link_report(doc, inspections)
+
+        self.assertEqual(report["link_rates"]["reachable"], 1)
+        self.assertEqual(report["link_rates"]["broken"], 2)
+        self.assertEqual(report["link_rates"]["transient"], 1)
+        self.assertEqual(report["link_rates"]["unverified"], 1)
+
+        self.assertEqual(report["provider_rates"]["unknown"]["reachable"], 1)
+        self.assertEqual(report["provider_rates"]["ashby"]["broken"], 1)
+        self.assertEqual(report["provider_rates"]["greenhouse"]["transient"], 1)
+        self.assertEqual(report["provider_rates"]["unknown"]["unverified"], 1)
+        self.assertEqual(report["provider_rates"]["unknown"]["broken"], 1)
+
+        self.assertEqual(report["source_rates"]["src-a"]["reachable"], 1)
+        self.assertEqual(report["source_rates"]["src-a"]["broken"], 1)
+        self.assertEqual(report["source_rates"]["src-a"]["unverified"], 1)
+        self.assertEqual(report["source_rates"]["src-b"]["transient"], 1)
+        self.assertEqual(report["source_rates"]["src-b"]["broken"], 1)
+        self.assertEqual(report["source_rates"]["src-c"]["unverified"], 1)
+
+
 class BuildAuditReportTests(unittest.TestCase):
     def test_builds_and_renders_comprehensive_audit_report(self):
         doc = {
@@ -202,6 +273,7 @@ class BuildAuditReportTests(unittest.TestCase):
                     "title": "Software Intern",
                     "location": "CT",
                     "link_kind": "direct",
+                    "link_status": "ok",
                     "url": "https://example.wd1.myworkdayjobs.com/en-US/careers/job/CT/Role_R123",
                     "posted_at": "2026-09-15T12:00:00Z",
                     "posted_date_provenance": "authoritative_employer",
@@ -230,11 +302,18 @@ class BuildAuditReportTests(unittest.TestCase):
         self.assertEqual(report["summary"]["broken_destinations"]["workday_contract_violations"], 1)
         self.assertEqual(report["summary"]["missing_dates"]["missing_posted_at"], 1)
 
+        self.assertEqual(report["summary"]["broken_destinations"]["reachable"], 1)
+        self.assertEqual(report["summary"]["broken_destinations"]["broken"], 0)
+        self.assertEqual(report["summary"]["broken_destinations"]["transient"], 0)
+        self.assertEqual(report["summary"]["broken_destinations"]["unverified"], 0)
+
         rendered = mod.render_markdown_report(report)
         self.assertIn("# Yartchives feed quality audit report", rendered)
         self.assertIn("Total indexed jobs: **2**", rendered)
         self.assertIn("Missing posting timestamp (`posted_at`): **1**", rendered)
-
+        self.assertIn("- Reachable: **1**", rendered)
+        self.assertIn("- `workday` (1 total): 1 reachable", rendered)
+        self.assertIn("- `direct-source` (1 total): 1 reachable", rendered)
 
 if __name__ == "__main__":
     unittest.main()
