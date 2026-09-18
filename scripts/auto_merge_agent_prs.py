@@ -133,6 +133,10 @@ def eligible_pr(
     return True, "eligible"
 
 
+def quality_runs_api_path(repo: str, head_sha: str) -> str:
+    return f"repos/{repo}/actions/runs?head_sha={head_sha}&per_page=100"
+
+
 def gh_json(*args: str) -> Any:
     result = subprocess.run(["gh", *args], check=True, text=True, capture_output=True)
     return json.loads(result.stdout)
@@ -185,7 +189,7 @@ def main() -> int:
         head_sha = str((pr.get("head") or {}).get("sha") or "")
         runs = gh_json(
             "api",
-            f"repos/{repo}/actions/runs?head_sha={head_sha}&event=pull_request&per_page=100",
+            quality_runs_api_path(repo, head_sha),
         ).get("workflow_runs", [])
 
         changed_paths = [str(row.get("filename") or "") for row in files]
