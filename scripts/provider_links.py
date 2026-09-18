@@ -162,8 +162,8 @@ def query_workday(host: str, tenant: str, site: str, req_id: str) -> str | None:
         return None
 
     candidates = [
-        f"https://{host}/en-US/{site}{external_path}",
-        f"https://{host}/{site}{external_path}",
+        f"https://{host}/{site}{external_path.rstrip('/')}/apply",
+        f"https://{host}/en-US/{site}{external_path.rstrip('/')}/apply",
     ]
     for candidate in candidates:
         final = links.validate_candidate_once(candidate)
