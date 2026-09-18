@@ -100,9 +100,9 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
 def task_lock_keys(task: Task) -> frozenset[str]:
     """Return the scheduler locks held by a task.
 
-    Every task always locks its exact area. Optional issue metadata can declare
-    additional resources with `resources: foo, bar`; otherwise known areas use
-    conservative shared-resource defaults for cross-area hot paths.
+    Every task always locks its exact area. Known areas also use conservative
+    shared-resource defaults for cross-area hot paths, and optional issue metadata
+    can add locks with `resources: foo, bar`.
     """
     resources = AREA_RESOURCE_LOCKS.get(task.area, frozenset()) | task.resources
     return frozenset(
