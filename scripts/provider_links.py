@@ -396,6 +396,12 @@ def resolve_jobright(value: str) -> str | None:
 
 
 def resolve_one(job: dict[str, Any], registry: dict[str, list[tuple[str, str]]]) -> tuple[str, str] | None:
+    employer_job_url = job.get("url") or ""
+    if job.get("link_kind") == "employer_job" and workday_config_from_url(employer_job_url):
+        direct = recover_stale_workday_direct(employer_job_url)
+        if direct:
+            return direct, "workday-employer-job"
+
     dead_url = job.get("dead_url") or ""
     if workday_config_from_url(dead_url) and workday_req_id_from_url(dead_url):
         direct = recover_stale_workday_direct(dead_url)
@@ -444,6 +450,10 @@ def main() -> int:
         if isinstance(job, dict)
         and (
             (job.get("link_kind") == "listing" and links.is_listing_url(job.get("listing_url")))
+            or (
+                job.get("link_kind") == "employer_job"
+                and workday_config_from_url(job.get("url"))
+            )
             or (
                 job.get("link_kind") == "source"
                 and workday_config_from_url(job.get("dead_url"))
