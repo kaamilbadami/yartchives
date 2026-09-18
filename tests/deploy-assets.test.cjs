@@ -56,11 +56,28 @@ assert.match(
   /group:\s*update-opportunity-feed[\s\S]*?cancel-in-progress:\s*false/,
   "The active state-producing feed refresh must finish instead of being cancelled by newer pushes"
 );
+assert.equal(
+  /\n\s*queue:\s*/.test(feedWorkflow),
+  false,
+  "GitHub concurrency has no queue key; cancel-in-progress=false provides one protected active run plus the latest pending run"
+);
 assert.match(
   feedWorkflow,
-  /group:\s*update-opportunity-feed[\s\S]*?queue:\s*single/,
-  "Feed refreshes should keep only the newest pending run while one protected run finishes"
+  /python scripts\/parallel_ats_collect\.py data\/listings\.json/,
+  "Workday, iCIMS, Greenhouse, and Oracle collection should use the parallel ATS orchestrator"
 );
+for (const serialCommand of [
+  "python scripts/direct_ct_workday.py data/listings.json",
+  "python scripts/direct_icims.py data/listings.json",
+  "python scripts/direct_greenhouse.py data/listings.json",
+  "python scripts/direct_oracle.py data/listings.json",
+]) {
+  assert.equal(
+    feedWorkflow.includes(serialCommand),
+    false,
+    `Feed workflow should not serialize ATS collector: ${serialCommand}`
+  );
+}
 assert.match(
   feedWorkflow,
   /timeout-minutes:\s*45/,
