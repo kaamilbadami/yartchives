@@ -191,6 +191,54 @@ def latest_agent_message(activities: Iterable[dict[str, Any]]) -> str | None:
     return None
 
 
+def failure_diagnostics(
+    session: dict[str, Any],
+    activities: Iterable[dict[str, Any]],
+    *,
+    max_items: int = 4,
+) -> list[str]:
+    """Extract bounded human-readable failure context from Jules API payloads."""
+    interesting_keys = {
+        "message",
+        "error",
+        "reason",
+        "statusmessage",
+        "failurereason",
+        "agentmessage",
+    }
+    found: list[str] = []
+
+    def collect(value: Any, key: str = "") -> None:
+        if len(found) >= max_items:
+            return
+        if isinstance(value, dict):
+            for child_key, child_value in value.items():
+                collect(child_value, str(child_key))
+                if len(found) >= max_items:
+                    return
+        elif isinstance(value, list):
+            for child in value:
+                collect(child, key)
+                if len(found) >= max_items:
+                    return
+        elif key.casefold() in interesting_keys and value not in (None, ""):
+            text = str(value).strip()
+            if text and text not in found:
+                found.append(text[:1000])
+
+    collect(session)
+    ordered = sorted(
+        (activity for activity in activities if isinstance(activity, dict)),
+        key=lambda activity: str(activity.get("createTime") or ""),
+        reverse=True,
+    )
+    for activity in ordered[:10]:
+        collect(activity)
+        if len(found) >= max_items:
+            break
+    return found
+
+
 def list_jules_activities(api_key: str, session_id: str) -> list[dict[str, Any]]:
     """List every activity for one Jules session."""
     activities: list[dict[str, Any]] = []
@@ -368,6 +416,22 @@ def reconcile_jules_sessions(
                 f"Jules session `{session_id}` ended in FAILED state and released this "
                 "automation slot. It will not be retried automatically."
             )
+            try:
+                activities = (
+                    load_activities(session_id)
+                    if load_activities is not None
+                    else list_jules_activities(api_key, session_id)
+                )
+                diagnostics = failure_diagnostics(session, activities)
+            except Exception as exc:
+                diagnostics = [f"Could not load Jules failure diagnostics: {exc}"]
+            if diagnostics:
+                detail += "\n\nFailure diagnostics:"
+                for diagnostic in diagnostics:
+                    quoted = diagnostic.replace(chr(10), chr(10) + "> ")
+                    detail += f"\n\n> {quoted}"
+            else:
+                detail += "\n\nNo additional failure diagnostics were reported by the Jules API."
 
         run_gh(
             "issue", "comment", str(number), "--repo", repo,
