@@ -83,16 +83,14 @@ def derive_cxs_endpoint(job_url: str) -> dict[str, str]:
     encoded = [quote(part, safe="-._~") for part in (tenant, site, *job_parts)]
     endpoint_path = "/wday/cxs/" + "/".join(encoded)
     endpoint = urlunparse(("https", host, endpoint_path, "", "", ""))
-    canonical_job_path = "/" + "/".join(quote(part, safe="-._~") for part in ("en-US", site, *job_parts))
+    canonical_job_path = "/" + "/".join(quote(part, safe="-._~") for part in (site, *job_parts))
     canonical_job_url = urlunparse(("https", host, canonical_job_path, "", "", ""))
-    canonical_apply_url = canonical_job_url.rstrip("/") + "/apply"
     return {
         "tenant": tenant,
         "site": site,
         "job_path": "/" + "/".join(job_parts),
         "endpoint_url": endpoint,
         "canonical_job_url": canonical_job_url,
-        "canonical_apply_url": canonical_apply_url,
     }
 
 
