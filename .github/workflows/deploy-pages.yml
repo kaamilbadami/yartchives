@@ -12,18 +12,12 @@ on:
       - "data/workday-inspections.json"
       - ".nojekyll"
       - ".github/workflows/deploy-pages.yml"
-  workflow_run:
-    workflows:
-      - "Update opportunity feed"
-    types:
-      - completed
   workflow_dispatch:
 
 permissions:
   contents: read
   pages: write
   id-token: write
-  actions: read
 
 concurrency:
   group: github-pages
@@ -31,7 +25,6 @@ concurrency:
 
 jobs:
   deploy:
-    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
