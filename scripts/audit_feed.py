@@ -45,12 +45,121 @@ def zapply_provider(value: str) -> str:
     return match.group(1) if match else "unknown"
 
 
+def load_optional_json(path: Path | None) -> dict:
+    if path is None or not path.exists():
+        return {}
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
+def stale_unavailable_report(
+    doc: dict,
+    inspections: dict | None = None,
+    reference: datetime | None = None,
+) -> dict:
+    jobs = [job for job in doc.get("jobs", []) if isinstance(job, dict)]
+    sources = doc.get("sources") if isinstance(doc.get("sources"), dict) else {}
+    inspections = inspections if isinstance(inspections, dict) else {}
+    reference = reference or parse_time(doc.get("generated_at")) or datetime.now(timezone.utc)
+
+    listing_index = inspections.get("listing_index") if isinstance(inspections.get("listing_index"), dict) else {}
+    entries = inspections.get("entries") if isinstance(inspections.get("entries"), dict) else {}
+
+    failed_source_only = []
+    known_dead_links = []
+    unknown_direct_links = []
+    unavailable_inspections = []
+    age_review_90d = []
+    missing_posted_at = []
+
+    for job in jobs:
+        job_id = str(job.get("id") or "")
+        source_keys = [str(key) for key in (job.get("source_keys") or []) if key]
+        known_sources = [sources.get(key) for key in source_keys if isinstance(sources.get(key), dict)]
+        if known_sources and len(known_sources) == len(source_keys) and all(source.get("ok") is False for source in known_sources):
+            failed_source_only.append(job)
+
+        if job.get("link_status") == "dead":
+            known_dead_links.append(job)
+        if job.get("link_kind") == "direct" and job.get("link_status") == "unknown":
+            unknown_direct_links.append(job)
+
+        canonical = listing_index.get(job_id)
+        entry = entries.get(canonical) if canonical else None
+        inspection = entry.get("inspection") if isinstance(entry, dict) else None
+        if isinstance(inspection, dict) and inspection.get("status") == "unavailable":
+            unavailable_inspections.append(job)
+
+        age = age_days(job, reference)
+        if age is None:
+            missing_posted_at.append(job)
+        elif age >= 90:
+            age_review_90d.append(job)
+
+    affected_ids = {
+        str(job.get("id") or "")
+        for bucket in (failed_source_only, known_dead_links, unknown_direct_links, unavailable_inspections)
+        for job in bucket
+        if job.get("id")
+    }
+
+    return {
+        "total_jobs": len(jobs),
+        "evidence_backed_risk_jobs": len(affected_ids),
+        "failed_source_only": failed_source_only,
+        "known_dead_links": known_dead_links,
+        "unknown_direct_links": unknown_direct_links,
+        "unavailable_inspections": unavailable_inspections,
+        "age_review_90d": age_review_90d,
+        "missing_posted_at": missing_posted_at,
+    }
+
+
+def print_stale_unavailable_report(report: dict) -> None:
+    print("\n=== Stale / unavailable posting audit ===")
+    print(
+        "Evidence-backed risk: "
+        f"{report['evidence_backed_risk_jobs']} unique job(s) | "
+        f"failed-source-only={len(report['failed_source_only'])}, "
+        f"dead-link={len(report['known_dead_links'])}, "
+        f"unknown-direct={len(report['unknown_direct_links'])}, "
+        f"authoritative-unavailable={len(report['unavailable_inspections'])}"
+    )
+    print(
+        "Age review only (not proof of staleness): "
+        f"posted>=90d={len(report['age_review_90d'])}, "
+        f"missing-posted-at={len(report['missing_posted_at'])}"
+    )
+
+    samples = [
+        ("FAILED SOURCE ONLY", report["failed_source_only"]),
+        ("DEAD LINK", report["known_dead_links"]),
+        ("UNKNOWN DIRECT", report["unknown_direct_links"]),
+        ("AUTHORITATIVE UNAVAILABLE", report["unavailable_inspections"]),
+    ]
+    for label, jobs in samples:
+        for job in jobs[:5]:
+            print(
+                f"- {label}: {job.get('company')} — {job.get('title')} — "
+                f"{job.get('location')} — id={job.get('id')}"
+            )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("path", nargs="?", default="data/listings.json")
+    parser.add_argument(
+        "--inspections",
+        default="data/workday-inspections.json",
+        help="optional posting-inspection cache used to identify authoritative unavailable postings",
+    )
     args = parser.parse_args()
 
     doc = json.loads(Path(args.path).read_text(encoding="utf-8"))
+    inspections = load_optional_json(Path(args.inspections) if args.inspections else None)
     jobs = [j for j in doc.get("jobs", []) if isinstance(j, dict)]
     reference = parse_time(doc.get("generated_at")) or datetime.now(timezone.utc)
     eligible = [j for j in jobs if default_eligible(j)]
@@ -138,6 +247,8 @@ def main() -> int:
             or not str(j.get("link_checked_at") or "").strip()
         )
     ]
+
+    print_stale_unavailable_report(stale_unavailable_report(doc, inspections, reference))
 
     print("\nLink quality:", ", ".join(f"{k}={v}" for k, v in kinds.items()))
     print(
