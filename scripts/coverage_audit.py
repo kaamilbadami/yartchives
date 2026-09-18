@@ -581,6 +581,7 @@ def build_report(
         results.append(classified)
 
     counts = Counter(item["status"] for item in results)
+    reason_counts = Counter(item.get("reason_code") or "unknown" for item in results)
     total = len(results)
     captured = sum(
         counts[status]
@@ -614,6 +615,7 @@ def build_report(
             "capture_rate": round(captured / total, 4) if total else None,
             "visible_rate": round(counts["already_in_yartchives"] / total, 4) if total else None,
             "status_counts": {status: counts[status] for status in STATUSES},
+            "reason_code_counts": dict(sorted(reason_counts.items(), key=lambda item: (-item[1], item[0]))),
             "by_source": {key: dict(value) for key, value in sorted(by_source.items())},
         },
         "results": results,
@@ -643,6 +645,9 @@ def markdown(report: dict[str, Any]) -> str:
         "",
     ]
     lines += [f"- `{status}`: {summary['status_counts'][status]}" for status in STATUSES]
+    lines += ["", "## Root-cause breakdown", ""]
+    for reason, count in summary.get("reason_code_counts", {}).items():
+        lines.append(f"- `{reason}`: {count}")
     lines += ["", "## Action queue", ""]
     findings = [item for item in report["results"] if item["status"] != "already_in_yartchives"]
     if not findings:

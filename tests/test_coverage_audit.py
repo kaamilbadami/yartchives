@@ -279,9 +279,12 @@ class CoverageAuditTests(unittest.TestCase):
         self.assertEqual(report["schema_version"], 2)
         self.assertEqual(report["summary"]["status_counts"]["already_in_yartchives"], 1)
         self.assertEqual(report["summary"]["status_counts"]["configured_source_miss"], 0)
+        self.assertEqual(report["summary"]["reason_code_counts"]["exact_match"], 1)
         rendered = mod.markdown(report)
         self.assertIn("# CT CS", rendered)
         self.assertIn("Yartchives feed snapshot", rendered)
+        self.assertIn("## Root-cause breakdown", rendered)
+        self.assertIn("`exact_match`: 1", rendered)
 
     def test_discovery_timestamp_is_preserved_for_latency_audits(self):
         record = {

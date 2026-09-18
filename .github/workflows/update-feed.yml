@@ -158,6 +158,11 @@ jobs:
       - name: Print coverage audit
         run: python scripts/audit_feed.py data/listings.json
 
+      - name: Measure frozen regional benchmark
+        run: |
+          python scripts/coverage_audit.py audit/samples/ct-ny-md-dc-cs-2026-09-17.json \
+            --feed data/listings.json
+
       - name: Commit updated feed and inspections
         run: |
           GENERATED_PATHS="data/listings.json data/workday-inspections.json"
