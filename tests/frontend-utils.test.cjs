@@ -1,4 +1,6 @@
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const U = require("../frontend-utils.js");
 
 assert.equal(U.matchesTextLocation({ location: "Acton, Massachusetts", states: ["MA"] }, "CT"), false);
