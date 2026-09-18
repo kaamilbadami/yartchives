@@ -33,7 +33,19 @@ assert.deepEqual(
 const coverageWorkflow = fs.readFileSync(".github/workflows/coverage-audit.yml", "utf8");
 const qualityWorkflow = fs.readFileSync(".github/workflows/quality.yml", "utf8");
 const feedWorkflow = fs.readFileSync(".github/workflows/update-feed.yml", "utf8");
+const autonomousWorkflow = fs.readFileSync(".github/workflows/autonomous-dispatch.yml", "utf8");
 assert.equal(qualityWorkflow.includes("jules-review:"), false, "Routine Quality runs should not spend Jules quota on PR review");
+
+assert.match(
+  autonomousWorkflow,
+  /pull_request:\s*\n\s*types:\s*\n\s*- closed/,
+  "Merged pull requests should wake the autonomous dispatcher immediately"
+);
+assert.match(
+  autonomousWorkflow,
+  /if:\s*github\.event_name != 'pull_request' \|\| github\.event\.pull_request\.merged == true/,
+  "Closed-but-unmerged pull requests should not dispatch backlog work"
+);
 
 for (const name of workflowFiles) {
   if (name === "triage-workflow-failures.yml") continue;
