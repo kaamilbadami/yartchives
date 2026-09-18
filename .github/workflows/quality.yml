@@ -143,3 +143,48 @@ jobs:
           python scripts/reconcile_workday_duplicates.py data/listings.json
           python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8 --strict-sources
           python scripts/audit_feed.py data/listings.json
+
+
+  jules-review:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    needs:
+      - tests
+    permissions:
+      contents: read
+      pull-requests: write
+      statuses: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for an existing review of this commit
+        id: prior-review
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          count="$(gh api --paginate "repos/$REPOSITORY/commits/$HEAD_SHA/statuses" \
+            --jq '[.[] | select(.context == "jules/review" and (.state == "success" or .state == "failure"))] | length' \
+            | awk '{sum += $1} END {print sum + 0}')"
+          if [ "$count" -gt 0 ]; then
+            echo "should_review=false" >> "$GITHUB_OUTPUT"
+            echo "A terminal jules/review status already exists for $HEAD_SHA; skipping a duplicate Jules task."
+          else
+            echo "should_review=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Review pull request with Jules
+        if: steps.prior-review.outputs.should_review == 'true'
+        uses: sanjay3290/jules-pr-reviewer@66c23eff45e2103fb3d2d6873ba073e6e281ef31
+        with:
+          jules_api_key: ${{ secrets.JULES_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          fail_on: blocking
+          skip_drafts: true
+          skip_forks: true
+          bypass_label: jules-override
+          status_context: jules/review
+          rules_file: .github/jules-review-rules.md
+          timeout_minutes: "30"

@@ -26,7 +26,7 @@ const workflowFiles = fs.readdirSync(".github/workflows")
   .sort();
 assert.deepEqual(
   workflowFiles,
-  ["coverage-audit.yml", "deploy-pages.yml", "jules-pr-review.yml", "quality.yml", "triage-workflow-failures.yml", "update-feed.yml"],
+  ["coverage-audit.yml", "deploy-pages.yml", "quality.yml", "triage-workflow-failures.yml", "update-feed.yml"],
   "Production workflow set changed; update the workflow-health contract intentionally and do not leave temporary workflows on main"
 );
 
@@ -35,7 +35,7 @@ const qualityWorkflow = fs.readFileSync(".github/workflows/quality.yml", "utf8")
 const feedWorkflow = fs.readFileSync(".github/workflows/update-feed.yml", "utf8");
 
 for (const name of workflowFiles) {
-  if (name === "triage-workflow-failures.yml" || name === "jules-pr-review.yml") continue;
+  if (name === "triage-workflow-failures.yml") continue;
   const content = fs.readFileSync(`.github/workflows/${name}`, "utf8");
   assert.match(content, /\n\s*workflow_dispatch:/, `${name} should remain manually runnable for recovery/diagnosis`);
 }
@@ -50,6 +50,22 @@ assert.match(
   qualityWorkflow,
   /group:\s*quality-\$\{\{ github\.ref \}\}[\s\S]*?cancel-in-progress:\s*true/,
   "Replaceable quality runs should cancel superseded runs on the same ref"
+);
+
+assert.match(
+  qualityWorkflow,
+  /jules-review:[\s\S]*?needs:[\s\S]*?- tests/,
+  "Jules review should run only after the PR quality test job succeeds"
+);
+assert.match(
+  qualityWorkflow,
+  /commits\/\$HEAD_SHA\/statuses[\s\S]*?context == "jules\/review"[\s\S]*?state == "success"[\s\S]*?state == "failure"/,
+  "Jules review should skip commits that already have a terminal review result"
+);
+assert.equal(
+  fs.existsSync(".github/workflows/jules-pr-review.yml"),
+  false,
+  "Jules review should not also run from a standalone pull_request workflow"
 );
 
 assert.match(
