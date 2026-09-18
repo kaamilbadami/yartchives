@@ -26,12 +26,24 @@ const workflowFiles = fs.readdirSync(".github/workflows")
   .sort();
 assert.deepEqual(
   workflowFiles,
-  ["deploy-pages.yml", "quality.yml", "update-feed.yml"],
+  ["coverage-audit.yml", "deploy-pages.yml", "quality.yml", "update-feed.yml"],
   "Production workflow set changed; update the workflow-health contract intentionally and do not leave temporary workflows on main"
 );
 
+const coverageWorkflow = fs.readFileSync(".github/workflows/coverage-audit.yml", "utf8");
 const qualityWorkflow = fs.readFileSync(".github/workflows/quality.yml", "utf8");
 const feedWorkflow = fs.readFileSync(".github/workflows/update-feed.yml", "utf8");
+
+for (const name of workflowFiles) {
+  const content = fs.readFileSync(`.github/workflows/${name}`, "utf8");
+  assert.match(content, /\n\s*workflow_dispatch:/, `${name} should remain manually runnable for recovery/diagnosis`);
+}
+
+assert.match(
+  coverageWorkflow,
+  /group:\s*coverage-audit-\$\{\{ github\.ref \}\}[\s\S]*?cancel-in-progress:\s*false/,
+  "Coverage audits should finish rather than lose an audit result to a newer sample push"
+);
 
 assert.match(
   qualityWorkflow,
