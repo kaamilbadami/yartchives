@@ -53,6 +53,22 @@ assert.match(
 );
 
 assert.match(
+  qualityWorkflow,
+  /jules-review:[\s\S]*?needs:[\s\S]*?- tests/,
+  "Jules review should run only after the PR quality test job succeeds"
+);
+assert.match(
+  qualityWorkflow,
+  /commits\/\$HEAD_SHA\/statuses[\s\S]*?context == "jules\/review"[\s\S]*?state == "success"[\s\S]*?state == "failure"/,
+  "Jules review should skip commits that already have a terminal review result"
+);
+assert.equal(
+  fs.existsSync(".github/workflows/jules-pr-review.yml"),
+  false,
+  "Jules review should not also run from a standalone pull_request workflow"
+);
+
+assert.match(
   feedWorkflow,
   /group:\s*update-opportunity-feed[\s\S]*?cancel-in-progress:\s*false/,
   "The active state-producing feed refresh must finish instead of being cancelled by newer pushes"
