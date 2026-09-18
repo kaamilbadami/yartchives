@@ -160,13 +160,42 @@
         }
         return piece;
       });
+    const cityKey = piece => String(piece || "").split(",")[0].toLowerCase().replace(/[^a-z]/g, "");
+    const cityInitials = piece => String(piece || "")
+      .split(",")[0]
+      .toLowerCase()
+      .split(/[^a-z]+/)
+      .filter(Boolean)
+      .map(word => word[0])
+      .join("");
+
     const out = [];
     const seen = new Set();
     for (const piece of pieces) {
-      const cityOnly = piece.match(/^([^,]+)$/)?.[1]?.toLowerCase();
-      if (cityOnly && out.some(existing => existing.toLowerCase().startsWith(`${cityOnly},`))) continue;
       const key = piece.toLowerCase();
       if (seen.has(key)) continue;
+
+      const city = cityKey(piece);
+      const duplicateIndex = out.findIndex(existing => {
+        const existingCity = cityKey(existing);
+        if (city === existingCity) return true;
+        const initials = cityInitials(piece);
+        const existingInitials = cityInitials(existing);
+        return Boolean(
+          city && existingCity
+          && ((city.length <= 5 && city === existingInitials)
+            || (existingCity.length <= 5 && existingCity === initials))
+        );
+      });
+      if (duplicateIndex >= 0) {
+        const existing = out[duplicateIndex];
+        const pieceHasState = /,\s*[A-Z]{2}$/.test(piece);
+        const existingHasState = /,\s*[A-Z]{2}$/.test(existing);
+        if (pieceHasState && !existingHasState) out[duplicateIndex] = piece;
+        seen.add(key);
+        continue;
+      }
+
       seen.add(key);
       out.push(piece);
     }
