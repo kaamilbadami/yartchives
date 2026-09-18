@@ -59,6 +59,18 @@ def exact_head_quality_passed(runs: Iterable[dict[str, Any]], head_sha: str) -> 
     )
 
 
+def exact_head_quality_action_required(
+    runs: Iterable[dict[str, Any]], head_sha: str
+) -> bool:
+    return any(
+        str(run.get("name") or "") == QUALITY_WORKFLOW
+        and str(run.get("head_sha") or "") == head_sha
+        and str(run.get("status") or "") == "completed"
+        and str(run.get("conclusion") or "") == "action_required"
+        for run in runs
+    )
+
+
 def autonomous_issue_ready(issue: dict[str, Any]) -> bool:
     labels = label_names(issue)
     return (
@@ -77,6 +89,7 @@ def eligible_pr(
     issue: dict[str, Any],
     changed_paths: Iterable[str],
     quality_runs: Iterable[dict[str, Any]],
+    require_quality: bool = True,
 ) -> tuple[bool, str]:
     if str(pr.get("state") or "") != "open":
         return False, "pull request is not open"
@@ -101,7 +114,9 @@ def eligible_pr(
         return False, f"protected path changed: {blocked[0]}"
 
     head_sha = str(head.get("sha") or "")
-    if not head_sha or not exact_head_quality_passed(quality_runs, head_sha):
+    if not head_sha:
+        return False, "pull request has no head commit"
+    if require_quality and not exact_head_quality_passed(quality_runs, head_sha):
         return False, "exact pull request head has not passed Quality checks"
 
     return True, "eligible"
@@ -162,11 +177,41 @@ def main() -> int:
             f"repos/{repo}/actions/runs?head_sha={head_sha}&event=pull_request&per_page=100",
         ).get("workflow_runs", [])
 
+        changed_paths = [str(row.get("filename") or "") for row in files]
+        pre_ci_eligible, reason = eligible_pr(
+            pr,
+            repo=repo,
+            issue=issue,
+            changed_paths=changed_paths,
+            quality_runs=runs,
+            require_quality=False,
+        )
+        if not pre_ci_eligible:
+            print(f"Skipping PR #{number}: {reason}.")
+            continue
+
+        head_ref = str((pr.get("head") or {}).get("ref") or "")
+        if (
+            not exact_head_quality_passed(runs, head_sha)
+            and exact_head_quality_action_required(runs, head_sha)
+            and head_ref
+        ):
+            gh_run(
+                "workflow", "run", "quality.yml",
+                "--repo", repo,
+                "--ref", head_ref,
+            )
+            print(
+                f"Dispatched Quality checks manually for PR #{number} after GitHub "
+                "suppressed the token-generated pull_request run."
+            )
+            return 0
+
         eligible, reason = eligible_pr(
             pr,
             repo=repo,
             issue=issue,
-            changed_paths=[str(row.get("filename") or "") for row in files],
+            changed_paths=changed_paths,
             quality_runs=runs,
         )
         if not eligible:
@@ -182,8 +227,16 @@ def main() -> int:
                 f"repos/{repo}/pulls/{number}/update-branch",
                 "-f", f"expected_head_sha={head_sha}",
             )
+            if not head_ref:
+                raise RuntimeError(f"PR #{number} has no head branch for fresh CI")
+            gh_run(
+                "workflow", "run", "quality.yml",
+                "--repo", repo,
+                "--ref", head_ref,
+            )
             print(
-                f"Updated PR #{number} onto current {base_ref}; waiting for fresh Quality checks."
+                f"Updated PR #{number} onto current {base_ref} and dispatched fresh "
+                "Quality checks on the updated branch."
             )
             return 0
 
