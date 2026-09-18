@@ -1,0 +1,174 @@
+name: Triage workflow failures
+
+on:
+  workflow_run:
+    workflows:
+      - Quality checks
+      - Update opportunity feed
+    types:
+      - completed
+
+permissions:
+  actions: read
+  contents: read
+  issues: write
+
+jobs:
+  triage:
+    if: github.event.workflow_run.conclusion == 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or update failure issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          import subprocess
+
+          repo = os.environ["REPOSITORY"]
+          run_id = os.environ["RUN_ID"]
+          workflow = os.environ["WORKFLOW_NAME"]
+          run_url = os.environ["RUN_URL"]
+          head_sha = os.environ["HEAD_SHA"]
+
+          def gh_json(*args):
+              result = subprocess.run(
+                  ["gh", *args],
+                  check=True,
+                  text=True,
+                  capture_output=True,
+              )
+              return json.loads(result.stdout)
+
+          jobs = gh_json(
+              "api",
+              f"repos/{repo}/actions/runs/{run_id}/jobs?filter=latest&per_page=100",
+          ).get("jobs", [])
+
+          failed_job = next((job for job in jobs if job.get("conclusion") == "failure"), None)
+          job_name = failed_job.get("name", "unknown job") if failed_job else "unknown job"
+          failed_step = None
+          if failed_job:
+              failed_step = next(
+                  (
+                      step
+                      for step in failed_job.get("steps", [])
+                      if step.get("conclusion") == "failure"
+                  ),
+                  None,
+              )
+          step_name = failed_step.get("name", "unknown step") if failed_step else "unknown step"
+
+          signature = f"{workflow}::{job_name}::{step_name}"
+          marker = f"<!-- workflow-failure-signature: {signature} -->"
+          title = f"[workflow failure] {workflow}: {step_name}"
+
+          body = f"""          {marker}
+          An automated Yartchives workflow failed.
+
+          - Workflow: **{workflow}**
+          - Failed job: **{job_name}**
+          - Failed step: **{step_name}**
+          - Commit: `{head_sha}`
+          - Run: {run_url}
+
+          This issue is deduplicated by workflow, failed job, and failed step. A repeated failure updates this issue instead of opening another one.
+
+          ## Agent guidance
+          Treat the current repository as the source of truth. Diagnose the root cause before changing code. Prefer a regression test and a generic fix over a narrow patch. Do not weaken feed, link, eligibility, or benchmark contracts just to make CI pass.
+          """
+
+          subprocess.run(
+              [
+                  "gh",
+                  "label",
+                  "create",
+                  "workflow-failure",
+                  "--repo",
+                  repo,
+                  "--color",
+                  "D73A4A",
+                  "--description",
+                  "Created automatically from a failed GitHub Actions workflow",
+                  "--force",
+              ],
+              check=True,
+          )
+          subprocess.run(
+              [
+                  "gh",
+                  "label",
+                  "create",
+                  "agent-ready",
+                  "--repo",
+                  repo,
+                  "--color",
+                  "0E8A16",
+                  "--description",
+                  "Bounded task suitable for an automated coding agent",
+                  "--force",
+              ],
+              check=True,
+          )
+
+          issues = gh_json(
+              "api",
+              "--paginate",
+              f"repos/{repo}/issues?state=open&labels=workflow-failure&per_page=100",
+          )
+          existing = next(
+              (
+                  issue
+                  for issue in issues
+                  if "pull_request" not in issue and marker in (issue.get("body") or "")
+              ),
+              None,
+          )
+
+          if existing:
+              subprocess.run(
+                  [
+                      "gh",
+                      "issue",
+                      "comment",
+                      str(existing["number"]),
+                      "--repo",
+                      repo,
+                      "--body",
+                      (
+                          f"Failure recurred on commit `{head_sha}`.\n\n"
+                          f"- Failed job: **{job_name}**\n"
+                          f"- Failed step: **{step_name}**\n"
+                          f"- Run: {run_url}"
+                      ),
+                  ],
+                  check=True,
+              )
+              print(f"Updated issue #{existing['number']}")
+          else:
+              subprocess.run(
+                  [
+                      "gh",
+                      "issue",
+                      "create",
+                      "--repo",
+                      repo,
+                      "--title",
+                      title,
+                      "--body",
+                      body,
+                      "--label",
+                      "workflow-failure",
+                      "--label",
+                      "agent-ready",
+                  ],
+                  check=True,
+              )
+          PY
