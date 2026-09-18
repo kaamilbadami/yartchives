@@ -20,6 +20,8 @@ JULES_REVIEW_READY_LABEL = "jules-review-ready"
 JULES_FAILED_LABEL = "jules-failed"
 JULES_FEEDBACK_LABEL = "jules-needs-feedback"
 JULES_SESSION_MARKER = "<!-- jules-session-id: {session_id} -->"
+JULES_FEEDBACK_MARKER = "<!-- jules-feedback: {session_id} -->"
+JULES_FEEDBACK_SENT_MARKER = "<!-- jules-feedback-sent: {comment_id} -->"
 JULES_TERMINAL_STATES = {"COMPLETED", "FAILED"}
 JULES_PRODUCTIVE_STATES = {"QUEUED", "PLANNING", "IN_PROGRESS"}
 CODEX_RESERVED_LABEL = "codex"
@@ -90,6 +92,44 @@ def session_id_from_comments(comments: Iterable[dict[str, Any]]) -> str | None:
     return None
 
 
+def pending_feedback_from_comments(
+    comments: Iterable[dict[str, Any]],
+    session_id: str,
+) -> tuple[str, str] | None:
+    """Return the newest explicit, not-yet-forwarded GitHub feedback comment."""
+    comment_list = list(comments)
+    sent_ids: set[str] = set()
+    sent_pattern = re.compile(r"<!--\s*jules-feedback-sent:\s*(\d+)\s*-->")
+    for comment in comment_list:
+        body = str(comment.get("body") or "")
+        sent_ids.update(sent_pattern.findall(body))
+
+    marker = re.compile(
+        rf"<!--\s*jules-feedback:\s*{re.escape(session_id)}\s*-->"
+    )
+    for comment in reversed(comment_list):
+        comment_id = str(comment.get("id") or "")
+        if not comment_id or comment_id in sent_ids:
+            continue
+        body = str(comment.get("body") or "")
+        if not marker.search(body):
+            continue
+        prompt = marker.sub("", body, count=1).strip()
+        if prompt:
+            return comment_id, prompt
+    return None
+
+
+def send_jules_message(api_key: str, session_id: str, prompt: str) -> None:
+    """Send explicit user feedback to an existing Jules session."""
+    jules_json(
+        api_key,
+        f"/sessions/{session_id}:sendMessage",
+        method="POST",
+        payload={"prompt": prompt},
+    )
+
+
 def pull_request_url(session: dict[str, Any]) -> str | None:
     for output in session.get("outputs", []):
         if not isinstance(output, dict):
@@ -156,11 +196,16 @@ def reconcile_jules_sessions(
     load_comments: Callable[[int], list[dict[str, Any]]],
     get_session: Callable[..., dict[str, Any]] | None = None,
     load_activities: Callable[[str], list[dict[str, Any]]] | None = None,
+    send_feedback: Callable[[str, str], None] | None = None,
     run_gh: Callable[..., None] | None = None,
 ) -> None:
     """Reconcile Jules sessions into productive, blocked, or terminal GitHub states."""
     if get_session is None:
         get_session = jules_json
+    if send_feedback is None:
+        send_feedback = lambda session_id, prompt: send_jules_message(
+            api_key, session_id, prompt
+        )
     if run_gh is None:
         run_gh = gh_run
 
@@ -170,7 +215,8 @@ def reconcile_jules_sessions(
             continue
 
         number = int(issue["number"])
-        session_id = session_id_from_comments(load_comments(number))
+        comments = load_comments(number)
+        session_id = session_id_from_comments(comments)
         if not session_id:
             print(
                 f"Keeping #{number} active: no persisted Jules session ID could be found."
@@ -182,7 +228,25 @@ def reconcile_jules_sessions(
 
         if state == "AWAITING_USER_FEEDBACK":
             if JULES_FEEDBACK_LABEL in labels:
-                print(f"Jules session {session_id} for #{number} still needs feedback.")
+                pending_feedback = pending_feedback_from_comments(comments, session_id)
+                if pending_feedback is None:
+                    print(f"Jules session {session_id} for #{number} still needs feedback.")
+                    continue
+                comment_id, prompt = pending_feedback
+                send_feedback(session_id, prompt)
+                run_gh(
+                    "issue", "comment", str(number), "--repo", repo,
+                    "--body",
+                    (
+                        f"{JULES_FEEDBACK_SENT_MARKER.format(comment_id=comment_id)}\n"
+                        f"Forwarded explicit GitHub feedback to Jules session "
+                        f"`{session_id}`."
+                    ),
+                )
+                print(
+                    f"Forwarded GitHub feedback comment {comment_id} to Jules "
+                    f"session {session_id} for #{number}."
+                )
                 continue
             activities = (
                 load_activities(session_id)
