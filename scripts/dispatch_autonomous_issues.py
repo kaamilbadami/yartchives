@@ -110,6 +110,27 @@ def gh_json(*args: str) -> Any:
     return json.loads(result.stdout)
 
 
+def flatten_paginated_pages(pages: Any) -> list[Any]:
+    if not isinstance(pages, list):
+        raise TypeError("paginated GitHub response must be a list")
+    flattened: list[Any] = []
+    for page in pages:
+        if not isinstance(page, list):
+            raise TypeError("each paginated GitHub response page must be a list")
+        flattened.extend(page)
+    return flattened
+
+
+def gh_paginated_json(*args: str) -> list[Any]:
+    result = subprocess.run(
+        ["gh", *args, "--paginate", "--slurp"],
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    return flatten_paginated_pages(json.loads(result.stdout))
+
+
 def gh_run(*args: str) -> None:
     subprocess.run(["gh", *args], check=True)
 
@@ -131,8 +152,8 @@ def ensure_labels(repo: str) -> None:
 def main() -> int:
     repo = os.environ["REPOSITORY"]
     ensure_labels(repo)
-    issues = gh_json(
-        "api", "--paginate",
+    issues = gh_paginated_json(
+        "api",
         f"repos/{repo}/issues?state=open&per_page=100",
     )
     issues = [issue for issue in issues if "pull_request" not in issue]
