@@ -124,6 +124,38 @@ class AutonomousDispatcherTests(unittest.TestCase):
         selected = mod.select_tasks(issues, max_active=2)
         self.assertEqual([task.number for task in selected], [3])
 
+    def test_feedback_waiting_area_stays_reserved_without_consuming_wip(self):
+        issues = [
+            issue(
+                1,
+                "paused frontend",
+                body=task_body("P1", "apply-next-ui"),
+                labels=("jules", "jules-needs-feedback"),
+            ),
+            issue(2, "same frontend", body=task_body("P0", "apply-next-ui")),
+            issue(3, "coverage", body=task_body("P1", "coverage")),
+            issue(4, "performance", body=task_body("P1", "performance")),
+        ]
+
+        selected = mod.select_tasks(issues, max_active=3)
+
+        self.assertEqual([task.number for task in selected], [3, 4])
+
+    def test_default_wip_allows_five_distinct_areas(self):
+        issues = [
+            issue(1, "feed", body=task_body("P1", "feed")),
+            issue(2, "coverage", body=task_body("P1", "coverage")),
+            issue(3, "performance", body=task_body("P1", "performance")),
+            issue(4, "identity", body=task_body("P1", "identity")),
+            issue(5, "evidence", body=task_body("P1", "evidence")),
+            issue(6, "dedupe", body=task_body("P1", "dedupe")),
+        ]
+
+        selected = mod.select_tasks(issues)
+
+        self.assertEqual(mod.MAX_ACTIVE, 5)
+        self.assertEqual([task.number for task in selected], [1, 2, 3, 4, 5])
+
     def test_blocked_or_product_decision_tasks_are_not_dispatched(self):
         issues = [
             issue(1, "blocked", body=task_body("P0", "feed"), labels=("blocked",)),
