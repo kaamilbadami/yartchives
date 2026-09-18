@@ -58,6 +58,18 @@ assert.deepEqual(
 );
 assert.doesNotMatch(UI.locationValueText({ city: "College Park", state: "MD" }), /\[object Object\]/);
 
+assert.equal(
+  UI.cardLocationText({
+    location: "Fallback, MD",
+    _displayLocation: { text: "Bloomfield, CT · Morris Plains, NJ", preferred: "Bloomfield, CT", all: ["Bloomfield, CT", "Morris Plains, NJ"] },
+  }),
+  "Bloomfield, CT · Morris Plains, NJ"
+);
+assert.doesNotMatch(
+  UI.cardLocationText({ _displayLocation: { text: "USA - Remote" }, location: "fallback" }),
+  /\[object Object\]/
+);
+
 assert.equal(UI.formatPostedDate("", postedNow), "");
 assert.equal(UI.formatPostedDate("not-a-date", postedNow), "");
 assert.equal(UI.formatPostedDate("2026-09-15", "not-a-date"), "");
