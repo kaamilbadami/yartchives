@@ -54,7 +54,12 @@ assert.match(
 assert.match(
   feedWorkflow,
   /group:\s*update-opportunity-feed[\s\S]*?cancel-in-progress:\s*false/,
-  "State-producing feed refreshes must finish instead of being cancelled by newer pushes"
+  "The active state-producing feed refresh must finish instead of being cancelled by newer pushes"
+);
+assert.match(
+  feedWorkflow,
+  /group:\s*update-opportunity-feed[\s\S]*?queue:\s*single/,
+  "Feed refreshes should keep only the newest pending run while one protected run finishes"
 );
 assert.match(
   feedWorkflow,
