@@ -1,0 +1,30 @@
+name: Dispatch autonomous backlog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+  issues:
+    types:
+      - closed
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: autonomous-backlog-dispatch
+  cancel-in-progress: false
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Dispatch safe non-overlapping work
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: python scripts/dispatch_autonomous_issues.py
