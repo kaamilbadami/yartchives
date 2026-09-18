@@ -441,6 +441,28 @@ def classify(
 
     identity = url_identity(url)
     identity_jobs = index.get(index.ids.get(identity, [])) if identity else []
+    if identity_jobs and identity and identity[0] in {"workday", "greenhouse", "icims"}:
+        job = identity_jobs[0]
+        issues = surface_issues(job, expected)
+        if issues:
+            return result(
+                base,
+                "filtered_or_misclassified",
+                "high",
+                "provider_identity_match_hidden",
+                "; ".join(issues),
+                "Review profile/state/type enrichment or default filter metadata.",
+                matched_job=compact(job),
+            )
+        return result(
+            base,
+            "already_in_yartchives",
+            "high",
+            "provider_identity_match",
+            "matched by canonical provider-native posting identity",
+            "No coverage fix needed.",
+            matched_job=compact(job),
+        )
     if identity_jobs:
         ranked = [
             (
