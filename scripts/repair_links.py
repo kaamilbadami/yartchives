@@ -106,6 +106,18 @@ def is_listing_url(value: str | None) -> bool:
     return bool(is_http_url(value) and urlparse(value).netloc.lower() in AGGREGATOR_HOSTS)
 
 
+def is_workday_job_page(value: str | None) -> bool:
+    if not is_http_url(value):
+        return False
+    parsed = urlparse(str(value))
+    host = (parsed.hostname or "").lower()
+    return bool(
+        re.fullmatch(r"[^.]+\.wd\d+\.myworkdayjobs\.com", host)
+        and "/job/" in parsed.path.casefold()
+        and not parsed.path.rstrip("/").casefold().endswith("/apply")
+    )
+
+
 def listing_cache_key(value: str | None) -> str:
     if not is_http_url(value):
         return ""
@@ -413,7 +425,7 @@ def repair_document(
                 stats["intermediary_resolved"] += 1
 
         if is_direct_application_url(current):
-            job["link_kind"] = "direct"
+            job["link_kind"] = "employer_job" if is_workday_job_page(current) else "direct"
             job.pop("listing_url", None)
             if origin:
                 job["link_origin"] = origin
@@ -453,7 +465,7 @@ def checked_recently(job: dict[str, Any], reference: datetime) -> bool:
 
 
 def should_validate_direct_link(job: dict[str, Any]) -> bool:
-    """Include recovered links plus every direct CS internship posting."""
+    """Validate only links presented as final application destinations."""
     if job.get("link_kind") != "direct" or not is_direct_application_url(job.get("url")):
         return False
     if job.get("link_origin") in VALIDATED_LINK_ORIGINS:

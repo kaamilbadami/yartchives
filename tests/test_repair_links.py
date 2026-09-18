@@ -1,4 +1,5 @@
 import importlib.util
+import json
 from datetime import datetime, timezone
 from pathlib import Path
 import unittest
@@ -16,7 +17,7 @@ validate_spec.loader.exec_module(validate_mod)
 
 
 class RepairLinksTests(unittest.TestCase):
-    def test_applyguy_original_listing_becomes_direct(self):
+    def test_applyguy_workday_job_page_becomes_employer_job(self):
         doc = {
             "jobs": [{
                 "id": "1",
@@ -36,12 +37,12 @@ class RepairLinksTests(unittest.TestCase):
         }
         stats = mod.repair_document(doc, payload)
         job = doc["jobs"][0]
-        self.assertEqual(job["link_kind"], "direct")
+        self.assertEqual(job["link_kind"], "employer_job")
         self.assertEqual(job["link_origin"], "applyguy-feed")
         self.assertIn("myworkdayjobs.com", job["url"])
         self.assertEqual(stats["applyguy_repaired"], 1)
 
-    def test_zapply_resolution_becomes_direct_and_keeps_provenance(self):
+    def test_zapply_workday_job_page_becomes_employer_job_and_keeps_provenance(self):
         listing = "https://zapply.jobs/l/d/workday-caci-external-331393?s=gh-internships-2027"
         direct = "https://caci.wd1.myworkdayjobs.com/external/job/Danbury-CT/Embedded-Software_331393"
         doc = {
@@ -57,7 +58,7 @@ class RepairLinksTests(unittest.TestCase):
         mod.repair_document(doc, resolved_urls={mod.listing_cache_key(listing): direct})
         job = doc["jobs"][0]
         self.assertEqual(job["url"], direct)
-        self.assertEqual(job["link_kind"], "direct")
+        self.assertEqual(job["link_kind"], "employer_job")
         self.assertEqual(job["link_origin"], "redirect-resolved")
         self.assertEqual(job["resolved_from_url"], listing)
         self.assertNotIn("listing_url", job)
@@ -342,6 +343,70 @@ class RepairLinksTests(unittest.TestCase):
         self.assertEqual(job["url"], "")
         self.assertEqual(job["dead_url"], bad)
         self.assertEqual(job["link_kind"], "source")
+
+
+class WorkdayEmployerJobSemanticsTests(unittest.TestCase):
+    def _feed_job(self, url):
+        return {
+            "id": "medtronic-r73625",
+            "company": "Medtronic",
+            "title": "IT Intern - Summer 2027",
+            "location": "Minneapolis, MN",
+            "source_names": ["Medtronic"],
+            "source_keys": ["direct-workday-medtronic"],
+            "source_urls": ["https://medtronic.wd1.myworkdayjobs.com/"],
+            "profiles": ["cs"],
+            "education_level": "undergrad",
+            "opportunity_type": "internship",
+            "url": url,
+        }
+
+    def test_workday_job_page_is_employer_job_not_direct_apply(self):
+        url = (
+            "https://medtronic.wd1.myworkdayjobs.com/en-US/redeploymentmedtroniccareers/"
+            "job/Minneapolis-Minnesota-United-States-of-America/IT-Intern---Summer-2027_R73625"
+        )
+        doc = {"jobs": [self._feed_job(url)]}
+        mod.repair_document(doc)
+        job = doc["jobs"][0]
+        self.assertEqual(job["link_kind"], "employer_job")
+        self.assertEqual(job["url"], url)
+        self.assertFalse(mod.should_validate_direct_link(job))
+        self.assertEqual(
+            validate_mod.workday_direct_contract_errors(job, "job medtronic-r73625"),
+            [],
+        )
+
+    def test_workday_apply_url_remains_direct_apply(self):
+        url = (
+            "https://medtronic.wd1.myworkdayjobs.com/en-US/redeploymentmedtroniccareers/"
+            "job/Minneapolis-Minnesota-United-States-of-America/IT-Intern---Summer-2027_R73625/apply"
+        )
+        doc = {"jobs": [self._feed_job(url)]}
+        mod.repair_document(doc)
+        self.assertEqual(doc["jobs"][0]["link_kind"], "direct")
+
+    def test_validator_accepts_employer_job_kind(self):
+        url = (
+            "https://medtronic.wd1.myworkdayjobs.com/en-US/redeploymentmedtroniccareers/"
+            "job/Minneapolis-Minnesota-United-States-of-America/IT-Intern---Summer-2027_R73625"
+        )
+        job = self._feed_job(url)
+        job["link_kind"] = "employer_job"
+        doc = {"jobs": [job], "sources": {"medtronic": {"ok": True, "configured": True}}}
+        from tempfile import NamedTemporaryFile
+        with NamedTemporaryFile("w+", suffix=".json") as handle:
+            json.dump(doc, handle)
+            handle.flush()
+            errors = validate_mod.validate(
+                Path(handle.name),
+                minimum_jobs=1,
+                minimum_healthy_sources=1,
+                strict_sources=False,
+                enforce_link_contract=True,
+            )
+        self.assertEqual(errors, [])
+
 
 
 class WorkdayPublishContractTests(unittest.TestCase):

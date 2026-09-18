@@ -1,4 +1,6 @@
 const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
 const U = require("../frontend-utils.js");
 
 assert.equal(U.matchesTextLocation({ location: "Acton, Massachusetts", states: ["MA"] }, "CT"), false);
@@ -63,3 +65,8 @@ require("./results-language.test.cjs");
 require("./apply-next.test.cjs");
 require("./apply-next-ui.test.cjs");
 console.log("frontend-utils tests passed");
+
+
+const appSource = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+assert.match(appSource, /job\.link_kind === "employer_job"/);
+assert.match(appSource, /View posting ↗/);

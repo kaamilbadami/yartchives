@@ -502,10 +502,14 @@ function renderJobs() {
     const applyBtn = card.querySelector(".apply-btn");
     if (job.url) {
       applyBtn.href = job.url;
-      applyBtn.addEventListener("click", () => {
-        state.applied.add(job.id);
-        persist();
-      });
+      if (job.link_kind === "employer_job") {
+        applyBtn.textContent = "View posting ↗";
+      } else {
+        applyBtn.addEventListener("click", () => {
+          state.applied.add(job.id);
+          persist();
+        });
+      }
     } else {
       applyBtn.textContent = "Source";
       applyBtn.href = (job.source_urls || ["https://github.com/kaamilbadami/yartchives"])[0];

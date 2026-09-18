@@ -413,7 +413,8 @@
 
     const actions = element("div", "apply-next-actions");
     if (job.url) {
-      const apply = element("a", "primary-btn link-btn", "Apply ↗");
+      const actionLabel = job.link_kind === "employer_job" ? "View posting ↗" : "Apply ↗";
+      const apply = element("a", "primary-btn link-btn", actionLabel);
       apply.href = job.url;
       apply.target = "_blank";
       apply.rel = "noopener noreferrer";

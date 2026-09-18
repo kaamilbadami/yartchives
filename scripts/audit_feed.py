@@ -98,7 +98,7 @@ def main() -> int:
         host = urlparse(job.get("url") or job.get("listing_url") or "").netloc or "no-link"
         print(f"- {job.get('company')} — {job.get('title')} — {job.get('location')} — {job.get('posted_at')} — {job.get('link_kind', 'legacy')}:{host}")
 
-    kinds = {"direct": 0, "listing": 0, "source": 0, "legacy": 0}
+    kinds = {"direct": 0, "employer_job": 0, "listing": 0, "source": 0, "legacy": 0}
     hosts: dict[str, int] = {}
     unresolved_sources: Counter[str] = Counter()
     zapply_providers: Counter[str] = Counter()
@@ -109,7 +109,7 @@ def main() -> int:
     for job in jobs:
         kind = job.get("link_kind") or "legacy"
         kinds[kind] = kinds.get(kind, 0) + 1
-        if kind == "direct":
+        if kind in {"direct", "employer_job"}:
             continue
         non_direct.append(job)
         value = job.get("listing_url") or job.get("url") or ""
@@ -141,8 +141,8 @@ def main() -> int:
 
     print("\nLink quality:", ", ".join(f"{k}={v}" for k, v in kinds.items()))
     print(
-        "Workday direct contract: "
-        f"direct={len(workday_direct)}, violations={len(workday_contract_violations)}"
+        "Workday direct-apply contract: "
+        f"direct_apply={len(workday_direct)}, violations={len(workday_contract_violations)}"
     )
     for job in workday_contract_violations[:10]:
         print(
