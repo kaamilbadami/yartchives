@@ -42,6 +42,14 @@ def runs(sha="abc", conclusion="success"):
 
 
 class AutoMergeAgentPrTests(unittest.TestCase):
+    def test_quality_run_query_includes_manual_dispatch_runs(self):
+        path = mod.quality_runs_api_path("kaamilbadami/yartchives", "abc123")
+        self.assertEqual(
+            path,
+            "repos/kaamilbadami/yartchives/actions/runs?head_sha=abc123&per_page=100",
+        )
+        self.assertNotIn("event=", path)
+
     def test_accepts_green_terminal_autonomous_agent_pr(self):
         candidate = pr(files=("app.js", "tests/apply-next-ui.test.cjs"))
         ok, reason = mod.eligible_pr(
