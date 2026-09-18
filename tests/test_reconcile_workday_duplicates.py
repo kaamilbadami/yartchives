@@ -146,6 +146,67 @@ class ReconcileWorkdayDuplicateTests(unittest.TestCase):
         self.assertEqual(set(job["source_names"]), {"Simplify", "RTX direct"})
         self.assertEqual(job["location"], "US-CT-WINDSOR LOCKS-B1 ~ 1 Hamilton Rd ~ BLDG 1")
 
+
+    def test_verified_workday_apply_survives_reconciliation(self):
+        job_url = "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway" + RTX_PATH
+        employer_page = base_job(
+            "employer-page",
+            "RTX",
+            job_url,
+            direct=True,
+            source="RTX direct",
+            posted="2026-09-16T11:00:00Z",
+        )
+        employer_page["link_kind"] = "employer_job"
+
+        verified_apply = base_job(
+            "verified-apply",
+            "RTX",
+            job_url + "/apply",
+            direct=True,
+            source="Provider recovery",
+            posted="2026-09-16T12:00:00Z",
+        )
+        verified_apply["link_status"] = "ok"
+        verified_apply["link_checked_at"] = "2026-09-16T12:05:00Z"
+        verified_apply["link_origin"] = "workday-employer-job"
+
+        reconciled, stats = mod.reconcile_jobs([employer_page, verified_apply])
+
+        self.assertEqual(len(reconciled), 1)
+        self.assertEqual(stats["duplicate_groups"], 1)
+        job = reconciled[0]
+        self.assertEqual(job["url"], job_url + "/apply")
+        self.assertEqual(job["link_kind"], "direct")
+        self.assertEqual(job["link_status"], "ok")
+        self.assertEqual(job["link_checked_at"], "2026-09-16T12:05:00Z")
+
+    def test_workday_job_page_is_not_left_labeled_direct(self):
+        job_url = "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway" + RTX_PATH
+        mislabeled = base_job(
+            "mislabeled-direct",
+            "RTX",
+            job_url,
+            direct=True,
+            source="Simplify",
+            posted="2026-09-16T12:00:00Z",
+        )
+        duplicate = base_job(
+            "employer-page",
+            "RTX",
+            job_url + "?source=other",
+            source="Other",
+            posted="2026-09-16T11:00:00Z",
+        )
+        duplicate["link_kind"] = "employer_job"
+
+        reconciled, stats = mod.reconcile_jobs([mislabeled, duplicate])
+
+        self.assertEqual(len(reconciled), 1)
+        self.assertEqual(stats["duplicate_groups"], 1)
+        self.assertEqual(reconciled[0]["url"], job_url)
+        self.assertEqual(reconciled[0]["link_kind"], "employer_job")
+
     def test_greenhouse_identity_ignores_legacy_host_and_tracking(self):
         tracked = DOORDASH_URL + "?amp%3Bref=Simplify"
         legacy = "https://boards.greenhouse.io/doordashusa/jobs/8171041?gh_src=test"
