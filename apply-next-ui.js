@@ -292,14 +292,45 @@
 
   function componentLabel(key) {
     return ({
-      fit: "Fit",
+      fit: "How well you match",
       eligibility: "Eligibility",
-      freshness: "Freshness",
-      roi: "Application Value",
+      freshness: "How recent it is",
+      roi: "Worth applying",
       role: "Role",
-      location: "Location",
+      location: "Location convenience",
       link: "Link",
     })[key] || key;
+  }
+
+  function componentExplanation(key) {
+    return ({
+      fit: "Based on your skills, major, degree level, and the job\'s known requirements.",
+      freshness: "Newer postings score higher because timing can affect how crowded the applicant pool is.",
+      roi: "Balances how valuable this role is for you with the opportunity and competition signals we know.",
+      location: "Based on commute distance, remote status, and your location preferences.",
+    })[key] || "";
+  }
+
+  function scoreBand(key, score, max) {
+    if (!max) return "";
+    const ratio = Number(score || 0) / max;
+    if (key === "fit") return ratio >= 0.75 ? "Strong match" : (ratio >= 0.55 ? "Good match" : "Possible match");
+    if (key === "freshness") return ratio >= 0.8 ? "Very recent" : (ratio >= 0.5 ? "Recent" : "Older posting");
+    if (key === "roi") return ratio >= 0.75 ? "High value" : (ratio >= 0.55 ? "Worth considering" : "Lower value");
+    if (key === "location") return ratio >= 0.75 ? "Very convenient" : (ratio >= 0.55 ? "Manageable" : "Less convenient");
+    return "";
+  }
+
+  function rankingSummary(result) {
+    const parts = [];
+    for (const key of ["fit", "freshness", "roi", "location"]) {
+      const component = result?.components?.[key];
+      const max = componentMax(key);
+      if (!component || max <= 0) continue;
+      const band = scoreBand(key, component.score, max);
+      if (band) parts.push(band.toLowerCase());
+    }
+    return parts.length ? `Why this is here: ${parts.join(", ")}.` : "Why this is here: based on your profile and the evidence available.";
   }
 
   function componentMax(key) {
@@ -337,13 +368,23 @@
     top.append(titleWrap, score);
     card.append(top);
 
+    card.append(element("p", "apply-next-ranking-summary", rankingSummary(result)));
+
     const breakdown = element("div", "apply-next-breakdown");
     for (const [key, component] of Object.entries(result.components || {})) {
       const max = componentMax(key);
       if (max <= 0) continue;
-      const chip = element("span", "apply-next-component");
-      chip.textContent = `${componentLabel(key)} ${component.score}/${max}`;
-      breakdown.append(chip);
+      const metric = element("div", "apply-next-metric");
+      const line = element("div", "apply-next-metric-line");
+      const label = element("strong", "", componentLabel(key));
+      const scoreText = element("span", "", `${component.score}/${max}`);
+      line.append(label, scoreText);
+      metric.append(line);
+      const band = scoreBand(key, component.score, max);
+      if (band) metric.append(element("p", "apply-next-metric-band", band));
+      const explanation = componentExplanation(key);
+      if (explanation) metric.append(element("p", "apply-next-metric-explanation", explanation));
+      breakdown.append(metric);
     }
     card.append(breakdown);
 
@@ -506,6 +547,10 @@
     loadInspectionArtifact,
     attachInspections,
     addBaseDistances,
+    componentLabel,
+    componentExplanation,
+    scoreBand,
+    rankingSummary,
     componentMax,
     init,
   };
