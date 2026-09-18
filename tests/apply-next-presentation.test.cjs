@@ -16,6 +16,7 @@ assert.equal(P.humanizeLocationPiece("Medina, Minnesota"), "Medina, MN");
 assert.equal(P.humanizeLocationPiece("Innovators Way, Simi Valley,, CA"), "Simi Valley, CA");
 assert.equal(P.humanizeLocationPiece("Denver, CO, US"), "Denver, CO");
 assert.equal(P.humanizeLocationPiece("RTP, North Carolina, US"), "Rtp, NC");
+assert.equal(P.humanizeLocationPiece("CT - Danbury"), "Danbury, CT");
 assert.deepEqual(P.locationPieces({ location: "Medina, Minnesota · Medina" }), ["Medina, MN"]);
 
 const profile = {
