@@ -394,6 +394,85 @@ class AutonomousDispatcherTests(unittest.TestCase):
             [154],
         )
 
+    def test_explicit_github_feedback_is_forwarded_to_waiting_session(self):
+        issues = [
+            issue(
+                151,
+                "freshness",
+                body=task_body("P1", "apply-next-ui"),
+                labels=("jules", "jules-needs-feedback", "agent-ready"),
+            )
+        ]
+        gh_calls = []
+        sent = []
+        comments = [
+            {"id": 1, "body": "<!-- jules-session-id: ask1 -->"},
+            {
+                "id": 22,
+                "body": (
+                    "<!-- jules-feedback: ask1 -->\\n"
+                    "Keep Recommended as default and make Newest transient UI state."
+                ),
+            },
+        ]
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: comments,
+            get_session=lambda api_key, path: {
+                "id": "ask1",
+                "state": "AWAITING_USER_FEEDBACK",
+            },
+            send_feedback=lambda session_id, prompt: sent.append((session_id, prompt)),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(
+            sent,
+            [("ask1", "Keep Recommended as default and make Newest transient UI state.")],
+        )
+        self.assertIn("<!-- jules-feedback-sent: 22 -->", gh_calls[0][-1])
+        self.assertIn("jules-needs-feedback", mod.label_names(issues[0]))
+
+    def test_forwarded_feedback_comment_is_not_sent_twice(self):
+        issues = [
+            issue(
+                151,
+                "freshness",
+                body=task_body("P1", "apply-next-ui"),
+                labels=("jules", "jules-needs-feedback", "agent-ready"),
+            )
+        ]
+        sent = []
+        comments = [
+            {"id": 1, "body": "<!-- jules-session-id: ask1 -->"},
+            {"id": 22, "body": "<!-- jules-feedback: ask1 -->\\nUse transient state."},
+            {"id": 23, "body": "<!-- jules-feedback-sent: 22 -->\\nForwarded."},
+        ]
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: comments,
+            get_session=lambda api_key, path: {
+                "id": "ask1",
+                "state": "AWAITING_USER_FEEDBACK",
+            },
+            send_feedback=lambda session_id, prompt: sent.append((session_id, prompt)),
+            run_gh=lambda *args: self.fail("already-forwarded feedback should be a no-op"),
+        )
+
+        self.assertEqual(sent, [])
+
+    def test_feedback_marker_must_match_waiting_session(self):
+        comments = [
+            {"id": 22, "body": "<!-- jules-feedback: other-session -->\\nWrong session."},
+        ]
+        self.assertIsNone(mod.pending_feedback_from_comments(comments, "ask1"))
+
     def test_feedback_waiting_reconciliation_is_idempotent(self):
         issues = [
             issue(
