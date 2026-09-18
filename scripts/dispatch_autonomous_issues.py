@@ -7,16 +7,14 @@ import json
 import os
 import re
 import subprocess
-from dataclasses import dataclass
-from typing import Any, Iterable
+from typing import Any, Iterable, NamedTuple
 
 PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
 MAX_ACTIVE = 2
 AUTONOMOUS_MARKER = "<!-- autonomous-task -->"
 
 
-@dataclass(frozen=True)
-class Task:
+class Task(NamedTuple):
     number: int
     title: str
     body: str
