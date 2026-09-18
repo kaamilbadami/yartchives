@@ -171,6 +171,7 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /Posted \$\{monthDay\} · \$\{ageLabel\}/);
   assert.match(uiSource, /apply-next-posted-date/);
   assert.match(uiSource, /data\/workday-inspections\.json/);
+  assert.match(uiSource, /job\.link_kind === "employer_job" \? "View posting ↗" : "Apply ↗"/);
   const appliedHandler = uiSource.match(
     /applied\.addEventListener\("click",\s*\(\)\s*=>\s*\{([\s\S]*?)\n\s*\}\);/
   );
