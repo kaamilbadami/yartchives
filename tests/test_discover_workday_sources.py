@@ -59,13 +59,14 @@ class DiscoverWorkdaySourcesTests(unittest.TestCase):
 
         sources = mod.discover_sources(feed, configured)
         auto = [source for source in sources if source.get("auto_discovered")]
-        self.assertEqual(len(auto), 4)
-        self.assertEqual({source["state"] for source in auto}, {"CT", "NY", "MD", "VA"})
-        self.assertTrue(any(source["company"] == "Other Employer" and source["state"] == "NY" for source in auto))
-        self.assertTrue(any(source["key"].startswith("md-auto-workday-") for source in auto))
-        self.assertTrue(any(source["key"].startswith("va-auto-workday-") for source in auto))
+        self.assertEqual(len(auto), 3)
+        self.assertTrue(all(source.get("scope") == "us" for source in auto))
+        self.assertTrue(any(source["company"] == "Other Employer" for source in auto))
+        multi = [source for source in auto if source["company"] == "Multi State Employer"]
+        self.assertEqual(len(multi), 1)
+        self.assertTrue(multi[0]["key"].startswith("us-feed-workday-"))
 
-    def test_configured_source_dedupes_same_site_and_state_only(self):
+    def test_feed_evidence_collapses_same_site_across_states_to_one_national_source(self):
         configured = [{
             "key": "ct-example-workday",
             "name": "Example",
@@ -81,7 +82,40 @@ class DiscoverWorkdaySourcesTests(unittest.TestCase):
         ]}
         sources = mod.discover_sources(feed, configured)
         self.assertEqual(len(sources), 2)
-        self.assertEqual(sorted(source["state"] for source in sources), ["CT", "NY"])
+        self.assertEqual(sum(source.get("state") == "CT" for source in sources), 1)
+        national = [source for source in sources if source.get("scope") == "us"]
+        self.assertEqual(len(national), 1)
+        self.assertNotIn("state", national[0])
+
+    def test_same_feed_workday_site_is_only_discovered_once_across_many_states(self):
+        feed = {"jobs": [
+            {
+                "company": "Example",
+                "states": ["CA"],
+                "profiles": ["cs"],
+                "url": "https://example.wd1.myworkdayjobs.com/en-US/Careers/job/California/Software-Intern_R1",
+            },
+            {
+                "company": "Example",
+                "states": ["NY"],
+                "profiles": ["cs"],
+                "url": "https://example.wd1.myworkdayjobs.com/en-US/Careers/job/New-York/Software-Intern_R2",
+            },
+            {
+                "company": "Example",
+                "states": ["TX"],
+                "profiles": ["cs"],
+                "url": "https://example.wd1.myworkdayjobs.com/en-US/Careers/job/Texas/Software-Intern_R3",
+            },
+        ]}
+
+        sources = mod.discover_sources(feed, [])
+        self.assertEqual(len(sources), 1)
+        self.assertEqual(sources[0]["scope"], "us")
+        self.assertEqual(
+            sources[0]["api_url"],
+            "https://example.wd1.myworkdayjobs.com/wday/cxs/example/Careers/jobs",
+        )
 
     def test_resolved_universe_workday_site_becomes_national_source(self):
         universe = {
