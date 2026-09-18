@@ -94,11 +94,47 @@
   color: var(--muted, #667085);
 }
 
+.apply-next-ranking-summary {
+  margin: 0.85rem 0 0.65rem;
+  font-weight: 600;
+}
+
 .apply-next-breakdown {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 0 0 0.9rem;
+}
+
+.apply-next-metric {
+  border: 1px solid var(--line, #d9dde5);
+  border-radius: 12px;
+  padding: 0.65rem 0.75rem;
+  background: var(--soft, #f3f5f8);
+}
+
+.apply-next-metric-line {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin: 0.85rem 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.65rem;
+}
+
+.apply-next-metric-line span,
+.apply-next-metric-band,
+.apply-next-metric-explanation {
+  font-size: 0.78rem;
+}
+
+.apply-next-metric-band {
+  margin: 0.2rem 0 0;
+  font-weight: 700;
+}
+
+.apply-next-metric-explanation {
+  margin: 0.2rem 0 0;
+  color: var(--muted, #667085);
+  line-height: 1.35;
 }
 
 .apply-next-component {
@@ -129,6 +165,10 @@
 }
 
 @media (max-width: 720px) {
+  .apply-next-breakdown {
+    grid-template-columns: 1fr;
+  }
+
   .apply-next-heading,
   .apply-next-card-top {
     flex-direction: column;
