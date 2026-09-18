@@ -442,7 +442,35 @@ function renderJobs() {
   if (!slice.length) {
     const empty = document.createElement("div");
     empty.className = "empty-state";
-    empty.innerHTML = "<strong>No matches.</strong><br>Try a broader profile, location, radius, or freshness window.";
+    if (state.status === "saved") {
+      if (state.saved.size === 0) {
+        empty.innerHTML = "<strong>No saved internships yet.</strong><br>Click the Save button on any internship card to save it for later.";
+      } else {
+        empty.innerHTML = "<strong>No saved internships match your current filters.</strong><br>Try clearing or broadening your search, location, career area, or freshness filters.<br>";
+        const resetBtn = document.createElement("button");
+        resetBtn.type = "button";
+        resetBtn.className = "secondary-btn empty-reset-btn";
+        resetBtn.style.marginTop = "12px";
+        resetBtn.textContent = "Reset filters";
+        resetBtn.addEventListener("click", () => els.clearFiltersBtn?.click());
+        empty.appendChild(resetBtn);
+      }
+    } else if (state.status === "applied") {
+      if (state.applied.size === 0) {
+        empty.innerHTML = "<strong>No applied internships yet.</strong><br>Click Applied on any internship card when you've submitted an application.";
+      } else {
+        empty.innerHTML = "<strong>No applied internships match your current filters.</strong><br>Try clearing or broadening your search, location, career area, or freshness filters.<br>";
+        const resetBtn = document.createElement("button");
+        resetBtn.type = "button";
+        resetBtn.className = "secondary-btn empty-reset-btn";
+        resetBtn.style.marginTop = "12px";
+        resetBtn.textContent = "Reset filters";
+        resetBtn.addEventListener("click", () => els.clearFiltersBtn?.click());
+        empty.appendChild(resetBtn);
+      }
+    } else {
+      empty.innerHTML = "<strong>No matches.</strong><br>Try a broader profile, location, radius, or freshness window.";
+    }
     els.jobs.appendChild(empty);
   }
 

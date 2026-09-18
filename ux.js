@@ -145,6 +145,77 @@
       const small = document.querySelector(`#${id}`)?.closest(".stat")?.querySelector("small");
       if (small) small.textContent = text;
     }
+
+    setupStatNavigation();
+  }
+
+  function setupStatNavigation() {
+    const tiles = [
+      { id: "#shownCount", targetStatus: "all" },
+      { id: "#newCount", targetStatus: "saved" },
+      { id: "#savedCount", targetStatus: "applied" },
+    ];
+
+    for (const { id, targetStatus } of tiles) {
+      const tile = document.querySelector(id)?.closest(".stat");
+      if (!tile || tile.dataset.statNav === "true") continue;
+      tile.dataset.statNav = "true";
+      tile.classList.add("stat-nav");
+      tile.setAttribute("role", "button");
+      tile.setAttribute("tabindex", "0");
+
+      const handleToggle = () => {
+        if (targetStatus === "all") {
+          state.status = "all";
+        } else {
+          state.status = state.status === targetStatus ? "all" : targetStatus;
+        }
+        visibleLimit = PAGE_SIZE;
+        persist();
+        syncControls();
+        applyFilters();
+      };
+
+      tile.addEventListener("click", handleToggle);
+      tile.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          handleToggle();
+        }
+      });
+    }
+    syncStatTiles();
+  }
+
+  function syncStatTiles() {
+    const matchesTile = document.querySelector("#shownCount")?.closest(".stat");
+    const savedTile = document.querySelector("#newCount")?.closest(".stat");
+    const appliedTile = document.querySelector("#savedCount")?.closest(".stat");
+
+    if (matchesTile) {
+      const active = state.status === "all";
+      matchesTile.classList.toggle("is-active", active);
+      matchesTile.setAttribute("aria-pressed", String(active));
+      matchesTile.title = active ? "Showing all matches" : "Click to view all matches";
+    }
+
+    if (savedTile) {
+      const active = state.status === "saved";
+      savedTile.classList.toggle("is-active", active);
+      savedTile.setAttribute("aria-pressed", String(active));
+      savedTile.title = active
+        ? "Showing saved internships (click to clear status filter)"
+        : "Click to filter to saved internships";
+    }
+
+    if (appliedTile) {
+      const active = state.status === "applied";
+      appliedTile.classList.toggle("is-active", active);
+      appliedTile.setAttribute("aria-pressed", String(active));
+      appliedTile.title = active
+        ? "Showing applied internships (click to clear status filter)"
+        : "Click to filter to applied internships";
+    }
   }
 
   function hiddenCount() {
@@ -328,6 +399,13 @@
     els.newCount.textContent = filtered.filter(job => state.saved.has(job.id)).length.toLocaleString();
     els.savedCount.textContent = filtered.filter(job => state.applied.has(job.id)).length.toLocaleString();
     updateHiddenControl();
+    syncStatTiles();
+  };
+
+  const priorSyncControls = syncControls;
+  syncControls = function () {
+    priorSyncControls();
+    syncStatTiles();
   };
 
   updateFeedMeta = function () {
