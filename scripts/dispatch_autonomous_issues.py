@@ -99,13 +99,13 @@ def pending_feedback_from_comments(
     """Return the newest explicit, not-yet-forwarded GitHub feedback comment."""
     comment_list = list(comments)
     sent_ids: set[str] = set()
-    sent_pattern = re.compile(r"<!--\\s*jules-feedback-sent:\\s*(\\d+)\\s*-->")
+    sent_pattern = re.compile(r"<!--\s*jules-feedback-sent:\s*(\d+)\s*-->")
     for comment in comment_list:
         body = str(comment.get("body") or "")
         sent_ids.update(sent_pattern.findall(body))
 
     marker = re.compile(
-        rf"<!--\\s*jules-feedback:\\s*{re.escape(session_id)}\\s*-->"
+        rf"<!--\s*jules-feedback:\s*{re.escape(session_id)}\s*-->"
     )
     for comment in reversed(comment_list):
         comment_id = str(comment.get("id") or "")
@@ -238,9 +238,9 @@ def reconcile_jules_sessions(
                     "issue", "comment", str(number), "--repo", repo,
                     "--body",
                     (
-                        f"{JULES_FEEDBACK_SENT_MARKER.format(comment_id=comment_id)}\\n"
+                        f"{JULES_FEEDBACK_SENT_MARKER.format(comment_id=comment_id)}\n"
                         f"Forwarded explicit GitHub feedback to Jules session "
-                        f"\`{session_id}\`."
+                        f"`{session_id}`."
                     ),
                 )
                 print(
