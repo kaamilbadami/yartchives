@@ -79,24 +79,34 @@ def gh_run(*args: str) -> None:
     subprocess.run(["gh", *args], check=True)
 
 
+def flatten_paginated_pages(pages: Any) -> list[Any]:
+    if not isinstance(pages, list):
+        raise TypeError("paginated GitHub response must be a list")
+    flattened: list[Any] = []
+    for page in pages:
+        if not isinstance(page, list):
+            raise TypeError("each paginated GitHub response page must be a list")
+        flattened.extend(page)
+    return flattened
+
+
+def gh_paginated_json(*args: str) -> list[Any]:
+    return flatten_paginated_pages(gh_json(*args, "--paginate", "--slurp"))
+
+
 def fetch_open_issues(repo: str) -> list[dict[str, Any]]:
-    issues = gh_json("api", "--paginate", f"repos/{repo}/issues?state=open&per_page=100")
-    if issues and isinstance(issues[0], list):
-        flattened = [item for page in issues for item in page]
-    else:
-        flattened = issues
-    return [issue for issue in flattened if "pull_request" not in issue]
+    issues = gh_paginated_json(
+        "api",
+        f"repos/{repo}/issues?state=open&per_page=100",
+    )
+    return [issue for issue in issues if "pull_request" not in issue]
 
 
 def fetch_comments(repo: str, number: int) -> list[dict[str, Any]]:
-    comments = gh_json(
+    return gh_paginated_json(
         "api",
-        "--paginate",
         f"repos/{repo}/issues/{number}/comments?per_page=100",
     )
-    if comments and isinstance(comments[0], list):
-        return [item for page in comments for item in page]
-    return comments
 
 
 def main() -> int:
