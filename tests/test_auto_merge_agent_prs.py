@@ -68,6 +68,18 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             )
         )
 
+    def test_exact_head_quality_in_flight_detects_active_manual_run(self):
+        active = [
+            {
+                "name": "Quality checks",
+                "head_sha": "abc",
+                "status": "in_progress",
+                "conclusion": None,
+            }
+        ]
+        self.assertTrue(mod.exact_head_quality_in_flight(active, "abc"))
+        self.assertFalse(mod.exact_head_quality_in_flight(active, "other"))
+
     def test_pre_ci_policy_can_validate_non_ci_guards_before_redispatch(self):
         candidate = pr()
         ok, reason = mod.eligible_pr(

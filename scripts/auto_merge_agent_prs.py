@@ -71,6 +71,17 @@ def exact_head_quality_action_required(
     )
 
 
+def exact_head_quality_in_flight(
+    runs: Iterable[dict[str, Any]], head_sha: str
+) -> bool:
+    return any(
+        str(run.get("name") or "") == QUALITY_WORKFLOW
+        and str(run.get("head_sha") or "") == head_sha
+        and str(run.get("status") or "") in {"queued", "in_progress", "pending", "requested", "waiting"}
+        for run in runs
+    )
+
+
 def autonomous_issue_ready(issue: dict[str, Any]) -> bool:
     labels = label_names(issue)
     return (
@@ -191,21 +202,21 @@ def main() -> int:
             continue
 
         head_ref = str((pr.get("head") or {}).get("ref") or "")
-        if (
-            not exact_head_quality_passed(runs, head_sha)
-            and exact_head_quality_action_required(runs, head_sha)
-            and head_ref
-        ):
-            gh_run(
-                "workflow", "run", "quality.yml",
-                "--repo", repo,
-                "--ref", head_ref,
-            )
-            print(
-                f"Dispatched Quality checks manually for PR #{number} after GitHub "
-                "suppressed the token-generated pull_request run."
-            )
-            return 0
+        if not exact_head_quality_passed(runs, head_sha):
+            if exact_head_quality_in_flight(runs, head_sha):
+                print(f"PR #{number} already has exact-head Quality checks in flight.")
+                return 0
+            if exact_head_quality_action_required(runs, head_sha) and head_ref:
+                gh_run(
+                    "workflow", "run", "quality.yml",
+                    "--repo", repo,
+                    "--ref", head_ref,
+                )
+                print(
+                    f"Dispatched Quality checks manually for PR #{number} after GitHub "
+                    "suppressed the token-generated pull_request run."
+                )
+                return 0
 
         eligible, reason = eligible_pr(
             pr,
