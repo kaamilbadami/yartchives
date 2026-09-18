@@ -11,7 +11,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
-from urllib.parse import urlparse
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
@@ -93,19 +92,23 @@ def merge_provider_documents(
         for incoming in doc.get("jobs") or []:
             if not isinstance(incoming, dict):
                 continue
-            target = None
             incoming_url = bf.canonical_url(incoming.get("url"))
-            if incoming_url:
-                target = by_url.get(incoming_url)
+            target = by_url.get(incoming_url) if incoming_url else None
             if target is None and incoming.get("id"):
                 target = by_id.get(str(incoming["id"]))
 
             if target is None:
-                merged_jobs.append(copy.deepcopy(incoming))
+                target = copy.deepcopy(incoming)
+                merged_jobs.append(target)
             else:
                 _merge_normalized_job(target, incoming)
 
-            by_id, by_url = _job_indexes(merged_jobs)
+            job_id = str(target.get("id") or "")
+            if job_id:
+                by_id[job_id] = target
+            target_url = bf.canonical_url(target.get("url"))
+            if target_url:
+                by_url[target_url] = target
 
     merged_jobs.sort(
         key=lambda job: (job.get("posted_at") or job.get("first_seen") or "", job.get("id") or ""),
@@ -182,7 +185,8 @@ def main() -> int:
     print("ATS collection: Workday, iCIMS, Greenhouse, and Oracle running concurrently")
     provider_docs = collect(base_doc, old_doc, direct_sources, universe, reference)
     merged = merge_provider_documents(base_doc, provider_docs)
-    merged["generated_at"] = bf.iso(reference)
+    if workday.stable_projection(merged) != workday.stable_projection(base_doc):
+        merged["generated_at"] = bf.iso(reference)
     args.feed.write_text(json.dumps(merged, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     counts = ", ".join(
