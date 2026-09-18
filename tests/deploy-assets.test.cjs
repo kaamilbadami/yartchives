@@ -47,6 +47,11 @@ assert.match(
   "Closed-but-unmerged pull requests should not dispatch backlog work"
 );
 
+assert.ok(
+  autonomousWorkflow.includes('- cron: "*/15 * * * *"'),
+  "Autonomous dispatcher should reconcile Jules session capacity every 15 minutes"
+);
+
 for (const name of workflowFiles) {
   if (name === "triage-workflow-failures.yml") continue;
   const content = fs.readFileSync(`.github/workflows/${name}`, "utf8");
