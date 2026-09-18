@@ -358,6 +358,54 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertEqual(gh_calls, [])
         self.assertIn("jules-session", mod.label_names(issues[0]))
 
+    def test_watch_loop_repolls_active_sessions_until_terminal(self):
+        cycles = []
+        sleeps = []
+        responses = [
+            (True, "source"),
+            (True, "source"),
+            (False, "source"),
+        ]
+
+        def fake_cycle(repo, api_key, source_name):
+            cycles.append((repo, api_key, source_name))
+            return responses[len(cycles) - 1]
+
+        mod.watch_jules_backlog(
+            "kaamilbadami/yartchives",
+            "secret",
+            poll_seconds=30,
+            watch_seconds=780,
+            run_cycle=fake_cycle,
+            sleep_fn=lambda seconds: sleeps.append(seconds),
+            monotonic_fn=lambda: 0,
+        )
+
+        self.assertEqual(len(cycles), 3)
+        self.assertEqual([call[2] for call in cycles], [None, "source", "source"])
+        self.assertEqual(sleeps, [30, 30])
+
+    def test_watch_loop_stops_at_bound_and_leaves_recovery_to_next_run(self):
+        cycles = []
+        sleeps = []
+        times = iter([0, 755])
+
+        mod.watch_jules_backlog(
+            "kaamilbadami/yartchives",
+            "secret",
+            poll_seconds=30,
+            watch_seconds=780,
+            run_cycle=lambda repo, api_key, source_name: (
+                cycles.append((repo, api_key, source_name)) or True,
+                "source",
+            ),
+            sleep_fn=lambda seconds: sleeps.append(seconds),
+            monotonic_fn=lambda: next(times),
+        )
+
+        self.assertEqual(len(cycles), 1)
+        self.assertEqual(sleeps, [])
+
     def test_paginated_issue_pages_are_flattened_without_json_stream_assumptions(self):
         pages = [[{"number": 1}, {"number": 2}], [{"number": 3}]]
         self.assertEqual(
