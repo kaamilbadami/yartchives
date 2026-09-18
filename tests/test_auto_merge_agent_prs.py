@@ -62,6 +62,11 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertTrue(ok)
         self.assertEqual(reason, "eligible")
 
+    def test_exact_head_quality_presence_detects_missing_run(self):
+        self.assertTrue(mod.exact_head_quality_present(runs(), "abc"))
+        self.assertFalse(mod.exact_head_quality_present([], "abc"))
+        self.assertFalse(mod.exact_head_quality_present(runs(sha="older"), "abc"))
+
     def test_action_required_quality_run_is_detected_for_manual_redispatch(self):
         self.assertTrue(
             mod.exact_head_quality_action_required(
