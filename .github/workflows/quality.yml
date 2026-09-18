@@ -65,7 +65,7 @@ jobs:
 
       - name: Python tests
         run: |
-          python -m py_compile scripts/build_feed.py scripts/careers_resolver.py scripts/direct_ct_workday.py scripts/parallel_ats_collect.py scripts/posting_requirements.py scripts/workday_inspector.py scripts/icims_inspector.py scripts/greenhouse_inspector.py scripts/update_workday_inspections.py scripts/reconcile_workday_duplicates.py scripts/enrich_feed.py scripts/repair_links.py scripts/provider_links.py scripts/jobright_links.py scripts/source_links.py scripts/validate_feed.py scripts/audit_feed.py scripts/coverage_audit.py scripts/coverage_contract.py scripts/benchmark_quality.py scripts/source_contribution_audit.py scripts/employer_universe.py scripts/employer_seed_from_benchmark.py scripts/fortune_500_seed.py scripts/state_of_ats_seed.py scripts/refresh_employer_universe.py
+          python -m py_compile scripts/auto_merge_agent_prs.py scripts/build_feed.py scripts/careers_resolver.py scripts/direct_ct_workday.py scripts/parallel_ats_collect.py scripts/posting_requirements.py scripts/workday_inspector.py scripts/icims_inspector.py scripts/greenhouse_inspector.py scripts/update_workday_inspections.py scripts/reconcile_workday_duplicates.py scripts/enrich_feed.py scripts/repair_links.py scripts/provider_links.py scripts/jobright_links.py scripts/source_links.py scripts/validate_feed.py scripts/audit_feed.py scripts/coverage_audit.py scripts/coverage_contract.py scripts/benchmark_quality.py scripts/source_contribution_audit.py scripts/employer_universe.py scripts/employer_seed_from_benchmark.py scripts/fortune_500_seed.py scripts/state_of_ats_seed.py scripts/refresh_employer_universe.py
           python -m unittest discover -s tests -p "test_*.py" -v
 
       - name: Frontend tests
