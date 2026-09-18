@@ -58,8 +58,25 @@ def _source_key(tenant: str, site: str, state: str) -> str:
 
 
 def source_from_job(job: dict[str, Any], state: str) -> dict[str, Any] | None:
+    """Backward-compatible state-scoped source constructor for targeted callers/tests."""
     state = state.upper()
     if state not in _job_states(job):
+        return None
+    source = source_from_job_national(job)
+    if not source:
+        return None
+    source["key"] = _source_key(source["tenant"], source["site"], state)
+    source["name"] = f"{source['company']} (auto-discovered Workday, {state})"
+    source["state"] = state
+    source.pop("scope", None)
+    source.pop("tenant", None)
+    source.pop("site", None)
+    return source
+
+
+def source_from_job_national(job: dict[str, Any]) -> dict[str, Any] | None:
+    """Turn one evidenced CS Workday posting into one reusable US career-site source."""
+    if not _job_states(job):
         return None
     url = _clean(job.get("url"))
     try:
@@ -77,19 +94,22 @@ def source_from_job(job: dict[str, Any], state: str) -> dict[str, Any] | None:
     api_url = f"https://{host}/wday/cxs/{quote(tenant, safe='-._~')}/{quote(site, safe='-._~')}/jobs"
     public_base = f"https://{host}/en-US/{quote(site, safe='-._~')}"
     company = _clean(job.get("company")) or tenant
+    slug = re.sub(r"[^a-z0-9]+", "-", f"{tenant}-{site}".casefold()).strip("-")
     return {
-        "key": _source_key(tenant, site, state),
-        "name": f"{company} (auto-discovered Workday, {state})",
+        "key": f"us-feed-workday-{slug}",
+        "name": f"{company} (auto-discovered Workday, US)",
         "company": company,
         "kind": "workday",
         "api_url": api_url,
         "public_base": public_base,
         "homepage": public_base,
-        "state": state,
+        "scope": "us",
         "profile_hint": ["cs"],
         "minimum_expected": 0,
         "search_terms": list(SEARCH_TERMS),
         "auto_discovered": True,
+        "tenant": tenant,
+        "site": site,
     }
 
 
@@ -162,17 +182,20 @@ def discover_sources(
     jobs = [job for job in (feed.get("jobs") or []) if isinstance(job, dict)]
     jobs.sort(key=lambda job: (_clean(job.get("company")).casefold(), _clean(job.get("url")).casefold()))
     for job in jobs:
-        for state in _job_states(job):
-            source = source_from_job(job, state)
-            if not source:
-                continue
-            if _clean(source.get("api_url")).rstrip("/").casefold() in national_apis:
-                continue
-            identity = _source_identity(source)
-            if not identity or identity in seen:
-                continue
-            out.append(source)
-            seen.add(identity)
+        source = source_from_job_national(job)
+        if not source:
+            continue
+        api_key = _clean(source.get("api_url")).rstrip("/").casefold()
+        if api_key in national_apis:
+            continue
+        identity = _source_identity(source)
+        if not identity or identity in seen:
+            continue
+        source.pop("tenant", None)
+        source.pop("site", None)
+        out.append(source)
+        seen.add(identity)
+        national_apis.add(api_key)
     return out
 
 
@@ -192,9 +215,13 @@ def main() -> int:
     args.output.write_text(json.dumps(sources, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     auto_count = sum(bool(source.get("auto_discovered")) for source in sources)
-    states = sorted({source.get("state") for source in sources if source.get("auto_discovered") and source.get("state")})
     national = sum(source.get("scope") == "us" for source in sources)
-    print(f"Prepared {len(sources)} direct Workday source(s), including {national} national resolved site(s) and {auto_count - national} state-scoped auto-discovered source(s) across {len(states)} state(s).")
+    targeted = sum(bool(source.get("state")) for source in sources)
+    print(
+        f"Prepared {len(sources)} direct Workday source(s): "
+        f"{national} national source(s), {targeted} targeted state source(s), "
+        f"{auto_count} auto-discovered source(s)."
+    )
     return 0
 
 
