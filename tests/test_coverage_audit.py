@@ -99,7 +99,7 @@ class CoverageAuditTests(unittest.TestCase):
         left = "https://careers-gdeb.icims.com/jobs/20338/cybersecurity---2027-summer-internship/job"
         right = "https://careers-gdeb.icims.com/jobs/20338/another-display-slug/login"
         self.assertEqual(mod.url_identity(left), mod.url_identity(right))
-        self.assertEqual(mod.url_identity(left), ("careers-gdeb.icims.com", "icims-job=20338"))
+        self.assertEqual(mod.url_identity(left), ("icims", "careers-gdeb.icims.com", "20338"))
 
     def test_icims_provider_identity_matches_company_alias(self):
         record = {
