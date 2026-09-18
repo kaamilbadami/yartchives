@@ -37,6 +37,23 @@
       .replace(/\b[a-z]/g, ch => ch.toUpperCase());
   }
 
+  function providerLocationText(value) {
+    const parts = String(value || "").split(/\s*-\s*/).map(part => part.trim()).filter(Boolean);
+    if (parts.length < 2) return null;
+
+    const first = parts[0].toUpperCase();
+    if (STATE_NAMES[first] && parts[1]) return `${titleCase(parts[1])}, ${first}`;
+
+    if (["US", "USA", "UNITED STATES"].includes(first)) {
+      if (parts.length >= 3) {
+        const code = STATE_BY_NAME[parts[1].toLowerCase()];
+        if (code && parts[2]) return `${titleCase(parts[2])}, ${code}`;
+      }
+      if (parts[1]) return titleCase(parts[1]);
+    }
+    return null;
+  }
+
   function captureMatchedLocationPoints(scope) {
     if (!scope || typeof scope.distanceForJob !== "function" || !utils?.distanceForJob) return false;
     if (scope.distanceForJob.__yartchivesMatchedPointCapture) return true;
@@ -94,6 +111,8 @@
     const text = String(value || "").replace(/\s+/g, " ").trim();
     if (!text) return null;
     if (/\bremote\b/i.test(text) && /^(?:us|usa|united states)?\s*-?\s*remote/i.test(text)) return "Remote";
+    const providerLocation = providerLocationText(text);
+    if (providerLocation) return providerLocation;
 
     const cityStateCountry = text.match(/^([^,]+),\s*([A-Z]{2}),\s*(?:US|USA|United States)$/i);
     if (cityStateCountry) return `${titleCase(cityStateCountry[1].trim())}, ${cityStateCountry[2].toUpperCase()}`;
@@ -127,17 +146,56 @@
   }
 
   function locationPieces(job) {
+    const stateCodes = [...new Set((job?.states || [])
+      .map(value => String(value || "").toUpperCase())
+      .filter(value => STATE_NAMES[value]))];
     const pieces = rawLocationValues(job)
       .flatMap(raw => String(raw || "").split(/\s*·\s*|\s*;\s*|\s*\|\s*/))
       .map(humanizeLocationPiece)
-      .filter(Boolean);
+      .filter(Boolean)
+      .map(piece => {
+        if (piece === "Remote" || piece.includes(",")) return piece;
+        if (stateCodes.length === 1 && /^[A-Za-z][A-Za-z .'-]+$/.test(piece)) {
+          return `${titleCase(piece)}, ${stateCodes[0]}`;
+        }
+        return piece;
+      });
+    const cityKey = piece => String(piece || "").split(",")[0].toLowerCase().replace(/[^a-z]/g, "");
+    const cityInitials = piece => String(piece || "")
+      .split(",")[0]
+      .toLowerCase()
+      .split(/[^a-z]+/)
+      .filter(Boolean)
+      .map(word => word[0])
+      .join("");
+
     const out = [];
     const seen = new Set();
     for (const piece of pieces) {
-      const cityOnly = piece.match(/^([^,]+)$/)?.[1]?.toLowerCase();
-      if (cityOnly && out.some(existing => existing.toLowerCase().startsWith(`${cityOnly},`))) continue;
       const key = piece.toLowerCase();
       if (seen.has(key)) continue;
+
+      const city = cityKey(piece);
+      const duplicateIndex = out.findIndex(existing => {
+        const existingCity = cityKey(existing);
+        if (city === existingCity) return true;
+        const initials = cityInitials(piece);
+        const existingInitials = cityInitials(existing);
+        return Boolean(
+          city && existingCity
+          && ((city.length <= 5 && city === existingInitials)
+            || (existingCity.length <= 5 && existingCity === initials))
+        );
+      });
+      if (duplicateIndex >= 0) {
+        const existing = out[duplicateIndex];
+        const pieceHasState = /,\s*[A-Z]{2}$/.test(piece);
+        const existingHasState = /,\s*[A-Z]{2}$/.test(existing);
+        if (pieceHasState && !existingHasState) out[duplicateIndex] = piece;
+        seen.add(key);
+        continue;
+      }
+
       seen.add(key);
       out.push(piece);
     }
@@ -198,6 +256,7 @@
   return {
     captureMatchedLocationPoints,
     canonicalApplyUrl,
+    providerLocationText,
     humanizeLocationPiece,
     rawLocationValues,
     locationPieces,

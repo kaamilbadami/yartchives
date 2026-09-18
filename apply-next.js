@@ -168,12 +168,16 @@
       return gradYear === year;
     });
     if (matches) {
-      return { delta: required.length ? 2 : 1, detail: `${gradYear} fits the posting's explicit ${bucket} graduation window` };
+      return { delta: required.length ? 2 : 1, excluded: false, detail: `${gradYear} fits the posting's explicit ${bucket} graduation window` };
     }
     if (required.length) {
-      return { delta: -4, detail: `${gradYear} does not match the posting's explicit required graduation year/window` };
+      return {
+        delta: 0,
+        excluded: true,
+        detail: `${gradYear} does not match the posting's explicit required graduation year/window`,
+      };
     }
-    return { delta: 0, detail: `${gradYear} does not match the posting's preferred graduation window` };
+    return { delta: 0, excluded: false, detail: `${gradYear} does not match the posting's preferred graduation window` };
   }
 
   function authorizationAdjustment(inspection, profile) {
@@ -302,6 +306,9 @@
         parts.push("Authoritative posting confirms applications are available");
       }
       const grad = graduationAdjustment(inspection, profile);
+      if (grad.excluded) {
+        return { score: 0, excluded: true, detail: grad.detail };
+      }
       score += grad.delta;
       if (grad.detail) parts.push(grad.detail);
 

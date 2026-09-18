@@ -136,6 +136,24 @@ class DirectGreenhouseTests(unittest.TestCase):
         self.assertEqual(len(jobs), 1)
         self.assertEqual(jobs[0]["company"], "Sage")
 
+    def test_authoritative_board_brand_replaces_existing_token_like_company(self):
+        url = "https://job-boards.greenhouse.io/sage49/jobs/6131191004"
+        jobs = [{
+            "id": "existing",
+            "company": "Sage49",
+            "title": "Software Engineering Intern (Edge) – Summer 2027",
+            "location": "New York, NY",
+            "url": url,
+        }]
+        incoming = {
+            "company": "Sage",
+            "url": url,
+        }
+
+        mod.apply_authoritative_board_brand(jobs, incoming, "sage49")
+
+        self.assertEqual(jobs[0]["company"], "Sage")
+
     def test_board_list_is_bounded_to_matching_sibling_roles(self):
         source = {
             "key": "auto-greenhouse-example",

@@ -16,6 +16,25 @@ assert.equal(P.humanizeLocationPiece("Medina, Minnesota"), "Medina, MN");
 assert.equal(P.humanizeLocationPiece("Innovators Way, Simi Valley,, CA"), "Simi Valley, CA");
 assert.equal(P.humanizeLocationPiece("Denver, CO, US"), "Denver, CO");
 assert.equal(P.humanizeLocationPiece("RTP, North Carolina, US"), "Rtp, NC");
+assert.equal(P.humanizeLocationPiece("CT - Danbury"), "Danbury, CT");
+assert.equal(P.humanizeLocationPiece("US - California - Thousand Oaks - Field/Remote"), "Thousand Oaks, CA");
+assert.equal(P.humanizeLocationPiece("USA-RESEARCH TRIANGLE PARK"), "Research Triangle Park");
+assert.deepEqual(
+  P.locationPieces({ location: "Remote · Ames", states: ["IA", "REMOTE"] }),
+  ["Remote", "Ames, IA"]
+);
+assert.deepEqual(
+  P.locationPieces({ location: "Danbury, CT · CT - Danbury", states: ["CT"] }),
+  ["Danbury, CT"]
+);
+assert.deepEqual(
+  P.locationPieces({ location: "Remote · US - California - Thousand Oaks - Field/Remote", states: ["CA", "REMOTE"] }),
+  ["Remote", "Thousand Oaks, CA"]
+);
+assert.deepEqual(
+  P.locationPieces({ location: "RTP, North Carolina, US · USA-RESEARCH TRIANGLE PARK", states: ["NC"] }),
+  ["Rtp, NC"]
+);
 assert.deepEqual(P.locationPieces({ location: "Medina, Minnesota · Medina" }), ["Medina, MN"]);
 
 const profile = {

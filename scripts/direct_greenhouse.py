@@ -220,6 +220,25 @@ def fetch_source(client: requests.Session, source: dict[str, Any], reference: da
     return out
 
 
+def apply_authoritative_board_brand(
+    jobs: list[dict[str, Any]],
+    incoming: dict[str, Any],
+    board_token: str,
+) -> None:
+    incoming_company = _clean(incoming.get("company"))
+    if not incoming_company or _board_token_company(incoming_company, board_token):
+        return
+    incoming_url = bf.canonical_url(incoming.get("url"))
+    if not incoming_url:
+        return
+    for target in jobs:
+        if bf.canonical_url(target.get("url")) != incoming_url:
+            continue
+        if _board_token_company(_clean(target.get("company")), board_token):
+            target["company"] = incoming_company
+        return
+
+
 def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Session, reference: datetime) -> dict[str, Any]:
     jobs = doc.setdefault("jobs", [])
     health = doc.setdefault("sources", {})
@@ -231,6 +250,7 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Sessio
             direct_jobs = fetch_source(client, source, reference)
             for job in direct_jobs:
                 upsert_direct_job(jobs, job, old_jobs_by_id, reference)
+                apply_authoritative_board_brand(jobs, job, source["board_token"])
             health[source["key"]] = {
                 "ok": True,
                 "configured": True,

@@ -66,6 +66,34 @@ const gradScore = A.scoreJob(graduateOnly, profile, now);
 assert.equal(gradScore.excluded, true);
 assert.match(gradScore.reasons[0], /Graduate-only/);
 
+const graduationConflict = A.scoreJob({
+  ...freshDirect,
+  company: "Entegris",
+  title: "Portfolio Analytics Analyst Co-Op",
+  opportunity_type: "co-op",
+  term: null,
+  _inspection: {
+    status: "inspected",
+    posting: { application_status: "available" },
+    schedule: { status: "unknown", terms: [], duration_evidence: [], date_range_evidence: [] },
+    requirements: {
+      graduation: {
+        classification: "required",
+        required: [{
+          statement: "Must graduate in 2027.",
+          requirement_state: "required",
+          negated: false,
+        }],
+        preferred: [],
+        unspecified: [],
+        not_required: [],
+      },
+    },
+  },
+}, profile, now);
+assert.equal(graduationConflict.excluded, true);
+assert.match(graduationConflict.reasons[0], /2028 does not match the posting's explicit required graduation year\/window/);
+
 const cautiousOnly = A.scoreFit({ title: "Python Bash Intern", profiles: [] }, profile);
 assert.equal(cautiousOnly.score, 0);
 assert.match(cautiousOnly.detail, /Not credited as strengths/);
