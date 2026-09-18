@@ -221,10 +221,16 @@
       ? YartchivesUtils.authoritativeLocationValues(job)
       : [];
     if (authoritative.length > 1) return authoritative;
-    const raw = locationValueText(job?.location);
+    const raw = locationValueText(job?._displayLocation) || locationValueText(job?.location);
     if (!raw) return authoritative.length ? authoritative : [];
     const split = raw.split(/\s*(?:;|\||·)\s*/).map(normalize).filter(Boolean);
     return split.length > 1 ? split : [raw];
+  }
+
+  function cardLocationText(job) {
+    return locationValueText(job?._displayLocation)
+      || locationValueText(job?.location)
+      || "Location not listed";
   }
 
   function orderLocationValues(values, primaryDistances, fallbackDistances) {
@@ -312,7 +318,7 @@
     titleWrap.append(
       element("p", "apply-next-rank", `#${rank} · ${job.company || "Company not listed"}`),
       element("h3", "", job.title || "Untitled opportunity"),
-      element("p", "muted", job._displayLocation || locationValueText(job.location) || "Location not listed")
+      element("p", "muted", cardLocationText(job))
     );
     const postedDate = formatPostedDate(job.posted_at);
     if (postedDate) titleWrap.append(element("p", "muted apply-next-posted-date", postedDate));
@@ -494,6 +500,7 @@
     formatPostedDate,
     locationValueText,
     locationDisplayValues,
+    cardLocationText,
     orderLocationValues,
     emptyInspectionArtifact,
     loadInspectionArtifact,
