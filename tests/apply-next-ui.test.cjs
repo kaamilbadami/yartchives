@@ -45,6 +45,19 @@ assert.deepEqual(
   ["Bloomfield, CT", "Morris Plains, NJ"]
 );
 
+assert.equal(UI.locationValueText({ text: "USA - Remote" }), "USA - Remote");
+assert.equal(UI.locationValueText({ display_name: "Bloomfield, CT" }), "Bloomfield, CT");
+assert.equal(UI.locationValueText({ city: "College Park", state: "MD" }), "College Park, MD");
+assert.equal(
+  UI.locationValueText({ values: ["Bloomfield, CT", "Morris Plains, NJ"] }),
+  "Bloomfield, CT · Morris Plains, NJ"
+);
+assert.deepEqual(
+  UI.locationDisplayValues({ location: { city: "College Park", state: "MD" } }),
+  ["College Park, MD"]
+);
+assert.doesNotMatch(UI.locationValueText({ city: "College Park", state: "MD" }), /\[object Object\]/);
+
 assert.equal(UI.formatPostedDate("", postedNow), "");
 assert.equal(UI.formatPostedDate("not-a-date", postedNow), "");
 assert.equal(UI.formatPostedDate("2026-09-15", "not-a-date"), "");
