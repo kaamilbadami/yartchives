@@ -54,6 +54,33 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertTrue(ok)
         self.assertEqual(reason, "eligible")
 
+    def test_action_required_quality_run_is_detected_for_manual_redispatch(self):
+        self.assertTrue(
+            mod.exact_head_quality_action_required(
+                runs(conclusion="action_required"),
+                "abc",
+            )
+        )
+        self.assertFalse(
+            mod.exact_head_quality_action_required(
+                runs(conclusion="success"),
+                "abc",
+            )
+        )
+
+    def test_pre_ci_policy_can_validate_non_ci_guards_before_redispatch(self):
+        candidate = pr()
+        ok, reason = mod.eligible_pr(
+            candidate,
+            repo="kaamilbadami/yartchives",
+            issue=issue(),
+            changed_paths=["app.js"],
+            quality_runs=[],
+            require_quality=False,
+        )
+        self.assertTrue(ok)
+        self.assertEqual(reason, "eligible")
+
     def test_requires_exact_head_quality_success(self):
         candidate = pr()
         ok, _ = mod.eligible_pr(
