@@ -13,6 +13,7 @@ from urllib.parse import urlparse
 
 PROFILES = ["cs", "tech-business", "finance-econ", "mechanical", "aero", "electrical", "policy", "health"]
 INTERNSHIP_TYPES = {"internship", "co-op", "student"}
+WORKDAY_HOST_RE = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com$", re.I)
 
 
 def parse_time(value: str | None) -> datetime | None:
@@ -124,7 +125,31 @@ def main() -> int:
             zapply_providers[provider] += 1
             zapply_companies[str(job.get("company") or "unknown")] += 1
 
+    workday_direct = [
+        j for j in jobs
+        if j.get("link_kind") == "direct"
+        and WORKDAY_HOST_RE.fullmatch((urlparse(str(j.get("url") or "")).hostname or "").lower())
+    ]
+    workday_contract_violations = [
+        j for j in workday_direct
+        if (
+            not urlparse(str(j.get("url") or "")).path.rstrip("/").casefold().endswith("/apply")
+            or j.get("link_status") != "ok"
+            or not str(j.get("link_checked_at") or "").strip()
+        )
+    ]
+
     print("\nLink quality:", ", ".join(f"{k}={v}" for k, v in kinds.items()))
+    print(
+        "Workday direct contract: "
+        f"direct={len(workday_direct)}, violations={len(workday_contract_violations)}"
+    )
+    for job in workday_contract_violations[:10]:
+        print(
+            "- CONTRACT VIOLATION: "
+            f"{job.get('company')} — {job.get('title')} — "
+            f"status={job.get('link_status')!r} — {job.get('url') or 'no-link'}"
+        )
     print("Largest non-direct link buckets:")
     for host, count in sorted(hosts.items(), key=lambda item: item[1], reverse=True)[:10]:
         print(f"- {host}: {count}")
