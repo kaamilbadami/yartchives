@@ -18,6 +18,7 @@ JULES_API_ROOT = "https://jules.googleapis.com/v1alpha"
 JULES_ACTIVE_LABEL = "jules-session"
 JULES_REVIEW_READY_LABEL = "jules-review-ready"
 JULES_FAILED_LABEL = "jules-failed"
+JULES_FEEDBACK_LABEL = "jules-needs-feedback"
 JULES_SESSION_MARKER = "<!-- jules-session-id: {session_id} -->"
 JULES_TERMINAL_STATES = {"COMPLETED", "FAILED"}
 CODEX_RESERVED_LABEL = "codex"
@@ -98,6 +99,42 @@ def pull_request_url(session: dict[str, Any]) -> str | None:
     return None
 
 
+def latest_agent_message(activities: Iterable[dict[str, Any]]) -> str | None:
+    """Return the newest user-facing Jules message from a session activity list."""
+    ordered = sorted(
+        (activity for activity in activities if isinstance(activity, dict)),
+        key=lambda activity: str(activity.get("createTime") or ""),
+        reverse=True,
+    )
+    for activity in ordered:
+        agent_messaged = activity.get("agentMessaged")
+        if isinstance(agent_messaged, dict) and agent_messaged.get("agentMessage"):
+            return str(agent_messaged["agentMessage"]).strip()
+    return None
+
+
+def list_jules_activities(api_key: str, session_id: str) -> list[dict[str, Any]]:
+    """List every activity for one Jules session."""
+    activities: list[dict[str, Any]] = []
+    page_token: str | None = None
+    while True:
+        query: dict[str, Any] = {"pageSize": 100}
+        if page_token:
+            query["pageToken"] = page_token
+        response = jules_json(
+            api_key,
+            f"/sessions/{session_id}/activities?{parse.urlencode(query)}",
+        )
+        page = response.get("activities", [])
+        if isinstance(page, list):
+            activities.extend(
+                activity for activity in page if isinstance(activity, dict)
+            )
+        page_token = str(response.get("nextPageToken") or "") or None
+        if not page_token:
+            return activities
+
+
 def replace_issue_labels_in_memory(
     issue: dict[str, Any],
     *,
@@ -117,9 +154,10 @@ def reconcile_jules_sessions(
     api_key: str,
     load_comments: Callable[[int], list[dict[str, Any]]],
     get_session: Callable[..., dict[str, Any]] | None = None,
+    load_activities: Callable[[str], list[dict[str, Any]]] | None = None,
     run_gh: Callable[..., None] | None = None,
 ) -> None:
-    """Release terminal Jules sessions before selecting more autonomous work."""
+    """Reconcile Jules sessions into productive, blocked, or terminal GitHub states."""
     if get_session is None:
         get_session = jules_json
     if run_gh is None:
@@ -127,7 +165,7 @@ def reconcile_jules_sessions(
 
     for issue in issues:
         labels = label_names(issue)
-        if JULES_ACTIVE_LABEL not in labels:
+        if not ({JULES_ACTIVE_LABEL, JULES_FEEDBACK_LABEL} & labels):
             continue
 
         number = int(issue["number"])
@@ -140,8 +178,62 @@ def reconcile_jules_sessions(
 
         session = get_session(api_key, f"/sessions/{session_id}")
         state = str(session.get("state") or "STATE_UNSPECIFIED")
+
+        if state == "AWAITING_USER_FEEDBACK":
+            if JULES_FEEDBACK_LABEL in labels:
+                print(f"Jules session {session_id} for #{number} still needs feedback.")
+                continue
+            activities = (
+                load_activities(session_id)
+                if load_activities is not None
+                else list_jules_activities(api_key, session_id)
+            )
+            question = latest_agent_message(activities)
+            run_gh(
+                "issue", "edit", str(number), "--repo", repo,
+                "--remove-label", JULES_ACTIVE_LABEL,
+                "--add-label", JULES_FEEDBACK_LABEL,
+            )
+            replace_issue_labels_in_memory(
+                issue,
+                remove=(JULES_ACTIVE_LABEL,),
+                add=(JULES_FEEDBACK_LABEL,),
+            )
+            detail = (
+                f"Jules session `{session_id}` is waiting for user feedback, so this "
+                "session no longer consumes a productive Jules slot."
+            )
+            if question:
+                detail += f"\n\nLatest Jules message:\n\n> {question.replace(chr(10), chr(10) + '> ')}"
+            session_url = str(session.get("url") or "")
+            if session_url:
+                detail += f"\n\nJules session: {session_url}"
+            detail += (
+                "\n\nAfter feedback is provided and Jules resumes, the dispatcher will "
+                "restore the active-session state automatically."
+            )
+            run_gh(
+                "issue", "comment", str(number), "--repo", repo,
+                "--body", detail,
+            )
+            print(f"Released Jules slot for #{number}: awaiting user feedback.")
+            continue
+
         if state not in JULES_TERMINAL_STATES:
-            print(f"Jules session {session_id} for #{number} is still {state}.")
+            if JULES_FEEDBACK_LABEL in labels:
+                run_gh(
+                    "issue", "edit", str(number), "--repo", repo,
+                    "--remove-label", JULES_FEEDBACK_LABEL,
+                    "--add-label", JULES_ACTIVE_LABEL,
+                )
+                replace_issue_labels_in_memory(
+                    issue,
+                    remove=(JULES_FEEDBACK_LABEL,),
+                    add=(JULES_ACTIVE_LABEL,),
+                )
+                print(f"Jules session {session_id} for #{number} resumed as {state}.")
+            else:
+                print(f"Jules session {session_id} for #{number} is still {state}.")
             continue
 
         terminal_label = (
@@ -150,12 +242,13 @@ def reconcile_jules_sessions(
         run_gh(
             "issue", "edit", str(number), "--repo", repo,
             "--remove-label", JULES_ACTIVE_LABEL,
+            "--remove-label", JULES_FEEDBACK_LABEL,
             "--remove-label", "jules",
             "--add-label", terminal_label,
         )
         replace_issue_labels_in_memory(
             issue,
-            remove=(JULES_ACTIVE_LABEL, "jules"),
+            remove=(JULES_ACTIVE_LABEL, JULES_FEEDBACK_LABEL, "jules"),
             add=(terminal_label,),
         )
 
@@ -224,6 +317,7 @@ def select_tasks(issues: Iterable[dict[str, Any]], max_active: int = MAX_ACTIVE)
                 JULES_ACTIVE_LABEL,
                 JULES_REVIEW_READY_LABEL,
                 JULES_FAILED_LABEL,
+                JULES_FEEDBACK_LABEL,
                 "blocked",
                 "needs-product-decision",
             }
@@ -408,6 +502,7 @@ def ensure_labels(repo: str) -> None:
         (JULES_ACTIVE_LABEL, "5319E7", "A real Jules API session is actively using a Jules slot"),
         (JULES_REVIEW_READY_LABEL, "8250DF", "Jules finished; review the resulting GitHub PR"),
         (JULES_FAILED_LABEL, "D73A4A", "Jules session failed and requires follow-up"),
+        (JULES_FEEDBACK_LABEL, "FBCA04", "Jules is waiting for user feedback; does not consume productive WIP"),
         (CODEX_RESERVED_LABEL, "0969DA", "Reserved for a scheduled Codex worker"),
         ("codex-worker-1", "1F6FEB", "Reserved for Codex scheduled worker 1"),
         ("codex-worker-2", "54AEFF", "Reserved for Codex scheduled worker 2"),
