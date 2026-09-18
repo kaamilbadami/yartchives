@@ -5,9 +5,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 from urllib.parse import urlparse
+
+WORKDAY_HOST_RE = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com$", re.I)
 
 ALLOWED_EDUCATION = {"undergrad", "graduate-only", "unspecified"}
 ALLOWED_TYPES = {"internship", "co-op", "fellowship", "research", "student", "other"}
@@ -22,6 +25,29 @@ NON_DIRECT_HOSTS = {
 }
 
 
+def is_workday_url(value: str | None) -> bool:
+    if not valid_http_url(value):
+        return False
+    return bool(WORKDAY_HOST_RE.fullmatch((urlparse(str(value)).hostname or "").lower()))
+
+
+def workday_direct_contract_errors(job: dict, label: str) -> list[str]:
+    if job.get("link_kind") != "direct" or not is_workday_url(job.get("url")):
+        return []
+    url = str(job.get("url") or "")
+    errors: list[str] = []
+    if not urlparse(url).path.rstrip("/").casefold().endswith("/apply"):
+        errors.append(f"link-quality: {label} Workday direct URL is not an /apply destination: {url}")
+    if job.get("link_status") != "ok":
+        errors.append(
+            f"link-quality: {label} Workday direct URL is not validated ok "
+            f"(status={job.get('link_status')!r}): {url}"
+        )
+    if not str(job.get("link_checked_at") or "").strip():
+        errors.append(f"link-quality: {label} Workday direct URL has no validation timestamp: {url}")
+    return errors
+
+
 def valid_http_url(value: str | None) -> bool:
     if not value:
         return False
@@ -29,7 +55,13 @@ def valid_http_url(value: str | None) -> bool:
     return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
-def validate(path: Path, minimum_jobs: int, minimum_healthy_sources: int, strict_sources: bool) -> list[str]:
+def validate(
+    path: Path,
+    minimum_jobs: int,
+    minimum_healthy_sources: int,
+    strict_sources: bool,
+    enforce_link_contract: bool = False,
+) -> list[str]:
     errors: list[str] = []
     try:
         doc = json.loads(path.read_text(encoding="utf-8"))
@@ -88,6 +120,9 @@ def validate(path: Path, minimum_jobs: int, minimum_healthy_sources: int, strict
         elif kind == "source" and url:
             errors.append(f"job {job_id or i} source-only link should not populate url")
 
+        if enforce_link_contract:
+            errors.extend(workday_direct_contract_errors(job, f"job {job_id or i}"))
+
     healthy = 0
     for key, source in sources.items():
         if not isinstance(source, dict):
@@ -101,6 +136,20 @@ def validate(path: Path, minimum_jobs: int, minimum_healthy_sources: int, strict
     if healthy < minimum_healthy_sources:
         errors.append(f"healthy source count {healthy} is below minimum {minimum_healthy_sources}")
 
+    workday_direct = [
+        job for job in jobs
+        if isinstance(job, dict) and job.get("link_kind") == "direct" and is_workday_url(job.get("url"))
+    ]
+    workday_violations = sum(
+        bool(workday_direct_contract_errors(job, f"job {job.get('id') or i}"))
+        for i, job in enumerate(workday_direct)
+    )
+    print(
+        "Link-quality contract: "
+        f"workday_direct={len(workday_direct)}, workday_violations={workday_violations}, "
+        f"enforced={str(enforce_link_contract).lower()}"
+    )
+
     return errors
 
 
@@ -110,9 +159,20 @@ def main() -> int:
     parser.add_argument("--minimum-jobs", type=int, default=500)
     parser.add_argument("--minimum-healthy-sources", type=int, default=8)
     parser.add_argument("--strict-sources", action="store_true")
+    parser.add_argument(
+        "--enforce-link-contract",
+        action="store_true",
+        help="fail when a published direct Workday link is not a validated /apply destination",
+    )
     args = parser.parse_args()
 
-    errors = validate(Path(args.path), args.minimum_jobs, args.minimum_healthy_sources, args.strict_sources)
+    errors = validate(
+        Path(args.path),
+        args.minimum_jobs,
+        args.minimum_healthy_sources,
+        args.strict_sources,
+        args.enforce_link_contract,
+    )
     if errors:
         print("Feed validation failed:", file=sys.stderr)
         for error in errors[:100]:
