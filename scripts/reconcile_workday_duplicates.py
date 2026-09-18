@@ -147,6 +147,28 @@ def canonical_posting_url(url: str | None) -> str | None:
     return workday_canonical_url(url) or greenhouse_canonical_url(url) or icims_canonical_url(url)
 
 
+def is_verified_workday_apply(job: dict[str, Any]) -> bool:
+    """Return whether a record has a validated Workday /apply destination."""
+
+    url = str(job.get("url") or "")
+    return bool(
+        workday_identity_key(url)
+        and job.get("link_kind") == "direct"
+        and job.get("link_status") == "ok"
+        and str(job.get("link_checked_at") or "").strip()
+        and url.rstrip("/").casefold().endswith("/apply")
+    )
+
+
+def reconciled_posting_url(job: dict[str, Any]) -> str | None:
+    """Preserve verified Workday Apply destinations; canonicalize everything else."""
+
+    canonical = canonical_posting_url(job.get("url"))
+    if canonical and is_verified_workday_apply(job):
+        return canonical.rstrip("/") + "/apply"
+    return canonical or bf.canonical_url(job.get("url"))
+
+
 def exact_direct_identity_key(job: dict[str, Any]) -> tuple[str, ...] | None:
     """Identify exact unsupported-provider copies after high-confidence link recovery.
 
@@ -215,6 +237,12 @@ def merge_posting_group(canonical_url: str, group: list[dict[str, Any]]) -> dict
     winner = max(group, key=authority_rank)
     merged = copy.deepcopy(winner)
     merged["url"] = canonical_url
+
+    if workday_identity_key(canonical_url):
+        if canonical_url.rstrip("/").casefold().endswith("/apply"):
+            merged["link_kind"] = "direct"
+        else:
+            merged["link_kind"] = "employer_job"
 
     for field in LIST_FIELDS:
         merged[field] = _union_values(group, field)
@@ -291,7 +319,7 @@ def reconcile_jobs(jobs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], di
         duplicate_groups += 1
         removed += len(group) - 1
         winner = max(group, key=authority_rank)
-        canonical = canonical_posting_url(winner.get("url")) or bf.canonical_url(winner.get("url"))
+        canonical = reconciled_posting_url(winner)
         if not canonical:
             reconciled.extend(copy.deepcopy(job) for job in group)
             duplicate_groups -= 1
