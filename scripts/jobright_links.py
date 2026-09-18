@@ -256,10 +256,11 @@ def main() -> int:
         status, final = links.validate_direct_url(direct)
         if status == "dead":
             continue
+        resolved_url = final if links.is_direct_application_url(final) else direct
         job["resolved_from_url"] = listing
-        job["url"] = final if links.is_direct_application_url(final) else direct
+        job["url"] = resolved_url
         job.pop("listing_url", None)
-        job["link_kind"] = "direct"
+        job["link_kind"] = "employer_job" if links.is_workday_job_page(resolved_url) else "direct"
         job["link_origin"] = origin
         job["link_status"] = status
         job["link_checked_at"] = checked_at

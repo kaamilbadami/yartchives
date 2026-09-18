@@ -377,6 +377,17 @@ class WorkdayEmployerJobSemanticsTests(unittest.TestCase):
             [],
         )
 
+    def test_workday_details_path_is_employer_job_not_direct_apply(self):
+        url = (
+            "https://boeing.wd1.myworkdayjobs.com/en-US/EXTERNAL_CAREERS/details/"
+            "Boeing-Summer-2027-Internship-Program--Paid----Data-Analytics-Intern_JR2026520976-1?q=JR2026520976"
+        )
+        doc = {"jobs": [self._feed_job(url)]}
+        mod.repair_document(doc)
+        job = doc["jobs"][0]
+        self.assertEqual(job["link_kind"], "employer_job")
+        self.assertEqual(job["url"], url)
+
     def test_workday_apply_url_remains_direct_apply(self):
         url = (
             "https://medtronic.wd1.myworkdayjobs.com/en-US/redeploymentmedtroniccareers/"

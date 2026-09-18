@@ -314,7 +314,15 @@ def reconcile_jobs(jobs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], di
         elif provider == "direct-url":
             direct_url_postings += 1
         if len(group) == 1:
-            reconciled.append(copy.deepcopy(group[0]))
+            job = copy.deepcopy(group[0])
+            canonical = reconciled_posting_url(job)
+            if canonical and workday_identity_key(canonical):
+                job["url"] = canonical
+                if canonical.rstrip("/").casefold().endswith("/apply"):
+                    job["link_kind"] = "direct"
+                else:
+                    job["link_kind"] = "employer_job"
+            reconciled.append(job)
             continue
         duplicate_groups += 1
         removed += len(group) - 1

@@ -113,7 +113,6 @@ def is_workday_job_page(value: str | None) -> bool:
     host = (parsed.hostname or "").lower()
     return bool(
         re.fullmatch(r"[^.]+\.wd\d+\.myworkdayjobs\.com", host)
-        and "/job/" in parsed.path.casefold()
         and not parsed.path.rstrip("/").casefold().endswith("/apply")
     )
 
@@ -606,7 +605,11 @@ def validate_repaired_links(doc: dict[str, Any], old_doc: dict[str, Any]) -> dic
             continue
         targets.append(job)
 
-    targets.sort(key=lambda job: ("applyguy" not in set(job.get("source_keys") or []), job.get("id") or ""))
+    targets.sort(key=lambda job: (
+        not bool(job.get("url") and "myworkdayjobs.com" in str(job.get("url")).lower()),
+        "applyguy" not in set(job.get("source_keys") or []),
+        job.get("id") or "",
+    ))
     targets = targets[:MAX_VALIDATIONS_PER_RUN]
     stats = {"checked": 0, "ok": 0, "dead": 0, "unknown": 0}
 

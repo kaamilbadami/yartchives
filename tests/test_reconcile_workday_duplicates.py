@@ -207,6 +207,24 @@ class ReconcileWorkdayDuplicateTests(unittest.TestCase):
         self.assertEqual(reconciled[0]["url"], job_url)
         self.assertEqual(reconciled[0]["link_kind"], "employer_job")
 
+    def test_single_item_workday_group_normalizes_link_kind(self):
+        job_url = "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway" + RTX_PATH
+        single_job = base_job(
+            "single-job",
+            "RTX",
+            job_url,
+            direct=True,
+            source="Simplify",
+            posted="2026-09-16T12:00:00Z",
+        )
+        single_job["link_kind"] = "direct"
+
+        reconciled, stats = mod.reconcile_jobs([single_job])
+
+        self.assertEqual(len(reconciled), 1)
+        self.assertEqual(reconciled[0]["url"], job_url)
+        self.assertEqual(reconciled[0]["link_kind"], "employer_job")
+
     def test_greenhouse_identity_ignores_legacy_host_and_tracking(self):
         tracked = DOORDASH_URL + "?amp%3Bref=Simplify"
         legacy = "https://boards.greenhouse.io/doordashusa/jobs/8171041?gh_src=test"

@@ -322,7 +322,7 @@ def main() -> int:
     for job, direct, status in upgrades:
         job["url"] = direct
         job.pop("listing_url", None)
-        job["link_kind"] = "direct"
+        job["link_kind"] = "employer_job" if links.is_workday_job_page(direct) else "direct"
         job["link_origin"] = "source-feed-recovered"
         job["link_status"] = status
         job["link_checked_at"] = checked_at
