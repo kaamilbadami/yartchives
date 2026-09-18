@@ -7,11 +7,14 @@ import json
 import os
 import re
 import subprocess
-from typing import Any, Iterable, NamedTuple
+from typing import Any, Callable, Iterable, NamedTuple
+from urllib import parse, request
 
 PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
 MAX_ACTIVE = 2
 AUTONOMOUS_MARKER = "<!-- autonomous-task -->"
+JULES_API_ROOT = "https://jules.googleapis.com/v1alpha"
+JULES_ACTIVE_LABEL = "jules-session"
 
 
 class Task(NamedTuple):
@@ -58,8 +61,8 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
 
 
 def active_backlog_task(issue: dict[str, Any]) -> Task | None:
-    """Return active Jules work only when it belongs to the autonomous backlog."""
-    if "jules" not in label_names(issue):
+    """Return active Jules work only after a real Jules session exists."""
+    if JULES_ACTIVE_LABEL not in label_names(issue):
         return None
     return task_from_issue(issue)
 
@@ -83,7 +86,7 @@ def select_tasks(issues: Iterable[dict[str, Any]], max_active: int = MAX_ACTIVE)
         task = task_from_issue(issue)
         if not task:
             continue
-        if task.labels & {"jules", "agent-ready", "blocked", "needs-product-decision"}:
+        if task.labels & {JULES_ACTIVE_LABEL, "blocked", "needs-product-decision"}:
             continue
         candidates.append(task)
 
@@ -130,10 +133,136 @@ def gh_run(*args: str) -> None:
     subprocess.run(["gh", *args], check=True)
 
 
+def jules_json(
+    api_key: str,
+    path: str,
+    *,
+    method: str = "GET",
+    payload: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    data = None if payload is None else json.dumps(payload).encode("utf-8")
+    req = request.Request(
+        f"{JULES_API_ROOT}{path}",
+        method=method,
+        data=data,
+        headers={
+            "x-goog-api-key": api_key,
+            "Content-Type": "application/json",
+        },
+    )
+    with request.urlopen(req, timeout=30) as response:
+        decoded = response.read().decode("utf-8")
+    return json.loads(decoded) if decoded else {}
+
+
+def find_jules_source(
+    api_key: str,
+    repo: str,
+    api_get: Callable[..., dict[str, Any]] = jules_json,
+) -> str:
+    owner, name = repo.split("/", 1)
+    page_token: str | None = None
+    while True:
+        query = {"pageSize": 100}
+        if page_token:
+            query["pageToken"] = page_token
+        response = api_get(api_key, f"/sources?{parse.urlencode(query)}")
+        for source in response.get("sources", []):
+            github_repo = source.get("githubRepo") or {}
+            if (
+                str(github_repo.get("owner") or "").casefold() == owner.casefold()
+                and str(github_repo.get("repo") or "").casefold() == name.casefold()
+            ):
+                source_name = str(source.get("name") or "")
+                if source_name:
+                    return source_name
+        page_token = response.get("nextPageToken")
+        if not page_token:
+            break
+    raise RuntimeError(f"Jules has no connected GitHub source for {repo}")
+
+
+def session_title(repo: str, task: Task) -> str:
+    return f"[{repo} #{task.number}] {task.title}"
+
+
+def session_prompt(repo: str, task: Task) -> str:
+    issue_url = f"https://github.com/{repo}/issues/{task.number}"
+    return (
+        f"Work on GitHub issue #{task.number}: {task.title}\n"
+        f"{issue_url}\n\n"
+        f"{task.body.strip()}\n\n"
+        "Treat the current repository as the source of truth. Work from current main. "
+        "Keep the change bounded to this issue, prefer root-cause fixes, and add regression "
+        "coverage where behavior changes. Open a pull request that includes "
+        f"'Closes #{task.number}'. Do not merge the pull request yourself."
+    )
+
+
+def create_jules_session(
+    api_key: str,
+    source_name: str,
+    repo: str,
+    task: Task,
+    api_post: Callable[..., dict[str, Any]] = jules_json,
+) -> dict[str, Any]:
+    return api_post(
+        api_key,
+        "/sessions",
+        method="POST",
+        payload={
+            "prompt": session_prompt(repo, task),
+            "title": session_title(repo, task),
+            "sourceContext": {
+                "source": source_name,
+                "githubRepoContext": {"startingBranch": "main"},
+            },
+            "requirePlanApproval": False,
+            "automationMode": "AUTO_CREATE_PR",
+        },
+    )
+
+
+def dispatch_task(
+    task: Task,
+    *,
+    repo: str,
+    api_key: str,
+    source_name: str,
+    create_session: Callable[..., dict[str, Any]] = create_jules_session,
+    run_gh: Callable[..., None] = gh_run,
+) -> dict[str, Any]:
+    session = create_session(api_key, source_name, repo, task)
+    session_id = str(session.get("id") or "")
+    session_url = str(session.get("url") or "")
+    if not session_id or not session_url:
+        raise RuntimeError(f"Jules session creation for issue #{task.number} returned no id/url")
+
+    run_gh(
+        "issue", "edit", str(task.number), "--repo", repo,
+        "--add-label", "autonomous-backlog",
+        "--add-label", "agent-ready",
+        "--add-label", "jules",
+        "--add-label", JULES_ACTIVE_LABEL,
+    )
+    run_gh(
+        "issue", "comment", str(task.number), "--repo", repo,
+        "--body",
+        (
+            f"Autonomous dispatcher created Jules session '{session_id}' for this "
+            f"{task.priority} task in area '{task.area}'.\n\n"
+            f"Jules session: {session_url}\n\n"
+            "The issue is counted as active only after this session is created successfully."
+        ),
+    )
+    return session
+
+
 def ensure_labels(repo: str) -> None:
     for name, color, description in (
         ("agent-ready", "0E8A16", "Bounded task suitable for an automated coding agent"),
-        ("jules", "715CD7", "Dispatch this issue to Google Jules"),
+        ("jules", "715CD7", "Assigned to Google Jules"),
+        (JULES_ACTIVE_LABEL, "5319E7", "A real Jules API session was created for this issue"),
         ("blocked", "B60205", "Blocked by another task or prerequisite"),
         ("needs-product-decision", "FBCA04", "Requires product judgment before autonomous execution"),
         ("autonomous-backlog", "1D76DB", "Approved backlog item eligible for autonomous dispatch"),
@@ -157,25 +286,19 @@ def main() -> int:
         print("No safe autonomous task is currently dispatchable.")
         return 0
 
+    api_key = os.environ["JULES_API_KEY"]
+    source_name = find_jules_source(api_key, repo)
     for task in selected:
-        gh_run(
-            "issue", "edit", str(task.number), "--repo", repo,
-            "--add-label", "autonomous-backlog",
-            "--add-label", "agent-ready",
-            "--add-label", "jules",
+        session = dispatch_task(
+            task,
+            repo=repo,
+            api_key=api_key,
+            source_name=source_name,
         )
-        gh_run(
-            "issue", "comment", str(task.number), "--repo", repo,
-            "--body",
-            (
-                f"Autonomous dispatcher selected this {task.priority} task for Jules "
-                f"in area `{task.area}`.\n\n"
-                "Work from current `main`, keep the change bounded to this issue, add regression "
-                "coverage where behavior changes, and open a PR that includes "
-                f"`Closes #{task.number}`. Do not merge the PR yourself."
-            ),
+        print(
+            f"Started Jules session {session['id']} for #{task.number}: {task.title} "
+            f"({session['url']})"
         )
-        print(f"Dispatched #{task.number}: {task.title}")
     return 0
 
 
