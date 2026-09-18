@@ -20,4 +20,54 @@ for (const asset of assets) {
   assert.equal(asset.includes("/"), false, `${asset} is nested; update the generic Pages asset packaging contract`);
 }
 
-console.log("deploy asset parity tests passed");
+
+const workflowFiles = fs.readdirSync(".github/workflows")
+  .filter(name => /\.ya?ml$/i.test(name))
+  .sort();
+assert.deepEqual(
+  workflowFiles,
+  ["deploy-pages.yml", "quality.yml", "update-feed.yml"],
+  "Production workflow set changed; update the workflow-health contract intentionally and do not leave temporary workflows on main"
+);
+
+const qualityWorkflow = fs.readFileSync(".github/workflows/quality.yml", "utf8");
+const feedWorkflow = fs.readFileSync(".github/workflows/update-feed.yml", "utf8");
+
+assert.match(
+  qualityWorkflow,
+  /group:\s*quality-\$\{\{ github\.ref \}\}[\s\S]*?cancel-in-progress:\s*true/,
+  "Replaceable quality runs should cancel superseded runs on the same ref"
+);
+
+assert.match(
+  feedWorkflow,
+  /group:\s*update-opportunity-feed[\s\S]*?cancel-in-progress:\s*false/,
+  "State-producing feed refreshes must finish instead of being cancelled by newer pushes"
+);
+assert.match(
+  feedWorkflow,
+  /timeout-minutes:\s*45/,
+  "The feed build should have an explicit upper runtime bound"
+);
+
+assert.equal(
+  /\n\s*workflow_run:\s*\n/.test(workflow),
+  false,
+  "Pages should not start shell workflows for every feed completion; the successful feed commit already triggers deployment"
+);
+assert.equal(
+  /github\.event\.workflow_run/.test(workflow),
+  false,
+  "Pages should not depend on upstream workflow completion state"
+);
+assert.ok(
+  workflow.includes('- "data/listings.json"') && workflow.includes('- "data/workday-inspections.json"'),
+  "Successful feed commits must directly trigger Pages deployment"
+);
+assert.match(
+  workflow,
+  /group:\s*github-pages[\s\S]*?cancel-in-progress:\s*true/,
+  "Pages deployments are replaceable and should keep only the latest commit"
+);
+
+console.log("deploy asset and workflow health contract tests passed");
