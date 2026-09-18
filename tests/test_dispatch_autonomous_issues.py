@@ -82,6 +82,22 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
         self.assertEqual([task.number for task in selected], [3])
 
+
+    def test_paginated_issue_pages_are_flattened_without_json_stream_assumptions(self):
+        pages = [
+            [{"number": 1}, {"number": 2}],
+            [{"number": 3}],
+        ]
+
+        self.assertEqual(
+            mod.flatten_paginated_pages(pages),
+            [{"number": 1}, {"number": 2}, {"number": 3}],
+        )
+
+    def test_paginated_issue_pages_reject_non_array_pages(self):
+        with self.assertRaises(TypeError):
+            mod.flatten_paginated_pages([[{"number": 1}], {"number": 2}])
+
     def test_non_autonomous_or_unstructured_issues_are_ignored(self):
         issues = [
             issue(1, "ordinary issue"),
