@@ -14,7 +14,7 @@ WORKDAY_HOST_RE = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com$", re.I)
 
 ALLOWED_EDUCATION = {"undergrad", "graduate-only", "unspecified"}
 ALLOWED_TYPES = {"internship", "co-op", "fellowship", "research", "student", "other"}
-ALLOWED_LINK_KINDS = {"direct", "listing", "source"}
+ALLOWED_LINK_KINDS = {"direct", "employer_job", "listing", "source"}
 NON_DIRECT_HOSTS = {
     "github.com", "www.github.com", "raw.githubusercontent.com",
     "simplify.jobs", "www.simplify.jobs",
@@ -115,6 +115,11 @@ def validate(
                 errors.append(f"job {job_id or i} direct link_kind has no direct URL")
             elif urlparse(str(url)).netloc.lower() in NON_DIRECT_HOSTS:
                 errors.append(f"job {job_id or i} labels non-direct host as Apply: {urlparse(str(url)).netloc}")
+        elif kind == "employer_job":
+            if not valid_http_url(url):
+                errors.append(f"job {job_id or i} employer_job link_kind has no employer URL")
+            elif urlparse(str(url)).netloc.lower() in NON_DIRECT_HOSTS:
+                errors.append(f"job {job_id or i} labels non-employer host as employer_job: {urlparse(str(url)).netloc}")
         elif kind == "listing" and not valid_http_url(listing_url):
             errors.append(f"job {job_id or i} listing link_kind has no listing_url")
         elif kind == "source" and url:
@@ -162,7 +167,7 @@ def main() -> int:
     parser.add_argument(
         "--enforce-link-contract",
         action="store_true",
-        help="fail when a published direct Workday link is not a validated /apply destination",
+        help="fail when a Workday link presented as direct Apply is not a validated /apply destination",
     )
     args = parser.parse_args()
 
