@@ -344,6 +344,70 @@ class RepairLinksTests(unittest.TestCase):
         self.assertEqual(job["link_kind"], "source")
 
 
+class WorkdayEmployerJobSemanticsTests(unittest.TestCase):
+    def _feed_job(self, url):
+        return {
+            "id": "medtronic-r73625",
+            "company": "Medtronic",
+            "title": "IT Intern - Summer 2027",
+            "location": "Minneapolis, MN",
+            "source_names": ["Medtronic"],
+            "source_keys": ["direct-workday-medtronic"],
+            "source_urls": ["https://medtronic.wd1.myworkdayjobs.com/"],
+            "profiles": ["cs"],
+            "education_level": "undergrad",
+            "opportunity_type": "internship",
+            "url": url,
+        }
+
+    def test_workday_job_page_is_employer_job_not_direct_apply(self):
+        url = (
+            "https://medtronic.wd1.myworkdayjobs.com/en-US/redeploymentmedtroniccareers/"
+            "job/Minneapolis-Minnesota-United-States-of-America/IT-Intern---Summer-2027_R73625"
+        )
+        doc = {"jobs": [self._feed_job(url)]}
+        mod.repair_document(doc)
+        job = doc["jobs"][0]
+        self.assertEqual(job["link_kind"], "employer_job")
+        self.assertEqual(job["url"], url)
+        self.assertFalse(mod.should_validate_direct_link(job))
+        self.assertEqual(
+            validate_mod.workday_direct_contract_errors(job, "job medtronic-r73625"),
+            [],
+        )
+
+    def test_workday_apply_url_remains_direct_apply(self):
+        url = (
+            "https://medtronic.wd1.myworkdayjobs.com/en-US/redeploymentmedtroniccareers/"
+            "job/Minneapolis-Minnesota-United-States-of-America/IT-Intern---Summer-2027_R73625/apply"
+        )
+        doc = {"jobs": [self._feed_job(url)]}
+        mod.repair_document(doc)
+        self.assertEqual(doc["jobs"][0]["link_kind"], "direct")
+
+    def test_validator_accepts_employer_job_kind(self):
+        url = (
+            "https://medtronic.wd1.myworkdayjobs.com/en-US/redeploymentmedtroniccareers/"
+            "job/Minneapolis-Minnesota-United-States-of-America/IT-Intern---Summer-2027_R73625"
+        )
+        job = self._feed_job(url)
+        job["link_kind"] = "employer_job"
+        doc = {"jobs": [job], "sources": {"medtronic": {"ok": True, "configured": True}}}
+        from tempfile import NamedTemporaryFile
+        with NamedTemporaryFile("w+", suffix=".json") as handle:
+            json.dump(doc, handle)
+            handle.flush()
+            errors = validate_mod.validate(
+                Path(handle.name),
+                minimum_jobs=1,
+                minimum_healthy_sources=1,
+                strict_sources=False,
+                enforce_link_contract=True,
+            )
+        self.assertEqual(errors, [])
+
+
+
 class WorkdayPublishContractTests(unittest.TestCase):
     def _job(self, url, *, status="ok", checked_at="2026-09-18T14:00:00Z"):
         return {
