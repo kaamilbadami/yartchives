@@ -23,6 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 from scripts.build_feed import canonical_url, norm  # noqa: E402
+from scripts.reconcile_workday_duplicates import posting_identity_key  # noqa: E402
 
 FEED = ROOT / "data/listings.json"
 SOURCES = ROOT / "sources.json"
@@ -119,10 +120,13 @@ def host(url: str) -> str:
         return ""
 
 
-def url_identity(url: str) -> tuple[str, str] | None:
-    """Conservative provider identity used only to flag probable dedupe issues."""
+def url_identity(url: str) -> tuple[str, ...] | None:
+    """Return provider-native posting identity when available, then conservative fallbacks."""
     if not url:
         return None
+    provider_identity = posting_identity_key(url)
+    if provider_identity:
+        return provider_identity
     try:
         parsed = urlparse(url)
     except Exception:
