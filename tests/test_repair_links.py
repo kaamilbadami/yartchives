@@ -288,7 +288,7 @@ class RepairLinksTests(unittest.TestCase):
         self.assertEqual(final, stale)
         self.assertIn("/wday/cxs/amgen/Careers/job/", get.call_args.args[0])
 
-    def test_live_workday_cxs_posting_is_ok(self):
+    def test_live_workday_apply_route_is_ok(self):
         class Response:
             status_code = 200
 
@@ -298,17 +298,14 @@ class RepairLinksTests(unittest.TestCase):
             def close(self):
                 pass
 
-        live = "https://example.wd1.myworkdayjobs.com/Careers/job/Remote/live_R-123"
+        live = "https://example.wd1.myworkdayjobs.com/Careers/job/Remote/live_R-123/apply"
         with patch.object(mod.requests, "get", return_value=Response()):
             status, final = mod.validate_direct_url(live)
 
         self.assertEqual(status, "ok")
-        self.assertEqual(
-            final,
-            "https://example.wd1.myworkdayjobs.com/en-US/Careers/job/Remote/live_R-123",
-        )
+        self.assertEqual(final, live)
 
-    def test_amgen_r255719_final_apply_url_is_locale_qualified(self):
+    def test_live_workday_job_page_is_recovery_target_not_final_apply_link(self):
         class Response:
             status_code = 200
 
@@ -320,10 +317,6 @@ class RepairLinksTests(unittest.TestCase):
 
         bad = (
             "https://amgen.wd1.myworkdayjobs.com/Careers/job/United-States---Remote/"
-            "Undergrad-Intern-Software-Engineer-Technology-AI-Data-Summer-2027_R-255719"
-        )
-        expected = (
-            "https://amgen.wd1.myworkdayjobs.com/en-US/Careers/job/United-States---Remote/"
             "Undergrad-Intern-Software-Engineer-Technology-AI-Data-Summer-2027_R-255719"
         )
         job = {
@@ -340,9 +333,10 @@ class RepairLinksTests(unittest.TestCase):
         with patch.object(mod.requests, "get", return_value=Response()):
             stats = mod.validate_repaired_links({"jobs": [job]}, {"jobs": []})
 
-        self.assertEqual(stats["ok"], 1)
-        self.assertEqual(job["url"], expected)
-        self.assertEqual(job["link_status"], "ok")
+        self.assertEqual(stats["dead"], 1)
+        self.assertEqual(job["url"], "")
+        self.assertEqual(job["dead_url"], bad)
+        self.assertEqual(job["link_kind"], "source")
 
 
 if __name__ == "__main__":
