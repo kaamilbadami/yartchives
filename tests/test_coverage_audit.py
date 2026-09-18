@@ -124,6 +124,58 @@ class CoverageAuditTests(unittest.TestCase):
         self.assertEqual(result["status"], "already_in_yartchives")
         self.assertEqual(result["reason_code"], "provider_identity_match")
 
+    def test_workday_job_and_apply_urls_share_provider_identity(self):
+        job_url = "https://gdit.wd5.myworkdayjobs.com/external_career_site/job/USA-VA-Falls-Church/Summer-2027-Software-Development-Internship_RQ228405"
+        apply_url = job_url + "/apply"
+        self.assertEqual(mod.url_identity(job_url), mod.url_identity(apply_url))
+        self.assertEqual(mod.url_identity(job_url)[0], "workday")
+
+    def test_workday_identity_matches_despite_display_metadata_drift(self):
+        record = {
+            "company": "General Dynamics Information Technology",
+            "title": "Summer 2027 Software Development Internship",
+            "location": "Falls Church, VA",
+            "url": "https://gdit.wd5.myworkdayjobs.com/external_career_site/job/USA-VA-Falls-Church/Summer-2027-Software-Development-Internship_RQ228405",
+            "expected_profile": "cs",
+            "expected_state": "VA",
+            "expected_opportunity_type": "internship",
+        }
+        jobs = [feed_job(
+            company="GDIT",
+            title="Summer 2027 Software Development Internship",
+            location="USA VA Falls Church",
+            url="https://gdit.wd5.myworkdayjobs.com/External_Career_Site/job/USA-VA-Falls-Church/Summer-2027-Software-Development-Internship_RQ228405/apply",
+            profiles=["cs"],
+            states=["VA"],
+            opportunity_type="internship",
+        )]
+        result = self.classify(record, jobs=jobs)
+        self.assertEqual(result["status"], "already_in_yartchives")
+        self.assertEqual(result["reason_code"], "provider_identity_match")
+
+    def test_icf_workday_identity_survives_job_page_to_apply_transition(self):
+        record = {
+            "company": "ICF",
+            "title": "2027 Summer Intern, Software Developer",
+            "location": "Reston, VA",
+            "url": "https://icf.wd5.myworkdayjobs.com/icfexternal_career_site/job/Reston-VA/XMLNAME-2027-Summer-Intern--Software-Developer--Reston--VA-_R2603002",
+            "expected_profile": "cs",
+            "expected_state": "VA",
+            "expected_opportunity_type": "internship",
+        }
+        jobs = [feed_job(
+            company="ICF",
+            title="2027 Summer Intern, Software Developer (Reston, VA)",
+            location="Reston, VA",
+            url="https://icf.wd5.myworkdayjobs.com/icfexternal_career_site/job/Reston-VA/XMLNAME-2027-Summer-Intern--Software-Developer--Reston--VA-_R2603002/apply",
+            profiles=["cs"],
+            states=["VA"],
+            opportunity_type="internship",
+        )]
+        result = self.classify(record, jobs=jobs)
+        self.assertEqual(result["status"], "already_in_yartchives")
+        self.assertEqual(result["reason_code"], "provider_identity_match")
+
     def test_same_ats_identity_detects_resolution_issue(self):
         result = self.classify({
             "company": "Different Display Name",
