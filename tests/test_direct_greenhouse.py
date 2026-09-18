@@ -1,8 +1,11 @@
 import importlib.util
 import sys
+import threading
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_DIR = ROOT / "scripts"
@@ -190,6 +193,49 @@ class DirectGreenhouseTests(unittest.TestCase):
         self.assertEqual(len(jobs), 1)
         self.assertEqual(jobs[0]["greenhouse_job_id"], "10")
         self.assertEqual(session.calls[0][0], source["api_url"])
+
+
+    def test_board_fetches_run_concurrently_with_independent_sessions(self):
+        sources = [
+            {"key": f"board-{i}", "board_token": f"board{i}"}
+            for i in range(6)
+        ]
+        reference = datetime(2026, 9, 17, tzinfo=timezone.utc)
+        lock = threading.Lock()
+        active = 0
+        max_active = 0
+        sessions = []
+
+        def fake_session():
+            token = object()
+            sessions.append(token)
+            return token
+
+        def fake_fetch(client, source, current_reference):
+            nonlocal active, max_active
+            self.assertEqual(current_reference, reference)
+            with lock:
+                active += 1
+                max_active = max(max_active, active)
+            time.sleep(0.03)
+            with lock:
+                active -= 1
+            return [{"source": source["key"], "client": client}]
+
+        with (
+            patch.object(mod, "retry_session", side_effect=fake_session),
+            patch.object(mod, "fetch_source", side_effect=fake_fetch),
+        ):
+            results = mod.fetch_sources_concurrently(sources, reference)
+
+        self.assertEqual(set(results), {source["key"] for source in sources})
+        self.assertGreater(max_active, 1)
+        self.assertEqual(len(sessions), len(sources))
+        self.assertEqual(len({id(session) for session in sessions}), len(sources))
+
+    def test_greenhouse_network_limits_are_bounded(self):
+        self.assertEqual(mod.TIMEOUT, 12)
+        self.assertEqual(mod.NETWORK_WORKERS, 12)
 
 
 if __name__ == "__main__":
