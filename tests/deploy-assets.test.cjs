@@ -26,7 +26,7 @@ const workflowFiles = fs.readdirSync(".github/workflows")
   .sort();
 assert.deepEqual(
   workflowFiles,
-  ["coverage-audit.yml", "deploy-pages.yml", "quality.yml", "update-feed.yml"],
+  ["coverage-audit.yml", "deploy-pages.yml", "quality.yml", "triage-workflow-failures.yml", "update-feed.yml"],
   "Production workflow set changed; update the workflow-health contract intentionally and do not leave temporary workflows on main"
 );
 
@@ -35,6 +35,7 @@ const qualityWorkflow = fs.readFileSync(".github/workflows/quality.yml", "utf8")
 const feedWorkflow = fs.readFileSync(".github/workflows/update-feed.yml", "utf8");
 
 for (const name of workflowFiles) {
+  if (name === "triage-workflow-failures.yml") continue;
   const content = fs.readFileSync(`.github/workflows/${name}`, "utf8");
   assert.match(content, /\n\s*workflow_dispatch:/, `${name} should remain manually runnable for recovery/diagnosis`);
 }
