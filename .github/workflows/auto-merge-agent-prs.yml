@@ -12,7 +12,7 @@ on:
       - completed
 
 permissions:
-  actions: read
+  actions: write
   contents: write
   issues: read
   pull-requests: write
