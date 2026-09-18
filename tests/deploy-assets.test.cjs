@@ -32,7 +32,8 @@ assert.deepEqual(
 
 const coverageWorkflow = fs.readFileSync(".github/workflows/coverage-audit.yml", "utf8");
 const qualityWorkflow = fs.readFileSync(".github/workflows/quality.yml", "utf8");
-const feedWorkflow = fs.readFileSync(".github/workflows/update-feed.yml", "utf8");\nconst autonomousWorkflow = fs.readFileSync(".github/workflows/autonomous-dispatch.yml", "utf8");
+const feedWorkflow = fs.readFileSync(".github/workflows/update-feed.yml", "utf8");
+const autonomousWorkflow = fs.readFileSync(".github/workflows/autonomous-dispatch.yml", "utf8");
 assert.equal(qualityWorkflow.includes("jules-review:"), false, "Routine Quality runs should not spend Jules quota on PR review");
 
 assert.match(
