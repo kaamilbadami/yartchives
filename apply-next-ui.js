@@ -191,13 +191,38 @@
     panel.append(actions);
   }
 
+  function locationValueText(value) {
+    if (value === null || value === undefined) return "";
+    if (typeof value === "string" || typeof value === "number") return normalize(value);
+    if (Array.isArray(value)) {
+      return value.map(locationValueText).filter(Boolean).join(" · ");
+    }
+    if (typeof value !== "object") return "";
+
+    if (Array.isArray(value.values)) {
+      const values = value.values.map(locationValueText).filter(Boolean);
+      if (values.length) return values.join(" · ");
+    }
+
+    for (const key of ["text", "label", "display_name", "displayName", "formatted", "formatted_address", "name"]) {
+      const text = locationValueText(value[key]);
+      if (text) return text;
+    }
+
+    const city = locationValueText(value.city);
+    const stateValue = locationValueText(value.state || value.region || value.state_code);
+    const country = locationValueText(value.country || value.country_code);
+    const parts = [city, stateValue, country].filter(Boolean);
+    return parts.join(", ");
+  }
+
   function locationDisplayValues(job) {
     const authoritative = (typeof YartchivesUtils !== "undefined" && YartchivesUtils.authoritativeLocationValues)
       ? YartchivesUtils.authoritativeLocationValues(job)
       : [];
     if (authoritative.length > 1) return authoritative;
-    const raw = normalize(job?.location);
-    if (!raw) return [];
+    const raw = locationValueText(job?.location);
+    if (!raw) return authoritative.length ? authoritative : [];
     const split = raw.split(/\s*(?:;|\||·)\s*/).map(normalize).filter(Boolean);
     return split.length > 1 ? split : [raw];
   }
@@ -287,7 +312,7 @@
     titleWrap.append(
       element("p", "apply-next-rank", `#${rank} · ${job.company || "Company not listed"}`),
       element("h3", "", job.title || "Untitled opportunity"),
-      element("p", "muted", job._displayLocation || job.location || "Location not listed")
+      element("p", "muted", job._displayLocation || locationValueText(job.location) || "Location not listed")
     );
     const postedDate = formatPostedDate(job.posted_at);
     if (postedDate) titleWrap.append(element("p", "muted apply-next-posted-date", postedDate));
@@ -467,6 +492,7 @@
     candidatePool,
     profileSummary,
     formatPostedDate,
+    locationValueText,
     locationDisplayValues,
     orderLocationValues,
     emptyInspectionArtifact,
