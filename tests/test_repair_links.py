@@ -9,6 +9,11 @@ spec = importlib.util.spec_from_file_location("repair_links", MODULE_PATH)
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 
+VALIDATE_MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "validate_feed.py"
+validate_spec = importlib.util.spec_from_file_location("validate_feed", VALIDATE_MODULE_PATH)
+validate_mod = importlib.util.module_from_spec(validate_spec)
+validate_spec.loader.exec_module(validate_mod)
+
 
 class RepairLinksTests(unittest.TestCase):
     def test_applyguy_original_listing_becomes_direct(self):
@@ -337,6 +342,54 @@ class RepairLinksTests(unittest.TestCase):
         self.assertEqual(job["url"], "")
         self.assertEqual(job["dead_url"], bad)
         self.assertEqual(job["link_kind"], "source")
+
+
+class WorkdayPublishContractTests(unittest.TestCase):
+    def _job(self, url, *, status="ok", checked_at="2026-09-18T14:00:00Z"):
+        return {
+            "id": "amgen-r-255719",
+            "company": "Amgen",
+            "title": "Undergrad Intern - Software Engineer",
+            "location": "Remote",
+            "source_names": ["Amgen"],
+            "profiles": ["cs"],
+            "education_level": "undergrad",
+            "opportunity_type": "internship",
+            "link_kind": "direct",
+            "url": url,
+            "link_status": status,
+            "link_checked_at": checked_at,
+        }
+
+    def test_publish_contract_rejects_live_workday_job_page_as_direct_apply(self):
+        job = self._job(
+            "https://amgen.wd1.myworkdayjobs.com/Careers/job/United-States---Remote/"
+            "Undergrad-Intern-Software-Engineer_R-255719"
+        )
+        errors = validate_mod.workday_direct_contract_errors(job, "job amgen-r-255719")
+        self.assertTrue(any("not an /apply destination" in error for error in errors))
+        self.assertTrue(all(error.startswith("link-quality:") for error in errors))
+
+    def test_publish_contract_rejects_unvalidated_workday_apply_url(self):
+        job = self._job(
+            "https://amgen.wd1.myworkdayjobs.com/Careers/job/United-States---Remote/"
+            "Undergrad-Intern-Software-Engineer_R-255719/apply",
+            status="unknown",
+            checked_at="",
+        )
+        errors = validate_mod.workday_direct_contract_errors(job, "job amgen-r-255719")
+        self.assertTrue(any("not validated ok" in error for error in errors))
+        self.assertTrue(any("no validation timestamp" in error for error in errors))
+
+    def test_publish_contract_accepts_validated_workday_apply_url(self):
+        job = self._job(
+            "https://amgen.wd1.myworkdayjobs.com/Careers/job/United-States---Remote/"
+            "Undergrad-Intern-Software-Engineer_R-255719/apply"
+        )
+        self.assertEqual(
+            validate_mod.workday_direct_contract_errors(job, "job amgen-r-255719"),
+            [],
+        )
 
 
 if __name__ == "__main__":
