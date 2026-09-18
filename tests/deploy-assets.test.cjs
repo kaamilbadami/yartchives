@@ -26,7 +26,7 @@ const workflowFiles = fs.readdirSync(".github/workflows")
   .sort();
 assert.deepEqual(
   workflowFiles,
-  ["autonomous-dispatch.yml", "coverage-audit.yml", "deploy-pages.yml", "quality.yml", "triage-workflow-failures.yml", "update-feed.yml"],
+  ["auto-merge-agent-prs.yml", "autonomous-dispatch.yml", "coverage-audit.yml", "deploy-pages.yml", "quality.yml", "triage-workflow-failures.yml", "update-feed.yml"],
   "Production workflow set changed; update the workflow-health contract intentionally and do not leave temporary workflows on main"
 );
 
@@ -34,7 +34,28 @@ const coverageWorkflow = fs.readFileSync(".github/workflows/coverage-audit.yml",
 const qualityWorkflow = fs.readFileSync(".github/workflows/quality.yml", "utf8");
 const feedWorkflow = fs.readFileSync(".github/workflows/update-feed.yml", "utf8");
 const autonomousWorkflow = fs.readFileSync(".github/workflows/autonomous-dispatch.yml", "utf8");
+const autoMergeWorkflow = fs.readFileSync(".github/workflows/auto-merge-agent-prs.yml", "utf8");
 assert.equal(qualityWorkflow.includes("jules-review:"), false, "Routine Quality runs should not spend Jules quota on PR review");
+assert.match(
+  autoMergeWorkflow,
+  /workflow_run:[\s\S]*?workflows:[\s\S]*?- Quality checks[\s\S]*?types:[\s\S]*?- completed/,
+  "Autonomous PR merger should wake only after Quality checks complete"
+);
+assert.match(
+  autoMergeWorkflow,
+  /push:[\s\S]*?branches:[\s\S]*?- main/,
+  "Main pushes should continue draining already-green autonomous PRs"
+);
+assert.match(
+  autoMergeWorkflow,
+  /contents:\s*write[\s\S]*?pull-requests:\s*write/,
+  "Autonomous PR merger needs only the write permissions required to update and merge PRs"
+);
+assert.match(
+  autoMergeWorkflow,
+  /run:\s*python scripts\/auto_merge_agent_prs\.py/,
+  "Autonomous PR merge decisions should stay in tested Python policy"
+);
 
 assert.match(
   autonomousWorkflow,
