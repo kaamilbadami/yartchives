@@ -38,7 +38,6 @@ permissions:
 concurrency:
   group: update-opportunity-feed
   cancel-in-progress: false
-  queue: single
 
 jobs:
   build:
@@ -59,7 +58,7 @@ jobs:
 
       - name: Validate code
         run: |
-          python -m py_compile scripts/build_feed.py scripts/careers_resolver.py scripts/employer_resolution_lifecycle.py scripts/employer_resolution_queue.py scripts/direct_ct_workday.py scripts/direct_icims.py scripts/direct_greenhouse.py scripts/direct_oracle.py scripts/discover_workday_sources.py scripts/posting_requirements.py scripts/workday_inspector.py scripts/icims_inspector.py scripts/greenhouse_inspector.py scripts/migrate_cached_requirements.py scripts/update_workday_inspections.py scripts/reconcile_workday_duplicates.py scripts/stabilize_job_ids.py scripts/enrich_feed.py scripts/repair_links.py scripts/provider_links.py scripts/jobright_links.py scripts/source_links.py scripts/validate_feed.py scripts/audit_feed.py scripts/coverage_audit.py scripts/coverage_contract.py scripts/source_contribution_audit.py scripts/employer_universe.py scripts/employer_seed_from_benchmark.py scripts/fortune_500_seed.py scripts/state_of_ats_seed.py scripts/refresh_employer_universe.py scripts/provider_fingerprint.py
+          python -m py_compile scripts/build_feed.py scripts/careers_resolver.py scripts/employer_resolution_lifecycle.py scripts/employer_resolution_queue.py scripts/direct_ct_workday.py scripts/direct_icims.py scripts/direct_greenhouse.py scripts/direct_oracle.py scripts/parallel_ats_collect.py scripts/discover_workday_sources.py scripts/posting_requirements.py scripts/workday_inspector.py scripts/icims_inspector.py scripts/greenhouse_inspector.py scripts/migrate_cached_requirements.py scripts/update_workday_inspections.py scripts/reconcile_workday_duplicates.py scripts/stabilize_job_ids.py scripts/enrich_feed.py scripts/repair_links.py scripts/provider_links.py scripts/jobright_links.py scripts/source_links.py scripts/validate_feed.py scripts/audit_feed.py scripts/coverage_audit.py scripts/coverage_contract.py scripts/source_contribution_audit.py scripts/employer_universe.py scripts/employer_seed_from_benchmark.py scripts/fortune_500_seed.py scripts/state_of_ats_seed.py scripts/refresh_employer_universe.py scripts/provider_fingerprint.py
           python -m unittest discover -s tests -p "test_*.py" -v
           node --check frontend-utils.js
           node --check app.js
@@ -119,17 +118,12 @@ jobs:
       - name: Discover resolved and feed-evidenced US Workday career sites
         run: python scripts/discover_workday_sources.py data/listings.json --configured direct_sources.json --universe employer_universe.json --output /tmp/yartchives-direct-sources.json
 
-      - name: Add direct Workday employer coverage
-        run: python scripts/direct_ct_workday.py data/listings.json --old-feed /tmp/yartchives-old-listings.json --sources /tmp/yartchives-direct-sources.json
-
-      - name: Add sibling US iCIMS coverage from evidenced career sites
-        run: python scripts/direct_icims.py data/listings.json --old-feed /tmp/yartchives-old-listings.json
-
-      - name: Add sibling Greenhouse coverage from evidenced public boards
-        run: python scripts/direct_greenhouse.py data/listings.json --old-feed /tmp/yartchives-old-listings.json
-
-      - name: Add resolved Oracle Candidate Experience coverage
-        run: python scripts/direct_oracle.py data/listings.json --old-feed /tmp/yartchives-old-listings.json --universe employer_universe.json
+      - name: Add ATS employer coverage in parallel
+        run: |
+          python scripts/parallel_ats_collect.py data/listings.json \
+            --old-feed /tmp/yartchives-old-listings.json \
+            --sources /tmp/yartchives-direct-sources.json \
+            --universe employer_universe.json
 
       - name: Add student-level metadata
         run: python scripts/enrich_feed.py data/listings.json
