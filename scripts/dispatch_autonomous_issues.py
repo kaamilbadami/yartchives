@@ -7,6 +7,7 @@ import json
 import os
 import re
 import subprocess
+import time
 from typing import Any, Callable, Iterable, NamedTuple
 from urllib import parse, request
 
@@ -21,6 +22,8 @@ JULES_SESSION_MARKER = "<!-- jules-session-id: {session_id} -->"
 JULES_TERMINAL_STATES = {"COMPLETED", "FAILED"}
 CODEX_RESERVED_LABEL = "codex"
 CODEX_WORKER_PREFIX = "codex-worker-"
+DEFAULT_POLL_SECONDS = 30
+DEFAULT_WATCH_SECONDS = 13 * 60
 
 
 class Task(NamedTuple):
@@ -418,15 +421,21 @@ def ensure_labels(repo: str) -> None:
         )
 
 
-def main() -> int:
-    repo = os.environ["REPOSITORY"]
-    ensure_labels(repo)
+def fetch_open_issues(repo: str) -> list[dict[str, Any]]:
     issues = gh_paginated_json(
         "api",
         f"repos/{repo}/issues?state=open&per_page=100",
     )
-    issues = [issue for issue in issues if "pull_request" not in issue]
-    api_key = os.environ["JULES_API_KEY"]
+    return [issue for issue in issues if "pull_request" not in issue]
+
+
+def run_dispatch_cycle(
+    repo: str,
+    api_key: str,
+    source_name: str | None = None,
+) -> tuple[bool, str | None]:
+    """Reconcile finished work, dispatch available work, and report whether Jules stays active."""
+    issues = fetch_open_issues(repo)
 
     def load_comments(number: int) -> list[dict[str, Any]]:
         return gh_paginated_json(
@@ -441,12 +450,11 @@ def main() -> int:
         load_comments=load_comments,
     )
     selected = select_tasks(issues)
-    if not selected:
-        print("No safe autonomous task is currently dispatchable.")
-        return 0
+    if selected and source_name is None:
+        source_name = find_jules_source(api_key, repo)
 
-    source_name = find_jules_source(api_key, repo)
     for task in selected:
+        assert source_name is not None
         session = dispatch_task(
             task,
             repo=repo,
@@ -457,6 +465,64 @@ def main() -> int:
             f"Started Jules session {session['id']} for #{task.number}: {task.title} "
             f"({session['url']})"
         )
+
+    has_active = any(active_jules_task(issue) is not None for issue in issues) or bool(selected)
+    if not selected:
+        print("No safe autonomous task is currently dispatchable this cycle.")
+    return has_active, source_name
+
+
+def watch_jules_backlog(
+    repo: str,
+    api_key: str,
+    *,
+    poll_seconds: int = DEFAULT_POLL_SECONDS,
+    watch_seconds: int = DEFAULT_WATCH_SECONDS,
+    run_cycle: Callable[[str, str, str | None], tuple[bool, str | None]] = run_dispatch_cycle,
+    sleep_fn: Callable[[float], None] = time.sleep,
+    monotonic_fn: Callable[[], float] = time.monotonic,
+) -> None:
+    """Keep one workflow run alive long enough to promptly refill freed Jules slots."""
+    if poll_seconds <= 0:
+        raise ValueError("poll_seconds must be positive")
+    if watch_seconds < 0:
+        raise ValueError("watch_seconds cannot be negative")
+
+    deadline = monotonic_fn() + watch_seconds
+    source_name: str | None = None
+
+    while True:
+        has_active, source_name = run_cycle(repo, api_key, source_name)
+        if not has_active:
+            return
+
+        remaining = deadline - monotonic_fn()
+        if remaining < poll_seconds:
+            print(
+                "Jules watch window ended with active sessions still running; "
+                "the scheduled recovery run will continue reconciliation."
+            )
+            return
+
+        print(
+            f"Jules still has active backlog work; checking again in {poll_seconds} seconds."
+        )
+        sleep_fn(poll_seconds)
+
+
+def main() -> int:
+    repo = os.environ["REPOSITORY"]
+    api_key = os.environ["JULES_API_KEY"]
+    ensure_labels(repo)
+
+    poll_seconds = int(os.environ.get("JULES_POLL_SECONDS", DEFAULT_POLL_SECONDS))
+    watch_seconds = int(os.environ.get("JULES_WATCH_SECONDS", DEFAULT_WATCH_SECONDS))
+    watch_jules_backlog(
+        repo,
+        api_key,
+        poll_seconds=poll_seconds,
+        watch_seconds=watch_seconds,
+    )
     return 0
 
 

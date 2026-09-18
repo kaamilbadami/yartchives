@@ -49,7 +49,17 @@ assert.match(
 
 assert.ok(
   autonomousWorkflow.includes('- cron: "*/15 * * * *"'),
-  "Autonomous dispatcher should reconcile Jules session capacity every 15 minutes"
+  "Autonomous dispatcher should retain a 15-minute recovery cadence"
+);
+assert.match(
+  autonomousWorkflow,
+  /timeout-minutes:\s*14/,
+  "Continuous Jules reconciliation should have a bounded workflow runtime"
+);
+assert.ok(
+  autonomousWorkflow.includes('JULES_POLL_SECONDS: "30"') &&
+    autonomousWorkflow.includes('JULES_WATCH_SECONDS: "780"'),
+  "Active Jules backlog work should be repolled every 30 seconds within a bounded watch window"
 );
 
 for (const name of workflowFiles) {

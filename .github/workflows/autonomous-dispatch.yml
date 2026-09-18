@@ -23,6 +23,7 @@ jobs:
   dispatch:
     if: github.event_name != 'pull_request' || github.event.pull_request.merged == true
     runs-on: ubuntu-latest
+    timeout-minutes: 14
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
@@ -32,4 +33,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
           JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
+          JULES_POLL_SECONDS: "30"
+          JULES_WATCH_SECONDS: "780"
         run: python scripts/dispatch_autonomous_issues.py
