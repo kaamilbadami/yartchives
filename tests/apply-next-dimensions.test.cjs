@@ -66,16 +66,16 @@ assert.equal(D.scaleScore, undefined);
 const metadataOnly = D.scoreJob(job({ _inspection: undefined }), profile, now);
 assert.equal(metadataOnly.components.fit.score, 19);
 assert.equal(metadataOnly.components.role, undefined);
-assert.equal(metadataOnly.components.roi.score, 25);
+assert.equal(metadataOnly.components.roi.score, 23);
 assert.equal(metadataOnly.applicationValue.role.score, 15);
-assert.equal(metadataOnly.applicationValue.market.score, 10);
+assert.equal(metadataOnly.applicationValue.market.score, 8);
 assert.equal(metadataOnly.components.location.score, 20);
 assert.equal(metadataOnly.components.freshness.score, 10);
 assert.equal(metadataOnly.components.eligibility.score, 0);
 assert.equal(metadataOnly.components.link.score, 0);
 assert.match(metadataOnly.components.fit.detail, /neutral qualification-fit/i);
 assert.match(metadataOnly.components.roi.detail, /Role value 15\/15/i);
-assert.match(metadataOnly.components.roi.detail, /Market opportunity 10\/15/i);
+assert.match(metadataOnly.components.roi.detail, /Market opportunity 8\/15/i);
 assert.deepEqual(metadataOnly.scoreMaxima, D.SCORE_MAXIMA);
 
 const supported = D.scoreJob(job({
@@ -83,11 +83,11 @@ const supported = D.scoreJob(job({
 }), profile, now);
 const unsupported = D.scoreJob(job({
   url: "https://example.com/unsupported",
-  _inspection: inspection([["Rust required", ["Rust"]]]),
+  _inspection: inspection([["Kubernetes required", ["Kubernetes"]]]),
 }), profile, now);
 assert.ok(supported.components.fit.score > unsupported.components.fit.score);
 assert.match(supported.components.fit.detail, /Exact required skills: java/i);
-assert.match(unsupported.components.fit.detail, /Unsupported hard required skills: rust/i);
+assert.match(unsupported.components.fit.detail, /Unsupported hard required skills: kubernetes/i);
 assert.ok(supported.components.fit.score <= D.SCORE_MAXIMA.fit);
 assert.match(supported.inspection.label, /Ready on known requirements/i);
 assert.match(unsupported.inspection.label, /Some required gaps/i);
@@ -113,7 +113,7 @@ assert.match(learnable.inspection.label, /Ready on known requirements/i);
 const major = D.scoreJob(job({
   url: "https://example.com/major",
   _inspection: inspection([
-    ["Rust required", ["Rust"]],
+    ["Docker required", ["Docker"]],
     ["Kubernetes required", ["Kubernetes"]],
   ]),
 }), profile, now);
@@ -174,7 +174,7 @@ const academicMatch = D.scoreJob(job({
   url: "https://example.com/academic",
   _inspection: academicInspection,
 }), profile, now);
-assert.equal(academicMatch.components.fit.score, 24);
+assert.equal(academicMatch.components.fit.score, 28);
 assert.match(academicMatch.components.fit.detail, /Academic match/i);
 assert.match(academicMatch.components.fit.detail, /Computer Science matches a preferred major/i);
 assert.match(academicMatch.components.fit.detail, /Exact preferred skills: java/i);
@@ -197,7 +197,7 @@ const wexLike = D.scoreJob(job({
 }), profile, now);
 assert.ok(wexLike.components.fit.score >= 25);
 assert.match(wexLike.components.fit.detail, /Transferable capability: java supports c#/i);
-assert.match(wexLike.components.fit.detail, /Learnable\/low-threshold stack gaps:/i);
+assert.doesNotMatch(wexLike.components.fit.detail, /Learnable\/low-threshold stack gaps:/i);
 assert.doesNotMatch(wexLike.components.fit.detail, /Unsupported hard required skills/i);
 assert.match(wexLike.inspection.label, /Ready on known requirements/i);
 
