@@ -98,20 +98,8 @@ for (const [name, content] of [["quality", qualityWorkflow], ["feed", feedWorkfl
   );
 }
 
-assert.match(
-  feedWorkflow,
-  new RegExp(`python scripts/refresh_employer_universe\\.py employer_universe\\.json ${primaryBenchmark.replace(/[.*+?^$\\{\\}()|[\\]\\\\]/g, "\\\\for (const [name, content] of [["quality", qualityWorkflow], ["feed", feedWorkflow]]) {
-  assert.ok(
-    content.includes(primaryBenchmark),
-    `${name} workflow should measure the frozen 142-role Northeast/Mid-Atlantic benchmark`
-  );
-  assert.equal(
-    content.includes(`python scripts/coverage_audit.py ${legacyBenchmark}`),
-    false,
-    `${name} workflow should not use the 106-role legacy panel as the primary automated benchmark`
-  );
-}
-")}`),
+assert.ok(
+  feedWorkflow.includes(`python scripts/refresh_employer_universe.py employer_universe.json ${primaryBenchmark}`),
   "Employer-universe refresh should seed from the same frozen 142-role Northeast/Mid-Atlantic benchmark used for primary coverage measurement"
 );
 assert.equal(
