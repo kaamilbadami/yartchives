@@ -84,6 +84,20 @@ assert.match(
   "The feed build should have an explicit upper runtime bound"
 );
 
+const primaryBenchmark = "audit/samples/northeast-midatlantic-cs-2026-09-17.json";
+const legacyBenchmark = "audit/samples/ct-ny-md-dc-cs-2026-09-17.json";
+for (const [name, content] of [["quality", qualityWorkflow], ["feed", feedWorkflow]]) {
+  assert.ok(
+    content.includes(primaryBenchmark),
+    `${name} workflow should measure the frozen 142-role Northeast/Mid-Atlantic benchmark`
+  );
+  assert.equal(
+    content.includes(`python scripts/coverage_audit.py ${legacyBenchmark}`),
+    false,
+    `${name} workflow should not use the 106-role legacy panel as the primary automated benchmark`
+  );
+}
+
 assert.equal(
   /\n\s*workflow_run:\s*\n/.test(workflow),
   false,
