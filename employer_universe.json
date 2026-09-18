@@ -4,13 +4,19 @@
     {
       "key": "coverage-benchmark-2026-09-17",
       "kind": "coverage_benchmark",
-      "name": "CT / NY / MD / DC undergraduate CS coverage benchmark",
-      "collected_at": "2026-09-17T15:30:00Z",
+      "name": "Independent Northeast / Mid-Atlantic undergraduate CS coverage benchmark",
+      "collected_at": "2026-09-17T20:00:00Z",
       "states": [
         "CT",
         "DC",
+        "DE",
+        "MA",
         "MD",
-        "NY"
+        "NJ",
+        "NY",
+        "PA",
+        "RI",
+        "VA"
       ]
     },
     {
@@ -95,7 +101,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-18T16:08:50Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
             "type": "http",
@@ -567,7 +573,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-18T16:08:50Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
             "type": "http",
@@ -763,6 +769,26 @@
       }
     },
     {
+      "id": "aerotech",
+      "name": "Aerotech",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "aerotech.applytojob.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "PA"
+          ]
+        }
+      }
+    },
+    {
       "id": "aerovironment",
       "name": "AeroVironment",
       "aliases": [],
@@ -873,6 +899,26 @@
       }
     },
     {
+      "id": "agilent-technologies",
+      "name": "Agilent Technologies",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "agilent.wd5.myworkdayjobs.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "DE"
+          ]
+        }
+      }
+    },
+    {
       "id": "aig",
       "name": "AIG",
       "aliases": [],
@@ -902,7 +948,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-18T16:08:50Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
             "type": "http",
@@ -1700,7 +1746,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-18T16:08:50Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
             "type": "http",
@@ -1976,7 +2022,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-18T16:08:50Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
             "type": "http",
@@ -2338,7 +2384,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-18T16:08:50Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
             "type": "http",
@@ -2991,6 +3037,26 @@
       }
     },
     {
+      "id": "appian",
+      "name": "Appian",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "job-boards.greenhouse.io"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "VA"
+          ]
+        }
+      }
+    },
+    {
       "id": "apple",
       "name": "Apple",
       "aliases": [],
@@ -3466,7 +3532,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-18T16:08:50Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
             "type": "http",
@@ -4194,7 +4260,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-18T16:08:50Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
             "type": "http",
@@ -4354,7 +4420,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-18T16:08:50Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
             "type": "http",
@@ -4474,9 +4540,17 @@
       "name": "Barclays",
       "aliases": [],
       "seed_sets": [
+        "coverage-benchmark-2026-09-17",
         "state-of-ats-2026-verified-hosts"
       ],
       "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "DE"
+          ]
+        },
         "state-of-ats-2026-verified-hosts": {
           "apply_host": "barclays.wd3.myworkdayjobs.com",
           "ats_system": "Workday",
@@ -4777,7 +4851,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-18T16:08:50Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
             "type": "http",
@@ -4954,7 +5028,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-18T16:08:50Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
             "type": "http",
@@ -5354,7 +5428,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-18T16:08:50Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
             "type": "http",
@@ -5733,7 +5807,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-18T16:08:50Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
             "type": "http",
@@ -6513,9 +6587,20 @@
       "name": "Capital One",
       "aliases": [],
       "seed_sets": [
+        "coverage-benchmark-2026-09-17",
         "state-of-ats-2026-verified-hosts"
       ],
       "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "capitalone.wd12.myworkdayjobs.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "VA"
+          ]
+        },
         "state-of-ats-2026-verified-hosts": {
           "apply_host": "capitalone.wd12.myworkdayjobs.com",
           "ats_system": "Workday",
@@ -6988,14 +7073,88 @@
       "name": "Cencora",
       "aliases": [],
       "seed_sets": [
+        "coverage-benchmark-2026-09-17",
         "fortune-500-2026"
       ],
       "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "myhrabc.wd5.myworkdayjobs.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "PA"
+          ]
+        },
         "fortune-500-2026": {
           "fortune_slug": "/company/amerisourcebergen/",
           "order": 10,
           "rank": 10
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://myhrabc.wd5.myworkdayjobs.com/",
+            "redirect_chain": [
+              {
+                "url": "https://myhrabc.wd5.myworkdayjobs.com/",
+                "status": 406
+              }
+            ],
+            "final_url": "https://myhrabc.wd5.myworkdayjobs.com/",
+            "status": 406,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://myhrabc.wd5.myworkdayjobs.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://myhrabc.wd5.myworkdayjobs.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://myhrabc.wd5.myworkdayjobs.com/careers",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://myhrabc.wd5.myworkdayjobs.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://myhrabc.wd5.myworkdayjobs.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://myhrabc.wd5.myworkdayjobs.com/jobs",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          }
+        ]
       }
     },
     {
@@ -7668,6 +7827,26 @@
           "fortune_slug": "/company/citigroup/",
           "order": 24,
           "rank": 24
+        }
+      }
+    },
+    {
+      "id": "citizens",
+      "name": "Citizens",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 3,
+          "domain_hints": [
+            "jobs.citizensbank.com"
+          ],
+          "evidence_count": 3,
+          "states": [
+            "RI"
+          ]
         }
       }
     },
@@ -8845,6 +9024,26 @@
       }
     },
     {
+      "id": "crum-and-forster",
+      "name": "Crum & Forster",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "careers-cfins.icims.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "NJ"
+          ]
+        }
+      }
+    },
+    {
       "id": "csx",
       "name": "CSX",
       "aliases": [],
@@ -9062,6 +9261,26 @@
             "source_url": "https://withresumeai.com/ats-checker/cvs-health"
           }
         ]
+      }
+    },
+    {
+      "id": "cyvl",
+      "name": "Cyvl",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "jobs.ashbyhq.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "MA"
+          ]
+        }
       }
     },
     {
@@ -9591,6 +9810,23 @@
           "fortune_slug": "/company/dell-technologies/",
           "order": 41,
           "rank": 41
+        }
+      }
+    },
+    {
+      "id": "delmarva-digital",
+      "name": "Delmarva Digital",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "DE"
+          ]
         }
       }
     },
@@ -12957,9 +13193,17 @@
       "name": "FM",
       "aliases": [],
       "seed_sets": [
+        "coverage-benchmark-2026-09-17",
         "fortune-500-2026"
       ],
       "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "RI"
+          ]
+        },
         "fortune-500-2026": {
           "fortune_slug": "/company/fm-global/",
           "order": 392,
@@ -13965,6 +14209,47 @@
             "score": 19
           }
         ]
+      }
+    },
+    {
+      "id": "general-dynamics-information-technology",
+      "name": "General Dynamics Information Technology",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "gdit.wd5.myworkdayjobs.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "VA"
+          ]
+        }
+      }
+    },
+    {
+      "id": "general-dynamics-mission-systems",
+      "name": "General Dynamics Mission Systems",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 2,
+          "domain_hints": [
+            "careers-gdms.icims.com"
+          ],
+          "evidence_count": 2,
+          "states": [
+            "MA",
+            "RI"
+          ]
+        }
       }
     },
     {
@@ -15030,6 +15315,26 @@
       }
     },
     {
+      "id": "hologic",
+      "name": "Hologic",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "na.careers.hologic.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "DE"
+          ]
+        }
+      }
+    },
+    {
       "id": "home-depot",
       "name": "Home Depot",
       "aliases": [],
@@ -15594,14 +15899,101 @@
       "name": "Huntington Ingalls Industries",
       "aliases": [],
       "seed_sets": [
+        "coverage-benchmark-2026-09-17",
         "fortune-500-2026"
       ],
       "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "careers.huntingtoningalls.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "VA"
+          ]
+        },
         "fortune-500-2026": {
           "fortune_slug": "/company/huntington-ingalls-industries/",
           "order": 352,
           "rank": 352
         }
+      },
+      "careers_url": "https://careers.huntingtoningalls.com/careers",
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "careers.huntingtoningalls.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-18T16:38:53Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers.huntingtoningalls.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.huntingtoningalls.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.huntingtoningalls.com/",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.huntingtoningalls.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers.huntingtoningalls.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.huntingtoningalls.com/careers",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.huntingtoningalls.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.huntingtoningalls.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.huntingtoningalls.com/jobs",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          }
+        ]
       }
     },
     {
@@ -15725,13 +16117,14 @@
       ],
       "seed_metadata": {
         "coverage-benchmark-2026-09-17": {
-          "authoritative_evidence_count": 1,
+          "authoritative_evidence_count": 2,
           "domain_hints": [
             "iatinsurancegroup.wd1.myworkdayjobs.com"
           ],
-          "evidence_count": 1,
+          "evidence_count": 2,
           "states": [
-            "CT"
+            "CT",
+            "NJ"
           ]
         }
       },
@@ -15833,6 +16226,26 @@
           "fortune_slug": "/company/icahn-enterprises/",
           "order": 427,
           "rank": 427
+        }
+      }
+    },
+    {
+      "id": "icf",
+      "name": "ICF",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "icf.wd5.myworkdayjobs.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "VA"
+          ]
         }
       }
     },
@@ -17098,10 +17511,21 @@
       "name": "Johnson & Johnson",
       "aliases": [],
       "seed_sets": [
+        "coverage-benchmark-2026-09-17",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
       "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "careers.jnj.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "NJ"
+          ]
+        },
         "fortune-500-2026": {
           "fortune_slug": "/company/johnson-johnson/",
           "order": 45,
@@ -17126,23 +17550,215 @@
         "status": "resolved",
         "evidence": "url_or_page_marker",
         "marker": "myworkdayjobs.com",
-        "host": "jj.wd5.myworkdayjobs.com"
+        "host": "www.careers.jnj.com"
       },
       "careers_resolution": {
-        "status": "provider_resolved",
-        "attempt_status": "verified_seed",
-        "resolved_at": "2026-09-17T23:38:23Z",
-        "last_attempt_at": "2026-09-17T23:38:23Z",
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-18T16:38:53Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
-            "type": "seed",
-            "seed_key": "state-of-ats-2026-verified-hosts",
-            "domain_hint": "jj.wd5.myworkdayjobs.com",
-            "ats_system": "Workday",
-            "source_url": "https://withresumeai.com/ats-checker/johnson-and-johnson"
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers.jnj.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.jnj.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.careers.jnj.com/",
+                "status": 302
+              },
+              {
+                "url": "https://www.careers.jnj.com/en/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.careers.jnj.com/en/",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.jnj.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers.jnj.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.careers.jnj.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.careers.jnj.com/en/employee-stories/career-tips/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.careers.jnj.com/en/employee-stories/career-tips/",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.jnj.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.jnj.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.careers.jnj.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.careers.jnj.com/jobs",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://jj.wd5.myworkdayjobs.com/",
+            "redirect_chain": [
+              {
+                "url": "https://jj.wd5.myworkdayjobs.com/",
+                "status": 406
+              }
+            ],
+            "final_url": "https://jj.wd5.myworkdayjobs.com/",
+            "status": 406,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jj.wd5.myworkdayjobs.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://jj.wd5.myworkdayjobs.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://jj.wd5.myworkdayjobs.com/careers",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jj.wd5.myworkdayjobs.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://jj.wd5.myworkdayjobs.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://jj.wd5.myworkdayjobs.com/jobs",
+            "status": 404,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://jj.wd5.myworkdayjobs.com/JJ/login/",
+            "linked_from": "https://www.careers.jnj.com/en/",
+            "redirect_chain": [
+              {
+                "url": "https://jj.wd5.myworkdayjobs.com/JJ/login/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jj.wd5.myworkdayjobs.com/JJ/login/",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 11
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://www.careers.jnj.com/en/jobs/",
+            "linked_from": "https://www.careers.jnj.com/en/",
+            "redirect_chain": [
+              {
+                "url": "https://www.careers.jnj.com/en/jobs/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.careers.jnj.com/en/jobs/",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 19
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://jj.wd5.myworkdayjobs.com/en-US/JJ/introduceYourself?landingPage=c5a118a87c1310011d948a9588110005",
+            "linked_from": "https://www.careers.jnj.com/en/",
+            "redirect_chain": [
+              {
+                "url": "https://jj.wd5.myworkdayjobs.com/en-US/JJ/introduceYourself?landingPage=c5a118a87c1310011d948a9588110005",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jj.wd5.myworkdayjobs.com/en-US/JJ/introduceYourself?landingPage=c5a118a87c1310011d948a9588110005",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 11
           }
         ]
-      }
+      },
+      "careers_url": "https://www.careers.jnj.com/en/jobs"
     },
     {
       "id": "jones-financial-edward-jones",
@@ -17255,10 +17871,18 @@
       "name": "JPMorgan Chase",
       "aliases": [],
       "seed_sets": [
+        "coverage-benchmark-2026-09-17",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
       "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "DE"
+          ]
+        },
         "fortune-500-2026": {
           "fortune_slug": "/company/jpmorgan-chase/",
           "order": 12,
@@ -17573,14 +18197,206 @@
       "name": "Keurig Dr Pepper",
       "aliases": [],
       "seed_sets": [
+        "coverage-benchmark-2026-09-17",
         "fortune-500-2026"
       ],
       "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "careers.keurigdrpepper.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "MA"
+          ]
+        },
         "fortune-500-2026": {
           "fortune_slug": "/company/dr-pepper-snapple-group/",
           "order": 268,
           "rank": 268
         }
+      },
+      "careers_url": "https://app.eightfold.ai/careers",
+      "careers_platform": "eightfold",
+      "provider": {
+        "family": "eightfold",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "eightfold.ai",
+        "host": "app.eightfold.ai"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-18T16:38:53Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers.keurigdrpepper.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.keurigdrpepper.com/",
+                "status": 301
+              },
+              {
+                "url": "https://careers.keurigdrpepper.com/en",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.keurigdrpepper.com/en",
+            "status": 200,
+            "signals": [
+              "eightfold provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.keurigdrpepper.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers.keurigdrpepper.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://careers.keurigdrpepper.com/en/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://careers.keurigdrpepper.com/en/careers",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.keurigdrpepper.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.keurigdrpepper.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://careers.keurigdrpepper.com/en/jobs",
+                "status": 302
+              },
+              {
+                "url": "https://careers.keurigdrpepper.com/en/search-jobs?acm=ALL&alrpm=ALL&ascf=[%7B%22key%22:%22ALL%22,%22value%22:%22%22%7D]",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.keurigdrpepper.com/en/search-jobs?acm=ALL&alrpm=ALL&ascf=[%7B%22key%22:%22ALL%22,%22value%22:%22%22%7D]",
+            "status": 200,
+            "signals": [
+              "eightfold provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://kdrp.eightfold.ai/careerhub",
+            "linked_from": "https://careers.keurigdrpepper.com/en",
+            "redirect_chain": [
+              {
+                "url": "https://kdrp.eightfold.ai/careerhub",
+                "status": 302
+              },
+              {
+                "url": "https://kdrp.eightfold.ai/login?domain=kdrp.com&hl=en&next=https%3A%2F%2Fkdrp.eightfold.ai%2Fcareerhub",
+                "status": 302
+              },
+              {
+                "url": "https://kdrp.okta.com/app/kdrp_eightfold_1/exk1d49lz0rkOReOc358/sso/saml?SAMLRequest=fVLBctowEL3zFR7fsSUTu6DBdGhIW2Yo9gDtoRdGyOugwZZcrZyk%2FfpaSpM2nUl00%2B57b98%2BaY68bTq27O1Z7eBHD2hHQfDQNgqZb%2BVhbxTTHCUyxVtAZgXbL79sWBIR1hlttdBN%2BIL0NocjgrFSK0dar%2FKw2N5sik%2Fr7ZEkNU9PV3WSTStBs3d1OiXkRDkkKZAUqoykYkI5dcRvYHDQyMNB0t2DoDT6TlZgtsPEPLyRt2db66byUxB7WCu0XNmBQZJsTGZjOj3QjE1mjNDvDrUalpeKWy97trZDFseXynSRvlgeCd3GvOt85QhP8kcaw8OFVlez5hcxl2IHhZik0xhRxy4LJ1z%2BSemDVJVUt2%2FHc3oEIft8OJTjstgfnMTyKbRrrbBvwezB3EkBX3eb%2F7w%2BO4u4dC6OfHjb91xg7tvDFuHC5zV39piPxixelZjH%2F8L%2BEjvmcl6vSt1I8dPX3fmoTcvt6xvSiPqKrMa1h7JeYQdC1hKq8Flm2TT6%2FtoAt8NTWtNDGMSL0ejRzMvvuvgN&RelayState=https%3A%2F%2Fkdrp.eightfold.ai%2Fcareerhub",
+                "status": 200
+              }
+            ],
+            "final_url": "https://kdrp.okta.com/app/kdrp_eightfold_1/exk1d49lz0rkOReOc358/sso/saml?SAMLRequest=fVLBctowEL3zFR7fsSUTu6DBdGhIW2Yo9gDtoRdGyOugwZZcrZyk%2FfpaSpM2nUl00%2B57b98%2BaY68bTq27O1Z7eBHD2hHQfDQNgqZb%2BVhbxTTHCUyxVtAZgXbL79sWBIR1hlttdBN%2BIL0NocjgrFSK0dar%2FKw2N5sik%2Fr7ZEkNU9PV3WSTStBs3d1OiXkRDkkKZAUqoykYkI5dcRvYHDQyMNB0t2DoDT6TlZgtsPEPLyRt2db66byUxB7WCu0XNmBQZJsTGZjOj3QjE1mjNDvDrUalpeKWy97trZDFseXynSRvlgeCd3GvOt85QhP8kcaw8OFVlez5hcxl2IHhZik0xhRxy4LJ1z%2BSemDVJVUt2%2FHc3oEIft8OJTjstgfnMTyKbRrrbBvwezB3EkBX3eb%2F7w%2BO4u4dC6OfHjb91xg7tvDFuHC5zV39piPxixelZjH%2F8L%2BEjvmcl6vSt1I8dPX3fmoTcvt6xvSiPqKrMa1h7JeYQdC1hKq8Flm2TT6%2FtoAt8NTWtNDGMSL0ejRzMvvuvgN&RelayState=https%3A%2F%2Fkdrp.eightfold.ai%2Fcareerhub",
+            "status": 200,
+            "signals": [
+              "eightfold provider fingerprint",
+              "careers page content",
+              "linked from employer site"
+            ],
+            "score": 11
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://app.eightfold.ai/careers?domain=kdrp.com",
+            "linked_from": "https://careers.keurigdrpepper.com/en",
+            "redirect_chain": [
+              {
+                "url": "https://app.eightfold.ai/careers?domain=kdrp.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://app.eightfold.ai/careers?domain=kdrp.com",
+            "status": 200,
+            "signals": [
+              "eightfold provider fingerprint",
+              "careers path",
+              "careers page content",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://kdrp.eightfold.ai/careers/join?domain=kdrp.com",
+            "linked_from": "https://careers.keurigdrpepper.com/en",
+            "redirect_chain": [
+              {
+                "url": "https://kdrp.eightfold.ai/careers/join?domain=kdrp.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://kdrp.eightfold.ai/careers/join?domain=kdrp.com",
+            "status": 200,
+            "signals": [
+              "eightfold provider fingerprint",
+              "careers path",
+              "careers page content",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://app.eightfold.ai/careers/join?domain=kdrp-sandbox.com",
+            "linked_from": "https://careers.keurigdrpepper.com/en",
+            "redirect_chain": [
+              {
+                "url": "https://app.eightfold.ai/careers/join?domain=kdrp-sandbox.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://app.eightfold.ai/careers/join?domain=kdrp-sandbox.com",
+            "status": 200,
+            "signals": [
+              "eightfold provider fingerprint",
+              "careers path",
+              "careers page content",
+              "linked from employer site"
+            ],
+            "score": 14
+          }
+        ]
       }
     },
     {
@@ -18545,7 +19361,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-18T16:08:50Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
             "type": "http",
@@ -18789,9 +19605,20 @@
       "name": "Liberty Mutual",
       "aliases": [],
       "seed_sets": [
+        "coverage-benchmark-2026-09-17",
         "state-of-ats-2026-verified-hosts"
       ],
       "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "searchjobs.libertymutualgroup.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "MA"
+          ]
+        },
         "state-of-ats-2026-verified-hosts": {
           "apply_host": "libertymutual.eightfold.ai",
           "ats_system": "Eightfold",
@@ -19762,6 +20589,26 @@
           "fortune_slug": "/company/manpowergroup/",
           "order": 247,
           "rank": 247
+        }
+      }
+    },
+    {
+      "id": "manulife-john-hancock",
+      "name": "Manulife John Hancock",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "manulife.wd3.myworkdayjobs.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "MA"
+          ]
         }
       }
     },
@@ -23151,6 +23998,26 @@
       }
     },
     {
+      "id": "peraton",
+      "name": "Peraton",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "careers.peraton.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "VA"
+          ]
+        }
+      }
+    },
+    {
       "id": "peraton-labs",
       "name": "Peraton Labs",
       "aliases": [],
@@ -23349,6 +24216,26 @@
           "fortune_slug": "/company/performance-food-group/",
           "order": 80,
           "rank": 80
+        }
+      }
+    },
+    {
+      "id": "perpay",
+      "name": "Perpay",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "job-boards.greenhouse.io"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "PA"
+          ]
         }
       }
     },
@@ -24938,10 +25825,21 @@
       "name": "RTX",
       "aliases": [],
       "seed_sets": [
+        "coverage-benchmark-2026-09-17",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
       "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "globalhr.wd5.myworkdayjobs.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "PA"
+          ]
+        },
         "fortune-500-2026": {
           "fortune_slug": "/company/raytheon-technologies/",
           "order": 49,
@@ -25238,14 +26136,114 @@
       "name": "S&P Global",
       "aliases": [],
       "seed_sets": [
+        "coverage-benchmark-2026-09-17",
         "fortune-500-2026"
       ],
       "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "careers.spglobal.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "MA"
+          ]
+        },
         "fortune-500-2026": {
           "fortune_slug": "/company/sp-global/",
           "order": 294,
           "rank": 294
         }
+      },
+      "careers_url": "https://careers.spglobal.com/jobs",
+      "careers_platform": "company-branded",
+      "provider": {
+        "family": "unknown",
+        "status": "ambiguous",
+        "evidence": "multiple_provider_markers",
+        "candidates": [
+          "icims",
+          "workday"
+        ],
+        "host": "careers.spglobal.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-18T16:38:53Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers.spglobal.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.spglobal.com/",
+                "status": 303
+              },
+              {
+                "url": "https://careers.spglobal.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.spglobal.com/jobs",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.spglobal.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers.spglobal.com/careers",
+                "status": 302
+              },
+              {
+                "url": "https://careers.spglobal.com/",
+                "status": 303
+              },
+              {
+                "url": "https://careers.spglobal.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.spglobal.com/jobs",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.spglobal.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.spglobal.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.spglobal.com/jobs",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          }
+        ]
       }
     },
     {
@@ -25866,6 +26864,23 @@
           "hq_country_code": "DE",
           "source_url": "https://withresumeai.com/ats-checker/siemens",
           "upstream_slug": "siemens"
+        }
+      }
+    },
+    {
+      "id": "siemens-mobility",
+      "name": "Siemens Mobility",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "DE"
+          ]
         }
       }
     },
@@ -26838,7 +27853,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-18T16:08:50Z",
+        "last_attempt_at": "2026-09-18T16:38:53Z",
         "evidence": [
           {
             "type": "http",
@@ -28242,6 +29257,26 @@
           "evidence_count": 4,
           "states": [
             "MD"
+          ]
+        }
+      }
+    },
+    {
+      "id": "the-campbell-s-company",
+      "name": "The Campbell's Company",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "careers.thecampbellscompany.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "NJ"
           ]
         }
       }
@@ -29651,6 +30686,46 @@
       }
     },
     {
+      "id": "ups",
+      "name": "UPS",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "hcmportal.wd5.myworkdayjobs.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "NJ"
+          ]
+        }
+      }
+    },
+    {
+      "id": "urbn",
+      "name": "URBN",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "homeoffice-na-urbn.icims.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "PA"
+          ]
+        }
+      }
+    },
+    {
       "id": "us-foods-holding",
       "name": "US Foods Holding",
       "aliases": [
@@ -29926,9 +31001,20 @@
       "name": "Verizon",
       "aliases": [],
       "seed_sets": [
+        "coverage-benchmark-2026-09-17",
         "state-of-ats-2026-verified-hosts"
       ],
       "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "mycareer.verizon.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "NJ"
+          ]
+        },
         "state-of-ats-2026-verified-hosts": {
           "apply_host": "verizon.wd12.myworkdayjobs.com",
           "ats_system": "Workday",
@@ -31022,6 +32108,26 @@
       }
     },
     {
+      "id": "westinghouse-electric-company",
+      "name": "Westinghouse Electric Company",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 1,
+          "domain_hints": [
+            "careers.westinghousenuclear.com"
+          ],
+          "evidence_count": 1,
+          "states": [
+            "PA"
+          ]
+        }
+      }
+    },
+    {
       "id": "westlake",
       "name": "Westlake",
       "aliases": [],
@@ -31411,6 +32517,23 @@
             "source_url": "https://withresumeai.com/ats-checker/workday"
           }
         ]
+      }
+    },
+    {
+      "id": "workiva",
+      "name": "Workiva",
+      "aliases": [],
+      "seed_sets": [
+        "coverage-benchmark-2026-09-17"
+      ],
+      "seed_metadata": {
+        "coverage-benchmark-2026-09-17": {
+          "authoritative_evidence_count": 0,
+          "evidence_count": 1,
+          "states": [
+            "RI"
+          ]
+        }
       }
     },
     {
