@@ -13,6 +13,22 @@ from urllib import parse, request
 
 PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
 MAX_ACTIVE = 5
+AREA_RESOURCE_LOCKS = {
+    "feed": frozenset({"feed-core"}),
+    "dedupe": frozenset({"feed-core", "identity"}),
+    "identity": frozenset({"feed-core", "identity"}),
+    "frontend-state": frozenset({"identity", "frontend-state"}),
+    "link-precedence": frozenset({"feed-core", "links"}),
+    "listing-lifecycle": frozenset({"feed-core", "links"}),
+    "link-quality": frozenset({"links"}),
+    "evidence-cache": frozenset({"requirements", "cache"}),
+    "requirement-extraction": frozenset({"requirements", "cache"}),
+    "provider-audit": frozenset({"authoritative-evidence", "requirements"}),
+    "evidence": frozenset({"authoritative-evidence", "requirements"}),
+    "apply-next-ui": frozenset({"frontend-state", "ranking"}),
+    "ranking": frozenset({"ranking"}),
+    "performance": frozenset({"frontend-state"}),
+}
 AUTONOMOUS_MARKER = "<!-- autonomous-task -->"
 JULES_API_ROOT = "https://jules.googleapis.com/v1alpha"
 JULES_ACTIVE_LABEL = "jules-session"
@@ -37,6 +53,7 @@ class Task(NamedTuple):
     priority: str
     area: str
     labels: frozenset[str]
+    resources: frozenset[str] = frozenset()
 
 
 def label_names(issue: dict[str, Any]) -> frozenset[str]:
@@ -61,6 +78,12 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
     safe = (metadata_value(body, "autonomous") or "").casefold()
     priority = (metadata_value(body, "priority") or "").upper()
     area = (metadata_value(body, "area") or "").casefold()
+    resources_value = metadata_value(body, "resources") or ""
+    resources = frozenset(
+        resource.strip().casefold()
+        for resource in resources_value.split(",")
+        if resource.strip()
+    )
     if safe != "true" or priority not in PRIORITY_ORDER or not area:
         return None
     return Task(
@@ -70,6 +93,20 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
         priority=priority,
         area=area,
         labels=label_names(issue),
+        resources=resources,
+    )
+
+
+def task_lock_keys(task: Task) -> frozenset[str]:
+    """Return the scheduler locks held by a task.
+
+    Every task always locks its exact area. Optional issue metadata can declare
+    additional resources with `resources: foo, bar`; otherwise known areas use
+    conservative shared-resource defaults for cross-area hot paths.
+    """
+    resources = task.resources or AREA_RESOURCE_LOCKS.get(task.area, frozenset())
+    return frozenset(
+        {f"area:{task.area}", *(f"resource:{resource}" for resource in resources)}
     )
 
 
@@ -359,10 +396,6 @@ def select_tasks(issues: Iterable[dict[str, Any]], max_active: int = MAX_ACTIVE)
         for issue in issue_list
         if (task := active_jules_task(issue)) is not None
     ]
-    slots = max(0, max_active - len(active_jules))
-    if slots == 0:
-        return []
-
     reserved_codex = [
         task
         for issue in issue_list
@@ -374,9 +407,17 @@ def select_tasks(issues: Iterable[dict[str, Any]], max_active: int = MAX_ACTIVE)
         if JULES_FEEDBACK_LABEL in label_names(issue)
         and (task := task_from_issue(issue)) is not None
     ]
-    active_areas = {
-        task.area for task in [*active_jules, *reserved_codex, *feedback_waiting]
-    }
+
+    # Feedback-blocked Jules sessions can resume as soon as feedback is sent,
+    # so reserve WIP capacity for them instead of backfilling their slot and
+    # accidentally exceeding MAX_ACTIVE when they wake up.
+    slots = max(0, max_active - len(active_jules) - len(feedback_waiting))
+    if slots == 0:
+        return []
+
+    occupied_locks: set[str] = set()
+    for task in [*active_jules, *reserved_codex, *feedback_waiting]:
+        occupied_locks.update(task_lock_keys(task))
     candidates: list[Task] = []
     for issue in issue_list:
         if str(issue.get("state") or "open") != "open":
@@ -401,14 +442,14 @@ def select_tasks(issues: Iterable[dict[str, Any]], max_active: int = MAX_ACTIVE)
 
     candidates.sort(key=lambda task: (PRIORITY_ORDER[task.priority], task.number))
     selected: list[Task] = []
-    occupied = set(active_areas)
     for task in candidates:
         if len(selected) >= slots:
             break
-        if task.area in occupied:
+        locks = task_lock_keys(task)
+        if locks & occupied_locks:
             continue
         selected.append(task)
-        occupied.add(task.area)
+        occupied_locks.update(locks)
     return selected
 
 
