@@ -1623,6 +1623,19 @@ class AutonomousDispatcherTests(unittest.TestCase):
             ],
         )
 
+    def test_historical_reconciliation_default_loader_uses_autonomous_backlog_label(self):
+        calls = []
+
+        def fake_paginated(*args):
+            calls.append(args)
+            return []
+
+        with mock.patch.object(mod, "gh_paginated_json", side_effect=fake_paginated):
+            mod.reconcile_historical_merged_jules_issues("kaamilbadami/yartchives")
+
+        self.assertEqual(len(calls), 1)
+        self.assertIn("labels=autonomous-backlog", calls[0][1])
+
     def test_historical_reconciliation_is_wired_after_review_ready_cleanup(self):
         source = MODULE_PATH.read_text()
         cleanup_index = source.index("cleanup_merged_jules_sessions(repo, api_key)")
