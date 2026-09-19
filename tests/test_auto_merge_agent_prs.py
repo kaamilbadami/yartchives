@@ -44,6 +44,10 @@ def runs(sha="abc", conclusion="success"):
 
 
 class AutoMergeAgentPrTests(unittest.TestCase):
+    def test_automerge_workflow_has_periodic_recovery_schedule(self):
+        workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
+        self.assertIn('cron: "*/5 * * * *"', workflow)
+
     def test_automerge_workflow_fetches_full_history_for_branch_merges(self):
         workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
         checkout_block = workflow.split("- name: Check out merge policy", 1)[1].split("- name: Merge one safe autonomous pull request", 1)[0]
