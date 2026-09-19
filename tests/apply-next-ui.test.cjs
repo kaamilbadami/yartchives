@@ -32,10 +32,11 @@ assert.equal(UI.scoreBand("roi", 10, 30), "Lower value");
 assert.equal(UI.scoreBand("location", 15, 20), "Very convenient");
 assert.match(UI.rankingSummary({ components: { fit: { score: 30 }, freshness: { score: 8 }, roi: { score: 23 }, location: { score: 15 } } }), /^Why this is here: /);
 const postedNow = new Date("2026-09-17T12:00:00Z");
-assert.equal(UI.formatPostedDate("2026-09-15T23:30:00-04:00", postedNow), "Posted 9/16 · 1 day ago");
-assert.equal(UI.formatPostedDate("2026-09-15", postedNow), "Posted 9/15 · 2 days ago");
+assert.equal(UI.formatPostedDate("2026-09-15T23:30:00-04:00", true, postedNow), "Posted 9/16 · 1 day ago");
+assert.equal(UI.formatPostedDate("2026-09-15", true, postedNow), "Posted 9/15 · 2 days ago");
+assert.equal(UI.formatPostedDate("2026-09-15", false, postedNow), "2 days ago");
 assert.equal(
-  UI.formatPostedDate("2025-12-31T23:00:00Z", new Date("2026-01-02T01:00:00Z")),
+  UI.formatPostedDate("2025-12-31T23:00:00Z", true, new Date("2026-01-02T01:00:00Z")),
   "Posted 12/31 · 2 days ago"
 );
 assert.deepEqual(
@@ -80,9 +81,9 @@ assert.doesNotMatch(
   /\[object Object\]/
 );
 
-assert.equal(UI.formatPostedDate("", postedNow), "");
-assert.equal(UI.formatPostedDate("not-a-date", postedNow), "");
-assert.equal(UI.formatPostedDate("2026-09-15", "not-a-date"), "");
+assert.equal(UI.formatPostedDate("", true, postedNow), "");
+assert.equal(UI.formatPostedDate("not-a-date", true, postedNow), "");
+assert.equal(UI.formatPostedDate("2026-09-15", true, "not-a-date"), "");
 
 const values = new Map();
 const storage = {

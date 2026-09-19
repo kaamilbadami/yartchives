@@ -18,7 +18,7 @@
     return String(value || "").trim();
   }
 
-  function formatPostedDate(value, nowValue = new Date()) {
+  function formatPostedDate(value, isAuthoritative, nowValue = new Date()) {
     if (!value) return "";
     const date = new Date(value);
     const now = nowValue instanceof Date ? nowValue : new Date(nowValue);
@@ -29,7 +29,7 @@
     const daysAgo = Math.max(0, Math.floor((nowUtcDay - postedUtcDay) / 86400000));
     const monthDay = `${date.getUTCMonth() + 1}/${date.getUTCDate()}`;
     const ageLabel = `${daysAgo} ${daysAgo === 1 ? "day" : "days"} ago`;
-    return `Posted ${monthDay} · ${ageLabel}`;
+    return isAuthoritative ? `Posted ${monthDay} · ${ageLabel}` : ageLabel;
   }
 
   function validateProfile(profile) {
@@ -355,7 +355,8 @@
       element("h3", "", job.title || "Untitled opportunity"),
       element("p", "muted", cardLocationText(job))
     );
-    const postedDate = formatPostedDate(job.posted_at);
+    const isAuthoritative = result.inspection?.state === "inspected";
+    const postedDate = formatPostedDate(job.posted_at, isAuthoritative);
     if (postedDate) titleWrap.append(element("p", "muted apply-next-posted-date", postedDate));
     const evidenceStatus = element(
       "span",
