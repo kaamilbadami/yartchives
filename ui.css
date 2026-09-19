@@ -44,6 +44,7 @@
   font-size: .76rem;
   font-weight: 700;
 }
+.sort-field[hidden] { display: none; }
 .sort-field select {
   min-width: 138px;
   border: 1px solid var(--border);
