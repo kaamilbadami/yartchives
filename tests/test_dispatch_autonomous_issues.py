@@ -150,6 +150,51 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
         self.assertEqual([task.number for task in selected], [3])
 
+    def test_current_ranking_area_family_shares_ranking_lock(self):
+        issues = [
+            issue(
+                187,
+                "ranking sensitivity",
+                body=task_body("P1", "ranking-sensitivity"),
+                labels=("jules", "jules-session"),
+            ),
+            issue(188, "ranking regression", body=task_body("P0", "ranking-regression")),
+            issue(189, "ranking stability", body=task_body("P0", "ranking-stability")),
+            issue(184, "coverage benchmark", body=task_body("P1", "coverage-benchmark")),
+        ]
+
+        selected = mod.select_tasks(issues, max_active=4)
+
+        self.assertEqual([task.number for task in selected], [184])
+
+    def test_current_apply_next_presentation_areas_share_ui_lock(self):
+        issues = [
+            issue(
+                190,
+                "required versus preferred gaps",
+                body=task_body("P1", "apply-next-explanation"),
+                labels=("jules", "jules-session"),
+            ),
+            issue(191, "evidence provenance", body=task_body("P0", "evidence-ux")),
+            issue(192, "action reversibility", body=task_body("P0", "action-reversibility")),
+            issue(184, "coverage benchmark", body=task_body("P1", "coverage-benchmark")),
+        ]
+
+        selected = mod.select_tasks(issues, max_active=4)
+
+        self.assertEqual([task.number for task in selected], [184])
+
+    def test_unmapped_area_requires_explicit_resource_metadata(self):
+        unmapped = issue(1, "unknown area", body=task_body("P1", "future-area"))
+        explicit = issue(
+            2,
+            "explicitly locked future area",
+            body=task_body("P1", "future-area", resources="future-resource"),
+        )
+
+        self.assertIsNone(mod.task_from_issue(unmapped))
+        self.assertEqual(mod.task_from_issue(explicit).resources, frozenset({"future-resource"}))
+
     def test_shared_resource_lock_blocks_cross_area_overlap(self):
         issues = [
             issue(
@@ -179,7 +224,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 "other area same resource",
                 body=task_body("P0", "beta", resources="shared-hot-file"),
             ),
-            issue(3, "independent", body=task_body("P1", "gamma")),
+            issue(3, "independent", body=task_body("P1", "gamma", resources="independent-resource")),
         ]
 
         selected = mod.select_tasks(issues, max_active=3)
@@ -948,6 +993,98 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertIn("<!-- jules-retry-from: failed1 -->", comment)
         self.assertIn("Keep the fix provider-neutral.", comment)
         self.assertIn("Applying the provider-neutral fix.", comment)
+
+    def test_legacy_failed_issue_without_diagnostics_gets_one_migration_retry(self):
+        issues = [
+            issue(
+                176,
+                "listing lifecycle",
+                body=task_body("P1", "listing-lifecycle"),
+                labels=("jules-failed",),
+            )
+        ]
+        gh_calls = []
+        comments = [
+            {"id": 1, "body": "<!-- jules-session-id: legacy1 -->"},
+            {
+                "id": 2,
+                "body": (
+                    "<!-- jules-feedback: legacy1 -->\n"
+                    "Keep the lifecycle fix provider-neutral."
+                ),
+            },
+            {
+                "id": 3,
+                "body": (
+                    "Jules session `legacy1` ended in FAILED state and released this "
+                    "automation slot. It will not be retried automatically."
+                ),
+            },
+        ]
+
+        mod.migrate_legacy_jules_failures(
+            issues,
+            repo="kaamilbadami/yartchives",
+            load_comments=lambda number: comments,
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        labels = mod.label_names(issues[0])
+        self.assertIn("jules-retry-ready", labels)
+        self.assertNotIn("jules-failed", labels)
+        self.assertIn("<!-- jules-retry-from: legacy1 -->", gh_calls[1][-1])
+        self.assertIn("Keep the lifecycle fix provider-neutral.", gh_calls[1][-1])
+        self.assertEqual([task.number for task in mod.select_tasks(issues)], [176])
+
+    def test_legacy_generic_jules_failure_gets_one_migration_retry(self):
+        comments = [
+            {"body": "<!-- jules-session-id: legacy2 -->"},
+            {
+                "body": (
+                    "Jules session `legacy2` ended in FAILED state and released this "
+                    "automation slot. It will not be retried automatically.\n\n"
+                    "Failure diagnostics:\n\n"
+                    "> Jules was unable to complete the task."
+                )
+            },
+        ]
+        retry = mod.legacy_failed_retry_context(comments)
+        self.assertIsNotNone(retry)
+        self.assertEqual(retry[0], "legacy2")
+        self.assertIn("Jules was unable to complete the task.", retry[1])
+
+    def test_modern_terminal_failure_is_not_migrated(self):
+        comments = [
+            {"body": "<!-- jules-session-id: modern1 -->"},
+            {
+                "body": (
+                    "Jules session `modern1` ended in FAILED state and released this "
+                    "automation slot. It will not be retried automatically.\n\n"
+                    "No additional failure diagnostics were reported by the Jules API."
+                )
+            },
+        ]
+        self.assertIsNone(mod.legacy_failed_retry_context(comments))
+
+        comments[-1]["body"] = (
+            "Jules session `modern1` ended in FAILED state and released this "
+            "automation slot. It will not be retried automatically.\n\n"
+            "Failure diagnostics:\n\n> Tests failed: expected 2 jobs but received 3."
+        )
+        self.assertIsNone(mod.legacy_failed_retry_context(comments))
+
+    def test_legacy_failure_with_existing_retry_marker_is_not_migrated_again(self):
+        comments = [
+            {"body": "<!-- jules-session-id: second -->"},
+            {"body": "<!-- jules-retry-from: first -->\nPrior retry context."},
+            {
+                "body": (
+                    "Jules session `second` ended in FAILED state and released this "
+                    "automation slot. It will not be retried automatically."
+                )
+            },
+        ]
+        self.assertIsNone(mod.legacy_failed_retry_context(comments))
 
     def test_second_platform_failure_is_not_retried_again(self):
         issues = [
