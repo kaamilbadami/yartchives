@@ -12,7 +12,7 @@ from typing import Any, Callable, Iterable, NamedTuple
 from urllib import parse, request
 
 PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
-MAX_ACTIVE = 5
+MAX_ACTIVE = 15
 AREA_RESOURCE_LOCKS = {
     "feed": frozenset({"feed-core"}),
     "dedupe": frozenset({"feed-core", "identity"}),
