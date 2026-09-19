@@ -167,5 +167,51 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
         self.assertEqual(gh.issues[1]["state"], "open")
 
 
+
+    def test_failure_closes_stale_issues_for_different_steps(self):
+        gh = FakeGh()
+        gh.issues = [
+            {
+                "number": 1,
+                "state": "open",
+                "body": "<!-- workflow-failure-signature: Quality checks::tests::Python tests -->",
+                "labels": [{"name": "workflow-failure"}, {"name": "agent-ready"}, {"name": "jules"}],
+            },
+            {
+                "number": 2,
+                "state": "open",
+                "body": "<!-- workflow-failure-signature: Quality checks::lint::Check formatting -->",
+                "labels": [{"name": "workflow-failure"}, {"name": "agent-ready"}, {"name": "jules"}],
+            },
+            {
+                "number": 3,
+                "state": "open",
+                "body": "<!-- workflow-failure-signature: Update opportunity feed::build::Validate generated feed -->",
+                "labels": [{"name": "workflow-failure"}, {"name": "agent-ready"}, {"name": "jules"}],
+            },
+        ]
+
+        # New run only fails on 'lint' -> 'Check formatting'
+        gh.jobs_by_run["2"] = [
+            {
+                "name": "lint",
+                "conclusion": "failure",
+                "steps": [
+                    {"name": "Check formatting", "conclusion": "failure"},
+                ],
+            }
+        ]
+
+        mod.triage(ctx(run_id="2", conclusion="failure"), gh.json, gh.run)
+
+        # Issue 1 (Python tests) should be closed because it's no longer failing in the new run
+        self.assertEqual(gh.issues[0]["state"], "closed")
+
+        # Issue 2 (Check formatting) is still failing, so it stays open
+        self.assertEqual(gh.issues[1]["state"], "open")
+
+        # Issue 3 is from a different workflow ("Update opportunity feed"), so it stays open
+        self.assertEqual(gh.issues[2]["state"], "open")
+
 if __name__ == "__main__":
     unittest.main()

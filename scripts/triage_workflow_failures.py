@@ -71,21 +71,30 @@ def _ensure_labels(ctx: Context, gh_run: GhRun) -> None:
         )
 
 
-def _failed_job_and_step(ctx: Context, gh_json: GhJson) -> tuple[str, str]:
+def _failed_jobs_and_steps(ctx: Context, gh_json: GhJson) -> list[tuple[str, str]]:
     jobs = gh_json(
         "api",
         f"repos/{ctx.repo}/actions/runs/{ctx.run_id}/jobs?filter=latest&per_page=100",
     ).get("jobs", [])
-    failed_job = next((job for job in jobs if job.get("conclusion") == "failure"), None)
-    job_name = failed_job.get("name", "unknown job") if failed_job else "unknown job"
-    failed_step = None
-    if failed_job:
-        failed_step = next(
-            (step for step in failed_job.get("steps", []) if step.get("conclusion") == "failure"),
-            None,
-        )
-    step_name = failed_step.get("name", "unknown step") if failed_step else "unknown step"
-    return job_name, step_name
+
+    failed = []
+    for job in jobs:
+        if job.get("conclusion") == "failure":
+            job_name = job.get("name", "unknown job")
+            for step in job.get("steps", []):
+                if step.get("conclusion") == "failure":
+                    failed.append((job_name, step.get("name", "unknown step")))
+
+    # fallback if a job failed but no steps are marked failure
+    if not failed:
+        for job in jobs:
+            if job.get("conclusion") == "failure":
+                failed.append((job.get("name", "unknown job"), "unknown step"))
+
+    return failed or [("unknown job", "unknown step")]
+
+def _failed_job_and_step(ctx: Context, gh_json: GhJson) -> tuple[str, str]:
+    return _failed_jobs_and_steps(ctx, gh_json)[0]
 
 
 def handle_failure(ctx: Context, gh_json: GhJson, gh_run: GhRun) -> None:
@@ -110,6 +119,39 @@ Treat the current repository as the source of truth. Diagnose the root cause bef
 """
 
     issues = _open_failure_issues(ctx, gh_json)
+
+    # Close any stale issues for this workflow that are no longer failing
+    failed_signatures = {
+        _marker(ctx.workflow, j, s) for j, s in _failed_jobs_and_steps(ctx, gh_json)
+    }
+    prefix = _workflow_marker_prefix(ctx.workflow)
+    for issue in issues:
+        body_text = issue.get("body") or ""
+        if prefix in body_text and not any(sig in body_text for sig in failed_signatures):
+            number = str(issue["number"])
+            labels = _label_names(issue)
+            edit_args = ["issue", "edit", number, "--repo", ctx.repo]
+            for label in ("jules", "agent-ready"):
+                if label in labels:
+                    edit_args += ["--remove-label", label]
+            if len(edit_args) > 5:
+                gh_run(*edit_args)
+
+            gh_run(
+                "issue",
+                "comment",
+                number,
+                "--repo",
+                ctx.repo,
+                "--body",
+                (
+                    f"Resolved by run on `{ctx.head_sha}`: {ctx.run_url}\n\n"
+                    "Closing this failure cycle as this step is no longer failing. "
+                    "If the same failure returns later, triage will create a fresh issue."
+                ),
+            )
+            gh_run("issue", "close", number, "--repo", ctx.repo)
+
     existing = next((issue for issue in issues if marker in (issue.get("body") or "")), None)
 
     if existing:
