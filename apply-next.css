@@ -307,3 +307,15 @@
 .apply-next-explanation {
   color: var(--primary-dark, #0369a1);
 }
+
+.apply-next-gap-hard {
+  color: var(--danger, #ff9eaa);
+}
+
+.apply-next-gap-learnable {
+  color: var(--warning, #f4cf7c);
+}
+
+.apply-next-gap-unknown {
+  color: var(--muted, #667085);
+}

@@ -288,6 +288,10 @@ assert.equal(jobs[2]._inspection, undefined);
     "Mark applied should rely on optimistic update and applyFilters/renderJobs panel refresh instead of triggering a second expensive render"
   );
 
+  assert.match(uiSource, /apply-next-gap-hard/);
+  assert.match(uiSource, /apply-next-gap-learnable/);
+  assert.match(uiSource, /apply-next-gap-unknown/);
+
   const hideHandler = uiSource.match(
     /hide\.addEventListener\("click",\s*\(\)\s*=>\s*\{([\s\S]*?)\n\s*\}\);/
   );
