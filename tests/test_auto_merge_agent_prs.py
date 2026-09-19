@@ -368,6 +368,71 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                 )
                 self.assertFalse(ok)
 
+    def test_broad_protected_pr_is_supersession_candidate(self):
+        candidate = pr()
+        original_issue = issue()
+        files = [
+            {"filename": "app.js", "changes": 700},
+            {"filename": ".github/workflows/quality.yml", "changes": 400},
+        ]
+        ok, reason = mod.supersession_candidate(
+            candidate,
+            repo="kaamilbadami/yartchives",
+            issue=original_issue,
+            files=files,
+        )
+        self.assertTrue(ok)
+        self.assertIn("superseded", reason)
+
+    def test_bounded_protected_pr_is_not_superseded(self):
+        candidate = pr()
+        ok, reason = mod.supersession_candidate(
+            candidate,
+            repo="kaamilbadami/yartchives",
+            issue=issue(),
+            files=[
+                {"filename": "scripts/dispatch_autonomous_issues.py", "changes": 20},
+                {"filename": "tests/test_dispatch_autonomous_issues.py", "changes": 20},
+            ],
+        )
+        self.assertFalse(ok)
+        self.assertIn("bounded", reason)
+
+    def test_replacement_issue_preserves_original_acceptance_criteria(self):
+        original = {
+            "title": "Benchmark Apply Next interaction and ranking performance",
+            "body": "<!-- autonomous-task -->\npriority: P2\narea: performance\nautonomous: true\n\n## Acceptance criteria\n- Measure ranking.",
+        }
+        body = mod.replacement_issue_body(original, 232)
+        self.assertIn("## Acceptance criteria\n- Measure ranking.", body)
+        self.assertIn("<!-- supersedes-stale-pr: 232 -->", body)
+        self.assertIn("Do not port the stale branch wholesale", body)
+
+    def test_existing_replacement_marker_prevents_duplicate_issue_creation(self):
+        existing = {
+            "number": 300,
+            "body": "<!-- supersedes-stale-pr: 232 -->",
+        }
+        with mock.patch.object(mod, "gh_paginated_json", return_value=[existing]):
+            found = mod.find_existing_replacement_issue("kaamilbadami/yartchives", 232)
+        self.assertIs(found, existing)
+
+    def test_supersede_closes_pr_and_original_issue_after_replacement_exists(self):
+        original = {"number": 155, "title": "Performance", "body": "<!-- autonomous-task -->"}
+        candidate = {"number": 232}
+        calls = []
+        with mock.patch.object(
+            mod,
+            "create_or_find_replacement_issue",
+            return_value={"number": 300},
+        ), mock.patch.object(mod, "gh_run", side_effect=lambda *args: calls.append(args)):
+            replacement = mod.supersede_pull_request(
+                "kaamilbadami/yartchives", candidate, original
+            )
+        self.assertEqual(replacement, 300)
+        self.assertTrue(any(call[:4] == ("api", "--method", "PATCH", "repos/kaamilbadami/yartchives/pulls/232") for call in calls))
+        self.assertTrue(any(call[:4] == ("api", "--method", "PATCH", "repos/kaamilbadami/yartchives/issues/155") for call in calls))
+
     def test_priority_does_not_bypass_protected_path_guard(self):
         candidate = pr()
         ok, reason = mod.eligible_pr(

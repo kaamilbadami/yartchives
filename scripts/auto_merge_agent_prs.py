@@ -45,6 +45,9 @@ MAINTENANCE_ALLOWED_PATHS = frozenset(
 )
 MAINTENANCE_MAX_FILES = 4
 MAINTENANCE_MAX_CHANGES = 250
+SUPERSEDE_PROTECTED_MAX_FILES = 12
+SUPERSEDE_PROTECTED_MAX_CHANGES = 1000
+SUPERSEDE_MARKER_TEMPLATE = "<!-- supersedes-stale-pr: {pr_number} -->"
 
 
 def label_names(issue: dict[str, Any]) -> set[str]:
@@ -302,6 +305,120 @@ def maintenance_pr_eligible(
     if require_quality and not exact_head_quality_passed(quality_runs, head_sha):
         return False, "exact pull request head has not passed Quality checks"
     return True, "maintenance-eligible"
+
+
+def supersession_candidate(
+    pr: dict[str, Any],
+    *,
+    repo: str,
+    issue: dict[str, Any],
+    files: Iterable[dict[str, Any]],
+) -> tuple[bool, str]:
+    """Return whether a broad protected-path PR should be replaced from current main."""
+    if str(pr.get("state") or "") != "open" or bool(pr.get("draft")):
+        return False, "pull request is not an open ready-for-review PR"
+    head = pr.get("head") or {}
+    if (head.get("repo") or {}).get("full_name") != repo:
+        return False, "pull request branch is not in the source repository"
+    issue_number = linked_issue_number(str(pr.get("body") or ""))
+    if issue_number is None or int(issue.get("number") or 0) != issue_number:
+        return False, "pull request is not linked to the fetched issue"
+    if not autonomous_issue_ready(issue):
+        return False, "linked autonomous issue is not ready for supersession"
+
+    rows = list(files)
+    paths = [str(row.get("filename") or "") for row in rows if row.get("filename")]
+    protected = blocked_changed_paths(paths)
+    if not protected:
+        return False, "pull request does not touch protected paths"
+    total_changes = sum(int(row.get("changes") or 0) for row in rows)
+    if len(paths) <= SUPERSEDE_PROTECTED_MAX_FILES and total_changes <= SUPERSEDE_PROTECTED_MAX_CHANGES:
+        return False, "protected-path change is still bounded"
+    return True, "broad protected-path pull request should be superseded"
+
+
+def replacement_issue_body(original_issue: dict[str, Any], pr_number: int) -> str:
+    body = str(original_issue.get("body") or "").rstrip()
+    marker = SUPERSEDE_MARKER_TEMPLATE.format(pr_number=pr_number)
+    context = (
+        f"{marker}\n\n"
+        "## Supersession context\n"
+        f"PR #{pr_number} became too broad and mixed protected control-plane changes with "
+        "the original task. Re-do only the original acceptance criteria from current main. "
+        "Do not port the stale branch wholesale; measure current behavior first and make the "
+        "smallest root-cause change still required."
+    )
+    return f"{body}\n\n{context}" if body else context
+
+
+def find_existing_replacement_issue(repo: str, pr_number: int) -> dict[str, Any] | None:
+    marker = SUPERSEDE_MARKER_TEMPLATE.format(pr_number=pr_number)
+    issues = gh_paginated_json(
+        "api",
+        f"repos/{repo}/issues?state=open&per_page=100",
+    )
+    for issue in issues:
+        if "pull_request" in issue:
+            continue
+        if marker in str(issue.get("body") or ""):
+            return issue
+    return None
+
+
+def create_or_find_replacement_issue(
+    repo: str,
+    original_issue: dict[str, Any],
+    pr_number: int,
+) -> dict[str, Any]:
+    existing = find_existing_replacement_issue(repo, pr_number)
+    if existing is not None:
+        return existing
+    title = f"Rework from current main: {str(original_issue.get('title') or '').strip()}"
+    return gh_json(
+        "api",
+        "--method", "POST",
+        f"repos/{repo}/issues",
+        "-f", f"title={title}",
+        "-f", f"body={replacement_issue_body(original_issue, pr_number)}",
+        "-f", "labels[]=autonomous-backlog",
+        "-f", "labels[]=agent-ready",
+    )
+
+
+def supersede_pull_request(
+    repo: str,
+    pr: dict[str, Any],
+    issue: dict[str, Any],
+) -> int:
+    number = int(pr["number"])
+    replacement = create_or_find_replacement_issue(repo, issue, number)
+    replacement_number = int(replacement["number"])
+    gh_run(
+        "issue", "comment", str(number), "--repo", repo,
+        "--body",
+        (
+            f"Superseded automatically by #{replacement_number}. This PR mixed broad stale "
+            "changes with protected control-plane files, so the remaining work is being "
+            "re-derived from current main instead of porting this branch wholesale."
+        ),
+    )
+    gh_run(
+        "api", "--method", "PATCH", f"repos/{repo}/pulls/{number}", "-f", "state=closed"
+    )
+    original_number = int(issue["number"])
+    gh_run(
+        "issue", "comment", str(original_number), "--repo", repo,
+        "--body",
+        (
+            f"Superseded by fresh current-main issue #{replacement_number} after PR #{number} "
+            "became too broad to merge safely."
+        ),
+    )
+    gh_run(
+        "api", "--method", "PATCH", f"repos/{repo}/issues/{original_number}",
+        "-f", "state=closed", "-f", "state_reason=not_planned",
+    )
+    return replacement_number
 
 
 def eligible_pr(
@@ -577,6 +694,21 @@ def main() -> int:
 
         issue_number = linked_issue_number(str(pr.get("body") or ""))
         issue = None
+        if issue_number is not None:
+            issue = gh_json("api", f"repos/{repo}/issues/{issue_number}")
+            should_supersede, supersede_reason = supersession_candidate(
+                pr,
+                repo=repo,
+                issue=issue,
+                files=files,
+            )
+            if should_supersede:
+                replacement_number = supersede_pull_request(repo, pr, issue)
+                print(
+                    f"Superseded broad protected-path PR #{number} with fresh current-main "
+                    f"issue #{replacement_number}."
+                )
+                continue
         if issue_number is None and not maintenance_pre_ci:
             issue = recovered_issue_by_pr.get(number)
             if issue is None:
