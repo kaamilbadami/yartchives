@@ -689,5 +689,6 @@
     updateQueueOptimistically,
     explainProfileChange,
     init,
+    renderQueue,
   };
 });
