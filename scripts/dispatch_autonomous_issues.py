@@ -35,7 +35,9 @@ JULES_ACTIVE_LABEL = "jules-session"
 JULES_REVIEW_READY_LABEL = "jules-review-ready"
 JULES_FAILED_LABEL = "jules-failed"
 JULES_FEEDBACK_LABEL = "jules-needs-feedback"
+JULES_RETRY_LABEL = "jules-retry-ready"
 JULES_SESSION_MARKER = "<!-- jules-session-id: {session_id} -->"
+JULES_RETRY_MARKER = "<!-- jules-retry-from: {session_id} -->"
 JULES_FEEDBACK_MARKER = "<!-- jules-feedback: {session_id} -->"
 JULES_FEEDBACK_SENT_MARKER = "<!-- jules-feedback-sent: {comment_id} -->"
 JULES_TERMINAL_STATES = {"COMPLETED", "FAILED"}
@@ -54,6 +56,7 @@ class Task(NamedTuple):
     area: str
     labels: frozenset[str]
     resources: frozenset[str] = frozenset()
+    dependencies: frozenset[int] = frozenset()
 
 
 def label_names(issue: dict[str, Any]) -> frozenset[str]:
@@ -71,6 +74,21 @@ def metadata_value(body: str, key: str) -> str | None:
     return match.group(1).strip() if match else None
 
 
+def dependency_numbers(body: str) -> frozenset[int] | None:
+    value = metadata_value(body, "depends_on")
+    if not value:
+        return frozenset()
+    dependencies: set[int] = set()
+    for token in re.split(r"[,\s]+", value):
+        if not token:
+            continue
+        match = re.fullmatch(r"#?(\d+)", token)
+        if match is None:
+            return None
+        dependencies.add(int(match.group(1)))
+    return frozenset(dependencies)
+
+
 def task_from_issue(issue: dict[str, Any]) -> Task | None:
     body = str(issue.get("body") or "")
     if AUTONOMOUS_MARKER not in body:
@@ -84,7 +102,13 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
         for resource in resources_value.split(",")
         if resource.strip()
     )
-    if safe != "true" or priority not in PRIORITY_ORDER or not area:
+    dependencies = dependency_numbers(body)
+    if (
+        safe != "true"
+        or priority not in PRIORITY_ORDER
+        or not area
+        or dependencies is None
+    ):
         return None
     return Task(
         number=int(issue["number"]),
@@ -94,6 +118,7 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
         area=area,
         labels=label_names(issue),
         resources=resources,
+        dependencies=dependencies,
     )
 
 
@@ -155,6 +180,66 @@ def pending_feedback_from_comments(
         if prompt:
             return comment_id, prompt
     return None
+
+
+def retry_marker_from_comments(comments: Iterable[dict[str, Any]]) -> str | None:
+    pattern = re.compile(r"<!--\s*jules-retry-from:\s*([^\s>]+)\s*-->")
+    for comment in reversed(list(comments)):
+        match = pattern.search(str(comment.get("body") or ""))
+        if match:
+            return match.group(1)
+    return None
+
+
+def retry_context_from_comments(comments: Iterable[dict[str, Any]]) -> str | None:
+    pattern = re.compile(r"<!--\s*jules-retry-from:\s*[^\s>]+\s*-->")
+    for comment in reversed(list(comments)):
+        body = str(comment.get("body") or "")
+        if pattern.search(body):
+            return pattern.sub("", body, count=1).strip()
+    return None
+
+
+def explicit_feedback_for_session(
+    comments: Iterable[dict[str, Any]], session_id: str
+) -> str | None:
+    marker = re.compile(
+        rf"<!--\s*jules-feedback:\s*{re.escape(session_id)}\s*-->"
+    )
+    for comment in reversed(list(comments)):
+        body = str(comment.get("body") or "")
+        if marker.search(body):
+            prompt = marker.sub("", body, count=1).strip()
+            if prompt:
+                return prompt
+    return None
+
+
+def retryable_jules_failure(diagnostics: Iterable[str]) -> bool:
+    text = "\n".join(str(item).casefold() for item in diagnostics)
+    non_retryable = (
+        "quota exceeded",
+        "permission denied",
+        "invalid argument",
+        "authentication",
+        "test failed",
+        "tests failed",
+        "merge conflict",
+    )
+    if any(pattern in text for pattern in non_retryable):
+        return False
+    retryable = (
+        "workspace became unavailable",
+        "workspace unavailable",
+        "service unavailable",
+        "temporarily unavailable",
+        "server error",
+        "backend error",
+        "infrastructure",
+        "internal execution stopped",
+        "internal error",
+    )
+    return any(pattern in text for pattern in retryable)
 
 
 def send_jules_message(api_key: str, session_id: str, prompt: str) -> None:
@@ -386,8 +471,31 @@ def reconcile_jules_sessions(
                 print(f"Jules session {session_id} for #{number} is still {state}.")
             continue
 
+        pr_url = pull_request_url(session)
+        activities: list[dict[str, Any]] = []
+        diagnostics: list[str] = []
+        retryable_failure = False
+        if state == "FAILED":
+            try:
+                activities = (
+                    load_activities(session_id)
+                    if load_activities is not None
+                    else list_jules_activities(api_key, session_id)
+                )
+                diagnostics = failure_diagnostics(session, activities)
+                retryable_failure = (
+                    retryable_jules_failure(diagnostics)
+                    and retry_marker_from_comments(comments) is None
+                )
+            except Exception as exc:
+                diagnostics = [f"Could not load Jules failure diagnostics: {exc}"]
+
         terminal_label = (
-            JULES_REVIEW_READY_LABEL if state == "COMPLETED" else JULES_FAILED_LABEL
+            JULES_REVIEW_READY_LABEL
+            if state == "COMPLETED"
+            else JULES_RETRY_LABEL
+            if retryable_failure
+            else JULES_FAILED_LABEL
         )
         run_gh(
             "issue", "edit", str(number), "--repo", repo,
@@ -402,7 +510,6 @@ def reconcile_jules_sessions(
             add=(terminal_label,),
         )
 
-        pr_url = pull_request_url(session)
         if state == "COMPLETED":
             detail = (
                 f"Jules completed session `{session_id}` and released this automation slot."
@@ -412,19 +519,18 @@ def reconcile_jules_sessions(
             else:
                 detail += "\n\nNo pull request output was reported by the Jules API."
         else:
-            detail = (
-                f"Jules session `{session_id}` ended in FAILED state and released this "
-                "automation slot. It will not be retried automatically."
-            )
-            try:
-                activities = (
-                    load_activities(session_id)
-                    if load_activities is not None
-                    else list_jules_activities(api_key, session_id)
+            if retryable_failure:
+                detail = (
+                    f"{JULES_RETRY_MARKER.format(session_id=session_id)}\n"
+                    f"Jules session `{session_id}` ended in FAILED state because the "
+                    "diagnostics match a retryable Jules/platform failure. One automatic "
+                    "context-preserving retry is allowed."
                 )
-                diagnostics = failure_diagnostics(session, activities)
-            except Exception as exc:
-                diagnostics = [f"Could not load Jules failure diagnostics: {exc}"]
+            else:
+                detail = (
+                    f"Jules session `{session_id}` ended in FAILED state and released this "
+                    "automation slot. It will not be retried automatically."
+                )
             if diagnostics:
                 detail += "\n\nFailure diagnostics:"
                 for diagnostic in diagnostics:
@@ -432,6 +538,21 @@ def reconcile_jules_sessions(
                     detail += f"\n\n> {quoted}"
             else:
                 detail += "\n\nNo additional failure diagnostics were reported by the Jules API."
+
+            if retryable_failure:
+                last_message = latest_agent_message(activities)
+                if last_message:
+                    detail += (
+                        "\n\nLast Jules message before failure:\n\n> "
+                        + last_message.replace(chr(10), chr(10) + "> ")
+                    )
+                prior_feedback = explicit_feedback_for_session(comments, session_id)
+                if prior_feedback:
+                    detail += (
+                        "\n\nPrior explicit GitHub feedback that must be preserved in the "
+                        "retry:\n\n> "
+                        + prior_feedback.replace(chr(10), chr(10) + "> ")
+                    )
 
         run_gh(
             "issue", "comment", str(number), "--repo", repo,
@@ -482,6 +603,11 @@ def select_tasks(issues: Iterable[dict[str, Any]], max_active: int = MAX_ACTIVE)
     occupied_locks: set[str] = set()
     for task in [*active_jules, *reserved_codex, *feedback_waiting]:
         occupied_locks.update(task_lock_keys(task))
+    open_issue_numbers = {
+        int(issue["number"])
+        for issue in issue_list
+        if str(issue.get("state") or "open") == "open"
+    }
     candidates: list[Task] = []
     for issue in issue_list:
         if str(issue.get("state") or "open") != "open":
@@ -502,9 +628,17 @@ def select_tasks(issues: Iterable[dict[str, Any]], max_active: int = MAX_ACTIVE)
             or has_codex_reservation(task.labels)
         ):
             continue
+        if task.dependencies & open_issue_numbers:
+            continue
         candidates.append(task)
 
-    candidates.sort(key=lambda task: (PRIORITY_ORDER[task.priority], task.number))
+    candidates.sort(
+        key=lambda task: (
+            PRIORITY_ORDER[task.priority],
+            0 if JULES_RETRY_LABEL in task.labels else 1,
+            task.number,
+        )
+    )
     selected: list[Task] = []
     for task in candidates:
         if len(selected) >= slots:
@@ -600,17 +734,30 @@ def session_title(repo: str, task: Task) -> str:
     return f"[{repo} #{task.number}] {task.title}"
 
 
-def session_prompt(repo: str, task: Task) -> str:
+def session_prompt(
+    repo: str, task: Task, retry_context: str | None = None
+) -> str:
     issue_url = f"https://github.com/{repo}/issues/{task.number}"
-    return (
+    prompt = (
         f"Work on GitHub issue #{task.number}: {task.title}\n"
         f"{issue_url}\n\n"
         f"{task.body.strip()}\n\n"
         "Treat the current repository as the source of truth. Work from current main. "
         "Keep the change bounded to this issue, prefer root-cause fixes, and add regression "
-        "coverage where behavior changes. Open a pull request that includes "
+        "coverage where behavior changes. Do not ask for confirmation merely to continue "
+        "a bounded implementation, run tests, commit changes, or open the pull request; "
+        "make the best engineering decision and continue. Ask for user feedback only when "
+        "a genuine product decision, conflicting requirement, destructive action, or missing "
+        "prerequisite prevents safe progress. Open a pull request that includes "
         f"'Closes #{task.number}'. Do not merge the pull request yourself."
     )
+    if retry_context:
+        prompt += (
+            "\n\nThis is the single automatic retry of a prior Jules/platform failure. "
+            "Preserve and apply the following prior session context instead of re-deriving "
+            f"or re-asking it:\n\n{retry_context}"
+        )
+    return prompt
 
 
 def create_jules_session(
@@ -619,13 +766,15 @@ def create_jules_session(
     repo: str,
     task: Task,
     api_post: Callable[..., dict[str, Any]] = jules_json,
+    *,
+    retry_context: str | None = None,
 ) -> dict[str, Any]:
     return api_post(
         api_key,
         "/sessions",
         method="POST",
         payload={
-            "prompt": session_prompt(repo, task),
+            "prompt": session_prompt(repo, task, retry_context),
             "title": session_title(repo, task),
             "sourceContext": {
                 "source": source_name,
@@ -643,22 +792,40 @@ def dispatch_task(
     repo: str,
     api_key: str,
     source_name: str,
+    comments: Iterable[dict[str, Any]] = (),
     create_session: Callable[..., dict[str, Any]] = create_jules_session,
     run_gh: Callable[..., None] = gh_run,
 ) -> dict[str, Any]:
-    session = create_session(api_key, source_name, repo, task)
+    retry_context = (
+        retry_context_from_comments(comments)
+        if JULES_RETRY_LABEL in task.labels
+        else None
+    )
+    if retry_context:
+        session = create_session(
+            api_key,
+            source_name,
+            repo,
+            task,
+            retry_context=retry_context,
+        )
+    else:
+        session = create_session(api_key, source_name, repo, task)
     session_id = str(session.get("id") or "")
     session_url = str(session.get("url") or "")
     if not session_id or not session_url:
         raise RuntimeError(f"Jules session creation for issue #{task.number} returned no id/url")
 
-    run_gh(
+    edit_args = [
         "issue", "edit", str(task.number), "--repo", repo,
         "--add-label", "autonomous-backlog",
         "--add-label", "agent-ready",
         "--add-label", "jules",
         "--add-label", JULES_ACTIVE_LABEL,
-    )
+    ]
+    if JULES_RETRY_LABEL in task.labels:
+        edit_args += ["--remove-label", JULES_RETRY_LABEL]
+    run_gh(*edit_args)
     run_gh(
         "issue", "comment", str(task.number), "--repo", repo,
         "--body",
@@ -681,6 +848,7 @@ def ensure_labels(repo: str) -> None:
         (JULES_REVIEW_READY_LABEL, "8250DF", "Jules finished; review the resulting GitHub PR"),
         (JULES_FAILED_LABEL, "D73A4A", "Jules session failed and requires follow-up"),
         (JULES_FEEDBACK_LABEL, "FBCA04", "Jules is waiting for user feedback; does not consume productive WIP"),
+        (JULES_RETRY_LABEL, "BFD4F2", "One automatic retry is pending after a retryable Jules/platform failure"),
         (CODEX_RESERVED_LABEL, "0969DA", "Reserved for a scheduled Codex worker"),
         ("codex-worker-1", "1F6FEB", "Reserved for Codex scheduled worker 1"),
         ("codex-worker-2", "54AEFF", "Reserved for Codex scheduled worker 2"),
@@ -733,6 +901,7 @@ def run_dispatch_cycle(
             repo=repo,
             api_key=api_key,
             source_name=source_name,
+            comments=load_comments(task.number),
         )
         print(
             f"Started Jules session {session['id']} for #{task.number}: {task.title} "
