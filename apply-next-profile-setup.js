@@ -413,7 +413,6 @@
     const locationGrid = element("div", "apply-next-profile-grid");
     locationGrid.append(
       field("Base ZIPs", input("baseZips", values.baseZips)),
-      field("Preferred states", input("preferredStates", values.preferredStates)),
       field("Nearby miles", input("nearbyMiles", values.nearbyMiles, "number"))
     );
     location.append(locationGrid);

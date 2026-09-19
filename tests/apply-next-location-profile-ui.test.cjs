@@ -16,10 +16,18 @@ assert.equal(defaults.locationPreferencesVersion, 2);
 assert.equal(defaults.locationMode, "normal");
 assert.deepEqual(defaults.baseZips, ["06897"]);
 assert.equal(defaults.nearbyMiles, 45);
+assert.deepEqual(defaults.preferredStates, []);
 assert.equal(defaults.remoteScore, 20);
 assert.equal(defaults.relocationScore, 8);
 assert.deepEqual(defaults.relocationRegionScores, {});
 assert.equal(defaults.excludeRelocation, false);
+
+const hugeCommute = UI.applyLocationPreferences({}, {
+  locationMode: "normal",
+  homeZip: "06897",
+  homeCommuteMiles: 100000,
+});
+assert.equal(hugeCommute.nearbyMiles, 150, "commute radius is bounded; relocation is a separate preference");
 
 const custom = UI.applyLocationPreferences({}, {
   locationMode: "custom",
@@ -38,6 +46,7 @@ const custom = UI.applyLocationPreferences({}, {
 });
 assert.equal(custom.locationMode, "custom");
 assert.equal(custom.locationPreferencesVersion, 2);
+assert.deepEqual(custom.preferredStates, []);
 assert.deepEqual(custom.baseZips, ["06897", "20740"]);
 assert.deepEqual(custom.locationAnchors, [
   { zip: "06897", label: "Home", commuteMiles: 45, locationScore: 20 },
@@ -87,7 +96,10 @@ assert.deepEqual(UI.anchorsFromProfile(legacy).map(anchor => anchor.locationScor
 assert.equal(UI.defaultRemoteScore(legacy), 16);
 assert.equal(UI.defaultRelocationScore(legacy), 11);
 
-assert.deepEqual(UI.LOCATION_MODE_OPTIONS.map(([value]) => value), ["normal", "custom"]);
+assert.deepEqual(UI.LOCATION_MODE_OPTIONS, [
+  ["normal", "Default scoring (recommended)"],
+  ["custom", "Custom scoring (advanced)"],
+]);
 assert.ok(UI.RELOCATION_REGIONS.some(region => region.label === "New England" && /MA/.test(region.states)));
 assert.ok(UI.RELOCATION_REGIONS.some(region => region.label === "South Central" && /TX/.test(region.states)));
 
@@ -96,8 +108,15 @@ assert.ok(index.includes('src="apply-next-location-profile-ui.js"'));
 assert.ok(index.indexOf('src="apply-next-profile-setup.js"') < index.indexOf('src="apply-next-location-profile-ui.js"'), "location UI should enhance the profile editor after profile setup loads");
 
 const source = fs.readFileSync(path.join(__dirname, "..", "apply-next-location-profile-ui.js"), "utf8");
-assert.match(source, /How much control do you want\?/);
-assert.match(source, /Default is designed for most students/);
+assert.match(source, /Location preferences/);
+assert.match(source, /Location scoring/);
+assert.match(source, /Default scoring \(recommended\)/);
+assert.match(source, /Custom scoring \(advanced\)/);
+assert.match(source, /relocation—not a larger commute radius/);
+assert.match(source, /Daily commute radius \(miles\)/);
+assert.doesNotMatch(source, /makeModeToggle/);
+const setupSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.js"), "utf8");
+assert.doesNotMatch(setupSource, /field\("Preferred states"/);
 assert.match(source, /Remote = 20/);
 assert.match(source, /20 to 16/);
 assert.match(source, /Custom scoring/);
@@ -110,7 +129,6 @@ assert.doesNotMatch(source, /Prefer relocating for the right role/);
 assert.doesNotMatch(source, /Remote is acceptable/);
 
 const css = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.css"), "utf8");
-assert.match(css, /apply-next-location-mode-toggle/);
 assert.match(css, /apply-next-location-anchor-row/);
 assert.match(css, /apply-next-location-region-card/);
 

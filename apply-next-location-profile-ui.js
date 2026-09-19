@@ -8,8 +8,8 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   const LOCATION_PREFERENCES_VERSION = 2;
   const LOCATION_MODE_OPTIONS = [
-    ["normal", "Default"],
-    ["custom", "Custom"],
+    ["normal", "Default scoring (recommended)"],
+    ["custom", "Custom scoring (advanced)"],
   ];
   const RELOCATION_REGIONS = Object.freeze([
     { id: "new_england", label: "New England", states: "CT · ME · MA · NH · RI · VT" },
@@ -29,7 +29,7 @@
 
   function clampMiles(value, fallback = 50) {
     const parsed = Number(value);
-    return Number.isFinite(parsed) ? Math.max(5, Math.min(500, Math.round(parsed))) : fallback;
+    return Number.isFinite(parsed) ? Math.max(5, Math.min(150, Math.round(parsed))) : fallback;
   }
 
   function normalizeZip(value) {
@@ -108,6 +108,7 @@
         baseZips: homeZip ? [homeZip] : [],
         baseLabels: homeZip ? ["Home"] : [],
         nearbyMiles: commuteMiles,
+        preferredStates: [],
         locationAnchors: [],
         remoteScore: 20,
         relocationScore: 8,
@@ -148,6 +149,7 @@
       baseZips: anchors.map(anchor => anchor.zip),
       baseLabels: anchors.map(anchor => anchor.label),
       nearbyMiles: anchors[0].commuteMiles,
+      preferredStates: [],
       locationAnchors: anchors,
       remoteScore,
       relocationScore,
@@ -198,16 +200,18 @@
     if (field) field.hidden = true;
   }
 
-  function makeModeToggle(selected) {
-    const wrap = element("div", "apply-next-location-mode-toggle");
+  function makeModeSelect(selected) {
+    const select = document.createElement("select");
+    select.name = "locationScoringMode";
+    select.setAttribute("aria-label", "Location scoring");
     for (const [value, label] of LOCATION_MODE_OPTIONS) {
-      const button = element("button", "apply-next-location-mode-button", label);
-      button.type = "button";
-      button.dataset.value = value;
-      button.setAttribute("aria-pressed", String(value === selected));
-      wrap.append(button);
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = label;
+      option.selected = value === selected;
+      select.append(option);
     }
-    return wrap;
+    return select;
   }
 
   function makeAnchorRow(anchor, index) {
@@ -222,7 +226,7 @@
     zip.value = anchor?.zip || "";
     zip.dataset.anchorField = "zip";
 
-    const miles = numberInput("", anchor?.commuteMiles ?? 50, 5, 500);
+    const miles = numberInput("", anchor?.commuteMiles ?? 50, 5, 150);
     miles.dataset.anchorField = "commuteMiles";
 
     const score = numberInput("", anchor?.locationScore ?? (index === 0 ? 20 : 16), 0, 20);
@@ -234,7 +238,7 @@
 
     row.append(
       makeField(index === 0 ? "Primary ZIP" : `Base ${index + 1} ZIP`, zip),
-      makeField("Commute miles", miles),
+      makeField("Daily commute radius (miles)", miles, "Only count places you would regularly travel to without moving. Use relocation scoring for jobs farther away."),
       makeField("Score /20", score),
       remove
     );
@@ -273,16 +277,21 @@
     }
     if (oldMiles) {
       const label = oldMiles.closest(".apply-next-profile-field")?.querySelector("span");
-      if (label) label.textContent = "Maximum commute miles";
+      if (label) label.textContent = "Daily commute radius (miles)";
+      oldMiles.max = "150";
+      const field = oldMiles.closest(".apply-next-profile-field");
+      if (field && !field.querySelector(".apply-next-location-field-hint")) {
+        field.append(element("small", "apply-next-location-field-hint", "Only count places you would regularly travel to without moving. If you would move for a job, that is relocation—not a larger commute radius."));
+      }
     }
 
     const intro = element("div", "apply-next-location-intro");
     intro.append(
-      element("p", "apply-next-profile-subhead", "How much control do you want?"),
-      element("p", "muted", "Default is designed for most students. Custom lets you score multiple commute bases, remote work, and relocation areas yourself.")
+      element("p", "apply-next-profile-subhead", "Location preferences"),
+      element("p", "muted", "Your commute radius is only for jobs you can reach without moving. Jobs farther away are handled as relocation.")
     );
-    const modeToggle = makeModeToggle(initialMode);
-    intro.append(modeToggle);
+    const modeSelect = makeModeSelect(initialMode);
+    intro.append(makeField("Location scoring", modeSelect));
 
     const defaultPanel = element("div", "apply-next-location-panel");
     defaultPanel.dataset.locationPanel = "normal";
@@ -357,14 +366,9 @@
       customPanel.hidden = mode !== "custom";
       if (oldBase?.closest(".apply-next-profile-field")) oldBase.closest(".apply-next-profile-field").hidden = mode !== "normal";
       if (oldMiles?.closest(".apply-next-profile-field")) oldMiles.closest(".apply-next-profile-field").hidden = mode !== "normal";
-      for (const button of modeToggle.querySelectorAll("button")) {
-        button.setAttribute("aria-pressed", String(button.dataset.value === mode));
-      }
+      modeSelect.value = mode;
     }
-    modeToggle.addEventListener("click", event => {
-      const button = event.target.closest("button[data-value]");
-      if (button) syncMode(button.dataset.value);
-    });
+    modeSelect.addEventListener("change", () => syncMode(modeSelect.value));
     syncMode(initialMode);
 
     addBase.addEventListener("click", () => {
