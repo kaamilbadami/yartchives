@@ -1558,5 +1558,111 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
 
 
+    def test_completed_session_pr_requires_exact_same_repo_audit_record(self):
+        comments = [
+            {
+                "body": (
+                    "Jules completed session `abc123` and released this automation slot.\n\n"
+                    "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
+                )
+            }
+        ]
+        self.assertEqual(
+            mod.completed_session_pr_from_comments(
+                comments, "kaamilbadami/yartchives"
+            ),
+            ("abc123", 254),
+        )
+        self.assertIsNone(
+            mod.completed_session_pr_from_comments(comments, "other/repo")
+        )
+
+    def test_cleanup_deletes_completed_session_only_after_exact_pr_is_merged(self):
+        deleted = []
+        gh_calls = []
+        issues = [{"number": 211}]
+        comments = {
+            211: [
+                {
+                    "body": (
+                        "Jules completed session `done1` and released this automation slot.\n\n"
+                        "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
+                    )
+                }
+            ]
+        }
+
+        mod.cleanup_merged_jules_sessions(
+            "kaamilbadami/yartchives",
+            "secret",
+            load_review_ready=lambda: issues,
+            load_comments=lambda number: comments[number],
+            get_pr=lambda number: {"number": number, "merged": True},
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(deleted, ["done1"])
+        self.assertEqual(
+            gh_calls,
+            [
+                (
+                    "issue", "edit", "211", "--repo", "kaamilbadami/yartchives",
+                    "--remove-label", "jules-review-ready",
+                )
+            ],
+        )
+
+    def test_cleanup_keeps_session_when_linked_pr_is_not_merged(self):
+        deleted = []
+        gh_calls = []
+
+        mod.cleanup_merged_jules_sessions(
+            "kaamilbadami/yartchives",
+            "secret",
+            load_review_ready=lambda: [{"number": 211}],
+            load_comments=lambda number: [
+                {
+                    "body": (
+                        "Jules completed session `done1` and released this automation slot.\n\n"
+                        "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
+                    )
+                }
+            ],
+            get_pr=lambda number: {"number": number, "merged": False},
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(deleted, [])
+        self.assertEqual(gh_calls, [])
+
+    def test_cleanup_retries_non_404_delete_failures_without_clearing_label(self):
+        gh_calls = []
+
+        def fail_delete(session_id):
+            raise RuntimeError("Jules API unavailable")
+
+        mod.cleanup_merged_jules_sessions(
+            "kaamilbadami/yartchives",
+            "secret",
+            load_review_ready=lambda: [{"number": 211}],
+            load_comments=lambda number: [
+                {
+                    "body": (
+                        "Jules completed session `done1` and released this automation slot.\n\n"
+                        "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
+                    )
+                }
+            ],
+            get_pr=lambda number: {"number": number, "merged": True},
+            delete_session=fail_delete,
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(gh_calls, [])
+
+
+
 if __name__ == "__main__":
     unittest.main()

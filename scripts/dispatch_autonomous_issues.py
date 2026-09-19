@@ -470,6 +470,88 @@ def delete_jules_session(api_key: str, session_id: str) -> None:
     )
 
 
+def completed_session_pr_from_comments(
+    comments: Iterable[dict[str, Any]],
+    repo: str,
+) -> tuple[str, int] | None:
+    """Return the newest completed Jules session tied to a PR in this repository."""
+    owner, name = (re.escape(part) for part in repo.split("/", 1))
+    pattern = re.compile(
+        rf"Jules completed session \`([^\`]+)\`.*?"
+        rf"Pull request:\s*https://github\.com/{owner}/{name}/pull/(\d+)",
+        re.IGNORECASE | re.DOTALL,
+    )
+    for comment in reversed(list(comments)):
+        match = pattern.search(str(comment.get("body") or ""))
+        if match:
+            return match.group(1), int(match.group(2))
+    return None
+
+
+def cleanup_merged_jules_sessions(
+    repo: str,
+    api_key: str,
+    *,
+    load_review_ready: Callable[[], list[dict[str, Any]]] | None = None,
+    load_comments: Callable[[int], list[dict[str, Any]]] | None = None,
+    get_pr: Callable[[int], dict[str, Any]] | None = None,
+    delete_session: Callable[[str], None] | None = None,
+    run_gh: Callable[..., None] | None = None,
+) -> None:
+    """Delete completed Jules sessions only after their exact linked PR is merged."""
+    if load_review_ready is None:
+        load_review_ready = lambda: gh_paginated_json(
+            "api",
+            f"repos/{repo}/issues?state=all&labels={parse.quote(JULES_REVIEW_READY_LABEL)}&per_page=100",
+        )
+    if load_comments is None:
+        load_comments = lambda number: gh_paginated_json(
+            "api",
+            f"repos/{repo}/issues/{number}/comments?per_page=100",
+        )
+    if get_pr is None:
+        get_pr = lambda number: gh_json("api", f"repos/{repo}/pulls/{number}")
+    if delete_session is None:
+        delete_session = lambda session_id: delete_jules_session(api_key, session_id)
+    if run_gh is None:
+        run_gh = gh_run
+
+    for issue in load_review_ready():
+        if "pull_request" in issue:
+            continue
+        number = int(issue["number"])
+        completed = completed_session_pr_from_comments(load_comments(number), repo)
+        if completed is None:
+            continue
+        session_id, pr_number = completed
+        pr = get_pr(pr_number)
+        if pr.get("merged") is not True:
+            continue
+
+        try:
+            delete_session(session_id)
+            print(
+                f"Deleted completed Jules session {session_id} after merged PR "
+                f"#{pr_number} for issue #{number}."
+            )
+        except Exception as exc:
+            if getattr(exc, "code", None) != 404:
+                print(
+                    f"Could not delete completed Jules session {session_id} after merged "
+                    f"PR #{pr_number}; keeping review-ready state for retry: {exc}"
+                )
+                continue
+            print(
+                f"Completed Jules session {session_id} was already deleted after merged "
+                f"PR #{pr_number}; marking cleanup complete."
+            )
+
+        run_gh(
+            "issue", "edit", str(number), "--repo", repo,
+            "--remove-label", JULES_REVIEW_READY_LABEL,
+        )
+
+
 def pull_request_url(session: dict[str, Any]) -> str | None:
     for output in session.get("outputs", []):
         if not isinstance(output, dict):
@@ -1474,6 +1556,7 @@ def main() -> int:
     repo = os.environ["REPOSITORY"]
     api_key = os.environ["JULES_API_KEY"]
     ensure_labels(repo)
+    cleanup_merged_jules_sessions(repo, api_key)
 
     poll_seconds = int(os.environ.get("JULES_POLL_SECONDS", DEFAULT_POLL_SECONDS))
     watch_seconds = int(os.environ.get("JULES_WATCH_SECONDS", DEFAULT_WATCH_SECONDS))
