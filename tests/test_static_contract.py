@@ -29,6 +29,15 @@ class StaticContractTests(unittest.TestCase):
         freshness = soup.find(id="freshnessSelect")
         self.assertEqual(freshness.find("option", selected=True).get("value"), "all")
 
+    def test_feed_refresh_only_invalidates_on_feed_inputs(self):
+        workflow = (ROOT / ".github" / "workflows" / "update-feed.yml").read_text(encoding="utf-8")
+        invalidating = r"^(scripts/|audit/samples/|data/employer-seeds/|sources\\.json$|direct_sources\\.json$|requirements\\.txt$|\\.github/workflows/update-feed\\.yml$)"
+        self.assertGreaterEqual(workflow.count(invalidating), 2)
+        self.assertIn("Only unrelated files changed; rebasing employer-universe output onto current main.", workflow)
+        self.assertIn("Only unrelated or generated files changed; publishing this completed feed onto current main.", workflow)
+        self.assertNotIn("grep -Ev '^data/(listings|workday-inspections)", workflow)
+        self.assertNotIn("Aborting this stale build; the next run will resolve from the newer main.", workflow)
+
     def test_pages_deploy_includes_static_assets(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
         self.assertIn('- "assets/**"', workflow)
