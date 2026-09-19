@@ -59,7 +59,10 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertEqual([task.number for task in selected], [152])
         self.assertIn("1 active", summary)
         self.assertIn("1 selected (#152)", summary)
-        self.assertIn("1 unfilled after dependencies/resource locks", summary)
+        self.assertIn("1 unfilled", summary)
+        self.assertIn("1 resource-conflicted", summary)
+        self.assertIn("0 dependency-blocked", summary)
+        self.assertIn("0 failed", summary)
         self.assertIn("max 3", summary)
 
     def test_selects_highest_priority_safe_tasks_without_area_overlap(self):
@@ -552,6 +555,56 @@ class AutonomousDispatcherTests(unittest.TestCase):
             [154],
         )
 
+    def test_terminal_failure_releases_slot_and_refills_same_cycle_selection(self):
+        issues = [
+            issue(
+                349,
+                "coverage benchmark",
+                body=task_body(
+                    "P1",
+                    "coverage-benchmark",
+                    resources="employer-universe, feed-core",
+                ),
+                labels=("jules", "jules-session"),
+            ),
+            issue(
+                333,
+                "accessibility",
+                body=task_body("P3", "accessibility", resources="accessibility-ui"),
+            ),
+        ]
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [
+                {"body": "<!-- jules-session-id: failed-vm -->"}
+            ],
+            get_session=lambda api_key, path: {
+                "id": "failed-vm",
+                "state": "FAILED",
+            },
+            load_activities=lambda session_id: [
+                {
+                    "error": {
+                        "message": (
+                            "Jules encountered an error when preparing the virtual "
+                            "machine environment for the task."
+                        )
+                    }
+                }
+            ],
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        labels = mod.label_names(issues[0])
+        self.assertNotIn("jules-session", labels)
+        self.assertIn("jules-retry-ready", labels)
+        selected = mod.select_tasks(issues, max_active=2)
+        self.assertEqual([task.number for task in selected], [349, 333])
+
     def test_failed_session_releases_slot_without_becoming_retry_candidate(self):
         issues = [
             issue(
@@ -744,6 +797,58 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertNotIn("jules-needs-feedback", mod.label_names(issues[0]))
         self.assertEqual(len(gh_calls), 1)
         self.assertIn("<!-- jules-auto-feedback: ask1:", gh_calls[0][-1])
+
+    def test_third_distinct_routine_clarification_releases_slot_for_retry(self):
+        issues = [
+            issue(
+                328,
+                "effort audit",
+                body=task_body("P2", "application-effort", resources="effort-analysis"),
+                labels=("jules", "jules-session", "agent-ready"),
+            ),
+            issue(
+                333,
+                "accessibility",
+                body=task_body("P3", "accessibility", resources="accessibility-ui"),
+            ),
+        ]
+        comments = [
+            {"body": "<!-- jules-session-id: loop1 -->"},
+            {"body": "<!-- jules-auto-feedback: loop1:first -->"},
+            {"body": "<!-- jules-auto-feedback: loop1:second -->"},
+        ]
+        gh_calls = []
+        deleted = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: comments if number == 328 else [],
+            get_session=lambda api_key, path: {
+                "id": "loop1",
+                "state": "AWAITING_USER_FEEDBACK",
+            },
+            load_activities=lambda session_id: [
+                {
+                    "agentMessaged": {
+                        "agentMessage": "Should I add another fixture for the audit?"
+                    }
+                }
+            ],
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(deleted, ["loop1"])
+        labels = mod.label_names(issues[0])
+        self.assertNotIn("jules-session", labels)
+        self.assertIn("jules-retry-ready", labels)
+        self.assertIn("<!-- jules-retry-from: loop1 -->", gh_calls[1][-1])
+        self.assertEqual(
+            [task.number for task in mod.select_tasks(issues, max_active=1)],
+            [328],
+        )
 
     def test_existing_feedback_block_is_auto_recovered_when_clarification_is_routine(self):
         issues = [
@@ -1410,6 +1515,34 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 ["Jules encountered an error when working on the task."]
             )
         )
+
+    def test_virtual_machine_environment_failure_is_retryable(self):
+        self.assertTrue(
+            mod.retryable_jules_failure(
+                [
+                    "Jules encountered an error when preparing the virtual machine "
+                    "environment for the task."
+                ]
+            )
+        )
+
+    def test_parked_virtual_machine_failure_gets_migration_retry(self):
+        comments = [
+            {"body": "<!-- jules-session-id: vm-failure -->"},
+            {
+                "body": (
+                    "Jules session `vm-failure` ended in FAILED state and released this "
+                    "automation slot. It will not be retried automatically.\n\n"
+                    "Failure diagnostics:\n\n"
+                    "> Jules encountered an error when preparing the virtual machine "
+                    "environment for the task."
+                )
+            },
+        ]
+        retry = mod.legacy_failed_retry_context(comments)
+        self.assertIsNotNone(retry)
+        self.assertEqual(retry[0], "vm-failure")
+        self.assertIn("virtual machine environment", retry[1])
 
     def test_generic_modern_jules_failure_gets_one_migration_retry(self):
         comments = [

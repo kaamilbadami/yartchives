@@ -75,6 +75,10 @@
   gap: 0.9rem;
 }
 
+.apply-next-load-more {
+  margin-top: 1rem;
+}
+
 .apply-next-card {
   border: 1px solid var(--border);
   border-radius: 14px;
