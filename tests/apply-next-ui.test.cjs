@@ -33,6 +33,27 @@ assert.equal(UI.scoreBand("location", 15, 20), "Very convenient");
 assert.equal(UI.totalScoreBandClass(50), "apply-next-score-low");
 assert.equal(UI.totalScoreBandClass(65), "apply-next-score-medium");
 assert.equal(UI.totalScoreBandClass(85), "apply-next-score-high");
+assert.equal(UI.FRESH_MAX_AGE_DAYS, 2);
+assert.equal(UI.FRESH_MIN_SCORE, 55);
+
+const freshNow = new Date("2026-09-19T12:00:00Z");
+const freshRanked = [
+  { total: 88, job: { id: "fresh-best", posted_at: "2026-09-19" } },
+  { total: 99, job: { id: "older-best", posted_at: "2026-09-16" } },
+  { total: 54, job: { id: "fresh-low", posted_at: "2026-09-19" } },
+  { total: 72, job: { id: "fresh-good", posted_at: "2026-09-17" } },
+  { total: 70, job: { id: "unknown-date", posted_at: null } },
+];
+assert.equal(UI.postedAgeDays("2026-09-17", freshNow), 2);
+assert.equal(UI.postedAgeDays("not-a-date", freshNow), null);
+assert.deepEqual(
+  UI.freshRankedResults(freshRanked, freshNow).map(result => result.job.id),
+  ["fresh-best", "fresh-good"]
+);
+assert.deepEqual(
+  UI.visibleQueueResults(freshRanked, "top", freshNow).map(result => result.job.id),
+  freshRanked.map(result => result.job.id)
+);
 // rankingSummary tests
 // Note: test environment componentMax: fit=40, freshness=10, roi=15, location=15
 assert.equal(
@@ -272,6 +293,9 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /apply-next-profile-mode/, "Focused onboarding should use an explicit main-state class");
 
   assert.doesNotMatch(uiSource, /<option value="newest">Newest<\/option>/, "Apply Next should not expose a Newest sort mode");
+  assert.match(uiSource, /\["top", "Top 10"\]/, "Apply Next should expose the overall Top 10 view");
+  assert.match(uiSource, /\["fresh", "Fresh"\]/, "Apply Next should expose a Fresh view");
+  assert.match(uiSource, /Ranked by overall Apply Next score, not posting time\./, "Fresh should preserve recommendation quality ordering");
 
   assert.match(uiSource, /document\.createDocumentFragment\(\)/, "renderQueue should build DOM off-screen before swapping to avoid UI stalls");
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
