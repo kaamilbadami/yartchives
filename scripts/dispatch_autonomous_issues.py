@@ -20,7 +20,7 @@ AREA_RESOURCE_LOCKS = {
     "dedupe": frozenset({"feed-core", "identity"}),
     "identity": frozenset({"feed-core", "identity"}),
     "frontend": frozenset({"frontend-state"}),
-    "frontend-state": frozenset({"identity", "frontend-state"}),
+    "frontend-state": frozenset({"frontend-state"}),
     "link-precedence": frozenset({"feed-core", "links"}),
     "listing-lifecycle": frozenset({"feed-core", "links"}),
     "link-quality": frozenset({"links"}),
