@@ -54,7 +54,7 @@ const state = {
   search: "",
   location: "",
   radius: "50",
-  freshness: "7",
+  freshness: "all",
   status: "all",
   saved: new Set(),
   applied: new Set(),
@@ -121,7 +121,7 @@ function loadSavedState() {
   if (params.has("q")) state.search = params.get("q") || "";
   if (params.has("loc")) state.location = params.get("loc") || "";
   if (params.has("miles")) state.radius = params.get("miles") || "50";
-  if (params.has("fresh")) state.freshness = params.get("fresh") || "7";
+  if (params.has("fresh")) state.freshness = params.get("fresh") || "all";
 }
 
 function persist() {
@@ -698,7 +698,7 @@ function setUpEvents() {
     state.search = "";
     state.location = "";
     state.radius = "50";
-    state.freshness = "7";
+    state.freshness = "all";
     state.status = "all";
     visibleLimit = PAGE_SIZE;
     persist();
@@ -713,7 +713,7 @@ function setUpEvents() {
     if (state.search) url.searchParams.set("q", state.search);
     if (state.location) url.searchParams.set("loc", state.location);
     if (currentZip() && state.radius !== "50") url.searchParams.set("miles", state.radius);
-    if (state.freshness !== "7") url.searchParams.set("fresh", state.freshness);
+    if (state.freshness !== "all") url.searchParams.set("fresh", state.freshness);
     try {
       await navigator.clipboard.writeText(url.toString());
       const old = els.shareBtn.textContent;
