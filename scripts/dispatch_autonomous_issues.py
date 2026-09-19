@@ -67,6 +67,7 @@ CODEX_WORKER_PREFIX = "codex-worker-"
 DEFAULT_POLL_SECONDS = 30
 DEFAULT_WATCH_SECONDS = 13 * 60
 DEFAULT_STALE_SECONDS = 3 * 60 * 60
+MAX_AUTO_CLARIFICATIONS = 2
 
 
 class Task(NamedTuple):
@@ -222,6 +223,20 @@ def clarification_handled_for_question(
     return any(marker.search(str(comment.get("body") or "")) for comment in comments)
 
 
+def auto_clarification_count(
+    comments: Iterable[dict[str, Any]], session_id: str
+) -> int:
+    """Count routine clarifications already auto-answered for one Jules session."""
+    marker = re.compile(
+        rf"<!--\s*jules-auto-feedback:\s*{re.escape(session_id)}:[^\s>]+\s*-->"
+    )
+    return sum(
+        1
+        for comment in comments
+        if marker.search(str(comment.get("body") or ""))
+    )
+
+
 def clarification_requires_product_decision(question: str) -> bool:
     """Keep only genuine user-facing/product-policy choices gated on the user."""
     text = " ".join(question.casefold().split())
@@ -321,26 +336,20 @@ def legacy_failed_retry_context(
     if terminal_body is None:
         return None
 
-    # Modern failure reconciliation always records either diagnostics or an
-    # explicit no-diagnostics line. Leave those decisions alone. The only
-    # pre-retry diagnostic we migrate is Jules's non-actionable generic failure.
+    # Re-evaluate historical parked failures through the current retry classifier.
+    # This lets newly-recognized Jules/platform failures receive their one migration
+    # retry without reopening genuine code/test failures or already-retried work.
     no_diagnostics = "No additional failure diagnostics were reported by the Jules API."
     diagnostics_header = "Failure diagnostics:"
-    generic_failures = (
-        "Jules was unable to complete the task.",
-        "Jules encountered an error when working on the task.",
-    )
     if no_diagnostics in terminal_body:
         return None
-    if diagnostics_header in terminal_body and not any(
-        generic_failure in terminal_body for generic_failure in generic_failures
-    ):
+    if diagnostics_header in terminal_body and not retryable_jules_failure([terminal_body]):
         return None
 
     context = (
-        "This Jules failure was parked before the one-retry lifecycle was available. "
-        "Treat it as the single legacy migration retry; do not infer a code defect from "
-        "the absence of actionable diagnostics."
+        "This Jules failure was parked before the current one-retry classification "
+        "was available. Treat it as the single legacy migration retry and preserve "
+        "the recorded failure context."
     )
     prior_feedback = explicit_feedback_for_session(comment_list, session_id)
     if prior_feedback:
@@ -444,9 +453,13 @@ def retryable_jules_failure(diagnostics: Iterable[str]) -> bool:
         "server error",
         "backend error",
         "infrastructure",
+        "preparing the virtual machine environment",
+        "failed to prepare the virtual machine environment",
+        "virtual machine environment for the task",
         "internal execution stopped",
         "internal error",
         "jules encountered an error when working on the task",
+        "jules was unable to complete the task",
     )
     return any(pattern in text for pattern in retryable)
 
@@ -970,16 +983,90 @@ def reconcile_jules_sessions(
                     )
                     continue
 
-            if question and clarification_handled_for_question(
-                comments, session_id, question
+            question_already_handled = bool(
+                question
+                and clarification_handled_for_question(comments, session_id, question)
+            )
+            routine_question = bool(
+                question and not clarification_requires_product_decision(question)
+            )
+            auto_answered = auto_clarification_count(comments, session_id)
+
+            if (
+                routine_question
+                and not question_already_handled
+                and auto_answered >= MAX_AUTO_CLARIFICATIONS
             ):
+                try:
+                    delete_session(session_id)
+                except Exception as exc:
+                    print(
+                        f"Could not delete clarification-loop Jules session {session_id} "
+                        f"for #{number}; keeping its slot reserved: {exc}"
+                    )
+                    continue
+
+                already_retried = retry_marker_from_comments(comments) is not None
+                terminal_label = (
+                    JULES_FAILED_LABEL if already_retried else JULES_RETRY_LABEL
+                )
+                run_gh(
+                    "issue", "edit", str(number), "--repo", repo,
+                    "--remove-label", JULES_ACTIVE_LABEL,
+                    "--remove-label", JULES_FEEDBACK_LABEL,
+                    "--remove-label", "jules",
+                    "--remove-label", "needs-product-decision",
+                    "--add-label", terminal_label,
+                )
+                replace_issue_labels_in_memory(
+                    issue,
+                    remove=(
+                        JULES_ACTIVE_LABEL,
+                        JULES_FEEDBACK_LABEL,
+                        "jules",
+                        "needs-product-decision",
+                    ),
+                    add=(terminal_label,),
+                )
+                if already_retried:
+                    detail = (
+                        f"Jules session `{session_id}` asked more than "
+                        f"{MAX_AUTO_CLARIFICATIONS} routine clarifications after its "
+                        "automatic retry. The dispatcher deleted the nonproductive session, "
+                        "released its slot, and parked the issue as failed instead of "
+                        "retrying indefinitely."
+                    )
+                else:
+                    detail = (
+                        f"{JULES_RETRY_MARKER.format(session_id=session_id)}\n"
+                        f"Jules session `{session_id}` asked more than "
+                        f"{MAX_AUTO_CLARIFICATIONS} routine clarifications without making "
+                        "productive progress. The dispatcher deleted the session and released "
+                        "its slot. One automatic context-preserving retry is allowed."
+                    )
+                    if question:
+                        detail += (
+                            "\n\nLatest routine clarification before retry:\n\n> "
+                            + question.replace(chr(10), chr(10) + "> ")
+                        )
+                run_gh(
+                    "issue", "comment", str(number), "--repo", repo,
+                    "--body", detail,
+                )
+                print(
+                    f"Released clarification-loop Jules session {session_id} for #{number}; "
+                    f"marked {terminal_label}."
+                )
+                continue
+
+            if question_already_handled:
                 print(
                     f"Jules session {session_id} for #{number} is processing feedback "
                     "for the current clarification."
                 )
                 continue
 
-            if question and not clarification_requires_product_decision(question):
+            if routine_question:
                 prompt = routine_clarification_response(question)
                 send_feedback(session_id, prompt)
                 if JULES_FEEDBACK_LABEL in labels:
@@ -1527,23 +1614,99 @@ def dispatch_capacity_summary(
     *,
     max_active: int = MAX_ACTIVE,
 ) -> str:
-    """Summarize productive Jules capacity after scheduling constraints are applied."""
+    """Summarize Jules capacity and explain why otherwise-free slots stay unused."""
     issue_list = list(issues)
     selected_list = list(selected)
-    active_count = sum(active_jules_task(issue) is not None for issue in issue_list)
-    feedback_reserved = sum(
-        JULES_FEEDBACK_LABEL in label_names(issue)
+    active_tasks = [
+        task
+        for issue in issue_list
+        if (task := active_jules_task(issue)) is not None
+    ]
+    feedback_tasks = [
+        task
+        for issue in issue_list
+        if JULES_FEEDBACK_LABEL in label_names(issue)
+        and (task := task_from_issue(issue)) is not None
+    ]
+    reserved_codex = [
+        task
+        for issue in issue_list
+        if (task := reserved_codex_task(issue)) is not None
+    ]
+    failed_count = sum(
+        JULES_FAILED_LABEL in label_names(issue)
         and task_from_issue(issue) is not None
         for issue in issue_list
     )
-    raw_slots = max(0, max_active - active_count - feedback_reserved)
+    review_ready_count = sum(
+        JULES_REVIEW_READY_LABEL in label_names(issue)
+        and task_from_issue(issue) is not None
+        for issue in issue_list
+    )
+    explicitly_blocked = sum(
+        bool(label_names(issue) & {"blocked", "needs-product-decision"})
+        and task_from_issue(issue) is not None
+        for issue in issue_list
+    )
+
+    open_issue_numbers = {
+        int(issue["number"])
+        for issue in issue_list
+        if str(issue.get("state") or "open") == "open"
+    }
+    occupied_locks: set[str] = set()
+    for task in [*active_tasks, *feedback_tasks, *reserved_codex]:
+        occupied_locks.update(task_lock_keys(task))
+
+    dependency_blocked = 0
+    resource_blocked = 0
+    eligible_unselected = 0
+    selected_numbers_set = {task.number for task in selected_list}
+    simulated_locks = set(occupied_locks)
+    for issue in issue_list:
+        if str(issue.get("state") or "open") != "open":
+            continue
+        task = task_from_issue(issue)
+        if task is None:
+            continue
+        labels = task.labels
+        if (
+            labels
+            & {
+                JULES_ACTIVE_LABEL,
+                JULES_REVIEW_READY_LABEL,
+                JULES_FAILED_LABEL,
+                JULES_FEEDBACK_LABEL,
+                "blocked",
+                "needs-product-decision",
+            }
+            or has_codex_reservation(labels)
+        ):
+            continue
+        if task.dependencies & open_issue_numbers:
+            dependency_blocked += 1
+            continue
+        if task.number in selected_numbers_set:
+            simulated_locks.update(task_lock_keys(task))
+            continue
+        locks = task_lock_keys(task)
+        if locks & simulated_locks:
+            resource_blocked += 1
+        else:
+            eligible_unselected += 1
+            simulated_locks.update(locks)
+
+    raw_slots = max(0, max_active - len(active_tasks) - len(feedback_tasks))
     unfilled = max(0, raw_slots - len(selected_list))
     selected_numbers = ", ".join(f"#{task.number}" for task in selected_list) or "none"
     return (
-        f"Dispatcher capacity: {active_count} active, "
-        f"{feedback_reserved} feedback-reserved, {len(selected_list)} selected "
-        f"({selected_numbers}), {unfilled} unfilled after dependencies/resource locks; "
-        f"max {max_active}."
+        f"Dispatcher capacity: {len(active_tasks)} active, "
+        f"{len(feedback_tasks)} feedback-reserved, {len(selected_list)} selected "
+        f"({selected_numbers}), {unfilled} unfilled; "
+        f"{failed_count} failed, {review_ready_count} review-ready, "
+        f"{dependency_blocked} dependency-blocked, {resource_blocked} resource-conflicted, "
+        f"{explicitly_blocked} explicitly-blocked, {len(reserved_codex)} codex-reserved, "
+        f"{eligible_unselected} otherwise-eligible; max {max_active}."
     )
 
 
