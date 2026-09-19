@@ -331,11 +331,12 @@ def retry_context_from_comments(comments: Iterable[dict[str, Any]]) -> str | Non
     pattern = re.compile(
         r"<!--\s*jules-(?:infra-)?retry-from:\s*[^\s>]+\s*-->"
     )
-    for comment in reversed(list(comments)):
+    contexts = []
+    for comment in comments:
         body = str(comment.get("body") or "")
         if pattern.search(body):
-            return pattern.sub("", body, count=1).strip()
-    return None
+            contexts.append(pattern.sub("", body, count=1).strip())
+    return "\n\n---\n\n".join(contexts) if contexts else None
 
 
 def legacy_failed_retry_context(
