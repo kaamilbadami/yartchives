@@ -138,5 +138,62 @@ class BuildFeedTests(unittest.TestCase):
         self.assertEqual(len(target["posted_date_observations"]), 2)
 
 
+    def test_main_does_not_carry_forward_confirmed_dead_listings_during_failure(self):
+        # Write mock sources.json and listings.json
+        import json
+        from unittest.mock import patch
+        import tempfile
+        import os
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            sources_path = tmp_path / "sources.json"
+            output_path = tmp_path / "listings.json"
+
+            sources_path.write_text(json.dumps([
+                {
+                    "key": "failing_source",
+                    "name": "Failing Source",
+                    "kind": "markdown",
+                    "url": "http://invalid.local"
+                }
+            ]))
+
+            output_path.write_text(json.dumps({
+            "jobs": [
+                {
+                    "id": "1",
+                    "company": "Valid Company",
+                    "title": "Software Engineer",
+                    "location": "Remote",
+                    "url": "https://example.com/valid",
+                    "source_keys": ["failing_source"],
+                    "link_status": "ok"
+                },
+                {
+                    "id": "2",
+                    "company": "Dead Company",
+                    "title": "Software Engineer",
+                    "location": "Remote",
+                    "url": "https://example.com/dead",
+                    "source_keys": ["failing_source"],
+                    "link_status": "dead"
+                }
+                ]
+            }))
+
+            with patch.object(mod, 'SOURCES_PATH', sources_path), \
+                 patch.object(mod, 'OUTPUT_PATH', output_path):
+                # Setting USAJOBS_API_KEY to empty to fail or skip gracefully
+                os.environ["USAJOBS_API_KEY"] = ""
+                os.environ["USAJOBS_EMAIL"] = ""
+                mod.main()
+
+                result = json.loads(output_path.read_text())
+                jobs = result.get("jobs", [])
+
+                self.assertEqual(len(jobs), 1)
+                self.assertEqual(jobs[0]["company"], "Valid Company")
+
 if __name__ == "__main__":
     unittest.main()

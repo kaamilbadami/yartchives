@@ -748,6 +748,8 @@ def main() -> int:
     if failed_keys:
         for old in old_jobs_list:
             if failed_keys.intersection(old.get("source_keys", [])):
+                if old.get("link_status") == "dead":
+                    continue
                 carry = dict(old)
                 source_keys = carry.get("source_keys", [])
                 # Rehydrate a minimal pre-dedupe shape for the first failed source attached to the listing.
