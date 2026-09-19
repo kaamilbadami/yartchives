@@ -801,6 +801,10 @@ def dispatch_task(
         if JULES_RETRY_LABEL in task.labels
         else None
     )
+    if JULES_RETRY_LABEL in task.labels and not retry_context:
+        raise RuntimeError(
+            f"Retry context for issue #{task.number} is not yet visible; refusing a blind retry"
+        )
     if retry_context:
         session = create_session(
             api_key,
