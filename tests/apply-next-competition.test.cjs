@@ -106,11 +106,21 @@ const fallbackContext = {
   employerRoleCounts: {},
 };
 const fallbackPressure = C.scoreRoi(genericNy, profile, fallbackContext);
-assert.equal(fallbackPressure.competitionPenalty, 5);
+assert.equal(fallbackPressure.competitionPenalty, 4);
 assert.equal(fallbackPressure.demandBonus, 0);
-assert.equal(fallbackPressure.score, 5);
+assert.equal(fallbackPressure.score, 6);
 assert.match(fallbackPressure.detail, /fallback competition heuristic/);
-assert.match(fallbackPressure.detail, /large current hiring footprint/);
+assert.doesNotMatch(fallbackPressure.detail, /hiring footprint/);
+
+const smallFootprintPressure = C.scoreRoi(genericNy, profile, {
+  employerCounts: { bigco: 1 },
+  employerRoleCounts: {},
+});
+assert.equal(
+  fallbackPressure.score,
+  smallFootprintPressure.score,
+  "employer-wide listing count is not evidence of applicant competition"
+);
 
 const differentiated = {
   ...neutral,
