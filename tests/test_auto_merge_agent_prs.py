@@ -62,6 +62,11 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertTrue(ok)
         self.assertEqual(reason, "eligible")
 
+    def test_exact_head_quality_presence_detects_missing_run(self):
+        self.assertTrue(mod.exact_head_quality_present(runs(), "abc"))
+        self.assertFalse(mod.exact_head_quality_present([], "abc"))
+        self.assertFalse(mod.exact_head_quality_present(runs(sha="older"), "abc"))
+
     def test_action_required_quality_run_is_detected_for_manual_redispatch(self):
         self.assertTrue(
             mod.exact_head_quality_action_required(
@@ -157,6 +162,21 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                     quality_runs=runs(),
                 )
                 self.assertFalse(ok)
+
+    def test_main_continues_past_in_flight_and_redispatched_ci(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            'print(f"PR #{number} already has exact-head Quality checks in flight.")\n                continue',
+            source,
+        )
+        self.assertIn(
+            '"exact-head run was missing or required manual approval."\n                )\n                continue',
+            source,
+        )
+        self.assertIn(
+            '"Quality checks on the updated branch."\n            )\n            continue',
+            source,
+        )
 
     def test_codex_review_ready_is_also_terminal(self):
         self.assertTrue(

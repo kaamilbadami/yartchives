@@ -59,6 +59,14 @@ def exact_head_quality_passed(runs: Iterable[dict[str, Any]], head_sha: str) -> 
     )
 
 
+def exact_head_quality_present(runs: Iterable[dict[str, Any]], head_sha: str) -> bool:
+    return any(
+        str(run.get("name") or "") == QUALITY_WORKFLOW
+        and str(run.get("head_sha") or "") == head_sha
+        for run in runs
+    )
+
+
 def exact_head_quality_action_required(
     runs: Iterable[dict[str, Any]], head_sha: str
 ) -> bool:
@@ -209,18 +217,22 @@ def main() -> int:
         if not exact_head_quality_passed(runs, head_sha):
             if exact_head_quality_in_flight(runs, head_sha):
                 print(f"PR #{number} already has exact-head Quality checks in flight.")
-                return 0
-            if exact_head_quality_action_required(runs, head_sha) and head_ref:
+                continue
+            should_redispatch = (
+                exact_head_quality_action_required(runs, head_sha)
+                or not exact_head_quality_present(runs, head_sha)
+            )
+            if should_redispatch and head_ref:
                 gh_run(
                     "workflow", "run", "quality.yml",
                     "--repo", repo,
                     "--ref", head_ref,
                 )
                 print(
-                    f"Dispatched Quality checks manually for PR #{number} after GitHub "
-                    "suppressed the token-generated pull_request run."
+                    f"Dispatched Quality checks manually for PR #{number} because the "
+                    "exact-head run was missing or required manual approval."
                 )
-                return 0
+                continue
 
         eligible, reason = eligible_pr(
             pr,
@@ -253,7 +265,7 @@ def main() -> int:
                 f"Updated PR #{number} onto current {base_ref} and dispatched fresh "
                 "Quality checks on the updated branch."
             )
-            return 0
+            continue
 
         fresh = gh_json("api", f"repos/{repo}/pulls/{number}")
         if fresh.get("mergeable") is not True or str(fresh.get("mergeable_state") or "") not in {
