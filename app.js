@@ -59,6 +59,7 @@ const state = {
   saved: new Set(),
   applied: new Set(),
   hidden: new Set(),
+  viewed: [],
 };
 
 const els = {
@@ -75,6 +76,7 @@ const els = {
   totalCount: document.querySelector("#totalCount"),
   newCount: document.querySelector("#newCount"),
   savedCount: document.querySelector("#savedCount"),
+  viewedCount: document.querySelector("#viewedCount"),
   hiddenCount: document.querySelector("#hiddenCount"),
   resultsTitle: document.querySelector("#resultsTitle"),
   resultsNote: document.querySelector("#resultsNote"),
@@ -114,6 +116,7 @@ function loadSavedState() {
     state.saved = new Set(saved.saved || []);
     state.applied = new Set(saved.applied || []);
     state.hidden = new Set(saved.hidden || []);
+    state.viewed = Array.isArray(saved.viewed) ? saved.viewed.slice(0, 100) : [];
   } catch (_) {}
 
   const params = new URLSearchParams(location.search);
@@ -135,8 +138,19 @@ function persist() {
     saved: [...state.saved],
     applied: [...state.applied],
     hidden: [...state.hidden],
+    viewed: state.viewed,
   }));
 }
+
+function trackView(id) {
+  if (!id) return;
+  state.viewed = state.viewed.filter(v => v !== id);
+  state.viewed.unshift(id);
+  if (state.viewed.length > 100) state.viewed.length = 100;
+  persist();
+  updateStats();
+}
+if (typeof window !== "undefined") window.trackView = trackView;
 
 function syncControls() {
   els.searchInput.value = state.search;
@@ -352,6 +366,11 @@ function distanceForJob(job, origin, geo) {
 
 function sortFiltered(jobs, zipMode) {
   jobs.sort((a, b) => {
+    if (state.status === "viewed") {
+      const aIndex = state.viewed.indexOf(a.id);
+      const bIndex = state.viewed.indexOf(b.id);
+      return aIndex - bIndex;
+    }
     if (!state.location.trim()) {
       const aPriority = (a.states || []).includes(PRIORITY_STATE) ? 1 : 0;
       const bPriority = (b.states || []).includes(PRIORITY_STATE) ? 1 : 0;
@@ -407,6 +426,7 @@ async function applyFilters() {
     if (ageDays !== null && ageDays > maxDays) return false;
     if (state.status === "saved" && !state.saved.has(job.id)) return false;
     if (state.status === "applied" && !state.applied.has(job.id)) return false;
+    if (state.status === "viewed" && !state.viewed.includes(job.id)) return false;
 
     if (zip) {
       if (!origin) return false;
@@ -486,6 +506,19 @@ function renderJobs() {
         resetBtn.addEventListener("click", () => els.clearFiltersBtn?.click());
         empty.appendChild(resetBtn);
       }
+    } else if (state.status === "viewed") {
+      if (state.viewed.length === 0) {
+        empty.innerHTML = "<strong>No recently viewed internships.</strong><br>Listings you open will appear here.";
+      } else {
+        empty.innerHTML = "<strong>No recently viewed internships match your current filters.</strong><br>Try clearing or broadening your search, location, career area, or freshness filters.<br>";
+        const resetBtn = document.createElement("button");
+        resetBtn.type = "button";
+        resetBtn.className = "secondary-btn empty-reset-btn";
+        resetBtn.style.marginTop = "12px";
+        resetBtn.textContent = "Reset filters";
+        resetBtn.addEventListener("click", () => els.clearFiltersBtn?.click());
+        empty.appendChild(resetBtn);
+      }
     } else {
       empty.innerHTML = "<strong>No matches.</strong><br>Try a broader profile, location, radius, or freshness window.";
     }
@@ -548,6 +581,9 @@ function renderJobs() {
     const applyBtn = card.querySelector(".apply-btn");
     if (job.url) {
       applyBtn.href = job.url;
+      applyBtn.addEventListener("click", () => {
+        trackView(job.id);
+      });
       if (job.link_kind === "employer_job") {
         applyBtn.textContent = "View posting ↗";
       } else {
@@ -586,6 +622,7 @@ function updateStats() {
     return d !== null && d <= 7;
   }).length.toLocaleString();
   els.savedCount.textContent = state.saved.size.toLocaleString();
+  if (els.viewedCount) els.viewedCount.textContent = state.viewed.length.toLocaleString();
 }
 
 function updateResultsNote(origin = null) {
