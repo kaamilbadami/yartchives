@@ -232,6 +232,7 @@ class WorkdayInspectorTests(unittest.TestCase):
             {key: value for key, value in unavailable.items() if key != "inspection"}, original
         )
         self.assertEqual(unavailable["inspection"]["status"], "unavailable")
+        self.assertIsNone(unavailable["inspection"]["error"])
         self.assertIsNone(unavailable["inspection"]["posting"])
 
         changed = mod.inspect_listing(

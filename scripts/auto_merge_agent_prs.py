@@ -35,6 +35,7 @@ CLOSING_ISSUE_RE = re.compile(
 )
 JULES_REVIEW_READY_LABEL = "jules-review-ready"
 GITHUB_ACTIONS_BOT = "github-actions[bot]"
+SAFE_MERGEABLE_STATES = {"clean", "has_hooks", "unstable", "behind"}
 
 
 def label_names(issue: dict[str, Any]) -> set[str]:
@@ -193,6 +194,50 @@ def exact_head_quality_in_flight(
     )
 
 
+def superseded_action_required_run_ids(
+    runs: Iterable[dict[str, Any]], head_sha: str
+) -> list[int]:
+    """Return approval-gated PR runs superseded by exact-head manual Quality CI."""
+    rows = list(runs)
+    replacement_exists = any(
+        str(run.get("name") or "") == QUALITY_WORKFLOW
+        and str(run.get("head_sha") or "") == head_sha
+        and str(run.get("event") or "") == "workflow_dispatch"
+        for run in rows
+    )
+    if not replacement_exists:
+        return []
+
+    run_ids: list[int] = []
+    for run in rows:
+        if (
+            str(run.get("name") or "") == QUALITY_WORKFLOW
+            and str(run.get("head_sha") or "") == head_sha
+            and str(run.get("event") or "") == "pull_request"
+            and str(run.get("status") or "") == "completed"
+            and str(run.get("conclusion") or "") == "action_required"
+            and run.get("id") is not None
+        ):
+            run_ids.append(int(run["id"]))
+    return run_ids
+
+
+def delete_superseded_action_required_runs(
+    repo: str,
+    runs: Iterable[dict[str, Any]],
+    head_sha: str,
+) -> list[int]:
+    """Delete obsolete approval-gated runs only after replacement CI exists."""
+    run_ids = superseded_action_required_run_ids(runs, head_sha)
+    for run_id in run_ids:
+        gh_run(
+            "api",
+            "--method", "DELETE",
+            f"repos/{repo}/actions/runs/{run_id}",
+        )
+    return run_ids
+
+
 def autonomous_issue_ready(issue: dict[str, Any]) -> bool:
     labels = label_names(issue)
     return (
@@ -246,6 +291,46 @@ def eligible_pr(
 
 def quality_runs_api_path(repo: str, head_sha: str) -> str:
     return f"repos/{repo}/actions/runs?head_sha={head_sha}&per_page=100"
+
+
+def github_reports_safe_mergeability(pr: dict[str, Any]) -> bool:
+    """Allow GitHub states that are mergeable under this policy.
+
+    `behind` is safe here only after the stale-branch overlap check has already
+    decided that current base changes do not touch the PR's changed paths.
+    GitHub still enforces repository merge rules on the merge API call itself.
+    """
+    return (
+        pr.get("mergeable") is True
+        and str(pr.get("mergeable_state") or "") in SAFE_MERGEABLE_STATES
+    )
+
+
+def comparison_changed_paths(comparison: dict[str, Any]) -> set[str]:
+    return {
+        str(row.get("filename") or "")
+        for row in comparison.get("files", [])
+        if str(row.get("filename") or "")
+    }
+
+
+def branch_refresh_required(
+    *,
+    comparison: dict[str, Any],
+    pr_changed_paths: Iterable[str],
+    base_changed_paths: Iterable[str],
+) -> bool:
+    """Refresh only when stale-base changes overlap the PR's changed paths.
+
+    A green, mergeable PR that is merely behind main because unrelated files
+    changed does not need another branch-update/CI cycle. If the base changed a
+    file the PR also changes, retain the conservative refresh-and-retest path.
+    """
+    if int(comparison.get("behind_by") or 0) <= 0:
+        return False
+    pr_paths = {str(path) for path in pr_changed_paths if str(path)}
+    base_paths = {str(path) for path in base_changed_paths if str(path)}
+    return bool(pr_paths & base_paths)
 
 
 def gh_json(*args: str) -> Any:
@@ -449,6 +534,16 @@ def main() -> int:
             "api",
             quality_runs_api_path(repo, head_sha),
         ).get("workflow_runs", [])
+        deleted_run_ids = delete_superseded_action_required_runs(
+            repo,
+            runs,
+            head_sha,
+        )
+        if deleted_run_ids:
+            print(
+                f"Deleted {len(deleted_run_ids)} superseded approval-gated "
+                f"Quality run(s) for PR #{number}."
+            )
 
         changed_paths = [str(row.get("filename") or "") for row in files]
         pre_ci_eligible, reason = eligible_pr(
@@ -498,40 +593,56 @@ def main() -> int:
         base_ref = str((pr.get("base") or {}).get("ref") or "main")
         comparison = gh_json("api", f"repos/{repo}/compare/{base_ref}...{head_sha}")
         if int(comparison.get("behind_by") or 0) > 0:
-            updated, detail = update_pull_request_branch(
-                repo,
-                number,
-                head_sha,
-                head_ref,
-                base_ref,
-            )
-            if not updated:
-                print(
-                    f"Skipping PR #{number}: branch cannot be updated automatically because "
-                    "it conflicts with current base. Continuing with later pull requests."
+            merge_base = comparison.get("merge_base_commit") or {}
+            merge_base_sha = str(merge_base.get("sha") or "")
+            if not merge_base_sha:
+                raise RuntimeError(
+                    f"PR #{number} comparison has no merge base for stale-branch safety check"
                 )
-                if detail:
-                    print(detail)
+            base_delta = gh_json(
+                "api",
+                f"repos/{repo}/compare/{merge_base_sha}...{base_ref}",
+            )
+            base_changed_paths = comparison_changed_paths(base_delta)
+            if branch_refresh_required(
+                comparison=comparison,
+                pr_changed_paths=changed_paths,
+                base_changed_paths=base_changed_paths,
+            ):
+                updated, detail = update_pull_request_branch(
+                    repo,
+                    number,
+                    head_sha,
+                    head_ref,
+                    base_ref,
+                )
+                if not updated:
+                    print(
+                        f"Skipping PR #{number}: branch cannot be updated automatically because "
+                        "it conflicts with current base. Continuing with later pull requests."
+                    )
+                    if detail:
+                        print(detail)
+                    continue
+                if not head_ref:
+                    raise RuntimeError(f"PR #{number} has no head branch for fresh CI")
+                gh_run(
+                    "workflow", "run", "quality.yml",
+                    "--repo", repo,
+                    "--ref", head_ref,
+                )
+                print(
+                    f"Updated PR #{number} onto current {base_ref} and dispatched fresh "
+                    "Quality checks because main changed overlapping paths."
+                )
                 continue
-            if not head_ref:
-                raise RuntimeError(f"PR #{number} has no head branch for fresh CI")
-            gh_run(
-                "workflow", "run", "quality.yml",
-                "--repo", repo,
-                "--ref", head_ref,
-            )
             print(
-                f"Updated PR #{number} onto current {base_ref} and dispatched fresh "
-                "Quality checks on the updated branch."
+                f"PR #{number} is behind {base_ref}, but base changes do not overlap "
+                "its changed paths; preserving green exact-head CI and fast-merging."
             )
-            continue
 
         fresh = gh_json("api", f"repos/{repo}/pulls/{number}")
-        if fresh.get("mergeable") is not True or str(fresh.get("mergeable_state") or "") not in {
-            "clean",
-            "has_hooks",
-            "unstable",
-        }:
+        if not github_reports_safe_mergeability(fresh):
             print(
                 f"Skipping PR #{number}: GitHub does not currently report it as safely mergeable."
             )
