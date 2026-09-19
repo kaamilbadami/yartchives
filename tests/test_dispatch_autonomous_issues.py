@@ -1577,6 +1577,58 @@ class AutonomousDispatcherTests(unittest.TestCase):
             mod.completed_session_pr_from_comments(comments, "other/repo")
         )
 
+    def test_historical_reconciliation_closes_only_exact_merged_jules_pr(self):
+        gh_calls = []
+        issues = [
+            {"number": 187},
+            {"number": 188},
+            {"number": 189},
+            {"number": 190, "pull_request": {"url": "https://example.invalid"}},
+        ]
+        comments = {
+            187: [
+                {
+                    "body": (
+                        "Jules completed session `done187` and released this automation slot.\n\n"
+                        "Pull request: https://github.com/kaamilbadami/yartchives/pull/234"
+                    )
+                }
+            ],
+            188: [
+                {
+                    "body": (
+                        "Jules completed session `done188` and released this automation slot.\n\n"
+                        "Pull request: https://github.com/kaamilbadami/yartchives/pull/229"
+                    )
+                }
+            ],
+            189: [{"body": "No trusted Jules completion record."}],
+        }
+
+        mod.reconcile_historical_merged_jules_issues(
+            "kaamilbadami/yartchives",
+            load_open_autonomous=lambda: issues,
+            load_comments=lambda number: comments[number],
+            get_pr=lambda number: {"number": number, "merged": number == 234},
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(
+            gh_calls,
+            [
+                (
+                    "issue", "close", "187", "--repo", "kaamilbadami/yartchives",
+                    "--reason", "completed",
+                )
+            ],
+        )
+
+    def test_historical_reconciliation_is_wired_after_review_ready_cleanup(self):
+        source = MODULE_PATH.read_text()
+        cleanup_index = source.index("cleanup_merged_jules_sessions(repo, api_key)")
+        historical_index = source.index("reconcile_historical_merged_jules_issues(repo)")
+        self.assertLess(cleanup_index, historical_index)
+
     def test_cleanup_deletes_completed_session_only_after_exact_pr_is_merged(self):
         deleted = []
         gh_calls = []
