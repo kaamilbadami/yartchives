@@ -611,7 +611,6 @@
       apply.target = "_blank";
       apply.rel = "noopener noreferrer";
       apply.addEventListener("click", () => {
-        if (typeof trackView === "function") trackView(job.id);
       });
       actions.append(apply);
     }
