@@ -577,7 +577,7 @@ def main() -> int:
 
         issue_number = linked_issue_number(str(pr.get("body") or ""))
         issue = None
-        if issue_number is None:
+        if issue_number is None and not maintenance_pre_ci:
             issue = recovered_issue_by_pr.get(number)
             if issue is None:
                 continue
