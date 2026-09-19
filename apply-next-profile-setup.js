@@ -345,13 +345,19 @@
     const basics = element("section", "apply-next-profile-section");
     basics.append(element("h3", "", "2. Review the basics"));
     const basicsGrid = element("div", "apply-next-profile-grid");
+    const targetTermField = element("div", "apply-next-profile-field");
+    const targetTermOption = element("label", "apply-next-profile-check");
+    const targetTerm = input("targetTerm", "Summer 2027", "radio");
+    targetTerm.checked = true;
+    targetTermOption.append(targetTerm, document.createTextNode("Summer 2027"));
+    targetTermField.append(element("span", "", "When are you looking?"), targetTermOption);
+    const degree = input("degree", values.degree, "hidden");
     basicsGrid.append(
-      field("Target term", input("targetTerm", values.targetTerm)),
-      field("Graduation", input("graduation", values.graduation)),
-      field("Degree", input("degree", values.degree)),
+      targetTermField,
+      field("When are you graduating (month, year)", input("graduation", values.graduation)),
       field("Major", input("major", values.major))
     );
-    basics.append(basicsGrid);
+    basics.append(basicsGrid, degree);
     form.append(basics);
 
     const eligibility = element("section", "apply-next-profile-section");
