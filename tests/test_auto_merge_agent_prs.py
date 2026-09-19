@@ -340,6 +340,17 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                 self.assertFalse(ok)
                 self.assertIn(expected, reason)
 
+    def test_main_does_not_require_issue_link_for_maintenance_lane(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            "if issue_number is None and not maintenance_pre_ci:",
+            source,
+        )
+        self.assertIn(
+            "if issue is None and not maintenance_pre_ci:",
+            source,
+        )
+
     def test_maintenance_lane_never_authorizes_automerger_or_workflow_changes(self):
         candidate = pr()
         for path in (
