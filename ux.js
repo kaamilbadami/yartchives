@@ -39,7 +39,7 @@
         }
       }
     }
-    return { areas: [...new Set(selected)], showHidden: false };
+    return { areas: [...new Set(selected)] };
   }
 
   let uxState = loadUxState();
@@ -140,6 +140,7 @@
       ["totalCount", "companies"],
       ["newCount", "saved"],
       ["savedCount", "applied"],
+      ["hiddenCount", "hidden"],
     ];
     for (const [id, text] of labels) {
       const small = document.querySelector(`#${id}`)?.closest(".stat")?.querySelector("small");
@@ -154,6 +155,7 @@
       { id: "#shownCount", targetStatus: "all" },
       { id: "#newCount", targetStatus: "saved" },
       { id: "#savedCount", targetStatus: "applied" },
+      { id: "#hiddenCount", targetStatus: "hidden" },
     ];
 
     for (const { id, targetStatus } of tiles) {
@@ -191,6 +193,7 @@
     const matchesTile = document.querySelector("#shownCount")?.closest(".stat");
     const savedTile = document.querySelector("#newCount")?.closest(".stat");
     const appliedTile = document.querySelector("#savedCount")?.closest(".stat");
+    const hiddenTile = document.querySelector("#hiddenCount")?.closest(".stat");
 
     if (matchesTile) {
       const active = state.status === "all";
@@ -216,37 +219,15 @@
         ? "Showing applied internships (click to clear status filter)"
         : "Click to filter to applied internships";
     }
-  }
 
-  function hiddenCount() {
-    const ids = new Set((feed?.jobs || []).map(job => job.id));
-    return [...state.hidden].filter(id => ids.has(id)).length;
-  }
-
-  function addHiddenControl() {
-    const tools = document.querySelector(".results-tools");
-    if (!tools || document.querySelector("#hiddenToggleBtn")) return;
-    const button = document.createElement("button");
-    button.id = "hiddenToggleBtn";
-    button.type = "button";
-    button.className = "secondary-btn hidden-toggle";
-    button.addEventListener("click", () => {
-      uxState.showHidden = !uxState.showHidden;
-      visibleLimit = PAGE_SIZE;
-      updateHiddenControl();
-      applyFilters();
-    });
-    tools.insertBefore(button, tools.lastElementChild);
-    updateHiddenControl();
-  }
-
-  function updateHiddenControl() {
-    const button = document.querySelector("#hiddenToggleBtn");
-    if (!button) return;
-    const count = hiddenCount();
-    button.textContent = uxState.showHidden ? `Showing hidden (${count})` : `Hidden (${count})`;
-    button.classList.toggle("active", uxState.showHidden);
-    button.disabled = count === 0 && !uxState.showHidden;
+    if (hiddenTile) {
+      const active = state.status === "hidden";
+      hiddenTile.classList.toggle("is-active", active);
+      hiddenTile.setAttribute("aria-pressed", String(active));
+      hiddenTile.title = active
+        ? "Showing hidden internships (click to clear status filter)"
+        : "Click to filter to hidden internships";
+    }
   }
 
   function addLocalStateNote() {
@@ -351,11 +332,12 @@
       const clean = hide.cloneNode(false);
       clean.className = "hide-btn secondary-btn";
       clean.type = "button";
-      clean.textContent = uxState.showHidden ? "Restore" : "Hide";
-      clean.title = uxState.showHidden ? "Restore this listing" : "Hide this listing on this browser";
+      const isHiddenView = state.status === "hidden";
+      clean.textContent = isHiddenView ? "Restore" : "Hide";
+      clean.title = isHiddenView ? "Restore this listing" : "Hide this listing on this browser";
       clean.setAttribute("aria-label", clean.title);
       clean.addEventListener("click", () => {
-        if (uxState.showHidden) {
+        if (isHiddenView) {
           state.hidden.delete(job.id);
           persist();
           applyFilters();
@@ -386,9 +368,8 @@
     const selected = uxState.areas.map(key => AREA_LABELS[key]).filter(Boolean);
     if (els.resultsTitle) {
       const base = selected.length ? selected.join(" + ") : "All opportunities";
-      els.resultsTitle.textContent = uxState.showHidden ? `${base} · Hidden` : base;
+      els.resultsTitle.textContent = state.status === "hidden" ? `${base} · Hidden` : base;
     }
-    updateHiddenControl();
   };
 
   updateStats = function () {
@@ -398,7 +379,11 @@
     els.totalCount.textContent = companies.size.toLocaleString();
     els.newCount.textContent = filtered.filter(job => state.saved.has(job.id)).length.toLocaleString();
     els.savedCount.textContent = filtered.filter(job => state.applied.has(job.id)).length.toLocaleString();
-    updateHiddenControl();
+    if (els.hiddenCount) {
+      const ids = new Set((feed?.jobs || []).map(job => job.id));
+      const count = [...state.hidden].filter(id => ids.has(id)).length;
+      els.hiddenCount.textContent = count.toLocaleString();
+    }
     syncStatTiles();
   };
 
@@ -424,17 +409,8 @@
 
   const priorApplyFilters = applyFilters;
   applyFilters = async function () {
-    const actualHidden = state.hidden;
-    if (uxState.showHidden) state.hidden = new Set();
-    try {
-      await priorApplyFilters();
-    } finally {
-      state.hidden = actualHidden;
-    }
+    await priorApplyFilters();
 
-    if (uxState.showHidden) {
-      filtered = filtered.filter(job => actualHidden.has(job.id));
-    }
     if (uxState.areas.length) {
       filtered = filtered.filter(job => uxState.areas.some(area => matchesCareerArea(job, area)));
     }
@@ -448,7 +424,7 @@
   updateResultsNote = function (origin = null) {
     priorUpdateResultsNote(origin);
     if (!els.resultsNote) return;
-    if (uxState.showHidden) {
+    if (state.status === "hidden") {
       els.resultsNote.textContent = `Showing listings you hid on this browser. ${els.resultsNote.textContent}`.trim();
     }
     if (uxState.areas.some(area => ["health", "policy", "aero"].includes(area))) {
@@ -463,10 +439,8 @@
 
   document.querySelector("#clearFiltersBtn")?.addEventListener("click", () => {
     uxState.areas = [];
-    uxState.showHidden = false;
     saveUxState();
     renderCareerAreas();
-    updateHiddenControl();
   });
 
   document.querySelector("#shareBtn")?.addEventListener("click", () => {
@@ -481,7 +455,6 @@
   clearLegacyCareerFilter();
   relabelUi();
   renderCareerAreas();
-  addHiddenControl();
   addLocalStateNote();
   saveUxState();
   updateStats();

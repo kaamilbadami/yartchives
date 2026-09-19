@@ -210,10 +210,18 @@ function createDOMEnvironment() {
   statApplied.appendChild(savedCount);
   statApplied.appendChild(smallApplied);
 
+  const statHidden = new ElementMock("div", "", "stat");
+  const hiddenCount = new ElementMock("span", "hiddenCount");
+  const smallHidden = new ElementMock("small");
+  smallHidden.textContent = "hidden";
+  statHidden.appendChild(hiddenCount);
+  statHidden.appendChild(smallHidden);
+
   statsSection.appendChild(statMatches);
   statsSection.appendChild(statIndexed);
   statsSection.appendChild(statSaved);
   statsSection.appendChild(statApplied);
+  statsSection.appendChild(statHidden);
   body.appendChild(statsSection);
 
   const controls = new ElementMock("section", "", "controls panel");
@@ -350,6 +358,7 @@ async function runTests() {
     const savedTile = document.querySelector("#newCount").closest(".stat");
     const matchesTile = document.querySelector("#shownCount").closest(".stat");
     const appliedTile = document.querySelector("#savedCount").closest(".stat");
+    const hiddenTile = document.querySelector("#hiddenCount").closest(".stat");
 
     assert.ok(savedTile, "Saved stat tile should be found");
     assert.equal(savedTile.getAttribute("role"), "button");
@@ -378,6 +387,12 @@ async function runTests() {
     await new Promise(r => setTimeout(r, 10));
     assert.equal(context.state.status, "applied");
     assert.equal(appliedTile.classList.contains("is-active"), true);
+
+    // Clicking Hidden tile toggles state.status to "hidden"
+    hiddenTile.click();
+    await new Promise(r => setTimeout(r, 10));
+    assert.equal(context.state.status, "hidden");
+    assert.equal(hiddenTile.classList.contains("is-active"), true);
 
     // Clicking Matches tile resets state.status to "all"
     matchesTile.click();
@@ -447,6 +462,28 @@ async function runTests() {
     assert.match(filteredEmptyState.innerHTML, /No saved internships match your current filters/i);
     const resetBtn = filteredEmptyState.querySelector(".empty-reset-btn");
     assert.ok(resetBtn, "Reset filters button should be present in filtered empty state");
+
+    // Switch to Hidden status with no hidden jobs
+    context.state.status = "all";
+    context.state.search = "";
+    await context.applyFilters();
+    const hiddenTile = document.querySelector("#hiddenCount").closest(".stat");
+    hiddenTile.click(); // Filter to hidden internships
+    await new Promise(r => setTimeout(r, 10));
+
+    assert.ok(jobs.children.length > 0, "Empty state element should be rendered in hidden list");
+    const emptyHiddenState = jobs.children[0];
+    assert.equal(emptyHiddenState.className, "empty-state");
+    assert.match(emptyHiddenState.innerHTML, /No hidden internships/i);
+
+    // Hide job-1, but set search query to non-matching term "xyz"
+    context.state.hidden.add("job-1");
+    context.state.search = "xyz";
+    await context.applyFilters();
+
+    const filteredHiddenEmptyState = jobs.children[0];
+    assert.match(filteredHiddenEmptyState.innerHTML, /No hidden internships match your current filters/i);
+    assert.ok(filteredHiddenEmptyState.querySelector(".empty-reset-btn"), "Reset filters button should be present in filtered hidden empty state");
   }
 
   // 3. Test HTML and script references contract
