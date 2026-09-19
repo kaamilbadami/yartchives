@@ -1,6 +1,8 @@
 import importlib.util
+import subprocess
 from pathlib import Path
 import unittest
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = ROOT / "scripts" / "auto_merge_agent_prs.py"
@@ -162,6 +164,33 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                     quality_runs=runs(),
                 )
                 self.assertFalse(ok)
+
+    def test_update_branch_merge_conflict_isolated_as_nonfatal(self):
+        result = mock.Mock(
+            returncode=1,
+            stdout='{"message":"merge conflict between base and head","status":422}',
+            stderr="gh: merge conflict between base and head (HTTP 422)",
+            args=["gh", "api"],
+        )
+        with mock.patch.object(mod.subprocess, "run", return_value=result):
+            updated, detail = mod.update_pull_request_branch(
+                "kaamilbadami/yartchives", 196, "abc"
+            )
+        self.assertFalse(updated)
+        self.assertIn("merge conflict between base and head", detail)
+
+    def test_update_branch_non_conflict_error_still_fails_loudly(self):
+        result = mock.Mock(
+            returncode=1,
+            stdout="",
+            stderr="gh: authentication failed (HTTP 401)",
+            args=["gh", "api"],
+        )
+        with mock.patch.object(mod.subprocess, "run", return_value=result):
+            with self.assertRaises(subprocess.CalledProcessError):
+                mod.update_pull_request_branch(
+                    "kaamilbadami/yartchives", 196, "abc"
+                )
 
     def test_main_continues_past_in_flight_and_redispatched_ci(self):
         source = MODULE_PATH.read_text()
