@@ -547,6 +547,10 @@ def cleanup_merged_jules_sessions(
             )
 
         run_gh(
+            "issue", "close", str(number), "--repo", repo,
+            "--reason", "completed",
+        )
+        run_gh(
             "issue", "edit", str(number), "--repo", repo,
             "--remove-label", JULES_REVIEW_READY_LABEL,
         )
