@@ -181,7 +181,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
         self.assertEqual([task.number for task in selected], [3])
 
-    def test_default_wip_allows_five_distinct_areas(self):
+    def test_default_wip_allows_fifteen_distinct_areas(self):
         issues = [
             issue(1, "feed", body=task_body("P1", "feed")),
             issue(2, "coverage", body=task_body("P1", "coverage")),
@@ -193,7 +193,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
         selected = mod.select_tasks(issues)
 
-        self.assertEqual(mod.MAX_ACTIVE, 5)
+        self.assertEqual(mod.MAX_ACTIVE, 15)
         self.assertEqual([task.number for task in selected], [1, 2, 3, 4, 5])
 
     def test_blocked_or_product_decision_tasks_are_not_dispatched(self):
