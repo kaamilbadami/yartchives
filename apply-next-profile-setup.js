@@ -63,12 +63,17 @@
     const candidates = [];
     for (const match of source.matchAll(datePattern)) {
       const start = Math.max(0, match.index - 140);
-      const end = Math.min(source.length, match.index + match[0].length + 140);
-      const context = source.slice(start, end);
-      const explicit = /(?:expected|anticipated|graduat(?:ion|ing)|degree\s+expected|class\s+of)/i.test(context);
-      const higherEducation = /\b(?:university|college|bachelor(?:'s)?|master(?:'s)?|associate(?:'s)?|B\.?S\.?|B\.?A\.?|M\.?S\.?|M\.?A\.?)\b/i.test(context)
-        || MAJORS.some(major => new RegExp(`\\b${escapeRegExp(major)}\\b`, "i").test(context));
-      const highSchool = /\b(?:high school|secondary school|GED|high school diploma)\b/i.test(context);
+      const prefix = source.slice(start, match.index);
+      const localPrefix = prefix.split(/[\n\r]/).pop() || prefix;
+      const explicit = /(?:expected|anticipated|graduat(?:ion|ing)|degree\s+expected|class\s+of)[^\n\r]{0,50}$/i.test(prefix);
+      const higherEducationPattern = /\b(?:university|college|bachelor(?:'s)?|master(?:'s)?|associate(?:'s)?|B\.?S\.?|B\.?A\.?|M\.?S\.?|M\.?A\.?)\b/i;
+      const majorPattern = new RegExp(MAJORS.map(escapeRegExp).join("|"), "i");
+      const higherEducation = higherEducationPattern.test(localPrefix)
+        || majorPattern.test(localPrefix)
+        || higherEducationPattern.test(prefix.slice(-90))
+        || majorPattern.test(prefix.slice(-90));
+      const highSchool = /\b(?:high school|secondary school|GED|high school diploma)\b/i.test(localPrefix)
+        || /\b(?:high school|secondary school|GED|high school diploma)\b/i.test(prefix.slice(-70));
       let score = 0;
       if (explicit) score += 4;
       if (higherEducation) score += 6;
