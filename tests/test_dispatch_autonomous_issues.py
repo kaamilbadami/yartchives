@@ -34,9 +34,9 @@ def task_body(priority, area, autonomous=True, resources=None, depends_on=None):
 
 
 class AutonomousDispatcherTests(unittest.TestCase):
-    def test_workflow_runs_single_dispatch_cycle_without_long_watch(self):
+    def test_workflow_keeps_dispatch_cycle_alive_for_refill_window(self):
         workflow = (ROOT / ".github" / "workflows" / "autonomous-dispatch.yml").read_text()
-        self.assertIn('JULES_WATCH_SECONDS: "0"', workflow)
+        self.assertIn('JULES_WATCH_SECONDS: "780"', workflow)
         self.assertIn("cancel-in-progress: false", workflow)
 
     def test_selects_highest_priority_safe_tasks_without_area_overlap(self):
@@ -132,6 +132,21 @@ class AutonomousDispatcherTests(unittest.TestCase):
         ]
         selected = mod.select_tasks(issues, max_active=2)
         self.assertEqual([task.number for task in selected], [3])
+
+    def test_frontend_state_does_not_claim_identity_resource(self):
+        issues = [
+            issue(
+                1,
+                "active frontend state",
+                body=task_body("P1", "frontend-state"),
+                labels=("jules", "jules-session"),
+            ),
+            issue(2, "identity audit", body=task_body("P1", "identity")),
+        ]
+
+        selected = mod.select_tasks(issues, max_active=2)
+
+        self.assertEqual([task.number for task in selected], [2])
 
     def test_feedback_waiting_session_reserves_wip_and_overlap_locks(self):
         issues = [
@@ -325,6 +340,78 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 run_gh=lambda *args: gh_calls.append(args),
             )
         self.assertEqual(gh_calls, [])
+
+    def test_capacity_classifier_recognizes_quota_and_http_429(self):
+        self.assertTrue(mod.jules_capacity_exhausted("Quota exceeded for Jules tasks"))
+        self.assertTrue(mod.jules_capacity_exhausted("HTTP Error 429: Too Many Requests"))
+        self.assertTrue(mod.jules_capacity_exhausted("RESOURCE_EXHAUSTED"))
+        self.assertFalse(mod.jules_capacity_exhausted("Workspace became unavailable"))
+
+    def test_quota_failed_session_is_released_without_failed_or_retry_label(self):
+        issues = [
+            issue(
+                152,
+                "active feed",
+                body=task_body("P1", "feed"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+
+        capacity_paused = mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [{"body": "<!-- jules-session-id: quota1 -->"}],
+            get_session=lambda api_key, path: {
+                "id": "quota1",
+                "state": "FAILED",
+                "failureReason": "Quota exceeded for Jules tasks.",
+            },
+            load_activities=lambda session_id: [],
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        labels = mod.label_names(issues[0])
+        self.assertTrue(capacity_paused)
+        self.assertNotIn("jules-session", labels)
+        self.assertNotIn("jules", labels)
+        self.assertNotIn("jules-failed", labels)
+        self.assertNotIn("jules-retry-ready", labels)
+        self.assertIn("capacity/quota is exhausted", gh_calls[1][-1])
+        self.assertEqual([task.number for task in mod.select_tasks(issues)], [152])
+
+    def test_dispatch_cycle_ends_cleanly_when_new_session_hits_quota(self):
+        issues = [
+            issue(149, "frontend task", body=task_body("P1", "frontend-state")),
+        ]
+        original_fetch = mod.fetch_open_issues
+        original_reconcile = mod.reconcile_jules_sessions
+        original_migrate = mod.migrate_legacy_jules_failures
+        original_dispatch = mod.dispatch_task
+        try:
+            mod.fetch_open_issues = lambda repo: issues
+            mod.reconcile_jules_sessions = lambda *args, **kwargs: False
+            mod.migrate_legacy_jules_failures = lambda *args, **kwargs: None
+
+            def quota_dispatch(*args, **kwargs):
+                raise RuntimeError("HTTP Error 429: Too Many Requests")
+
+            mod.dispatch_task = quota_dispatch
+            has_active, source_name = mod.run_dispatch_cycle(
+                "kaamilbadami/yartchives",
+                "secret",
+                source_name="source",
+            )
+        finally:
+            mod.fetch_open_issues = original_fetch
+            mod.reconcile_jules_sessions = original_reconcile
+            mod.migrate_legacy_jules_failures = original_migrate
+            mod.dispatch_task = original_dispatch
+
+        self.assertFalse(has_active)
+        self.assertEqual(source_name, "source")
+        self.assertEqual(mod.label_names(issues[0]), frozenset())
 
     def test_successful_session_creation_marks_issue_active_and_links_session(self):
         task = mod.Task(149, "Task", task_body("P1", "frontend"), "P1", "frontend", frozenset())
@@ -1198,6 +1285,30 @@ class AutonomousDispatcherTests(unittest.TestCase):
         )
         self.assertIn("jules-failed", mod.label_names(issues[0]))
         self.assertNotIn("jules-retry-ready", mod.label_names(issues[0]))
+
+    def test_generic_jules_task_error_is_retryable_once(self):
+        self.assertTrue(
+            mod.retryable_jules_failure(
+                ["Jules encountered an error when working on the task."]
+            )
+        )
+
+    def test_generic_modern_jules_failure_gets_one_migration_retry(self):
+        comments = [
+            {"body": "<!-- jules-session-id: modern-generic -->"},
+            {
+                "body": (
+                    "Jules session `modern-generic` ended in FAILED state and released this "
+                    "automation slot. It will not be retried automatically.\n\n"
+                    "Failure diagnostics:\n\n"
+                    "> Jules encountered an error when working on the task."
+                )
+            },
+        ]
+        retry = mod.legacy_failed_retry_context(comments)
+        self.assertIsNotNone(retry)
+        self.assertEqual(retry[0], "modern-generic")
+        self.assertIn("encountered an error", retry[1])
 
     def test_code_failure_does_not_auto_retry(self):
         self.assertFalse(
