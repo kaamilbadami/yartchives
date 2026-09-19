@@ -310,9 +310,12 @@ def migrate_legacy_jules_failures(
     *,
     repo: str,
     load_comments: Callable[[int], list[dict[str, Any]]],
-    run_gh: Callable[..., None] = gh_run,
+    run_gh: Callable[..., None] | None = None,
 ) -> None:
     """Move only pre-retry ambiguous failures into the existing one-retry path."""
+    if run_gh is None:
+        run_gh = gh_run
+
     for issue in issues:
         if JULES_FAILED_LABEL not in label_names(issue):
             continue
