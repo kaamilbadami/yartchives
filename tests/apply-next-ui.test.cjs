@@ -183,6 +183,18 @@ assert.equal(jobs[2]._inspection, undefined);
     /renderPanel\(/,
     "Mark applied should rely on optimistic update and applyFilters/renderJobs panel refresh instead of triggering a second expensive render"
   );
+
+  const hideHandler = uiSource.match(
+    /hide\.addEventListener\("click",\s*\(\)\s*=>\s*\{([\s\S]*?)\n\s*\}\);/
+  );
+  assert.ok(hideHandler, "Hide click handler should be present");
+  assert.match(hideHandler[1], /state\.hidden\.add\(job\.id\);/, "Hide should add to hidden state");
+  assert.match(hideHandler[1], /persist\(\);/, "Hide should persist state");
+  assert.match(hideHandler[1], /updateQueueOptimistically/, "Hide should trigger optimistic queue update immediately");
+  assert.match(hideHandler[1], /applyFilters\(\);/);
+
+  assert.match(uiSource, /Restore them from the main feed\./, "Should document recovery path for Applied and Hidden jobs");
+
   assert.match(uiSource, /document\.createDocumentFragment\(\)/, "renderQueue should build DOM off-screen before swapping to avoid UI stalls");
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
 

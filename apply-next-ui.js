@@ -441,7 +441,17 @@
       updateQueueOptimistically(document.querySelector("#applyNextPanel"), loadProfile(localStorage), job.id);
       applyFilters();
     });
-    actions.append(saved, applied);
+    const hide = element("button", "icon-btn hide-btn", "×");
+    hide.type = "button";
+    hide.title = "Hide listing";
+    hide.setAttribute("aria-label", "Hide listing");
+    hide.addEventListener("click", () => {
+      state.hidden.add(job.id);
+      persist();
+      updateQueueOptimistically(document.querySelector("#applyNextPanel"), loadProfile(localStorage), job.id);
+      applyFilters();
+    });
+    actions.append(saved, applied, hide);
     card.append(actions);
     return card;
   }
@@ -467,7 +477,7 @@
       const poolCount = (typeof feed !== "undefined" && Array.isArray(feed?.jobs))
         ? candidatePool(feed.jobs, profile, state).length
         : 0;
-      note.textContent = `Showing ${ranked.length} highest-value options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`;
+      note.textContent = `Showing ${ranked.length} highest-value options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`;
     }
 
     list.innerHTML = "";
@@ -528,7 +538,7 @@
     const note = element(
       "p",
       "apply-next-note",
-      `Showing ${topRanked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`
+      `Showing ${topRanked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`
     );
     fragment.append(note);
 
