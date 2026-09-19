@@ -384,80 +384,49 @@ def age_days(job: dict[str, Any], reference: datetime) -> float | None:
     return max(0.0, (reference - posted).total_seconds() / 86400)
 
 
-def public_priority(job: dict[str, Any], reference: datetime) -> tuple[int, list[str]]:
-    """
-    Score generic public metadata for inspection ordering only.
-
-    Keep these weights close to the public pieces of Apply Next instead of letting one
-    metadata field dominate the inspection queue. Unknown term/education values retain
-    substantial priority because authoritative inspection is most useful when metadata
-    leaves an otherwise-promising internship unresolved.
-    """
-    score = 0
-    reasons: list[str] = []
-
-    priority_term = upcoming_summer_term(reference)
-    term = str(job.get("term") or "").strip()
-    if normalize(term) == normalize(priority_term):
-        score += 7
-        reasons.append(priority_term)
-    elif term:
-        score -= 20
-        reasons.append(f"other term: {term}")
-    else:
-        score += 6
-        reasons.append("term unknown; inspection can resolve it")
-
-    opportunity = normalize(job.get("opportunity_type"))
-    title = normalize(job.get("title"))
-    if opportunity in {"internship", "co-op"}:
-        score += 7
-        reasons.append("internship/co-op")
-    elif re.search(r"\b(intern|internship|co-?op)\b", title):
-        score += 6
-        reasons.append("internship/co-op title")
-
-    education = normalize(job.get("education_level"))
-    if education == "graduate-only":
-        score -= 20
-        reasons.append("graduate-only")
-    elif education in {"undergrad", "undergraduate", "undergrad-friendly"}:
-        score += 6
-        reasons.append("undergrad-friendly")
-    else:
-        score += 5
-        reasons.append("education not restrictive; inspection can clarify")
-
-    profiles = sorted({normalize(value) for value in job.get("profiles", []) if normalize(value)})
-    if profiles:
-        score += 8
-        reasons.append(f"classified career area: {', '.join(profiles[:3])}")
-
-    age = age_days(job, reference)
-    if age is not None:
-        if age <= 2:
-            score += 15
-            reasons.append("posted within 2 days")
-        elif age <= 7:
-            score += 12
-            reasons.append("posted within 7 days")
-        elif age <= 14:
-            score += 9
-            reasons.append("posted within 14 days")
-        elif age <= 30:
-            score += 5
-            reasons.append("posted within 30 days")
-        elif age <= 60:
-            score += 2
-            reasons.append("posted within 60 days")
-
-    return score, reasons
 
 
-def inspection_priority(jobs: list[dict[str, Any]], reference: datetime) -> tuple[int, list[str]]:
+
+def _batch_apply_next_scores(jobs: list[dict[str, Any]], reference: datetime) -> dict[int, tuple[int, list[str]]]:
+    if not jobs:
+        return {}
+    script = '''
+    const fs = require('fs');
+    const dimensions = require('./apply-next-dimensions.js');
+    const input = JSON.parse(fs.readFileSync(0, 'utf-8'));
+    const reference = new Date(input.reference);
+    const results = input.jobs.map(job => {
+        const result = dimensions.scoreJob(job, {}, reference);
+        return {
+            score: result.total || 0,
+            reasons: result.reasons || (result.excluded ? [result.components?.eligibility?.detail || 'Excluded'] : [])
+        };
+    });
+    console.log(JSON.stringify(results));
+    '''
+
+    payload = {
+        "reference": reference.isoformat() + "Z",
+        "jobs": jobs
+    }
+
+    import subprocess
+    process = subprocess.run(
+        ["node", "-e", script],
+        input=json.dumps(payload),
+        capture_output=True,
+        text=True,
+        cwd=str(SCRIPT_DIR.parent),
+        check=True
+    )
+
+    results = json.loads(process.stdout)
+    return {id(job): (res["score"], res["reasons"]) for job, res in zip(jobs, results)}
+
+def inspection_priority(jobs: list[dict[str, Any]], job_scores: dict[int, tuple[int, list[str]]]) -> tuple[int, list[str]]:
     if not jobs:
         return 0, []
-    scored = [(*public_priority(job, reference), job) for job in jobs]
+    scored = [(*job_scores[id(job)], job) for job in jobs]
     score, reasons, _ = max(scored, key=lambda item: item[0])
     return score, reasons
 
@@ -490,6 +459,7 @@ def retry_in_cooldown(entry: dict[str, Any] | None, now: datetime) -> bool:
 def candidate_urls(
     by_url: dict[str, list[dict[str, Any]]],
     entries: dict[str, Any],
+    job_scores: dict[int, tuple[int, list[str]]],
     now: datetime,
     ttl_days: int,
     provider: str | None = None,
@@ -508,7 +478,7 @@ def candidate_urls(
         if retry_in_cooldown(entry, now):
             continue
 
-        priority, _ = inspection_priority(jobs, now)
+        priority, _ = inspection_priority(jobs, job_scores)
         posted = latest_posted_at(jobs)
         last_success = parse_time(entry.get("last_success_at")) if isinstance(entry, dict) else None
 
@@ -527,18 +497,19 @@ def candidate_urls(
 def build_queue_metadata(
     by_url: dict[str, list[dict[str, Any]]],
     entries: dict[str, Any],
+    job_scores: dict[int, tuple[int, list[str]]],
     now: datetime,
     ttl_days: int,
 ) -> dict[str, dict[str, Any]]:
     ranks: dict[str, int] = {}
     for provider in PROVIDERS:
-        candidates = candidate_urls(by_url, entries, now, ttl_days, provider)
+        candidates = candidate_urls(by_url, entries, job_scores, now, ttl_days, provider)
         ranks.update({canonical: index + 1 for index, canonical in enumerate(candidates)})
     queue: dict[str, dict[str, Any]] = {}
 
     for canonical, jobs in by_url.items():
         entry = entries.get(canonical)
-        priority, reasons = inspection_priority(jobs, now)
+        priority, reasons = inspection_priority(jobs, job_scores)
 
         if reusable(entry, now, ttl_days):
             state = "cached"
@@ -669,7 +640,9 @@ def refresh_cache(
         for key, value in entries.items()
     }
     out["entries"] = entries
-    candidates = candidate_urls(by_url, entries, reference, ttl_days)
+    all_jobs = [job for jobs_list in by_url.values() for job in jobs_list]
+    job_scores = _batch_apply_next_scores(all_jobs, reference)
+    candidates = candidate_urls(by_url, entries, job_scores, reference, ttl_days)
     provider_caps = {
         "workday": max(0, int(max_requests if max_workday_requests is None else max_workday_requests)),
         "icims": max(0, int(max_icims_requests)),
@@ -679,7 +652,7 @@ def refresh_cache(
     }
     selected: list[str] = []
     for provider in PROVIDERS:
-        provider_candidates = candidate_urls(by_url, entries, reference, ttl_days, provider)
+        provider_candidates = candidate_urls(by_url, entries, job_scores, reference, ttl_days, provider)
         selected.extend(provider_candidates[: provider_caps[provider]])
     requested = 0
     succeeded = 0
@@ -737,7 +710,7 @@ def refresh_cache(
                 "last_error": result.get("error") or f"Inspection status: {status or 'failed'}",
             }
 
-    queue = build_queue_metadata(by_url, entries, reference, ttl_days)
+    queue = build_queue_metadata(by_url, entries, job_scores, reference, ttl_days)
     materialize_queue_entries(entries, queue)
     out["entries"] = dict(sorted(entries.items()))
     out["queue"] = queue
