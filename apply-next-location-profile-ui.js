@@ -238,7 +238,7 @@
 
     row.append(
       makeField(index === 0 ? "Primary ZIP" : `Base ${index + 1} ZIP`, zip),
-      makeField("Daily commute radius (miles)", miles, "Only count places you would regularly travel to without moving. Use relocation scoring for jobs farther away."),
+      makeField("Daily commute radius (miles)", miles, "Only count places you would regularly travel to without moving. If you would move for a job, use relocation instead of increasing this radius."),
       makeField("Score /20", score),
       remove
     );
@@ -281,7 +281,7 @@
       oldMiles.max = "150";
       const field = oldMiles.closest(".apply-next-profile-field");
       if (field && !field.querySelector(".apply-next-location-field-hint")) {
-        field.append(element("small", "apply-next-location-field-hint", "Only count places you would regularly travel to without moving. If you would move for a job, that is relocation—not a larger commute radius."));
+        field.append(element("small", "apply-next-location-field-hint", "Only count places you would regularly travel to without moving. If you would move for a job, select “Open to relocating for a worthwhile role” below—don’t increase the commute radius."));
       }
     }
 
