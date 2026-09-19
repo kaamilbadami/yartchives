@@ -1576,7 +1576,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertNotIn("jules-failed", labels)
         self.assertEqual([task.number for task in mod.select_tasks(issues)], [176])
         comment = gh_calls[1][-1]
-        self.assertIn("<!-- jules-retry-from: failed1 -->", comment)
+        self.assertIn("<!-- jules-infra-retry-from: failed1 -->", comment)
         self.assertIn("Keep the fix provider-neutral.", comment)
         self.assertIn("Applying the provider-neutral fix.", comment)
 
@@ -1672,7 +1672,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
         ]
         self.assertIsNone(mod.legacy_failed_retry_context(comments))
 
-    def test_second_platform_failure_is_not_retried_again(self):
+    def test_second_infrastructure_failure_is_not_retried_again(self):
         issues = [
             issue(
                 176,
@@ -1685,7 +1685,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
         comments = [
             {
                 "id": 1,
-                "body": "<!-- jules-retry-from: first-failure -->\nPrior retry context.",
+                "body": "<!-- jules-infra-retry-from: first-failure -->\nPrior infrastructure retry context.",
             },
             {"id": 2, "body": "<!-- jules-session-id: second-failure -->"},
         ]
