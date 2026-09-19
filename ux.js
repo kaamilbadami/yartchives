@@ -97,20 +97,6 @@
     els.profileChips.innerHTML = "";
     const selected = new Set(uxState.areas);
 
-    const all = document.createElement("button");
-    all.type = "button";
-    all.textContent = "All";
-    all.classList.toggle("active", selected.size === 0);
-    all.setAttribute("aria-pressed", String(selected.size === 0));
-    all.addEventListener("click", () => {
-      uxState.areas = [];
-      saveUxState();
-      visibleLimit = PAGE_SIZE;
-      renderCareerAreas();
-      applyFilters();
-    });
-    els.profileChips.appendChild(all);
-
     for (const [key, label] of CAREER_AREAS) {
       const button = document.createElement("button");
       button.type = "button";
@@ -120,7 +106,12 @@
       button.setAttribute("aria-pressed", String(active));
       button.addEventListener("click", () => {
         const next = new Set(uxState.areas);
-        if (next.has(key)) next.delete(key); else next.add(key);
+        if (next.has(key)) {
+          if (next.size === 1) return;
+          next.delete(key);
+        } else {
+          next.add(key);
+        }
         uxState.areas = [...next];
         saveUxState();
         visibleLimit = PAGE_SIZE;
@@ -135,7 +126,7 @@
     const label = document.querySelector(".profile-block .control-label-row label");
     const helper = document.querySelector(".profile-block .control-label-row .muted");
     if (label) label.textContent = "Career area";
-    if (helper) helper.textContent = "Choose one or more areas. Roles can appear in multiple areas.";
+    if (helper) helper.textContent = "More career areas coming soon.";
 
     const hint = document.querySelector(".focus-hint div");
     if (hint) {
