@@ -40,6 +40,7 @@ DEFAULT_UNIVERSE = ROOT / "employer_universe.json"
 TIMEOUT = 25
 PAGE_SIZE = 50
 MAX_RESULTS_PER_SOURCE = 500
+ORACLE_REST_VERSIONS = ("latest", "11.13.18.05")
 ORACLE_SITE_PATH = re.compile(r"/(?:hcmUI/CandidateExperience/)?[a-z]{2}/sites/([^/?#]+)", re.I)
 
 
@@ -81,6 +82,10 @@ def _oracle_source(employer: dict[str, Any]) -> dict[str, Any] | None:
         "site_number": site_number,
         "homepage": homepage,
         "api_url": f"{origin}/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
+        "api_urls": [
+            f"{origin}/hcmRestApi/resources/{version}/recruitingCEJobRequisitions"
+            for version in ORACLE_REST_VERSIONS
+        ],
         "profile_hint": ["cs"],
         "auto_discovered": True,
     }
@@ -190,26 +195,45 @@ def job_from_item(source: dict[str, Any], item: dict[str, Any], reference: datet
     return job
 
 
+def _oracle_request_variants(source: dict[str, Any], offset: int) -> list[tuple[str, str]]:
+    urls = [str(value) for value in (source.get("api_urls") or []) if value]
+    if source.get("api_url") and source["api_url"] not in urls:
+        urls.insert(0, str(source["api_url"]))
+    if not urls:
+        urls = [str(source["api_url"])]
+
+    base = f"findReqs;siteNumber={source['site_number']},limit={PAGE_SIZE},offset={offset},keyword=intern"
+    finders = [f"{base},workLocationCountryCode=US", base]
+    return [(url, finder) for url in urls for finder in finders]
+
+
+def _fetch_oracle_page(client: requests.Session, source: dict[str, Any], offset: int) -> list[dict[str, Any]]:
+    errors: list[str] = []
+    for api_url, finder in _oracle_request_variants(source, offset):
+        try:
+            response = client.get(
+                api_url,
+                params={"onlyData": "true", "finder": finder, "expand": "requisitionList"},
+                headers={"Accept": "application/json", "User-Agent": bf.USER_AGENT},
+                timeout=TIMEOUT,
+            )
+            response.raise_for_status()
+            payload = response.json()
+            containers = payload.get("items") if isinstance(payload, dict) else None
+            if not isinstance(containers, list):
+                raise ValueError("Oracle requisition response did not contain an items list")
+            return containers
+        except (requests.RequestException, ValueError, TypeError) as exc:
+            errors.append(f"{api_url}: {type(exc).__name__}: {exc}")
+    raise RuntimeError("all Oracle requisition variants failed: " + " | ".join(errors[-4:]))
+
+
 def fetch_source(client: requests.Session, source: dict[str, Any], reference: datetime) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
     offset = 0
     while offset < MAX_RESULTS_PER_SOURCE:
-        finder = (
-            f"findReqs;siteNumber={source['site_number']},limit={PAGE_SIZE},offset={offset},"
-            "keyword=intern,workLocationCountryCode=US"
-        )
-        response = client.get(
-            source["api_url"],
-            params={"onlyData": "true", "finder": finder, "expand": "requisitionList"},
-            headers={"Accept": "application/json", "User-Agent": bf.USER_AGENT},
-            timeout=TIMEOUT,
-        )
-        response.raise_for_status()
-        payload = response.json()
-        containers = payload.get("items") if isinstance(payload, dict) else None
-        if not isinstance(containers, list):
-            raise ValueError("Oracle requisition response did not contain an items list")
+        containers = _fetch_oracle_page(client, source, offset)
 
         page: list[dict[str, Any]] = []
         total = 0
