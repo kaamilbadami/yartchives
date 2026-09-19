@@ -80,8 +80,8 @@ assert.match(
 );
 
 assert.ok(
-  autonomousWorkflow.includes('- cron: "*/15 * * * *"'),
-  "Autonomous dispatcher should retain a 15-minute recovery cadence"
+  autonomousWorkflow.includes('- cron: "*/5 * * * *"'),
+  "Autonomous dispatcher should retain a 5-minute recovery cadence"
 );
 assert.match(
   autonomousWorkflow,
