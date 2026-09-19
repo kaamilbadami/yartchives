@@ -684,6 +684,7 @@
     totalScoreBandClass,
     rankingSummary,
     componentMax,
+    renderQueue,
     updateQueueOptimistically,
     explainProfileChange,
     init,
