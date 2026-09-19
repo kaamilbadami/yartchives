@@ -59,15 +59,16 @@ class UpdateFeedWorkflowTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
 
-    def test_final_main_advance_guard_only_allows_generated_files(self):
+    def test_final_main_advance_guard_only_invalidates_feed_input_changes(self):
         text = WORKFLOW.read_text(encoding="utf-8")
         final_commit = text.index("- name: Commit updated feed and inspections")
         tail = text[final_commit:]
 
-        self.assertIn(
-            "grep -Ev '^data/(listings|workday-inspections)\\.json$' || true",
-            tail,
-        )
+        self.assertIn('FEED_INPUT_CHANGES="$(echo "$CHANGED" | grep -E ', tail)
+        self.assertIn("scripts/", tail)
+        self.assertIn("direct_sources\\.json$", tail)
+        self.assertIn("Feed-producing inputs changed on main; leaving this generated result unpublished.", tail)
+        self.assertIn("Only unrelated or generated files changed; publishing this completed feed onto current main.", tail)
         self.assertEqual(tail.count("git reset --hard origin/main"), 1)
 
 
