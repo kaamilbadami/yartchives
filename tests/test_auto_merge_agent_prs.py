@@ -413,6 +413,41 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertIn("<!-- supersedes-stale-pr: 232 -->", body)
         self.assertIn("Do not port the stale branch wholesale", body)
 
+    def test_conflict_replacement_preserves_acceptance_criteria_and_is_idempotent(self):
+        original = {
+            "title": "Add clear Apply Next states",
+            "body": "## Acceptance criteria\n- Preserve saved state.",
+        }
+        body = mod.conflict_replacement_issue_body(original, 235, "main")
+        self.assertIn("## Acceptance criteria\n- Preserve saved state.", body)
+        self.assertIn("<!-- supersedes-stale-pr: 235 -->", body)
+        self.assertIn("could not be updated onto current main without conflicts", body)
+        self.assertIn("Do not port or resolve the stale branch wholesale", body)
+
+        existing = {"number": 301, "body": "<!-- supersedes-stale-pr: 235 -->"}
+        with mock.patch.object(mod, "find_existing_replacement_issue", return_value=existing), mock.patch.object(mod, "gh_json") as gh_json:
+            found = mod.create_or_find_conflict_replacement_issue(
+                "kaamilbadami/yartchives", original, 235, "main"
+            )
+        self.assertIs(found, existing)
+        gh_json.assert_not_called()
+
+    def test_supersede_conflicted_pr_closes_stale_pr_and_original_issue(self):
+        original = {"number": 225, "title": "Empty states", "body": "criteria"}
+        candidate = {"number": 235}
+        calls = []
+        with mock.patch.object(
+            mod,
+            "create_or_find_conflict_replacement_issue",
+            return_value={"number": 301},
+        ), mock.patch.object(mod, "gh_run", side_effect=lambda *args: calls.append(args)):
+            replacement = mod.supersede_conflicted_pull_request(
+                "kaamilbadami/yartchives", candidate, original, "main"
+            )
+        self.assertEqual(replacement, 301)
+        self.assertTrue(any(call[:4] == ("api", "--method", "PATCH", "repos/kaamilbadami/yartchives/pulls/235") for call in calls))
+        self.assertTrue(any(call[:4] == ("api", "--method", "PATCH", "repos/kaamilbadami/yartchives/issues/225") for call in calls))
+
     def test_existing_replacement_marker_prevents_duplicate_issue_creation(self):
         existing = {
             "number": 300,
@@ -665,6 +700,17 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                     "feature/issue-196",
                     "main",
                 )
+
+    def test_main_supersedes_autonomous_pr_when_branch_refresh_conflicts(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            "replacement_number = supersede_conflicted_pull_request(",
+            source,
+        )
+        self.assertIn(
+            'f"Superseded conflicted PR #{number} with fresh current-main "',
+            source,
+        )
 
     def test_main_continues_past_in_flight_and_redispatched_ci(self):
         source = MODULE_PATH.read_text()
