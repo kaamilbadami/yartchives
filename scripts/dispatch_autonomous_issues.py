@@ -1197,11 +1197,17 @@ def reconcile_jules_sessions(
             print(f"Paused Jules dispatch after capacity exhaustion on #{number}.")
             continue
 
+        completed_without_pr = state == "COMPLETED" and not pr_url
+        completed_without_pr_already_retried = (
+            completed_without_pr and retry_marker_from_comments(comments) is not None
+        )
         terminal_label = (
             JULES_REVIEW_READY_LABEL
-            if state == "COMPLETED"
+            if state == "COMPLETED" and pr_url
+            else JULES_FAILED_LABEL
+            if completed_without_pr_already_retried
             else JULES_RETRY_LABEL
-            if retryable_failure
+            if completed_without_pr or retryable_failure
             else JULES_FAILED_LABEL
         )
         run_gh(
@@ -1218,13 +1224,24 @@ def reconcile_jules_sessions(
         )
 
         if state == "COMPLETED":
-            detail = (
-                f"Jules completed session `{session_id}` and released this automation slot."
-            )
             if pr_url:
-                detail += f"\n\nPull request: {pr_url}"
+                detail = (
+                    f"Jules completed session `{session_id}` and released this automation slot."
+                    f"\n\nPull request: {pr_url}"
+                )
+            elif completed_without_pr_already_retried:
+                detail = (
+                    f"Jules completed session `{session_id}` without producing a pull request "
+                    "after its automatic retry. The dispatcher released the slot and parked the "
+                    "issue as failed instead of retrying indefinitely."
+                )
             else:
-                detail += "\n\nNo pull request output was reported by the Jules API."
+                detail = (
+                    f"{JULES_RETRY_MARKER.format(session_id=session_id)}\n"
+                    f"Jules completed session `{session_id}` without producing a pull request. "
+                    "The dispatcher released the slot and queued one context-preserving retry "
+                    "instead of leaving the issue permanently review-ready."
+                )
         else:
             if retryable_failure:
                 detail = (

@@ -555,6 +555,73 @@ class AutonomousDispatcherTests(unittest.TestCase):
             [154],
         )
 
+    def test_completed_session_without_pr_retries_once_instead_of_review_ready(self):
+        issues = [
+            issue(
+                153,
+                "evidence audit",
+                body=task_body("P1", "evidence"),
+                labels=("jules", "jules-session", "agent-ready"),
+            )
+        ]
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [
+                {"body": "<!-- jules-session-id: no-pr-1 -->"}
+            ],
+            get_session=lambda api_key, path: {
+                "id": "no-pr-1",
+                "state": "COMPLETED",
+                "outputs": [],
+            },
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        labels = mod.label_names(issues[0])
+        self.assertNotIn("jules-review-ready", labels)
+        self.assertIn("jules-retry-ready", labels)
+        self.assertIn("<!-- jules-retry-from: no-pr-1 -->", gh_calls[1][-1])
+        self.assertIn("without producing a pull request", gh_calls[1][-1])
+        self.assertEqual([task.number for task in mod.select_tasks(issues)], [153])
+
+    def test_completed_session_without_pr_after_retry_parks_failed(self):
+        issues = [
+            issue(
+                153,
+                "evidence audit",
+                body=task_body("P1", "evidence"),
+                labels=("jules", "jules-session", "agent-ready"),
+            )
+        ]
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [
+                {"body": "<!-- jules-retry-from: old-no-pr -->"},
+                {"body": "<!-- jules-session-id: no-pr-2 -->"},
+            ],
+            get_session=lambda api_key, path: {
+                "id": "no-pr-2",
+                "state": "COMPLETED",
+                "outputs": [],
+            },
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        labels = mod.label_names(issues[0])
+        self.assertNotIn("jules-review-ready", labels)
+        self.assertNotIn("jules-retry-ready", labels)
+        self.assertIn("jules-failed", labels)
+        self.assertIn("after its automatic retry", gh_calls[1][-1])
+        self.assertEqual(mod.select_tasks(issues), [])
+
     def test_terminal_failure_releases_slot_and_refills_same_cycle_selection(self):
         issues = [
             issue(
