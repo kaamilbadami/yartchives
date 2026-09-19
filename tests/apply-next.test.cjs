@@ -82,6 +82,16 @@ assert.equal(newestRanked[2].job.company, "B-clone");
 assert.equal(newestRanked[3].job.company, "Y-InvalidDate");
 assert.equal(newestRanked[4].job.company, "Z-NoDate");
 
+const rescoredOnce = [
+  { job: { company: "Older Strong", posted_at: "2026-09-10T12:00:00Z" }, total: 90, excluded: false },
+  { job: { company: "Newest Weak", posted_at: "2026-09-16T12:00:00Z" }, total: 40, excluded: false },
+];
+const newestFromCachedScores = A.sortRankedResults(rescoredOnce, "newest");
+assert.equal(newestFromCachedScores[0].job.company, "Newest Weak");
+const recommendedFromCachedScores = A.sortRankedResults(newestFromCachedScores, "recommended");
+assert.equal(recommendedFromCachedScores[0].job.company, "Older Strong");
+assert.deepEqual(rescoredOnce.map(result => result.job.company), ["Older Strong", "Newest Weak"], "cached sort should not mutate the scored result array");
+
 const gradScore = A.scoreJob(graduateOnly, profile, now);
 assert.equal(gradScore.excluded, true);
 assert.match(gradScore.reasons[0], /Graduate-only/);
