@@ -591,15 +591,25 @@ def validate_repaired_links(doc: dict[str, Any], old_doc: dict[str, Any]) -> dic
     reference = now_utc()
     targets: list[dict[str, Any]] = []
 
+
     for job in jobs:
-        if not should_validate_direct_link(job):
-            continue
         prior = old_by_id.get(job.get("id")) or {}
+        if not should_validate_direct_link(job):
+            # If we don't validate it, at least carry over the old validation status if the URL hasn't changed
+            if prior.get("url") == job.get("url") and prior.get("link_status"):
+                job["link_status"] = prior.get("link_status", "unknown")
+                if prior.get("link_checked_at"):
+                    job["link_checked_at"] = prior.get("link_checked_at")
+                if prior.get("link_validation_version"):
+                    job["link_validation_version"] = prior.get("link_validation_version")
+            continue
+
         if (
             prior.get("url") == job.get("url")
             and prior.get("link_validation_version") == LINK_VALIDATION_VERSION
             and checked_recently(prior, reference)
         ):
+
             job["link_status"] = prior.get("link_status", "unknown")
             job["link_checked_at"] = prior.get("link_checked_at")
             job["link_validation_version"] = LINK_VALIDATION_VERSION

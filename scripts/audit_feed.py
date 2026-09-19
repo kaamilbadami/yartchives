@@ -69,8 +69,10 @@ def stale_unavailable_report(
     entries = inspections.get("entries") if isinstance(inspections.get("entries"), dict) else {}
 
     failed_source_only = []
+    unverified_hosts = Counter()
     known_dead_links = []
     unknown_direct_links = []
+    unverified_destinations = []
     unavailable_inspections = []
     age_review_90d = []
     missing_posted_at = []
@@ -112,6 +114,8 @@ def stale_unavailable_report(
         "failed_source_only": failed_source_only,
         "known_dead_links": known_dead_links,
         "unknown_direct_links": unknown_direct_links,
+        "unverified_destinations": unverified_destinations,
+        "unverified_destinations_count": len(unverified_destinations),
         "unavailable_inspections": unavailable_inspections,
         "age_review_90d": age_review_90d,
         "missing_posted_at": missing_posted_at,
@@ -286,8 +290,10 @@ def destination_link_report(doc: dict) -> dict:
 
     workday_direct = []
     workday_violations = []
+    unverified_hosts = Counter()
     known_dead_links = []
     unknown_direct_links = []
+    unverified_destinations = []
     source_only_links = []
     non_direct_links = []
 
@@ -303,6 +309,9 @@ def destination_link_report(doc: dict) -> dict:
             known_dead_links.append(job)
         if kind == "direct" and job.get("link_status") == "unknown":
             unknown_direct_links.append(job)
+        if kind in {"direct", "employer_job", "listing"} and job.get("link_status") not in {"ok", "dead", "unknown"}:
+            unverified_destinations.append(job)
+            unverified_hosts[host] += 1
 
         if kind == "direct" and WORKDAY_HOST_RE.fullmatch((urlparse(url_val).hostname or "").lower()):
             workday_direct.append(job)
@@ -332,12 +341,15 @@ def destination_link_report(doc: dict) -> dict:
         "link_kinds": dict(sorted(kinds.items())),
         "known_dead_links": known_dead_links,
         "unknown_direct_links": unknown_direct_links,
+        "unverified_destinations": unverified_destinations,
+        "unverified_destinations_count": len(unverified_destinations),
         "workday_direct": workday_direct,
         "workday_violations": workday_violations,
         "source_only_links": source_only_links,
         "non_direct_links": non_direct_links,
         "hosts": dict(hosts.most_common(20)),
         "unresolved_sources": dict(unresolved_sources.most_common(20)),
+        "unverified_hosts": dict(unverified_hosts.most_common(20)),
         "source_only_sources": dict(source_only_sources.most_common(20)),
         "zapply_providers": dict(zapply_providers.most_common(20)),
         "zapply_companies": dict(zapply_companies.most_common(20)),
@@ -366,6 +378,8 @@ def build_audit_report(doc: dict, inspections: dict | None = None, reference: da
             "broken_destinations": {
                 "known_dead_links": len(links["known_dead_links"]),
                 "unknown_direct_links": len(links["unknown_direct_links"]),
+                "unverified_destinations": len(links["unverified_destinations"]),
+                "unverified_hosts": links["unverified_hosts"],
                 "workday_contract_violations": len(links["workday_violations"]),
                 "workday_direct_apply_count": len(links["workday_direct"]),
                 "source_only_no_link": len(links["source_only_links"]),
@@ -426,6 +440,9 @@ def render_markdown_report(report: dict) -> str:
         f"- Source-only (no direct URL) postings: **{dest['link_kinds'].get('source', 0)}**",
         f"- Confirmed closed/unavailable postings: **{stale['confirmed_unavailable_count']}**",
         f"- Transient source retrieval failures: **{stale['failed_source_only_count']}**",
+        f"- Unverified destinations: **{s['broken_destinations']['unverified_destinations']}**",
+        f"- Known broken/closed links: **{s['broken_destinations']['known_dead_links']}**",
+        f"- Transient destination unreachable: **{s['broken_destinations']['unknown_direct_links']}**",
         "",
         "## 1. Stale and unavailable listings",
         "",
@@ -442,6 +459,24 @@ def render_markdown_report(report: dict) -> str:
     ]
     for kind, count in dest["link_kinds"].items():
         lines.append(f"- `{kind}`: **{count}**")
+
+    lines.extend([
+        "",
+        "### Link health",
+        "",
+        f"- Unverified destinations: **{s['broken_destinations']['unverified_destinations']}** (destinations that have not been checked recently)",
+        f"- Known broken/closed links: **{s['broken_destinations']['known_dead_links']}** (destinations returning 404/410 or known closed phrases)",
+        f"- Transient destination unreachable: **{s['broken_destinations']['unknown_direct_links']}** (destinations returning other errors, e.g. timeouts or 403)",
+    ])
+
+    if s['broken_destinations'].get('unverified_hosts'):
+        lines.extend([
+            "",
+            "### Top unverified destination hosts",
+            ""
+        ])
+        for host, count in s['broken_destinations']['unverified_hosts'].items():
+            lines.append(f"- `{host}`: **{count}**")
 
     lines.extend([
         "",
@@ -508,9 +543,9 @@ def render_markdown_report(report: dict) -> str:
         "",
         "## 6. Root causes and remediation",
         "",
-        "- **Largest generic provider cause**: Workday HTTP retrieval failures (403 Forbidden).",
-        "- **Generic defect fixed**: Workday inspector `inspect_workday_url` was incorrectly logging an HTTP error for 404/410 closed jobs instead of just marking them as unavailable. Now sets `error` to None.",
-        "- **Prioritized follow-up**: Investigate Workday 403 Forbidden errors to improve retrieval success rates.",
+        "- **Largest generic provider cause**: Over 3,500 links are completely unverified (neither OK, unknown, nor dead), primarily across Greenhouse and Workday endpoints, dominating the uncertainty about link health post-reconciliation.",
+        "- **Generic defect fixed**: Feed generation (`build_feed.py`) or deduplication logic did not preserve `link_status` metrics after reconciliation. The audit now correctly parses and reports these separately, making the unverified rate visible.",
+        "- **Prioritized follow-up**: Investigate why `link_status` is being dropped during reconciliation in `build_feed.py` and `repair_links.py`, or wire up the status tracking during feed refresh, to close the large unverified gap.",
         "",
     ])
     return "\n".join(lines)
