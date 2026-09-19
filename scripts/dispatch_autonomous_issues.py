@@ -54,6 +54,7 @@ JULES_FEEDBACK_LABEL = "jules-needs-feedback"
 JULES_RETRY_LABEL = "jules-retry-ready"
 JULES_SESSION_MARKER = "<!-- jules-session-id: {session_id} -->"
 JULES_RETRY_MARKER = "<!-- jules-retry-from: {session_id} -->"
+JULES_INFRA_RETRY_MARKER = "<!-- jules-infra-retry-from: {session_id} -->"
 JULES_FEEDBACK_MARKER = "<!-- jules-feedback: {session_id} -->"
 JULES_FEEDBACK_SENT_MARKER = "<!-- jules-feedback-sent: {comment_id} -->"
 JULES_AUTO_FEEDBACK_MARKER = "<!-- jules-auto-feedback: {session_id}:{question_key} -->"
@@ -302,8 +303,34 @@ def retry_marker_from_comments(comments: Iterable[dict[str, Any]]) -> str | None
     return None
 
 
+def infrastructure_retry_marker_from_comments(
+    comments: Iterable[dict[str, Any]],
+) -> str | None:
+    pattern = re.compile(r"<!--\s*jules-infra-retry-from:\s*([^\s>]+)\s*-->")
+    for comment in reversed(list(comments)):
+        match = pattern.search(str(comment.get("body") or ""))
+        if match:
+            return match.group(1)
+    return None
+
+
+def latest_retry_marker_from_comments(
+    comments: Iterable[dict[str, Any]],
+) -> str | None:
+    pattern = re.compile(
+        r"<!--\s*jules-(?:infra-)?retry-from:\s*([^\s>]+)\s*-->"
+    )
+    for comment in reversed(list(comments)):
+        match = pattern.search(str(comment.get("body") or ""))
+        if match:
+            return match.group(1)
+    return None
+
+
 def retry_context_from_comments(comments: Iterable[dict[str, Any]]) -> str | None:
-    pattern = re.compile(r"<!--\s*jules-retry-from:\s*[^\s>]+\s*-->")
+    pattern = re.compile(
+        r"<!--\s*jules-(?:infra-)?retry-from:\s*[^\s>]+\s*-->"
+    )
     for comment in reversed(list(comments)):
         body = str(comment.get("body") or "")
         if pattern.search(body):
@@ -362,6 +389,23 @@ def legacy_failed_retry_context(
     return session_id, context
 
 
+def latest_retryable_failed_session(
+    comments: Iterable[dict[str, Any]],
+) -> tuple[str, str] | None:
+    """Return the newest durable FAILED record that is clearly Jules/platform retryable."""
+    pattern = re.compile(
+        r"Jules session `([^`]+)` ended in FAILED state and released this "
+        r"automation slot\.",
+        re.IGNORECASE,
+    )
+    for comment in reversed(list(comments)):
+        body = str(comment.get("body") or "")
+        match = pattern.search(body)
+        if match and retryable_jules_failure([body]):
+            return match.group(1), body
+    return None
+
+
 def migrate_legacy_jules_failures(
     issues: list[dict[str, Any]],
     *,
@@ -369,7 +413,7 @@ def migrate_legacy_jules_failures(
     load_comments: Callable[[int], list[dict[str, Any]]],
     run_gh: Callable[..., None] | None = None,
 ) -> None:
-    """Move only pre-retry ambiguous failures into the existing one-retry path."""
+    """Move eligible historical failures into bounded task or infrastructure retry paths."""
     if run_gh is None:
         run_gh = gh_run
 
@@ -377,11 +421,29 @@ def migrate_legacy_jules_failures(
         if JULES_FAILED_LABEL not in label_names(issue):
             continue
         number = int(issue["number"])
-        retry = legacy_failed_retry_context(load_comments(number))
-        if retry is None:
-            continue
+        comments = load_comments(number)
 
-        session_id, context = retry
+        infra_failure = latest_retryable_failed_session(comments)
+        if (
+            infra_failure is not None
+            and infrastructure_retry_marker_from_comments(comments) is None
+        ):
+            session_id, failure_record = infra_failure
+            marker = JULES_INFRA_RETRY_MARKER.format(session_id=session_id)
+            context = (
+                "This is one bounded infrastructure retry. The prior attempt failed "
+                "inside Jules/platform execution rather than from a demonstrated repository "
+                "code/test defect. Preserve useful prior task context, but do not treat this "
+                "platform failure as consuming the task-level retry budget."
+                f"\n\nPrior infrastructure failure record:\n\n{failure_record}"
+            )
+        else:
+            retry = legacy_failed_retry_context(comments)
+            if retry is None:
+                continue
+            session_id, context = retry
+            marker = JULES_RETRY_MARKER.format(session_id=session_id)
+
         run_gh(
             "issue", "edit", str(number), "--repo", repo,
             "--remove-label", JULES_FAILED_LABEL,
@@ -394,11 +456,9 @@ def migrate_legacy_jules_failures(
         )
         run_gh(
             "issue", "comment", str(number), "--repo", repo,
-            "--body",
-            f"{JULES_RETRY_MARKER.format(session_id=session_id)}\n{context}",
+            "--body", f"{marker}\n{context}",
         )
-        print(f"Migrated legacy Jules failure for #{number} into one retry.")
-
+        print(f"Migrated Jules failure for #{number} into one bounded retry.")
 
 def explicit_feedback_for_session(
     comments: Iterable[dict[str, Any]], session_id: str
@@ -1237,10 +1297,7 @@ def reconcile_jules_sessions(
                     else list_jules_activities(api_key, session_id)
                 )
                 diagnostics = failure_diagnostics(session, activities)
-                retryable_failure = (
-                    retryable_jules_failure(diagnostics)
-                    and retry_marker_from_comments(comments) is None
-                )
+                retryable_failure = retryable_jules_failure(diagnostics)
             except Exception as exc:
                 diagnostics = [f"Could not load Jules failure diagnostics: {exc}"]
 
@@ -1281,13 +1338,18 @@ def reconcile_jules_sessions(
         completed_without_pr_already_retried = (
             completed_without_pr and retry_marker_from_comments(comments) is not None
         )
+        infrastructure_retry_available = (
+            state == "FAILED"
+            and retryable_failure
+            and infrastructure_retry_marker_from_comments(comments) is None
+        )
         terminal_label = (
             JULES_REVIEW_READY_LABEL
             if state == "COMPLETED" and pr_url
             else JULES_FAILED_LABEL
             if completed_without_pr_already_retried
             else JULES_RETRY_LABEL
-            if completed_without_pr or retryable_failure
+            if completed_without_pr or infrastructure_retry_available
             else JULES_FAILED_LABEL
         )
         run_gh(
@@ -1323,12 +1385,12 @@ def reconcile_jules_sessions(
                     "instead of leaving the issue permanently review-ready."
                 )
         else:
-            if retryable_failure:
+            if infrastructure_retry_available:
                 detail = (
-                    f"{JULES_RETRY_MARKER.format(session_id=session_id)}\n"
+                    f"{JULES_INFRA_RETRY_MARKER.format(session_id=session_id)}\n"
                     f"Jules session `{session_id}` ended in FAILED state because the "
-                    "diagnostics match a retryable Jules/platform failure. One automatic "
-                    "context-preserving retry is allowed."
+                    "diagnostics match a retryable Jules/platform failure. One bounded "
+                    "infrastructure retry is allowed without consuming the task-level retry."
                 )
             else:
                 detail = (
@@ -1343,7 +1405,7 @@ def reconcile_jules_sessions(
             else:
                 detail += "\n\nNo additional failure diagnostics were reported by the Jules API."
 
-            if retryable_failure:
+            if infrastructure_retry_available:
                 last_message = latest_agent_message(activities)
                 if last_message:
                     detail += (
@@ -1610,7 +1672,7 @@ def dispatch_task(
         else None
     )
     superseded_session_id = (
-        retry_marker_from_comments(comment_list)
+        latest_retry_marker_from_comments(comment_list)
         if JULES_RETRY_LABEL in task.labels
         else None
     )
