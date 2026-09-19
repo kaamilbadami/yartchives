@@ -185,6 +185,9 @@ def discover_sources(
         source = source_from_job_national(job)
         if not source:
             continue
+        prior_health = (feed.get("sources") or {}).get(source["key"]) or {}
+        if prior_health.get("quarantined") is True and prior_health.get("configured") is False:
+            continue
         api_key = _clean(source.get("api_url")).rstrip("/").casefold()
         if api_key in national_apis:
             continue
