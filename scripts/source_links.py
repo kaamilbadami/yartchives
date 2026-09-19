@@ -220,6 +220,13 @@ def visible_text_prefix(response: requests.Response, limit: int = 160_000) -> st
 def validate_source_candidate(value: str) -> tuple[str, str]:
     if not links.is_direct_application_url(value):
         return "dead", value
+
+    # Workday browser pages can return HTTP 200 even for stale requisitions.
+    # Reuse the CXS-aware validator so a source-recovered Workday link only
+    # counts as verified when the authoritative posting resource confirms it.
+    if links.validate_workday_url(value) is not None:
+        return links.validate_direct_url(value)
+
     try:
         response = requests.get(
             value,
