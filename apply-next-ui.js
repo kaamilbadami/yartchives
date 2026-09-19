@@ -14,6 +14,7 @@
   let inspectionArtifactPromise = null;
   let lastRankedResults = [];
   let lastProfile = null;
+  let lastTotalEligibleCount = 0;
   let activeQueueView = "recommended";
   let queueVisibleCounts = { recommended: TOP_N, fresh: TOP_N };
 
@@ -106,6 +107,13 @@
       if (knownWrongTerm(job, profile)) return false;
       return true;
     });
+  }
+
+  function eligiblePoolCount(jobs, profile) {
+    return (jobs || []).filter(job => {
+      if (!job || knownWrongTerm(job, profile)) return false;
+      return true;
+    }).length;
   }
 
 
@@ -652,12 +660,65 @@
     return card;
   }
 
-  function renderCurrentQueue(panel, profile, poolCount) {
+  function renderEmptyState(type, container) {
+    const empty = element("div", "apply-next-empty");
+    const p = element("p", "apply-next-note");
+
+    if (type === "loading") {
+      p.textContent = "Loading recommendations and validating current posting status...";
+      empty.append(p);
+    } else if (type === "error") {
+      p.textContent = "Apply Next could not load the current feed.";
+      const retryBtn = element("button", "primary-btn apply-next-empty-action", "Retry");
+      retryBtn.type = "button";
+      retryBtn.addEventListener("click", () => renderPanel(container.closest(".apply-next-panel")));
+      empty.append(p, retryBtn);
+    } else if (type === "exhausted") {
+      p.textContent = "You have saved, applied to, or hidden all eligible Apply Next candidates. Close Apply Next to explore the main feed, or wait for new matches to be posted.";
+      const closeBtn = element("button", "primary-btn apply-next-empty-action", "Close Apply Next");
+      closeBtn.type = "button";
+      closeBtn.addEventListener("click", () => document.querySelector("#applyNextBtn")?.click());
+      empty.append(p, closeBtn);
+    } else if (type === "no-recommendations") {
+      p.textContent = "No eligible Apply Next candidates are available yet. Try adjusting your profile, or explore the main feed.";
+      const editBtn = element("button", "primary-btn apply-next-empty-action", "Edit profile");
+      editBtn.type = "button";
+      editBtn.addEventListener("click", () => {
+        const panel = container.closest(".apply-next-panel");
+        setupPanel(panel);
+        const input = document.querySelector("#applyNextProfileInput");
+        if (input) input.value = JSON.stringify(loadProfile(localStorage), null, 2);
+      });
+      empty.append(p, editBtn);
+    } else if (type === "fresh-empty") {
+      p.textContent = `No strong matches were posted within the last ${FRESH_MAX_AGE_DAYS} days.`;
+      const switchBtn = element("button", "primary-btn apply-next-empty-action", "View all recommendations");
+      switchBtn.type = "button";
+      switchBtn.addEventListener("click", () => {
+        const panel = container.closest(".apply-next-panel");
+        const btn = panel.querySelector('.apply-next-view-btn[data-queue-view="recommended"]');
+        if (btn) btn.click();
+      });
+      empty.append(p, switchBtn);
+    }
+
+    return empty;
+  }
+
+  function renderCurrentQueue(panel, profile, poolCount, status = "success") {
     if (!panel || !profile) return;
     const list = panel.querySelector(".apply-next-list");
     const note = panel.querySelector(".apply-next-queue-note");
     const loadMore = panel.querySelector(".apply-next-load-more");
     if (!list || !note) return;
+
+    if (status === "loading" || status === "error") {
+      note.textContent = "";
+      list.innerHTML = "";
+      list.append(renderEmptyState(status, list));
+      if (loadMore) loadMore.classList.add("hidden");
+      return;
+    }
 
     const now = new Date();
     const allForView = queueResults(lastRankedResults, activeQueueView, now);
@@ -679,14 +740,15 @@
 
     list.innerHTML = "";
     ranked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
+
     if (!ranked.length) {
-      list.append(element(
-        "p",
-        "muted",
-        activeQueueView === "fresh"
-          ? `No strong matches were posted within the last ${FRESH_MAX_AGE_DAYS} days.`
-          : "No eligible Apply Next candidates are available yet."
-      ));
+      if (activeQueueView === "fresh") {
+        list.append(renderEmptyState("fresh-empty", list));
+      } else if (lastTotalEligibleCount > 0 && poolCount === 0) {
+        list.append(renderEmptyState("exhausted", list));
+      } else {
+        list.append(renderEmptyState("no-recommendations", list));
+      }
     }
 
     if (loadMore) {
@@ -707,25 +769,17 @@
       lastRankedResults = YartchivesApplyNext.rankJobs(pool, profile, new Date());
     }
 
+    if (typeof feed !== "undefined" && Array.isArray(feed?.jobs) && profile) {
+      lastTotalEligibleCount = eligiblePoolCount(feed.jobs, profile);
+    }
+
     const poolCount = (typeof feed !== "undefined" && Array.isArray(feed?.jobs) && profile)
       ? candidatePool(feed.jobs, profile, state).length
       : 0;
     renderCurrentQueue(targetPanel, profile, poolCount);
   }
 
-  async function renderQueue(panel, profile) {
-    setProfileSetupMode(true);
-    const pool = candidatePool(feed.jobs, profile, state);
-    const artifact = await loadInspectionArtifact();
-    attachInspections(pool, artifact);
-    await addBaseDistances(pool, profile);
-    const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date());
-
-    const explanation = explainProfileChange(lastProfile, profile, lastRankedResults?.[0]?.job?.id, ranked?.[0]?.job?.id);
-
-    lastRankedResults = ranked;
-    lastProfile = profile;
-
+  function buildQueueSkeleton(profile, panel, explanation) {
     const fragment = document.createDocumentFragment();
 
     const heading = element("div", "apply-next-heading");
@@ -786,10 +840,41 @@
       renderCurrentQueue(panel, profile, candidatePool(feed.jobs, profile, state).length);
     });
     fragment.append(loadMore);
+    return fragment;
+  }
+
+  async function renderQueue(panel, profile) {
+    setProfileSetupMode(true);
 
     panel.innerHTML = "";
-    panel.append(fragment);
-    renderCurrentQueue(panel, profile, pool.length);
+    panel.append(buildQueueSkeleton(profile, panel, null));
+    renderCurrentQueue(panel, profile, 0, "loading");
+
+    try {
+      if (typeof feed === "undefined" || !Array.isArray(feed.jobs)) throw new Error("Feed not available");
+
+      const pool = candidatePool(feed.jobs, profile, state);
+      lastTotalEligibleCount = eligiblePoolCount(feed.jobs, profile);
+
+      const artifact = await loadInspectionArtifact();
+      attachInspections(pool, artifact);
+      await addBaseDistances(pool, profile);
+      const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date());
+
+      const explanation = explainProfileChange(lastProfile, profile, lastRankedResults?.[0]?.job?.id, ranked?.[0]?.job?.id);
+
+      lastRankedResults = ranked;
+      lastProfile = profile;
+
+      panel.innerHTML = "";
+      panel.append(buildQueueSkeleton(profile, panel, explanation));
+      renderCurrentQueue(panel, profile, pool.length);
+    } catch (error) {
+      console.error(error);
+      panel.innerHTML = "";
+      panel.append(buildQueueSkeleton(profile, panel, null));
+      renderCurrentQueue(panel, profile, 0, "error");
+    }
   }
 
   async function renderPanel(panel) {
