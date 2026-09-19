@@ -1,6 +1,7 @@
 import importlib.util
 from pathlib import Path
 import unittest
+from unittest import mock
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "source_links.py"
 spec = importlib.util.spec_from_file_location("source_links", MODULE_PATH)
@@ -83,6 +84,18 @@ class SourceLinksTests(unittest.TestCase):
         self.assertEqual(mod.candidate_urls(job, indexes), {
             "https://example.com/jobs/1", "https://example.com/jobs/2"
         })
+
+    def test_workday_source_candidate_uses_authoritative_validator(self):
+        candidate = (
+            "https://example.wd1.myworkdayjobs.com/Careers/job/Remote/"
+            "Software-Engineering-Intern_R-123/apply"
+        )
+        with mock.patch.object(mod.links, "validate_workday_url", return_value=("ok", candidate)) as probe, \
+             mock.patch.object(mod.links, "validate_direct_url", return_value=("ok", candidate)) as validate:
+            self.assertEqual(mod.validate_source_candidate(candidate), ("ok", candidate))
+
+        probe.assert_called_once_with(candidate)
+        validate.assert_called_once_with(candidate)
 
     def test_unique_live_candidate_survives_dead_duplicate(self):
         candidates = {"https://example.com/jobs/1", "https://example.com/jobs/2"}
