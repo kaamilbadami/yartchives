@@ -44,6 +44,19 @@ def runs(sha="abc", conclusion="success"):
 
 
 class AutoMergeAgentPrTests(unittest.TestCase):
+    def test_quality_dispatch_wakes_automerge_with_run_id(self):
+        workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text()
+        self.assertIn("actions: write", workflow)
+        self.assertIn("wake-automerge:", workflow)
+        self.assertIn("gh workflow run auto-merge-agent-prs.yml", workflow)
+        self.assertIn('-f wait_for_quality_run_id="$GITHUB_RUN_ID"', workflow)
+
+    def test_automerge_waits_for_dispatched_quality_run_before_scan(self):
+        workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
+        self.assertIn("wait_for_quality_run_id:", workflow)
+        self.assertIn('gh run watch "${{ inputs.wait_for_quality_run_id }}"', workflow)
+        self.assertIn("--exit-status", workflow)
+
     def test_automerge_workflow_has_periodic_recovery_schedule(self):
         workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
         self.assertIn('cron: "*/5 * * * *"', workflow)
