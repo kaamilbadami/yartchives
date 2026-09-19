@@ -98,6 +98,19 @@ const citizenProfile = Setup.buildProfile({
 }, {});
 assert.equal(citizenProfile.facts.workAuthorization, "Authorized to work in the U.S. without sponsorship");
 
+const defaultRoleProfile = Setup.buildProfile({
+  targetTerm: "Summer 2027",
+  citizenship: "Unknown / not provided",
+  workAuthorization: "Unknown / not provided",
+  securityClearance: "Unknown / not provided",
+  opportunityTypes: ["internship"],
+}, {});
+assert.deepEqual(
+  defaultRoleProfile.roleFamilies.map(family => family.id),
+  Setup.ROLE_FAMILIES.map(family => family.id),
+  "new profiles should default to all role families"
+);
+
 (async () => {
   const textFile = {
     name: "resume.txt",
