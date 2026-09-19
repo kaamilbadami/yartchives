@@ -223,6 +223,30 @@
     return best;
   }
 
+  function groupSourceHealth(sources) {
+    const groups = new Map();
+    for (const [key, raw] of Object.entries(sources || {})) {
+      const src = raw || {};
+      const name = String(src.name || key).trim() || key;
+      const groupKey = name.toLocaleLowerCase();
+      const current = groups.get(groupKey) || {
+        name,
+        count: 0,
+        configuredCount: 0,
+        successCount: 0,
+        failureCount: 0,
+        errors: [],
+      };
+      current.count += Number(src.count || 0);
+      if (src.configured !== false) current.configuredCount += 1;
+      if (src.ok) current.successCount += 1;
+      else if (src.configured !== false) current.failureCount += 1;
+      if (src.error && !current.errors.includes(String(src.error))) current.errors.push(String(src.error));
+      groups.set(groupKey, current);
+    }
+    return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name));
+  }
+
   function classifyEducationFromTitle(titleValue) {
     const raw = String(titleValue || "");
     const lower = raw.toLowerCase();
@@ -283,6 +307,7 @@
     coordinatesForJob,
     milesBetween,
     distanceForJob,
+    groupSourceHealth,
     classifyEducationFromTitle,
     classifyOpportunityTypeFromTitle,
     educationLevel,

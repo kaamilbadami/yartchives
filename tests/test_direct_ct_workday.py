@@ -137,6 +137,23 @@ class DirectWorkdayTests(unittest.TestCase):
         self.assertTrue(mod.is_us_location("Remote-US"))
         self.assertFalse(mod.is_us_location("London, United Kingdom"))
 
+
+    def test_one_failed_search_term_does_not_fail_whole_source(self):
+        ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
+        source = dict(self.source)
+        source["search_terms"] = ["student", "intern software"]
+
+        class PartialFailureSession(FakeSession):
+            def post(self, url, json=None, timeout=None):
+                if json.get("searchText") == "student":
+                    raise mod.requests.ConnectionError("temporary provider failure")
+                return super().post(url, json=json, timeout=timeout)
+
+        jobs = mod.fetch_workday_source(PartialFailureSession(), source, ref)
+        self.assertEqual(len(jobs), 1)
+        self.assertEqual(jobs[0]["title"], "Software Engineering Intern - Summer 2027")
+
+
     def test_direct_url_replaces_intermediary_url(self):
         ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
         incoming = mod.bf.base_job(

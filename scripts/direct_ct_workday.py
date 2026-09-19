@@ -159,69 +159,78 @@ def fetch_workday_source(
     if not state and not national_scope:
         state = "CT"
 
+    successful_terms = 0
+    term_errors: list[str] = []
     for term in source.get("search_terms", ["intern"]):
         offset = 0
-        while offset < MAX_RESULTS_PER_QUERY:
-            payload = {
-                "appliedFacets": {},
-                "limit": WORKDAY_PAGE_SIZE,
-                "offset": offset,
-                "searchText": term,
-            }
-            response = s.post(source["api_url"], json=payload, timeout=TIMEOUT)
-            response.raise_for_status()
-            data = response.json()
-            postings = data.get("jobPostings") or []
-            if not isinstance(postings, list) or not postings:
-                break
+        try:
+            while offset < MAX_RESULTS_PER_QUERY:
+                payload = {
+                    "appliedFacets": {},
+                    "limit": WORKDAY_PAGE_SIZE,
+                    "offset": offset,
+                    "searchText": term,
+                }
+                response = s.post(source["api_url"], json=payload, timeout=TIMEOUT)
+                response.raise_for_status()
+                data = response.json()
+                postings = data.get("jobPostings") or []
+                if not isinstance(postings, list) or not postings:
+                    break
 
-            for item in postings:
-                if not isinstance(item, dict):
-                    continue
-                title = bf.clean_text(item.get("title"))
-                location = bf.clean_text(item.get("locationsText")) or "Location not listed"
-                external_path = item.get("externalPath") or ""
-                dedupe_key = external_path or f"{title}|{location}"
-                if dedupe_key in seen_paths:
-                    continue
-                if not is_student_opportunity(title):
-                    continue
-                if not is_cs_relevant_title(title, source):
-                    continue
-                if state:
-                    if not is_target_state(location, state):
+                for item in postings:
+                    if not isinstance(item, dict):
                         continue
-                elif national_scope and not is_us_location(location):
-                    continue
+                    title = bf.clean_text(item.get("title"))
+                    location = bf.clean_text(item.get("locationsText")) or "Location not listed"
+                    external_path = item.get("externalPath") or ""
+                    dedupe_key = external_path or f"{title}|{location}"
+                    if dedupe_key in seen_paths:
+                        continue
+                    if not is_student_opportunity(title):
+                        continue
+                    if not is_cs_relevant_title(title, source):
+                        continue
+                    if state:
+                        if not is_target_state(location, state):
+                            continue
+                    elif national_scope and not is_us_location(location):
+                        continue
 
-                posted_raw = normalize_posted(item.get("postedOn"))
-                posted_at = bf.parse_relative_date(posted_raw, reference)
-                date_source = dict(source)
-                date_source["posted_date_provenance"] = "authoritative_employer"
-                job = bf.base_job(
-                    company=source["company"],
-                    title=title,
-                    location=location,
-                    url=public_job_url(source, external_path),
-                    posted_raw=posted_raw,
-                    source=date_source,
-                    section=f"Direct employer match: {term}",
-                    function_primary="Computer Science / Technology",
-                    posted_at=posted_at,
-                )
-                if not job:
-                    continue
-                if state and state not in job.get("states", []):
-                    job["states"] = sorted(set(job.get("states", [])) | {state})
-                job["direct_employer"] = True
-                out.append(job)
-                seen_paths.add(dedupe_key)
+                    posted_raw = normalize_posted(item.get("postedOn"))
+                    posted_at = bf.parse_relative_date(posted_raw, reference)
+                    date_source = dict(source)
+                    date_source["posted_date_provenance"] = "authoritative_employer"
+                    job = bf.base_job(
+                        company=source["company"],
+                        title=title,
+                        location=location,
+                        url=public_job_url(source, external_path),
+                        posted_raw=posted_raw,
+                        source=date_source,
+                        section=f"Direct employer match: {term}",
+                        function_primary="Computer Science / Technology",
+                        posted_at=posted_at,
+                    )
+                    if not job:
+                        continue
+                    if state and state not in job.get("states", []):
+                        job["states"] = sorted(set(job.get("states", [])) | {state})
+                    job["direct_employer"] = True
+                    out.append(job)
+                    seen_paths.add(dedupe_key)
 
-            total = int(data.get("total") or 0)
-            offset += len(postings)
-            if offset >= total:
-                break
+                total = int(data.get("total") or 0)
+                offset += len(postings)
+                if offset >= total:
+                    break
+            successful_terms += 1
+        except (requests.RequestException, ValueError, TypeError, KeyError) as exc:
+            term_errors.append(f"{term}: {type(exc).__name__}: {exc}")
+            continue
 
+    if successful_terms == 0 and term_errors:
+        raise RuntimeError("all Workday search terms failed: " + " | ".join(term_errors))
     return out
 
 
