@@ -15,8 +15,10 @@ PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
 MAX_ACTIVE = 15
 AREA_RESOURCE_LOCKS = {
     "feed": frozenset({"feed-core"}),
+    "feed-quality": frozenset({"feed-core"}),
     "dedupe": frozenset({"feed-core", "identity"}),
     "identity": frozenset({"feed-core", "identity"}),
+    "frontend": frozenset({"frontend-state"}),
     "frontend-state": frozenset({"identity", "frontend-state"}),
     "link-precedence": frozenset({"feed-core", "links"}),
     "listing-lifecycle": frozenset({"feed-core", "links"}),
@@ -25,9 +27,21 @@ AREA_RESOURCE_LOCKS = {
     "requirement-extraction": frozenset({"requirements", "cache"}),
     "provider-audit": frozenset({"authoritative-evidence", "requirements"}),
     "evidence": frozenset({"authoritative-evidence", "requirements"}),
-    "apply-next-ui": frozenset({"frontend-state", "ranking"}),
+    "apply-next-ui": frozenset({"frontend-state", "ranking", "apply-next-ui"}),
+    "apply-next-explanation": frozenset({"frontend-state", "apply-next-ui", "requirements"}),
+    "evidence-ux": frozenset({"frontend-state", "apply-next-ui", "authoritative-evidence"}),
+    "action-reversibility": frozenset({"frontend-state", "apply-next-ui"}),
     "ranking": frozenset({"ranking"}),
+    "ranking-sensitivity": frozenset({"ranking"}),
+    "ranking-regression": frozenset({"ranking"}),
+    "ranking-stability": frozenset({"ranking"}),
+    "coverage": frozenset({"coverage"}),
+    "coverage-benchmark": frozenset({"coverage"}),
+    "coverage-diagnostics": frozenset({"coverage"}),
+    "employer-resolution": frozenset({"coverage", "source-collection"}),
     "performance": frozenset({"frontend-state"}),
+    "automation": frozenset({"automation"}),
+    "quality": frozenset({"quality"}),
 }
 AUTONOMOUS_MARKER = "<!-- autonomous-task -->"
 JULES_API_ROOT = "https://jules.googleapis.com/v1alpha"
@@ -109,6 +123,7 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
         or priority not in PRIORITY_ORDER
         or not area
         or dependencies is None
+        or (area not in AREA_RESOURCE_LOCKS and not resources)
     ):
         return None
     return Task(

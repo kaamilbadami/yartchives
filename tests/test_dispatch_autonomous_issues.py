@@ -150,6 +150,51 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
         self.assertEqual([task.number for task in selected], [3])
 
+    def test_current_ranking_area_family_shares_ranking_lock(self):
+        issues = [
+            issue(
+                187,
+                "ranking sensitivity",
+                body=task_body("P1", "ranking-sensitivity"),
+                labels=("jules", "jules-session"),
+            ),
+            issue(188, "ranking regression", body=task_body("P0", "ranking-regression")),
+            issue(189, "ranking stability", body=task_body("P0", "ranking-stability")),
+            issue(184, "coverage benchmark", body=task_body("P1", "coverage-benchmark")),
+        ]
+
+        selected = mod.select_tasks(issues, max_active=4)
+
+        self.assertEqual([task.number for task in selected], [184])
+
+    def test_current_apply_next_presentation_areas_share_ui_lock(self):
+        issues = [
+            issue(
+                190,
+                "required versus preferred gaps",
+                body=task_body("P1", "apply-next-explanation"),
+                labels=("jules", "jules-session"),
+            ),
+            issue(191, "evidence provenance", body=task_body("P0", "evidence-ux")),
+            issue(192, "action reversibility", body=task_body("P0", "action-reversibility")),
+            issue(184, "coverage benchmark", body=task_body("P1", "coverage-benchmark")),
+        ]
+
+        selected = mod.select_tasks(issues, max_active=4)
+
+        self.assertEqual([task.number for task in selected], [184])
+
+    def test_unmapped_area_requires_explicit_resource_metadata(self):
+        unmapped = issue(1, "unknown area", body=task_body("P1", "future-area"))
+        explicit = issue(
+            2,
+            "explicitly locked future area",
+            body=task_body("P1", "future-area", resources="future-resource"),
+        )
+
+        self.assertIsNone(mod.task_from_issue(unmapped))
+        self.assertEqual(mod.task_from_issue(explicit).resources, frozenset({"future-resource"}))
+
     def test_shared_resource_lock_blocks_cross_area_overlap(self):
         issues = [
             issue(
@@ -179,7 +224,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 "other area same resource",
                 body=task_body("P0", "beta", resources="shared-hot-file"),
             ),
-            issue(3, "independent", body=task_body("P1", "gamma")),
+            issue(3, "independent", body=task_body("P1", "gamma", resources="independent-resource")),
         ]
 
         selected = mod.select_tasks(issues, max_active=3)
