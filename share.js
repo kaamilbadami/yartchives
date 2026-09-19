@@ -145,6 +145,8 @@
 
     const sort = document.querySelector("#sortSelect")?.value || "newest";
     if (sort !== "newest") url.searchParams.set("sort", sort);
+    if (globalThis.companyDirectoryState?.view === "companies") url.searchParams.set("view", "companies");
+    if (globalThis.companyDirectoryState?.company) url.searchParams.set("company", globalThis.companyDirectoryState.company);
 
     history.replaceState(null, "", url);
     try {
