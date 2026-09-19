@@ -80,6 +80,67 @@ assert.doesNotMatch(
   /\[object Object\]/
 );
 
+
+// calculateProfileImpact Tests
+const oldProfileTest = {
+  targetTerm: "Summer 2027",
+  opportunityTypes: ["internship"],
+  roleFamilies: [{ id: "software" }],
+  supportedKeywords: ["java"],
+  cautiousKeywords: [],
+  facts: { major: "Computer Science", graduation: "May 2027", citizenship: "U.S. citizen" },
+  nearbyMiles: 50,
+  remoteRelevant: true,
+  relocationAllowed: false,
+  baseZips: ["12345"],
+  preferredStates: ["NY"]
+};
+
+// Test non-material change (identical copy)
+assert.equal(
+  UI.calculateProfileImpact(oldProfileTest, JSON.parse(JSON.stringify(oldProfileTest)), { job: { id: "job1" } }, { job: { id: "job1" } }),
+  "Profile saved without material ranking dimension changes."
+);
+
+// Test material change (location)
+assert.equal(
+  UI.calculateProfileImpact(oldProfileTest, { ...oldProfileTest, nearbyMiles: 100 }, { job: { id: "job1" } }, { job: { id: "job1" } }),
+  "Profile saved. Re-evaluated recommendations based on changes to location."
+);
+
+// Test material change (fit & location)
+assert.equal(
+  UI.calculateProfileImpact(
+    oldProfileTest,
+    { ...oldProfileTest, nearbyMiles: 100, roleFamilies: [{ id: "analytics" }] },
+    { job: { id: "job1" } },
+    { job: { id: "job1" } }
+  ),
+  "Profile saved. Re-evaluated recommendations based on changes to fit and location."
+);
+
+// Test material change that alters top recommendation (1 dimension)
+assert.equal(
+  UI.calculateProfileImpact(
+    oldProfileTest,
+    { ...oldProfileTest, baseZips: ["54321"] },
+    { job: { id: "job1" } },
+    { job: { id: "job2" } }
+  ),
+  "Profile saved. Re-evaluated recommendations based on changes to location. Your top recommendation changed because of the new location preferences."
+);
+
+// Test material change that alters top recommendation (>1 dimension)
+assert.equal(
+  UI.calculateProfileImpact(
+    oldProfileTest,
+    { ...oldProfileTest, baseZips: ["54321"], targetTerm: "Fall 2027" },
+    { job: { id: "job1" } },
+    { job: { id: "job2" } }
+  ),
+  "Profile saved. Re-evaluated recommendations based on changes to fit and location. Your top recommendation changed based on these mixed updates."
+);
+
 assert.equal(UI.formatPostedDate("", postedNow), "");
 assert.equal(UI.formatPostedDate("not-a-date", postedNow), "");
 assert.equal(UI.formatPostedDate("2026-09-15", "not-a-date"), "");

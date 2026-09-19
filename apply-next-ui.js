@@ -31,6 +31,71 @@
     return `Posted ${monthDay} · ${ageLabel}`;
   }
 
+  function _arraysEqual(a, b) {
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    if (a.length !== b.length) return false;
+    // Simple exact match since they're serialized/normalized
+    return JSON.stringify(a) === JSON.stringify(b);
+  }
+
+  function calculateProfileImpact(oldProfile, newProfile, oldTopResult, newTopResult) {
+    if (!oldProfile || !newProfile) return "";
+
+    const changedDimensions = new Set();
+
+    if (oldProfile.targetTerm !== newProfile.targetTerm ||
+        !_arraysEqual(oldProfile.opportunityTypes, newProfile.opportunityTypes) ||
+        !_arraysEqual((oldProfile.roleFamilies||[]).map(f => f.id), (newProfile.roleFamilies||[]).map(f => f.id)) ||
+        !_arraysEqual(oldProfile.supportedKeywords, newProfile.supportedKeywords) ||
+        !_arraysEqual(oldProfile.cautiousKeywords, newProfile.cautiousKeywords) ||
+        oldProfile.facts?.major !== newProfile.facts?.major ||
+        oldProfile.facts?.degree !== newProfile.facts?.degree ||
+        oldProfile.excludeGraduateOnly !== newProfile.excludeGraduateOnly) {
+      changedDimensions.add("fit");
+    }
+
+    if (oldProfile.nearbyMiles !== newProfile.nearbyMiles ||
+        oldProfile.remoteRelevant !== newProfile.remoteRelevant ||
+        oldProfile.relocationAllowed !== newProfile.relocationAllowed ||
+        !_arraysEqual(oldProfile.baseZips, newProfile.baseZips) ||
+        !_arraysEqual(oldProfile.preferredStates, newProfile.preferredStates)) {
+      changedDimensions.add("location");
+    }
+
+    if (oldProfile.facts?.graduation !== newProfile.facts?.graduation ||
+        oldProfile.facts?.citizenship !== newProfile.facts?.citizenship ||
+        oldProfile.facts?.workAuthorization !== newProfile.facts?.workAuthorization ||
+        oldProfile.facts?.securityClearance !== newProfile.facts?.securityClearance) {
+      changedDimensions.add("eligibility");
+    }
+
+    if (changedDimensions.size === 0) {
+      return "Profile saved without material ranking dimension changes.";
+    }
+
+    const dims = Array.from(changedDimensions).sort();
+    let dimensionList = dims.join(", ");
+    if (dims.length > 1) {
+      dimensionList = dimensionList.replace(/, ([^,]*)$/, " and $1");
+    }
+
+    let msg = `Profile saved. Re-evaluated recommendations based on changes to ${dimensionList}.`;
+
+    const oldTopId = oldTopResult?.job?.id;
+    const newTopId = newTopResult?.job?.id;
+
+    if (oldTopId && newTopId && oldTopId !== newTopId) {
+      if (dims.length === 1) {
+        msg += ` Your top recommendation changed because of the new ${dims[0]} preferences.`;
+      } else {
+        msg += ` Your top recommendation changed based on these mixed updates.`;
+      }
+    }
+
+    return msg;
+  }
+
   function validateProfile(profile) {
     if (!profile || typeof profile !== "object" || Array.isArray(profile)) {
       return { ok: false, error: "Profile must be a JSON object." };
@@ -482,6 +547,12 @@
     attachInspections(pool, artifact);
     await addBaseDistances(pool, profile);
     const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date());
+
+    let impactMessage = "";
+    if (lastProfile && profile && JSON.stringify(lastProfile) !== JSON.stringify(profile)) {
+      impactMessage = calculateProfileImpact(lastProfile, profile, lastRankedResults?.[0], ranked?.[0]);
+    }
+
     lastRankedResults = ranked;
     lastProfile = profile;
 
@@ -521,6 +592,15 @@
       `Showing ${topRanked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`
     );
     fragment.append(note);
+
+    if (impactMessage) {
+      const impactElement = element("p", "apply-next-note apply-next-impact-notice");
+      impactElement.textContent = impactMessage;
+      if (impactMessage.includes("Re-evaluated") || impactMessage.includes("changed")) {
+        impactElement.style.fontWeight = "600";
+      }
+      fragment.append(impactElement);
+    }
 
     const list = element("div", "apply-next-list");
     topRanked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
@@ -575,6 +655,7 @@
 
   return {
     STORAGE_KEY,
+    calculateProfileImpact,
     INSPECTION_URL,
     TOP_N,
     validateProfile,
