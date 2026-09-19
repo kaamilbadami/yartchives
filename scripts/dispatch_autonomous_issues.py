@@ -1945,7 +1945,14 @@ def run_dispatch_cycle(
             f"({session['url']})"
         )
 
-    has_active = any(active_jules_task(issue) is not None for issue in issues) or started_any
+    has_active = (
+        any(
+            active_jules_task(issue) is not None
+            or JULES_FEEDBACK_LABEL in label_names(issue)
+            for issue in issues
+        )
+        or started_any
+    )
     if not selected:
         print("No safe autonomous task is currently dispatchable this cycle.")
     return has_active, source_name

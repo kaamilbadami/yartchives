@@ -1424,6 +1424,23 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertEqual([call[2] for call in cycles], [None, "source", "source"])
         self.assertEqual(sleeps, [30, 30])
 
+    def test_run_dispatch_cycle_returns_true_for_feedback_waiting_task(self):
+        issues = [
+            issue(
+                10,
+                "feedback waiting",
+                body=task_body("P1", "feed"),
+                labels=("jules-needs-feedback", "jules", "jules-session"),
+            )
+        ]
+
+        with mock.patch.object(mod, "fetch_open_issues", return_value=issues):
+            with mock.patch.object(mod, "reconcile_jules_sessions", return_value=False):
+                with mock.patch.object(mod, "migrate_legacy_jules_failures", return_value=None):
+                    with mock.patch.object(mod, "select_tasks", return_value=[]):
+                        has_active, _ = mod.run_dispatch_cycle("repo", "key", "source")
+                        self.assertTrue(has_active)
+
     def test_watch_loop_queues_followup_when_bound_expires_with_active_work(self):
         cycles = []
         sleeps = []
