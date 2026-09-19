@@ -157,7 +157,7 @@ assert.deepEqual(
   const source = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.js"), "utf8");
   assert.match(source, /raw resume is never saved or uploaded/i);
   assert.match(source, /When are you looking\?/);
-  assert.match(source, /When are you graduating \(month, year\)/);
+  assert.match(source, /When are you graduating \(month year\)/);
   assert.match(source, /input\("targetTerm", "Summer 2027", "radio"\)/);
   assert.doesNotMatch(source, /field\("Degree"/);
   assert.doesNotMatch(source, /Kaamil|Badami|kaamil\.badami/i);
