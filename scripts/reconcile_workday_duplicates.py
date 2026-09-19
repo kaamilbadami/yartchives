@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import urllib.parse
 import re
 import sys
 from pathlib import Path
@@ -45,7 +46,7 @@ FILL_FIELDS = (
     "link_checked_at",
     "resolved_from_url",
 )
-PROVIDERS = ("workday", "greenhouse", "icims")
+PROVIDERS = ("workday", "greenhouse", "icims", "oracle_hcm")
 WORKDAY_REQUISITION_SUFFIX = re.compile(r"_((?:[A-Za-z]+-?)?\d{4,})$", flags=re.I)
 
 
@@ -84,6 +85,59 @@ def workday_identity_key(url: str | None) -> tuple[str, str, str] | None:
             str(derived["site"]).casefold(),
             path_identity,
         )
+    except (ValueError, KeyError, TypeError):
+        return None
+
+
+
+ORACLE_HOST = re.compile(r"^[a-z0-9-]+\.fa\.[a-z0-9-]+\.oraclecloud\.com$", re.I)
+
+def derive_oracle_hcm_endpoint(job_url: str) -> dict[str, str]:
+    parsed = urllib.parse.urlparse(job_url or "")
+    host = (parsed.hostname or "").lower()
+    if parsed.scheme.lower() != "https" or not ORACLE_HOST.fullmatch(host):
+        raise ValueError("expected an HTTPS Oracle Cloud HCM host")
+
+    parts = [urllib.parse.unquote(part) for part in parsed.path.split("/") if part]
+    lower = [part.lower() for part in parts]
+    try:
+        ce_index = lower.index("candidateexperience")
+    except ValueError as exc:
+        raise ValueError("expected an Oracle CandidateExperience job URL") from exc
+
+    tail = parts[ce_index + 1 :]
+    if len(tail) < 5 or tail[1].lower() != "sites" or tail[3].lower() != "job":
+        raise ValueError(
+            "Oracle CandidateExperience URL must include /<lang>/sites/<site>/job/<job-id>"
+        )
+    language = tail[0].strip().lower()
+    site_number = tail[2].strip()
+    job_id = tail[4].strip()
+
+    return {
+        "host": host,
+        "language": language,
+        "site_number": site_number,
+        "job_id": job_id,
+        "canonical_job_url": f"https://{host}/hcmUI/CandidateExperience/{language}/sites/{site_number}/job/{job_id}",
+    }
+
+
+def oracle_hcm_canonical_url(url: str | None) -> str | None:
+    if not url:
+        return None
+    try:
+        return derive_oracle_hcm_endpoint(str(url))["canonical_job_url"]
+    except (ValueError, KeyError, TypeError):
+        return None
+
+
+def oracle_hcm_identity_key(url: str | None) -> tuple[str, str] | None:
+    if not url:
+        return None
+    try:
+        derived = derive_oracle_hcm_endpoint(str(url))
+        return (str(derived["host"]).casefold(), str(derived["job_id"]))
     except (ValueError, KeyError, TypeError):
         return None
 
@@ -138,13 +192,16 @@ def posting_identity_key(url: str | None) -> tuple[str, ...] | None:
     icims = icims_identity_key(url)
     if icims:
         return ("icims", *icims)
+    oracle_hcm = oracle_hcm_identity_key(url)
+    if oracle_hcm:
+        return ("oracle_hcm", *oracle_hcm)
     return None
 
 
 def canonical_posting_url(url: str | None) -> str | None:
     """Return the provider-native canonical job URL for a supported ATS posting."""
 
-    return workday_canonical_url(url) or greenhouse_canonical_url(url) or icims_canonical_url(url)
+    return workday_canonical_url(url) or greenhouse_canonical_url(url) or icims_canonical_url(url) or oracle_hcm_canonical_url(url)
 
 
 def is_verified_workday_apply(job: dict[str, Any]) -> bool:
@@ -336,6 +393,7 @@ def reconcile_jobs(jobs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], di
         "workday_postings": provider_postings["workday"],
         "greenhouse_postings": provider_postings["greenhouse"],
         "icims_postings": provider_postings["icims"],
+        "oracle_hcm_postings": provider_postings["oracle_hcm"],
         "direct_url_postings": direct_url_postings,
         "duplicate_groups": duplicate_groups,
         "records_removed": removed,
