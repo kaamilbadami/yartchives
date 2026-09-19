@@ -459,6 +459,7 @@ def retryable_jules_failure(diagnostics: Iterable[str]) -> bool:
         "internal execution stopped",
         "internal error",
         "jules encountered an error when working on the task",
+        "jules was unable to complete the task",
     )
     return any(pattern in text for pattern in retryable)
 
