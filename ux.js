@@ -403,7 +403,7 @@
     const jobs = Array.isArray(feed.jobs) ? feed.jobs : [];
     const direct = jobs.filter(job => job.link_kind === "direct").length;
     const pct = jobs.length ? (100 * direct / jobs.length).toFixed(1) : "0.0";
-    const active = Object.values(feed.sources || {}).filter(source => source.ok && source.configured !== false).length;
+    const active = YartchivesUtils.groupSourceHealth(feed.sources || {}).filter(source => source.successCount > 0).length;
     const when = new Date(feed.generated_at);
     els.feedMeta.textContent = `${jobs.length.toLocaleString()} indexed · ${pct}% direct links · Updated ${when.toLocaleString()} · ${active} active sources`;
   };
