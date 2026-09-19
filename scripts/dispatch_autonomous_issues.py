@@ -187,7 +187,7 @@ def auto_feedback_sent_for_session(
     comments: Iterable[dict[str, Any]], session_id: str
 ) -> bool:
     marker = re.compile(
-        rf"<!--\\s*jules-auto-feedback:\\s*{re.escape(session_id)}\\s*-->"
+        rf"<!--\s*jules-auto-feedback:\s*{re.escape(session_id)}\s*-->"
     )
     return any(marker.search(str(comment.get("body") or "")) for comment in comments)
 
