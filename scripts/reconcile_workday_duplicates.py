@@ -226,6 +226,27 @@ def reconciled_posting_url(job: dict[str, Any]) -> str | None:
     return canonical or bf.canonical_url(job.get("url"))
 
 
+def normalize_workday_publish_contract(job: dict[str, Any]) -> dict[str, Any]:
+    """Never publish an unverified Workday URL as a direct Apply destination.
+
+    Link recovery is intentionally network-bounded, so some Workday /apply URLs
+    can remain unchecked or temporarily unknown. Preserve those postings as
+    employer job pages instead of violating the feed's direct-link contract.
+    """
+
+    normalized = copy.deepcopy(job)
+    canonical = workday_canonical_url(normalized.get("url"))
+    if not canonical or normalized.get("link_kind") != "direct":
+        return normalized
+    if is_verified_workday_apply(normalized):
+        normalized["url"] = canonical.rstrip("/") + "/apply"
+        return normalized
+
+    normalized["url"] = canonical
+    normalized["link_kind"] = "employer_job"
+    return normalized
+
+
 POSTING_ID_TOKEN = re.compile(r"(?:^|[^A-Za-z0-9])(?:[A-Fa-f0-9]{8}-[A-Fa-f0-9-]{27,}|\d{8,})(?:[^A-Za-z0-9]|$)")
 POSTING_ID_QUERY_KEYS = {"job", "jobid", "job_id", "jobcode", "job_code", "jid", "posting", "postingid", "posting_id", "requisition", "requisitionid", "requisition_id", "reqid", "req_id"}
 
@@ -396,7 +417,7 @@ def reconcile_jobs(jobs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], di
         elif provider in {"direct-url", "direct-posting-url"}:
             direct_url_postings += 1
         if len(group) == 1:
-            reconciled.append(copy.deepcopy(group[0]))
+            reconciled.append(normalize_workday_publish_contract(group[0]))
             continue
         duplicate_groups += 1
         removed += len(group) - 1
