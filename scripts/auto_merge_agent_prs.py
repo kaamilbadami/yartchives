@@ -59,6 +59,14 @@ def exact_head_quality_passed(runs: Iterable[dict[str, Any]], head_sha: str) -> 
     )
 
 
+def exact_head_quality_present(runs: Iterable[dict[str, Any]], head_sha: str) -> bool:
+    return any(
+        str(run.get("name") or "") == QUALITY_WORKFLOW
+        and str(run.get("head_sha") or "") == head_sha
+        for run in runs
+    )
+
+
 def exact_head_quality_action_required(
     runs: Iterable[dict[str, Any]], head_sha: str
 ) -> bool:
@@ -146,6 +154,36 @@ def gh_run(*args: str) -> None:
     subprocess.run(["gh", *args], check=True)
 
 
+def update_pull_request_branch(repo: str, number: int, head_sha: str) -> tuple[bool, str]:
+    result = subprocess.run(
+        [
+            "gh",
+            "api",
+            "--method",
+            "PUT",
+            f"repos/{repo}/pulls/{number}/update-branch",
+            "-f",
+            f"expected_head_sha={head_sha}",
+        ],
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode == 0:
+        return True, ""
+    detail = "\n".join(part for part in (result.stdout, result.stderr) if part).strip()
+    lowered = detail.casefold()
+    if "merge conflict between base and head" in lowered or (
+        "http 422" in lowered and "merge conflict" in lowered
+    ):
+        return False, detail
+    raise subprocess.CalledProcessError(
+        result.returncode,
+        result.args,
+        output=result.stdout,
+        stderr=result.stderr,
+    )
+
+
 def flatten_pages(pages: Any) -> list[Any]:
     if not isinstance(pages, list):
         raise TypeError("paginated response must be a list")
@@ -209,18 +247,22 @@ def main() -> int:
         if not exact_head_quality_passed(runs, head_sha):
             if exact_head_quality_in_flight(runs, head_sha):
                 print(f"PR #{number} already has exact-head Quality checks in flight.")
-                return 0
-            if exact_head_quality_action_required(runs, head_sha) and head_ref:
+                continue
+            should_redispatch = (
+                exact_head_quality_action_required(runs, head_sha)
+                or not exact_head_quality_present(runs, head_sha)
+            )
+            if should_redispatch and head_ref:
                 gh_run(
                     "workflow", "run", "quality.yml",
                     "--repo", repo,
                     "--ref", head_ref,
                 )
                 print(
-                    f"Dispatched Quality checks manually for PR #{number} after GitHub "
-                    "suppressed the token-generated pull_request run."
+                    f"Dispatched Quality checks manually for PR #{number} because the "
+                    "exact-head run was missing or required manual approval."
                 )
-                return 0
+                continue
 
         eligible, reason = eligible_pr(
             pr,
@@ -236,12 +278,15 @@ def main() -> int:
         base_ref = str((pr.get("base") or {}).get("ref") or "main")
         comparison = gh_json("api", f"repos/{repo}/compare/{base_ref}...{head_sha}")
         if int(comparison.get("behind_by") or 0) > 0:
-            gh_run(
-                "api",
-                "--method", "PUT",
-                f"repos/{repo}/pulls/{number}/update-branch",
-                "-f", f"expected_head_sha={head_sha}",
-            )
+            updated, detail = update_pull_request_branch(repo, number, head_sha)
+            if not updated:
+                print(
+                    f"Skipping PR #{number}: branch cannot be updated automatically because "
+                    "it conflicts with current base. Continuing with later pull requests."
+                )
+                if detail:
+                    print(detail)
+                continue
             if not head_ref:
                 raise RuntimeError(f"PR #{number} has no head branch for fresh CI")
             gh_run(
@@ -253,7 +298,7 @@ def main() -> int:
                 f"Updated PR #{number} onto current {base_ref} and dispatched fresh "
                 "Quality checks on the updated branch."
             )
-            return 0
+            continue
 
         fresh = gh_json("api", f"repos/{repo}/pulls/{number}")
         if fresh.get("mergeable") is not True or str(fresh.get("mergeable_state") or "") not in {
