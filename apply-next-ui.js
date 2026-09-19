@@ -10,7 +10,6 @@
   const INSPECTION_URL = "data/workday-inspections.json";
   const TOP_N = 10;
   let inspectionArtifactPromise = null;
-  let queueSortMode = "recommended";
   let lastRankedResults = [];
   let lastProfile = null;
 
@@ -589,7 +588,7 @@
       lastRankedResults = lastRankedResults.filter(r => r.job && r.job.id !== appliedJobId && !state.applied?.has(r.job.id) && !state.hidden?.has(r.job.id));
     } else if (typeof feed !== "undefined" && Array.isArray(feed?.jobs) && profile && typeof YartchivesApplyNext !== "undefined") {
       const pool = candidatePool(feed.jobs, profile, state);
-      lastRankedResults = YartchivesApplyNext.rankJobs(pool, profile, new Date(), queueSortMode);
+      lastRankedResults = YartchivesApplyNext.rankJobs(pool, profile, new Date());
     }
 
     const ranked = (lastRankedResults || []).slice(0, TOP_N);
@@ -600,7 +599,7 @@
       const poolCount = (typeof feed !== "undefined" && Array.isArray(feed?.jobs))
         ? candidatePool(feed.jobs, profile, state).length
         : 0;
-      note.textContent = `${queueSortMode === "newest" ? "Showing " + ranked.length + " newest eligible options" : "Showing " + ranked.length + " highest-value options"} from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`;
+      note.textContent = `Showing ${ranked.length} highest-value options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`;
     }
 
     list.innerHTML = "";
@@ -615,7 +614,7 @@
     const artifact = await loadInspectionArtifact();
     attachInspections(pool, artifact);
     await addBaseDistances(pool, profile);
-    const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date(), queueSortMode);
+    const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date());
 
     const explanation = explainProfileChange(lastProfile, profile, lastRankedResults?.[0]?.job?.id, ranked?.[0]?.job?.id);
 
@@ -635,16 +634,6 @@
       element("p", "muted", profileSummary(profile) || "Private strategy loaded")
     );
     const controls = element("div", "apply-next-profile-actions");
-    const sortLabel = element("label", "sort-field apply-next-sort");
-    sortLabel.innerHTML = '<span>Sort</span><select aria-label="Sort queue"><option value="recommended">Recommended</option><option value="newest">Newest</option></select>';
-    const sortSelect = sortLabel.querySelector("select");
-    sortSelect.value = queueSortMode;
-    sortSelect.addEventListener("change", () => {
-      queueSortMode = sortSelect.value === "newest" ? "newest" : "recommended";
-      lastRankedResults = YartchivesApplyNext.sortRankedResults(lastRankedResults, queueSortMode);
-      updateQueueOptimistically(panel, profile);
-    });
-
     const edit = element("button", "ghost-btn", "Edit profile");
     edit.type = "button";
     edit.addEventListener("click", () => {
@@ -658,14 +647,14 @@
       localStorage.removeItem(STORAGE_KEY);
       setupPanel(panel);
     });
-    controls.append(sortLabel, edit, clear);
+    controls.append(edit, clear);
     heading.append(copy, controls);
     fragment.append(heading);
 
     const note = element(
       "p",
       "apply-next-note",
-      `${queueSortMode === "newest" ? "Showing " + topRanked.length + " newest eligible options" : "Showing " + topRanked.length + " highest-value options"} from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`
+      `Showing ${topRanked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`
     );
     fragment.append(note);
     if (explanation) {

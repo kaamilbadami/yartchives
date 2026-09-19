@@ -18,7 +18,7 @@
   <header class="site-header">
     <div class="brand-block">
       <div class="brand-row">
-        <span class="brand-mark" aria-hidden="true">Y</span>
+        <img class="brand-mark" src="assets/yartchives-hedgehog.png" width="32" height="32" alt="" aria-hidden="true" />
         <p class="eyebrow">opportunities, without the tab chaos</p>
       </div>
       <h1>Yartchives</h1>
@@ -89,10 +89,10 @@
         <label class="field">
           <span>Freshness</span>
           <select id="freshnessSelect">
-            <option value="all">Any age</option>
+            <option value="all" selected>Any age</option>
             <option value="1">Past 24 hours</option>
             <option value="3">Past 3 days</option>
-            <option value="7" selected>Past 7 days</option>
+            <option value="7">Past 7 days</option>
             <option value="30">Past 30 days</option>
           </select>
         </label>
@@ -124,7 +124,13 @@
 
     <section class="results-header">
       <div>
-        <h2 id="resultsTitle">All opportunities</h2>
+        <div class="results-view-row">
+          <h2 id="resultsTitle">All opportunities</h2>
+          <div class="view-toggle" role="group" aria-label="Results view">
+            <button id="jobsViewBtn" class="active" type="button" aria-pressed="true">Jobs</button>
+            <button id="companiesViewBtn" type="button" aria-pressed="false">Companies</button>
+          </div>
+        </div>
         <p id="feedMeta" class="muted">Loading feed…</p>
         <p id="resultsNote" class="results-note"></p>
       </div>
@@ -175,6 +181,7 @@
   <script src="ux.js" defer></script>
   <script src="location-display.js" defer></script>
   <script src="share.js" defer></script>
+  <script src="companies.js" defer></script>
   <script src="apply-next.js" defer></script>
   <script src="apply-next-readiness.js" defer></script>
   <script src="apply-next-competition.js" defer></script>

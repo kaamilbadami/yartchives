@@ -10,6 +10,34 @@ spec.loader.exec_module(mod)
 
 
 class BuildFeedTests(unittest.TestCase):
+
+    def test_merge_job_preserves_link_status(self):
+        target = {
+            "source_keys": ["a"],
+            "source_names": ["A"],
+            "source_urls": ["http://a.com"]
+        }
+        incoming = {
+            "source_key": "b",
+            "source_name": "B",
+            "source_url": "http://b.com",
+            "link_status": "ok",
+            "link_checked_at": "2026-09-18T12:00:00Z"
+        }
+        mod.merge_job(target, incoming)
+        self.assertEqual(target.get("link_status"), "ok")
+        self.assertEqual(target.get("link_checked_at"), "2026-09-18T12:00:00Z")
+
+        # Do not overwrite ok with unknown
+        incoming2 = {
+            "source_key": "c",
+            "source_name": "C",
+            "source_url": "http://c.com",
+            "link_status": "unknown"
+        }
+        mod.merge_job(target, incoming2)
+        self.assertEqual(target.get("link_status"), "ok")
+
     def test_state_extraction_is_exact(self):
         self.assertEqual(mod.extract_states("Acton, Massachusetts"), ["MA"])
         self.assertIn("CT", mod.extract_states("Danbury, CT, US"))

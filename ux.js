@@ -6,6 +6,11 @@
 
   const CAREER_AREAS = [
     ["cs", "Computer Science"],
+  ];
+  // Maintain the full set of valid areas so legacy state/URLs remain valid
+  // even though we hide them from the primary beta UI selection.
+  const ALL_KNOWN_AREAS = [
+    ["cs", "Computer Science"],
     ["product-analytics", "Product / Analytics"],
     ["it-consulting", "IT / Tech Consulting"],
     ["finance-econ", "Finance / Econ"],
@@ -15,8 +20,8 @@
     ["policy", "Policy / Government"],
     ["health", "Premed / Health"],
   ];
-  const AREA_LABELS = Object.fromEntries(CAREER_AREAS);
-  const VALID_AREAS = new Set(CAREER_AREAS.map(([key]) => key));
+  const AREA_LABELS = Object.fromEntries(ALL_KNOWN_AREAS);
+  const VALID_AREAS = new Set(ALL_KNOWN_AREAS.map(([key]) => key));
 
   function loadUxState() {
     let saved = {};
@@ -36,6 +41,11 @@
         for (const key of legacyAreas) {
           if (key === "tech-business") selected.push("product-analytics", "it-consulting");
           else if (VALID_AREAS.has(key)) selected.push(key);
+        }
+
+        // Beta defaults to CS-first for new visitors
+        if (!selected.length) {
+          selected.push("cs");
         }
       }
     }
@@ -87,20 +97,6 @@
     els.profileChips.innerHTML = "";
     const selected = new Set(uxState.areas);
 
-    const all = document.createElement("button");
-    all.type = "button";
-    all.textContent = "All";
-    all.classList.toggle("active", selected.size === 0);
-    all.setAttribute("aria-pressed", String(selected.size === 0));
-    all.addEventListener("click", () => {
-      uxState.areas = [];
-      saveUxState();
-      visibleLimit = PAGE_SIZE;
-      renderCareerAreas();
-      applyFilters();
-    });
-    els.profileChips.appendChild(all);
-
     for (const [key, label] of CAREER_AREAS) {
       const button = document.createElement("button");
       button.type = "button";
@@ -110,7 +106,12 @@
       button.setAttribute("aria-pressed", String(active));
       button.addEventListener("click", () => {
         const next = new Set(uxState.areas);
-        if (next.has(key)) next.delete(key); else next.add(key);
+        if (next.has(key)) {
+          if (next.size === 1) return;
+          next.delete(key);
+        } else {
+          next.add(key);
+        }
         uxState.areas = [...next];
         saveUxState();
         visibleLimit = PAGE_SIZE;
@@ -125,7 +126,7 @@
     const label = document.querySelector(".profile-block .control-label-row label");
     const helper = document.querySelector(".profile-block .control-label-row .muted");
     if (label) label.textContent = "Career area";
-    if (helper) helper.textContent = "Choose one or more areas. Roles can appear in multiple areas.";
+    if (helper) helper.textContent = "More career areas coming soon.";
 
     const hint = document.querySelector(".focus-hint div");
     if (hint) {
@@ -411,9 +412,10 @@
   applyFilters = async function () {
     await priorApplyFilters();
 
-    if (uxState.areas.length) {
-      filtered = filtered.filter(job => uxState.areas.some(area => matchesCareerArea(job, area)));
-    }
+    const activeAreas = uxState.areas.length
+      ? uxState.areas
+      : CAREER_AREAS.map(([key]) => key);
+    filtered = filtered.filter(job => activeAreas.some(area => matchesCareerArea(job, area)));
     sortFiltered(filtered, Boolean(currentZip()));
     renderJobs();
     updateStats();

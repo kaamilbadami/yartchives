@@ -354,6 +354,14 @@ async function runTests() {
     // Wait microtask tick for boot fetch
     await new Promise(r => setTimeout(r, 10));
 
+    // The CS-only beta should stay scoped to CS even if the sole career chip is clicked.
+    assert.equal(document.querySelector("#shownCount").textContent, "1", "CS-first default should show only CS jobs");
+    const careerButtons = document.querySelector("#profileChips").children;
+    assert.equal(careerButtons.length, 1, "Only the Computer Science career chip should be rendered");
+    careerButtons[0].click();
+    await new Promise(r => setTimeout(r, 10));
+    assert.equal(document.querySelector("#shownCount").textContent, "1", "Clicking the sole CS chip should keep CS selected");
+
     // Check stat navigation setup
     const savedTile = document.querySelector("#newCount").closest(".stat");
     const matchesTile = document.querySelector("#shownCount").closest(".stat");
@@ -491,6 +499,53 @@ async function runTests() {
     const indexHtml = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
     assert.ok(indexHtml.includes('src="app.js"'));
     assert.ok(indexHtml.includes('src="ux.js"'));
+  }
+
+  // 4. Test CS-first beta default and hidden non-CS choices
+  {
+    const { document, localStorage } = createDOMEnvironment();
+    const context = {
+      console,
+      document,
+      localStorage,
+      location: { search: "", href: "http://localhost/" },
+      URLSearchParams,
+      Set,
+      Map,
+      Array,
+      Object,
+      Number,
+      Date,
+      JSON,
+      setTimeout,
+      clearTimeout,
+    };
+    context.globalThis = context;
+    context.window = context;
+
+    // Load necessary scripts
+    const appCode = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+    const uxCode = fs.readFileSync(path.join(__dirname, "..", "ux.js"), "utf8");
+
+    vm.runInNewContext(appCode, context);
+    vm.runInNewContext("globalThis.state = state; globalThis.applyFilters = applyFilters;", context);
+    vm.runInNewContext(uxCode, context);
+
+    // Call renderCareerAreas which is exposed or we can check the state directly
+    const profileChips = document.querySelector("#profileChips");
+    assert.ok(profileChips, "Profile chips container should exist");
+
+    // The beta currently exposes only Computer Science.
+    const chipButtons = profileChips.children;
+    assert.equal(chipButtons.length, 1, "Only 'Computer Science' should be rendered in the beta UI");
+    assert.equal(chipButtons[0].textContent, "Computer Science");
+    assert.equal(chipButtons[0].classList.contains("active"), true, "Computer Science should remain selected");
+
+    assert.ok(uxCode.includes('More career areas coming soon.'), "Career-area helper should match the CS-only beta UI");
+
+    // Check that 'cs' is defaulted
+    const stateObj = JSON.parse(localStorage.getItem("yartchives-ux-v1") || "{}");
+    assert.ok(stateObj.areas.includes("cs"), "CS should be set as default area in new session");
   }
 
   console.log("saved navigation regression tests passed");

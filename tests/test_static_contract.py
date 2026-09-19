@@ -14,11 +14,18 @@ class StaticContractTests(unittest.TestCase):
             "educationSelect", "opportunityTypeSelect", "freshnessSelect", "statusSelect",
             "jobs", "jobCardTemplate", "loadMoreBtn", "shownCount", "totalCount",
             "newCount", "savedCount", "resultsTitle", "resultsNote", "feedMeta",
-            "sourceHealth", "errorBox", "shareBtn", "clearFiltersBtn",
+            "sourceHealth", "errorBox", "shareBtn", "clearFiltersBtn", "jobsViewBtn", "companiesViewBtn",
         }
         missing = sorted(item for item in required if soup.find(id=item) is None)
         self.assertEqual(missing, [])
         self.assertEqual(soup.find(id="shareBtn").get_text(strip=True), "Copy link")
+        mascot = soup.select_one(".brand-mark")
+        self.assertIsNotNone(mascot)
+        self.assertEqual(mascot.name, "img")
+        self.assertEqual(mascot.get("src"), "assets/yartchives-hedgehog.png")
+        self.assertLess((ROOT / "assets" / "yartchives-hedgehog.png").stat().st_size, 16_384)
+        freshness = soup.find(id="freshnessSelect")
+        self.assertEqual(freshness.find("option", selected=True).get("value"), "all")
 
     def test_quick_zip_buttons(self):
         soup = BeautifulSoup((ROOT / "index.html").read_text(encoding="utf-8"), "html.parser")
@@ -35,6 +42,7 @@ class StaticContractTests(unittest.TestCase):
         self.assertLess(scripts.index("enhancements.js"), scripts.index("ui.js"))
         self.assertLess(scripts.index("ui.js"), scripts.index("ux.js"))
         self.assertLess(scripts.index("ux.js"), scripts.index("share.js"))
+        self.assertLess(scripts.index("share.js"), scripts.index("companies.js"))
 
     def test_public_profile_configuration(self):
         text = (ROOT / "profile-config.js").read_text(encoding="utf-8")
@@ -63,7 +71,7 @@ class StaticContractTests(unittest.TestCase):
 
     def test_share_view_preserves_public_filters_only(self):
         text = (ROOT / "share.js").read_text(encoding="utf-8")
-        for parameter in ["q", "loc", "miles", "fresh", "areas", "edu", "type", "sort"]:
+        for parameter in ["q", "loc", "miles", "fresh", "areas", "edu", "type", "sort", "view", "company"]:
             self.assertIn(f'url.searchParams.set("{parameter}"', text)
         self.assertIn("event.stopImmediatePropagation()", text)
         self.assertNotIn('url.searchParams.set("saved"', text)
