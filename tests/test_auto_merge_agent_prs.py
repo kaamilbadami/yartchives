@@ -44,6 +44,11 @@ def runs(sha="abc", conclusion="success"):
 
 
 class AutoMergeAgentPrTests(unittest.TestCase):
+    def test_automerge_workflow_fetches_full_history_for_branch_merges(self):
+        workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
+        checkout_block = workflow.split("- name: Check out merge policy", 1)[1].split("- name: Merge one safe autonomous pull request", 1)[0]
+        self.assertIn("fetch-depth: 0", checkout_block)
+
     def test_quality_run_query_includes_manual_dispatch_runs(self):
         path = mod.quality_runs_api_path("kaamilbadami/yartchives", "abc123")
         self.assertEqual(
