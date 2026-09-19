@@ -27,4 +27,7 @@ assert.match(source, /id="companySortSelect"/, "Companies should own a dedicated
 assert.doesNotMatch(source, /sortSelect\.innerHTML/, "Companies must not rewrite the Jobs sort select");
 assert.doesNotMatch(source, /stopImmediatePropagation/, "Company sorting should not suppress the Jobs sort listener");
 
+const css = fs.readFileSync(path.join(__dirname, "..", "ui.css"), "utf8");
+assert.match(css, /\.sort-field\[hidden\]\s*\{\s*display:\s*none;/, "Hidden sort fields must not be displayed");
+
 console.log("company sort regression tests passed");
