@@ -469,6 +469,12 @@ def reconcile_jules_sessions(
                         f"session {session_id} for #{number}."
                     )
                     continue
+                if explicit_feedback_for_session(comments, session_id) is not None:
+                    print(
+                        f"Jules session {session_id} for #{number} is processing "
+                        "explicit feedback."
+                    )
+                    continue
 
             if auto_feedback_sent_for_session(comments, session_id):
                 print(f"Jules session {session_id} for #{number} is processing auto-feedback.")
