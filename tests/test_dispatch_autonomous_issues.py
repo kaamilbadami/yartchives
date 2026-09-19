@@ -383,6 +383,39 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertIn("capacity/quota is exhausted", gh_calls[1][-1])
         self.assertEqual([task.number for task in mod.select_tasks(issues)], [152])
 
+    def test_missing_retried_session_releases_slot_without_third_retry(self):
+        issues = [
+            issue(
+                178,
+                "state persistence",
+                body=task_body("P1", "frontend-state"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+
+        class MissingSession(Exception):
+            code = 404
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [
+                {"body": "<!-- jules-retry-from: old-session -->"},
+                {"body": "<!-- jules-session-id: missing-retry -->"},
+            ],
+            get_session=lambda api_key, path: (_ for _ in ()).throw(MissingSession()),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        labels = mod.label_names(issues[0])
+        self.assertNotIn("jules-session", labels)
+        self.assertNotIn("jules", labels)
+        self.assertNotIn("jules-retry-ready", labels)
+        self.assertIn("jules-failed", labels)
+        self.assertIn("after its automatic retry", gh_calls[1][-1])
+
     def test_dispatch_cycle_ends_cleanly_when_new_session_hits_quota(self):
         issues = [
             issue(149, "frontend task", body=task_body("P1", "frontend-state")),
