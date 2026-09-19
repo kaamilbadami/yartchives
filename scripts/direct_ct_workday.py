@@ -36,6 +36,16 @@ DEFAULT_SOURCES = ROOT / "direct_sources.json"
 TIMEOUT = 25
 WORKDAY_PAGE_SIZE = 20
 MAX_RESULTS_PER_QUERY = 500
+STRUCTURAL_SOURCE_STATUSES = {404, 410, 422}
+
+
+class StructuralSourceError(RuntimeError):
+    """An auto-discovered provider endpoint is structurally invalid or gone."""
+
+    def __init__(self, message: str, status_codes: list[int] | None = None):
+        super().__init__(message)
+        self.status_codes = tuple(status_codes or [])
+
 
 # Workday search is fuzzy: a query such as "intern software" can return any
 # internship at the employer. Require the title itself to carry a strong CS / IT
@@ -161,6 +171,7 @@ def fetch_workday_source(
 
     successful_terms = 0
     term_errors: list[str] = []
+    structural_statuses: list[int] = []
     for term in source.get("search_terms", ["intern"]):
         offset = 0
         try:
@@ -227,9 +238,18 @@ def fetch_workday_source(
             successful_terms += 1
         except (requests.RequestException, ValueError, TypeError, KeyError) as exc:
             term_errors.append(f"{term}: {type(exc).__name__}: {exc}")
+            response = getattr(exc, "response", None)
+            status = getattr(response, "status_code", None)
+            if isinstance(status, int) and status in STRUCTURAL_SOURCE_STATUSES:
+                structural_statuses.append(status)
             continue
 
     if successful_terms == 0 and term_errors:
+        if len(structural_statuses) == len(term_errors):
+            raise StructuralSourceError(
+                "all Workday search terms failed with structural HTTP status: " + " | ".join(term_errors),
+                structural_statuses,
+            )
         raise RuntimeError("all Workday search terms failed: " + " | ".join(term_errors))
     return out
 
@@ -362,6 +382,19 @@ def enrich_direct_sources(
             }
             scope_label = source.get("state") or ("US" if source.get("scope") == "us" else "configured")
             print(f"{source['name']}: {len(direct_jobs)} direct {scope_label} CS-relevant listing(s)")
+        except StructuralSourceError as exc:
+            health[source["key"]] = {
+                "ok": False,
+                "configured": False,
+                "count": 0,
+                "name": source["name"],
+                "direct": True,
+                "auto_discovered": bool(source.get("auto_discovered")),
+                "quarantined": True,
+                "error": f"{type(exc).__name__}: {exc}",
+            }
+            carry_failed_source(jobs, old_jobs, source["key"])
+            print(f"{source['name']}: QUARANTINED: {exc}", file=sys.stderr)
         except Exception as exc:
             health[source["key"]] = {
                 "ok": False,

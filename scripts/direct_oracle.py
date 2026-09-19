@@ -41,6 +41,7 @@ TIMEOUT = 25
 PAGE_SIZE = 50
 MAX_RESULTS_PER_SOURCE = 500
 ORACLE_REST_VERSIONS = ("latest", "11.13.18.05")
+ORACLE_REST_RESOURCES = ("recruitingCEJobRequisitions", "recruitingICEJobRequisitions")
 ORACLE_SITE_PATH = re.compile(r"/(?:hcmUI/CandidateExperience/)?[a-z]{2}/sites/([^/?#]+)", re.I)
 
 
@@ -83,7 +84,8 @@ def _oracle_source(employer: dict[str, Any]) -> dict[str, Any] | None:
         "homepage": homepage,
         "api_url": f"{origin}/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
         "api_urls": [
-            f"{origin}/hcmRestApi/resources/{version}/recruitingCEJobRequisitions"
+            f"{origin}/hcmRestApi/resources/{version}/{resource}"
+            for resource in ORACLE_REST_RESOURCES
             for version in ORACLE_REST_VERSIONS
         ],
         "profile_hint": ["cs"],
@@ -218,6 +220,9 @@ def _fetch_oracle_page(client: requests.Session, source: dict[str, Any], offset:
                 timeout=TIMEOUT,
             )
             response.raise_for_status()
+            content_type = str(getattr(response, "headers", {}).get("Content-Type", "") or "").casefold()
+            if content_type and "json" not in content_type:
+                raise ValueError(f"Oracle endpoint returned non-JSON content type: {content_type}")
             payload = response.json()
             containers = payload.get("items") if isinstance(payload, dict) else None
             if not isinstance(containers, list):

@@ -159,6 +159,29 @@ class DiscoverWorkdaySourcesTests(unittest.TestCase):
         self.assertEqual(sources[0]["scope"], "us")
         self.assertNotIn("state", sources[0])
 
+
+    def test_quarantined_feed_source_is_not_rediscovered(self):
+        job = {
+            "company": "Example",
+            "states": ["CT"],
+            "profiles": ["cs"],
+            "url": "https://example.wd1.myworkdayjobs.com/en-US/Careers/job/Connecticut/Software-Intern_R1",
+        }
+        source = mod.source_from_job_national(job)
+        feed = {
+            "jobs": [job],
+            "sources": {
+                source["key"]: {
+                    "ok": False,
+                    "configured": False,
+                    "quarantined": True,
+                    "error": "StructuralSourceError: HTTP 422",
+                }
+            },
+        }
+        self.assertEqual(mod.discover_sources(feed, []), [])
+
+
     def test_ignores_non_workday_and_non_cs_jobs(self):
         feed = {"jobs": [
             {"company": "Example", "states": ["MD"], "profiles": ["cs"], "url": "https://jobs.example.com/intern/123"},
