@@ -154,6 +154,39 @@ class DirectWorkdayTests(unittest.TestCase):
         self.assertEqual(jobs[0]["title"], "Software Engineering Intern - Summer 2027")
 
 
+
+    def test_all_structural_422_failures_raise_quarantinable_error(self):
+        ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
+        source = dict(self.source)
+        source["search_terms"] = ["intern", "student"]
+
+        class StructuralFailureSession:
+            def post(self, url, json=None, timeout=None):
+                response = type("Response", (), {"status_code": 422})()
+                raise mod.requests.HTTPError("422 Client Error", response=response)
+
+        with self.assertRaises(mod.StructuralSourceError) as raised:
+            mod.fetch_workday_source(StructuralFailureSession(), source, ref)
+        self.assertEqual(raised.exception.status_codes, (422, 422))
+
+    def test_structural_failure_is_recorded_as_quarantined_not_active_failure(self):
+        ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
+        source = dict(self.source)
+        source["auto_discovered"] = True
+
+        class StructuralFailureSession:
+            def post(self, url, json=None, timeout=None):
+                response = type("Response", (), {"status_code": 422})()
+                raise mod.requests.HTTPError("422 Client Error", response=response)
+
+        doc = {"jobs": [], "sources": {}}
+        mod.enrich_direct_sources(doc, {"jobs": []}, [source], StructuralFailureSession(), ref)
+        health = doc["sources"][source["key"]]
+        self.assertFalse(health["configured"])
+        self.assertTrue(health["quarantined"])
+        self.assertFalse(health["ok"])
+
+
     def test_direct_url_replaces_intermediary_url(self):
         ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
         incoming = mod.bf.base_job(
