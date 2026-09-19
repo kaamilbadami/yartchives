@@ -35,6 +35,28 @@ assert.equal(explicit.securityClearance, "Active Secret clearance");
 assert.ok(explicit.supportedSkills.includes("C++"));
 assert.ok(!explicit.supportedSkills.includes("C"), "C++ must not be treated as C");
 
+const highSchoolFirst = Setup.extractResumeHints(`
+Education
+Wilton High School
+High School Diploma — Graduated May 2025
+University of Maryland
+Bachelor of Science in Computer Science — Expected May 2029
+`);
+assert.equal(highSchoolFirst.graduation, "May 2029", "college graduation must outrank an earlier high-school graduation date");
+
+const highSchoolOnly = Setup.extractResumeHints(`
+Education
+Example High School
+High School Diploma — Graduated May 2025
+`);
+assert.equal(highSchoolOnly.graduation, "", "high-school graduation must not be used as the college graduation date");
+
+const collegeWithoutExpected = Setup.extractResumeHints(`
+University of Example
+B.S. Computer Science — May 2028
+`);
+assert.equal(collegeWithoutExpected.graduation, "May 2028", "higher-education context should support a graduation date even without the word expected");
+
 const profile = Setup.buildProfile({
   targetTerm: "Summer 2027",
   graduation: hints.graduation,

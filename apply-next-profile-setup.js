@@ -59,10 +59,36 @@
 
   function extractGraduation(text) {
     const source = String(text || "");
-    const explicit = source.match(/(?:expected|anticipated|graduat(?:ion|ing))[^\n\r]{0,35}?\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(20\d{2})\b/i);
-    if (explicit) return `${explicit[1][0].toUpperCase()}${explicit[1].slice(1).toLowerCase()} ${explicit[2]}`;
-    const generic = source.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(20\d{2})\b/i);
-    return generic ? `${generic[1][0].toUpperCase()}${generic[1].slice(1).toLowerCase()} ${generic[2]}` : "";
+    const datePattern = /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(20\d{2})\b/gi;
+    const candidates = [];
+    for (const match of source.matchAll(datePattern)) {
+      const start = Math.max(0, match.index - 140);
+      const prefix = source.slice(start, match.index);
+      const localPrefix = prefix.split(/[\n\r]/).pop() || prefix;
+      const explicit = /(?:expected|anticipated|graduat(?:ion|ing)|degree\s+expected|class\s+of)[^\n\r]{0,50}$/i.test(prefix);
+      const higherEducationPattern = /\b(?:university|college|bachelor(?:'s)?|master(?:'s)?|associate(?:'s)?|B\.?S\.?|B\.?A\.?|M\.?S\.?|M\.?A\.?)\b/i;
+      const majorPattern = new RegExp(MAJORS.map(escapeRegExp).join("|"), "i");
+      const higherEducation = higherEducationPattern.test(localPrefix)
+        || majorPattern.test(localPrefix)
+        || higherEducationPattern.test(prefix.slice(-90))
+        || majorPattern.test(prefix.slice(-90));
+      const highSchool = /\b(?:high school|secondary school|GED|high school diploma)\b/i.test(localPrefix)
+        || /\b(?:high school|secondary school|GED|high school diploma)\b/i.test(prefix.slice(-70));
+      let score = 0;
+      if (explicit) score += 4;
+      if (higherEducation) score += 6;
+      if (highSchool) score -= 12;
+      candidates.push({
+        value: `${match[1][0].toUpperCase()}${match[1].slice(1).toLowerCase()} ${match[2]}`,
+        score,
+        year: Number(match[2]),
+        index: match.index,
+      });
+    }
+    const eligible = candidates.filter(candidate => candidate.score > 0);
+    if (!eligible.length) return "";
+    eligible.sort((a, b) => b.score - a.score || b.year - a.year || a.index - b.index);
+    return eligible[0].value;
   }
 
   function extractDegree(text) {
