@@ -147,6 +147,45 @@ class ReconcileWorkdayDuplicateTests(unittest.TestCase):
         self.assertEqual(job["location"], "US-CT-WINDSOR LOCKS-B1 ~ 1 Hamilton Rd ~ BLDG 1")
 
 
+    def test_unvalidated_workday_apply_is_downgraded_to_employer_job(self):
+        job_url = "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway" + RTX_PATH + "/apply"
+        job = base_job(
+            "unchecked-apply",
+            "RTX",
+            job_url,
+            direct=True,
+            source="Aggregator",
+            posted="2026-09-16T12:00:00Z",
+        )
+
+        reconciled, stats = mod.reconcile_jobs([job])
+
+        self.assertEqual(stats["workday_postings"], 1)
+        self.assertEqual(len(reconciled), 1)
+        self.assertEqual(
+            reconciled[0]["url"],
+            "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway" + RTX_PATH,
+        )
+        self.assertEqual(reconciled[0]["link_kind"], "employer_job")
+
+    def test_unknown_workday_apply_is_downgraded_to_employer_job(self):
+        job_url = "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway" + RTX_PATH + "/apply"
+        job = base_job(
+            "unknown-apply",
+            "RTX",
+            job_url,
+            direct=True,
+            source="Provider recovery",
+            posted="2026-09-16T12:00:00Z",
+        )
+        job["link_status"] = "unknown"
+        job["link_checked_at"] = "2026-09-16T12:05:00Z"
+
+        reconciled, _ = mod.reconcile_jobs([job])
+
+        self.assertEqual(reconciled[0]["link_kind"], "employer_job")
+        self.assertFalse(reconciled[0]["url"].endswith("/apply"))
+
     def test_verified_workday_apply_survives_reconciliation(self):
         job_url = "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway" + RTX_PATH
         employer_page = base_job(
