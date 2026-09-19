@@ -20,7 +20,7 @@ AREA_RESOURCE_LOCKS = {
     "dedupe": frozenset({"feed-core", "identity"}),
     "identity": frozenset({"feed-core", "identity"}),
     "frontend": frozenset({"frontend-state"}),
-    "frontend-state": frozenset({"identity", "frontend-state"}),
+    "frontend-state": frozenset({"frontend-state"}),
     "link-precedence": frozenset({"feed-core", "links"}),
     "listing-lifecycle": frozenset({"feed-core", "links"}),
     "link-quality": frozenset({"links"}),
@@ -324,10 +324,15 @@ def legacy_failed_retry_context(
     # pre-retry diagnostic we migrate is Jules's non-actionable generic failure.
     no_diagnostics = "No additional failure diagnostics were reported by the Jules API."
     diagnostics_header = "Failure diagnostics:"
-    generic_failure = "Jules was unable to complete the task."
+    generic_failures = (
+        "Jules was unable to complete the task.",
+        "Jules encountered an error when working on the task.",
+    )
     if no_diagnostics in terminal_body:
         return None
-    if diagnostics_header in terminal_body and generic_failure not in terminal_body:
+    if diagnostics_header in terminal_body and not any(
+        generic_failure in terminal_body for generic_failure in generic_failures
+    ):
         return None
 
     context = (
@@ -422,6 +427,7 @@ def retryable_jules_failure(diagnostics: Iterable[str]) -> bool:
         "infrastructure",
         "internal execution stopped",
         "internal error",
+        "jules encountered an error when working on the task",
     )
     return any(pattern in text for pattern in retryable)
 
