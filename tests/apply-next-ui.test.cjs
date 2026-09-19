@@ -170,6 +170,14 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /Location convenience/);
   assert.match(uiSource, /Posted \$\{monthDay\} · \$\{ageLabel\}/);
   assert.match(uiSource, /apply-next-posted-date/);
+  assert.match(uiSource, /aria-label="Sort queue"/);
+  assert.match(uiSource, /value="recommended">Recommended/);
+  assert.match(uiSource, /value="newest">Newest/);
+  assert.match(
+    uiSource,
+    /rankJobs\(pool, profile, new Date\(\), queueSortMode\)/,
+    "Apply Next should pass the active sort mode through both full and optimistic ranking paths"
+  );
   assert.match(uiSource, /data\/workday-inspections\.json/);
   assert.match(uiSource, /job\.link_kind === "employer_job" \? "View posting ↗" : "Apply ↗"/);
   const appliedHandler = uiSource.match(
