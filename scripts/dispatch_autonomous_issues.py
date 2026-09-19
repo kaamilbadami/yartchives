@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -12,14 +13,54 @@ from typing import Any, Callable, Iterable, NamedTuple
 from urllib import parse, request
 
 PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
-MAX_ACTIVE = 2
+MAX_ACTIVE = 15
+AREA_RESOURCE_LOCKS = {
+    "feed": frozenset({"feed-core"}),
+    "feed-quality": frozenset({"feed-core"}),
+    "dedupe": frozenset({"feed-core", "identity"}),
+    "identity": frozenset({"feed-core", "identity"}),
+    "frontend": frozenset({"frontend-state"}),
+    "frontend-state": frozenset({"identity", "frontend-state"}),
+    "link-precedence": frozenset({"feed-core", "links"}),
+    "listing-lifecycle": frozenset({"feed-core", "links"}),
+    "link-quality": frozenset({"links"}),
+    "evidence-cache": frozenset({"requirements", "cache"}),
+    "requirement-extraction": frozenset({"requirements", "cache"}),
+    "provider-audit": frozenset({"authoritative-evidence", "requirements"}),
+    "evidence": frozenset({"authoritative-evidence", "requirements"}),
+    "apply-next-ui": frozenset({"frontend-state", "ranking", "apply-next-ui"}),
+    "apply-next-explanation": frozenset({"frontend-state", "apply-next-ui", "requirements"}),
+    "evidence-ux": frozenset({"frontend-state", "apply-next-ui", "authoritative-evidence"}),
+    "action-reversibility": frozenset({"frontend-state", "apply-next-ui"}),
+    "ranking": frozenset({"ranking"}),
+    "ranking-sensitivity": frozenset({"ranking"}),
+    "ranking-regression": frozenset({"ranking"}),
+    "ranking-stability": frozenset({"ranking"}),
+    "coverage": frozenset({"coverage"}),
+    "coverage-benchmark": frozenset({"coverage"}),
+    "coverage-diagnostics": frozenset({"coverage"}),
+    "employer-resolution": frozenset({"coverage", "source-collection"}),
+    "performance": frozenset({"frontend-state"}),
+    "automation": frozenset({"automation"}),
+    "quality": frozenset({"quality"}),
+}
 AUTONOMOUS_MARKER = "<!-- autonomous-task -->"
 JULES_API_ROOT = "https://jules.googleapis.com/v1alpha"
 JULES_ACTIVE_LABEL = "jules-session"
 JULES_REVIEW_READY_LABEL = "jules-review-ready"
 JULES_FAILED_LABEL = "jules-failed"
+JULES_FEEDBACK_LABEL = "jules-needs-feedback"
+JULES_RETRY_LABEL = "jules-retry-ready"
 JULES_SESSION_MARKER = "<!-- jules-session-id: {session_id} -->"
+JULES_RETRY_MARKER = "<!-- jules-retry-from: {session_id} -->"
+JULES_FEEDBACK_MARKER = "<!-- jules-feedback: {session_id} -->"
+JULES_FEEDBACK_SENT_MARKER = "<!-- jules-feedback-sent: {comment_id} -->"
+JULES_AUTO_FEEDBACK_MARKER = "<!-- jules-auto-feedback: {session_id}:{question_key} -->"
+JULES_CLARIFICATION_HANDLED_MARKER = (
+    "<!-- jules-clarification-handled: {session_id}:{question_key} -->"
+)
 JULES_TERMINAL_STATES = {"COMPLETED", "FAILED"}
+JULES_PRODUCTIVE_STATES = {"QUEUED", "PLANNING", "IN_PROGRESS"}
 CODEX_RESERVED_LABEL = "codex"
 CODEX_WORKER_PREFIX = "codex-worker-"
 DEFAULT_POLL_SECONDS = 30
@@ -33,6 +74,8 @@ class Task(NamedTuple):
     priority: str
     area: str
     labels: frozenset[str]
+    resources: frozenset[str] = frozenset()
+    dependencies: frozenset[int] = frozenset()
 
 
 def label_names(issue: dict[str, Any]) -> frozenset[str]:
@@ -50,6 +93,21 @@ def metadata_value(body: str, key: str) -> str | None:
     return match.group(1).strip() if match else None
 
 
+def dependency_numbers(body: str) -> frozenset[int] | None:
+    value = metadata_value(body, "depends_on")
+    if not value:
+        return frozenset()
+    dependencies: set[int] = set()
+    for token in re.split(r"[,\s]+", value):
+        if not token:
+            continue
+        match = re.fullmatch(r"#?(\d+)", token)
+        if match is None:
+            return None
+        dependencies.add(int(match.group(1)))
+    return frozenset(dependencies)
+
+
 def task_from_issue(issue: dict[str, Any]) -> Task | None:
     body = str(issue.get("body") or "")
     if AUTONOMOUS_MARKER not in body:
@@ -57,7 +115,20 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
     safe = (metadata_value(body, "autonomous") or "").casefold()
     priority = (metadata_value(body, "priority") or "").upper()
     area = (metadata_value(body, "area") or "").casefold()
-    if safe != "true" or priority not in PRIORITY_ORDER or not area:
+    resources_value = metadata_value(body, "resources") or ""
+    resources = frozenset(
+        resource.strip().casefold()
+        for resource in resources_value.split(",")
+        if resource.strip()
+    )
+    dependencies = dependency_numbers(body)
+    if (
+        safe != "true"
+        or priority not in PRIORITY_ORDER
+        or not area
+        or dependencies is None
+        or (area not in AREA_RESOURCE_LOCKS and not resources)
+    ):
         return None
     return Task(
         number=int(issue["number"]),
@@ -66,6 +137,21 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
         priority=priority,
         area=area,
         labels=label_names(issue),
+        resources=resources,
+        dependencies=dependencies,
+    )
+
+
+def task_lock_keys(task: Task) -> frozenset[str]:
+    """Return the scheduler locks held by a task.
+
+    Every task always locks its exact area. Known areas also use conservative
+    shared-resource defaults for cross-area hot paths, and optional issue metadata
+    can add locks with `resources: foo, bar`.
+    """
+    resources = AREA_RESOURCE_LOCKS.get(task.area, frozenset()) | task.resources
+    return frozenset(
+        {f"area:{task.area}", *(f"resource:{resource}" for resource in resources)}
     )
 
 
@@ -88,6 +174,268 @@ def session_id_from_comments(comments: Iterable[dict[str, Any]]) -> str | None:
     return None
 
 
+def pending_feedback_from_comments(
+    comments: Iterable[dict[str, Any]],
+    session_id: str,
+) -> tuple[str, str] | None:
+    """Return the newest explicit, not-yet-forwarded GitHub feedback comment."""
+    comment_list = list(comments)
+    sent_ids: set[str] = set()
+    sent_pattern = re.compile(r"<!--\s*jules-feedback-sent:\s*(\d+)\s*-->")
+    for comment in comment_list:
+        body = str(comment.get("body") or "")
+        sent_ids.update(sent_pattern.findall(body))
+
+    marker = re.compile(
+        rf"<!--\s*jules-feedback:\s*{re.escape(session_id)}\s*-->"
+    )
+    for comment in reversed(comment_list):
+        comment_id = str(comment.get("id") or "")
+        if not comment_id or comment_id in sent_ids:
+            continue
+        body = str(comment.get("body") or "")
+        if not marker.search(body):
+            continue
+        prompt = marker.sub("", body, count=1).strip()
+        if prompt:
+            return comment_id, prompt
+    return None
+
+
+def clarification_key(question: str) -> str:
+    """Return a stable short key for one Jules clarification message."""
+    normalized = " ".join(question.casefold().split())
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:16]
+
+
+def clarification_handled_for_question(
+    comments: Iterable[dict[str, Any]], session_id: str, question: str
+) -> bool:
+    """Return whether this exact clarification was already answered."""
+    key = clarification_key(question)
+    marker = re.compile(
+        rf"<!--\s*jules-clarification-handled:\s*"
+        rf"{re.escape(session_id)}:{re.escape(key)}\s*-->"
+    )
+    return any(marker.search(str(comment.get("body") or "")) for comment in comments)
+
+
+def clarification_requires_product_decision(question: str) -> bool:
+    """Keep only genuine user-facing/product-policy choices gated on the user."""
+    text = " ".join(question.casefold().split())
+    direct_product_signals = (
+        "product decision",
+        "user-facing",
+        "user facing",
+        "default behavior",
+        "default option",
+        "default sort",
+        "should be the default",
+        "what should the default",
+        "which should be the default",
+        "eligibility policy",
+        "location preference",
+        "relocation preference",
+        "should users",
+        "should the user",
+        "what should users",
+        "which option should users",
+        "copy should",
+        "wording should",
+    )
+    if any(signal in text for signal in direct_product_signals):
+        return True
+
+    weight_terms = ("ranking weight", "score weight", "scoring weight")
+    weight_decision_phrases = (
+        "what should",
+        "which should",
+        "should the ranking",
+        "should the score",
+        "should the scoring",
+        "set the ranking",
+        "set the score",
+        "set the scoring",
+    )
+    return any(term in text for term in weight_terms) and any(
+        phrase in text for phrase in weight_decision_phrases
+    )
+
+
+def routine_clarification_response(question: str) -> str:
+    """Tell Jules how to resolve technical ambiguity without inventing product policy."""
+    return (
+        "Proceed autonomously. Resolve this from current main, the issue acceptance "
+        "criteria, existing tests, and repository documentation. Preserve established "
+        "user-visible behavior and choose the smallest root-cause implementation that "
+        "fits the existing architecture. Do not wait for confirmation on technical "
+        "implementation choices, test scope, generated artifacts, or PR creation. If "
+        "repository evidence is genuinely conflicting and the choice would change "
+        "user-facing product semantics, stop and ask again with the conflict and concrete "
+        f"options.\n\nClarification to resolve: {question}"
+    )
+
+
+def retry_marker_from_comments(comments: Iterable[dict[str, Any]]) -> str | None:
+    pattern = re.compile(r"<!--\s*jules-retry-from:\s*([^\s>]+)\s*-->")
+    for comment in reversed(list(comments)):
+        match = pattern.search(str(comment.get("body") or ""))
+        if match:
+            return match.group(1)
+    return None
+
+
+def retry_context_from_comments(comments: Iterable[dict[str, Any]]) -> str | None:
+    pattern = re.compile(r"<!--\s*jules-retry-from:\s*[^\s>]+\s*-->")
+    for comment in reversed(list(comments)):
+        body = str(comment.get("body") or "")
+        if pattern.search(body):
+            return pattern.sub("", body, count=1).strip()
+    return None
+
+
+def legacy_failed_retry_context(
+    comments: Iterable[dict[str, Any]],
+) -> tuple[str, str] | None:
+    """Return one retry context for failures parked before retry support existed."""
+    comment_list = list(comments)
+    if retry_marker_from_comments(comment_list) is not None:
+        return None
+
+    session_id = session_id_from_comments(comment_list)
+    if not session_id:
+        return None
+
+    terminal_prefix = (
+        f"Jules session `{session_id}` ended in FAILED state and released this "
+        "automation slot. It will not be retried automatically."
+    )
+    terminal_body: str | None = None
+    for comment in reversed(comment_list):
+        body = str(comment.get("body") or "")
+        if terminal_prefix in body:
+            terminal_body = body
+            break
+    if terminal_body is None:
+        return None
+
+    # Modern failure reconciliation always records either diagnostics or an
+    # explicit no-diagnostics line. Leave those decisions alone. The only
+    # pre-retry diagnostic we migrate is Jules's non-actionable generic failure.
+    no_diagnostics = "No additional failure diagnostics were reported by the Jules API."
+    diagnostics_header = "Failure diagnostics:"
+    generic_failure = "Jules was unable to complete the task."
+    if no_diagnostics in terminal_body:
+        return None
+    if diagnostics_header in terminal_body and generic_failure not in terminal_body:
+        return None
+
+    context = (
+        "This Jules failure was parked before the one-retry lifecycle was available. "
+        "Treat it as the single legacy migration retry; do not infer a code defect from "
+        "the absence of actionable diagnostics."
+    )
+    prior_feedback = explicit_feedback_for_session(comment_list, session_id)
+    if prior_feedback:
+        context += (
+            "\n\nPrior explicit GitHub feedback that must be preserved in the retry:"
+            f"\n\n> {prior_feedback.replace(chr(10), chr(10) + '> ')}"
+        )
+    if diagnostics_header in terminal_body:
+        context += f"\n\nPrior failure record:\n\n{terminal_body}"
+    return session_id, context
+
+
+def migrate_legacy_jules_failures(
+    issues: list[dict[str, Any]],
+    *,
+    repo: str,
+    load_comments: Callable[[int], list[dict[str, Any]]],
+    run_gh: Callable[..., None] | None = None,
+) -> None:
+    """Move only pre-retry ambiguous failures into the existing one-retry path."""
+    if run_gh is None:
+        run_gh = gh_run
+
+    for issue in issues:
+        if JULES_FAILED_LABEL not in label_names(issue):
+            continue
+        number = int(issue["number"])
+        retry = legacy_failed_retry_context(load_comments(number))
+        if retry is None:
+            continue
+
+        session_id, context = retry
+        run_gh(
+            "issue", "edit", str(number), "--repo", repo,
+            "--remove-label", JULES_FAILED_LABEL,
+            "--add-label", JULES_RETRY_LABEL,
+        )
+        replace_issue_labels_in_memory(
+            issue,
+            remove=(JULES_FAILED_LABEL,),
+            add=(JULES_RETRY_LABEL,),
+        )
+        run_gh(
+            "issue", "comment", str(number), "--repo", repo,
+            "--body",
+            f"{JULES_RETRY_MARKER.format(session_id=session_id)}\n{context}",
+        )
+        print(f"Migrated legacy Jules failure for #{number} into one retry.")
+
+
+def explicit_feedback_for_session(
+    comments: Iterable[dict[str, Any]], session_id: str
+) -> str | None:
+    marker = re.compile(
+        rf"<!--\s*jules-feedback:\s*{re.escape(session_id)}\s*-->"
+    )
+    for comment in reversed(list(comments)):
+        body = str(comment.get("body") or "")
+        if marker.search(body):
+            prompt = marker.sub("", body, count=1).strip()
+            if prompt:
+                return prompt
+    return None
+
+
+def retryable_jules_failure(diagnostics: Iterable[str]) -> bool:
+    text = "\n".join(str(item).casefold() for item in diagnostics)
+    non_retryable = (
+        "quota exceeded",
+        "permission denied",
+        "invalid argument",
+        "authentication",
+        "test failed",
+        "tests failed",
+        "merge conflict",
+    )
+    if any(pattern in text for pattern in non_retryable):
+        return False
+    retryable = (
+        "workspace became unavailable",
+        "workspace unavailable",
+        "service unavailable",
+        "temporarily unavailable",
+        "server error",
+        "backend error",
+        "infrastructure",
+        "internal execution stopped",
+        "internal error",
+    )
+    return any(pattern in text for pattern in retryable)
+
+
+def send_jules_message(api_key: str, session_id: str, prompt: str) -> None:
+    """Send explicit user feedback to an existing Jules session."""
+    jules_json(
+        api_key,
+        f"/sessions/{session_id}:sendMessage",
+        method="POST",
+        payload={"prompt": prompt},
+    )
+
+
 def pull_request_url(session: dict[str, Any]) -> str | None:
     for output in session.get("outputs", []):
         if not isinstance(output, dict):
@@ -96,6 +444,90 @@ def pull_request_url(session: dict[str, Any]) -> str | None:
         if isinstance(pull_request, dict) and pull_request.get("url"):
             return str(pull_request["url"])
     return None
+
+
+def latest_agent_message(activities: Iterable[dict[str, Any]]) -> str | None:
+    """Return the newest user-facing Jules message from a session activity list."""
+    ordered = sorted(
+        (activity for activity in activities if isinstance(activity, dict)),
+        key=lambda activity: str(activity.get("createTime") or ""),
+        reverse=True,
+    )
+    for activity in ordered:
+        agent_messaged = activity.get("agentMessaged")
+        if isinstance(agent_messaged, dict) and agent_messaged.get("agentMessage"):
+            return str(agent_messaged["agentMessage"]).strip()
+    return None
+
+
+def failure_diagnostics(
+    session: dict[str, Any],
+    activities: Iterable[dict[str, Any]],
+    *,
+    max_items: int = 4,
+) -> list[str]:
+    """Extract bounded human-readable failure context from Jules API payloads."""
+    interesting_keys = {
+        "message",
+        "error",
+        "reason",
+        "statusmessage",
+        "failurereason",
+        "agentmessage",
+    }
+    found: list[str] = []
+
+    def collect(value: Any, key: str = "") -> None:
+        if len(found) >= max_items:
+            return
+        if isinstance(value, dict):
+            for child_key, child_value in value.items():
+                collect(child_value, str(child_key))
+                if len(found) >= max_items:
+                    return
+        elif isinstance(value, list):
+            for child in value:
+                collect(child, key)
+                if len(found) >= max_items:
+                    return
+        elif key.casefold() in interesting_keys and value not in (None, ""):
+            text = str(value).strip()
+            if text and text not in found:
+                found.append(text[:1000])
+
+    collect(session)
+    ordered = sorted(
+        (activity for activity in activities if isinstance(activity, dict)),
+        key=lambda activity: str(activity.get("createTime") or ""),
+        reverse=True,
+    )
+    for activity in ordered[:10]:
+        collect(activity)
+        if len(found) >= max_items:
+            break
+    return found
+
+
+def list_jules_activities(api_key: str, session_id: str) -> list[dict[str, Any]]:
+    """List every activity for one Jules session."""
+    activities: list[dict[str, Any]] = []
+    page_token: str | None = None
+    while True:
+        query: dict[str, Any] = {"pageSize": 100}
+        if page_token:
+            query["pageToken"] = page_token
+        response = jules_json(
+            api_key,
+            f"/sessions/{session_id}/activities?{parse.urlencode(query)}",
+        )
+        page = response.get("activities", [])
+        if isinstance(page, list):
+            activities.extend(
+                activity for activity in page if isinstance(activity, dict)
+            )
+        page_token = str(response.get("nextPageToken") or "") or None
+        if not page_token:
+            return activities
 
 
 def replace_issue_labels_in_memory(
@@ -117,21 +549,28 @@ def reconcile_jules_sessions(
     api_key: str,
     load_comments: Callable[[int], list[dict[str, Any]]],
     get_session: Callable[..., dict[str, Any]] | None = None,
+    load_activities: Callable[[str], list[dict[str, Any]]] | None = None,
+    send_feedback: Callable[[str, str], None] | None = None,
     run_gh: Callable[..., None] | None = None,
 ) -> None:
-    """Release terminal Jules sessions before selecting more autonomous work."""
+    """Reconcile Jules sessions into productive, blocked, or terminal GitHub states."""
     if get_session is None:
         get_session = jules_json
+    if send_feedback is None:
+        send_feedback = lambda session_id, prompt: send_jules_message(
+            api_key, session_id, prompt
+        )
     if run_gh is None:
         run_gh = gh_run
 
     for issue in issues:
         labels = label_names(issue)
-        if JULES_ACTIVE_LABEL not in labels:
+        if not ({JULES_ACTIVE_LABEL, JULES_FEEDBACK_LABEL} & labels):
             continue
 
         number = int(issue["number"])
-        session_id = session_id_from_comments(load_comments(number))
+        comments = load_comments(number)
+        session_id = session_id_from_comments(comments)
         if not session_id:
             print(
                 f"Keeping #{number} active: no persisted Jules session ID could be found."
@@ -140,26 +579,172 @@ def reconcile_jules_sessions(
 
         session = get_session(api_key, f"/sessions/{session_id}")
         state = str(session.get("state") or "STATE_UNSPECIFIED")
-        if state not in JULES_TERMINAL_STATES:
-            print(f"Jules session {session_id} for #{number} is still {state}.")
+
+        if state == "AWAITING_USER_FEEDBACK":
+            activities = (
+                load_activities(session_id)
+                if load_activities is not None
+                else list_jules_activities(api_key, session_id)
+            )
+            question = latest_agent_message(activities)
+            question_key = clarification_key(question) if question else None
+
+            if JULES_FEEDBACK_LABEL in labels:
+                pending_feedback = pending_feedback_from_comments(comments, session_id)
+                if pending_feedback is not None:
+                    comment_id, prompt = pending_feedback
+                    send_feedback(session_id, prompt)
+                    handled_marker = (
+                        JULES_CLARIFICATION_HANDLED_MARKER.format(
+                            session_id=session_id,
+                            question_key=question_key,
+                        )
+                        if question_key
+                        else ""
+                    )
+                    run_gh(
+                        "issue", "comment", str(number), "--repo", repo,
+                        "--body",
+                        (
+                            f"{JULES_FEEDBACK_SENT_MARKER.format(comment_id=comment_id)}\n"
+                            f"{handled_marker}\n"
+                            f"Forwarded explicit GitHub feedback to Jules session "
+                            f"`{session_id}`."
+                        ).strip(),
+                    )
+                    print(
+                        f"Forwarded GitHub feedback comment {comment_id} to Jules "
+                        f"session {session_id} for #{number}."
+                    )
+                    continue
+
+            if question and clarification_handled_for_question(
+                comments, session_id, question
+            ):
+                print(
+                    f"Jules session {session_id} for #{number} is processing feedback "
+                    "for the current clarification."
+                )
+                continue
+
+            if question and not clarification_requires_product_decision(question):
+                prompt = routine_clarification_response(question)
+                send_feedback(session_id, prompt)
+                if JULES_FEEDBACK_LABEL in labels:
+                    run_gh(
+                        "issue", "edit", str(number), "--repo", repo,
+                        "--remove-label", JULES_FEEDBACK_LABEL,
+                        "--remove-label", "needs-product-decision",
+                        "--add-label", JULES_ACTIVE_LABEL,
+                    )
+                    replace_issue_labels_in_memory(
+                        issue,
+                        remove=(JULES_FEEDBACK_LABEL, "needs-product-decision"),
+                        add=(JULES_ACTIVE_LABEL,),
+                    )
+                run_gh(
+                    "issue", "comment", str(number), "--repo", repo,
+                    "--body",
+                    (
+                        f"{JULES_AUTO_FEEDBACK_MARKER.format(session_id=session_id, question_key=question_key)}\n"
+                        f"{JULES_CLARIFICATION_HANDLED_MARKER.format(session_id=session_id, question_key=question_key)}\n"
+                        "Automatically answered a routine Jules clarification using the "
+                        "repository-first engineering policy. Jules should continue without "
+                        "manual review unless it reaches a genuine product decision."
+                    ),
+                )
+                print(f"Auto-answered routine Jules clarification for #{number}.")
+                continue
+
+            if JULES_FEEDBACK_LABEL not in labels:
+                run_gh(
+                    "issue", "edit", str(number), "--repo", repo,
+                    "--remove-label", JULES_ACTIVE_LABEL,
+                    "--add-label", JULES_FEEDBACK_LABEL,
+                    "--add-label", "needs-product-decision",
+                )
+                replace_issue_labels_in_memory(
+                    issue,
+                    remove=(JULES_ACTIVE_LABEL,),
+                    add=(JULES_FEEDBACK_LABEL, "needs-product-decision"),
+                )
+            detail = (
+                f"Jules session `{session_id}` is waiting on a genuine product decision, "
+                "so this session no longer consumes a productive Jules slot."
+            )
+            if question:
+                detail += f"\n\nLatest Jules message:\n\n> {question.replace(chr(10), chr(10) + '> ')}"
+            session_url = str(session.get("url") or "")
+            if session_url:
+                detail += f"\n\nJules session: {session_url}"
+            detail += (
+                "\n\nAfter explicit feedback is provided and Jules resumes, the dispatcher "
+                "will restore the active-session state automatically."
+            )
+            run_gh(
+                "issue", "comment", str(number), "--repo", repo,
+                "--body", detail,
+            )
+            print(f"Released Jules slot for #{number}: awaiting product decision.")
             continue
 
+        if state not in JULES_TERMINAL_STATES:
+            if JULES_FEEDBACK_LABEL in labels and state in JULES_PRODUCTIVE_STATES:
+                run_gh(
+                    "issue", "edit", str(number), "--repo", repo,
+                    "--remove-label", JULES_FEEDBACK_LABEL,
+                    "--remove-label", "needs-product-decision",
+                    "--add-label", JULES_ACTIVE_LABEL,
+                )
+                replace_issue_labels_in_memory(
+                    issue,
+                    remove=(JULES_FEEDBACK_LABEL, "needs-product-decision"),
+                    add=(JULES_ACTIVE_LABEL,),
+                )
+                print(f"Jules session {session_id} for #{number} resumed as {state}.")
+            else:
+                print(f"Jules session {session_id} for #{number} is still {state}.")
+            continue
+
+        pr_url = pull_request_url(session)
+        activities: list[dict[str, Any]] = []
+        diagnostics: list[str] = []
+        retryable_failure = False
+        if state == "FAILED":
+            try:
+                activities = (
+                    load_activities(session_id)
+                    if load_activities is not None
+                    else list_jules_activities(api_key, session_id)
+                )
+                diagnostics = failure_diagnostics(session, activities)
+                retryable_failure = (
+                    retryable_jules_failure(diagnostics)
+                    and retry_marker_from_comments(comments) is None
+                )
+            except Exception as exc:
+                diagnostics = [f"Could not load Jules failure diagnostics: {exc}"]
+
         terminal_label = (
-            JULES_REVIEW_READY_LABEL if state == "COMPLETED" else JULES_FAILED_LABEL
+            JULES_REVIEW_READY_LABEL
+            if state == "COMPLETED"
+            else JULES_RETRY_LABEL
+            if retryable_failure
+            else JULES_FAILED_LABEL
         )
         run_gh(
             "issue", "edit", str(number), "--repo", repo,
             "--remove-label", JULES_ACTIVE_LABEL,
+            "--remove-label", JULES_FEEDBACK_LABEL,
             "--remove-label", "jules",
             "--add-label", terminal_label,
         )
         replace_issue_labels_in_memory(
             issue,
-            remove=(JULES_ACTIVE_LABEL, "jules"),
+            remove=(JULES_ACTIVE_LABEL, JULES_FEEDBACK_LABEL, "jules"),
             add=(terminal_label,),
         )
 
-        pr_url = pull_request_url(session)
         if state == "COMPLETED":
             detail = (
                 f"Jules completed session `{session_id}` and released this automation slot."
@@ -169,10 +754,40 @@ def reconcile_jules_sessions(
             else:
                 detail += "\n\nNo pull request output was reported by the Jules API."
         else:
-            detail = (
-                f"Jules session `{session_id}` ended in FAILED state and released this "
-                "automation slot. It will not be retried automatically."
-            )
+            if retryable_failure:
+                detail = (
+                    f"{JULES_RETRY_MARKER.format(session_id=session_id)}\n"
+                    f"Jules session `{session_id}` ended in FAILED state because the "
+                    "diagnostics match a retryable Jules/platform failure. One automatic "
+                    "context-preserving retry is allowed."
+                )
+            else:
+                detail = (
+                    f"Jules session `{session_id}` ended in FAILED state and released this "
+                    "automation slot. It will not be retried automatically."
+                )
+            if diagnostics:
+                detail += "\n\nFailure diagnostics:"
+                for diagnostic in diagnostics:
+                    quoted = diagnostic.replace(chr(10), chr(10) + "> ")
+                    detail += f"\n\n> {quoted}"
+            else:
+                detail += "\n\nNo additional failure diagnostics were reported by the Jules API."
+
+            if retryable_failure:
+                last_message = latest_agent_message(activities)
+                if last_message:
+                    detail += (
+                        "\n\nLast Jules message before failure:\n\n> "
+                        + last_message.replace(chr(10), chr(10) + "> ")
+                    )
+                prior_feedback = explicit_feedback_for_session(comments, session_id)
+                if prior_feedback:
+                    detail += (
+                        "\n\nPrior explicit GitHub feedback that must be preserved in the "
+                        "retry:\n\n> "
+                        + prior_feedback.replace(chr(10), chr(10) + "> ")
+                    )
 
         run_gh(
             "issue", "comment", str(number), "--repo", repo,
@@ -201,16 +816,33 @@ def select_tasks(issues: Iterable[dict[str, Any]], max_active: int = MAX_ACTIVE)
         for issue in issue_list
         if (task := active_jules_task(issue)) is not None
     ]
-    slots = max(0, max_active - len(active_jules))
-    if slots == 0:
-        return []
-
     reserved_codex = [
         task
         for issue in issue_list
         if (task := reserved_codex_task(issue)) is not None
     ]
-    active_areas = {task.area for task in [*active_jules, *reserved_codex]}
+    feedback_waiting = [
+        task
+        for issue in issue_list
+        if JULES_FEEDBACK_LABEL in label_names(issue)
+        and (task := task_from_issue(issue)) is not None
+    ]
+
+    # Feedback-blocked Jules sessions can resume as soon as feedback is sent,
+    # so reserve WIP capacity for them instead of backfilling their slot and
+    # accidentally exceeding MAX_ACTIVE when they wake up.
+    slots = max(0, max_active - len(active_jules) - len(feedback_waiting))
+    if slots == 0:
+        return []
+
+    occupied_locks: set[str] = set()
+    for task in [*active_jules, *reserved_codex, *feedback_waiting]:
+        occupied_locks.update(task_lock_keys(task))
+    open_issue_numbers = {
+        int(issue["number"])
+        for issue in issue_list
+        if str(issue.get("state") or "open") == "open"
+    }
     candidates: list[Task] = []
     for issue in issue_list:
         if str(issue.get("state") or "open") != "open":
@@ -224,24 +856,33 @@ def select_tasks(issues: Iterable[dict[str, Any]], max_active: int = MAX_ACTIVE)
                 JULES_ACTIVE_LABEL,
                 JULES_REVIEW_READY_LABEL,
                 JULES_FAILED_LABEL,
+                JULES_FEEDBACK_LABEL,
                 "blocked",
                 "needs-product-decision",
             }
             or has_codex_reservation(task.labels)
         ):
             continue
+        if task.dependencies & open_issue_numbers:
+            continue
         candidates.append(task)
 
-    candidates.sort(key=lambda task: (PRIORITY_ORDER[task.priority], task.number))
+    candidates.sort(
+        key=lambda task: (
+            PRIORITY_ORDER[task.priority],
+            0 if JULES_RETRY_LABEL in task.labels else 1,
+            task.number,
+        )
+    )
     selected: list[Task] = []
-    occupied = set(active_areas)
     for task in candidates:
         if len(selected) >= slots:
             break
-        if task.area in occupied:
+        locks = task_lock_keys(task)
+        if locks & occupied_locks:
             continue
         selected.append(task)
-        occupied.add(task.area)
+        occupied_locks.update(locks)
     return selected
 
 
@@ -328,17 +969,30 @@ def session_title(repo: str, task: Task) -> str:
     return f"[{repo} #{task.number}] {task.title}"
 
 
-def session_prompt(repo: str, task: Task) -> str:
+def session_prompt(
+    repo: str, task: Task, retry_context: str | None = None
+) -> str:
     issue_url = f"https://github.com/{repo}/issues/{task.number}"
-    return (
+    prompt = (
         f"Work on GitHub issue #{task.number}: {task.title}\n"
         f"{issue_url}\n\n"
         f"{task.body.strip()}\n\n"
         "Treat the current repository as the source of truth. Work from current main. "
         "Keep the change bounded to this issue, prefer root-cause fixes, and add regression "
-        "coverage where behavior changes. Open a pull request that includes "
+        "coverage where behavior changes. Do not ask for confirmation merely to continue "
+        "a bounded implementation, run tests, commit changes, or open the pull request; "
+        "make the best engineering decision and continue. Ask for user feedback only when "
+        "a genuine product decision, conflicting requirement, destructive action, or missing "
+        "prerequisite prevents safe progress. Open a pull request that includes "
         f"'Closes #{task.number}'. Do not merge the pull request yourself."
     )
+    if retry_context:
+        prompt += (
+            "\n\nThis is the single automatic retry of a prior Jules/platform failure. "
+            "Preserve and apply the following prior session context instead of re-deriving "
+            f"or re-asking it:\n\n{retry_context}"
+        )
+    return prompt
 
 
 def create_jules_session(
@@ -347,13 +1001,15 @@ def create_jules_session(
     repo: str,
     task: Task,
     api_post: Callable[..., dict[str, Any]] = jules_json,
+    *,
+    retry_context: str | None = None,
 ) -> dict[str, Any]:
     return api_post(
         api_key,
         "/sessions",
         method="POST",
         payload={
-            "prompt": session_prompt(repo, task),
+            "prompt": session_prompt(repo, task, retry_context),
             "title": session_title(repo, task),
             "sourceContext": {
                 "source": source_name,
@@ -371,22 +1027,44 @@ def dispatch_task(
     repo: str,
     api_key: str,
     source_name: str,
+    comments: Iterable[dict[str, Any]] = (),
     create_session: Callable[..., dict[str, Any]] = create_jules_session,
     run_gh: Callable[..., None] = gh_run,
 ) -> dict[str, Any]:
-    session = create_session(api_key, source_name, repo, task)
+    retry_context = (
+        retry_context_from_comments(comments)
+        if JULES_RETRY_LABEL in task.labels
+        else None
+    )
+    if JULES_RETRY_LABEL in task.labels and not retry_context:
+        raise RuntimeError(
+            f"Retry context for issue #{task.number} is not yet visible; refusing a blind retry"
+        )
+    if retry_context:
+        session = create_session(
+            api_key,
+            source_name,
+            repo,
+            task,
+            retry_context=retry_context,
+        )
+    else:
+        session = create_session(api_key, source_name, repo, task)
     session_id = str(session.get("id") or "")
     session_url = str(session.get("url") or "")
     if not session_id or not session_url:
         raise RuntimeError(f"Jules session creation for issue #{task.number} returned no id/url")
 
-    run_gh(
+    edit_args = [
         "issue", "edit", str(task.number), "--repo", repo,
         "--add-label", "autonomous-backlog",
         "--add-label", "agent-ready",
         "--add-label", "jules",
         "--add-label", JULES_ACTIVE_LABEL,
-    )
+    ]
+    if JULES_RETRY_LABEL in task.labels:
+        edit_args += ["--remove-label", JULES_RETRY_LABEL]
+    run_gh(*edit_args)
     run_gh(
         "issue", "comment", str(task.number), "--repo", repo,
         "--body",
@@ -408,6 +1086,8 @@ def ensure_labels(repo: str) -> None:
         (JULES_ACTIVE_LABEL, "5319E7", "A real Jules API session is actively using a Jules slot"),
         (JULES_REVIEW_READY_LABEL, "8250DF", "Jules finished; review the resulting GitHub PR"),
         (JULES_FAILED_LABEL, "D73A4A", "Jules session failed and requires follow-up"),
+        (JULES_FEEDBACK_LABEL, "FBCA04", "Jules is waiting for user feedback; does not consume productive WIP"),
+        (JULES_RETRY_LABEL, "BFD4F2", "One automatic retry is pending after a retryable Jules/platform failure"),
         (CODEX_RESERVED_LABEL, "0969DA", "Reserved for a scheduled Codex worker"),
         ("codex-worker-1", "1F6FEB", "Reserved for Codex scheduled worker 1"),
         ("codex-worker-2", "54AEFF", "Reserved for Codex scheduled worker 2"),
@@ -449,6 +1129,11 @@ def run_dispatch_cycle(
         api_key=api_key,
         load_comments=load_comments,
     )
+    migrate_legacy_jules_failures(
+        issues,
+        repo=repo,
+        load_comments=load_comments,
+    )
     selected = select_tasks(issues)
     if selected and source_name is None:
         source_name = find_jules_source(api_key, repo)
@@ -460,6 +1145,7 @@ def run_dispatch_cycle(
             repo=repo,
             api_key=api_key,
             source_name=source_name,
+            comments=load_comments(task.number),
         )
         print(
             f"Started Jules session {session['id']} for #{task.number}: {task.title} "

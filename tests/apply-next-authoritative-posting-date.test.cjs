@@ -18,6 +18,6 @@ UI.attachInspections(jobs, artifact);
 assert.equal(jobs[0].posted_at, "2026-09-02");
 assert.equal(jobs[0]._postedAtBasis, "authoritative");
 assert.equal(jobs[0]._metadataPostedAt, "2026-09-17T00:00:00Z");
-assert.equal(UI.formatPostedDate(jobs[0].posted_at), "Posted Sep 2, 2026");
+assert.equal(UI.formatPostedDate(jobs[0].posted_at, "2026-09-17T00:00:00Z"), "Posted 9/2 · 15 days ago");
 
 console.log("apply-next authoritative posting date test passed");

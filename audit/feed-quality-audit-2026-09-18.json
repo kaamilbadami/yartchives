@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "feed_generated_at": "2026-09-18T11:29:19.618406Z",
+  "audit_reference": "2026-09-18T11:29:19.618406+00:00",
+  "summary": {
+    "total_jobs": 5915,
+    "stale_unavailable": {
+      "transient_retrieval_failures": 0,
+      "confirmed_unavailable_inspections": 48,
+      "age_review_90d": 297,
+      "evidence_backed_risk_jobs": 252
+    },
+    "broken_destinations": {
+      "known_dead_links": 96,
+      "unknown_direct_links": 110,
+      "workday_contract_violations": 1822,
+      "workday_direct_apply_count": 1922,
+      "source_only_no_link": 623,
+      "aggregator_intermediary_links": 114
+    },
+    "missing_dates": {
+      "missing_posted_at": 162,
+      "missing_provenance": 5753
+    },
+    "suspicious_date_normalization": {
+      "future_dates": 0,
+      "conflicting_observations_7d": 0,
+      "aggregator_overrides_authoritative": 0
+    }
+  },
+  "stale_unavailable": {
+    "failed_source_only_count": 0,
+    "confirmed_unavailable_count": 48,
+    "age_review_90d_count": 297,
+    "missing_posted_at_count": 162
+  },
+  "destinations_and_links": {
+    "link_kinds": {
+      "direct": 5178,
+      "listing": 114,
+      "source": 623
+    },
+    "workday_direct_total": 1922,
+    "workday_violations_total": 1822,
+    "largest_non_direct_hosts": {
+      "no-link": 623,
+      "jobright.ai": 98,
+      "zapply.jobs": 16
+    },
+    "source_only_by_source_key": {
+      "speedyapply-ai": 425,
+      "applyguy": 128,
+      "vansh-cscareers": 40,
+      "speedyapply": 21,
+      "dreamwork-tech": 13,
+      "zapply": 5,
+      "simplify": 3,
+      "us-feed-workday-walmart-walmartexternal": 1,
+      "us-feed-workday-cox-cox-external-career-site-1": 1,
+      "us-feed-workday-cibc-search": 1,
+      "us-feed-workday-cna-cna-careers": 1,
+      "us-feed-workday-rockwellautomation-external-rockwell-automation": 1,
+      "ct-hartford-workday": 1,
+      "us-feed-workday-thehartford-careers-external": 1,
+      "us-feed-workday-hp-externalcareersite": 1,
+      "us-feed-workday-hp-exteu-ac-careersite": 1
+    },
+    "unresolved_by_source_key": {
+      "speedyapply-ai": 425,
+      "applyguy": 129,
+      "public-sector": 98,
+      "vansh-cscareers": 40,
+      "speedyapply": 22,
+      "zapply": 20,
+      "dreamwork-tech": 13,
+      "simplify": 3,
+      "us-feed-workday-walmart-walmartexternal": 1,
+      "us-feed-workday-cox-cox-external-career-site-1": 1,
+      "us-feed-workday-cibc-search": 1,
+      "us-feed-workday-cna-cna-careers": 1,
+      "us-feed-workday-rockwellautomation-external-rockwell-automation": 1,
+      "ct-hartford-workday": 1,
+      "us-feed-workday-thehartford-careers-external": 1,
+      "us-feed-workday-hp-externalcareersite": 1,
+      "us-feed-workday-hp-exteu-ac-careersite": 1
+    }
+  },
+  "posting_dates": {
+    "by_provenance": {},
+    "missing_date_count": 162,
+    "missing_provenance_count": 5753,
+    "future_date_count": 0,
+    "conflicting_observations_count": 0,
+    "aggregator_overrides_authoritative_count": 0
+  }
+}

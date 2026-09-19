@@ -1,0 +1,41 @@
+name: Auto-merge autonomous agent PRs
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  workflow_run:
+    workflows:
+      - Quality checks
+    types:
+      - completed
+
+permissions:
+  actions: write
+  contents: write
+  issues: read
+  pull-requests: write
+
+concurrency:
+  group: autonomous-agent-pr-automerge
+  cancel-in-progress: false
+
+jobs:
+  merge:
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success' ||
+      github.event.workflow_run.conclusion == 'action_required'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out merge policy
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+
+      - name: Merge one safe autonomous pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: python scripts/auto_merge_agent_prs.py

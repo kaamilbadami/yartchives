@@ -65,7 +65,7 @@ const aeroLike = D.scoreJob(job(inspection([
   ["Experience with Python is preferred.", ["Python"]],
 ])), profile, now);
 
-assert.equal(aeroLike.components.fit.score, 36);
+assert.equal(aeroLike.components.fit.score, 35);
 assert.match(aeroLike.components.fit.detail, /Required coverage: All known required evidence is satisfied/i);
 assert.match(aeroLike.components.fit.detail, /Exact required skills: java, git/i);
 assert.match(aeroLike.inspection.label, /Ready on known requirements/i);

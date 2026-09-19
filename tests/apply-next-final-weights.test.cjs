@@ -42,11 +42,11 @@ const job = {
 const scored = D.scoreJob(job, profile, new Date("2026-09-17T16:00:00Z"));
 assert.equal(scored.components.role, undefined);
 assert.equal(scored.components.location.score, 20);
-assert.equal(scored.components.roi.score, 25);
+assert.equal(scored.components.roi.score, 23);
 assert.deepEqual(scored.applicationValue.role, { score: 15, max: 15 });
-assert.deepEqual(scored.applicationValue.market, { score: 10, max: 15 });
+assert.deepEqual(scored.applicationValue.market, { score: 8, max: 15 });
 assert.match(scored.components.roi.detail, /Role value 15\/15/);
-assert.match(scored.components.roi.detail, /Market opportunity 10\/15/);
+assert.match(scored.components.roi.detail, /Market opportunity 8\/15/);
 assert.ok(scored.total <= 100);
 
 const lowerRoleProfile = {

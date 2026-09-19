@@ -10,6 +10,9 @@
   const INSPECTION_URL = "data/workday-inspections.json";
   const TOP_N = 10;
   let inspectionArtifactPromise = null;
+  let lastRankedResults = [];
+  let lastProfile = null;
+  let _cachedRankInputs = null;
 
   function normalize(value) {
     return String(value || "").trim();
@@ -343,6 +346,7 @@
   function recommendationCard(result, rank) {
     const job = result.job;
     const card = element("article", "apply-next-card");
+    if (job?.id) card.dataset.id = job.id;
 
     const top = element("div", "apply-next-card-top");
     const titleWrap = element("div");
@@ -434,6 +438,7 @@
     applied.addEventListener("click", () => {
       state.applied.add(job.id);
       persist();
+      updateQueueOptimistically(document.querySelector("#applyNextPanel"), loadProfile(localStorage), job.id);
       applyFilters();
     });
     actions.append(saved, applied);
@@ -441,8 +446,75 @@
     return card;
   }
 
+  function updateQueueOptimistically(panel, profile, appliedJobId) {
+    const targetPanel = panel || (typeof document !== "undefined" ? document.querySelector("#applyNextPanel") : null);
+    if (!targetPanel) return;
+    const list = targetPanel.querySelector(".apply-next-list");
+    if (!list) return;
+
+    if (Array.isArray(lastRankedResults) && lastRankedResults.length) {
+      lastRankedResults = lastRankedResults.filter(r => r.job && r.job.id !== appliedJobId && !state.applied?.has(r.job.id) && !state.hidden?.has(r.job.id));
+    } else if (typeof feed !== "undefined" && Array.isArray(feed?.jobs) && profile && typeof YartchivesApplyNext !== "undefined") {
+      const pool = candidatePool(feed.jobs, profile, state);
+      lastRankedResults = YartchivesApplyNext.rankJobs(pool, profile, new Date());
+    }
+
+    const ranked = (lastRankedResults || []).slice(0, TOP_N);
+    const inspectedCount = ranked.filter(result => result.inspection?.state === "inspected").length;
+
+    const note = targetPanel.querySelector(".apply-next-note");
+    if (note && profile) {
+      const poolCount = (typeof feed !== "undefined" && Array.isArray(feed?.jobs))
+        ? candidatePool(feed.jobs, profile, state).length
+        : 0;
+      note.textContent = `Showing ${ranked.length} highest-value options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`;
+    }
+
+    list.innerHTML = "";
+    ranked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
+    if (!ranked.length) {
+      list.append(element("p", "muted", "No eligible Apply Next candidates are available yet."));
+    }
+  }
+
   async function renderQueue(panel, profile) {
-    panel.innerHTML = "";
+    const artifact = await loadInspectionArtifact();
+    const locationDistanceInputs = typeof YartchivesApplyNextLocationPreferences !== "undefined"
+      ? JSON.stringify(YartchivesApplyNextLocationPreferences.orderedAnchors())
+      : "";
+    const timeSemantics = new Date().toISOString().slice(0, 10);
+    const profileJson = JSON.stringify(profile);
+
+    const inputsChanged = !_cachedRankInputs ||
+      _cachedRankInputs.feedJobs !== feed.jobs ||
+      _cachedRankInputs.profileJson !== profileJson ||
+      _cachedRankInputs.artifact !== artifact ||
+      _cachedRankInputs.locationDistanceInputs !== locationDistanceInputs ||
+      _cachedRankInputs.timeSemantics !== timeSemantics;
+
+    if (inputsChanged) {
+      const cacheState = { applied: new Set(), hidden: new Set(), saved: new Set() };
+      const pool = candidatePool(feed.jobs, profile, cacheState);
+      attachInspections(pool, artifact);
+      await addBaseDistances(pool, profile);
+      const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date());
+      lastRankedResults = ranked;
+      lastProfile = profile;
+      _cachedRankInputs = {
+        feedJobs: feed.jobs,
+        profileJson,
+        artifact,
+        locationDistanceInputs,
+        timeSemantics,
+      };
+    }
+
+    const visibleRanked = lastRankedResults.filter(r => r.job && !state.applied?.has(r.job.id) && !state.hidden?.has(r.job.id));
+    const topRanked = visibleRanked.slice(0, TOP_N);
+    const inspectedCount = topRanked.filter(result => result.inspection?.state === "inspected").length;
+
+    const fragment = document.createDocumentFragment();
+
     const heading = element("div", "apply-next-heading");
     const copy = element("div");
     copy.append(
@@ -466,26 +538,22 @@
     });
     controls.append(edit, clear);
     heading.append(copy, controls);
-    panel.append(heading);
-
-    const pool = candidatePool(feed.jobs, profile, state);
-    const artifact = await loadInspectionArtifact();
-    attachInspections(pool, artifact);
-    await addBaseDistances(pool, profile);
-    const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date()).slice(0, TOP_N);
-    const inspectedCount = ranked.filter(result => result.inspection?.state === "inspected").length;
+    fragment.append(heading);
 
     const note = element(
       "p",
       "apply-next-note",
-      `Showing ${ranked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`
+      `Showing ${topRanked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`
     );
-    panel.append(note);
+    fragment.append(note);
 
     const list = element("div", "apply-next-list");
-    ranked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
-    if (!ranked.length) list.append(element("p", "muted", "No eligible Apply Next candidates are available yet."));
-    panel.append(list);
+    topRanked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
+    if (!topRanked.length) list.append(element("p", "muted", "No eligible Apply Next candidates are available yet."));
+    fragment.append(list);
+
+    panel.innerHTML = "";
+    panel.append(fragment);
   }
 
   async function renderPanel(panel) {
@@ -496,6 +564,7 @@
 
   function init() {
     if (typeof YartchivesApplyNext === "undefined") return;
+    loadInspectionArtifact();
     const headerActions = document.querySelector(".header-actions");
     const main = document.querySelector("main");
     if (!headerActions || !main || document.querySelector("#applyNextBtn")) return;
@@ -553,6 +622,7 @@
     scoreBand,
     rankingSummary,
     componentMax,
+    updateQueueOptimistically,
     init,
   };
 });

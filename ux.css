@@ -4,6 +4,29 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.stat.stat-nav {
+  cursor: pointer;
+  user-select: none;
+  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.stat.stat-nav:hover {
+  border-color: #3b506e;
+  background: #111a28;
+}
+.stat.stat-nav:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.stat.stat-nav.is-active {
+  border-color: #4a6c9d;
+  background: linear-gradient(180deg, #152236, #101a2a);
+  box-shadow: inset 0 0 0 1px rgba(141, 180, 255, .28), 0 4px 14px rgba(0, 0, 0, .2);
+}
+.stat.stat-nav.is-active::before {
+  opacity: 1;
+  width: 3px;
+}
+
 .filter-grid {
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 12px;

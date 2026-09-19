@@ -161,6 +161,7 @@ def job_from_item(source: dict[str, Any], item: dict[str, Any], reference: datet
         "name": source["name"],
         "url": source["homepage"],
         "profile_hint": ["cs"],
+        "posted_date_provenance": "authoritative_employer",
     }
     job = bf.base_job(
         company=source["company"],

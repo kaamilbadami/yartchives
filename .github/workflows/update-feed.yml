@@ -77,6 +77,7 @@ jobs:
           node tests/apply-next-competition.test.cjs
           node tests/apply-next-ui.test.cjs
           node tests/apply-next-profile-setup.test.cjs
+          node tests/apply-next-performance.test.cjs
 
       - name: Refresh employer universe from deterministic seed catalogs
         run: python scripts/refresh_employer_universe.py employer_universe.json audit/samples/northeast-midatlantic-cs-2026-09-17.json --seed data/employer-seeds/fortune-500-2026.json --seed data/employer-seeds/state-of-ats-2026-verified-hosts.json

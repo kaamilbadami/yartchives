@@ -176,12 +176,14 @@ assert.equal(jobs[2]._inspection, undefined);
     /applied\.addEventListener\("click",\s*\(\)\s*=>\s*\{([\s\S]*?)\n\s*\}\);/
   );
   assert.ok(appliedHandler, "Mark applied click handler should be present");
+  assert.match(appliedHandler[1], /updateQueueOptimistically/, "Mark applied should trigger optimistic queue update immediately");
   assert.match(appliedHandler[1], /applyFilters\(\);/);
   assert.doesNotMatch(
     appliedHandler[1],
     /renderPanel\(/,
-    "Mark applied should rely on the applyFilters/renderJobs panel refresh instead of triggering a second expensive render"
+    "Mark applied should rely on optimistic update and applyFilters/renderJobs panel refresh instead of triggering a second expensive render"
   );
+  assert.match(uiSource, /document\.createDocumentFragment\(\)/, "renderQueue should build DOM off-screen before swapping to avoid UI stalls");
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
 
   const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
