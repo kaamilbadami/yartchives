@@ -404,6 +404,23 @@ def explicit_feedback_for_session(
     return None
 
 
+def jules_capacity_exhausted(value: Any) -> bool:
+    """Return whether a Jules response/error indicates temporary account capacity exhaustion."""
+    text = str(value).casefold().replace("_", " ")
+    capacity_signals = (
+        "quota exceeded",
+        "resource exhausted",
+        "too many requests",
+        "http error 429",
+        "status code 429",
+        "daily task limit",
+        "weekly task limit",
+        "task limit reached",
+        "task quota",
+    )
+    return any(signal in text for signal in capacity_signals)
+
+
 def retryable_jules_failure(diagnostics: Iterable[str]) -> bool:
     text = "\n".join(str(item).casefold() for item in diagnostics)
     non_retryable = (
@@ -558,8 +575,8 @@ def reconcile_jules_sessions(
     load_activities: Callable[[str], list[dict[str, Any]]] | None = None,
     send_feedback: Callable[[str, str], None] | None = None,
     run_gh: Callable[..., None] | None = None,
-) -> None:
-    """Reconcile Jules sessions into productive, blocked, or terminal GitHub states."""
+) -> bool:
+    """Reconcile Jules sessions and report whether account capacity is exhausted."""
     if get_session is None:
         get_session = jules_json
     if send_feedback is None:
@@ -568,6 +585,8 @@ def reconcile_jules_sessions(
         )
     if run_gh is None:
         run_gh = gh_run
+
+    capacity_paused = False
 
     for issue in issues:
         labels = label_names(issue)
@@ -731,6 +750,39 @@ def reconcile_jules_sessions(
             except Exception as exc:
                 diagnostics = [f"Could not load Jules failure diagnostics: {exc}"]
 
+        capacity_exhausted = (
+            state == "FAILED" and jules_capacity_exhausted("\n".join(diagnostics))
+        )
+        if capacity_exhausted:
+            run_gh(
+                "issue", "edit", str(number), "--repo", repo,
+                "--remove-label", JULES_ACTIVE_LABEL,
+                "--remove-label", JULES_FEEDBACK_LABEL,
+                "--remove-label", "jules",
+            )
+            replace_issue_labels_in_memory(
+                issue,
+                remove=(JULES_ACTIVE_LABEL, JULES_FEEDBACK_LABEL, "jules"),
+            )
+            detail = (
+                f"Jules session `{session_id}` stopped because Jules account capacity/quota "
+                "is exhausted. The issue remains eligible and is not marked failed or given "
+                "a task-burning retry. The scheduled dispatcher will try it again after "
+                "capacity becomes available."
+            )
+            if diagnostics:
+                detail += "\n\nCapacity diagnostics:"
+                for diagnostic in diagnostics:
+                    quoted = diagnostic.replace(chr(10), chr(10) + "> ")
+                    detail += f"\n\n> {quoted}"
+            run_gh(
+                "issue", "comment", str(number), "--repo", repo,
+                "--body", detail,
+            )
+            capacity_paused = True
+            print(f"Paused Jules dispatch after capacity exhaustion on #{number}.")
+            continue
+
         terminal_label = (
             JULES_REVIEW_READY_LABEL
             if state == "COMPLETED"
@@ -800,6 +852,8 @@ def reconcile_jules_sessions(
             "--body", detail,
         )
         print(f"Reconciled Jules session {session_id} for #{number}: {state}.")
+
+    return capacity_paused
 
 
 def has_codex_reservation(labels: frozenset[str]) -> bool:
@@ -1129,7 +1183,7 @@ def run_dispatch_cycle(
             f"repos/{repo}/issues/{number}/comments?per_page=100",
         )
 
-    reconcile_jules_sessions(
+    capacity_paused = reconcile_jules_sessions(
         issues,
         repo=repo,
         api_key=api_key,
@@ -1140,25 +1194,56 @@ def run_dispatch_cycle(
         repo=repo,
         load_comments=load_comments,
     )
+    if capacity_paused:
+        print(
+            "Jules account capacity is exhausted; ending this dispatch cycle cleanly. "
+            "The scheduled run will try again later."
+        )
+        return False, source_name
+
     selected = select_tasks(issues)
     if selected and source_name is None:
-        source_name = find_jules_source(api_key, repo)
+        try:
+            source_name = find_jules_source(api_key, repo)
+        except Exception as exc:
+            if jules_capacity_exhausted(exc):
+                print(
+                    "Jules account capacity is exhausted while resolving the repository "
+                    "source; ending this cycle cleanly."
+                )
+                return False, source_name
+            raise
 
+    started_any = False
     for task in selected:
         assert source_name is not None
-        session = dispatch_task(
-            task,
-            repo=repo,
-            api_key=api_key,
-            source_name=source_name,
-            comments=load_comments(task.number),
-        )
+        try:
+            session = dispatch_task(
+                task,
+                repo=repo,
+                api_key=api_key,
+                source_name=source_name,
+                comments=(
+                    load_comments(task.number)
+                    if JULES_RETRY_LABEL in task.labels
+                    else ()
+                ),
+            )
+        except Exception as exc:
+            if jules_capacity_exhausted(exc):
+                print(
+                    f"Jules account capacity is exhausted before issue #{task.number} "
+                    "could start. The issue remains eligible for a later scheduled run."
+                )
+                return False, source_name
+            raise
+        started_any = True
         print(
             f"Started Jules session {session['id']} for #{task.number}: {task.title} "
             f"({session['url']})"
         )
 
-    has_active = any(active_jules_task(issue) is not None for issue in issues) or bool(selected)
+    has_active = any(active_jules_task(issue) is not None for issue in issues) or started_any
     if not selected:
         print("No safe autonomous task is currently dispatchable this cycle.")
     return has_active, source_name
