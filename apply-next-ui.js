@@ -356,14 +356,19 @@
     );
     const postedDate = formatPostedDate(job.posted_at);
     if (postedDate) titleWrap.append(element("p", "muted apply-next-posted-date", postedDate));
+    const inspectionState = result.inspection?.state || "metadata-only";
     const evidenceStatus = element(
       "span",
-      "apply-next-component apply-next-inspection-status",
-      result.inspection?.label || "Metadata only"
+      `apply-next-component apply-next-inspection-status apply-next-inspection-${inspectionState}`,
+      result.inspection?.label || "Metadata fallback"
     );
-    evidenceStatus.title = result.inspection?.state === "inspected"
-      ? "Authoritative employer posting evidence is included in this score."
-      : "This score falls back to feed metadata because authoritative posting evidence is unavailable.";
+    if (inspectionState === "inspected") {
+      evidenceStatus.title = "Authoritative employer posting evidence is included in this score.";
+    } else if (inspectionState === "unavailable") {
+      evidenceStatus.title = "This score falls back to feed metadata because authoritative posting evidence is no longer available.";
+    } else {
+      evidenceStatus.title = "This score falls back to feed metadata because authoritative posting evidence is unavailable.";
+    }
     titleWrap.append(evidenceStatus);
 
     const score = element("div", "apply-next-score");
@@ -401,7 +406,7 @@
       for (const evidence of result.inspection.evidence) evidenceList.append(element("li", "", evidence));
       details.append(evidenceHeading, evidenceList);
     } else if (result.inspection?.state !== "inspected") {
-      details.append(element("p", "muted", "No authoritative posting inspection is attached; metadata scoring is used as the fallback."));
+      details.append(element("p", "muted", "No authoritative posting evidence is attached; metadata is used as a fallback."));
     }
 
     const list = element("ul");

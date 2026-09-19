@@ -489,12 +489,12 @@
 
   function summarizeInspection(job) {
     const inspection = inspectionForJob(job);
-    if (!inspection) return { state: "metadata-only", label: "Metadata only", evidence: [] };
+    if (!inspection) return { state: "metadata-only", label: "Metadata fallback", evidence: [] };
     if (inspection.status === "unavailable" || inspectionAvailability(inspection) === "unavailable") {
       return { state: "unavailable", label: "Posting unavailable", evidence: ["Authoritative posting is no longer available"] };
     }
     if (inspection.status !== "inspected") {
-      return { state: "metadata-only", label: "Metadata only", evidence: ["Authoritative posting inspection is not currently available"] };
+      return { state: "metadata-only", label: "Metadata fallback", evidence: ["Authoritative posting inspection is not currently available"] };
     }
 
     const evidence = [];
@@ -511,7 +511,7 @@
     if (evidenceFacts(auth, "required").length || evidenceFacts(auth, "not_required").length
       || evidenceFacts(citizenship, "required").length || evidenceFacts(citizenship, "not_required").length) evidence.push("Work authorization/citizenship language found");
     if (evidenceFacts(skills, "required").length || evidenceFacts(skills, "preferred").length) evidence.push("Required/preferred skill evidence found");
-    return { state: "inspected", label: "Posting inspected", evidence };
+    return { state: "inspected", label: "Authoritative evidence", evidence };
   }
 
   function scoreJob(job, profile, now = new Date()) {

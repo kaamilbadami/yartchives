@@ -256,7 +256,8 @@ assert.equal(notRequiredAuth.excluded, false);
 assert.match(notRequiredAuth.detail, /not required/);
 
 assert.equal(A.summarizeInspection(freshDirect).state, "metadata-only");
-assert.equal(A.summarizeInspection(inspectedStrong).label, "Posting inspected");
+assert.equal(A.summarizeInspection(freshDirect).label, "Metadata fallback");
+assert.equal(A.summarizeInspection(inspectedStrong).label, "Authoritative evidence");
 
 const totalFromParts = Object.values(direct.components).reduce((sum, part) => sum + part.score, 0);
 assert.equal(direct.total, totalFromParts);
