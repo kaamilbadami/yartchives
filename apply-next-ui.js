@@ -7,11 +7,39 @@
   }
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   const STORAGE_KEY = "yartchives-apply-next-profile-v1";
+  const FEEDBACK_STORAGE_KEY = "yartchives-apply-next-feedback-v1";
   const INSPECTION_URL = "data/workday-inspections.json";
   const TOP_N = 10;
   let inspectionArtifactPromise = null;
   let lastRankedResults = [];
   let lastProfile = null;
+  let feedbackState = {};
+
+  function loadFeedback(storage) {
+    try {
+      const raw = storage.getItem(FEEDBACK_STORAGE_KEY);
+      if (raw) feedbackState = JSON.parse(raw) || {};
+    } catch (_) {
+      feedbackState = {};
+    }
+  }
+
+  function saveFeedback(storage) {
+    storage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(feedbackState));
+  }
+
+  function getFeedback(jobId) {
+    return feedbackState[jobId] || null;
+  }
+
+  function setFeedback(storage, jobId, type, reason = null) {
+    if (!type) {
+      delete feedbackState[jobId];
+    } else {
+      feedbackState[jobId] = { type, reason, timestamp: Date.now() };
+    }
+    if (storage) saveFeedback(storage);
+  }
 
   function normalize(value) {
     return String(value || "").trim();
@@ -582,6 +610,66 @@
     });
     actions.append(saved, applied, hide);
     card.append(actions);
+
+    const feedbackWrap = element("div", "apply-next-feedback-wrap");
+
+    function renderFeedback() {
+      feedbackWrap.innerHTML = "";
+      const feedback = typeof localStorage !== "undefined" ? getFeedback(job.id) : null;
+      if (feedback) {
+        const msg = feedback.type === "good" ? "You marked this as a good suggestion." :
+                    (feedback.reason ? `You marked this as a bad suggestion (${feedback.reason}).` : "You marked this as a bad suggestion.");
+        const p = element("span", "apply-next-feedback-status muted", msg);
+        const undo = element("button", "text-btn", "Undo");
+        undo.type = "button";
+        undo.addEventListener("click", () => {
+          setFeedback(typeof localStorage !== "undefined" ? localStorage : null, job.id, null);
+          renderFeedback();
+        });
+        feedbackWrap.append(p, document.createTextNode(" "), undo);
+      } else {
+        const goodBtn = element("button", "text-btn", "Good suggestion");
+        goodBtn.type = "button";
+        goodBtn.addEventListener("click", () => {
+          setFeedback(typeof localStorage !== "undefined" ? localStorage : null, job.id, "good");
+          renderFeedback();
+        });
+        const badBtn = element("button", "text-btn", "Bad suggestion");
+        badBtn.type = "button";
+        badBtn.addEventListener("click", () => {
+          renderBadFeedbackForm();
+        });
+        feedbackWrap.append(goodBtn, element("span", "muted", " · "), badBtn);
+      }
+    }
+
+    function renderBadFeedbackForm() {
+      feedbackWrap.innerHTML = "";
+      const p = element("span", "muted", "Why? ");
+      const select = element("select", "apply-next-feedback-reason");
+      select.innerHTML = `
+        <option value="">Select a reason (optional)</option>
+        <option value="role interest">Role interest</option>
+        <option value="location">Location</option>
+        <option value="requirements/fit">Requirements/fit</option>
+        <option value="company/industry">Company/industry</option>
+        <option value="other">Other</option>
+      `;
+      const submit = element("button", "text-btn", "Submit");
+      submit.type = "button";
+      submit.addEventListener("click", () => {
+        setFeedback(typeof localStorage !== "undefined" ? localStorage : null, job.id, "bad", select.value || null);
+        renderFeedback();
+      });
+      const cancel = element("button", "text-btn", "Cancel");
+      cancel.type = "button";
+      cancel.addEventListener("click", renderFeedback);
+      feedbackWrap.append(p, select, document.createTextNode(" "), submit, document.createTextNode(" "), cancel);
+    }
+
+    renderFeedback();
+    card.append(feedbackWrap);
+
     return card;
   }
 
@@ -688,6 +776,7 @@
 
   function init() {
     if (typeof YartchivesApplyNext === "undefined") return;
+    if (typeof localStorage !== "undefined") loadFeedback(localStorage);
     loadInspectionArtifact();
     const headerActions = document.querySelector(".header-actions");
     const main = document.querySelector("main");
@@ -726,6 +815,7 @@
 
   return {
     STORAGE_KEY,
+    FEEDBACK_STORAGE_KEY,
     INSPECTION_URL,
     TOP_N,
     validateProfile,
@@ -754,6 +844,10 @@
     updateQueueOptimistically,
     explainProfileChange,
     setProfileSetupMode,
+    loadFeedback,
+    saveFeedback,
+    getFeedback,
+    setFeedback,
     init,
   };
 });

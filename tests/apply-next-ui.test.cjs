@@ -254,6 +254,40 @@ assert.equal(jobs[2]._inspection, undefined);
   const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
   assert.ok(deployWorkflow.includes("data/workday-inspections.json"), "Pages workflow must deploy Workday inspections");
 
+  // Feedback state tests
+  const feedbackStorageVals = new Map();
+  const feedbackStorage = {
+    getItem: key => feedbackStorageVals.get(key) || null,
+    setItem: (key, value) => feedbackStorageVals.set(key, value),
+    removeItem: key => feedbackStorageVals.delete(key),
+  };
+
+  // Ensure we start with clean state
+  UI.loadFeedback(feedbackStorage);
+  assert.equal(UI.getFeedback("job1"), null, "Feedback should default to null");
+
+  UI.setFeedback(feedbackStorage, "job1", "good");
+  let stored = UI.getFeedback("job1");
+  assert.ok(stored, "Feedback should be saved");
+  assert.equal(stored.type, "good", "Feedback type should be good");
+  assert.equal(stored.reason, null, "Reason should be null for good feedback");
+
+  // Verify persistence
+  const rawFeedback = JSON.parse(feedbackStorageVals.get(UI.FEEDBACK_STORAGE_KEY) || "{}");
+  assert.ok(rawFeedback["job1"], "Feedback should be persisted to storage");
+  assert.equal(rawFeedback["job1"].type, "good");
+
+  UI.setFeedback(feedbackStorage, "job1", "bad", "location");
+  stored = UI.getFeedback("job1");
+  assert.equal(stored.type, "bad", "Feedback should update to bad");
+  assert.equal(stored.reason, "location", "Reason should be saved");
+
+  UI.setFeedback(feedbackStorage, "job1", null);
+  assert.equal(UI.getFeedback("job1"), null, "Feedback should be cleared when type is null");
+
+  const rawCleared = JSON.parse(feedbackStorageVals.get(UI.FEEDBACK_STORAGE_KEY) || "{}");
+  assert.ok(!rawCleared["job1"], "Cleared feedback should be removed from storage");
+
   console.log("apply-next UI tests passed");
 })().catch(error => {
   console.error(error);

@@ -204,6 +204,36 @@
   margin-top: 0.35rem;
 }
 
+.apply-next-feedback-wrap {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.apply-next-feedback-wrap .text-btn {
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+.apply-next-feedback-wrap .text-btn:hover {
+  text-decoration-style: solid;
+}
+
+.apply-next-feedback-reason {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.85rem;
+}
+
 @media (max-width: 720px) {
   .apply-next-breakdown {
     grid-template-columns: 1fr;
