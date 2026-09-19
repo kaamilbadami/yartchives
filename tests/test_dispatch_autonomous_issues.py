@@ -20,16 +20,25 @@ def issue(number, title, *, body="", labels=(), state="open"):
     }
 
 
-def task_body(priority, area, autonomous=True):
+def task_body(priority, area, autonomous=True, resources=None, depends_on=None):
+    resource_line = f"resources: {resources}\n" if resources else ""
+    dependency_line = f"depends_on: {depends_on}\n" if depends_on else ""
     return (
         "<!-- autonomous-task -->\n"
         f"priority: {priority}\n"
         f"area: {area}\n"
+        f"{resource_line}"
+        f"{dependency_line}"
         f"autonomous: {'true' if autonomous else 'false'}\n"
     )
 
 
 class AutonomousDispatcherTests(unittest.TestCase):
+    def test_workflow_runs_single_dispatch_cycle_without_long_watch(self):
+        workflow = (ROOT / ".github" / "workflows" / "autonomous-dispatch.yml").read_text()
+        self.assertIn('JULES_WATCH_SECONDS: "0"', workflow)
+        self.assertIn("cancel-in-progress: false", workflow)
+
     def test_selects_highest_priority_safe_tasks_without_area_overlap(self):
         issues = [
             issue(10, "P2 frontend", body=task_body("P2", "frontend-state")),
@@ -124,7 +133,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
         selected = mod.select_tasks(issues, max_active=2)
         self.assertEqual([task.number for task in selected], [3])
 
-    def test_feedback_waiting_area_stays_reserved_without_consuming_wip(self):
+    def test_feedback_waiting_session_reserves_wip_and_overlap_locks(self):
         issues = [
             issue(
                 1,
@@ -137,23 +146,59 @@ class AutonomousDispatcherTests(unittest.TestCase):
             issue(4, "performance", body=task_body("P1", "performance")),
         ]
 
+        selected = mod.select_tasks(issues, max_active=2)
+
+        self.assertEqual([task.number for task in selected], [3])
+
+    def test_shared_resource_lock_blocks_cross_area_overlap(self):
+        issues = [
+            issue(
+                1,
+                "active feed",
+                body=task_body("P1", "feed"),
+                labels=("jules", "jules-session"),
+            ),
+            issue(2, "dedupe", body=task_body("P0", "dedupe")),
+            issue(3, "coverage", body=task_body("P1", "coverage")),
+        ]
+
         selected = mod.select_tasks(issues, max_active=3)
 
-        self.assertEqual([task.number for task in selected], [3, 4])
+        self.assertEqual([task.number for task in selected], [3])
 
-    def test_default_wip_allows_five_distinct_areas(self):
+    def test_explicit_resource_metadata_blocks_unrelated_areas(self):
+        issues = [
+            issue(
+                1,
+                "active custom",
+                body=task_body("P1", "alpha", resources="shared-hot-file"),
+                labels=("jules", "jules-session"),
+            ),
+            issue(
+                2,
+                "other area same resource",
+                body=task_body("P0", "beta", resources="shared-hot-file"),
+            ),
+            issue(3, "independent", body=task_body("P1", "gamma")),
+        ]
+
+        selected = mod.select_tasks(issues, max_active=3)
+
+        self.assertEqual([task.number for task in selected], [3])
+
+    def test_default_wip_allows_fifteen_distinct_areas(self):
         issues = [
             issue(1, "feed", body=task_body("P1", "feed")),
             issue(2, "coverage", body=task_body("P1", "coverage")),
             issue(3, "performance", body=task_body("P1", "performance")),
-            issue(4, "identity", body=task_body("P1", "identity")),
-            issue(5, "evidence", body=task_body("P1", "evidence")),
+            issue(4, "evidence", body=task_body("P1", "evidence")),
+            issue(5, "automation", body=task_body("P1", "automation")),
             issue(6, "dedupe", body=task_body("P1", "dedupe")),
         ]
 
         selected = mod.select_tasks(issues)
 
-        self.assertEqual(mod.MAX_ACTIVE, 5)
+        self.assertEqual(mod.MAX_ACTIVE, 15)
         self.assertEqual([task.number for task in selected], [1, 2, 3, 4, 5])
 
     def test_blocked_or_product_decision_tasks_are_not_dispatched(self):
@@ -343,6 +388,78 @@ class AutonomousDispatcherTests(unittest.TestCase):
         selected = mod.select_tasks(issues, max_active=2)
         self.assertEqual([task.number for task in selected], [154])
 
+    def test_failed_session_surfaces_jules_failure_diagnostics(self):
+        issues = [
+            issue(
+                176,
+                "listing lifecycle",
+                body=task_body("P1", "listing-lifecycle"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [{"body": "<!-- jules-session-id: failed1 -->"}],
+            get_session=lambda api_key, path: {
+                "id": "failed1",
+                "state": "FAILED",
+                "failureReason": "Internal execution stopped after feedback.",
+            },
+            load_activities=lambda session_id: [
+                {
+                    "createTime": "2026-09-18T23:44:00Z",
+                    "agentMessaged": {"agentMessage": "Applying the narrowed generic fix."},
+                },
+                {
+                    "createTime": "2026-09-18T23:45:00Z",
+                    "error": {"message": "Workspace became unavailable."},
+                },
+            ],
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        comment = gh_calls[1][-1]
+        self.assertIn("Failure diagnostics:", comment)
+        self.assertIn("Internal execution stopped after feedback.", comment)
+        self.assertIn("Workspace became unavailable.", comment)
+        self.assertIn("jules-retry-ready", mod.label_names(issues[0]))
+        self.assertNotIn("jules-failed", mod.label_names(issues[0]))
+        self.assertIn("<!-- jules-retry-from: failed1 -->", comment)
+
+    def test_failed_session_still_reconciles_when_diagnostics_cannot_be_loaded(self):
+        issues = [
+            issue(
+                178,
+                "frontend state",
+                body=task_body("P1", "frontend-state"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+
+        def fail_activities(session_id):
+            raise RuntimeError("Jules activities endpoint unavailable")
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [{"body": "<!-- jules-session-id: failed2 -->"}],
+            get_session=lambda api_key, path: {"id": "failed2", "state": "FAILED"},
+            load_activities=fail_activities,
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertIn("jules-failed", mod.label_names(issues[0]))
+        self.assertIn(
+            "Could not load Jules failure diagnostics: Jules activities endpoint unavailable",
+            gh_calls[1][-1],
+        )
+
     def test_feedback_waiting_session_releases_slot_and_surfaces_latest_question(self):
         issues = [
             issue(
@@ -373,7 +490,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 {
                     "createTime": "2026-09-18T22:01:00Z",
                     "agentMessaged": {
-                        "agentMessage": "Should freshness use posted_at or discovered_at?"
+                        "agentMessage": "Should Recommended remain the default user-facing sort or should Newest become the default?"
                     },
                 },
             ],
@@ -383,15 +500,110 @@ class AutonomousDispatcherTests(unittest.TestCase):
         labels = mod.label_names(issues[0])
         self.assertNotIn("jules-session", labels)
         self.assertIn("jules-needs-feedback", labels)
+        self.assertIn("needs-product-decision", labels)
         self.assertIn("jules", labels)
         self.assertIn("jules-needs-feedback", gh_calls[0])
         self.assertIn(
-            "Should freshness use posted_at or discovered_at?",
+            "Should Recommended remain the default user-facing sort or should Newest become the default?",
             gh_calls[1][-1],
         )
         self.assertEqual(
             [task.number for task in mod.select_tasks(issues, max_active=2)],
             [154],
+        )
+
+    def test_routine_clarification_is_auto_answered_without_releasing_slot(self):
+        issues = [
+            issue(
+                151,
+                "freshness",
+                body=task_body("P1", "apply-next-ui"),
+                labels=("jules", "jules-session", "agent-ready"),
+            )
+        ]
+        gh_calls = []
+        sent = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [{"body": "<!-- jules-session-id: ask1 -->"}],
+            get_session=lambda api_key, path: {
+                "id": "ask1",
+                "state": "AWAITING_USER_FEEDBACK",
+            },
+            load_activities=lambda session_id: [
+                {
+                    "createTime": "2026-09-18T22:01:00Z",
+                    "agentMessaged": {
+                        "agentMessage": "Should freshness use posted_at or discovered_at?"
+                    },
+                }
+            ],
+            send_feedback=lambda session_id, prompt: sent.append((session_id, prompt)),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(len(sent), 1)
+        self.assertEqual(sent[0][0], "ask1")
+        self.assertIn("Resolve this from current main", sent[0][1])
+        self.assertIn("Should freshness use posted_at or discovered_at?", sent[0][1])
+        self.assertIn("jules-session", mod.label_names(issues[0]))
+        self.assertNotIn("jules-needs-feedback", mod.label_names(issues[0]))
+        self.assertEqual(len(gh_calls), 1)
+        self.assertIn("<!-- jules-auto-feedback: ask1 -->", gh_calls[0][-1])
+
+    def test_existing_feedback_block_is_auto_recovered_when_clarification_is_routine(self):
+        issues = [
+            issue(
+                151,
+                "freshness",
+                body=task_body("P1", "apply-next-ui"),
+                labels=("jules", "jules-needs-feedback", "needs-product-decision", "agent-ready"),
+            )
+        ]
+        gh_calls = []
+        sent = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [{"body": "<!-- jules-session-id: ask1 -->"}],
+            get_session=lambda api_key, path: {
+                "id": "ask1",
+                "state": "AWAITING_USER_FEEDBACK",
+            },
+            load_activities=lambda session_id: [
+                {
+                    "agentMessaged": {
+                        "agentMessage": "Can I update the generated fixture after the parser fix?"
+                    }
+                }
+            ],
+            send_feedback=lambda session_id, prompt: sent.append((session_id, prompt)),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(len(sent), 1)
+        labels = mod.label_names(issues[0])
+        self.assertIn("jules-session", labels)
+        self.assertNotIn("jules-needs-feedback", labels)
+        self.assertNotIn("needs-product-decision", labels)
+        self.assertIn("--remove-label", gh_calls[0])
+        self.assertIn("<!-- jules-auto-feedback: ask1 -->", gh_calls[1][-1])
+
+    def test_product_decision_classifier_is_narrow(self):
+        self.assertTrue(
+            mod.clarification_requires_product_decision(
+                "Should Recommended remain the default user-facing sort?"
+            )
+        )
+        self.assertFalse(
+            mod.clarification_requires_product_decision(
+                "Should I regenerate the fixture after changing the parser?"
+            )
         )
 
     def test_explicit_github_feedback_is_forwarded_to_waiting_session(self):
@@ -488,13 +700,16 @@ class AutonomousDispatcherTests(unittest.TestCase):
             issues,
             repo="kaamilbadami/yartchives",
             api_key="secret",
-            load_comments=lambda number: [{"body": "<!-- jules-session-id: ask1 -->"}],
+            load_comments=lambda number: [
+                {"body": "<!-- jules-session-id: ask1 -->"},
+                {"body": "<!-- jules-auto-feedback: ask1 -->\nAutomatically answered."},
+            ],
             get_session=lambda api_key, path: {
                 "id": "ask1",
                 "state": "AWAITING_USER_FEEDBACK",
             },
             load_activities=lambda session_id: self.fail(
-                "activities should not be loaded twice while feedback is still pending"
+                "activities should not be loaded twice after auto-feedback was sent"
             ),
             run_gh=lambda *args: gh_calls.append(args),
         )
@@ -508,7 +723,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 151,
                 "freshness",
                 body=task_body("P1", "apply-next-ui"),
-                labels=("jules", "jules-needs-feedback", "agent-ready"),
+                labels=("jules", "jules-needs-feedback", "needs-product-decision", "agent-ready"),
             )
         ]
         gh_calls = []
@@ -525,6 +740,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
         labels = mod.label_names(issues[0])
         self.assertIn("jules-session", labels)
         self.assertNotIn("jules-needs-feedback", labels)
+        self.assertNotIn("needs-product-decision", labels)
         self.assertIn("jules-session", gh_calls[0])
         self.assertEqual(mod.select_tasks(issues, max_active=2), [])
 
@@ -642,6 +858,175 @@ class AutonomousDispatcherTests(unittest.TestCase):
         ]
         selected = mod.select_tasks(issues, max_active=2)
         self.assertEqual([task.number for task in selected], [3])
+
+
+    def test_session_prompt_does_not_pause_for_routine_execution_confirmation(self):
+        task = mod.Task(
+            155,
+            "Benchmark Apply Next interaction and ranking performance",
+            task_body("P2", "performance"),
+            "P2",
+            "performance",
+            frozenset(),
+        )
+        prompt = mod.session_prompt("kaamilbadami/yartchives", task)
+        self.assertIn("Do not ask for confirmation merely to continue", prompt)
+        self.assertIn("run tests", prompt)
+        self.assertIn("genuine product decision", prompt)
+
+    def test_open_dependency_blocks_dispatch_until_dependency_closes(self):
+        issues = [
+            issue(177, "identity", body=task_body("P1", "identity")),
+            issue(
+                178,
+                "frontend state",
+                body=task_body("P1", "frontend-state", depends_on="#177"),
+            ),
+            issue(179, "dedupe", body=task_body("P1", "coverage")),
+        ]
+        self.assertEqual(
+            [task.number for task in mod.select_tasks(issues, max_active=3)],
+            [177, 179],
+        )
+        issues[0]["state"] = "closed"
+        self.assertEqual(
+            [task.number for task in mod.select_tasks(issues, max_active=3)],
+            [178, 179],
+        )
+
+    def test_malformed_dependency_metadata_is_not_dispatchable(self):
+        candidate = issue(
+            178,
+            "frontend state",
+            body=task_body("P1", "frontend-state", depends_on="issue-177"),
+        )
+        self.assertIsNone(mod.task_from_issue(candidate))
+
+    def test_retryable_platform_failure_gets_exactly_one_retry_candidate(self):
+        issues = [
+            issue(
+                176,
+                "listing lifecycle",
+                body=task_body("P1", "listing-lifecycle"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+        comments = [
+            {"id": 1, "body": "<!-- jules-session-id: failed1 -->"},
+            {
+                "id": 2,
+                "body": "<!-- jules-feedback: failed1 -->\nKeep the fix provider-neutral.",
+            },
+        ]
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: comments,
+            get_session=lambda api_key, path: {
+                "id": "failed1",
+                "state": "FAILED",
+            },
+            load_activities=lambda session_id: [
+                {
+                    "createTime": "2026-09-18T23:45:00Z",
+                    "error": {"message": "Workspace became unavailable."},
+                },
+                {
+                    "createTime": "2026-09-18T23:44:00Z",
+                    "agentMessaged": {"agentMessage": "Applying the provider-neutral fix."},
+                },
+            ],
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+        labels = mod.label_names(issues[0])
+        self.assertIn("jules-retry-ready", labels)
+        self.assertNotIn("jules-failed", labels)
+        self.assertEqual([task.number for task in mod.select_tasks(issues)], [176])
+        comment = gh_calls[1][-1]
+        self.assertIn("<!-- jules-retry-from: failed1 -->", comment)
+        self.assertIn("Keep the fix provider-neutral.", comment)
+        self.assertIn("Applying the provider-neutral fix.", comment)
+
+    def test_second_platform_failure_is_not_retried_again(self):
+        issues = [
+            issue(
+                176,
+                "listing lifecycle",
+                body=task_body("P1", "listing-lifecycle"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+        comments = [
+            {
+                "id": 1,
+                "body": "<!-- jules-retry-from: first-failure -->\nPrior retry context.",
+            },
+            {"id": 2, "body": "<!-- jules-session-id: second-failure -->"},
+        ]
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: comments,
+            get_session=lambda api_key, path: {
+                "id": "second-failure",
+                "state": "FAILED",
+            },
+            load_activities=lambda session_id: [
+                {"error": {"message": "Workspace became unavailable."}},
+            ],
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+        self.assertIn("jules-failed", mod.label_names(issues[0]))
+        self.assertNotIn("jules-retry-ready", mod.label_names(issues[0]))
+
+    def test_code_failure_does_not_auto_retry(self):
+        self.assertFalse(
+            mod.retryable_jules_failure(
+                ["Tests failed: expected 2 jobs but received 3."]
+            )
+        )
+
+    def test_retry_dispatch_preserves_context_and_clears_retry_label(self):
+        task = mod.Task(
+            176,
+            "listing lifecycle",
+            task_body("P1", "listing-lifecycle"),
+            "P1",
+            "listing-lifecycle",
+            frozenset(("jules-retry-ready",)),
+        )
+        captured = {}
+        gh_calls = []
+
+        def fake_create(api_key, source_name, repo, task, **kwargs):
+            captured.update(kwargs)
+            return {"id": "retry2", "url": "https://jules.google.com/session/retry2"}
+
+        mod.dispatch_task(
+            task,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            source_name="source",
+            comments=[
+                {
+                    "body": (
+                        "<!-- jules-retry-from: failed1 -->\n"
+                        "Failure diagnostics:\n\n> Workspace became unavailable.\n\n"
+                        "Prior explicit GitHub feedback that must be preserved in the retry:\n\n"
+                        "> Keep the fix provider-neutral."
+                    )
+                }
+            ],
+            create_session=fake_create,
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+        self.assertIn("Keep the fix provider-neutral.", captured["retry_context"])
+        self.assertIn("--remove-label", gh_calls[0])
+        self.assertIn("jules-retry-ready", gh_calls[0])
 
 
 if __name__ == "__main__":

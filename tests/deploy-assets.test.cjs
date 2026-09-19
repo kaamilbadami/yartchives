@@ -38,6 +38,12 @@ const autoMergeWorkflow = fs.readFileSync(".github/workflows/auto-merge-agent-pr
 assert.equal(qualityWorkflow.includes("jules-review:"), false, "Routine Quality runs should not spend Jules quota on PR review");
 assert.match(
   autoMergeWorkflow,
+  /workflow_run\.conclusion == 'success'[\s\S]*?workflow_run\.conclusion == 'action_required'/,
+  "Auto-merge recovery should run for successful and action-required Quality completions"
+);
+
+assert.match(
+  autoMergeWorkflow,
   /workflow_run:[\s\S]*?workflows:[\s\S]*?- Quality checks[\s\S]*?types:[\s\S]*?- completed/,
   "Autonomous PR merger should wake only after Quality checks complete"
 );
@@ -80,12 +86,12 @@ assert.ok(
 assert.match(
   autonomousWorkflow,
   /timeout-minutes:\s*14/,
-  "Continuous Jules reconciliation should have a bounded workflow runtime"
+  "Autonomous dispatcher should retain a bounded workflow runtime"
 );
 assert.ok(
   autonomousWorkflow.includes('JULES_POLL_SECONDS: "30"') &&
-    autonomousWorkflow.includes('JULES_WATCH_SECONDS: "780"'),
-  "Active Jules backlog work should be repolled every 30 seconds within a bounded watch window"
+    autonomousWorkflow.includes('JULES_WATCH_SECONDS: "0"'),
+  "Each dispatcher invocation should run one reconciliation cycle so newer events are not blocked by a long watch loop"
 );
 
 for (const name of workflowFiles) {
