@@ -595,37 +595,52 @@
     const inspectedCount = ranked.filter(result => result.inspection?.state === "inspected").length;
 
     const note = targetPanel.querySelector(".apply-next-note");
+    let poolCount = 0;
+    if (typeof feed !== "undefined" && Array.isArray(feed?.jobs)) {
+      poolCount = candidatePool(feed.jobs, profile, state).length;
+    }
+
     if (note && profile) {
-      const poolCount = (typeof feed !== "undefined" && Array.isArray(feed?.jobs))
-        ? candidatePool(feed.jobs, profile, state).length
-        : 0;
       note.textContent = `Showing ${ranked.length} highest-value options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`;
     }
 
     list.innerHTML = "";
-    ranked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
-    if (!ranked.length) {
-      list.append(element("p", "muted", "No eligible Apply Next candidates are available yet."));
+
+    const baseEligibleCount = (typeof feed !== "undefined" && Array.isArray(feed?.jobs))
+      ? feed.jobs.filter(job => job && !knownWrongTerm(job, profile)).length
+      : 0;
+
+    if (baseEligibleCount === 0) {
+      if (note) note.textContent = "";
+      const p = element("p", "muted", "No eligible Apply Next candidates are available.");
+      const edit = element("button", "secondary-btn", "Edit profile");
+      edit.type = "button";
+      edit.addEventListener("click", () => {
+        setupPanel(targetPanel);
+        const input = document.querySelector("#applyNextProfileInput");
+        if (input) input.value = JSON.stringify(profile, null, 2);
+      });
+      list.append(p, edit);
+    } else if (poolCount === 0) {
+      if (note) note.textContent = "";
+      const p = element("p", "muted", "You've reviewed all current recommendations.");
+      const browse = element("button", "secondary-btn", "Browse main feed");
+      browse.type = "button";
+      browse.addEventListener("click", () => {
+        const btn = document.querySelector("#applyNextBtn");
+        if (btn) btn.click();
+        else targetPanel.classList.add("hidden");
+      });
+      list.append(p, browse);
+    } else {
+      ranked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
     }
   }
 
   async function renderQueue(panel, profile) {
-    const pool = candidatePool(feed.jobs, profile, state);
-    const artifact = await loadInspectionArtifact();
-    attachInspections(pool, artifact);
-    await addBaseDistances(pool, profile);
-    const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date());
-
-    const explanation = explainProfileChange(lastProfile, profile, lastRankedResults?.[0]?.job?.id, ranked?.[0]?.job?.id);
-
-    lastRankedResults = ranked;
-    lastProfile = profile;
-
-    const topRanked = ranked.slice(0, TOP_N);
-    const inspectedCount = topRanked.filter(result => result.inspection?.state === "inspected").length;
+    panel.innerHTML = "";
 
     const fragment = document.createDocumentFragment();
-
     const heading = element("div", "apply-next-heading");
     const copy = element("div");
     copy.append(
@@ -651,25 +666,76 @@
     heading.append(copy, controls);
     fragment.append(heading);
 
-    const note = element(
-      "p",
-      "apply-next-note",
-      `Showing ${topRanked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`
-    );
+    const note = element("p", "apply-next-note");
     fragment.append(note);
-    if (explanation) {
-      const explanationEl = element("p", "apply-next-explanation apply-next-note", explanation);
-      fragment.append(explanationEl);
-    }
-
 
     const list = element("div", "apply-next-list");
-    topRanked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
-    if (!topRanked.length) list.append(element("p", "muted", "No eligible Apply Next candidates are available yet."));
+    list.append(element("p", "muted", "Loading recommendations..."));
     fragment.append(list);
-
-    panel.innerHTML = "";
     panel.append(fragment);
+
+    try {
+      const pool = candidatePool(feed.jobs, profile, state);
+      const artifact = await loadInspectionArtifact();
+      attachInspections(pool, artifact);
+    await addBaseDistances(pool, profile);
+    const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date());
+
+      const explanation = explainProfileChange(lastProfile, profile, lastRankedResults?.[0]?.job?.id, ranked?.[0]?.job?.id);
+
+      lastRankedResults = ranked;
+      lastProfile = profile;
+
+      const topRanked = ranked.slice(0, TOP_N);
+      const inspectedCount = topRanked.filter(result => result.inspection?.state === "inspected").length;
+
+      note.textContent = `Showing ${topRanked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`;
+
+      if (explanation) {
+        const explanationEl = element("p", "apply-next-explanation apply-next-note", explanation);
+        panel.insertBefore(explanationEl, list);
+      }
+
+      list.innerHTML = "";
+
+      const baseEligibleCount = (feed?.jobs || []).filter(job => job && !knownWrongTerm(job, profile)).length;
+
+      if (baseEligibleCount === 0) {
+        note.textContent = "";
+        const p = element("p", "muted", "No eligible Apply Next candidates are available.");
+        const edit = element("button", "secondary-btn", "Edit profile");
+        edit.type = "button";
+        edit.addEventListener("click", () => {
+          setupPanel(panel);
+          const input = document.querySelector("#applyNextProfileInput");
+          if (input) input.value = JSON.stringify(profile, null, 2);
+        });
+        list.append(p, edit);
+      } else if (pool.length === 0) {
+        note.textContent = "";
+        const p = element("p", "muted", "You've reviewed all current recommendations.");
+        const browse = element("button", "secondary-btn", "Browse main feed");
+        browse.type = "button";
+        browse.addEventListener("click", () => {
+          const btn = document.querySelector("#applyNextBtn");
+          if (btn) btn.click();
+          else panel.classList.add("hidden");
+        });
+        list.append(p, browse);
+      } else {
+        topRanked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
+      }
+
+    } catch (e) {
+      console.error(e);
+      note.textContent = "";
+      list.innerHTML = "";
+      const p = element("p", "muted", "Unable to load recommendations.");
+      const retry = element("button", "secondary-btn", "Retry");
+      retry.type = "button";
+      retry.addEventListener("click", () => renderQueue(panel, profile));
+      list.append(p, retry);
+    }
   }
 
   async function renderPanel(panel) {

@@ -251,6 +251,12 @@ assert.equal(jobs[2]._inspection, undefined);
   const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
   assert.ok(deployWorkflow.includes("data/workday-inspections.json"), "Pages workflow must deploy Workday inspections");
 
+  // Empty/Loading/Error/Exhausted state assertions
+  assert.match(uiSource, /Loading recommendations\.\.\./, "UI should explicitly indicate initial loading state");
+  assert.match(uiSource, /Unable to load recommendations\./, "UI should surface unhandled feed or pipeline failures as actionable error state");
+  assert.match(uiSource, /No eligible Apply Next candidates are available\./, "UI should explicitly call out lack of base candidates");
+  assert.match(uiSource, /You've reviewed all current recommendations\./, "UI should distinguish completely-reviewed queue from lack of options");
+
   console.log("apply-next UI tests passed");
 })().catch(error => {
   console.error(error);
