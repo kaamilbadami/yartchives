@@ -601,7 +601,18 @@
     if (result.inspection?.evidence?.length) {
       const evidenceHeading = element("p", "muted", "Authoritative posting evidence");
       const evidenceList = element("ul");
-      for (const evidence of result.inspection.evidence) evidenceList.append(element("li", "", evidence));
+      for (const evidence of result.inspection.evidence) {
+        const li = element("li", "", evidence);
+        const text = String(evidence).toLowerCase();
+        if (text.includes("unsupported hard required skill") || text.includes("major required gaps") || text.includes("known requirement conflict") || text.includes("required gap")) {
+          li.classList.add("apply-next-gap-hard");
+        } else if (text.includes("learnable/low-threshold stack gap") || text.includes("required skill only cautiously")) {
+          li.classList.add("apply-next-gap-learnable");
+        } else if (text.includes("unverified requirement") || text.includes("unverified required domain experience")) {
+          li.classList.add("apply-next-gap-unknown");
+        }
+        evidenceList.append(li);
+      }
       details.append(evidenceHeading, evidenceList);
     } else if (result.inspection?.state !== "inspected") {
       details.append(element("p", "muted", "No authoritative posting evidence is attached; metadata is used as a fallback."));
