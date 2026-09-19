@@ -124,7 +124,13 @@
 
     <section class="results-header">
       <div>
-        <h2 id="resultsTitle">All opportunities</h2>
+        <div class="results-view-row">
+          <h2 id="resultsTitle">All opportunities</h2>
+          <div class="view-toggle" role="group" aria-label="Results view">
+            <button id="jobsViewBtn" class="active" type="button" aria-pressed="true">Jobs</button>
+            <button id="companiesViewBtn" type="button" aria-pressed="false">Companies</button>
+          </div>
+        </div>
         <p id="feedMeta" class="muted">Loading feed…</p>
         <p id="resultsNote" class="results-note"></p>
       </div>
@@ -175,6 +181,7 @@
   <script src="ux.js" defer></script>
   <script src="location-display.js" defer></script>
   <script src="share.js" defer></script>
+  <script src="companies.js" defer></script>
   <script src="apply-next.js" defer></script>
   <script src="apply-next-readiness.js" defer></script>
   <script src="apply-next-competition.js" defer></script>

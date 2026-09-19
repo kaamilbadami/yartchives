@@ -204,6 +204,42 @@ h1 {
 }
 .results-header h2 { margin: 0 0 4px; font-size: 1.35rem; letter-spacing: -.02em; }
 .results-header p { margin: 0; font-size: .84rem; }
+.results-view-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.view-toggle {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-3);
+}
+.view-toggle button {
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  padding: 5px 9px;
+  cursor: pointer;
+  font-size: .76rem;
+  font-weight: 700;
+}
+.view-toggle button.active {
+  background: var(--soft);
+  color: var(--text);
+}
+.company-directory { display: grid; gap: 8px; }
+.company-directory-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  border: 1px solid #202d3e;
+  background: linear-gradient(180deg, #101722, #0e151f);
+  border-radius: 14px;
+  padding: 15px 17px;
+}
+.company-directory-card h3 { margin: 0 0 4px; font-size: 1rem; }
+.company-directory-card p { margin: 0; color: var(--muted); font-size: .82rem; }
 .results-note { margin-top: 5px !important; color: var(--muted-2); }
 .jobs { display: grid; gap: 8px; }
 .job-card {
@@ -319,6 +355,7 @@ button:hover, .apply-btn:hover, .ghost-btn:hover { filter: brightness(1.07); }
   .header-actions { justify-content: flex-start; }
   .filter-grid { grid-template-columns: 1fr 1fr; }
   .job-card { grid-template-columns: 1fr; }
+  .company-directory-card { align-items: flex-start; flex-direction: column; }
   .job-actions { flex-wrap: wrap; }
   .source-health-grid { grid-template-columns: 1fr 1fr; }
 }
