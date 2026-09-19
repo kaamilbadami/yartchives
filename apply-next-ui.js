@@ -579,6 +579,9 @@
       apply.href = job.url;
       apply.target = "_blank";
       apply.rel = "noopener noreferrer";
+      apply.addEventListener("click", () => {
+        if (typeof trackView === "function") trackView(job.id);
+      });
       actions.append(apply);
     }
     const saved = element("button", "secondary-btn", state.saved.has(job.id) ? "Saved" : "Save");
