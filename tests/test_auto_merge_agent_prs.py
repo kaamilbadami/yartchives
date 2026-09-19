@@ -217,6 +217,18 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         )
         self.assertFalse(ok)
 
+    def test_behind_state_is_mergeable_after_nonoverlap_safety_check(self):
+        self.assertTrue(
+            mod.github_reports_safe_mergeability(
+                {"mergeable": True, "mergeable_state": "behind"}
+            )
+        )
+        self.assertFalse(
+            mod.github_reports_safe_mergeability(
+                {"mergeable": False, "mergeable_state": "dirty"}
+            )
+        )
+
     def test_stale_green_pr_skips_refresh_when_main_changed_unrelated_paths(self):
         comparison = {"behind_by": 3}
         self.assertFalse(
