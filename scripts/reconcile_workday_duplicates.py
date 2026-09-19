@@ -226,6 +226,31 @@ def reconciled_posting_url(job: dict[str, Any]) -> str | None:
     return canonical or bf.canonical_url(job.get("url"))
 
 
+POSTING_ID_TOKEN = re.compile(r"(?:^|[^A-Za-z0-9])(?:[A-Fa-f0-9]{8}-[A-Fa-f0-9-]{27,}|\d{8,})(?:[^A-Za-z0-9]|$)")
+POSTING_ID_QUERY_KEYS = {"job", "jobid", "job_id", "jobcode", "job_code", "jid", "posting", "postingid", "posting_id", "requisition", "requisitionid", "requisition_id", "reqid", "req_id"}
+
+
+def posting_specific_direct_url_key(job: dict[str, Any]) -> tuple[str, ...] | None:
+    """Identify unsupported direct URLs that carry a strong posting identifier.
+
+    Exact posting-specific URLs are safe to reconcile even when aggregators use
+    slightly different title/location text. Generic landing pages remain excluded.
+    """
+
+    if job.get("link_kind") != "direct" or posting_identity_key(job.get("url")):
+        return None
+    canonical = bf.canonical_url(job.get("url"))
+    if not canonical:
+        return None
+    parsed = urllib.parse.urlparse(canonical)
+    if POSTING_ID_TOKEN.search(parsed.path):
+        return ("direct-posting-url", canonical)
+    for key, value in urllib.parse.parse_qsl(parsed.query, keep_blank_values=False):
+        if key.casefold() in POSTING_ID_QUERY_KEYS and POSTING_ID_TOKEN.search(f" {value} "):
+            return ("direct-posting-url", canonical)
+    return None
+
+
 def exact_direct_identity_key(job: dict[str, Any]) -> tuple[str, ...] | None:
     """Identify exact unsupported-provider copies after high-confidence link recovery.
 
@@ -352,7 +377,7 @@ def reconcile_jobs(jobs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], di
     for job in jobs:
         if not isinstance(job, dict):
             continue
-        identity = posting_identity_key(job.get("url")) or exact_direct_identity_key(job)
+        identity = posting_identity_key(job.get("url")) or posting_specific_direct_url_key(job) or exact_direct_identity_key(job)
         if not identity:
             passthrough.append(copy.deepcopy(job))
             continue
@@ -368,7 +393,7 @@ def reconcile_jobs(jobs: list[dict[str, Any]]) -> tuple[list[dict[str, Any]], di
         provider = identity[0]
         if provider in provider_postings:
             provider_postings[provider] += 1
-        elif provider == "direct-url":
+        elif provider in {"direct-url", "direct-posting-url"}:
             direct_url_postings += 1
         if len(group) == 1:
             reconciled.append(copy.deepcopy(group[0]))

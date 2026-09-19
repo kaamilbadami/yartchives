@@ -105,8 +105,16 @@ async function run() {
     <div class="apply-next-list"></div>
   `;
 
-  // Prime the internal state of the UI module (sets lastRankedResults)
-  UI.updateQueueOptimistically(panel, profile, null);
+  // Measure initial Apply Next render
+  const renderStart = performance.now();
+  await UI.renderQueue(panel, profile);
+  const renderEnd = performance.now();
+  const renderDuration = renderEnd - renderStart;
+
+  console.log(`Initial render (renderQueue): ${renderDuration.toFixed(2)} ms`);
+
+  // Initial render involves full computation + DOM work. Use a generous threshold.
+  assert.ok(renderDuration < 1500, `Initial render is too slow: ${renderDuration.toFixed(2)} ms (budget is 1500ms)`);
 
   // Use the ID of the first eligible ranked job if available, otherwise fallback to any job
   const testJobId = ranked.length > 0 ? ranked[0].job.id : feed.jobs[0].id;
@@ -118,6 +126,7 @@ async function run() {
   const actionDuration = actionEnd - actionStart;
 
   console.log(`State transition (Optimistic update for Hide/Apply): ${actionDuration.toFixed(2)} ms`);
+  console.log("State persistence is decoupled from optimistic updates, effectively isolating state transition (DOM) work.");
 
   // State transition is localized and should be very fast. Generous threshold for CI stability.
   assert.ok(actionDuration < 200, `State transition is too slow: ${actionDuration.toFixed(2)} ms (budget is 200ms)`);
