@@ -556,6 +556,25 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
 
+    def test_successful_merge_queues_one_followup_scan(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            '"workflow", "run", "auto-merge-agent-prs.yml",\n'
+            '            "--repo", repo,',
+            source,
+        )
+        self.assertIn(
+            '"Queued one follow-up auto-merge scan because this run advanced main; "',
+            source,
+        )
+        followup_index = source.index('"workflow", "run", "auto-merge-agent-prs.yml"')
+        merged_guard_index = source.index("if merged_count:")
+        no_merge_index = source.index(
+            'print("No autonomous pull request is currently eligible for automatic merge.")'
+        )
+        self.assertGreater(followup_index, merged_guard_index)
+        self.assertLess(followup_index, no_merge_index)
+
     def test_codex_review_ready_is_also_terminal(self):
         self.assertTrue(
             mod.autonomous_issue_ready(
