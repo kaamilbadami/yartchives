@@ -22,6 +22,13 @@ assert.equal(defaults.relocationScore, 8);
 assert.deepEqual(defaults.relocationRegionScores, {});
 assert.equal(defaults.excludeRelocation, false);
 
+const hugeCommute = UI.applyLocationPreferences({}, {
+  locationMode: "normal",
+  homeZip: "06897",
+  homeCommuteMiles: 100000,
+});
+assert.equal(hugeCommute.nearbyMiles, 150, "commute radius is bounded; relocation is a separate preference");
+
 const custom = UI.applyLocationPreferences({}, {
   locationMode: "custom",
   anchors: [
@@ -108,6 +115,8 @@ assert.match(source, /Custom scoring \(advanced\)/);
 assert.match(source, /relocation—not a larger commute radius/);
 assert.match(source, /Daily commute radius \(miles\)/);
 assert.doesNotMatch(source, /makeModeToggle/);
+const setupSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.js"), "utf8");
+assert.doesNotMatch(setupSource, /field\("Preferred states"/);
 assert.match(source, /Remote = 20/);
 assert.match(source, /20 to 16/);
 assert.match(source, /Custom scoring/);
