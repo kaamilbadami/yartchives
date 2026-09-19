@@ -2,6 +2,11 @@ name: Auto-merge autonomous agent PRs
 
 on:
   workflow_dispatch:
+    inputs:
+      wait_for_quality_run_id:
+        description: Quality workflow run that must finish before scanning
+        required: false
+        type: string
   schedule:
     - cron: "*/5 * * * *"
   push:
@@ -36,6 +41,15 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
+
+      - name: Wait for dispatched Quality run
+        if: ${{ inputs.wait_for_quality_run_id != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run watch "${{ inputs.wait_for_quality_run_id }}" \
+            --repo "${{ github.repository }}" \
+            --exit-status
 
       - name: Merge one safe autonomous pull request
         env:
