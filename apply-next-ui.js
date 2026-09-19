@@ -324,6 +324,12 @@
     return "";
   }
 
+  function totalScoreBandClass(score) {
+    if (score < 55) return "apply-next-score-low";
+    if (score < 75) return "apply-next-score-medium";
+    return "apply-next-score-high";
+  }
+
   function rankingSummary(result) {
     const parts = [];
     for (const key of ["fit", "freshness", "roi", "location"]) {
@@ -373,7 +379,8 @@
     }
     titleWrap.append(evidenceStatus);
 
-    const score = element("div", "apply-next-score");
+    const scoreClass = `apply-next-score ${totalScoreBandClass(result.total)}`;
+    const score = element("div", scoreClass);
     score.append(element("strong", "", String(result.total)), element("span", "", "/100"));
     top.append(titleWrap, score);
     card.append(top);
@@ -621,6 +628,7 @@
     componentLabel,
     componentExplanation,
     scoreBand,
+    totalScoreBandClass,
     rankingSummary,
     componentMax,
     updateQueueOptimistically,
