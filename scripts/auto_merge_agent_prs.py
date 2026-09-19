@@ -8,7 +8,7 @@ import os
 import re
 import subprocess
 from fnmatch import fnmatch
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
 QUALITY_WORKFLOW = "Quality checks"
 TERMINAL_AGENT_LABELS = {"jules-review-ready", "codex-review-ready"}
@@ -24,6 +24,8 @@ BLOCKED_PATH_PATTERNS = (
 CLOSING_ISSUE_RE = re.compile(
     r"(?im)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)\b"
 )
+JULES_REVIEW_READY_LABEL = "jules-review-ready"
+GITHUB_ACTIONS_BOT = "github-actions[bot]"
 
 
 def label_names(issue: dict[str, Any]) -> set[str]:
@@ -39,6 +41,66 @@ def label_names(issue: dict[str, Any]) -> set[str]:
 def linked_issue_number(body: str) -> int | None:
     match = CLOSING_ISSUE_RE.search(body or "")
     return int(match.group(1)) if match else None
+
+
+def completed_jules_pr_number(
+    comments: Iterable[dict[str, Any]], repo: str
+) -> int | None:
+    """Return the PR number from a trusted Jules completion comment."""
+    pattern = re.compile(
+        rf"(?m)^Pull request:\s+https://github\.com/{re.escape(repo)}/pull/(\d+)\s*$"
+    )
+    for comment in reversed(list(comments)):
+        user = comment.get("user") or {}
+        if str(user.get("login") or "") != GITHUB_ACTIONS_BOT:
+            continue
+        body = str(comment.get("body") or "")
+        if "Jules completed session `" not in body:
+            continue
+        match = pattern.search(body)
+        if match:
+            return int(match.group(1))
+    return None
+
+
+def review_ready_issue_by_pr(
+    issues: Iterable[dict[str, Any]],
+    *,
+    repo: str,
+    load_comments: Callable[[int], list[dict[str, Any]]],
+) -> dict[int, dict[str, Any]]:
+    """Map exact Jules output PRs back to their authorized review-ready issues."""
+    mapping: dict[int, dict[str, Any]] = {}
+    for issue in issues:
+        if "pull_request" in issue:
+            continue
+        labels = label_names(issue)
+        if (
+            str(issue.get("state") or "") != "open"
+            or REQUIRED_ISSUE_LABEL not in labels
+            or JULES_REVIEW_READY_LABEL not in labels
+        ):
+            continue
+        number = int(issue.get("number") or 0)
+        pr_number = completed_jules_pr_number(load_comments(number), repo)
+        if pr_number is None:
+            continue
+        existing = mapping.get(pr_number)
+        if existing is not None and int(existing.get("number") or 0) != number:
+            raise RuntimeError(
+                f"PR #{pr_number} is recorded as Jules output for multiple issues"
+            )
+        mapping[pr_number] = issue
+    return mapping
+
+
+def ensure_closing_link(pr: dict[str, Any], issue_number: int) -> str:
+    """Return a PR body normalized with an explicit closing issue reference."""
+    body = str(pr.get("body") or "").rstrip()
+    if linked_issue_number(body) is not None:
+        return body
+    closing = f"Closes #{issue_number}"
+    return f"{body}\n\n{closing}" if body else closing
 
 
 def blocked_changed_paths(paths: Iterable[str]) -> list[str]:
@@ -154,6 +216,36 @@ def gh_run(*args: str) -> None:
     subprocess.run(["gh", *args], check=True)
 
 
+def update_pull_request_branch(repo: str, number: int, head_sha: str) -> tuple[bool, str]:
+    result = subprocess.run(
+        [
+            "gh",
+            "api",
+            "--method",
+            "PUT",
+            f"repos/{repo}/pulls/{number}/update-branch",
+            "-f",
+            f"expected_head_sha={head_sha}",
+        ],
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode == 0:
+        return True, ""
+    detail = "\n".join(part for part in (result.stdout, result.stderr) if part).strip()
+    lowered = detail.casefold()
+    if "merge conflict between base and head" in lowered or (
+        "http 422" in lowered and "merge conflict" in lowered
+    ):
+        return False, detail
+    raise subprocess.CalledProcessError(
+        result.returncode,
+        result.args,
+        output=result.stdout,
+        stderr=result.stderr,
+    )
+
+
 def flatten_pages(pages: Any) -> list[Any]:
     if not isinstance(pages, list):
         raise TypeError("paginated response must be a list")
@@ -183,13 +275,45 @@ def main() -> int:
     )
     pull_requests.sort(key=lambda pr: int(pr["number"]))
 
+    review_ready_issues = gh_paginated_json(
+        "api",
+        f"repos/{repo}/issues?state=open&labels={JULES_REVIEW_READY_LABEL}&per_page=100",
+    )
+    recovered_issue_by_pr = review_ready_issue_by_pr(
+        review_ready_issues,
+        repo=repo,
+        load_comments=lambda issue_number: gh_paginated_json(
+            "api",
+            f"repos/{repo}/issues/{issue_number}/comments?per_page=100",
+        ),
+    )
+
+    merged_count = 0
+
     for pr in pull_requests:
         number = int(pr["number"])
         issue_number = linked_issue_number(str(pr.get("body") or ""))
+        issue = None
         if issue_number is None:
-            continue
+            issue = recovered_issue_by_pr.get(number)
+            if issue is None:
+                continue
+            issue_number = int(issue["number"])
+            normalized_body = ensure_closing_link(pr, issue_number)
+            gh_run(
+                "api",
+                "--method", "PATCH",
+                f"repos/{repo}/pulls/{number}",
+                "-f", f"body={normalized_body}",
+            )
+            pr["body"] = normalized_body
+            print(
+                f"Recovered Jules linkage for PR #{number} from review-ready issue "
+                f"#{issue_number} and added 'Closes #{issue_number}'."
+            )
 
-        issue = gh_json("api", f"repos/{repo}/issues/{issue_number}")
+        if issue is None:
+            issue = gh_json("api", f"repos/{repo}/issues/{issue_number}")
         files = gh_paginated_json(
             "api",
             f"repos/{repo}/pulls/{number}/files?per_page=100",
@@ -248,12 +372,15 @@ def main() -> int:
         base_ref = str((pr.get("base") or {}).get("ref") or "main")
         comparison = gh_json("api", f"repos/{repo}/compare/{base_ref}...{head_sha}")
         if int(comparison.get("behind_by") or 0) > 0:
-            gh_run(
-                "api",
-                "--method", "PUT",
-                f"repos/{repo}/pulls/{number}/update-branch",
-                "-f", f"expected_head_sha={head_sha}",
-            )
+            updated, detail = update_pull_request_branch(repo, number, head_sha)
+            if not updated:
+                print(
+                    f"Skipping PR #{number}: branch cannot be updated automatically because "
+                    "it conflicts with current base. Continuing with later pull requests."
+                )
+                if detail:
+                    print(detail)
+                continue
             if not head_ref:
                 raise RuntimeError(f"PR #{number} has no head branch for fresh CI")
             gh_run(
@@ -286,9 +413,12 @@ def main() -> int:
             "-f", f"sha={head_sha}",
         )
         print(f"Squash-merged eligible autonomous PR #{number}.")
-        return 0
+        merged_count += 1
 
-    print("No autonomous pull request is currently eligible for automatic merge.")
+    if merged_count:
+        print(f"Squash-merged {merged_count} eligible autonomous pull request(s).")
+    else:
+        print("No autonomous pull request is currently eligible for automatic merge.")
     return 0
 
 
