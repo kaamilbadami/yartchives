@@ -63,10 +63,17 @@ def build_seed(rows: list[dict[str, str]]) -> dict[str, Any]:
         apply_host = _clean(row.get("apply_host"))
         if not name or not slug or not apply_host:
             raise ValueError("selected State of ATS row is missing name, slug, or apply_host")
+
+        ats_system = _clean(row.get("ats_system"))
+        if ats_system.casefold() == "lever" and apply_host == "jobs.lever.co":
+            apply_host = f"{apply_host}/{slug}"
+        elif ats_system.casefold() == "greenhouse" and apply_host in {"boards.greenhouse.io", "job-boards.greenhouse.io"}:
+            apply_host = f"{apply_host}/{slug}"
+
         employer: dict[str, Any] = {
             "name": name,
             "upstream_slug": slug,
-            "ats_system": _clean(row.get("ats_system")),
+            "ats_system": ats_system,
             "apply_host": apply_host,
             "domain_hints": [apply_host],
             "evidence_method": _clean(row.get("evidence_method")),
