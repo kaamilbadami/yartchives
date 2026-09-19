@@ -41,6 +41,27 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertIn('JULES_WATCH_SECONDS: "780"', workflow)
         self.assertIn("cancel-in-progress: false", workflow)
 
+    def test_dispatch_capacity_summary_reports_unfilled_locked_slots(self):
+        issues = [
+            issue(
+                222,
+                "active frontend",
+                body=task_body("P1", "frontend-state"),
+                labels=("jules-session",),
+            ),
+            issue(279, "blocked frontend", body=task_body("P1", "frontend-state")),
+            issue(152, "feed", body=task_body("P1", "feed")),
+        ]
+        selected = mod.select_tasks(issues, max_active=3)
+
+        summary = mod.dispatch_capacity_summary(issues, selected, max_active=3)
+
+        self.assertEqual([task.number for task in selected], [152])
+        self.assertIn("1 active", summary)
+        self.assertIn("1 selected (#152)", summary)
+        self.assertIn("1 unfilled after dependencies/resource locks", summary)
+        self.assertIn("max 3", summary)
+
     def test_selects_highest_priority_safe_tasks_without_area_overlap(self):
         issues = [
             issue(10, "P2 frontend", body=task_body("P2", "frontend-state")),
