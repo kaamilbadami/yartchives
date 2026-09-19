@@ -165,6 +165,8 @@ assert.equal(jobs[2]._inspection, undefined);
   const uiSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-ui.js"), "utf8");
   assert.match(uiSource, /local storage/i);
   assert.match(uiSource, /Authoritative posting evidence/);
+  assert.match(uiSource, /metadata is used as a fallback/);
+  assert.match(uiSource, /apply-next-inspection-\$\{inspectionState\}/);
   assert.match(uiSource, /Worth applying/);
   assert.match(uiSource, /How well you match/);
   assert.match(uiSource, /How recent it is/);
