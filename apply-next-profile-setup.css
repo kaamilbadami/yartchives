@@ -55,6 +55,12 @@
   font-size: 0.88rem;
 }
 
+.apply-next-profile-check input[type="checkbox"],
+.apply-next-profile-check input[type="radio"] {
+  width: auto;
+  flex: 0 0 auto;
+}
+
 .apply-next-profile-subhead {
   font-weight: 700;
   font-size: 0.82rem;
@@ -103,6 +109,10 @@
   border: 1px solid var(--line, #d9dde5);
   border-radius: 14px;
   background: color-mix(in srgb, var(--panel, #fff) 94%, #f5f7fb);
+}
+
+.apply-next-location-panel[hidden] {
+  display: none;
 }
 
 .apply-next-location-summary-chip {
