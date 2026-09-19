@@ -23,12 +23,22 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 from scripts.build_feed import canonical_url, norm  # noqa: E402
+from scripts.provider_fingerprint import fingerprint_provider  # noqa: E402
 from scripts.reconcile_workday_duplicates import posting_identity_key  # noqa: E402
 
 FEED = ROOT / "data/listings.json"
 SOURCES = ROOT / "sources.json"
 DIRECT = ROOT / "direct_sources.json"
 VISIBLE_TYPES = {"internship", "co-op", "student"}
+MISS_CATEGORIES = (
+    "source_missing",
+    "employer_unresolved",
+    "unsupported_ats",
+    "freshness_lag",
+    "parsing_normalization_failure",
+    "eligibility_filtering_mistake",
+    "uncertain",
+)
 STATUSES = (
     "already_in_yartchives",
     "filtered_or_misclassified",
@@ -386,7 +396,7 @@ def source_coverage(
     return None, "no source metadata", source_name
 
 
-def classify(
+def _classify(
     row: dict[str, Any],
     index: Index,
     catalog: dict[str, set[str]],
@@ -590,6 +600,45 @@ def classify(
     )
 
 
+
+def classify_miss_category(status: str, reason: str, url: str | None) -> str | None:
+    if status == "already_in_yartchives":
+        return None
+    if status == "employer_exists_but_listing_missing":
+        return "employer_unresolved"
+    if status == "configured_source_miss":
+        return "freshness_lag"
+    if status == "duplicate_resolution_issue":
+        return "parsing_normalization_failure"
+    if status == "filtered_or_misclassified":
+        return "eligibility_filtering_mistake"
+    if status == "source_not_covered":
+        if url:
+            provider = fingerprint_provider(url)
+            family = provider.get("family", "unknown")
+            if family not in ("custom_unknown", "unknown"):
+                return "unsupported_ats"
+        if "direct ATS host" in reason and "is not configured" in reason:
+            return "unsupported_ats"
+        return "source_missing"
+    return "uncertain"
+
+def classify(
+    row: dict[str, Any],
+    index: Index,
+    catalog: dict[str, set[str]],
+    profiles: list[str],
+    states: list[str],
+) -> dict[str, Any]:
+    result_dict = _classify(row, index, catalog, profiles, states)
+    result_dict["miss_category"] = classify_miss_category(
+        result_dict["status"],
+        result_dict.get("reason", ""),
+        result_dict.get("url")
+    )
+    return result_dict
+
+
 def build_report(
     rows: list[dict[str, Any]],
     feed_doc: dict[str, Any],
@@ -608,6 +657,7 @@ def build_report(
 
     counts = Counter(item["status"] for item in results)
     reason_counts = Counter(item.get("reason_code") or "unknown" for item in results)
+    miss_category_counts = Counter(item["miss_category"] for item in results if item.get("miss_category"))
     total = len(results)
     captured = sum(
         counts[status]
@@ -641,6 +691,7 @@ def build_report(
             "capture_rate": round(captured / total, 4) if total else None,
             "visible_rate": round(counts["already_in_yartchives"] / total, 4) if total else None,
             "status_counts": {status: counts[status] for status in STATUSES},
+            "miss_category_counts": {category: miss_category_counts[category] for category in MISS_CATEGORIES},
             "reason_code_counts": dict(sorted(reason_counts.items(), key=lambda item: (-item[1], item[0]))),
             "by_source": {key: dict(value) for key, value in sorted(by_source.items())},
         },
@@ -671,6 +722,8 @@ def markdown(report: dict[str, Any]) -> str:
         "",
     ]
     lines += [f"- `{status}`: {summary['status_counts'][status]}" for status in STATUSES]
+    lines += ["", "## Miss category breakdown", ""]
+    lines += [f"- `{cat}`: {summary.get('miss_category_counts', {}).get(cat, 0)}" for cat in MISS_CATEGORIES ]
     lines += ["", "## Root-cause breakdown", ""]
     for reason, count in summary.get("reason_code_counts", {}).items():
         lines.append(f"- `{reason}`: {count}")
@@ -685,7 +738,7 @@ def markdown(report: dict[str, Any]) -> str:
             if value
         ) or "Unnamed listing"
         lines += [
-            f"- **{item['status']}** (`{item['reason_code']}`): {label}",
+            f"- **{item['status']}** / **{item.get('miss_category')}** (`{item['reason_code']}`): {label}",
             f"  - Why: {item['reason']}",
             f"  - Next: {item['recommended_action']}",
         ]
