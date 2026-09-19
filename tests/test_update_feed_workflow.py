@@ -27,7 +27,7 @@ class UpdateFeedWorkflowTests(unittest.TestCase):
         tail = text[final_commit:]
 
         self.assertIn(
-            'GENERATED_PATHS="data/listings.json data/workday-inspections.json"',
+            'GENERATED_PATHS="data/listings.json data/workday-inspections.json README.md"',
             tail,
         )
         self.assertNotIn(
