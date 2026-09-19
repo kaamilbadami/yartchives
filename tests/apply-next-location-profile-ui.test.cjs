@@ -112,7 +112,7 @@ assert.match(source, /Location preferences/);
 assert.match(source, /Location scoring/);
 assert.match(source, /Default scoring \(recommended\)/);
 assert.match(source, /Custom scoring \(advanced\)/);
-assert.match(source, /relocation—not a larger commute radius/);
+assert.match(source, /select “Open to relocating for a worthwhile role” below—don’t increase the commute radius/);
 assert.match(source, /Daily commute radius \(miles\)/);
 assert.doesNotMatch(source, /makeModeToggle/);
 const setupSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.js"), "utf8");
@@ -131,5 +131,7 @@ assert.doesNotMatch(source, /Remote is acceptable/);
 const css = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.css"), "utf8");
 assert.match(css, /apply-next-location-anchor-row/);
 assert.match(css, /apply-next-location-region-card/);
+assert.match(css, /apply-next-location-panel\[hidden\]/);
+assert.match(css, /input\[type="radio"\]/);
 
 console.log("apply-next location preference UI tests passed");
