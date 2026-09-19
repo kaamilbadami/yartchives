@@ -649,6 +649,85 @@
     });
     actions.append(saved, applied, hide);
     card.append(actions);
+
+    const feedbackSection = element("div", "apply-next-feedback");
+
+    function renderFeedback() {
+      feedbackSection.innerHTML = "";
+      const currentFeedback = state.feedback[job.id];
+
+      if (!currentFeedback) {
+        const p = element("span", "muted", "Was this recommendation useful?");
+        const goodBtn = element("button", "secondary-btn apply-next-feedback-btn", "Good suggestion");
+        goodBtn.type = "button";
+        goodBtn.addEventListener("click", () => {
+          state.feedback[job.id] = { rating: "good" };
+          persist();
+          renderFeedback();
+        });
+
+        const badBtn = element("button", "secondary-btn apply-next-feedback-btn", "Bad suggestion");
+        badBtn.type = "button";
+        badBtn.addEventListener("click", () => {
+          state.feedback[job.id] = { rating: "bad" };
+          persist();
+          renderFeedback();
+        });
+
+        const btnGroup = element("div", "apply-next-feedback-group");
+        btnGroup.append(goodBtn, badBtn);
+        feedbackSection.append(p, btnGroup);
+      } else if (currentFeedback.rating === "good") {
+        const p = element("span", "muted", "Rated as a good suggestion.");
+        const undoBtn = element("button", "text-btn", "Undo");
+        undoBtn.type = "button";
+        undoBtn.addEventListener("click", () => {
+          delete state.feedback[job.id];
+          persist();
+          renderFeedback();
+        });
+        feedbackSection.append(p, undoBtn);
+      } else if (currentFeedback.rating === "bad") {
+        const p = element("span", "muted", "Rated as a bad suggestion.");
+        const undoBtn = element("button", "text-btn", "Undo");
+        undoBtn.type = "button";
+        undoBtn.addEventListener("click", () => {
+          delete state.feedback[job.id];
+          persist();
+          renderFeedback();
+        });
+        feedbackSection.append(p, undoBtn);
+
+        const reasonWrap = element("div", "apply-next-feedback-reason");
+        const reasonLabel = element("span", "muted", "Optional reason:");
+        const select = element("select", "apply-next-feedback-select");
+        select.innerHTML = `
+          <option value="">Select reason...</option>
+          <option value="role">Role interest</option>
+          <option value="location">Location</option>
+          <option value="fit">Requirements/Fit</option>
+          <option value="company">Company/Industry</option>
+          <option value="other">Other</option>
+        `;
+        if (currentFeedback.reason) select.value = currentFeedback.reason;
+
+        select.addEventListener("change", (e) => {
+          if (e.target.value) {
+            state.feedback[job.id].reason = e.target.value;
+          } else {
+            delete state.feedback[job.id].reason;
+          }
+          persist();
+        });
+
+        reasonWrap.append(reasonLabel, select);
+        feedbackSection.append(reasonWrap);
+      }
+    }
+
+    renderFeedback();
+    card.append(feedbackSection);
+
     return card;
   }
 

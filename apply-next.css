@@ -235,6 +235,44 @@
   margin-top: 0.35rem;
 }
 
+.apply-next-feedback {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+}
+
+.apply-next-feedback-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.apply-next-feedback-btn {
+  font-size: 0.78rem;
+  padding: 0.3rem 0.6rem;
+}
+
+.apply-next-feedback-reason {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.apply-next-feedback-select {
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 0.78rem;
+}
+
 @media (max-width: 720px) {
   .apply-next-breakdown {
     grid-template-columns: 1fr;
