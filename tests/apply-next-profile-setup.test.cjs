@@ -159,6 +159,7 @@ assert.deepEqual(
   assert.match(source, /When are you looking\?/);
   assert.match(source, /When are you graduating \(month year\)/);
   assert.match(source, /input\("targetTerm", "Summer 2027", "radio"\)/);
+  assert.match(source, /profile \? "Save profile" : "Create profile"/, "New users should see a clear Create profile action");
   assert.doesNotMatch(source, /field\("Degree"/);
   assert.doesNotMatch(source, /Kaamil|Badami|kaamil\.badami/i);
 
