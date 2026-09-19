@@ -242,6 +242,9 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(hideHandler[1], /applyFilters\(\);/);
 
   assert.match(uiSource, /Restore them from the main feed\./, "Should document recovery path for Applied and Hidden jobs");
+  assert.match(uiSource, /setProfileSetupMode\(true\)/, "Profile setup should enter focused onboarding mode");
+  assert.match(uiSource, /setProfileSetupMode\(false\)/, "Queue and panel close paths should restore the normal feed");
+  assert.match(uiSource, /apply-next-profile-mode/, "Focused onboarding should use an explicit main-state class");
 
   assert.doesNotMatch(uiSource, /<option value="newest">Newest<\/option>/, "Apply Next should not expose a Newest sort mode");
 

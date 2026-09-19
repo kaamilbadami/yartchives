@@ -458,7 +458,7 @@
 
     const error = element("p", "error-box hidden");
     const actions = element("div", "apply-next-profile-actions");
-    const save = element("button", "primary-btn", "Save private profile");
+    const save = element("button", "primary-btn", profile ? "Save profile" : "Create profile");
     save.type = "submit";
     actions.append(save);
     if (profile) {
