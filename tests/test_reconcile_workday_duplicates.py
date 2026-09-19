@@ -207,6 +207,18 @@ class ReconcileWorkdayDuplicateTests(unittest.TestCase):
         self.assertEqual(reconciled[0]["url"], job_url)
         self.assertEqual(reconciled[0]["link_kind"], "employer_job")
 
+
+    def test_oracle_hcm_identity_key(self):
+        url = "https://ehzq.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/115806"
+        self.assertEqual(
+            mod.posting_identity_key(url),
+            ("oracle_hcm", "ehzq.fa.us2.oraclecloud.com", "115806"),
+        )
+        self.assertEqual(
+            mod.canonical_posting_url(url),
+            "https://ehzq.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/job/115806",
+        )
+
     def test_greenhouse_identity_ignores_legacy_host_and_tracking(self):
         tracked = DOORDASH_URL + "?amp%3Bref=Simplify"
         legacy = "https://boards.greenhouse.io/doordashusa/jobs/8171041?gh_src=test"
