@@ -255,6 +255,13 @@ DATE_RANGE_PATTERN = re.compile(
     r"\b(?:January|February|March|April|May|June|July|August|September|October|November|December)\b",
     re.I,
 )
+DEADLINE_PATTERN = re.compile(
+    r"\b(?:deadline|apply by|applications?\s+will\s+close|applications?\s+close|applications?\s+due|closing date|submit by)\b[^.\n]*"
+    r"\b(?:January|February|March|April|May|June|July|August|September|October|November|December|"
+    r"Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b"
+    r"[^.\n]*",
+    re.I,
+)
 
 
 def extract_posting_schedule(lines: Iterable[str]) -> dict[str, Any]:
@@ -263,6 +270,7 @@ def extract_posting_schedule(lines: Iterable[str]) -> dict[str, Any]:
     terms: list[str] = []
     duration_evidence: list[str] = []
     date_range_evidence: list[str] = []
+    application_deadline_evidence: list[str] = []
     for raw in lines:
         statement = clean_line(raw)
         if not statement:
@@ -276,12 +284,15 @@ def extract_posting_schedule(lines: Iterable[str]) -> dict[str, Any]:
             duration_evidence.append(statement)
         if DATE_RANGE_PATTERN.search(statement) and statement not in date_range_evidence:
             date_range_evidence.append(statement)
+        if DEADLINE_PATTERN.search(statement) and statement not in application_deadline_evidence:
+            application_deadline_evidence.append(statement)
 
     return {
-        "status": "authoritative" if terms or duration_evidence or date_range_evidence else "unknown",
+        "status": "authoritative" if terms or duration_evidence or date_range_evidence or application_deadline_evidence else "unknown",
         "terms": terms,
         "duration_evidence": duration_evidence,
         "date_range_evidence": date_range_evidence,
+        "application_deadline_evidence": application_deadline_evidence,
     }
 
 

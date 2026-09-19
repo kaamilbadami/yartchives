@@ -159,8 +159,13 @@ assert.deepEqual(
   assert.match(source, /When are you looking\?/);
   assert.match(source, /When are you graduating \(month year\)/);
   assert.match(source, /input\("targetTerm", "Summer 2027", "radio"\)/);
+  assert.match(source, /profile \? "Save profile" : "Create profile"/, "New users should see a clear Create profile action");
   assert.doesNotMatch(source, /field\("Degree"/);
   assert.doesNotMatch(source, /Kaamil|Badami|kaamil\.badami/i);
+
+  const setupCss = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.css"), "utf8");
+  assert.match(setupCss, /main\.apply-next-profile-mode > :not\(#applyNextPanel\)/, "Focused profile mode should hide the ordinary feed");
+  assert.match(setupCss, /display: none !important;/);
 
   const quality = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "quality.yml"), "utf8");
   assert.match(quality, /node --check apply-next-profile-setup\.js/);

@@ -157,6 +157,24 @@ class PostingRequirementTests(unittest.TestCase):
             "Available to work 40 hours a week beginning in January through June."
         ])
 
+    def test_extracts_explicit_application_deadline_evidence(self):
+        schedule = shared.extract_posting_schedule([
+            "Application Deadline: August 14, 2026",
+            "Applications will close on September 1st.",
+            "Please apply by May 1.",
+            "The deadline to apply is January 15, 2027.",
+            "Submit by Nov 5, 2026.",
+            "This position does not have a deadline."
+        ])
+        self.assertEqual(schedule["status"], "authoritative")
+        self.assertEqual(schedule["application_deadline_evidence"], [
+            "Application Deadline: August 14, 2026",
+            "Applications will close on September 1st.",
+            "Please apply by May 1.",
+            "The deadline to apply is January 15, 2027.",
+            "Submit by Nov 5, 2026."
+        ])
+
     def test_normalization_preserves_stable_block_lines(self):
         text, lines = shared.normalize_description(
             "<h2>Required Qualifications</h2><p>C++ required.<br>Linux preferred.</p>"
