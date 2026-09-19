@@ -70,12 +70,11 @@ opportunityType.value = "all";
 state.freshness = "30";
 state.location = "CT";
 state.search = "software";
-state.status = "saved";
-hiddenToggle.classList.contains = () => true;
+state.status = "hidden";
 context.renderJobs();
 assert.equal(
   els.resultsTitle.textContent,
-  "Computer Science · All opportunities · Past 30 days · CT · Search: “software” · Saved · Hidden"
+  "Computer Science · All opportunities · Past 30 days · CT · Search: “software” · Hidden"
 );
 
 console.log("results-language tests passed");

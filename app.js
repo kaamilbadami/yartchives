@@ -75,6 +75,7 @@ const els = {
   totalCount: document.querySelector("#totalCount"),
   newCount: document.querySelector("#newCount"),
   savedCount: document.querySelector("#savedCount"),
+  hiddenCount: document.querySelector("#hiddenCount"),
   resultsTitle: document.querySelector("#resultsTitle"),
   resultsNote: document.querySelector("#resultsNote"),
   feedMeta: document.querySelector("#feedMeta"),
@@ -394,7 +395,11 @@ async function applyFilters() {
   }
 
   filtered = feed.jobs.filter(job => {
-    if (state.hidden.has(job.id)) return false;
+    if (state.status === "hidden") {
+      if (!state.hidden.has(job.id)) return false;
+    } else {
+      if (state.hidden.has(job.id)) return false;
+    }
     if (state.profile !== "all" && !(job.profiles || []).includes(state.profile)) return false;
     if (q && !searchable(job).includes(q)) return false;
     const ageDays = jobAgeDays(job);
@@ -460,6 +465,19 @@ function renderJobs() {
         empty.innerHTML = "<strong>No applied internships yet.</strong><br>Click Applied on any internship card when you've submitted an application.";
       } else {
         empty.innerHTML = "<strong>No applied internships match your current filters.</strong><br>Try clearing or broadening your search, location, career area, or freshness filters.<br>";
+        const resetBtn = document.createElement("button");
+        resetBtn.type = "button";
+        resetBtn.className = "secondary-btn empty-reset-btn";
+        resetBtn.style.marginTop = "12px";
+        resetBtn.textContent = "Reset filters";
+        resetBtn.addEventListener("click", () => els.clearFiltersBtn?.click());
+        empty.appendChild(resetBtn);
+      }
+    } else if (state.status === "hidden") {
+      if (state.hidden.size === 0) {
+        empty.innerHTML = "<strong>No hidden internships.</strong><br>Click the Hide button on any internship card to hide it on this browser.";
+      } else {
+        empty.innerHTML = "<strong>No hidden internships match your current filters.</strong><br>Try clearing or broadening your search, location, career area, or freshness filters.<br>";
         const resetBtn = document.createElement("button");
         resetBtn.type = "button";
         resetBtn.className = "secondary-btn empty-reset-btn";
