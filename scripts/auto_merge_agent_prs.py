@@ -36,6 +36,15 @@ CLOSING_ISSUE_RE = re.compile(
 JULES_REVIEW_READY_LABEL = "jules-review-ready"
 GITHUB_ACTIONS_BOT = "github-actions[bot]"
 SAFE_MERGEABLE_STATES = {"clean", "has_hooks", "unstable", "behind"}
+MAINTENANCE_TEST_BY_PATH = {
+    "scripts/dispatch_autonomous_issues.py": "tests/test_dispatch_autonomous_issues.py",
+    "scripts/triage_workflow_failures.py": "tests/test_triage_workflow_failures.py",
+}
+MAINTENANCE_ALLOWED_PATHS = frozenset(
+    {*MAINTENANCE_TEST_BY_PATH, *MAINTENANCE_TEST_BY_PATH.values()}
+)
+MAINTENANCE_MAX_FILES = 4
+MAINTENANCE_MAX_CHANGES = 250
 
 
 def label_names(issue: dict[str, Any]) -> set[str]:
@@ -247,6 +256,52 @@ def autonomous_issue_ready(issue: dict[str, Any]) -> bool:
         and "blocked" not in labels
         and "needs-product-decision" not in labels
     )
+
+
+def maintenance_pr_eligible(
+    pr: dict[str, Any],
+    *,
+    repo: str,
+    files: Iterable[dict[str, Any]],
+    quality_runs: Iterable[dict[str, Any]],
+    require_quality: bool = True,
+) -> tuple[bool, str]:
+    """Allow only small, test-paired dispatcher/triage repairs through the maintenance lane."""
+    if str(pr.get("state") or "") != "open":
+        return False, "pull request is not open"
+    if bool(pr.get("draft")):
+        return False, "pull request is a draft"
+
+    head = pr.get("head") or {}
+    head_repo = (head.get("repo") or {}).get("full_name")
+    if head_repo != repo:
+        return False, "pull request branch is not in the source repository"
+
+    rows = list(files)
+    paths = {str(row.get("filename") or "") for row in rows if row.get("filename")}
+    if not paths or not paths <= MAINTENANCE_ALLOWED_PATHS:
+        return False, "maintenance lane contains a non-maintenance path"
+    if len(paths) > MAINTENANCE_MAX_FILES:
+        return False, "maintenance lane changes too many files"
+
+    changed_controls = paths & MAINTENANCE_TEST_BY_PATH.keys()
+    if not changed_controls:
+        return False, "maintenance lane does not change a control-plane script"
+    for control_path in changed_controls:
+        required_test = MAINTENANCE_TEST_BY_PATH[control_path]
+        if required_test not in paths:
+            return False, f"maintenance change lacks paired regression test: {required_test}"
+
+    total_changes = sum(int(row.get("changes") or 0) for row in rows)
+    if total_changes > MAINTENANCE_MAX_CHANGES:
+        return False, "maintenance lane diff is too large"
+
+    head_sha = str(head.get("sha") or "")
+    if not head_sha:
+        return False, "pull request has no head commit"
+    if require_quality and not exact_head_quality_passed(quality_runs, head_sha):
+        return False, "exact pull request head has not passed Quality checks"
+    return True, "maintenance-eligible"
 
 
 def eligible_pr(
@@ -506,6 +561,20 @@ def main() -> int:
 
     for pr in pull_requests:
         number = int(pr["number"])
+        files = files_by_pr[number]
+        head_sha = str((pr.get("head") or {}).get("sha") or "")
+        runs = gh_json(
+            "api",
+            quality_runs_api_path(repo, head_sha),
+        ).get("workflow_runs", [])
+        maintenance_pre_ci, maintenance_reason = maintenance_pr_eligible(
+            pr,
+            repo=repo,
+            files=files,
+            quality_runs=runs,
+            require_quality=False,
+        )
+
         issue_number = linked_issue_number(str(pr.get("body") or ""))
         issue = None
         if issue_number is None:
@@ -526,14 +595,8 @@ def main() -> int:
                 f"#{issue_number} and added 'Closes #{issue_number}'."
             )
 
-        if issue is None:
+        if issue is None and not maintenance_pre_ci:
             issue = gh_json("api", f"repos/{repo}/issues/{issue_number}")
-        files = files_by_pr[number]
-        head_sha = str((pr.get("head") or {}).get("sha") or "")
-        runs = gh_json(
-            "api",
-            quality_runs_api_path(repo, head_sha),
-        ).get("workflow_runs", [])
         deleted_run_ids = delete_superseded_action_required_runs(
             repo,
             runs,
@@ -546,16 +609,20 @@ def main() -> int:
             )
 
         changed_paths = [str(row.get("filename") or "") for row in files]
-        pre_ci_eligible, reason = eligible_pr(
-            pr,
-            repo=repo,
-            issue=issue,
-            changed_paths=changed_paths,
-            quality_runs=runs,
-            require_quality=False,
-        )
+        if maintenance_pre_ci:
+            pre_ci_eligible, reason = True, "maintenance-eligible"
+        else:
+            pre_ci_eligible, reason = eligible_pr(
+                pr,
+                repo=repo,
+                issue=issue,
+                changed_paths=changed_paths,
+                quality_runs=runs,
+                require_quality=False,
+            )
         if not pre_ci_eligible:
-            print(f"Skipping PR #{number}: {reason}.")
+            detail = maintenance_reason if maintenance_reason != "maintenance-eligible" else reason
+            print(f"Skipping PR #{number}: {detail if issue is None else reason}.")
             continue
 
         head_ref = str((pr.get("head") or {}).get("ref") or "")
@@ -579,13 +646,21 @@ def main() -> int:
                 )
                 continue
 
-        eligible, reason = eligible_pr(
-            pr,
-            repo=repo,
-            issue=issue,
-            changed_paths=changed_paths,
-            quality_runs=runs,
-        )
+        if maintenance_pre_ci:
+            eligible, reason = maintenance_pr_eligible(
+                pr,
+                repo=repo,
+                files=files,
+                quality_runs=runs,
+            )
+        else:
+            eligible, reason = eligible_pr(
+                pr,
+                repo=repo,
+                issue=issue,
+                changed_paths=changed_paths,
+                quality_runs=runs,
+            )
         if not eligible:
             print(f"Skipping PR #{number}: {reason}.")
             continue
