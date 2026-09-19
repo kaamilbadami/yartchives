@@ -747,6 +747,95 @@ class AutonomousDispatcherTests(unittest.TestCase):
         selected = mod.select_tasks(issues, max_active=2)
         self.assertEqual([task.number for task in selected], [349, 333])
 
+    def test_platform_failure_after_task_retry_gets_separate_infra_retry(self):
+        issues = [
+            issue(
+                152,
+                "active feed",
+                body=task_body("P1", "feed"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [
+                {"body": "<!-- jules-retry-from: prior-task-attempt -->"},
+                {"body": "<!-- jules-session-id: infra1 -->"},
+            ],
+            get_session=lambda api_key, path: {"id": "infra1", "state": "FAILED"},
+            load_activities=lambda session_id: [
+                {"error": {"message": "Jules encountered an error when preparing the virtual machine environment for the task."}}
+            ],
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        labels = mod.label_names(issues[0])
+        self.assertIn("jules-retry-ready", labels)
+        self.assertNotIn("jules-failed", labels)
+        self.assertIn("<!-- jules-infra-retry-from: infra1 -->", gh_calls[1][-1])
+
+    def test_second_platform_failure_after_infra_retry_parks_failed(self):
+        issues = [
+            issue(
+                152,
+                "active feed",
+                body=task_body("P1", "feed"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [
+                {"body": "<!-- jules-retry-from: prior-task-attempt -->"},
+                {"body": "<!-- jules-infra-retry-from: infra1 -->"},
+                {"body": "<!-- jules-session-id: infra2 -->"},
+            ],
+            get_session=lambda api_key, path: {"id": "infra2", "state": "FAILED"},
+            load_activities=lambda session_id: [
+                {"error": {"message": "Jules encountered an error when preparing the virtual machine environment for the task."}}
+            ],
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        labels = mod.label_names(issues[0])
+        self.assertIn("jules-failed", labels)
+        self.assertNotIn("jules-retry-ready", labels)
+
+    def test_migrates_existing_failed_platform_retry_even_with_task_retry_marker(self):
+        failed = issue(
+            152,
+            "feed",
+            body=task_body("P1", "feed"),
+            labels=("jules-failed",),
+        )
+        calls = []
+        mod.migrate_legacy_jules_failures(
+            [failed],
+            repo="kaamilbadami/yartchives",
+            load_comments=lambda number: [
+                {"body": "<!-- jules-retry-from: old-task -->"},
+                {
+                    "body": (
+                        "Jules session `vm-fail` ended in FAILED state and released this automation slot. "
+                        "It will not be retried automatically.\n\nFailure diagnostics:\n\n"
+                        "> Jules encountered an error when preparing the virtual machine environment for the task."
+                    )
+                },
+            ],
+            run_gh=lambda *args: calls.append(args),
+        )
+        self.assertIn("jules-retry-ready", mod.label_names(failed))
+        self.assertNotIn("jules-failed", mod.label_names(failed))
+        self.assertIn("<!-- jules-infra-retry-from: vm-fail -->", calls[1][-1])
+
     def test_failed_session_releases_slot_without_becoming_retry_candidate(self):
         issues = [
             issue(
@@ -814,7 +903,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertIn("Workspace became unavailable.", comment)
         self.assertIn("jules-retry-ready", mod.label_names(issues[0]))
         self.assertNotIn("jules-failed", mod.label_names(issues[0]))
-        self.assertIn("<!-- jules-retry-from: failed1 -->", comment)
+        self.assertIn("<!-- jules-infra-retry-from: failed1 -->", comment)
 
     def test_failed_session_still_reconciles_when_diagnostics_cannot_be_loaded(self):
         issues = [
