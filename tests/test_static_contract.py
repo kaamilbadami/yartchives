@@ -85,6 +85,14 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("apply.cloneNode(true)", text)
         self.assertIn("View listing ↗", text)
 
+    def test_feed_updated_time_is_explicitly_eastern(self):
+        app = (ROOT / "app.js").read_text(encoding="utf-8")
+        ux = (ROOT / "ux.js").read_text(encoding="utf-8")
+        self.assertIn('timeZone: "America/New_York"', app)
+        self.assertIn('timeZoneName: "short"', app)
+        self.assertIn("formatEasternTimestamp(when)", app)
+        self.assertIn("formatEasternTimestamp(when)", ux)
+
     def test_final_ux_contract(self):
         text = (ROOT / "ux.js").read_text(encoding="utf-8")
         self.assertIn('"Career area"', text)
