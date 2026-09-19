@@ -510,7 +510,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
         self.assertIn(
-            '"Quality checks on the updated branch."\n            )\n            continue',
+            '"Quality checks because main changed overlapping paths."\n                )\n                continue',
             source,
         )
 
