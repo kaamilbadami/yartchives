@@ -488,6 +488,52 @@ def completed_session_pr_from_comments(
     return None
 
 
+def reconcile_historical_merged_jules_issues(
+    repo: str,
+    *,
+    load_open_autonomous: Callable[[], list[dict[str, Any]]] | None = None,
+    load_comments: Callable[[int], list[dict[str, Any]]] | None = None,
+    get_pr: Callable[[int], dict[str, Any]] | None = None,
+    run_gh: Callable[..., None] | None = None,
+) -> None:
+    """Close historical open autonomous issues whose exact Jules PR already merged."""
+    if load_open_autonomous is None:
+        load_open_autonomous = lambda: gh_paginated_json(
+            "api",
+            f"repos/{repo}/issues?state=open&labels={parse.quote(REQUIRED_ISSUE_LABEL)}&per_page=100",
+        )
+    if load_comments is None:
+        load_comments = lambda number: gh_paginated_json(
+            "api",
+            f"repos/{repo}/issues/{number}/comments?per_page=100",
+        )
+    if get_pr is None:
+        get_pr = lambda number: gh_json("api", f"repos/{repo}/pulls/{number}")
+    if run_gh is None:
+        run_gh = gh_run
+
+    for issue in load_open_autonomous():
+        if "pull_request" in issue:
+            continue
+        number = int(issue["number"])
+        completed = completed_session_pr_from_comments(load_comments(number), repo)
+        if completed is None:
+            continue
+        _, pr_number = completed
+        pr = get_pr(pr_number)
+        if pr.get("merged") is not True:
+            continue
+
+        run_gh(
+            "issue", "close", str(number), "--repo", repo,
+            "--reason", "completed",
+        )
+        print(
+            f"Closed historical autonomous issue #{number} after verifying merged "
+            f"Jules PR #{pr_number}."
+        )
+
+
 def cleanup_merged_jules_sessions(
     repo: str,
     api_key: str,
@@ -1561,6 +1607,7 @@ def main() -> int:
     api_key = os.environ["JULES_API_KEY"]
     ensure_labels(repo)
     cleanup_merged_jules_sessions(repo, api_key)
+    reconcile_historical_merged_jules_issues(repo)
 
     poll_seconds = int(os.environ.get("JULES_POLL_SECONDS", DEFAULT_POLL_SECONDS))
     watch_seconds = int(os.environ.get("JULES_WATCH_SECONDS", DEFAULT_WATCH_SECONDS))
