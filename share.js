@@ -60,7 +60,7 @@
     if (areas.length) parts.push(areas.join(" + "));
     parts.push(audienceOpportunityLabel());
 
-    const freshness = String(state.freshness || "7");
+    const freshness = String(state.freshness || "all");
     if (FRESHNESS_LABELS[freshness]) parts.push(FRESHNESS_LABELS[freshness]);
 
     const locationValue = compactValue(state.location);
@@ -129,7 +129,7 @@
     if (state.search) url.searchParams.set("q", state.search);
     if (state.location) url.searchParams.set("loc", state.location);
     if (currentZip() && String(state.radius || "50") !== "50") url.searchParams.set("miles", state.radius);
-    if (String(state.freshness || "7") !== "7") url.searchParams.set("fresh", state.freshness);
+    if (String(state.freshness || "all") !== "all") url.searchParams.set("fresh", state.freshness);
 
     try {
       const ux = JSON.parse(localStorage.getItem("yartchives-ux-v1") || "{}");
