@@ -1,3 +1,4 @@
+import hashlib
 import json
 from pathlib import Path
 import unittest
@@ -24,6 +25,7 @@ class StaticContractTests(unittest.TestCase):
         self.assertEqual(mascot.name, "img")
         self.assertEqual(mascot.get("src"), "assets/yartchives-hedgehog.png")
         self.assertLess((ROOT / "assets" / "yartchives-hedgehog.png").stat().st_size, 16_384)
+        self.assertEqual(hashlib.sha256((ROOT / "assets" / "yartchives-hedgehog.png").read_bytes()).hexdigest(), "f12cfe7c0625164638410c8e63fad8079ed7df22a64b82f168c6c64c44c16794")
         freshness = soup.find(id="freshnessSelect")
         self.assertEqual(freshness.find("option", selected=True).get("value"), "all")
 
