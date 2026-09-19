@@ -114,6 +114,7 @@ function loadSavedState() {
     state.saved = new Set(saved.saved || []);
     state.applied = new Set(saved.applied || []);
     state.hidden = new Set(saved.hidden || []);
+    if (!["all", "saved", "applied", "hidden"].includes(state.status)) state.status = "all";
   } catch (_) {}
 
   const params = new URLSearchParams(location.search);
@@ -137,6 +138,7 @@ function persist() {
     hidden: [...state.hidden],
   }));
 }
+
 
 function syncControls() {
   els.searchInput.value = state.search;
@@ -634,6 +636,13 @@ function renderHealth() {
   }
 }
 
+function formatEasternTimestamp(value) {
+  return new Date(value).toLocaleString(undefined, {
+    timeZone: "America/New_York",
+    timeZoneName: "short",
+  });
+}
+
 function updateFeedMeta() {
   if (!feed.generated_at) {
     els.feedMeta.textContent = "Feed has not been built yet.";
@@ -641,7 +650,7 @@ function updateFeedMeta() {
   }
   const when = new Date(feed.generated_at);
   const active = YartchivesUtils.groupSourceHealth(feed.sources || {}).filter(source => source.successCount > 0).length;
-  els.feedMeta.textContent = `Updated ${when.toLocaleString()} · ${active} active sources`;
+  els.feedMeta.textContent = `Updated ${formatEasternTimestamp(when)} · ${active} active sources`;
 }
 
 function setUpEvents() {

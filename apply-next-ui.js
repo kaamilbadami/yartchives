@@ -207,7 +207,14 @@
     box.classList.toggle("hidden", !message);
   }
 
+  function setProfileSetupMode(active) {
+    const main = document.querySelector("main");
+    if (!main) return;
+    main.classList.toggle("apply-next-profile-mode", Boolean(active));
+  }
+
   function setupPanel(panel) {
+    setProfileSetupMode(true);
     panel.innerHTML = "";
     const header = element("div", "apply-next-heading");
     const copy = element("div");
@@ -440,15 +447,46 @@
   }
 
   function rankingSummary(result) {
-    const parts = [];
+    const drivers = [];
     for (const key of ["fit", "freshness", "roi", "location"]) {
       const component = result?.components?.[key];
       const max = componentMax(key);
       if (!component || max <= 0) continue;
-      const band = scoreBand(key, component.score, max);
-      if (band) parts.push(band.toLowerCase());
+      drivers.push({
+        key,
+        ratio: component.score / max,
+        name: key === "fit" ? "profile match" : key === "roi" ? "role value" : key === "freshness" ? "timing" : "location convenience"
+      });
     }
-    return parts.length ? `Why this is here: ${parts.join(", ")}.` : "Why this is here: based on your profile and the evidence available.";
+
+    if (!drivers.length) return "Why this is here: based on your profile and the evidence available.";
+
+    drivers.sort((a, b) => b.ratio - a.ratio);
+
+    const topRatio = drivers[0].ratio;
+    const positiveDrivers = drivers.filter(d => topRatio - d.ratio <= 0.15 && d.ratio >= 0.55);
+
+    const bottomRatio = drivers[drivers.length - 1].ratio;
+    const negativeDrivers = drivers.filter(d => d.ratio - bottomRatio <= 0.15 && d.ratio < 0.55 && !positiveDrivers.includes(d));
+
+    const parts = [];
+
+    const formatNames = (names) => {
+      if (names.length === 0) return "";
+      if (names.length === 1) return names[0];
+      return names.slice(0, -1).join(", ") + " and " + names[names.length - 1];
+    };
+
+    if (positiveDrivers.length > 0) {
+      const names = positiveDrivers.map(d => d.name);
+      parts.push(`strongest drivers: ${formatNames(names)}`);
+    }
+    if (negativeDrivers.length > 0) {
+      const names = negativeDrivers.map(d => d.name);
+      parts.push(`limited by: ${formatNames(names)}`);
+    }
+
+    return parts.length > 0 ? `Why this is here: ${parts.join("; ")}.` : "Why this is here: based on your profile and the evidence available.";
   }
 
   function componentMax(key) {
@@ -545,6 +583,8 @@
       apply.href = job.url;
       apply.target = "_blank";
       apply.rel = "noopener noreferrer";
+      apply.addEventListener("click", () => {
+      });
       actions.append(apply);
     }
     const saved = element("button", "secondary-btn", state.saved.has(job.id) ? "Saved" : "Save");
@@ -611,6 +651,7 @@
   }
 
   async function renderQueue(panel, profile) {
+    setProfileSetupMode(false);
     const pool = candidatePool(feed.jobs, profile, state);
     const artifact = await loadInspectionArtifact();
     attachInspections(pool, artifact);
@@ -705,6 +746,8 @@
       if (opening) {
         await renderPanel(panel);
         panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        setProfileSetupMode(false);
       }
     });
 
@@ -746,6 +789,7 @@
     renderQueue,
     updateQueueOptimistically,
     explainProfileChange,
+    setProfileSetupMode,
     init,
   };
 });

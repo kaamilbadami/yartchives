@@ -33,7 +33,32 @@ assert.equal(UI.scoreBand("location", 15, 20), "Very convenient");
 assert.equal(UI.totalScoreBandClass(50), "apply-next-score-low");
 assert.equal(UI.totalScoreBandClass(65), "apply-next-score-medium");
 assert.equal(UI.totalScoreBandClass(85), "apply-next-score-high");
-assert.match(UI.rankingSummary({ components: { fit: { score: 30 }, freshness: { score: 8 }, roi: { score: 23 }, location: { score: 15 } } }), /^Why this is here: /);
+// rankingSummary tests
+// Note: test environment componentMax: fit=40, freshness=10, roi=15, location=15
+assert.equal(
+  UI.rankingSummary({
+    components: { fit: { score: 30 }, freshness: { score: 8 }, roi: { score: 12 }, location: { score: 12 } } // Ratios: fit: 30/40=0.75, freshness: 8/10=0.8, roi: 12/15=0.8, location: 12/15=0.8
+  }),
+  "Why this is here: strongest drivers: timing, role value, location convenience and profile match."
+);
+assert.equal(
+  UI.rankingSummary({
+    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 6 }, location: { score: 9 } } // Ratios: fit: 35/40=0.875, freshness: 9/10=0.9, roi: 6/15=0.4, location: 9/15=0.6
+  }),
+  "Why this is here: strongest drivers: timing and profile match; limited by: role value."
+);
+assert.equal(
+  UI.rankingSummary({
+    components: { fit: { score: 20 }, freshness: { score: 2 }, roi: { score: 3 }, location: { score: 4 } } // Ratios: fit: 20/40=0.5, freshness: 2/10=0.2, roi: 3/15=0.2, location: 4/15=0.26
+  }),
+  "Why this is here: limited by: location convenience, timing and role value."
+);
+assert.equal(
+  UI.rankingSummary({
+    components: { fit: { score: 40 }, freshness: { score: 2 }, roi: { score: 14 }, location: { score: 4 } } // Ratios: fit: 40/40=1.0, freshness: 2/10=0.2, roi: 14/15=0.93, location: 4/15=0.26
+  }),
+  "Why this is here: strongest drivers: profile match and role value; limited by: location convenience and timing."
+);
 
 // worthApplyingSummary tests
 assert.equal(
@@ -242,6 +267,9 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(hideHandler[1], /applyFilters\(\);/);
 
   assert.match(uiSource, /Restore them from the main feed\./, "Should document recovery path for Applied and Hidden jobs");
+  assert.match(uiSource, /setProfileSetupMode\(true\)/, "Profile setup should enter focused onboarding mode");
+  assert.match(uiSource, /setProfileSetupMode\(false\)/, "Queue and panel close paths should restore the normal feed");
+  assert.match(uiSource, /apply-next-profile-mode/, "Focused onboarding should use an explicit main-state class");
 
   assert.doesNotMatch(uiSource, /<option value="newest">Newest<\/option>/, "Apply Next should not expose a Newest sort mode");
 
