@@ -86,3 +86,4 @@ const appSource = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
 assert.match(appSource, /job\.link_kind === "employer_job"/);
 assert.match(appSource, /View posting ↗/);
 assert.match(appSource, /src\.errors\.join/);
+require("./recently-viewed.test.cjs");
