@@ -28,6 +28,8 @@ class StaticContractTests(unittest.TestCase):
         self.assertEqual(hashlib.sha256((ROOT / "assets" / "yartchives-hedgehog.png").read_bytes()).hexdigest(), "f12cfe7c0625164638410c8e63fad8079ed7df22a64b82f168c6c64c44c16794")
         freshness = soup.find(id="freshnessSelect")
         self.assertEqual(freshness.find("option", selected=True).get("value"), "all")
+        self.assertIsNone(soup.find(id="viewedCount"))
+        self.assertIsNone(soup.find("option", attrs={"value": "viewed"}))
 
     def test_feed_refresh_only_invalidates_on_feed_inputs(self):
         workflow = (ROOT / ".github" / "workflows" / "update-feed.yml").read_text(encoding="utf-8")
