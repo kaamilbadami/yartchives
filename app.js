@@ -671,6 +671,13 @@ function renderHealth() {
   }
 }
 
+function formatEasternTimestamp(value) {
+  return new Date(value).toLocaleString(undefined, {
+    timeZone: "America/New_York",
+    timeZoneName: "short",
+  });
+}
+
 function updateFeedMeta() {
   if (!feed.generated_at) {
     els.feedMeta.textContent = "Feed has not been built yet.";
@@ -678,7 +685,7 @@ function updateFeedMeta() {
   }
   const when = new Date(feed.generated_at);
   const active = YartchivesUtils.groupSourceHealth(feed.sources || {}).filter(source => source.successCount > 0).length;
-  els.feedMeta.textContent = `Updated ${when.toLocaleString()} · ${active} active sources`;
+  els.feedMeta.textContent = `Updated ${formatEasternTimestamp(when)} · ${active} active sources`;
 }
 
 function setUpEvents() {

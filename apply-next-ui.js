@@ -207,7 +207,14 @@
     box.classList.toggle("hidden", !message);
   }
 
+  function setProfileSetupMode(active) {
+    const main = document.querySelector("main");
+    if (!main) return;
+    main.classList.toggle("apply-next-profile-mode", Boolean(active));
+  }
+
   function setupPanel(panel) {
+    setProfileSetupMode(true);
     panel.innerHTML = "";
     const header = element("div", "apply-next-heading");
     const copy = element("div");
@@ -613,6 +620,7 @@
   }
 
   async function renderQueue(panel, profile) {
+    setProfileSetupMode(false);
     const pool = candidatePool(feed.jobs, profile, state);
     const artifact = await loadInspectionArtifact();
     attachInspections(pool, artifact);
@@ -705,6 +713,8 @@
       if (opening) {
         await renderPanel(panel);
         panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        setProfileSetupMode(false);
       }
     });
 
@@ -746,6 +756,7 @@
     renderQueue,
     updateQueueOptimistically,
     explainProfileChange,
+    setProfileSetupMode,
     init,
   };
 });
