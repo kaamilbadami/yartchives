@@ -75,6 +75,22 @@
   gap: 0.9rem;
 }
 
+.apply-next-empty {
+  padding: 1.5rem 1rem;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  text-align: center;
+  background: var(--panel-2);
+}
+
+.apply-next-empty p {
+  margin: 0;
+}
+
+.apply-next-empty-action {
+  margin-top: 1rem;
+}
+
 .apply-next-load-more {
   margin-top: 1rem;
 }
