@@ -74,6 +74,82 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertFalse(mod.exact_head_quality_present([], "abc"))
         self.assertFalse(mod.exact_head_quality_present(runs(sha="older"), "abc"))
 
+    def test_superseded_action_required_runs_require_exact_head_manual_replacement(self):
+        approval = {
+            "id": 10,
+            "name": "Quality checks",
+            "head_sha": "abc",
+            "event": "pull_request",
+            "status": "completed",
+            "conclusion": "action_required",
+        }
+        manual = {
+            "id": 11,
+            "name": "Quality checks",
+            "head_sha": "abc",
+            "event": "workflow_dispatch",
+            "status": "in_progress",
+            "conclusion": None,
+        }
+        other_head = {
+            "id": 12,
+            "name": "Quality checks",
+            "head_sha": "other",
+            "event": "workflow_dispatch",
+            "status": "completed",
+            "conclusion": "success",
+        }
+
+        self.assertEqual(
+            mod.superseded_action_required_run_ids([approval, manual], "abc"),
+            [10],
+        )
+        self.assertEqual(
+            mod.superseded_action_required_run_ids([approval, other_head], "abc"),
+            [],
+        )
+
+    def test_delete_superseded_action_required_runs_deletes_only_obsolete_pr_runs(self):
+        runs = [
+            {
+                "id": 10,
+                "name": "Quality checks",
+                "head_sha": "abc",
+                "event": "pull_request",
+                "status": "completed",
+                "conclusion": "action_required",
+            },
+            {
+                "id": 11,
+                "name": "Quality checks",
+                "head_sha": "abc",
+                "event": "workflow_dispatch",
+                "status": "completed",
+                "conclusion": "success",
+            },
+            {
+                "id": 12,
+                "name": "Quality checks",
+                "head_sha": "abc",
+                "event": "pull_request",
+                "status": "completed",
+                "conclusion": "failure",
+            },
+        ]
+        with mock.patch.object(mod, "gh_run") as gh_run:
+            deleted = mod.delete_superseded_action_required_runs(
+                "kaamilbadami/yartchives",
+                runs,
+                "abc",
+            )
+
+        self.assertEqual(deleted, [10])
+        gh_run.assert_called_once_with(
+            "api",
+            "--method", "DELETE",
+            "repos/kaamilbadami/yartchives/actions/runs/10",
+        )
+
     def test_action_required_quality_run_is_detected_for_manual_redispatch(self):
         self.assertTrue(
             mod.exact_head_quality_action_required(
@@ -123,6 +199,50 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             quality_runs=runs(sha="older"),
         )
         self.assertFalse(ok)
+
+    def test_stale_green_pr_skips_refresh_when_main_changed_unrelated_paths(self):
+        comparison = {"behind_by": 3}
+        self.assertFalse(
+            mod.branch_refresh_required(
+                comparison=comparison,
+                pr_changed_paths=["apply-next-ui.js", "tests/apply-next-ui.test.cjs"],
+                base_changed_paths=["scripts/build_feed.py", "tests/test_build_feed.py"],
+            )
+        )
+
+    def test_stale_green_pr_refreshes_when_main_changed_overlapping_paths(self):
+        comparison = {"behind_by": 1}
+        self.assertTrue(
+            mod.branch_refresh_required(
+                comparison=comparison,
+                pr_changed_paths=["apply-next-ui.js", "tests/apply-next-ui.test.cjs"],
+                base_changed_paths=["apply-next-ui.js", "README.md"],
+            )
+        )
+
+    def test_up_to_date_pr_never_requires_refresh(self):
+        self.assertFalse(
+            mod.branch_refresh_required(
+                comparison={"behind_by": 0},
+                pr_changed_paths=["app.js"],
+                base_changed_paths=["app.js"],
+            )
+        )
+
+    def test_comparison_changed_paths_filters_empty_filenames(self):
+        self.assertEqual(
+            mod.comparison_changed_paths(
+                {
+                    "files": [
+                        {"filename": "app.js"},
+                        {"filename": ""},
+                        {},
+                        {"filename": "tests/app.test.cjs"},
+                    ]
+                }
+            ),
+            {"app.js", "tests/app.test.cjs"},
+        )
 
     def test_prioritizes_lifecycle_then_ci_then_normal_prs(self):
         pull_requests = [
@@ -390,7 +510,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
         self.assertIn(
-            '"Quality checks on the updated branch."\n            )\n            continue',
+            '"Quality checks because main changed overlapping paths."\n                )\n                continue',
             source,
         )
 
