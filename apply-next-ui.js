@@ -152,6 +152,49 @@
     box.classList.toggle("hidden", !message);
   }
 
+  function buildEmptyState(type, panel, profile) {
+    const container = element("div", "apply-next-empty");
+    const heading = element("h3", "");
+    const body = element("p", "muted");
+    const action = element("button", "primary-btn");
+    action.type = "button";
+
+    if (type === "loading") {
+      heading.textContent = "Loading recommendations…";
+      body.textContent = "Scoring candidates against your profile.";
+      container.append(heading, body);
+      return container;
+    }
+
+    if (type === "error") {
+      heading.textContent = "Unable to load recommendations";
+      body.textContent = "There was an error scoring candidates or loading the feed.";
+      action.textContent = "Try again";
+      action.addEventListener("click", () => renderQueue(panel, profile));
+    } else if (type === "exhausted") {
+      heading.textContent = "You're all caught up";
+      body.textContent = "You've reviewed all current recommendations matching your profile. Check back later for new opportunities.";
+      action.textContent = "Edit profile";
+      action.addEventListener("click", () => {
+        setupPanel(panel);
+        const input = document.querySelector("#applyNextProfileInput");
+        if (input && profile) input.value = JSON.stringify(profile, null, 2);
+      });
+    } else if (type === "no_eligible") {
+      heading.textContent = "No eligible candidates right now";
+      body.textContent = "There are currently no open opportunities in the feed that match your profile's criteria.";
+      action.textContent = "Edit profile";
+      action.addEventListener("click", () => {
+        setupPanel(panel);
+        const input = document.querySelector("#applyNextProfileInput");
+        if (input && profile) input.value = JSON.stringify(profile, null, 2);
+      });
+    }
+
+    container.append(heading, body, action);
+    return container;
+  }
+
   function setupPanel(panel) {
     panel.innerHTML = "";
     const header = element("div", "apply-next-heading");
@@ -445,6 +488,33 @@
     return card;
   }
 
+  function buildQueueHeading(panel, profile) {
+    const heading = element("div", "apply-next-heading");
+    const copy = element("div");
+    copy.append(
+      element("p", "eyebrow", "your next application queue"),
+      element("h2", "", "Apply Next"),
+      element("p", "muted", profileSummary(profile) || "Private strategy loaded")
+    );
+    const controls = element("div", "apply-next-profile-actions");
+    const edit = element("button", "ghost-btn", "Edit profile");
+    edit.type = "button";
+    edit.addEventListener("click", () => {
+      setupPanel(panel);
+      const input = document.querySelector("#applyNextProfileInput");
+      if (input) input.value = JSON.stringify(profile, null, 2);
+    });
+    const clear = element("button", "text-btn", "Clear private profile");
+    clear.type = "button";
+    clear.addEventListener("click", () => {
+      localStorage.removeItem(STORAGE_KEY);
+      setupPanel(panel);
+    });
+    controls.append(edit, clear);
+    heading.append(copy, controls);
+    return heading;
+  }
+
   function updateQueueOptimistically(panel, profile, appliedJobId) {
     const targetPanel = panel || (typeof document !== "undefined" ? document.querySelector("#applyNextPanel") : null);
     if (!targetPanel) return;
@@ -472,16 +542,29 @@
     list.innerHTML = "";
     ranked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
     if (!ranked.length) {
-      list.append(element("p", "muted", "No eligible Apply Next candidates are available yet."));
+      list.append(buildEmptyState("exhausted", targetPanel, profile));
     }
   }
 
   async function renderQueue(panel, profile) {
-    const pool = candidatePool(feed.jobs, profile, state);
-    const artifact = await loadInspectionArtifact();
-    attachInspections(pool, artifact);
-    await addBaseDistances(pool, profile);
-    const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date());
+    panel.innerHTML = "";
+    panel.append(buildQueueHeading(panel, profile), buildEmptyState("loading", panel, profile));
+
+    let pool = [];
+    let ranked = [];
+    try {
+      if (typeof feed === "undefined" || !Array.isArray(feed?.jobs)) throw new Error("Feed unavailable");
+      pool = candidatePool(feed.jobs, profile, state);
+      const artifact = await loadInspectionArtifact();
+      attachInspections(pool, artifact);
+      await addBaseDistances(pool, profile);
+      ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date());
+    } catch (_) {
+      panel.innerHTML = "";
+      panel.append(buildQueueHeading(panel, profile), buildEmptyState("error", panel, profile));
+      return;
+    }
+
     lastRankedResults = ranked;
     lastProfile = profile;
 
@@ -489,42 +572,28 @@
     const inspectedCount = topRanked.filter(result => result.inspection?.state === "inspected").length;
 
     const fragment = document.createDocumentFragment();
+    fragment.append(buildQueueHeading(panel, profile));
 
-    const heading = element("div", "apply-next-heading");
-    const copy = element("div");
-    copy.append(
-      element("p", "eyebrow", "your next application queue"),
-      element("h2", "", "Apply Next"),
-      element("p", "muted", profileSummary(profile) || "Private strategy loaded")
-    );
-    const controls = element("div", "apply-next-profile-actions");
-    const edit = element("button", "ghost-btn", "Edit profile");
-    edit.type = "button";
-    edit.addEventListener("click", () => {
-      setupPanel(panel);
-      const input = document.querySelector("#applyNextProfileInput");
-      if (input) input.value = JSON.stringify(profile, null, 2);
-    });
-    const clear = element("button", "text-btn", "Clear private profile");
-    clear.type = "button";
-    clear.addEventListener("click", () => {
-      localStorage.removeItem(STORAGE_KEY);
-      setupPanel(panel);
-    });
-    controls.append(edit, clear);
-    heading.append(copy, controls);
-    fragment.append(heading);
-
-    const note = element(
-      "p",
-      "apply-next-note",
-      `Showing ${topRanked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`
-    );
-    fragment.append(note);
+    if (topRanked.length) {
+      const note = element(
+        "p",
+        "apply-next-note",
+        `Showing ${topRanked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`
+      );
+      fragment.append(note);
+    }
 
     const list = element("div", "apply-next-list");
     topRanked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
-    if (!topRanked.length) list.append(element("p", "muted", "No eligible Apply Next candidates are available yet."));
+    if (!topRanked.length) {
+      const basePool = candidatePool(feed.jobs, profile, { applied: new Set(), hidden: new Set() });
+      const baseRanked = YartchivesApplyNext.rankJobs(basePool, profile, new Date());
+      if (baseRanked.length) {
+        list.append(buildEmptyState("exhausted", panel, profile));
+      } else {
+        list.append(buildEmptyState("no_eligible", panel, profile));
+      }
+    }
     fragment.append(list);
 
     panel.innerHTML = "";
@@ -598,6 +667,8 @@
     rankingSummary,
     componentMax,
     updateQueueOptimistically,
+    buildEmptyState,
+    buildQueueHeading,
     init,
   };
 });

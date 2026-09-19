@@ -153,6 +153,48 @@ assert.equal(jobs[2]._inspection, undefined);
   });
   assert.deepEqual(failed, { version: 1, entries: {}, listing_index: {} });
 
+  // empty states
+  globalThis.document = {
+    createElement: (tag) => {
+      return {
+        tagName: tag.toUpperCase(),
+        className: "",
+        textContent: "",
+        children: [],
+        events: {},
+        append: function(...nodes) {
+          this.children.push(...nodes);
+        },
+        addEventListener: function(evt, handler) {
+          this.events[evt] = handler;
+        },
+        querySelector: function(sel) {
+          if (sel === "h3") return this.children.find(c => c.tagName === "H3") || null;
+          if (sel === "button") return this.children.find(c => c.tagName === "BUTTON") || null;
+          return null;
+        }
+      };
+    }
+  };
+
+  let mockPanel = globalThis.document.createElement("div");
+
+  let emptyState = UI.buildEmptyState("loading", mockPanel, profile);
+  assert.equal(emptyState.querySelector("h3").textContent, "Loading recommendations…");
+  assert.equal(emptyState.querySelector("button"), null);
+
+  emptyState = UI.buildEmptyState("error", mockPanel, profile);
+  assert.equal(emptyState.querySelector("h3").textContent, "Unable to load recommendations");
+  assert.equal(emptyState.querySelector("button").textContent, "Try again");
+
+  emptyState = UI.buildEmptyState("exhausted", mockPanel, profile);
+  assert.equal(emptyState.querySelector("h3").textContent, "You're all caught up");
+  assert.equal(emptyState.querySelector("button").textContent, "Edit profile");
+
+  emptyState = UI.buildEmptyState("no_eligible", mockPanel, profile);
+  assert.equal(emptyState.querySelector("h3").textContent, "No eligible candidates right now");
+  assert.equal(emptyState.querySelector("button").textContent, "Edit profile");
+
   const index = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
   assert.ok(index.includes('href="apply-next.css"'));
   assert.ok(index.includes('src="apply-next.js"'));
