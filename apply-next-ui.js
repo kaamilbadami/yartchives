@@ -12,6 +12,7 @@
   let inspectionArtifactPromise = null;
   let lastRankedResults = [];
   let lastProfile = null;
+  let queueSortMode = "recommended";
 
   function normalize(value) {
     return String(value || "").trim();
@@ -455,7 +456,7 @@
       lastRankedResults = lastRankedResults.filter(r => r.job && r.job.id !== appliedJobId && !state.applied?.has(r.job.id) && !state.hidden?.has(r.job.id));
     } else if (typeof feed !== "undefined" && Array.isArray(feed?.jobs) && profile && typeof YartchivesApplyNext !== "undefined") {
       const pool = candidatePool(feed.jobs, profile, state);
-      lastRankedResults = YartchivesApplyNext.rankJobs(pool, profile, new Date());
+      lastRankedResults = YartchivesApplyNext.rankJobs(pool, profile, new Date(), queueSortMode);
     }
 
     const ranked = (lastRankedResults || []).slice(0, TOP_N);
@@ -481,7 +482,7 @@
     const artifact = await loadInspectionArtifact();
     attachInspections(pool, artifact);
     await addBaseDistances(pool, profile);
-    const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date());
+    const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date(), queueSortMode);
     lastRankedResults = ranked;
     lastProfile = profile;
 
@@ -498,6 +499,15 @@
       element("p", "muted", profileSummary(profile) || "Private strategy loaded")
     );
     const controls = element("div", "apply-next-profile-actions");
+    const sortLabel = element("label", "sort-field apply-next-sort");
+    sortLabel.innerHTML = '<span>Sort</span><select aria-label="Sort queue"><option value="recommended">Recommended</option><option value="newest">Newest</option></select>';
+    const sortSelect = sortLabel.querySelector("select");
+    sortSelect.value = queueSortMode;
+    sortSelect.addEventListener("change", () => {
+      queueSortMode = sortSelect.value === "newest" ? "newest" : "recommended";
+      renderQueue(panel, profile);
+    });
+
     const edit = element("button", "ghost-btn", "Edit profile");
     edit.type = "button";
     edit.addEventListener("click", () => {
@@ -511,7 +521,7 @@
       localStorage.removeItem(STORAGE_KEY);
       setupPanel(panel);
     });
-    controls.append(edit, clear);
+    controls.append(sortLabel, edit, clear);
     heading.append(copy, controls);
     fragment.append(heading);
 
