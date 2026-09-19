@@ -500,7 +500,7 @@ def reconcile_historical_merged_jules_issues(
     if load_open_autonomous is None:
         load_open_autonomous = lambda: gh_paginated_json(
             "api",
-            f"repos/{repo}/issues?state=open&labels={parse.quote(REQUIRED_ISSUE_LABEL)}&per_page=100",
+            f"repos/{repo}/issues?state=open&labels={parse.quote('autonomous-backlog')}&per_page=100",
         )
     if load_comments is None:
         load_comments = lambda number: gh_paginated_json(
