@@ -150,6 +150,51 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
         self.assertEqual([task.number for task in selected], [3])
 
+    def test_current_ranking_area_family_shares_ranking_lock(self):
+        issues = [
+            issue(
+                187,
+                "ranking sensitivity",
+                body=task_body("P1", "ranking-sensitivity"),
+                labels=("jules", "jules-session"),
+            ),
+            issue(188, "ranking regression", body=task_body("P0", "ranking-regression")),
+            issue(189, "ranking stability", body=task_body("P0", "ranking-stability")),
+            issue(184, "coverage benchmark", body=task_body("P1", "coverage-benchmark")),
+        ]
+
+        selected = mod.select_tasks(issues, max_active=4)
+
+        self.assertEqual([task.number for task in selected], [184])
+
+    def test_current_apply_next_presentation_areas_share_ui_lock(self):
+        issues = [
+            issue(
+                190,
+                "required versus preferred gaps",
+                body=task_body("P1", "apply-next-explanation"),
+                labels=("jules", "jules-session"),
+            ),
+            issue(191, "evidence provenance", body=task_body("P0", "evidence-ux")),
+            issue(192, "action reversibility", body=task_body("P0", "action-reversibility")),
+            issue(184, "coverage benchmark", body=task_body("P1", "coverage-benchmark")),
+        ]
+
+        selected = mod.select_tasks(issues, max_active=4)
+
+        self.assertEqual([task.number for task in selected], [184])
+
+    def test_unmapped_area_requires_explicit_resource_metadata(self):
+        unmapped = issue(1, "unknown area", body=task_body("P1", "future-area"))
+        explicit = issue(
+            2,
+            "explicitly locked future area",
+            body=task_body("P1", "future-area", resources="future-resource"),
+        )
+
+        self.assertIsNone(mod.task_from_issue(unmapped))
+        self.assertEqual(mod.task_from_issue(explicit).resources, frozenset({"future-resource"}))
+
     def test_shared_resource_lock_blocks_cross_area_overlap(self):
         issues = [
             issue(
@@ -179,7 +224,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 "other area same resource",
                 body=task_body("P0", "beta", resources="shared-hot-file"),
             ),
-            issue(3, "independent", body=task_body("P1", "gamma")),
+            issue(3, "independent", body=task_body("P1", "gamma", resources="independent-resource")),
         ]
 
         selected = mod.select_tasks(issues, max_active=3)
@@ -552,7 +597,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertIn("jules-session", mod.label_names(issues[0]))
         self.assertNotIn("jules-needs-feedback", mod.label_names(issues[0]))
         self.assertEqual(len(gh_calls), 1)
-        self.assertIn("<!-- jules-auto-feedback: ask1 -->", gh_calls[0][-1])
+        self.assertIn("<!-- jules-auto-feedback: ask1:", gh_calls[0][-1])
 
     def test_existing_feedback_block_is_auto_recovered_when_clarification_is_routine(self):
         issues = [
@@ -592,7 +637,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertNotIn("jules-needs-feedback", labels)
         self.assertNotIn("needs-product-decision", labels)
         self.assertIn("--remove-label", gh_calls[0])
-        self.assertIn("<!-- jules-auto-feedback: ask1 -->", gh_calls[1][-1])
+        self.assertIn("<!-- jules-auto-feedback: ask1:", gh_calls[1][-1])
 
     def test_product_decision_classifier_is_narrow(self):
         self.assertTrue(
@@ -600,9 +645,20 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 "Should Recommended remain the default user-facing sort?"
             )
         )
+        self.assertTrue(
+            mod.clarification_requires_product_decision(
+                "What should the ranking weights be for Fit and Location?"
+            )
+        )
         self.assertFalse(
             mod.clarification_requires_product_decision(
                 "Should I regenerate the fixture after changing the parser?"
+            )
+        )
+        self.assertFalse(
+            mod.clarification_requires_product_decision(
+                "No defect was found. Would you like me to adjust the ranking weights/logic "
+                "in any way, or should I add the regression test?"
             )
         )
 
@@ -628,6 +684,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
             },
         ]
 
+        question = "Should Recommended remain the default user-facing sort?"
         mod.reconcile_jules_sessions(
             issues,
             repo="kaamilbadami/yartchives",
@@ -637,6 +694,9 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 "id": "ask1",
                 "state": "AWAITING_USER_FEEDBACK",
             },
+            load_activities=lambda session_id: [
+                {"agentMessaged": {"agentMessage": question}}
+            ],
             send_feedback=lambda session_id, prompt: sent.append((session_id, prompt)),
             run_gh=lambda *args: gh_calls.append(args),
         )
@@ -646,6 +706,10 @@ class AutonomousDispatcherTests(unittest.TestCase):
             [("ask1", "Keep Recommended as default and make Newest transient UI state.")],
         )
         self.assertIn("<!-- jules-feedback-sent: 22 -->", gh_calls[0][-1])
+        self.assertIn(
+            f"<!-- jules-clarification-handled: ask1:{mod.clarification_key(question)} -->",
+            gh_calls[0][-1],
+        )
         self.assertIn("jules-needs-feedback", mod.label_names(issues[0]))
 
     def test_forwarded_feedback_comment_is_not_sent_twice(self):
@@ -658,10 +722,19 @@ class AutonomousDispatcherTests(unittest.TestCase):
             )
         ]
         sent = []
+        question = "Should Recommended remain the default user-facing sort?"
+        question_key = mod.clarification_key(question)
         comments = [
             {"id": 1, "body": "<!-- jules-session-id: ask1 -->"},
             {"id": 22, "body": "<!-- jules-feedback: ask1 -->\nUse transient state."},
-            {"id": 23, "body": "<!-- jules-feedback-sent: 22 -->\nForwarded."},
+            {
+                "id": 23,
+                "body": (
+                    "<!-- jules-feedback-sent: 22 -->\n"
+                    f"<!-- jules-clarification-handled: ask1:{question_key} -->\n"
+                    "Forwarded."
+                ),
+            },
         ]
 
         mod.reconcile_jules_sessions(
@@ -673,11 +746,54 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 "id": "ask1",
                 "state": "AWAITING_USER_FEEDBACK",
             },
+            load_activities=lambda session_id: [
+                {"agentMessaged": {"agentMessage": question}}
+            ],
             send_feedback=lambda session_id, prompt: sent.append((session_id, prompt)),
             run_gh=lambda *args: self.fail("already-forwarded feedback should be a no-op"),
         )
 
         self.assertEqual(sent, [])
+
+    def test_new_clarification_after_prior_feedback_is_processed(self):
+        issues = [
+            issue(
+                155,
+                "performance",
+                body=task_body("P2", "performance"),
+                labels=("jules", "jules-needs-feedback", "agent-ready"),
+            )
+        ]
+        sent = []
+        gh_calls = []
+        comments = [
+            {"id": 1, "body": "<!-- jules-session-id: ask1 -->"},
+            {"id": 22, "body": "<!-- jules-feedback: ask1 -->\nFix the measured bottleneck."},
+            {"id": 23, "body": "<!-- jules-feedback-sent: 22 -->\nForwarded."},
+        ]
+        new_question = "May I proceed to run tests and push for final submission?"
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: comments,
+            get_session=lambda api_key, path: {
+                "id": "ask1",
+                "state": "AWAITING_USER_FEEDBACK",
+            },
+            load_activities=lambda session_id: [
+                {"agentMessaged": {"agentMessage": new_question}}
+            ],
+            send_feedback=lambda session_id, prompt: sent.append((session_id, prompt)),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(len(sent), 1)
+        self.assertIn(new_question, sent[0][1])
+        self.assertIn("jules-session", mod.label_names(issues[0]))
+        self.assertNotIn("jules-needs-feedback", mod.label_names(issues[0]))
+        self.assertIn("<!-- jules-auto-feedback: ask1:", gh_calls[1][-1])
 
     def test_feedback_marker_must_match_waiting_session(self):
         comments = [
@@ -695,6 +811,8 @@ class AutonomousDispatcherTests(unittest.TestCase):
             )
         ]
         gh_calls = []
+        question = "Can I update the generated fixture after the parser fix?"
+        question_key = mod.clarification_key(question)
 
         mod.reconcile_jules_sessions(
             issues,
@@ -702,15 +820,21 @@ class AutonomousDispatcherTests(unittest.TestCase):
             api_key="secret",
             load_comments=lambda number: [
                 {"body": "<!-- jules-session-id: ask1 -->"},
-                {"body": "<!-- jules-auto-feedback: ask1 -->\nAutomatically answered."},
+                {
+                    "body": (
+                        f"<!-- jules-auto-feedback: ask1:{question_key} -->\n"
+                        f"<!-- jules-clarification-handled: ask1:{question_key} -->\n"
+                        "Automatically answered."
+                    )
+                },
             ],
             get_session=lambda api_key, path: {
                 "id": "ask1",
                 "state": "AWAITING_USER_FEEDBACK",
             },
-            load_activities=lambda session_id: self.fail(
-                "activities should not be loaded twice after auto-feedback was sent"
-            ),
+            load_activities=lambda session_id: [
+                {"agentMessaged": {"agentMessage": question}}
+            ],
             run_gh=lambda *args: gh_calls.append(args),
         )
 
@@ -1074,6 +1198,30 @@ class AutonomousDispatcherTests(unittest.TestCase):
         )
         self.assertIn("jules-failed", mod.label_names(issues[0]))
         self.assertNotIn("jules-retry-ready", mod.label_names(issues[0]))
+
+    def test_generic_jules_task_error_is_retryable_once(self):
+        self.assertTrue(
+            mod.retryable_jules_failure(
+                ["Jules encountered an error when working on the task."]
+            )
+        )
+
+    def test_generic_modern_jules_failure_gets_one_migration_retry(self):
+        comments = [
+            {"body": "<!-- jules-session-id: modern-generic -->"},
+            {
+                "body": (
+                    "Jules session `modern-generic` ended in FAILED state and released this "
+                    "automation slot. It will not be retried automatically.\n\n"
+                    "Failure diagnostics:\n\n"
+                    "> Jules encountered an error when working on the task."
+                )
+            },
+        ]
+        retry = mod.legacy_failed_retry_context(comments)
+        self.assertIsNotNone(retry)
+        self.assertEqual(retry[0], "modern-generic")
+        self.assertIn("encountered an error", retry[1])
 
     def test_code_failure_does_not_auto_retry(self):
         self.assertFalse(

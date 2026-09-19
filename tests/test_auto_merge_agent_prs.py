@@ -165,6 +165,67 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                 )
                 self.assertFalse(ok)
 
+    def test_recovers_missing_closing_link_from_trusted_jules_completion(self):
+        review_issue = issue()
+        comments = {
+            10: [
+                {
+                    "user": {"login": "github-actions[bot]"},
+                    "body": (
+                        "Jules completed session `session-1` and released this automation slot.\n\n"
+                        "Pull request: https://github.com/kaamilbadami/yartchives/pull/235"
+                    ),
+                }
+            ]
+        }
+        mapping = mod.review_ready_issue_by_pr(
+            [review_issue],
+            repo="kaamilbadami/yartchives",
+            load_comments=lambda number: comments[number],
+        )
+
+        self.assertIs(mapping[235], review_issue)
+        normalized = mod.ensure_closing_link(
+            {"body": "Jules generated this pull request."},
+            10,
+        )
+        self.assertEqual(
+            normalized,
+            "Jules generated this pull request.\n\nCloses #10",
+        )
+        self.assertEqual(mod.linked_issue_number(normalized), 10)
+
+    def test_untrusted_completion_comment_cannot_authorize_pr(self):
+        review_issue = issue()
+        mapping = mod.review_ready_issue_by_pr(
+            [review_issue],
+            repo="kaamilbadami/yartchives",
+            load_comments=lambda number: [
+                {
+                    "user": {"login": "someone-else"},
+                    "body": (
+                        "Jules completed session `fake` and released this automation slot.\n\n"
+                        "Pull request: https://github.com/kaamilbadami/yartchives/pull/235"
+                    ),
+                }
+            ],
+        )
+        self.assertEqual(mapping, {})
+
+    def test_completion_link_requires_exact_repository(self):
+        comments = [
+            {
+                "user": {"login": "github-actions[bot]"},
+                "body": (
+                    "Jules completed session `session-1` and released this automation slot.\n\n"
+                    "Pull request: https://github.com/other/repo/pull/235"
+                ),
+            }
+        ]
+        self.assertIsNone(
+            mod.completed_jules_pr_number(comments, "kaamilbadami/yartchives")
+        )
+
     def test_update_branch_merge_conflict_isolated_as_nonfatal(self):
         result = mock.Mock(
             returncode=1,
@@ -204,6 +265,19 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         )
         self.assertIn(
             '"Quality checks on the updated branch."\n            )\n            continue',
+            source,
+        )
+
+    def test_main_drains_all_eligible_prs_instead_of_returning_after_first_merge(self):
+        source = MODULE_PATH.read_text()
+        merge_log = 'print(f"Squash-merged eligible autonomous PR #{number}.")'
+        merge_index = source.index(merge_log)
+        post_merge = source[merge_index:merge_index + 220]
+
+        self.assertIn("merged_count += 1", post_merge)
+        self.assertNotIn("return 0", post_merge)
+        self.assertIn(
+            'print(f"Squash-merged {merged_count} eligible autonomous pull request(s).")',
             source,
         )
 
