@@ -1370,6 +1370,40 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertIn("jules-failed", mod.label_names(issues[0]))
         self.assertNotIn("jules-retry-ready", mod.label_names(issues[0]))
 
+    def test_failure_diagnostics_include_activity_description_and_bash_output(self):
+        diagnostics = mod.failure_diagnostics(
+            {"id": "failed-setup", "state": "FAILED"},
+            [
+                {
+                    "createTime": "2026-09-19T14:00:00Z",
+                    "description": "Environment setup failed while installing dependencies.",
+                    "sessionFailed": {
+                        "reason": "Jules encountered an error when working on the task."
+                    },
+                    "artifacts": [
+                        {
+                            "bashOutput": {
+                                "command": "python -m pip install -r requirements.txt",
+                                "output": "ERROR: Could not find a version that satisfies the requirement example-package",
+                                "exitCode": 1,
+                            }
+                        }
+                    ],
+                }
+            ],
+        )
+
+        self.assertIn(
+            "Environment setup failed while installing dependencies.", diagnostics
+        )
+        self.assertIn(
+            "ERROR: Could not find a version that satisfies the requirement example-package",
+            diagnostics,
+        )
+        self.assertIn(
+            "Jules encountered an error when working on the task.", diagnostics
+        )
+
     def test_generic_jules_task_error_is_retryable_once(self):
         self.assertTrue(
             mod.retryable_jules_failure(

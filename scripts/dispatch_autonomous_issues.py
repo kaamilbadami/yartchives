@@ -640,6 +640,11 @@ def failure_diagnostics(
         "statusmessage",
         "failurereason",
         "agentmessage",
+        # Jules documents failure context in activity descriptions and bash artifacts.
+        # Capture those too so a generic sessionFailed.reason does not hide the
+        # actionable setup/install error that preceded it.
+        "description",
+        "output",
     }
     found: list[str] = []
 
