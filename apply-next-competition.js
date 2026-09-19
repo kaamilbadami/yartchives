@@ -223,24 +223,23 @@
     if (demand.observed) {
       demandBonus = demand.bonus;
       reasons.push(demand.detail);
-    } else {
-      if (isGenericRole(job)) {
-        competitionPenalty += 2;
-        reasons.push("broad generic internship title (fallback competition heuristic)");
-      }
-
-      const market = marketPressure(job);
-      competitionPenalty += market.penalty;
-      reasons.push(...market.reasons.map(reason => `${reason} (fallback competition heuristic)`));
-
     }
+
+    if (isGenericRole(job)) {
+      competitionPenalty += 2;
+      reasons.push("broad generic internship title");
+    }
+
+    const market = marketPressure(job);
+    competitionPenalty += market.penalty;
+    reasons.push(...market.reasons);
 
     competitionPenalty = Math.min(5, competitionPenalty);
     demandBonus = Math.min(5, demandBonus);
     score = Math.max(0, Math.min(15, score - competitionPenalty + demandBonus));
 
     if (!demand.observed && !competitionPenalty) {
-      reasons.push("no observed employer/role demand evidence or strong fallback competition signal available");
+      reasons.push("no observed employer/role demand evidence or strong competition signal available");
     }
     return {
       score,

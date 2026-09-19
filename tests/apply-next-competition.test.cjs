@@ -82,12 +82,12 @@ const context = C.buildCompetitionContext(footprintJobs);
 assert.equal(context.employerCounts.bigco, 8);
 assert.equal(context.employerRoleCounts["bigco::software engineering"], 8);
 const observedDemand = C.scoreRoi(genericNy, profile, context);
-assert.equal(observedDemand.competitionPenalty, 0);
+assert.equal(observedDemand.competitionPenalty, 4);
 assert.equal(observedDemand.demandBonus, 5);
-assert.equal(observedDemand.score, 15);
+assert.equal(observedDemand.score, 11);
 assert.deepEqual(observedDemand.observedDemand, { count: 8, role: "software engineering" });
 assert.match(observedDemand.detail, /observed employer demand: 8 current software engineering openings/);
-assert.doesNotMatch(observedDemand.detail, /fallback competition heuristic/);
+assert.match(observedDemand.detail, /dense applicant market/);
 assert.doesNotMatch(observedDemand.detail, /acceptance|probability|odds|chance/i);
 
 const mediumDemandJobs = Array.from({ length: 3 }, (_, index) => ({
@@ -99,7 +99,7 @@ const mediumDemandJobs = Array.from({ length: 3 }, (_, index) => ({
 const mediumContext = C.buildCompetitionContext(mediumDemandJobs);
 const mediumDemand = C.scoreRoi(mediumDemandJobs[0], profile, mediumContext);
 assert.equal(mediumDemand.demandBonus, 3);
-assert.equal(mediumDemand.score, 13);
+assert.equal(mediumDemand.score, 9);
 
 const fallbackContext = {
   employerCounts: { bigco: 8 },
@@ -109,7 +109,7 @@ const fallbackPressure = C.scoreRoi(genericNy, profile, fallbackContext);
 assert.equal(fallbackPressure.competitionPenalty, 4);
 assert.equal(fallbackPressure.demandBonus, 0);
 assert.equal(fallbackPressure.score, 6);
-assert.match(fallbackPressure.detail, /fallback competition heuristic/);
+assert.match(fallbackPressure.detail, /broad generic internship title/);
 assert.doesNotMatch(fallbackPressure.detail, /hiring footprint/);
 
 const smallFootprintPressure = C.scoreRoi(genericNy, profile, {
