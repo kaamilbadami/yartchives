@@ -200,5 +200,59 @@ class DirectOracleTests(unittest.TestCase):
 
 
 
+    def test_fetch_falls_back_from_non_json_ce_to_ice_resource(self):
+        source = {
+            "key": "auto-oracle-example",
+            "name": "Example (resolved Oracle)",
+            "company": "Example",
+            "site_number": "CX_1",
+            "homepage": "https://careers.example.com/en/sites/CX_1",
+            "api_url": "https://careers.example.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
+            "api_urls": [
+                "https://careers.example.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
+                "https://careers.example.com/hcmRestApi/resources/latest/recruitingICEJobRequisitions",
+            ],
+        }
+
+        class Response:
+            def __init__(self, json_ok):
+                self.json_ok = json_ok
+                self.headers = {"Content-Type": "application/json" if json_ok else "text/html"}
+
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                if not self.json_ok:
+                    raise AssertionError("non-JSON response should be rejected before parsing")
+                return {
+                    "items": [{
+                        "TotalJobsCount": 1,
+                        "requisitionList": [{
+                            "Id": "10",
+                            "Title": "Software Engineering Intern",
+                            "PrimaryLocation": "Boston, MA, United States",
+                            "PrimaryLocationCountry": "US",
+                            "PostedDate": "2026-09-01",
+                        }],
+                    }]
+                }
+
+        class Session:
+            def __init__(self):
+                self.calls = []
+
+            def get(self, url, **kwargs):
+                self.calls.append(url)
+                return Response("recruitingICEJobRequisitions" in url)
+
+        session = Session()
+        jobs = mod.fetch_source(session, source, datetime(2026, 9, 17, tzinfo=timezone.utc))
+        self.assertEqual(len(jobs), 1)
+        self.assertEqual(jobs[0]["oracle_job_id"], "10")
+        self.assertEqual(session.calls[-1], source["api_urls"][1])
+
+
+
 if __name__ == "__main__":
     unittest.main()
