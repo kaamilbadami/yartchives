@@ -300,6 +300,74 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         )
         self.assertEqual(mod.pull_request_queue_priority(["app.js"]), 2)
 
+    def test_maintenance_lane_accepts_small_dispatcher_fix_with_paired_test(self):
+        candidate = pr(files=("scripts/dispatch_autonomous_issues.py", "tests/test_dispatch_autonomous_issues.py"))
+        files = [
+            {"filename": "scripts/dispatch_autonomous_issues.py", "changes": 12},
+            {"filename": "tests/test_dispatch_autonomous_issues.py", "changes": 20},
+        ]
+        ok, reason = mod.maintenance_pr_eligible(
+            candidate,
+            repo="kaamilbadami/yartchives",
+            files=files,
+            quality_runs=runs(),
+        )
+        self.assertTrue(ok)
+        self.assertEqual(reason, "maintenance-eligible")
+
+    def test_maintenance_lane_rejects_missing_test_mixed_and_large_changes(self):
+        candidate = pr(files=("scripts/dispatch_autonomous_issues.py",))
+        cases = (
+            ([{"filename": "scripts/dispatch_autonomous_issues.py", "changes": 12}], "paired regression test"),
+            ([
+                {"filename": "scripts/dispatch_autonomous_issues.py", "changes": 12},
+                {"filename": "tests/test_dispatch_autonomous_issues.py", "changes": 20},
+                {"filename": "app.js", "changes": 1},
+            ], "non-maintenance path"),
+            ([
+                {"filename": "scripts/dispatch_autonomous_issues.py", "changes": 200},
+                {"filename": "tests/test_dispatch_autonomous_issues.py", "changes": 100},
+            ], "diff is too large"),
+        )
+        for files, expected in cases:
+            with self.subTest(expected=expected):
+                ok, reason = mod.maintenance_pr_eligible(
+                    candidate,
+                    repo="kaamilbadami/yartchives",
+                    files=files,
+                    quality_runs=runs(),
+                )
+                self.assertFalse(ok)
+                self.assertIn(expected, reason)
+
+    def test_main_does_not_require_issue_link_for_maintenance_lane(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            "if issue_number is None and not maintenance_pre_ci:",
+            source,
+        )
+        self.assertIn(
+            "if issue is None and not maintenance_pre_ci:",
+            source,
+        )
+
+    def test_maintenance_lane_never_authorizes_automerger_or_workflow_changes(self):
+        candidate = pr()
+        for path in (
+            "scripts/auto_merge_agent_prs.py",
+            ".github/workflows/auto-merge-agent-prs.yml",
+            ".github/workflows/autonomous-dispatch.yml",
+            "requirements.txt",
+        ):
+            with self.subTest(path=path):
+                ok, _ = mod.maintenance_pr_eligible(
+                    candidate,
+                    repo="kaamilbadami/yartchives",
+                    files=[{"filename": path, "changes": 1}],
+                    quality_runs=runs(),
+                )
+                self.assertFalse(ok)
+
     def test_priority_does_not_bypass_protected_path_guard(self):
         candidate = pr()
         ok, reason = mod.eligible_pr(
