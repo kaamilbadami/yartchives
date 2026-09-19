@@ -660,6 +660,14 @@ def main() -> int:
 
     if merged_count:
         print(f"Squash-merged {merged_count} eligible autonomous pull request(s).")
+        gh_run(
+            "workflow", "run", "auto-merge-agent-prs.yml",
+            "--repo", repo,
+        )
+        print(
+            "Queued one follow-up auto-merge scan because this run advanced main; "
+            "GITHUB_TOKEN-authored merges do not reliably recurse through push triggers."
+        )
     else:
         print("No autonomous pull request is currently eligible for automatic merge.")
     return 0
