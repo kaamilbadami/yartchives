@@ -47,7 +47,7 @@ def main() -> int:
     except ValueError as exc:
         parser.error(str(exc))
 
-    output = json.dumps(refreshed, indent=2) + "\n"
+    output = json.dumps(refreshed, indent=2, ensure_ascii=False) + "\n"
     output_path = Path(args.output) if args.output else universe_path
     output_path.write_text(output, encoding="utf-8")
     return 0
