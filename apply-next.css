@@ -222,3 +222,18 @@
 .apply-next-explanation {
   color: var(--primary-dark, #0369a1);
 }
+
+.apply-next-panel input:focus-visible,
+.apply-next-panel select:focus-visible,
+.apply-next-panel textarea:focus-visible,
+.apply-next-why summary:focus-visible {
+  border-color: #5977a4;
+  box-shadow: 0 0 0 3px rgba(98, 137, 194, .11);
+  outline: none;
+}
+
+.apply-next-panel button:focus-visible,
+.apply-next-why summary:focus-visible {
+  outline: 2px solid var(--accent, #5977a4);
+  outline-offset: 2px;
+}

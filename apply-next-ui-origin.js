@@ -516,7 +516,6 @@
 
     const details = element("details", "apply-next-why");
     const summary = element("summary", "", "Why this ranks here");
-    summary.tabIndex = 0;
     details.append(summary);
 
     if (result.inspection?.evidence?.length) {
@@ -689,8 +688,6 @@
     const button = element("button", "primary-btn apply-next-open", "Apply Next");
     button.id = "applyNextBtn";
     button.type = "button";
-    button.setAttribute("aria-controls", "applyNextPanel");
-    button.setAttribute("aria-expanded", "false");
     headerActions.prepend(button);
 
     const panel = element("section", "panel apply-next-panel hidden");
