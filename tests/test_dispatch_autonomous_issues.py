@@ -1607,11 +1607,39 @@ class AutonomousDispatcherTests(unittest.TestCase):
             gh_calls,
             [
                 (
+                    "issue", "close", "211", "--repo", "kaamilbadami/yartchives",
+                    "--reason", "completed",
+                ),
+                (
                     "issue", "edit", "211", "--repo", "kaamilbadami/yartchives",
                     "--remove-label", "jules-review-ready",
-                )
+                ),
             ],
         )
+
+    def test_cleanup_closes_issue_before_clearing_review_ready_label(self):
+        gh_calls = []
+
+        mod.cleanup_merged_jules_sessions(
+            "kaamilbadami/yartchives",
+            "secret",
+            load_review_ready=lambda: [{"number": 211}],
+            load_comments=lambda number: [
+                {
+                    "body": (
+                        "Jules completed session `done1` and released this automation slot.\n\n"
+                        "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
+                    )
+                }
+            ],
+            get_pr=lambda number: {"number": number, "merged": True},
+            delete_session=lambda session_id: None,
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        close_index = next(i for i, call in enumerate(gh_calls) if call[:2] == ("issue", "close"))
+        clear_index = next(i for i, call in enumerate(gh_calls) if call[:2] == ("issue", "edit"))
+        self.assertLess(close_index, clear_index)
 
     def test_cleanup_keeps_session_when_linked_pr_is_not_merged(self):
         deleted = []
