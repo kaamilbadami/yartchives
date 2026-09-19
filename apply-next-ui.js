@@ -385,6 +385,61 @@
     return "apply-next-score-high";
   }
 
+  function worthApplyingSummary(result) {
+    if (result?.excluded || result?.components?.eligibility?.excluded) {
+      return "No: excluded by eligibility constraints.";
+    }
+
+    const concerns = [];
+    const positives = [];
+    const uncertainties = [];
+
+    const fitRatio = (result?.components?.fit?.score || 0) / (componentMax("fit") || 1);
+    if (fitRatio >= 0.75) positives.push("strong match");
+    else if (fitRatio < 0.55) concerns.push("weak match");
+
+    const roiRatio = (result?.components?.roi?.score || 0) / (componentMax("roi") || 1);
+    if (roiRatio >= 0.75) positives.push("high value");
+    else if (roiRatio < 0.55) concerns.push("lower value");
+
+    const freshnessRatio = (result?.components?.freshness?.score || 0) / (componentMax("freshness") || 1);
+    if (freshnessRatio >= 0.8) positives.push("recent");
+    else if (freshnessRatio < 0.5) concerns.push("older posting");
+
+    const locRatio = (result?.components?.location?.score || 0) / (componentMax("location") || 1);
+    if (locRatio >= 0.75) positives.push("convenient location");
+    else if (locRatio < 0.55) concerns.push("less convenient location");
+
+    if (result?.inspection?.state === "unavailable") {
+      concerns.push("posting unavailable");
+    } else if (result?.inspection?.state !== "inspected") {
+      uncertainties.push("unverified evidence");
+    } else {
+      positives.push("verified posting");
+    }
+
+    if (concerns.length > 0) {
+      const parts = [];
+      if (positives.length > 0) parts.push(positives.join(", "));
+      parts.push(`concerns: ${concerns.join(", ")}`);
+      if (uncertainties.length > 0) parts.push(uncertainties.join(", "));
+      return `Mixed: ${parts.join("; ")}.`;
+    }
+
+    if (uncertainties.length > 0) {
+      const parts = [];
+      if (positives.length > 0) parts.push(positives.join(", "));
+      parts.push(uncertainties.join(", "));
+      return `Uncertain: ${parts.join("; ")}.`;
+    }
+
+    if (positives.length > 0) {
+      return `Yes: ${positives.join(", ")}.`;
+    }
+
+    return "Maybe: meets basic profile criteria.";
+  }
+
   function rankingSummary(result) {
     const parts = [];
     for (const key of ["fit", "freshness", "roi", "location"]) {
@@ -440,7 +495,7 @@
     top.append(titleWrap, score);
     card.append(top);
 
-    card.append(element("p", "apply-next-ranking-summary", rankingSummary(result)));
+    card.append(element("p", "apply-next-ranking-summary", worthApplyingSummary(result)));
 
     const breakdown = element("div", "apply-next-breakdown");
     for (const [key, component] of Object.entries(result.components || {})) {
@@ -693,6 +748,7 @@
     componentExplanation,
     scoreBand,
     totalScoreBandClass,
+    worthApplyingSummary,
     rankingSummary,
     componentMax,
     updateQueueOptimistically,
