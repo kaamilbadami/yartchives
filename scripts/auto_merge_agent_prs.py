@@ -411,9 +411,13 @@ def main() -> int:
             "-f", f"sha={head_sha}",
         )
         print(f"Squash-merged eligible autonomous PR #{number}.")
-        return 0
+        # Keep scanning after a successful merge. The merge advances main, so later
+        # review-ready PRs will usually be detected as behind, updated onto the new
+        # base, and sent through fresh exact-head Quality checks in this same run.
+        # A subsequent main-push invocation can then merge the next green PR.
+        continue
 
-    print("No autonomous pull request is currently eligible for automatic merge.")
+    print("No additional autonomous pull request is currently eligible for automatic merge.")
     return 0
 
 
