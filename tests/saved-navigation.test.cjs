@@ -354,6 +354,13 @@ async function runTests() {
     // Wait microtask tick for boot fetch
     await new Promise(r => setTimeout(r, 10));
 
+    // "All" should mean all career areas exposed in the beta UI, not hidden areas.
+    assert.equal(document.querySelector("#shownCount").textContent, "1", "CS-first default should show only CS jobs");
+    const careerButtons = document.querySelector("#profileChips").children;
+    careerButtons[0].click();
+    await new Promise(r => setTimeout(r, 10));
+    assert.equal(document.querySelector("#shownCount").textContent, "1", "All should stay within exposed CS-only beta scope");
+
     // Check stat navigation setup
     const savedTile = document.querySelector("#newCount").closest(".stat");
     const matchesTile = document.querySelector("#shownCount").closest(".stat");
