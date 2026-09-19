@@ -5,6 +5,8 @@ on:
     workflows:
       - Quality checks
       - Update opportunity feed
+      - Dispatch autonomous backlog
+      - Auto-merge autonomous agent PRs
     types:
       - completed
 
@@ -15,7 +17,6 @@ permissions:
 
 jobs:
   triage:
-    if: github.event.workflow_run.head_branch == github.event.repository.default_branch
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository

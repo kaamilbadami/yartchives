@@ -11,6 +11,11 @@ from typing import Any, Callable, NamedTuple
 GhJson = Callable[..., Any]
 GhRun = Callable[..., None]
 
+CONTROL_PLANE_WORKFLOWS = {
+    "Dispatch autonomous backlog",
+    "Auto-merge autonomous agent PRs",
+}
+
 
 class Context(NamedTuple):
     repo: str
@@ -237,7 +242,10 @@ def handle_success(ctx: Context, gh_json: GhJson, gh_run: GhRun) -> None:
 
 
 def triage(ctx: Context, gh_json: GhJson, gh_run: GhRun) -> None:
-    if ctx.head_branch != ctx.default_branch:
+    if (
+        ctx.head_branch != ctx.default_branch
+        and ctx.workflow not in CONTROL_PLANE_WORKFLOWS
+    ):
         print(
             f"Skipping {ctx.workflow} {ctx.conclusion} on non-default branch "
             f"{ctx.head_branch!r}; coding-agent triage is for {ctx.default_branch!r}."
