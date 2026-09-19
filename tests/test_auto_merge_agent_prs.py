@@ -44,6 +44,11 @@ def runs(sha="abc", conclusion="success"):
 
 
 class AutoMergeAgentPrTests(unittest.TestCase):
+    def test_automerge_workflow_fetches_full_history_for_branch_merges(self):
+        workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
+        checkout_block = workflow.split("- name: Check out merge policy", 1)[1].split("- name: Merge one safe autonomous pull request", 1)[0]
+        self.assertIn("fetch-depth: 0", checkout_block)
+
     def test_quality_run_query_includes_manual_dispatch_runs(self):
         path = mod.quality_runs_api_path("kaamilbadami/yartchives", "abc123")
         self.assertEqual(
@@ -68,6 +73,82 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertTrue(mod.exact_head_quality_present(runs(), "abc"))
         self.assertFalse(mod.exact_head_quality_present([], "abc"))
         self.assertFalse(mod.exact_head_quality_present(runs(sha="older"), "abc"))
+
+    def test_superseded_action_required_runs_require_exact_head_manual_replacement(self):
+        approval = {
+            "id": 10,
+            "name": "Quality checks",
+            "head_sha": "abc",
+            "event": "pull_request",
+            "status": "completed",
+            "conclusion": "action_required",
+        }
+        manual = {
+            "id": 11,
+            "name": "Quality checks",
+            "head_sha": "abc",
+            "event": "workflow_dispatch",
+            "status": "in_progress",
+            "conclusion": None,
+        }
+        other_head = {
+            "id": 12,
+            "name": "Quality checks",
+            "head_sha": "other",
+            "event": "workflow_dispatch",
+            "status": "completed",
+            "conclusion": "success",
+        }
+
+        self.assertEqual(
+            mod.superseded_action_required_run_ids([approval, manual], "abc"),
+            [10],
+        )
+        self.assertEqual(
+            mod.superseded_action_required_run_ids([approval, other_head], "abc"),
+            [],
+        )
+
+    def test_delete_superseded_action_required_runs_deletes_only_obsolete_pr_runs(self):
+        runs = [
+            {
+                "id": 10,
+                "name": "Quality checks",
+                "head_sha": "abc",
+                "event": "pull_request",
+                "status": "completed",
+                "conclusion": "action_required",
+            },
+            {
+                "id": 11,
+                "name": "Quality checks",
+                "head_sha": "abc",
+                "event": "workflow_dispatch",
+                "status": "completed",
+                "conclusion": "success",
+            },
+            {
+                "id": 12,
+                "name": "Quality checks",
+                "head_sha": "abc",
+                "event": "pull_request",
+                "status": "completed",
+                "conclusion": "failure",
+            },
+        ]
+        with mock.patch.object(mod, "gh_run") as gh_run:
+            deleted = mod.delete_superseded_action_required_runs(
+                "kaamilbadami/yartchives",
+                runs,
+                "abc",
+            )
+
+        self.assertEqual(deleted, [10])
+        gh_run.assert_called_once_with(
+            "api",
+            "--method", "DELETE",
+            "repos/kaamilbadami/yartchives/actions/runs/10",
+        )
 
     def test_action_required_quality_run_is_detected_for_manual_redispatch(self):
         self.assertTrue(
@@ -265,31 +346,113 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             mod.completed_jules_pr_number(comments, "kaamilbadami/yartchives")
         )
 
-    def test_update_branch_merge_conflict_isolated_as_nonfatal(self):
-        result = mock.Mock(
-            returncode=1,
-            stdout='{"message":"merge conflict between base and head","status":422}',
-            stderr="gh: merge conflict between base and head (HTTP 422)",
-            args=["gh", "api"],
+    def test_update_branch_uses_token_push_not_update_branch_api(self):
+        ok = mock.Mock(returncode=0, stdout="", stderr="", args=["git"])
+        rev_parse = mock.Mock(
+            returncode=0,
+            stdout="abc\n",
+            stderr="",
+            args=["git", "rev-parse"],
         )
-        with mock.patch.object(mod.subprocess, "run", return_value=result):
+        with mock.patch.object(
+            mod.subprocess,
+            "run",
+            side_effect=[ok, rev_parse, ok, ok, ok],
+        ) as run:
             updated, detail = mod.update_pull_request_branch(
-                "kaamilbadami/yartchives", 196, "abc"
+                "kaamilbadami/yartchives",
+                196,
+                "abc",
+                "feature/issue-196",
+                "main",
+            )
+
+        self.assertTrue(updated)
+        self.assertEqual(detail, "")
+        commands = [call.args[0] for call in run.call_args_list]
+        self.assertFalse(
+            any(
+                command[:4] == ["gh", "api", "--method", "PUT"]
+                for command in commands
+            )
+        )
+        self.assertIn(
+            [
+                "git",
+                "push",
+                "origin",
+                "HEAD:refs/heads/feature/issue-196",
+                "--force-with-lease=refs/heads/feature/issue-196:abc",
+            ],
+            commands,
+        )
+
+    def test_update_branch_merge_conflict_isolated_as_nonfatal(self):
+        ok = mock.Mock(returncode=0, stdout="", stderr="", args=["git"])
+        rev_parse = mock.Mock(
+            returncode=0,
+            stdout="abc\n",
+            stderr="",
+            args=["git", "rev-parse"],
+        )
+        conflict = mock.Mock(
+            returncode=1,
+            stdout="CONFLICT (content): Merge conflict in app.js",
+            stderr="Automatic merge failed; fix conflicts and then commit the result.",
+            args=["git", "merge"],
+        )
+        with mock.patch.object(
+            mod.subprocess,
+            "run",
+            side_effect=[ok, rev_parse, ok, conflict, ok],
+        ):
+            updated, detail = mod.update_pull_request_branch(
+                "kaamilbadami/yartchives",
+                196,
+                "abc",
+                "feature/issue-196",
+                "main",
             )
         self.assertFalse(updated)
-        self.assertIn("merge conflict between base and head", detail)
+        self.assertIn("Merge conflict", detail)
 
     def test_update_branch_non_conflict_error_still_fails_loudly(self):
-        result = mock.Mock(
+        fetch_error = mock.Mock(
             returncode=1,
             stdout="",
-            stderr="gh: authentication failed (HTTP 401)",
-            args=["gh", "api"],
+            stderr="fatal: authentication failed",
+            args=["git", "fetch"],
         )
-        with mock.patch.object(mod.subprocess, "run", return_value=result):
+        with mock.patch.object(mod.subprocess, "run", return_value=fetch_error):
             with self.assertRaises(subprocess.CalledProcessError):
                 mod.update_pull_request_branch(
-                    "kaamilbadami/yartchives", 196, "abc"
+                    "kaamilbadami/yartchives",
+                    196,
+                    "abc",
+                    "feature/issue-196",
+                    "main",
+                )
+
+    def test_update_branch_rejects_head_movement_before_push(self):
+        ok = mock.Mock(returncode=0, stdout="", stderr="", args=["git"])
+        moved = mock.Mock(
+            returncode=0,
+            stdout="new-head\n",
+            stderr="",
+            args=["git", "rev-parse"],
+        )
+        with mock.patch.object(
+            mod.subprocess,
+            "run",
+            side_effect=[ok, moved],
+        ):
+            with self.assertRaises(RuntimeError):
+                mod.update_pull_request_branch(
+                    "kaamilbadami/yartchives",
+                    196,
+                    "abc",
+                    "feature/issue-196",
+                    "main",
                 )
 
     def test_main_continues_past_in_flight_and_redispatched_ci(self):
