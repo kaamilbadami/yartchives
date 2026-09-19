@@ -395,8 +395,8 @@ def latest_retryable_failed_session(
 ) -> tuple[str, str] | None:
     """Return the newest durable FAILED record that is clearly Jules/platform retryable."""
     pattern = re.compile(
-        r"Jules session `([^`]+)` ended in FAILED state and released this "
-        r"automation slot\.",
+        r"Jules session `([^`]+)` ended in FAILED state (?:and released this "
+        r"automation slot|because the diagnostics match a retryable Jules/platform failure)\.",
         re.IGNORECASE,
     )
     for comment in reversed(list(comments)):
@@ -599,8 +599,8 @@ def reconcile_historical_merged_jules_issues(
             continue
 
         run_gh(
-            "issue", "close", str(number), "--repo", repo,
-            "--reason", "completed",
+            "api", "--method", "PATCH", f"repos/{repo}/issues/{number}",
+            "-f", "state=closed", "-f", "state_reason=completed",
         )
         print(
             f"Closed historical autonomous issue #{number} after verifying merged "
@@ -747,8 +747,8 @@ def cleanup_merged_jules_sessions(
             )
 
         run_gh(
-            "issue", "close", str(number), "--repo", repo,
-            "--reason", "completed",
+            "api", "--method", "PATCH", f"repos/{repo}/issues/{number}",
+            "-f", "state=closed", "-f", "state_reason=completed",
         )
         run_gh(
             "issue", "edit", str(number), "--repo", repo,

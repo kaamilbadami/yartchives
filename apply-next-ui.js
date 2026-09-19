@@ -430,59 +430,53 @@
     return "apply-next-score-high";
   }
 
-  function worthApplyingSummary(result) {
+  function decisionHighlights(result) {
     if (result?.excluded || result?.components?.eligibility?.excluded) {
-      return "No: excluded by eligibility constraints.";
+      return ["Excluded by eligibility constraints"];
     }
 
+    const highlights = [];
     const concerns = [];
-    const positives = [];
-    const uncertainties = [];
 
     const fitRatio = (result?.components?.fit?.score || 0) / (componentMax("fit") || 1);
-    if (fitRatio >= 0.75) positives.push("strong match");
+    if (fitRatio >= 0.75) highlights.push("Strong match");
     else if (fitRatio < 0.55) concerns.push("weak match");
 
     const roiRatio = (result?.components?.roi?.score || 0) / (componentMax("roi") || 1);
-    if (roiRatio >= 0.75) positives.push("high value");
+    if (roiRatio >= 0.75) highlights.push("High value");
     else if (roiRatio < 0.55) concerns.push("lower value");
 
     const freshnessRatio = (result?.components?.freshness?.score || 0) / (componentMax("freshness") || 1);
-    if (freshnessRatio >= 0.8) positives.push("recent");
-    else if (freshnessRatio < 0.5) concerns.push("older posting");
+    if (freshnessRatio >= 0.8) highlights.push("Very recent");
+    else if (freshnessRatio >= 0.5) highlights.push("Recent");
+    else concerns.push("older posting");
 
     const locRatio = (result?.components?.location?.score || 0) / (componentMax("location") || 1);
-    if (locRatio >= 0.75) positives.push("convenient location");
-    else if (locRatio < 0.55) concerns.push("less convenient location");
+    if (locRatio >= 0.75) highlights.push("Very convenient location");
+    else if (locRatio >= 0.55) highlights.push("Manageable location");
+    else concerns.push("less convenient location");
 
     if (result?.inspection?.state === "unavailable") {
       concerns.push("posting unavailable");
     } else if (result?.inspection?.state !== "inspected") {
-      uncertainties.push("unverified evidence");
-    } else {
-      positives.push("verified posting");
+      concerns.push("unverified evidence");
     }
+
+    const finalHighlights = [];
 
     if (concerns.length > 0) {
-      const parts = [];
-      if (positives.length > 0) parts.push(positives.join(", "));
-      parts.push(`concerns: ${concerns.join(", ")}`);
-      if (uncertainties.length > 0) parts.push(uncertainties.join(", "));
-      return `Mixed: ${parts.join("; ")}.`;
+      finalHighlights.push("Concerns: " + concerns.join(", "));
     }
 
-    if (uncertainties.length > 0) {
-      const parts = [];
-      if (positives.length > 0) parts.push(positives.join(", "));
-      parts.push(uncertainties.join(", "));
-      return `Uncertain: ${parts.join("; ")}.`;
+    // take top positive highlights up to 4 total
+    const slotsRemaining = 4 - finalHighlights.length;
+    finalHighlights.push(...highlights.slice(0, slotsRemaining));
+
+    if (finalHighlights.length === 0) {
+      finalHighlights.push("Meets basic profile criteria");
     }
 
-    if (positives.length > 0) {
-      return `Yes: ${positives.join(", ")}.`;
-    }
-
-    return "Maybe: meets basic profile criteria.";
+    return finalHighlights;
   }
 
   function rankingSummary(result) {
@@ -574,7 +568,12 @@
     top.append(titleWrap, score);
     card.append(top);
 
-    card.append(element("p", "apply-next-ranking-summary", worthApplyingSummary(result)));
+        const highlights = decisionHighlights(result);
+    const highlightsUl = element("ul", "apply-next-highlights");
+    for (const h of highlights) {
+      highlightsUl.append(element("li", "", h));
+    }
+    card.append(highlightsUl);
 
     const breakdown = element("div", "apply-next-breakdown");
     for (const [key, component] of Object.entries(result.components || {})) {
@@ -592,11 +591,11 @@
       if (explanation) metric.append(element("p", "apply-next-metric-explanation", explanation));
       breakdown.append(metric);
     }
-    card.append(breakdown);
+
 
     const details = element("details", "apply-next-why");
     const summary = element("summary", "", "Why this ranks here");
-    details.append(summary);
+    details.append(summary, breakdown);
 
     if (result.inspection?.evidence?.length) {
       const evidenceHeading = element("p", "muted", "Authoritative posting evidence");
@@ -1044,7 +1043,7 @@
     componentExplanation,
     scoreBand,
     totalScoreBandClass,
-    worthApplyingSummary,
+    decisionHighlights,
     rankingSummary,
     componentMax,
     renderQueue,

@@ -2075,8 +2075,8 @@ class AutonomousDispatcherTests(unittest.TestCase):
             gh_calls,
             [
                 (
-                    "issue", "close", "187", "--repo", "kaamilbadami/yartchives",
-                    "--reason", "completed",
+                    "api", "--method", "PATCH", "repos/kaamilbadami/yartchives/issues/187",
+                    "-f", "state=closed", "-f", "state_reason=completed",
                 )
             ],
         )
@@ -2130,8 +2130,8 @@ class AutonomousDispatcherTests(unittest.TestCase):
             gh_calls,
             [
                 (
-                    "issue", "close", "211", "--repo", "kaamilbadami/yartchives",
-                    "--reason", "completed",
+                    "api", "--method", "PATCH", "repos/kaamilbadami/yartchives/issues/211",
+                    "-f", "state=closed", "-f", "state_reason=completed",
                 ),
                 (
                     "issue", "edit", "211", "--repo", "kaamilbadami/yartchives",
@@ -2160,7 +2160,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
             run_gh=lambda *args: gh_calls.append(args),
         )
 
-        close_index = next(i for i, call in enumerate(gh_calls) if call[:2] == ("issue", "close"))
+        close_index = next(i for i, call in enumerate(gh_calls) if call[:2] == ("api", "--method") and "PATCH" in call)
         clear_index = next(i for i, call in enumerate(gh_calls) if call[:2] == ("issue", "edit"))
         self.assertLess(close_index, clear_index)
 
@@ -2212,7 +2212,15 @@ class AutonomousDispatcherTests(unittest.TestCase):
         )
 
         self.assertEqual(gh_calls, [])
-
+    def test_modern_infrastructure_retry_comment_is_matched_by_latest_retryable_failed_session(self):
+        comments = [
+            {
+                "body": "Jules session `599487883835782685` ended in FAILED state because the diagnostics match a retryable Jules/platform failure. One automatic context-preserving retry is allowed.\n\nFailure diagnostics:\n\n> Jules encountered an error when working on the task."
+            }
+        ]
+        infra_failure = mod.latest_retryable_failed_session(comments)
+        self.assertIsNotNone(infra_failure)
+        self.assertEqual(infra_failure[0], "599487883835782685")
 
 
 if __name__ == "__main__":
