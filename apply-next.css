@@ -306,6 +306,41 @@
   .apply-next-score {
     align-self: flex-start;
   }
+
+  .apply-next-card {
+    position: relative;
+  }
+
+  .apply-next-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+    padding-right: 0;
+  }
+
+  .apply-next-actions .primary-btn {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+
+  .apply-next-actions .hide-btn {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.5rem;
+    width: auto;
+    margin: 0;
+  }
+
+  .apply-next-view-tabs {
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .apply-next-view-tabs .apply-next-view-btn {
+    flex: 1;
+    text-align: center;
+  }
 }
 
 .apply-next-explanation {
