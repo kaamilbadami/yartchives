@@ -95,6 +95,20 @@ class PostingRequirementTests(unittest.TestCase):
         self.assertEqual(result["skills"]["required"], [])
         self.assertEqual(result["skills"]["preferred"][0]["technologies"], ["Git", "Linux"])
 
+    def test_generic_what_you_bring_heading_is_required_context(self):
+        result = shared.extract_requirements([
+            "What you'll bring:",
+            "Strong foundation in data structures and algorithms.",
+            "What it takes to be successful:",
+            "Experience with Python and C++.",
+        ])
+        skills = result["skills"]
+        self.assertEqual(skills["classification"], "required")
+        self.assertEqual(
+            skills["required"][0]["technologies"],
+            ["C++", "Python"],
+        )
+
     def test_novel_heading_does_not_drop_candidate_skill_evidence(self):
         result = shared.extract_requirements([
             "What makes you successful here:",

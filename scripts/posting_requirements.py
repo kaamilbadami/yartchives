@@ -79,7 +79,7 @@ REQUIRED_HEADING = re.compile(
     r"requirements?|what (?:we(?:'re| are)|we) (?:are )?looking for|"
     r"who (?:we(?:'re| are)|we) (?:are )?looking for|"
     r"what you(?:'ll| will) need|what we seek|"
-    r"experience you(?:'ll| will)? bring)\b",
+    r"(?:experience )?you(?:'ll| will)? bring|what you(?:'ll| will)? bring|what it takes(?: to be successful)?)\b",
     re.I,
 )
 PREFERRED_HEADING = re.compile(
