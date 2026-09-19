@@ -425,6 +425,9 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 "id": "abc123",
                 "url": "https://jules.google.com/session/abc123",
             },
+            delete_session=lambda session_id: self.fail(
+                "non-retry dispatch must not delete a Jules session"
+            ),
             run_gh=lambda *args: gh_calls.append(args),
         )
         self.assertEqual(session["id"], "abc123")
@@ -1328,10 +1331,16 @@ class AutonomousDispatcherTests(unittest.TestCase):
         )
         captured = {}
         gh_calls = []
+        deleted = []
 
         def fake_create(api_key, source_name, repo, task, **kwargs):
             captured.update(kwargs)
             return {"id": "retry2", "url": "https://jules.google.com/session/retry2"}
+
+        def fake_delete(session_id):
+            self.assertEqual(len(gh_calls), 2)
+            self.assertIn("<!-- jules-session-id: retry2 -->", gh_calls[1][-1])
+            deleted.append(session_id)
 
         mod.dispatch_task(
             task,
@@ -1349,11 +1358,52 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 }
             ],
             create_session=fake_create,
+            delete_session=fake_delete,
             run_gh=lambda *args: gh_calls.append(args),
         )
         self.assertIn("Keep the fix provider-neutral.", captured["retry_context"])
         self.assertIn("--remove-label", gh_calls[0])
         self.assertIn("jules-retry-ready", gh_calls[0])
+        self.assertEqual(deleted, ["failed1"])
+
+    def test_retry_cleanup_failure_does_not_break_persisted_replacement(self):
+        task = mod.Task(
+            212,
+            "feed timing",
+            task_body("P2", "feed-performance", resources="feed-performance"),
+            "P2",
+            "feed-performance",
+            frozenset(("jules-retry-ready",)),
+        )
+        gh_calls = []
+
+        def fail_delete(session_id):
+            raise RuntimeError("cleanup unavailable")
+
+        session = mod.dispatch_task(
+            task,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            source_name="source",
+            comments=[
+                {
+                    "body": (
+                        "<!-- jules-retry-from: failed-old -->\n"
+                        "Failure diagnostics:\n\n> Jules encountered an error."
+                    )
+                }
+            ],
+            create_session=lambda *args, **kwargs: {
+                "id": "retry-new",
+                "url": "https://jules.google.com/session/retry-new",
+            },
+            delete_session=fail_delete,
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(session["id"], "retry-new")
+        self.assertEqual(len(gh_calls), 2)
+        self.assertIn("<!-- jules-session-id: retry-new -->", gh_calls[1][-1])
 
 
 if __name__ == "__main__":
