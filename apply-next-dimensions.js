@@ -463,7 +463,7 @@
       .map(result => transform(result, profile || {}))
       .filter(x => !x.excluded)
       .sort((a, b) => b.total - a.total
-        || (new Date(b.job?.posted_at || 0) - new Date(a.job?.posted_at || 0))
+        || ((new Date(b.job?.posted_at || 0)).getTime() || 0) - ((new Date(a.job?.posted_at || 0)).getTime() || 0)
         || String(a.job?.company || "").localeCompare(String(b.job?.company || "")));
   }
 
