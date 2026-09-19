@@ -260,6 +260,7 @@
     textarea.id = "applyNextProfileInput";
     textarea.rows = 12;
     textarea.placeholder = "Paste your Apply Next profile JSON here…";
+    textarea.setAttribute("aria-label", "Paste your Apply Next profile JSON here");
     textarea.autocomplete = "off";
     textarea.spellcheck = false;
     panel.append(textarea);
@@ -547,13 +548,16 @@
       `apply-next-component apply-next-inspection-status apply-next-inspection-${inspectionState}`,
       result.inspection?.label || "Metadata fallback"
     );
+    let statusExplanation = "";
     if (inspectionState === "inspected") {
-      evidenceStatus.title = "Authoritative employer posting evidence is included in this score.";
+      statusExplanation = "Authoritative employer posting evidence is included in this score.";
     } else if (inspectionState === "unavailable") {
-      evidenceStatus.title = "This score falls back to feed metadata because authoritative posting evidence is no longer available.";
+      statusExplanation = "This score falls back to feed metadata because authoritative posting evidence is no longer available.";
     } else {
-      evidenceStatus.title = "This score falls back to feed metadata because authoritative posting evidence is unavailable.";
+      statusExplanation = "This score falls back to feed metadata because authoritative posting evidence is unavailable.";
     }
+    evidenceStatus.title = statusExplanation;
+    evidenceStatus.append(element("span", "sr-only", " " + statusExplanation));
     titleWrap.append(evidenceStatus);
 
     const scoreClass = `apply-next-score ${totalScoreBandClass(result.total)}`;
@@ -804,10 +808,12 @@
     const button = element("button", "primary-btn apply-next-open", "Apply Next");
     button.id = "applyNextBtn";
     button.type = "button";
+    button.setAttribute("aria-controls", "applyNextPanel");
     headerActions.prepend(button);
 
     const panel = element("section", "panel apply-next-panel hidden");
     panel.id = "applyNextPanel";
+    panel.setAttribute("aria-label", "Apply Next");
     const stats = main.querySelector(".stats");
     main.insertBefore(panel, stats ? stats.nextSibling : main.firstChild);
 

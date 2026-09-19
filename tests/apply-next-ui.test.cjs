@@ -301,6 +301,15 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /setProfileSetupMode\(false\)/, "Closing Apply Next should restore the normal feed");
   assert.match(uiSource, /apply-next-profile-mode/, "Focused Apply Next should use an explicit main-state class");
 
+  assert.match(uiSource, /panel\.setAttribute\("aria-label", "Apply Next"\)/, "Panel should have an accessible label");
+  assert.match(uiSource, /button\.setAttribute\("aria-controls", "applyNextPanel"\)/, "Button should control the panel via aria-controls");
+  assert.match(uiSource, /textarea\.setAttribute\("aria-label", "Paste your Apply Next profile JSON here"\)/, "Textarea should have an accessible label");
+  assert.match(uiSource, /evidenceStatus\.append\(element\("span", "sr-only", " " \+ statusExplanation\)\)/, "Evidence status should use sr-only text rather than a native title tooltip");
+
+  const cssSource = fs.readFileSync(path.join(__dirname, "..", "styles.css"), "utf8");
+  assert.match(cssSource, /\.sr-only\s*\{/, "Global styles should include a screen-reader-only utility class");
+  assert.match(cssSource, /:focus-visible\s*\{/, "Global styles should include a focus-visible outline for keyboard accessibility");
+
   assert.doesNotMatch(uiSource, /<option value="newest">Newest<\/option>/, "Apply Next should not expose a Newest sort mode");
   assert.match(uiSource, /\["recommended", "Recommended"\]/, "Apply Next should expose the Recommended queue");
   assert.match(uiSource, /\["fresh", "Fresh"\]/, "Apply Next should expose a Fresh queue");
