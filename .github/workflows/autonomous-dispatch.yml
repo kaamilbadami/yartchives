@@ -3,7 +3,7 @@ name: Dispatch autonomous backlog
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "*/5 * * * *"
   issues:
     types:
       - closed
