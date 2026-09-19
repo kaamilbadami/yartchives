@@ -421,9 +421,10 @@
   applyFilters = async function () {
     await priorApplyFilters();
 
-    if (uxState.areas.length) {
-      filtered = filtered.filter(job => uxState.areas.some(area => matchesCareerArea(job, area)));
-    }
+    const activeAreas = uxState.areas.length
+      ? uxState.areas
+      : CAREER_AREAS.map(([key]) => key);
+    filtered = filtered.filter(job => activeAreas.some(area => matchesCareerArea(job, area)));
     sortFiltered(filtered, Boolean(currentZip()));
     renderJobs();
     updateStats();
