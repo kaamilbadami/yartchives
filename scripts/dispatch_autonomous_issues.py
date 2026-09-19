@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -15,9 +16,11 @@ PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
 MAX_ACTIVE = 15
 AREA_RESOURCE_LOCKS = {
     "feed": frozenset({"feed-core"}),
+    "feed-quality": frozenset({"feed-core"}),
     "dedupe": frozenset({"feed-core", "identity"}),
     "identity": frozenset({"feed-core", "identity"}),
-    "frontend-state": frozenset({"identity", "frontend-state"}),
+    "frontend": frozenset({"frontend-state"}),
+    "frontend-state": frozenset({"frontend-state"}),
     "link-precedence": frozenset({"feed-core", "links"}),
     "listing-lifecycle": frozenset({"feed-core", "links"}),
     "link-quality": frozenset({"links"}),
@@ -25,9 +28,21 @@ AREA_RESOURCE_LOCKS = {
     "requirement-extraction": frozenset({"requirements", "cache"}),
     "provider-audit": frozenset({"authoritative-evidence", "requirements"}),
     "evidence": frozenset({"authoritative-evidence", "requirements"}),
-    "apply-next-ui": frozenset({"frontend-state", "ranking"}),
+    "apply-next-ui": frozenset({"frontend-state", "ranking", "apply-next-ui"}),
+    "apply-next-explanation": frozenset({"frontend-state", "apply-next-ui", "requirements"}),
+    "evidence-ux": frozenset({"frontend-state", "apply-next-ui", "authoritative-evidence"}),
+    "action-reversibility": frozenset({"frontend-state", "apply-next-ui"}),
     "ranking": frozenset({"ranking"}),
+    "ranking-sensitivity": frozenset({"ranking"}),
+    "ranking-regression": frozenset({"ranking"}),
+    "ranking-stability": frozenset({"ranking"}),
+    "coverage": frozenset({"coverage"}),
+    "coverage-benchmark": frozenset({"coverage"}),
+    "coverage-diagnostics": frozenset({"coverage"}),
+    "employer-resolution": frozenset({"coverage", "source-collection"}),
     "performance": frozenset({"frontend-state"}),
+    "automation": frozenset({"automation"}),
+    "quality": frozenset({"quality"}),
 }
 AUTONOMOUS_MARKER = "<!-- autonomous-task -->"
 JULES_API_ROOT = "https://jules.googleapis.com/v1alpha"
@@ -40,7 +55,10 @@ JULES_SESSION_MARKER = "<!-- jules-session-id: {session_id} -->"
 JULES_RETRY_MARKER = "<!-- jules-retry-from: {session_id} -->"
 JULES_FEEDBACK_MARKER = "<!-- jules-feedback: {session_id} -->"
 JULES_FEEDBACK_SENT_MARKER = "<!-- jules-feedback-sent: {comment_id} -->"
-JULES_AUTO_FEEDBACK_MARKER = "<!-- jules-auto-feedback: {session_id} -->"
+JULES_AUTO_FEEDBACK_MARKER = "<!-- jules-auto-feedback: {session_id}:{question_key} -->"
+JULES_CLARIFICATION_HANDLED_MARKER = (
+    "<!-- jules-clarification-handled: {session_id}:{question_key} -->"
+)
 JULES_TERMINAL_STATES = {"COMPLETED", "FAILED"}
 JULES_PRODUCTIVE_STATES = {"QUEUED", "PLANNING", "IN_PROGRESS"}
 CODEX_RESERVED_LABEL = "codex"
@@ -109,6 +127,7 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
         or priority not in PRIORITY_ORDER
         or not area
         or dependencies is None
+        or (area not in AREA_RESOURCE_LOCKS and not resources)
     ):
         return None
     return Task(
@@ -183,11 +202,20 @@ def pending_feedback_from_comments(
     return None
 
 
-def auto_feedback_sent_for_session(
-    comments: Iterable[dict[str, Any]], session_id: str
+def clarification_key(question: str) -> str:
+    """Return a stable short key for one Jules clarification message."""
+    normalized = " ".join(question.casefold().split())
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:16]
+
+
+def clarification_handled_for_question(
+    comments: Iterable[dict[str, Any]], session_id: str, question: str
 ) -> bool:
+    """Return whether this exact clarification was already answered."""
+    key = clarification_key(question)
     marker = re.compile(
-        rf"<!--\s*jules-auto-feedback:\s*{re.escape(session_id)}\s*-->"
+        rf"<!--\s*jules-clarification-handled:\s*"
+        rf"{re.escape(session_id)}:{re.escape(key)}\s*-->"
     )
     return any(marker.search(str(comment.get("body") or "")) for comment in comments)
 
@@ -195,7 +223,7 @@ def auto_feedback_sent_for_session(
 def clarification_requires_product_decision(question: str) -> bool:
     """Keep only genuine user-facing/product-policy choices gated on the user."""
     text = " ".join(question.casefold().split())
-    product_signals = (
+    direct_product_signals = (
         "product decision",
         "user-facing",
         "user facing",
@@ -205,9 +233,6 @@ def clarification_requires_product_decision(question: str) -> bool:
         "should be the default",
         "what should the default",
         "which should be the default",
-        "ranking weight",
-        "score weight",
-        "scoring weight",
         "eligibility policy",
         "location preference",
         "relocation preference",
@@ -218,7 +243,23 @@ def clarification_requires_product_decision(question: str) -> bool:
         "copy should",
         "wording should",
     )
-    return any(signal in text for signal in product_signals)
+    if any(signal in text for signal in direct_product_signals):
+        return True
+
+    weight_terms = ("ranking weight", "score weight", "scoring weight")
+    weight_decision_phrases = (
+        "what should",
+        "which should",
+        "should the ranking",
+        "should the score",
+        "should the scoring",
+        "set the ranking",
+        "set the score",
+        "set the scoring",
+    )
+    return any(term in text for term in weight_terms) and any(
+        phrase in text for phrase in weight_decision_phrases
+    )
 
 
 def routine_clarification_response(question: str) -> str:
@@ -251,6 +292,101 @@ def retry_context_from_comments(comments: Iterable[dict[str, Any]]) -> str | Non
         if pattern.search(body):
             return pattern.sub("", body, count=1).strip()
     return None
+
+
+def legacy_failed_retry_context(
+    comments: Iterable[dict[str, Any]],
+) -> tuple[str, str] | None:
+    """Return one retry context for failures parked before retry support existed."""
+    comment_list = list(comments)
+    if retry_marker_from_comments(comment_list) is not None:
+        return None
+
+    session_id = session_id_from_comments(comment_list)
+    if not session_id:
+        return None
+
+    terminal_prefix = (
+        f"Jules session `{session_id}` ended in FAILED state and released this "
+        "automation slot. It will not be retried automatically."
+    )
+    terminal_body: str | None = None
+    for comment in reversed(comment_list):
+        body = str(comment.get("body") or "")
+        if terminal_prefix in body:
+            terminal_body = body
+            break
+    if terminal_body is None:
+        return None
+
+    # Modern failure reconciliation always records either diagnostics or an
+    # explicit no-diagnostics line. Leave those decisions alone. The only
+    # pre-retry diagnostic we migrate is Jules's non-actionable generic failure.
+    no_diagnostics = "No additional failure diagnostics were reported by the Jules API."
+    diagnostics_header = "Failure diagnostics:"
+    generic_failures = (
+        "Jules was unable to complete the task.",
+        "Jules encountered an error when working on the task.",
+    )
+    if no_diagnostics in terminal_body:
+        return None
+    if diagnostics_header in terminal_body and not any(
+        generic_failure in terminal_body for generic_failure in generic_failures
+    ):
+        return None
+
+    context = (
+        "This Jules failure was parked before the one-retry lifecycle was available. "
+        "Treat it as the single legacy migration retry; do not infer a code defect from "
+        "the absence of actionable diagnostics."
+    )
+    prior_feedback = explicit_feedback_for_session(comment_list, session_id)
+    if prior_feedback:
+        context += (
+            "\n\nPrior explicit GitHub feedback that must be preserved in the retry:"
+            f"\n\n> {prior_feedback.replace(chr(10), chr(10) + '> ')}"
+        )
+    if diagnostics_header in terminal_body:
+        context += f"\n\nPrior failure record:\n\n{terminal_body}"
+    return session_id, context
+
+
+def migrate_legacy_jules_failures(
+    issues: list[dict[str, Any]],
+    *,
+    repo: str,
+    load_comments: Callable[[int], list[dict[str, Any]]],
+    run_gh: Callable[..., None] | None = None,
+) -> None:
+    """Move only pre-retry ambiguous failures into the existing one-retry path."""
+    if run_gh is None:
+        run_gh = gh_run
+
+    for issue in issues:
+        if JULES_FAILED_LABEL not in label_names(issue):
+            continue
+        number = int(issue["number"])
+        retry = legacy_failed_retry_context(load_comments(number))
+        if retry is None:
+            continue
+
+        session_id, context = retry
+        run_gh(
+            "issue", "edit", str(number), "--repo", repo,
+            "--remove-label", JULES_FAILED_LABEL,
+            "--add-label", JULES_RETRY_LABEL,
+        )
+        replace_issue_labels_in_memory(
+            issue,
+            remove=(JULES_FAILED_LABEL,),
+            add=(JULES_RETRY_LABEL,),
+        )
+        run_gh(
+            "issue", "comment", str(number), "--repo", repo,
+            "--body",
+            f"{JULES_RETRY_MARKER.format(session_id=session_id)}\n{context}",
+        )
+        print(f"Migrated legacy Jules failure for #{number} into one retry.")
 
 
 def explicit_feedback_for_session(
@@ -291,6 +427,7 @@ def retryable_jules_failure(diagnostics: Iterable[str]) -> bool:
         "infrastructure",
         "internal execution stopped",
         "internal error",
+        "jules encountered an error when working on the task",
     )
     return any(pattern in text for pattern in retryable)
 
@@ -450,42 +587,52 @@ def reconcile_jules_sessions(
         state = str(session.get("state") or "STATE_UNSPECIFIED")
 
         if state == "AWAITING_USER_FEEDBACK":
-            if JULES_FEEDBACK_LABEL in labels:
-                pending_feedback = pending_feedback_from_comments(comments, session_id)
-                if pending_feedback is not None:
-                    comment_id, prompt = pending_feedback
-                    send_feedback(session_id, prompt)
-                    run_gh(
-                        "issue", "comment", str(number), "--repo", repo,
-                        "--body",
-                        (
-                            f"{JULES_FEEDBACK_SENT_MARKER.format(comment_id=comment_id)}\n"
-                            f"Forwarded explicit GitHub feedback to Jules session "
-                            f"`{session_id}`."
-                        ),
-                    )
-                    print(
-                        f"Forwarded GitHub feedback comment {comment_id} to Jules "
-                        f"session {session_id} for #{number}."
-                    )
-                    continue
-                if explicit_feedback_for_session(comments, session_id) is not None:
-                    print(
-                        f"Jules session {session_id} for #{number} is processing "
-                        "explicit feedback."
-                    )
-                    continue
-
-            if auto_feedback_sent_for_session(comments, session_id):
-                print(f"Jules session {session_id} for #{number} is processing auto-feedback.")
-                continue
-
             activities = (
                 load_activities(session_id)
                 if load_activities is not None
                 else list_jules_activities(api_key, session_id)
             )
             question = latest_agent_message(activities)
+            question_key = clarification_key(question) if question else None
+
+            if JULES_FEEDBACK_LABEL in labels:
+                pending_feedback = pending_feedback_from_comments(comments, session_id)
+                if pending_feedback is not None:
+                    comment_id, prompt = pending_feedback
+                    send_feedback(session_id, prompt)
+                    handled_marker = (
+                        JULES_CLARIFICATION_HANDLED_MARKER.format(
+                            session_id=session_id,
+                            question_key=question_key,
+                        )
+                        if question_key
+                        else ""
+                    )
+                    run_gh(
+                        "issue", "comment", str(number), "--repo", repo,
+                        "--body",
+                        (
+                            f"{JULES_FEEDBACK_SENT_MARKER.format(comment_id=comment_id)}\n"
+                            f"{handled_marker}\n"
+                            f"Forwarded explicit GitHub feedback to Jules session "
+                            f"`{session_id}`."
+                        ).strip(),
+                    )
+                    print(
+                        f"Forwarded GitHub feedback comment {comment_id} to Jules "
+                        f"session {session_id} for #{number}."
+                    )
+                    continue
+
+            if question and clarification_handled_for_question(
+                comments, session_id, question
+            ):
+                print(
+                    f"Jules session {session_id} for #{number} is processing feedback "
+                    "for the current clarification."
+                )
+                continue
+
             if question and not clarification_requires_product_decision(question):
                 prompt = routine_clarification_response(question)
                 send_feedback(session_id, prompt)
@@ -505,7 +652,8 @@ def reconcile_jules_sessions(
                     "issue", "comment", str(number), "--repo", repo,
                     "--body",
                     (
-                        f"{JULES_AUTO_FEEDBACK_MARKER.format(session_id=session_id)}\n"
+                        f"{JULES_AUTO_FEEDBACK_MARKER.format(session_id=session_id, question_key=question_key)}\n"
+                        f"{JULES_CLARIFICATION_HANDLED_MARKER.format(session_id=session_id, question_key=question_key)}\n"
                         "Automatically answered a routine Jules clarification using the "
                         "repository-first engineering policy. Jules should continue without "
                         "manual review unless it reaches a genuine product decision."
@@ -985,6 +1133,11 @@ def run_dispatch_cycle(
         issues,
         repo=repo,
         api_key=api_key,
+        load_comments=load_comments,
+    )
+    migrate_legacy_jules_failures(
+        issues,
+        repo=repo,
         load_comments=load_comments,
     )
     selected = select_tasks(issues)

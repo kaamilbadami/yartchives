@@ -26,7 +26,7 @@ const workflowFiles = fs.readdirSync(".github/workflows")
   .sort();
 assert.deepEqual(
   workflowFiles,
-  ["auto-merge-agent-prs.yml", "autonomous-dispatch.yml", "coverage-audit.yml", "deploy-pages.yml", "quality.yml", "triage-workflow-failures.yml", "update-feed.yml"],
+  ["auto-merge-agent-prs.yml", "autonomous-dispatch.yml", "cleanup-closed-pr-branches.yml", "coverage-audit.yml", "deploy-pages.yml", "quality.yml", "triage-workflow-failures.yml", "update-feed.yml"],
   "Production workflow set changed; update the workflow-health contract intentionally and do not leave temporary workflows on main"
 );
 
@@ -86,12 +86,12 @@ assert.ok(
 assert.match(
   autonomousWorkflow,
   /timeout-minutes:\s*14/,
-  "Continuous Jules reconciliation should have a bounded workflow runtime"
+  "Autonomous dispatcher should retain a bounded workflow runtime"
 );
 assert.ok(
   autonomousWorkflow.includes('JULES_POLL_SECONDS: "30"') &&
     autonomousWorkflow.includes('JULES_WATCH_SECONDS: "780"'),
-  "Active Jules backlog work should be repolled every 30 seconds within a bounded watch window"
+  "Dispatcher runs should keep a bounded 13-minute watch window to refill freed Jules capacity promptly"
 );
 
 for (const name of workflowFiles) {
