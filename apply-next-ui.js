@@ -79,6 +79,61 @@
     });
   }
 
+
+  function explainProfileChange(oldProfile, newProfile, oldTopId, newTopId) {
+    if (!oldProfile || !newProfile) return null;
+    if (JSON.stringify(oldProfile) === JSON.stringify(newProfile)) return null;
+
+    const changes = [];
+    const changedLoc = JSON.stringify(oldProfile.baseZips) !== JSON.stringify(newProfile.baseZips) ||
+      JSON.stringify(oldProfile.preferredStates) !== JSON.stringify(newProfile.preferredStates) ||
+      oldProfile.relocationAllowed !== newProfile.relocationAllowed ||
+      oldProfile.remoteRelevant !== newProfile.remoteRelevant ||
+      oldProfile.nearbyMiles !== newProfile.nearbyMiles;
+    if (changedLoc) changes.push("location");
+
+    const oldRoleIds = (oldProfile.roleFamilies || []).map(f => f.id);
+    const newRoleIds = (newProfile.roleFamilies || []).map(f => f.id);
+    const changedRoles = JSON.stringify(oldRoleIds) !== JSON.stringify(newRoleIds) ||
+      JSON.stringify(oldProfile.opportunityTypes) !== JSON.stringify(newProfile.opportunityTypes);
+    if (changedRoles) changes.push("role");
+
+    const changedFit = JSON.stringify(oldProfile.facts?.supportedSkills) !== JSON.stringify(newProfile.facts?.supportedSkills) ||
+      JSON.stringify(oldProfile.facts?.cautiousSkills) !== JSON.stringify(newProfile.facts?.cautiousSkills) ||
+      oldProfile.major !== newProfile.major ||
+      oldProfile.degree !== newProfile.degree ||
+      oldProfile.graduation !== newProfile.graduation ||
+      JSON.stringify(oldProfile.supportedKeywords) !== JSON.stringify(newProfile.supportedKeywords) ||
+      JSON.stringify(oldProfile.cautiousKeywords) !== JSON.stringify(newProfile.cautiousKeywords);
+    if (changedFit) changes.push("skills/background");
+
+    const changedTerm = oldProfile.targetTerm !== newProfile.targetTerm;
+    if (changedTerm) changes.push("target term");
+
+    const changedEligibility = oldProfile.citizenship !== newProfile.citizenship ||
+      oldProfile.workAuthorization !== newProfile.workAuthorization ||
+      oldProfile.securityClearance !== newProfile.securityClearance;
+    if (changedEligibility) changes.push("eligibility");
+
+    if (changes.length === 0) return "Recommendations re-evaluated after profile changes.";
+
+    let changedList = changes.join(", ");
+    if (changes.length > 1) {
+        changedList = changes.slice(0, -1).join(", ") + " and " + changes[changes.length - 1];
+    }
+
+    let msg = `Recommendations re-evaluated after ${changedList} changes.`;
+
+    if (oldTopId && newTopId && oldTopId !== newTopId) {
+      if (changes.length === 1) {
+        msg += ` This new top recommendation is stronger under your updated ${changes[0]} preferences.`;
+      } else {
+        msg += ` This new top recommendation is a better match for your updated profile.`;
+      }
+    }
+    return msg;
+  }
+
   function profileSummary(profile) {
     const families = (profile?.roleFamilies || [])
       .slice()
@@ -324,6 +379,12 @@
     return "";
   }
 
+  function totalScoreBandClass(score) {
+    if (score < 55) return "apply-next-score-low";
+    if (score < 75) return "apply-next-score-medium";
+    return "apply-next-score-high";
+  }
+
   function rankingSummary(result) {
     const parts = [];
     for (const key of ["fit", "freshness", "roi", "location"]) {
@@ -373,7 +434,8 @@
     }
     titleWrap.append(evidenceStatus);
 
-    const score = element("div", "apply-next-score");
+    const scoreClass = `apply-next-score ${totalScoreBandClass(result.total)}`;
+    const score = element("div", scoreClass);
     score.append(element("strong", "", String(result.total)), element("span", "", "/100"));
     top.append(titleWrap, score);
     card.append(top);
@@ -483,7 +545,7 @@
       const poolCount = (typeof feed !== "undefined" && Array.isArray(feed?.jobs))
         ? candidatePool(feed.jobs, profile, state).length
         : 0;
-      note.textContent = `Showing ${ranked.length} highest-value options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`;
+      note.textContent = `${queueSortMode === "newest" ? "Showing " + ranked.length + " newest eligible options" : "Showing " + ranked.length + " highest-value options"} from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`;
     }
 
     list.innerHTML = "";
@@ -499,6 +561,9 @@
     attachInspections(pool, artifact);
     await addBaseDistances(pool, profile);
     const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date(), queueSortMode);
+
+    const explanation = explainProfileChange(lastProfile, profile, lastRankedResults?.[0]?.job?.id, ranked?.[0]?.job?.id);
+
     lastRankedResults = ranked;
     lastProfile = profile;
 
@@ -521,7 +586,8 @@
     sortSelect.value = queueSortMode;
     sortSelect.addEventListener("change", () => {
       queueSortMode = sortSelect.value === "newest" ? "newest" : "recommended";
-      renderQueue(panel, profile);
+      lastRankedResults = YartchivesApplyNext.sortRankedResults(lastRankedResults, queueSortMode);
+      updateQueueOptimistically(panel, profile);
     });
 
     const edit = element("button", "ghost-btn", "Edit profile");
@@ -544,9 +610,14 @@
     const note = element(
       "p",
       "apply-next-note",
-      `Showing ${topRanked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`
+      `${queueSortMode === "newest" ? "Showing " + topRanked.length + " newest eligible options" : "Showing " + topRanked.length + " highest-value options"} from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`
     );
     fragment.append(note);
+    if (explanation) {
+      const explanationEl = element("p", "apply-next-explanation apply-next-note", explanation);
+      fragment.append(explanationEl);
+    }
+
 
     const list = element("div", "apply-next-list");
     topRanked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
@@ -621,9 +692,11 @@
     componentLabel,
     componentExplanation,
     scoreBand,
+    totalScoreBandClass,
     rankingSummary,
     componentMax,
     updateQueueOptimistically,
+    explainProfileChange,
     init,
   };
 });

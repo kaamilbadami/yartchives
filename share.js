@@ -71,9 +71,7 @@
 
     if (state.status === "saved") parts.push("Saved");
     else if (state.status === "applied") parts.push("Applied");
-
-    const hidden = document.querySelector("#hiddenToggleBtn")?.classList.contains("active");
-    if (hidden) parts.push("Hidden");
+    else if (state.status === "hidden") parts.push("Hidden");
 
     els.resultsTitle.textContent = parts.filter(Boolean).join(" · ") || "All opportunities";
   }

@@ -640,6 +640,11 @@ def failure_diagnostics(
         "statusmessage",
         "failurereason",
         "agentmessage",
+        # Jules documents failure context in activity descriptions and bash artifacts.
+        # Capture those too so a generic sessionFailed.reason does not hide the
+        # actionable setup/install error that preceded it.
+        "description",
+        "output",
     }
     found: list[str] = []
 
@@ -1516,6 +1521,32 @@ def fetch_open_issues(repo: str) -> list[dict[str, Any]]:
     return [issue for issue in issues if "pull_request" not in issue]
 
 
+def dispatch_capacity_summary(
+    issues: Iterable[dict[str, Any]],
+    selected: Iterable[Task],
+    *,
+    max_active: int = MAX_ACTIVE,
+) -> str:
+    """Summarize productive Jules capacity after scheduling constraints are applied."""
+    issue_list = list(issues)
+    selected_list = list(selected)
+    active_count = sum(active_jules_task(issue) is not None for issue in issue_list)
+    feedback_reserved = sum(
+        JULES_FEEDBACK_LABEL in label_names(issue)
+        and task_from_issue(issue) is not None
+        for issue in issue_list
+    )
+    raw_slots = max(0, max_active - active_count - feedback_reserved)
+    unfilled = max(0, raw_slots - len(selected_list))
+    selected_numbers = ", ".join(f"#{task.number}" for task in selected_list) or "none"
+    return (
+        f"Dispatcher capacity: {active_count} active, "
+        f"{feedback_reserved} feedback-reserved, {len(selected_list)} selected "
+        f"({selected_numbers}), {unfilled} unfilled after dependencies/resource locks; "
+        f"max {max_active}."
+    )
+
+
 def run_dispatch_cycle(
     repo: str,
     api_key: str,
@@ -1549,6 +1580,7 @@ def run_dispatch_cycle(
         return False, source_name
 
     selected = select_tasks(issues)
+    print(dispatch_capacity_summary(issues, selected))
     if selected and source_name is None:
         try:
             source_name = find_jules_source(api_key, repo)
