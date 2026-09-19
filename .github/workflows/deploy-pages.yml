@@ -8,6 +8,7 @@ on:
       - "index.html"
       - "*.js"
       - "*.css"
+      - "assets/**"
       - "data/listings.json"
       - "data/workday-inspections.json"
       - ".nojekyll"
@@ -41,9 +42,10 @@ jobs:
       - name: Build static artifact
         run: |
           rm -rf _site
-          mkdir -p _site/data
+          mkdir -p _site/data _site/assets
           cp index.html .nojekyll _site/
           cp ./*.js ./*.css _site/
+          cp -R assets/. _site/assets/
           cp data/listings.json _site/data/listings.json
           cp data/workday-inspections.json _site/data/workday-inspections.json
           VERSION="$(git rev-parse --short=12 HEAD)"

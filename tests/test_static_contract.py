@@ -29,6 +29,12 @@ class StaticContractTests(unittest.TestCase):
         freshness = soup.find(id="freshnessSelect")
         self.assertEqual(freshness.find("option", selected=True).get("value"), "all")
 
+    def test_pages_deploy_includes_static_assets(self):
+        workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
+        self.assertIn('- "assets/**"', workflow)
+        self.assertIn("mkdir -p _site/data _site/assets", workflow)
+        self.assertIn("cp -R assets/. _site/assets/", workflow)
+
     def test_quick_zip_buttons(self):
         soup = BeautifulSoup((ROOT / "index.html").read_text(encoding="utf-8"), "html.parser")
         values = {button.get("data-location") for button in soup.select(".quick-locations button")}
