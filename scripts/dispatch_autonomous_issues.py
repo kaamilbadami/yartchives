@@ -547,6 +547,86 @@ def reconcile_historical_merged_jules_issues(
         )
 
 
+def migrate_historical_no_pr_review_ready(
+    repo: str,
+    *,
+    load_review_ready: Callable[[], list[dict[str, Any]]] | None = None,
+    load_comments: Callable[[int], list[dict[str, Any]]] | None = None,
+    run_gh: Callable[..., None] | None = None,
+) -> None:
+    """Repair review-ready issues created before completed-without-PR handling existed."""
+    if load_review_ready is None:
+        load_review_ready = lambda: gh_paginated_json(
+            "api",
+            f"repos/{repo}/issues?state=open&labels={parse.quote(JULES_REVIEW_READY_LABEL)}&per_page=100",
+        )
+    if load_comments is None:
+        load_comments = lambda number: gh_paginated_json(
+            "api",
+            f"repos/{repo}/issues/{number}/comments?per_page=100",
+        )
+    if run_gh is None:
+        run_gh = gh_run
+
+    completed_pattern = re.compile(
+        r"Jules completed session `([^`]+)` and released this automation slot\.",
+        re.IGNORECASE,
+    )
+    no_pr_text = "No pull request output was reported by the Jules API."
+
+    for issue in load_review_ready():
+        if "pull_request" in issue:
+            continue
+        if AUTONOMOUS_MARKER not in str(issue.get("body") or ""):
+            continue
+
+        number = int(issue["number"])
+        comments = load_comments(number)
+        latest_completed: tuple[str, str] | None = None
+        for comment in reversed(comments):
+            body = str(comment.get("body") or "")
+            match = completed_pattern.search(body)
+            if match:
+                latest_completed = (match.group(1), body)
+                break
+        if latest_completed is None:
+            continue
+
+        session_id, body = latest_completed
+        if no_pr_text not in body:
+            continue
+
+        already_retried = retry_marker_from_comments(comments) is not None
+        terminal_label = JULES_FAILED_LABEL if already_retried else JULES_RETRY_LABEL
+        run_gh(
+            "issue", "edit", str(number), "--repo", repo,
+            "--remove-label", JULES_REVIEW_READY_LABEL,
+            "--add-label", terminal_label,
+        )
+
+        if already_retried:
+            detail = (
+                f"Historical lifecycle repair: Jules session `{session_id}` completed "
+                "without producing a pull request after an earlier automatic retry. "
+                "Moved this issue from review-ready to failed instead of leaving a "
+                "nonexistent review blocking dependencies."
+            )
+        else:
+            detail = (
+                f"{JULES_RETRY_MARKER.format(session_id=session_id)}\n"
+                f"Historical lifecycle repair: Jules session `{session_id}` completed "
+                "without producing a pull request before no-PR lifecycle handling existed. "
+                "Moved this issue from review-ready to one context-preserving retry."
+            )
+        run_gh(
+            "issue", "comment", str(number), "--repo", repo,
+            "--body", detail,
+        )
+        print(
+            f"Migrated historical no-PR review-ready issue #{number} to {terminal_label}."
+        )
+
+
 def cleanup_merged_jules_sessions(
     repo: str,
     api_key: str,
@@ -1862,6 +1942,7 @@ def main() -> int:
     ensure_labels(repo)
     cleanup_merged_jules_sessions(repo, api_key)
     reconcile_historical_merged_jules_issues(repo)
+    migrate_historical_no_pr_review_ready(repo)
 
     poll_seconds = int(os.environ.get("JULES_POLL_SECONDS", DEFAULT_POLL_SECONDS))
     watch_seconds = int(os.environ.get("JULES_WATCH_SECONDS", DEFAULT_WATCH_SECONDS))
