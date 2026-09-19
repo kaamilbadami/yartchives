@@ -610,23 +610,24 @@ function updateResultsNote(origin = null) {
 
 function renderHealth() {
   els.sourceHealth.innerHTML = "";
-  const entries = Object.entries(feed.sources || {}).sort((a, b) => (a[1].name || a[0]).localeCompare(b[1].name || b[0]));
-  for (const [key, src] of entries) {
+  const entries = YartchivesUtils.groupSourceHealth(feed.sources || {});
+  for (const src of entries) {
     const row = document.createElement("div");
     row.className = "source-row";
     const name = document.createElement("span");
-    name.textContent = src.name || key;
+    name.textContent = src.name;
     const status = document.createElement("span");
-    if (src.configured === false) {
+    if (!src.configuredCount) {
       status.className = "skip";
       status.textContent = "not configured";
-    } else if (src.ok) {
+    } else if (!src.failureCount) {
       status.className = "ok";
       status.textContent = `${Number(src.count || 0).toLocaleString()} ✓`;
     } else {
       status.className = "fail";
-      status.textContent = "failed";
-      status.title = src.error || "Source failed during last refresh";
+      const healthy = src.successCount ? `${Number(src.count || 0).toLocaleString()} ✓ · ` : "";
+      const detail = src.errors.length ? ` · ${src.errors.join(" · ")}` : "";
+      status.textContent = `${healthy}${src.failureCount} failed${detail}`;
     }
     row.append(name, status);
     els.sourceHealth.appendChild(row);
@@ -639,7 +640,8 @@ function updateFeedMeta() {
     return;
   }
   const when = new Date(feed.generated_at);
-  els.feedMeta.textContent = `Updated ${when.toLocaleString()} · ${Object.values(feed.sources || {}).filter(s => s.ok && s.configured !== false).length} active sources`;
+  const active = YartchivesUtils.groupSourceHealth(feed.sources || {}).filter(source => source.successCount > 0).length;
+  els.feedMeta.textContent = `Updated ${when.toLocaleString()} · ${active} active sources`;
 }
 
 function setUpEvents() {
