@@ -598,8 +598,8 @@ def reconcile_historical_merged_jules_issues(
             continue
 
         run_gh(
-            "issue", "close", str(number), "--repo", repo,
-            "--reason", "completed",
+            "api", "--method", "PATCH", f"repos/{repo}/issues/{number}",
+            "-f", "state=closed", "-f", "state_reason=completed",
         )
         print(
             f"Closed historical autonomous issue #{number} after verifying merged "
@@ -746,8 +746,8 @@ def cleanup_merged_jules_sessions(
             )
 
         run_gh(
-            "issue", "close", str(number), "--repo", repo,
-            "--reason", "completed",
+            "api", "--method", "PATCH", f"repos/{repo}/issues/{number}",
+            "-f", "state=closed", "-f", "state_reason=completed",
         )
         run_gh(
             "issue", "edit", str(number), "--repo", repo,
