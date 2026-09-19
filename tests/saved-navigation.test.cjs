@@ -493,6 +493,51 @@ async function runTests() {
     assert.ok(indexHtml.includes('src="ux.js"'));
   }
 
+  // 4. Test CS-first beta default and hidden non-CS choices
+  {
+    const { document, localStorage } = createDOMEnvironment();
+    const context = {
+      console,
+      document,
+      localStorage,
+      location: { search: "", href: "http://localhost/" },
+      URLSearchParams,
+      Set,
+      Map,
+      Array,
+      Object,
+      Number,
+      Date,
+      JSON,
+      setTimeout,
+      clearTimeout,
+    };
+    context.globalThis = context;
+    context.window = context;
+
+    // Load necessary scripts
+    const appCode = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+    const uxCode = fs.readFileSync(path.join(__dirname, "..", "ux.js"), "utf8");
+
+    vm.runInNewContext(appCode, context);
+    vm.runInNewContext("globalThis.state = state; globalThis.applyFilters = applyFilters;", context);
+    vm.runInNewContext(uxCode, context);
+
+    // Call renderCareerAreas which is exposed or we can check the state directly
+    const profileChips = document.querySelector("#profileChips");
+    assert.ok(profileChips, "Profile chips container should exist");
+
+    // There should only be "All" and "Computer Science" buttons (length 2)
+    const chipButtons = profileChips.children;
+    assert.equal(chipButtons.length, 2, "Only 'All' and 'Computer Science' should be rendered in the beta UI");
+    assert.equal(chipButtons[0].textContent, "All");
+    assert.equal(chipButtons[1].textContent, "Computer Science");
+
+    // Check that 'cs' is defaulted
+    const stateObj = JSON.parse(localStorage.getItem("yartchives-ux-v1") || "{}");
+    assert.ok(stateObj.areas.includes("cs"), "CS should be set as default area in new session");
+  }
+
   console.log("saved navigation regression tests passed");
 }
 
