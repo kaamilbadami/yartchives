@@ -62,6 +62,30 @@ assert.equal(ranked[0].job.company, "A");
 assert.equal(ranked[1].job.company, "B");
 assert.ok(ranked[0].total > ranked[1].total);
 
+const noDateJob = { ...freshDirect, company: "Z-NoDate", posted_at: null };
+const invalidDateJob = { ...freshDirect, company: "Y-InvalidDate", posted_at: "not-a-date" };
+const olderListingClone = { ...olderListing, company: "B-clone" };
+
+const recommendedRanked = A.rankJobs(
+  [noDateJob, invalidDateJob, olderListing, olderListingClone, graduateOnly, freshDirect],
+  profile,
+  now,
+  "recommended"
+);
+assert.equal(recommendedRanked.length, 5);
+assert.equal(recommendedRanked[0].job.company, "A");
+
+const newestRanked = A.rankJobs(
+  [noDateJob, invalidDateJob, olderListing, olderListingClone, graduateOnly, freshDirect],
+  profile,
+  now,
+  "newest"
+);
+assert.deepEqual(
+  newestRanked.map(result => result.job.company),
+  ["A", "B", "B-clone", "Y-InvalidDate", "Z-NoDate"]
+);
+
 const gradScore = A.scoreJob(graduateOnly, profile, now);
 assert.equal(gradScore.excluded, true);
 assert.match(gradScore.reasons[0], /Graduate-only/);
