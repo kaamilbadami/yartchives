@@ -209,3 +209,18 @@ assert.equal(jobs[2]._inspection, undefined);
   console.error(error);
   process.exit(1);
 });
+const oldProfile = { targetTerm: "Summer 2027", roleFamilies: [{ id: "software" }] };
+assert.equal(UI.explainProfileChange(oldProfile, oldProfile, "1", "1"), null);
+
+const newTerm = { targetTerm: "Fall 2027", roleFamilies: [{ id: "software" }] };
+assert.match(UI.explainProfileChange(oldProfile, newTerm, "1", "1"), /Recommendations re-evaluated after target term changes./);
+
+const newRole = { targetTerm: "Summer 2027", roleFamilies: [{ id: "data" }] };
+assert.match(UI.explainProfileChange(oldProfile, newRole, "1", "2"), /This new top recommendation is stronger under your updated role preferences./);
+
+const multiChange = { targetTerm: "Fall 2027", roleFamilies: [{ id: "data" }] };
+assert.match(UI.explainProfileChange(oldProfile, multiChange, "1", "2"), /This new top recommendation is a better match for your updated profile./);
+assert.match(UI.explainProfileChange(oldProfile, multiChange, "1", "2"), /role and target term changes/);
+
+const nonMaterial = { targetTerm: "Summer 2027", roleFamilies: [{ id: "software" }], version: 2 };
+assert.match(UI.explainProfileChange(oldProfile, nonMaterial, "1", "1"), /Recommendations re-evaluated after profile changes./);

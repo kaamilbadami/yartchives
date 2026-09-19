@@ -197,3 +197,7 @@
     align-self: flex-start;
   }
 }
+
+.apply-next-explanation {
+  color: var(--primary-dark, #0369a1);
+}
