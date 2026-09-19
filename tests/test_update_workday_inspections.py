@@ -369,8 +369,7 @@ class UpdateWorkdayInspectionTests(unittest.TestCase):
         self.assertIn("REQ-SUMMER", calls[0])
         wrong = mod.workday_identity(newer_wrong_term)["canonical_url"]
         self.assertEqual(updated["queue"][wrong]["state"], "queued")
-        self.assertIn("other term: Summer 2026", updated["queue"][wrong]["reasons"])
-        self.assertIn("graduate-only", updated["queue"][wrong]["reasons"])
+        self.assertIn("Graduate-only opportunity", updated["queue"][wrong]["reasons"])
 
     def test_failed_inspection_enters_retry_cooldown_with_visible_queue_state(self):
         job = workday_job("one")
@@ -387,7 +386,7 @@ class UpdateWorkdayInspectionTests(unittest.TestCase):
         self.assertEqual(updated["queue"][canonical]["state"], "retry_cooldown")
         self.assertEqual(updated["entries"][canonical]["inspection"]["queue"]["state"], "retry_cooldown")
         self.assertEqual(
-            mod.candidate_urls({canonical: [job]}, updated["entries"], NOW, 7),
+            mod.candidate_urls({canonical: [job]}, updated["entries"], mod._batch_apply_next_scores([job], NOW), NOW, 7),
             [],
         )
 

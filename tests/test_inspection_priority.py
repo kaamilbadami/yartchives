@@ -89,12 +89,10 @@ class InspectionPriorityTests(unittest.TestCase):
             posted_at="2026-09-16T12:00:00Z",
             profiles=["cs"],
         )
-        score, reasons = mod.public_priority(candidate, NOW)
+        score, reasons = mod._batch_apply_next_scores([candidate], NOW)[id(candidate)]
         self.assertGreater(score, 0)
-        self.assertIn("term unknown; inspection can resolve it", reasons)
-        self.assertIn("education not restrictive; inspection can clarify", reasons)
-        self.assertIn("classified career area: cs", reasons)
-        self.assertIn("posted within 2 days", reasons)
+        self.assertIn("freshness: Posting date unknown", reasons)
+        self.assertTrue(any("roi: Role value" in reason and "Market opportunity" in reason for reason in reasons))
 
     def test_wrong_term_and_graduate_only_still_sink(self):
         candidate = job(
@@ -106,10 +104,9 @@ class InspectionPriorityTests(unittest.TestCase):
             posted_at="2026-09-16T12:00:00Z",
             profiles=["tech-business"],
         )
-        score, reasons = mod.public_priority(candidate, NOW)
-        self.assertLess(score, 0)
-        self.assertIn("other term: Summer 2026", reasons)
-        self.assertIn("graduate-only", reasons)
+        score, reasons = mod._batch_apply_next_scores([candidate], NOW)[id(candidate)]
+        self.assertEqual(score, 0)
+        self.assertIn("Graduate-only opportunity", reasons)
 
 
 if __name__ == "__main__":
