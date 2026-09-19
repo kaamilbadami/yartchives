@@ -49,10 +49,10 @@
 }
 
 .apply-next-card {
-  border: 1px solid var(--line, #d9dde5);
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 1rem;
-  background: var(--panel, #fff);
+  background: var(--panel);
 }
 
 .apply-next-card-top {
@@ -64,6 +64,8 @@
 
 .apply-next-card h3 {
   margin: 0.12rem 0 0.3rem;
+  font-size: 1.15rem;
+  font-weight: 600;
 }
 
 .apply-next-rank {
@@ -81,8 +83,26 @@
   flex-shrink: 0;
   gap: 0.15rem;
   padding: 0.45rem 0.6rem;
-  border: 1px solid var(--line, #d9dde5);
+  border: 1px solid var(--border);
   border-radius: 12px;
+}
+
+.apply-next-score-high {
+  background: rgba(142, 231, 178, 0.1);
+  border-color: rgba(142, 231, 178, 0.3);
+  color: var(--success);
+}
+
+.apply-next-score-medium {
+  background: rgba(244, 207, 124, 0.1);
+  border-color: rgba(244, 207, 124, 0.3);
+  color: var(--warning);
+}
+
+.apply-next-score-low {
+  background: rgba(255, 158, 170, 0.1);
+  border-color: rgba(255, 158, 170, 0.3);
+  color: var(--danger);
 }
 
 .apply-next-score strong {
@@ -91,7 +111,8 @@
 
 .apply-next-score span {
   font-size: 0.78rem;
-  color: var(--muted, #667085);
+  color: inherit;
+  opacity: 0.7;
 }
 
 .apply-next-ranking-summary {
@@ -107,10 +128,10 @@
 }
 
 .apply-next-metric {
-  border: 1px solid var(--line, #d9dde5);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 0.65rem 0.75rem;
-  background: var(--soft, #f3f5f8);
+  background: var(--panel-3);
 }
 
 .apply-next-metric-line {
@@ -142,7 +163,7 @@
   align-items: center;
   padding: 0.28rem 0.5rem;
   border-radius: 999px;
-  background: var(--soft, #f3f5f8);
+  background: var(--panel-3);
   font-size: 0.78rem;
 }
 
