@@ -1,0 +1,42 @@
+name: Coverage automation
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "45 * * * *"
+  push:
+    branches:
+      - main
+    paths:
+      - "employer_universe.json"
+
+permissions:
+  actions: write
+  contents: read
+  issues: write
+
+concurrency:
+  group: coverage-automation
+  cancel-in-progress: true
+
+jobs:
+  coverage_gap_loop:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Queue coverage gap
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: python scripts/queue_coverage_gap.py
