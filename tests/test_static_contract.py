@@ -19,6 +19,11 @@ class StaticContractTests(unittest.TestCase):
         missing = sorted(item for item in required if soup.find(id=item) is None)
         self.assertEqual(missing, [])
         self.assertEqual(soup.find(id="shareBtn").get_text(strip=True), "Copy link")
+        mascot = soup.select_one(".brand-mark")
+        self.assertIsNotNone(mascot)
+        self.assertEqual(mascot.name, "img")
+        self.assertEqual(mascot.get("src"), "assets/yartchives-hedgehog.png")
+        self.assertLess((ROOT / "assets" / "yartchives-hedgehog.png").stat().st_size, 16_384)
         freshness = soup.find(id="freshnessSelect")
         self.assertEqual(freshness.find("option", selected=True).get("value"), "all")
 
