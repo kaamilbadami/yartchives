@@ -200,6 +200,50 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         )
         self.assertFalse(ok)
 
+    def test_stale_green_pr_skips_refresh_when_main_changed_unrelated_paths(self):
+        comparison = {"behind_by": 3}
+        self.assertFalse(
+            mod.branch_refresh_required(
+                comparison=comparison,
+                pr_changed_paths=["apply-next-ui.js", "tests/apply-next-ui.test.cjs"],
+                base_changed_paths=["scripts/build_feed.py", "tests/test_build_feed.py"],
+            )
+        )
+
+    def test_stale_green_pr_refreshes_when_main_changed_overlapping_paths(self):
+        comparison = {"behind_by": 1}
+        self.assertTrue(
+            mod.branch_refresh_required(
+                comparison=comparison,
+                pr_changed_paths=["apply-next-ui.js", "tests/apply-next-ui.test.cjs"],
+                base_changed_paths=["apply-next-ui.js", "README.md"],
+            )
+        )
+
+    def test_up_to_date_pr_never_requires_refresh(self):
+        self.assertFalse(
+            mod.branch_refresh_required(
+                comparison={"behind_by": 0},
+                pr_changed_paths=["app.js"],
+                base_changed_paths=["app.js"],
+            )
+        )
+
+    def test_comparison_changed_paths_filters_empty_filenames(self):
+        self.assertEqual(
+            mod.comparison_changed_paths(
+                {
+                    "files": [
+                        {"filename": "app.js"},
+                        {"filename": ""},
+                        {},
+                        {"filename": "tests/app.test.cjs"},
+                    ]
+                }
+            ),
+            {"app.js", "tests/app.test.cjs"},
+        )
+
     def test_prioritizes_lifecycle_then_ci_then_normal_prs(self):
         pull_requests = [
             {"number": 10},
