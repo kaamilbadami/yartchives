@@ -34,6 +34,48 @@ assert.equal(UI.totalScoreBandClass(50), "apply-next-score-low");
 assert.equal(UI.totalScoreBandClass(65), "apply-next-score-medium");
 assert.equal(UI.totalScoreBandClass(85), "apply-next-score-high");
 assert.match(UI.rankingSummary({ components: { fit: { score: 30 }, freshness: { score: 8 }, roi: { score: 23 }, location: { score: 15 } } }), /^Why this is here: /);
+
+// worthApplyingSummary tests
+assert.equal(
+  UI.worthApplyingSummary({
+    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } },
+    inspection: { state: "inspected" }
+  }),
+  "Yes: strong match, high value, recent, convenient location, verified posting."
+);
+
+assert.equal(
+  UI.worthApplyingSummary({
+    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } },
+    inspection: { state: "metadata-only" }
+  }),
+  "Uncertain: strong match, high value, recent, convenient location; unverified evidence."
+);
+
+assert.equal(
+  UI.worthApplyingSummary({
+    components: { fit: { score: 20 }, freshness: { score: 2 }, roi: { score: 5 }, location: { score: 5 } },
+    inspection: { state: "unavailable" }
+  }),
+  "Mixed: concerns: weak match, lower value, older posting, less convenient location, posting unavailable."
+);
+
+assert.equal(
+  UI.worthApplyingSummary({
+    components: { fit: { score: 20 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } },
+    inspection: { state: "inspected" }
+  }),
+  "Mixed: high value, recent, convenient location, verified posting; concerns: weak match."
+);
+
+assert.equal(
+  UI.worthApplyingSummary({
+    excluded: true,
+    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } }
+  }),
+  "No: excluded by eligibility constraints."
+);
+
 const postedNow = new Date("2026-09-17T12:00:00Z");
 assert.equal(UI.formatPostedDate("2026-09-15T23:30:00-04:00", true, postedNow), "Posted 9/16 · 1 day ago");
 assert.equal(UI.formatPostedDate("2026-09-15", true, postedNow), "Posted 9/15 · 2 days ago");
