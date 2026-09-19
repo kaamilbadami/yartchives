@@ -1829,6 +1829,12 @@ class AutonomousDispatcherTests(unittest.TestCase):
             comments=[
                 {
                     "body": (
+                        "<!-- jules-retry-from: earlier-task-retry -->\n"
+                        "First retry context here."
+                    )
+                },
+                {
+                    "body": (
                         "<!-- jules-retry-from: failed1 -->\n"
                         "Failure diagnostics:\n\n> Workspace became unavailable.\n\n"
                         "Prior explicit GitHub feedback that must be preserved in the retry:\n\n"
