@@ -68,5 +68,49 @@
     };
   }
 
-  return { measureConversion };
+  /**
+   * Deterministic analysis layer for recommendation feedback.
+   * Produces summaries for Good/Bad rate and bad-suggestion reason distribution
+   * without mutating ranking behavior.
+   */
+  function analyzeFeedback(eligibleRankedPool, feedbackState, topN = 10) {
+    if (!eligibleRankedPool || !feedbackState) {
+      return { totalRated: 0, goodCount: 0, badCount: 0, goodRate: 0, reasons: {} };
+    }
+
+    const topEligible = eligibleRankedPool.slice(0, topN);
+
+    let goodCount = 0;
+    let badCount = 0;
+    const reasons = {};
+
+    for (const result of topEligible) {
+      const job = result.job || result;
+      if (!job || !job.id) continue;
+
+      const feedback = feedbackState[job.id];
+      if (!feedback) continue;
+
+      if (feedback.type === 'good') {
+        goodCount++;
+      } else if (feedback.type === 'bad') {
+        badCount++;
+        const reason = feedback.reason || 'unknown';
+        reasons[reason] = (reasons[reason] || 0) + 1;
+      }
+    }
+
+    const totalRated = goodCount + badCount;
+    const goodRate = totalRated > 0 ? goodCount / totalRated : 0;
+
+    return {
+      totalRated,
+      goodCount,
+      badCount,
+      goodRate,
+      reasons
+    };
+  }
+
+  return { measureConversion, analyzeFeedback };
 });
