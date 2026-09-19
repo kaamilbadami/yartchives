@@ -15,7 +15,22 @@
       .trim();
   }
 
-  function groupCompanies(jobs) {
+  function sortCompanies(companies, sort = "openings") {
+    const list = [...(companies || [])];
+    if (sort === "newest") {
+      return list.sort((a, b) => {
+        const at = a.latestPostedAt ? new Date(a.latestPostedAt).getTime() : 0;
+        const bt = b.latestPostedAt ? new Date(b.latestPostedAt).getTime() : 0;
+        return bt - at || b.count - a.count || a.name.localeCompare(b.name);
+      });
+    }
+    if (sort === "company") {
+      return list.sort((a, b) => a.name.localeCompare(b.name) || b.count - a.count);
+    }
+    return list.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  }
+
+  function groupCompanies(jobs, sort = "openings") {
     const groups = new Map();
     for (const job of jobs || []) {
       const name = String(job?.company || "").trim();
@@ -29,7 +44,7 @@
       if (Number.isFinite(posted) && (!Number.isFinite(latest) || posted > latest)) current.latestPostedAt = job.posted_at;
       groups.set(key, current);
     }
-    return [...groups.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    return sortCompanies([...groups.values()], sort);
   }
 
   function init() {
@@ -41,6 +56,7 @@
     const directoryState = {
       view: params.get("view") === "companies" ? "companies" : "jobs",
       company: params.get("company") || "",
+      sort: ["openings", "newest", "company"].includes(params.get("companySort")) ? params.get("companySort") : "openings",
     };
     globalThis.companyDirectoryState = directoryState;
 
@@ -61,14 +77,43 @@
       else url.searchParams.delete("view");
       if (directoryState.company) url.searchParams.set("company", directoryState.company);
       else url.searchParams.delete("company");
+      if (directoryState.view === "companies" && directoryState.sort !== "openings") url.searchParams.set("companySort", directoryState.sort);
+      else url.searchParams.delete("companySort");
       history.replaceState(null, "", url);
     }
+
+    const sortSelect = document.querySelector("#sortSelect");
+    const jobSortMarkup = sortSelect ? sortSelect.innerHTML : "";
+    let jobSortValue = sortSelect?.value || "newest";
+
+    function syncSortControl() {
+      if (!sortSelect) return;
+      if (directoryState.view === "companies") {
+        jobSortValue = sortSelect.value || jobSortValue;
+        sortSelect.innerHTML = '<option value="openings">Most openings</option><option value="newest">Newest opening</option><option value="company">Company A–Z</option>';
+        sortSelect.value = directoryState.sort;
+        sortSelect.setAttribute("aria-label", "Sort companies");
+        sortSelect.title = "Sort companies by matching openings, newest opening, or name";
+      } else {
+        sortSelect.innerHTML = jobSortMarkup;
+        sortSelect.value = jobSortValue;
+        sortSelect.setAttribute("aria-label", "Sort opportunities");
+      }
+    }
+
+    sortSelect?.addEventListener("change", event => {
+      if (directoryState.view !== "companies") return;
+      event.stopImmediatePropagation();
+      directoryState.sort = ["openings", "newest", "company"].includes(sortSelect.value) ? sortSelect.value : "openings";
+      syncUrl();
+      renderCompanyDirectory();
+    }, { capture: true });
 
     function renderCompanyDirectory() {
       els.jobs.innerHTML = "";
       els.jobs.className = "company-directory";
       els.loadMoreBtn.classList.add("hidden");
-      const companies = groupCompanies(filtered);
+      const companies = groupCompanies(filtered, directoryState.sort);
 
       if (!companies.length) {
         const empty = document.createElement("div");
@@ -138,6 +183,7 @@
       directoryState.view = "jobs";
       syncUrl();
       setToggle();
+      syncSortControl();
       renderJobs();
     });
 
@@ -146,6 +192,7 @@
       directoryState.view = "companies";
       syncUrl();
       setToggle();
+      syncSortControl();
       applyFilters();
     });
 
@@ -154,11 +201,13 @@
       directoryState.view = "jobs";
       syncUrl();
       setToggle();
+      syncSortControl();
     });
 
     setToggle();
+    syncSortControl();
     if (directoryState.company || directoryState.view === "companies") applyFilters();
   }
 
-  return { normalizedCompanyKey, groupCompanies, init };
+  return { normalizedCompanyKey, sortCompanies, groupCompanies, init };
 });
