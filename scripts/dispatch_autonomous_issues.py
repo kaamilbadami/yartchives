@@ -1283,6 +1283,14 @@ def run_dispatch_cycle(
     return has_active, source_name
 
 
+def schedule_dispatch_followup(repo: str) -> None:
+    """Queue the next reconciliation pass before this watch window exits."""
+    gh_run(
+        "workflow", "run", "autonomous-dispatch.yml",
+        "--repo", repo,
+    )
+
+
 def watch_jules_backlog(
     repo: str,
     api_key: str,
@@ -1290,6 +1298,7 @@ def watch_jules_backlog(
     poll_seconds: int = DEFAULT_POLL_SECONDS,
     watch_seconds: int = DEFAULT_WATCH_SECONDS,
     run_cycle: Callable[[str, str, str | None], tuple[bool, str | None]] = run_dispatch_cycle,
+    schedule_followup: Callable[[str], None] = schedule_dispatch_followup,
     sleep_fn: Callable[[float], None] = time.sleep,
     monotonic_fn: Callable[[], float] = time.monotonic,
 ) -> None:
@@ -1309,9 +1318,10 @@ def watch_jules_backlog(
 
         remaining = deadline - monotonic_fn()
         if remaining < poll_seconds:
+            schedule_followup(repo)
             print(
                 "Jules watch window ended with active sessions still running; "
-                "the scheduled recovery run will continue reconciliation."
+                "queued a follow-up dispatcher run for continued reconciliation."
             )
             return
 

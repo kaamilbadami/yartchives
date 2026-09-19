@@ -1,6 +1,7 @@
 import importlib.util
 from pathlib import Path
 import unittest
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = ROOT / "scripts" / "dispatch_autonomous_issues.py"
@@ -1032,9 +1033,10 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertEqual([call[2] for call in cycles], [None, "source", "source"])
         self.assertEqual(sleeps, [30, 30])
 
-    def test_watch_loop_stops_at_bound_and_leaves_recovery_to_next_run(self):
+    def test_watch_loop_queues_followup_when_bound_expires_with_active_work(self):
         cycles = []
         sleeps = []
+        followups = []
         times = iter([0, 755])
 
         mod.watch_jules_backlog(
@@ -1046,12 +1048,36 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 cycles.append((repo, api_key, source_name)) or True,
                 "source",
             ),
+            schedule_followup=lambda repo: followups.append(repo),
             sleep_fn=lambda seconds: sleeps.append(seconds),
             monotonic_fn=lambda: next(times),
         )
 
         self.assertEqual(len(cycles), 1)
         self.assertEqual(sleeps, [])
+        self.assertEqual(followups, ["kaamilbadami/yartchives"])
+
+    def test_followup_dispatch_uses_same_workflow(self):
+        calls = []
+        with mock.patch.object(mod, "gh_run", side_effect=lambda *args: calls.append(args)):
+            mod.schedule_dispatch_followup("kaamilbadami/yartchives")
+
+        self.assertEqual(
+            calls,
+            [
+                (
+                    "workflow",
+                    "run",
+                    "autonomous-dispatch.yml",
+                    "--repo",
+                    "kaamilbadami/yartchives",
+                )
+            ],
+        )
+
+    def test_dispatch_workflow_grants_actions_write_for_self_handoff(self):
+        workflow = (ROOT / ".github" / "workflows" / "autonomous-dispatch.yml").read_text()
+        self.assertIn("actions: write", workflow)
 
     def test_paginated_issue_pages_are_flattened_without_json_stream_assumptions(self):
         pages = [[{"number": 1}, {"number": 2}], [{"number": 3}]]
