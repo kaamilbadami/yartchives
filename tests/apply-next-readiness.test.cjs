@@ -174,7 +174,7 @@ greenhouseEvidence._inspection.provenance = { provider: "greenhouse", interface:
 const greenhouseScore = R.scoreJob(greenhouseEvidence, profile, new Date("2026-09-16T16:00:00Z"));
 assert.equal(greenhouseScore.readiness.delta, scored.readiness.delta);
 assert.equal(greenhouseScore.components.fit.score, scored.components.fit.score);
-assert.match(greenhouseScore.inspection.label, /^Posting inspected/);
+assert.match(greenhouseScore.inspection.label, /^Authoritative evidence/);
 assert.match(greenhouseScore.inspection.evidence.join(" "), /Required gap: c\+\+/i);
 
 console.log("apply-next readiness tests passed");

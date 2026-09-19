@@ -14,6 +14,7 @@ import copy
 import json
 import re
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -42,6 +43,7 @@ ROOT = SCRIPT_DIR.parent
 DEFAULT_FEED = ROOT / "data" / "listings.json"
 TIMEOUT = 25
 MAX_SEARCH_PAGES = 5
+NETWORK_WORKERS = 12
 JOB_LINK = re.compile(r"^/jobs/(\d+)(?:/[^?#]+)?/job/?$", re.I)
 SITEMAP_LOC = re.compile(r"<loc>\s*(https?://[^<]+)\s*</loc>", re.I)
 
@@ -239,6 +241,31 @@ def fetch_source(client: requests.Session, source: dict[str, Any], reference: da
     return out
 
 
+def fetch_sources_concurrently(
+    client: requests.Session,
+    sources: list[dict[str, Any]],
+    reference: datetime,
+) -> dict[str, tuple[list[dict[str, Any]] | None, Exception | None]]:
+    """Fetch independent iCIMS boards in parallel."""
+    if not sources:
+        return {}
+
+    results: dict[str, tuple[list[dict[str, Any]] | None, Exception | None]] = {}
+    workers = min(NETWORK_WORKERS, len(sources))
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {
+            pool.submit(fetch_source, client, source, reference): source
+            for source in sources
+        }
+        for future in as_completed(futures):
+            source = futures[future]
+            try:
+                results[source["key"]] = (future.result(), None)
+            except Exception as exc:
+                results[source["key"]] = (None, exc)
+    return results
+
+
 def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Session, reference: datetime) -> dict[str, Any]:
     jobs = doc.setdefault("jobs", [])
     health = doc.setdefault("sources", {})
@@ -246,9 +273,11 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Sessio
     old_jobs_by_id = {j.get("id"): j for j in old_jobs if isinstance(j, dict) and j.get("id")}
     sources = discover_sources(doc)
 
+    fetched = fetch_sources_concurrently(client, sources, reference)
+
     for source in sources:
-        try:
-            direct_jobs = fetch_source(client, source, reference)
+        direct_jobs, exc = fetched.get(source["key"], (None, RuntimeError("missing fetch result")))
+        if exc is None and direct_jobs is not None:
             for job in direct_jobs:
                 upsert_direct_job(jobs, job, old_jobs_by_id, reference)
             health[source["key"]] = {
@@ -260,7 +289,7 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Sessio
                 "auto_discovered": True,
             }
             print(f"{source['name']}: {len(direct_jobs)} direct US CS-relevant listing(s)")
-        except Exception as exc:
+        else:
             health[source["key"]] = {
                 "ok": False,
                 "configured": True,

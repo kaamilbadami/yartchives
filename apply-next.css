@@ -146,6 +146,25 @@
   font-size: 0.78rem;
 }
 
+.apply-next-inspection-status {
+  border: 1px solid transparent;
+}
+
+.apply-next-inspection-inspected {
+  border-color: var(--success, #8ee7b2);
+  color: var(--success, #8ee7b2);
+}
+
+.apply-next-inspection-unavailable {
+  border-color: var(--danger, #ff9eaa);
+  color: var(--danger, #ff9eaa);
+}
+
+.apply-next-inspection-metadata-only {
+  border: 1px dashed var(--muted, #667085);
+  color: var(--muted, #667085);
+}
+
 .apply-next-why {
   margin: 0.45rem 0 0.85rem;
 }

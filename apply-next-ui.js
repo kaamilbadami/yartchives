@@ -18,7 +18,7 @@
     return String(value || "").trim();
   }
 
-  function formatPostedDate(value, nowValue = new Date()) {
+  function formatPostedDate(value, isAuthoritative, nowValue = new Date()) {
     if (!value) return "";
     const date = new Date(value);
     const now = nowValue instanceof Date ? nowValue : new Date(nowValue);
@@ -29,7 +29,7 @@
     const daysAgo = Math.max(0, Math.floor((nowUtcDay - postedUtcDay) / 86400000));
     const monthDay = `${date.getUTCMonth() + 1}/${date.getUTCDate()}`;
     const ageLabel = `${daysAgo} ${daysAgo === 1 ? "day" : "days"} ago`;
-    return `Posted ${monthDay} · ${ageLabel}`;
+    return isAuthoritative ? `Posted ${monthDay} · ${ageLabel}` : ageLabel;
   }
 
   function validateProfile(profile) {
@@ -355,16 +355,22 @@
       element("h3", "", job.title || "Untitled opportunity"),
       element("p", "muted", cardLocationText(job))
     );
-    const postedDate = formatPostedDate(job.posted_at);
+    const isAuthoritative = result.inspection?.state === "inspected";
+    const postedDate = formatPostedDate(job.posted_at, isAuthoritative);
     if (postedDate) titleWrap.append(element("p", "muted apply-next-posted-date", postedDate));
+    const inspectionState = result.inspection?.state || "metadata-only";
     const evidenceStatus = element(
       "span",
-      "apply-next-component apply-next-inspection-status",
-      result.inspection?.label || "Metadata only"
+      `apply-next-component apply-next-inspection-status apply-next-inspection-${inspectionState}`,
+      result.inspection?.label || "Metadata fallback"
     );
-    evidenceStatus.title = result.inspection?.state === "inspected"
-      ? "Authoritative employer posting evidence is included in this score."
-      : "This score falls back to feed metadata because authoritative posting evidence is unavailable.";
+    if (inspectionState === "inspected") {
+      evidenceStatus.title = "Authoritative employer posting evidence is included in this score.";
+    } else if (inspectionState === "unavailable") {
+      evidenceStatus.title = "This score falls back to feed metadata because authoritative posting evidence is no longer available.";
+    } else {
+      evidenceStatus.title = "This score falls back to feed metadata because authoritative posting evidence is unavailable.";
+    }
     titleWrap.append(evidenceStatus);
 
     const score = element("div", "apply-next-score");
@@ -402,7 +408,7 @@
       for (const evidence of result.inspection.evidence) evidenceList.append(element("li", "", evidence));
       details.append(evidenceHeading, evidenceList);
     } else if (result.inspection?.state !== "inspected") {
-      details.append(element("p", "muted", "No authoritative posting inspection is attached; metadata scoring is used as the fallback."));
+      details.append(element("p", "muted", "No authoritative posting evidence is attached; metadata is used as a fallback."));
     }
 
     const list = element("ul");
@@ -441,7 +447,17 @@
       updateQueueOptimistically(document.querySelector("#applyNextPanel"), loadProfile(localStorage), job.id);
       applyFilters();
     });
-    actions.append(saved, applied);
+    const hide = element("button", "icon-btn hide-btn", "×");
+    hide.type = "button";
+    hide.title = "Hide listing";
+    hide.setAttribute("aria-label", "Hide listing");
+    hide.addEventListener("click", () => {
+      state.hidden.add(job.id);
+      persist();
+      updateQueueOptimistically(document.querySelector("#applyNextPanel"), loadProfile(localStorage), job.id);
+      applyFilters();
+    });
+    actions.append(saved, applied, hide);
     card.append(actions);
     return card;
   }
@@ -467,7 +483,7 @@
       const poolCount = (typeof feed !== "undefined" && Array.isArray(feed?.jobs))
         ? candidatePool(feed.jobs, profile, state).length
         : 0;
-      note.textContent = `Showing ${ranked.length} highest-value options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`;
+      note.textContent = `Showing ${ranked.length} highest-value options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`;
     }
 
     list.innerHTML = "";
@@ -528,7 +544,7 @@
     const note = element(
       "p",
       "apply-next-note",
-      `Showing ${topRanked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`
+      `Showing ${topRanked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`
     );
     fragment.append(note);
 

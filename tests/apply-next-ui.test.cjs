@@ -32,10 +32,11 @@ assert.equal(UI.scoreBand("roi", 10, 30), "Lower value");
 assert.equal(UI.scoreBand("location", 15, 20), "Very convenient");
 assert.match(UI.rankingSummary({ components: { fit: { score: 30 }, freshness: { score: 8 }, roi: { score: 23 }, location: { score: 15 } } }), /^Why this is here: /);
 const postedNow = new Date("2026-09-17T12:00:00Z");
-assert.equal(UI.formatPostedDate("2026-09-15T23:30:00-04:00", postedNow), "Posted 9/16 · 1 day ago");
-assert.equal(UI.formatPostedDate("2026-09-15", postedNow), "Posted 9/15 · 2 days ago");
+assert.equal(UI.formatPostedDate("2026-09-15T23:30:00-04:00", true, postedNow), "Posted 9/16 · 1 day ago");
+assert.equal(UI.formatPostedDate("2026-09-15", true, postedNow), "Posted 9/15 · 2 days ago");
+assert.equal(UI.formatPostedDate("2026-09-15", false, postedNow), "2 days ago");
 assert.equal(
-  UI.formatPostedDate("2025-12-31T23:00:00Z", new Date("2026-01-02T01:00:00Z")),
+  UI.formatPostedDate("2025-12-31T23:00:00Z", true, new Date("2026-01-02T01:00:00Z")),
   "Posted 12/31 · 2 days ago"
 );
 assert.deepEqual(
@@ -80,9 +81,9 @@ assert.doesNotMatch(
   /\[object Object\]/
 );
 
-assert.equal(UI.formatPostedDate("", postedNow), "");
-assert.equal(UI.formatPostedDate("not-a-date", postedNow), "");
-assert.equal(UI.formatPostedDate("2026-09-15", "not-a-date"), "");
+assert.equal(UI.formatPostedDate("", true, postedNow), "");
+assert.equal(UI.formatPostedDate("not-a-date", true, postedNow), "");
+assert.equal(UI.formatPostedDate("2026-09-15", true, "not-a-date"), "");
 
 const values = new Map();
 const storage = {
@@ -164,6 +165,8 @@ assert.equal(jobs[2]._inspection, undefined);
   const uiSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-ui.js"), "utf8");
   assert.match(uiSource, /local storage/i);
   assert.match(uiSource, /Authoritative posting evidence/);
+  assert.match(uiSource, /metadata is used as a fallback/);
+  assert.match(uiSource, /apply-next-inspection-\$\{inspectionState\}/);
   assert.match(uiSource, /Worth applying/);
   assert.match(uiSource, /How well you match/);
   assert.match(uiSource, /How recent it is/);
@@ -183,6 +186,18 @@ assert.equal(jobs[2]._inspection, undefined);
     /renderPanel\(/,
     "Mark applied should rely on optimistic update and applyFilters/renderJobs panel refresh instead of triggering a second expensive render"
   );
+
+  const hideHandler = uiSource.match(
+    /hide\.addEventListener\("click",\s*\(\)\s*=>\s*\{([\s\S]*?)\n\s*\}\);/
+  );
+  assert.ok(hideHandler, "Hide click handler should be present");
+  assert.match(hideHandler[1], /state\.hidden\.add\(job\.id\);/, "Hide should add to hidden state");
+  assert.match(hideHandler[1], /persist\(\);/, "Hide should persist state");
+  assert.match(hideHandler[1], /updateQueueOptimistically/, "Hide should trigger optimistic queue update immediately");
+  assert.match(hideHandler[1], /applyFilters\(\);/);
+
+  assert.match(uiSource, /Restore them from the main feed\./, "Should document recovery path for Applied and Hidden jobs");
+
   assert.match(uiSource, /document\.createDocumentFragment\(\)/, "renderQueue should build DOM off-screen before swapping to avoid UI stalls");
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
 

@@ -44,6 +44,23 @@ def runs(sha="abc", conclusion="success"):
 
 
 class AutoMergeAgentPrTests(unittest.TestCase):
+    def test_quality_dispatch_wakes_automerge_with_run_id(self):
+        workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text()
+        self.assertIn("actions: write", workflow)
+        self.assertIn("wake-automerge:", workflow)
+        self.assertIn("gh workflow run auto-merge-agent-prs.yml", workflow)
+        self.assertIn('-f wait_for_quality_run_id="$GITHUB_RUN_ID"', workflow)
+
+    def test_automerge_waits_for_dispatched_quality_run_before_scan(self):
+        workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
+        self.assertIn("wait_for_quality_run_id:", workflow)
+        self.assertIn('gh run watch "${{ inputs.wait_for_quality_run_id }}"', workflow)
+        self.assertIn("--exit-status", workflow)
+
+    def test_automerge_workflow_has_periodic_recovery_schedule(self):
+        workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
+        self.assertIn('cron: "*/5 * * * *"', workflow)
+
     def test_automerge_workflow_fetches_full_history_for_branch_merges(self):
         workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
         checkout_block = workflow.split("- name: Check out merge policy", 1)[1].split("- name: Merge one safe autonomous pull request", 1)[0]
@@ -199,6 +216,18 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             quality_runs=runs(sha="older"),
         )
         self.assertFalse(ok)
+
+    def test_behind_state_is_mergeable_after_nonoverlap_safety_check(self):
+        self.assertTrue(
+            mod.github_reports_safe_mergeability(
+                {"mergeable": True, "mergeable_state": "behind"}
+            )
+        )
+        self.assertFalse(
+            mod.github_reports_safe_mergeability(
+                {"mergeable": False, "mergeable_state": "dirty"}
+            )
+        )
 
     def test_stale_green_pr_skips_refresh_when_main_changed_unrelated_paths(self):
         comparison = {"behind_by": 3}
@@ -526,6 +555,25 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             'print(f"Squash-merged {merged_count} eligible autonomous pull request(s).")',
             source,
         )
+
+    def test_successful_merge_queues_one_followup_scan(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            '"workflow", "run", "auto-merge-agent-prs.yml",\n'
+            '            "--repo", repo,',
+            source,
+        )
+        self.assertIn(
+            '"Queued one follow-up auto-merge scan because this run advanced main; "',
+            source,
+        )
+        followup_index = source.index('"workflow", "run", "auto-merge-agent-prs.yml"')
+        merged_guard_index = source.index("if merged_count:")
+        no_merge_index = source.index(
+            'print("No autonomous pull request is currently eligible for automatic merge.")'
+        )
+        self.assertGreater(followup_index, merged_guard_index)
+        self.assertLess(followup_index, no_merge_index)
 
     def test_codex_review_ready_is_also_terminal(self):
         self.assertTrue(
