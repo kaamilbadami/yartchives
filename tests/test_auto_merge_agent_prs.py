@@ -268,6 +268,17 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
 
+    def test_successful_merge_continues_to_prepare_remaining_review_ready_prs(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            'print(f"Squash-merged eligible autonomous PR #{number}.")\\n        # Keep scanning after a successful merge.',
+            source,
+        )
+        self.assertNotIn(
+            'print(f"Squash-merged eligible autonomous PR #{number}.")\\n        return 0',
+            source,
+        )
+
     def test_codex_review_ready_is_also_terminal(self):
         self.assertTrue(
             mod.autonomous_issue_ready(
