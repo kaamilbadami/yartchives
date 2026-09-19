@@ -147,5 +147,58 @@ class DirectOracleTests(unittest.TestCase):
         self.assertIn("workLocationCountryCode=US", params["finder"])
 
 
+    def test_fetch_falls_back_across_oracle_rest_versions(self):
+        source = {
+            "key": "auto-oracle-example",
+            "name": "Example (resolved Oracle)",
+            "company": "Example",
+            "site_number": "CX_1",
+            "homepage": "https://careers.example.com/en/sites/CX_1",
+            "api_url": "https://careers.example.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
+            "api_urls": [
+                "https://careers.example.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
+                "https://careers.example.com/hcmRestApi/resources/11.13.18.05/recruitingCEJobRequisitions",
+            ],
+        }
+
+        class Response:
+            def __init__(self, ok):
+                self.ok = ok
+
+            def raise_for_status(self):
+                if not self.ok:
+                    raise mod.requests.HTTPError("404")
+
+            def json(self):
+                return {
+                    "items": [{
+                        "TotalJobsCount": 1,
+                        "requisitionList": [{
+                            "Id": "10",
+                            "Title": "Software Engineering Intern",
+                            "PrimaryLocation": "Boston, MA, United States",
+                            "PrimaryLocationCountry": "US",
+                            "PostedDate": "2026-09-01",
+                        }],
+                    }]
+                }
+
+        class Session:
+            def __init__(self):
+                self.calls = []
+
+            def get(self, url, **kwargs):
+                self.calls.append((url, kwargs))
+                return Response("/11.13.18.05/" in url)
+
+        session = Session()
+        jobs = mod.fetch_source(session, source, datetime(2026, 9, 17, tzinfo=timezone.utc))
+        self.assertEqual(len(jobs), 1)
+        self.assertEqual(jobs[0]["oracle_job_id"], "10")
+        self.assertEqual(len(session.calls), 3)
+        self.assertIn("/11.13.18.05/", session.calls[-1][0])
+
+
+
 if __name__ == "__main__":
     unittest.main()
