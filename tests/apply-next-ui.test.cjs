@@ -201,6 +201,14 @@ assert.equal(jobs[2]._inspection, undefined);
 
   assert.match(uiSource, /Restore them from the main feed\./, "Should document recovery path for Applied and Hidden jobs");
 
+  const sortHandler = uiSource.match(
+    /sortSelect\.addEventListener\("change",\s*\(\)\s*=>\s*\{([\s\S]*?)\n\s*\}\);/
+  );
+  assert.ok(sortHandler, "Apply Next sort change handler should be present");
+  assert.match(sortHandler[1], /sortRankedResults\(lastRankedResults, queueSortMode\)/, "Sort changes should reuse already-scored results");
+  assert.match(sortHandler[1], /updateQueueOptimistically\(panel, profile\)/, "Sort changes should only refresh visible queue DOM");
+  assert.doesNotMatch(sortHandler[1], /renderQueue\(/, "Sort changes must not rerun inspection, distance, and scoring work");
+
   assert.match(uiSource, /document\.createDocumentFragment\(\)/, "renderQueue should build DOM off-screen before swapping to avoid UI stalls");
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
 
