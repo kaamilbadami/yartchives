@@ -274,6 +274,40 @@ class ReconcileWorkdayDuplicateTests(unittest.TestCase):
         self.assertEqual(mod.icims_canonical_url(login_url), ICIMS_URL)
         self.assertEqual(mod.posting_identity_key(job_url), mod.posting_identity_key(login_url))
 
+    def test_posting_specific_direct_url_collapses_title_variants(self):
+        first = base_job(
+            "numeric-one",
+            "Example",
+            "https://careers.example.com/search/7675517686256863541?utm_source=one",
+            source="Simplify",
+        )
+        second = base_job(
+            "numeric-two",
+            "Example",
+            "https://careers.example.com/search/7675517686256863541?utm_source=two",
+            source="SpeedyApply",
+        )
+        first["title"] = "Software Engineer Intern - Search Architecture"
+        second["title"] = "Software Engineer Intern - Search Architecture - 2027 Summer"
+
+        reconciled, stats = mod.reconcile_jobs([first, second])
+
+        self.assertEqual(len(reconciled), 1)
+        self.assertEqual(stats["duplicate_groups"], 1)
+        self.assertEqual(stats["records_removed"], 1)
+        self.assertEqual(set(reconciled[0]["source_names"]), {"Simplify", "SpeedyApply"})
+
+    def test_generic_direct_landing_page_still_does_not_merge_title_variants(self):
+        first = base_job("landing-one", "Example", "https://careers.example.com/apply", source="Simplify")
+        second = base_job("landing-two", "Example", "https://careers.example.com/apply", source="SpeedyApply")
+        first["title"] = "Software Engineer Intern"
+        second["title"] = "Software Engineer Intern - Summer 2027"
+
+        reconciled, stats = mod.reconcile_jobs([first, second])
+
+        self.assertEqual(len(reconciled), 2)
+        self.assertEqual(stats["duplicate_groups"], 0)
+
     def test_exact_unsupported_direct_copies_collapse_after_link_recovery(self):
         first = base_job("point72-one", "Point72", POINT72_URL, source="Simplify", posted="2026-09-16T11:00:00Z")
         second = base_job(
