@@ -34,6 +34,11 @@ def task_body(priority, area, autonomous=True, resources=None, depends_on=None):
 
 
 class AutonomousDispatcherTests(unittest.TestCase):
+    def test_workflow_runs_single_dispatch_cycle_without_long_watch(self):
+        workflow = (ROOT / ".github" / "workflows" / "autonomous-dispatch.yml").read_text()
+        self.assertIn('JULES_WATCH_SECONDS: "0"', workflow)
+        self.assertIn("cancel-in-progress: false", workflow)
+
     def test_selects_highest_priority_safe_tasks_without_area_overlap(self):
         issues = [
             issue(10, "P2 frontend", body=task_body("P2", "frontend-state")),

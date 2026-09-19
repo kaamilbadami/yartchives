@@ -86,12 +86,12 @@ assert.ok(
 assert.match(
   autonomousWorkflow,
   /timeout-minutes:\s*14/,
-  "Continuous Jules reconciliation should have a bounded workflow runtime"
+  "Autonomous dispatcher should retain a bounded workflow runtime"
 );
 assert.ok(
   autonomousWorkflow.includes('JULES_POLL_SECONDS: "30"') &&
-    autonomousWorkflow.includes('JULES_WATCH_SECONDS: "780"'),
-  "Active Jules backlog work should be repolled every 30 seconds within a bounded watch window"
+    autonomousWorkflow.includes('JULES_WATCH_SECONDS: "0"'),
+  "Each dispatcher invocation should run one reconciliation cycle so newer events are not blocked by a long watch loop"
 );
 
 for (const name of workflowFiles) {

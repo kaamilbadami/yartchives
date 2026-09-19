@@ -43,5 +43,5 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           JULES_API_KEY: ${{ secrets.JULES_API_KEY }}
           JULES_POLL_SECONDS: "30"
-          JULES_WATCH_SECONDS: "780"
+          JULES_WATCH_SECONDS: "0"
         run: python scripts/dispatch_autonomous_issues.py
