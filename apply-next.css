@@ -43,6 +43,33 @@
   color: var(--muted, #667085);
 }
 
+.apply-next-view-tabs {
+  display: inline-flex;
+  gap: 0.25rem;
+  margin: 0 0 0.75rem;
+  padding: 0.2rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel-3);
+}
+
+.apply-next-view-btn {
+  border: 0;
+  border-radius: 8px;
+  padding: 0.45rem 0.75rem;
+  background: transparent;
+  color: var(--muted, #667085);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.apply-next-view-btn.active {
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--border);
+}
+
 .apply-next-list {
   display: grid;
   gap: 0.9rem;
