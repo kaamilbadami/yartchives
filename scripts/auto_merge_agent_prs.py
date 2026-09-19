@@ -35,6 +35,7 @@ CLOSING_ISSUE_RE = re.compile(
 )
 JULES_REVIEW_READY_LABEL = "jules-review-ready"
 GITHUB_ACTIONS_BOT = "github-actions[bot]"
+SAFE_MERGEABLE_STATES = {"clean", "has_hooks", "unstable", "behind"}
 
 
 def label_names(issue: dict[str, Any]) -> set[str]:
@@ -290,6 +291,19 @@ def eligible_pr(
 
 def quality_runs_api_path(repo: str, head_sha: str) -> str:
     return f"repos/{repo}/actions/runs?head_sha={head_sha}&per_page=100"
+
+
+def github_reports_safe_mergeability(pr: dict[str, Any]) -> bool:
+    """Allow GitHub states that are mergeable under this policy.
+
+    `behind` is safe here only after the stale-branch overlap check has already
+    decided that current base changes do not touch the PR's changed paths.
+    GitHub still enforces repository merge rules on the merge API call itself.
+    """
+    return (
+        pr.get("mergeable") is True
+        and str(pr.get("mergeable_state") or "") in SAFE_MERGEABLE_STATES
+    )
 
 
 def comparison_changed_paths(comparison: dict[str, Any]) -> set[str]:
@@ -628,11 +642,7 @@ def main() -> int:
             )
 
         fresh = gh_json("api", f"repos/{repo}/pulls/{number}")
-        if fresh.get("mergeable") is not True or str(fresh.get("mergeable_state") or "") not in {
-            "clean",
-            "has_hooks",
-            "unstable",
-        }:
+        if not github_reports_safe_mergeability(fresh):
             print(
                 f"Skipping PR #{number}: GitHub does not currently report it as safely mergeable."
             )
