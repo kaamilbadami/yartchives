@@ -13,6 +13,18 @@ assert.equal(U.classifyEducationFromTitle("Software Engineer Intern"), "unspecif
 assert.equal(U.classifyOpportunityTypeFromTitle("Embedded Software Engineering Co-op"), "co-op");
 assert.equal(U.classifyOpportunityTypeFromTitle("Software Engineer Intern"), "internship");
 
+const groupedSources = U.groupSourceHealth({
+  first: { name: "DraftKings (auto-discovered Workday, US)", ok: true, configured: true, count: 3 },
+  second: { name: "DraftKings (auto-discovered Workday, US)", ok: true, configured: true, count: 2 },
+  broken: { name: "Example (resolved Oracle)", ok: false, configured: true, count: 0, error: "HTTPError: 404" },
+});
+assert.equal(groupedSources.length, 2);
+assert.equal(groupedSources[0].name, "DraftKings (auto-discovered Workday, US)");
+assert.equal(groupedSources[0].count, 5);
+assert.equal(groupedSources[0].successCount, 2);
+assert.equal(groupedSources[1].failureCount, 1);
+assert.deepEqual(groupedSources[1].errors, ["HTTPError: 404"]);
+
 const csv = [
   "zip_code,city,state,latitude,longitude,population",
   "06897,Wilton,CT,41.1954,-73.4379,18000",
@@ -70,3 +82,4 @@ console.log("frontend-utils tests passed");
 const appSource = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
 assert.match(appSource, /job\.link_kind === "employer_job"/);
 assert.match(appSource, /View posting ↗/);
+assert.match(appSource, /src\.errors\.join/);
