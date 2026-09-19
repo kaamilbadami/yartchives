@@ -21,6 +21,15 @@ BLOCKED_PATH_PATTERNS = (
     "scripts/triage_workflow_failures.py",
     "scripts/auto_merge_agent_prs.py",
 )
+LIFECYCLE_PRIORITY_PATTERNS = (
+    ".github/workflows/auto-merge-agent-prs.yml",
+    ".github/workflows/autonomous-dispatch.yml",
+    ".github/workflows/triage-workflow-failures.yml",
+    "scripts/auto_merge_agent_prs.py",
+    "scripts/dispatch_autonomous_issues.py",
+    "scripts/triage_workflow_failures.py",
+)
+CI_PRIORITY_PATTERNS = (".github/workflows/**",)
 CLOSING_ISSUE_RE = re.compile(
     r"(?im)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)\b"
 )
@@ -109,6 +118,38 @@ def blocked_changed_paths(paths: Iterable[str]) -> list[str]:
         if any(fnmatch(path, pattern) for pattern in BLOCKED_PATH_PATTERNS):
             blocked.append(path)
     return blocked
+
+
+def pull_request_queue_priority(paths: Iterable[str]) -> int:
+    paths = tuple(paths)
+    if any(
+        fnmatch(path, pattern)
+        for path in paths
+        for pattern in LIFECYCLE_PRIORITY_PATTERNS
+    ):
+        return 0
+    if any(
+        fnmatch(path, pattern)
+        for path in paths
+        for pattern in CI_PRIORITY_PATTERNS
+    ):
+        return 1
+    return 2
+
+
+def prioritize_pull_requests(
+    pull_requests: Iterable[dict[str, Any]],
+    changed_paths_by_pr: dict[int, list[str]],
+) -> list[dict[str, Any]]:
+    return sorted(
+        pull_requests,
+        key=lambda pr: (
+            pull_request_queue_priority(
+                changed_paths_by_pr.get(int(pr["number"]), [])
+            ),
+            int(pr["number"]),
+        ),
+    )
 
 
 def exact_head_quality_passed(runs: Iterable[dict[str, Any]], head_sha: str) -> bool:
@@ -273,7 +314,19 @@ def main() -> int:
         "api",
         f"repos/{repo}/pulls?state=open&per_page=100",
     )
-    pull_requests.sort(key=lambda pr: int(pr["number"]))
+    files_by_pr: dict[int, list[dict[str, Any]]] = {}
+    changed_paths_by_pr: dict[int, list[str]] = {}
+    for pr in pull_requests:
+        number = int(pr["number"])
+        files = gh_paginated_json(
+            "api",
+            f"repos/{repo}/pulls/{number}/files?per_page=100",
+        )
+        files_by_pr[number] = files
+        changed_paths_by_pr[number] = [
+            str(row.get("filename") or "") for row in files
+        ]
+    pull_requests = prioritize_pull_requests(pull_requests, changed_paths_by_pr)
 
     review_ready_issues = gh_paginated_json(
         "api",
@@ -314,10 +367,7 @@ def main() -> int:
 
         if issue is None:
             issue = gh_json("api", f"repos/{repo}/issues/{issue_number}")
-        files = gh_paginated_json(
-            "api",
-            f"repos/{repo}/pulls/{number}/files?per_page=100",
-        )
+        files = files_by_pr[number]
         head_sha = str((pr.get("head") or {}).get("sha") or "")
         runs = gh_json(
             "api",
