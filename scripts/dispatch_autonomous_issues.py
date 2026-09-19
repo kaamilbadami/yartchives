@@ -395,8 +395,8 @@ def latest_retryable_failed_session(
 ) -> tuple[str, str] | None:
     """Return the newest durable FAILED record that is clearly Jules/platform retryable."""
     pattern = re.compile(
-        r"Jules session `([^`]+)` ended in FAILED state and released this "
-        r"automation slot\.",
+        r"Jules session `([^`]+)` ended in FAILED state (?:and released this "
+        r"automation slot|because the diagnostics match a retryable Jules/platform failure)\.",
         re.IGNORECASE,
     )
     for comment in reversed(list(comments)):
