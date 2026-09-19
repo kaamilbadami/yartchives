@@ -174,6 +174,33 @@ class DirectIcimsTests(unittest.TestCase):
         )
         self.assertIsNone(job)
 
+    def test_fetch_sources_concurrently_handles_success_and_failure(self):
+        source1 = {"key": "source1", "host": "source1.icims.com"}
+        source2 = {"key": "source2", "host": "source2.icims.com"}
+
+        class FakeSession:
+            pass
+
+        def fake_fetch_source(client, source, reference):
+            if source["key"] == "source1":
+                return [{"id": "1", "title": "Software Intern"}]
+            raise RuntimeError("network timeout")
+
+        original_fetch_source = mod.fetch_source
+        try:
+            mod.fetch_source = fake_fetch_source
+            results = mod.fetch_sources_concurrently(FakeSession(), [source1, source2], datetime.now(timezone.utc))
+
+            self.assertIn("source1", results)
+            self.assertIn("source2", results)
+            self.assertEqual(results["source1"][0], [{"id": "1", "title": "Software Intern"}])
+            self.assertIsNone(results["source1"][1])
+
+            self.assertIsNone(results["source2"][0])
+            self.assertIsInstance(results["source2"][1], RuntimeError)
+            self.assertEqual(str(results["source2"][1]), "network timeout")
+        finally:
+            mod.fetch_source = original_fetch_source
 
 if __name__ == "__main__":
     unittest.main()
