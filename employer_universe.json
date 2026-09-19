@@ -20,6 +20,12 @@
       ]
     },
     {
+      "key": "cs-benchmark",
+      "kind": "coverage_benchmark",
+      "name": "High-Value CS Employer Benchmark",
+      "status": "active"
+    },
+    {
       "key": "fortune-500-2026",
       "kind": "fortune_500",
       "name": "Fortune 500",
@@ -663,6 +669,7 @@
       "name": "Advanced Micro Devices",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026"
       ],
       "seed_metadata": {
@@ -1170,6 +1177,7 @@
       "name": "Airbnb",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
@@ -1922,6 +1930,7 @@
       "name": "Alphabet",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026"
       ],
       "seed_metadata": {
@@ -1997,6 +2006,7 @@
       "name": "Amazon",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
@@ -2897,6 +2907,7 @@
       "aliases": [],
       "seed_sets": [
         "coverage-benchmark-2026-09-17",
+        "cs-benchmark",
         "state-of-ats-2026-verified-hosts"
       ],
       "seed_metadata": {
@@ -3061,6 +3072,7 @@
       "name": "Apple",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
@@ -3652,6 +3664,7 @@
       "name": "Atlassian",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "state-of-ats-2026-verified-hosts"
       ],
       "seed_metadata": {
@@ -5403,6 +5416,7 @@
       "name": "Boeing",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
@@ -7816,6 +7830,14 @@
       }
     },
     {
+      "id": "citadel",
+      "name": "Citadel",
+      "aliases": [],
+      "seed_sets": [
+        "cs-benchmark"
+      ]
+    },
+    {
       "id": "citigroup",
       "name": "Citigroup",
       "aliases": [],
@@ -9522,6 +9544,7 @@
       "name": "Databricks",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "state-of-ats-2026-verified-hosts"
       ],
       "seed_metadata": {
@@ -14582,6 +14605,7 @@
       "name": "Goldman Sachs Group",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026"
       ],
       "seed_metadata": {
@@ -16562,6 +16586,7 @@
       "name": "Intel",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
@@ -17122,6 +17147,7 @@
       "name": "Jane Street",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "state-of-ats-2026-verified-hosts"
       ],
       "seed_metadata": {
@@ -17872,6 +17898,7 @@
       "aliases": [],
       "seed_sets": [
         "coverage-benchmark-2026-09-17",
+        "cs-benchmark",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
@@ -19886,6 +19913,7 @@
       "name": "Lockheed Martin",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
@@ -21706,6 +21734,7 @@
       "name": "Meta Platforms",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026"
       ],
       "seed_metadata": {
@@ -21892,6 +21921,7 @@
       "name": "Microsoft",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
@@ -22392,6 +22422,7 @@
       "name": "Morgan Stanley",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
@@ -22725,6 +22756,7 @@
       "name": "Netflix",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
@@ -23024,6 +23056,7 @@
       "name": "Northrop Grumman",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026"
       ],
       "seed_metadata": {
@@ -23183,6 +23216,7 @@
       "name": "Nvidia",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
@@ -23623,7 +23657,8 @@
       "name": "Palantir Technologies",
       "aliases": [],
       "seed_sets": [
-        "coverage-benchmark-2026-09-17"
+        "coverage-benchmark-2026-09-17",
+        "cs-benchmark"
       ],
       "seed_metadata": {
         "coverage-benchmark-2026-09-17": {
@@ -25030,6 +25065,7 @@
       "name": "Qualcomm",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
@@ -25826,6 +25862,7 @@
       "aliases": [],
       "seed_sets": [
         "coverage-benchmark-2026-09-17",
+        "cs-benchmark",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
@@ -26316,6 +26353,7 @@
       "name": "Salesforce",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026",
         "state-of-ats-2026-verified-hosts"
       ],
@@ -27196,6 +27234,7 @@
       "name": "Snowflake",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "state-of-ats-2026-verified-hosts"
       ],
       "seed_metadata": {
@@ -27523,6 +27562,7 @@
       "name": "SpaceX",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "state-of-ats-2026-verified-hosts"
       ],
       "seed_metadata": {
@@ -28246,6 +28286,7 @@
       "name": "Stripe",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "state-of-ats-2026-verified-hosts"
       ],
       "seed_metadata": {
@@ -30072,6 +30113,7 @@
       "name": "Two Sigma",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "state-of-ats-2026-verified-hosts"
       ],
       "seed_metadata": {
@@ -30250,6 +30292,7 @@
       "name": "Uber Technologies",
       "aliases": [],
       "seed_sets": [
+        "cs-benchmark",
         "fortune-500-2026"
       ],
       "seed_metadata": {
