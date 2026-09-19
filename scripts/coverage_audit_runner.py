@@ -43,6 +43,22 @@ MISSING_STATUSES = {
     "unknown",
 }
 
+REGIONS: dict[str, tuple[str, ...]] = {
+    "New England": ("CT", "ME", "MA", "NH", "RI", "VT"),
+    "Mid-Atlantic": ("DE", "DC", "MD", "NJ", "NY", "PA", "VA", "WV"),
+    "Southeast": ("AL", "AR", "FL", "GA", "KY", "LA", "MS", "NC", "SC", "TN"),
+    "Midwest": ("IL", "IN", "IA", "KS", "MI", "MN", "MO", "NE", "ND", "OH", "SD", "WI"),
+    "South Central": ("OK", "TX"),
+    "Mountain West": ("AZ", "CO", "ID", "MT", "NV", "NM", "UT", "WY"),
+    "West Coast / Pacific": ("AK", "CA", "HI", "OR", "WA"),
+}
+
+STATE_TO_REGION: dict[str, str] = {
+    state: region
+    for region, states in REGIONS.items()
+    for state in states
+}
+
 
 def is_discovery_surface(value: str) -> bool:
     text = norm(value)
@@ -245,12 +261,21 @@ def build_report(
     missing_by_state: Counter[str] = Counter()
     missing_by_reason: Counter[str] = Counter()
     missing_by_discovery_source: Counter[str] = Counter()
+    by_region: defaultdict[str, Counter[str]] = defaultdict(Counter)
+    missing_by_region: Counter[str] = Counter()
+
     for result in report["results"]:
         states_for_result = result_states(result) or ["unknown"]
         for state in states_for_result:
             by_state[state][result["status"]] += 1
             if result.get("status") in MISSING_STATUSES:
                 missing_by_state[state] += 1
+
+            region = STATE_TO_REGION.get(state, "Other/Unknown")
+            by_region[region][result["status"]] += 1
+            if result.get("status") in MISSING_STATUSES:
+                missing_by_region[region] += 1
+
         if result.get("status") in MISSING_STATUSES:
             missing_by_reason[str(result.get("reason_code") or "unknown")] += 1
             missing_by_discovery_source[str(result.get("source") or "unknown")] += 1
@@ -259,6 +284,34 @@ def build_report(
         state: dict(counts) for state, counts in sorted(by_state.items())
     }
     summary["missing_by_state"] = dict(sorted(missing_by_state.items()))
+
+    recall_by_state: dict[str, dict[str, Any]] = {}
+    for state, counts in summary["by_state"].items():
+        total = sum(counts.values())
+        missing = missing_by_state.get(state, 0)
+        captured = total - missing
+        recall = round(captured / total, 4) if total else 0.0
+        recall_by_state[state] = {
+            "total": total,
+            "missing": missing,
+            "captured": captured,
+            "recall": recall,
+        }
+    summary["recall_by_state"] = dict(sorted(recall_by_state.items()))
+
+    recall_by_region: dict[str, dict[str, Any]] = {}
+    for region, counts in sorted(by_region.items()):
+        total = sum(counts.values())
+        missing = missing_by_region.get(region, 0)
+        captured = total - missing
+        recall = round(captured / total, 4) if total else 0.0
+        recall_by_region[region] = {
+            "total": total,
+            "missing": missing,
+            "captured": captured,
+            "recall": recall,
+        }
+    summary["recall_by_region"] = recall_by_region
     summary["missing_by_reason_code"] = {
         reason: count
         for reason, count in sorted(missing_by_reason.items(), key=lambda item: (-item[1], item[0]))
@@ -294,10 +347,19 @@ def markdown(report: dict[str, Any]) -> str:
         ats_lines.append("No missing listings in this sample.")
     ats_section = "\n".join(ats_lines) + "\n\n"
     state_lines = ["## Results by benchmark state", ""]
-    for state, counts in summary.get("by_state", {}).items():
-        total = sum(counts.values())
-        missing = (summary.get("missing_by_state") or {}).get(state, 0)
-        state_lines.append(f"- `{state}`: **{total}** listings, **{missing}** missing")
+    for state, stats in summary.get("recall_by_state", {}).items():
+        total = stats["total"]
+        missing = stats["missing"]
+        recall = stats["recall"]
+        state_lines.append(f"- `{state}`: **{total}** listings, **{missing}** missing ({recall:.1%} recall)")
+
+    region_lines = ["", "## Results by region", ""]
+    for region, stats in summary.get("recall_by_region", {}).items():
+        total = stats["total"]
+        missing = stats["missing"]
+        recall = stats["recall"]
+        region_lines.append(f"- `{region}`: **{total}** listings, **{missing}** missing ({recall:.1%} recall)")
+
     reason_lines = ["", "## Missing listings by reason code", ""]
     reason_counts = summary.get("missing_by_reason_code") or {}
     reason_lines.extend(
@@ -305,7 +367,7 @@ def markdown(report: dict[str, Any]) -> str:
     )
     if not reason_counts:
         reason_lines.append("No missing listings in this sample.")
-    breakdown_section = "\n".join(state_lines + reason_lines) + "\n\n"
+    breakdown_section = "\n".join(state_lines + region_lines + reason_lines) + "\n\n"
     return text.replace(
         "## Status breakdown\n",
         ats_section + breakdown_section + "## Status breakdown\n",

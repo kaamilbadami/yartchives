@@ -234,11 +234,19 @@ class CoverageDenominatorTests(unittest.TestCase):
                 "source": "LinkedIn",
                 "expected_state": "NY",
             },
+            {
+                "company": "Acme Corp",
+                "title": "Software Engineering Intern",
+                "location": "Hartford, CT",
+                "url": "https://jobs.acme.com/job/12345",
+                "source": "LinkedIn",
+                "expected_state": "CT",
+            }
         ]
         report = mod.build_report(
             rows,
             {"generated_at": "2026-09-17T00:00:00Z", "content_hash": "x"},
-            [],
+            [feed_job()],
             CATALOG,
             ["cs"],
             ["CT", "NY"],
@@ -250,10 +258,38 @@ class CoverageDenominatorTests(unittest.TestCase):
             report["summary"]["missing_by_discovery_source"],
             {"LinkedIn": 1, "Web search": 1},
         )
-        self.assertEqual(sum(report["summary"]["by_state"]["CT"].values()), 1)
+        self.assertEqual(sum(report["summary"]["by_state"]["CT"].values()), 2)
+
+        # Check recall output logic
+        self.assertIn("recall_by_state", report["summary"])
+        self.assertEqual(report["summary"]["recall_by_state"]["CT"]["total"], 2)
+        self.assertEqual(report["summary"]["recall_by_state"]["CT"]["missing"], 1)
+        self.assertEqual(report["summary"]["recall_by_state"]["CT"]["captured"], 1)
+        self.assertEqual(report["summary"]["recall_by_state"]["CT"]["recall"], 0.5)
+
+        self.assertEqual(report["summary"]["recall_by_state"]["NY"]["total"], 1)
+        self.assertEqual(report["summary"]["recall_by_state"]["NY"]["missing"], 1)
+        self.assertEqual(report["summary"]["recall_by_state"]["NY"]["captured"], 0)
+        self.assertEqual(report["summary"]["recall_by_state"]["NY"]["recall"], 0.0)
+
+        self.assertIn("recall_by_region", report["summary"])
+        self.assertEqual(report["summary"]["recall_by_region"]["New England"]["total"], 2)
+        self.assertEqual(report["summary"]["recall_by_region"]["New England"]["missing"], 1)
+        self.assertEqual(report["summary"]["recall_by_region"]["New England"]["captured"], 1)
+        self.assertEqual(report["summary"]["recall_by_region"]["New England"]["recall"], 0.5)
+
+        self.assertEqual(report["summary"]["recall_by_region"]["Mid-Atlantic"]["total"], 1)
+        self.assertEqual(report["summary"]["recall_by_region"]["Mid-Atlantic"]["missing"], 1)
+        self.assertEqual(report["summary"]["recall_by_region"]["Mid-Atlantic"]["captured"], 0)
+        self.assertEqual(report["summary"]["recall_by_region"]["Mid-Atlantic"]["recall"], 0.0)
+
         rendered = mod.markdown(report)
         self.assertIn("## Results by benchmark state", rendered)
-        self.assertIn("`CT`: **1** listings, **1** missing", rendered)
+        self.assertIn("`CT`: **2** listings, **1** missing (50.0% recall)", rendered)
+        self.assertIn("`NY`: **1** listings, **1** missing (0.0% recall)", rendered)
+        self.assertIn("## Results by region", rendered)
+        self.assertIn("`New England`: **2** listings, **1** missing (50.0% recall)", rendered)
+        self.assertIn("`Mid-Atlantic`: **1** listings, **1** missing (0.0% recall)", rendered)
         self.assertIn("## Missing listings by reason code", rendered)
 
 
