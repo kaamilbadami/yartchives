@@ -20,4 +20,11 @@ assert.equal(grouped.find(x => x.name === "Beta").latestPostedAt, "2026-09-18T00
 
 assert.deepEqual(sortCompanies(grouped, "openings").map(x => x.name), ["Gamma", "Alpha", "Beta"]);
 
+const fs = require("node:fs");
+const path = require("node:path");
+const source = fs.readFileSync(path.join(__dirname, "..", "companies.js"), "utf8");
+assert.match(source, /id="companySortSelect"/, "Companies should own a dedicated sort select");
+assert.doesNotMatch(source, /sortSelect\.innerHTML/, "Companies must not rewrite the Jobs sort select");
+assert.doesNotMatch(source, /stopImmediatePropagation/, "Company sorting should not suppress the Jobs sort listener");
+
 console.log("company sort regression tests passed");
