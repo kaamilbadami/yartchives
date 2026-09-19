@@ -213,7 +213,7 @@ def inspect_workday_url(
         )
         if response.status_code in {404, 410}:
             result["status"] = "unavailable"
-            result["error"] = f"Workday returned HTTP {response.status_code}"
+            result["error"] = None
             return result
         response.raise_for_status()
         normalized = normalize_payload(response.json())
