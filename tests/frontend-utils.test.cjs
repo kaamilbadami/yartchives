@@ -13,8 +13,11 @@ assert.equal(U.classifyEducationFromTitle("Software Engineer Intern"), "unspecif
 assert.equal(U.classifyOpportunityTypeFromTitle("Embedded Software Engineering Co-op"), "co-op");
 assert.equal(U.classifyOpportunityTypeFromTitle("Software Engineer Intern"), "internship");
 
+assert.equal(U.sourceHealthDisplayName("🔥 Adobe (auto-discovered Workday, US)"), "Adobe (auto-discovered Workday, US)");
+assert.equal(U.sourceHealthDisplayName("Adobe (auto-discovered Workday, US)"), "Adobe (auto-discovered Workday, US)");
+
 const groupedSources = U.groupSourceHealth({
-  first: { name: "DraftKings (auto-discovered Workday, US)", ok: true, configured: true, count: 3 },
+  first: { name: "🔥 DraftKings (auto-discovered Workday, US)", ok: true, configured: true, count: 3 },
   second: { name: "DraftKings (auto-discovered Workday, US)", ok: true, configured: true, count: 2 },
   broken: { name: "Example (resolved Oracle)", ok: false, configured: true, count: 0, error: "HTTPError: 404" },
 });
