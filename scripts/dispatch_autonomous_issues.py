@@ -406,7 +406,7 @@ def explicit_feedback_for_session(
 
 def jules_capacity_exhausted(value: Any) -> bool:
     """Return whether a Jules response/error indicates temporary account capacity exhaustion."""
-    text = str(value).casefold()
+    text = str(value).casefold().replace("_", " ")
     capacity_signals = (
         "quota exceeded",
         "resource exhausted",
@@ -1223,7 +1223,11 @@ def run_dispatch_cycle(
                 repo=repo,
                 api_key=api_key,
                 source_name=source_name,
-                comments=load_comments(task.number),
+                comments=(
+                    load_comments(task.number)
+                    if JULES_RETRY_LABEL in task.labels
+                    else ()
+                ),
             )
         except Exception as exc:
             if jules_capacity_exhausted(exc):
