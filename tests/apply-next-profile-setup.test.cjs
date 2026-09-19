@@ -163,6 +163,10 @@ assert.deepEqual(
   assert.doesNotMatch(source, /field\("Degree"/);
   assert.doesNotMatch(source, /Kaamil|Badami|kaamil\.badami/i);
 
+  const setupCss = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.css"), "utf8");
+  assert.match(setupCss, /main\.apply-next-profile-mode > :not\(#applyNextPanel\)/, "Focused profile mode should hide the ordinary feed");
+  assert.match(setupCss, /display: none !important;/);
+
   const quality = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "quality.yml"), "utf8");
   assert.match(quality, /node --check apply-next-profile-setup\.js/);
   assert.match(quality, /node tests\/apply-next-profile-setup\.test\.cjs/);
