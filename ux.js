@@ -6,6 +6,11 @@
 
   const CAREER_AREAS = [
     ["cs", "Computer Science"],
+  ];
+  // Maintain the full set of valid areas so legacy state/URLs remain valid
+  // even though we hide them from the primary beta UI selection.
+  const ALL_KNOWN_AREAS = [
+    ["cs", "Computer Science"],
     ["product-analytics", "Product / Analytics"],
     ["it-consulting", "IT / Tech Consulting"],
     ["finance-econ", "Finance / Econ"],
@@ -15,8 +20,8 @@
     ["policy", "Policy / Government"],
     ["health", "Premed / Health"],
   ];
-  const AREA_LABELS = Object.fromEntries(CAREER_AREAS);
-  const VALID_AREAS = new Set(CAREER_AREAS.map(([key]) => key));
+  const AREA_LABELS = Object.fromEntries(ALL_KNOWN_AREAS);
+  const VALID_AREAS = new Set(ALL_KNOWN_AREAS.map(([key]) => key));
 
   function loadUxState() {
     let saved = {};
@@ -36,6 +41,11 @@
         for (const key of legacyAreas) {
           if (key === "tech-business") selected.push("product-analytics", "it-consulting");
           else if (VALID_AREAS.has(key)) selected.push(key);
+        }
+
+        // Beta defaults to CS-first for new visitors
+        if (!selected.length) {
+          selected.push("cs");
         }
       }
     }
