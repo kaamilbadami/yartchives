@@ -268,6 +268,19 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
 
+    def test_main_drains_all_eligible_prs_instead_of_returning_after_first_merge(self):
+        source = MODULE_PATH.read_text()
+        merge_log = 'print(f"Squash-merged eligible autonomous PR #{number}.")'
+        merge_index = source.index(merge_log)
+        post_merge = source[merge_index:merge_index + 220]
+
+        self.assertIn("merged_count += 1", post_merge)
+        self.assertNotIn("return 0", post_merge)
+        self.assertIn(
+            'print(f"Squash-merged {merged_count} eligible autonomous pull request(s).")',
+            source,
+        )
+
     def test_codex_review_ready_is_also_terminal(self):
         self.assertTrue(
             mod.autonomous_issue_ready(

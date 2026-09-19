@@ -288,6 +288,8 @@ def main() -> int:
         ),
     )
 
+    merged_count = 0
+
     for pr in pull_requests:
         number = int(pr["number"])
         issue_number = linked_issue_number(str(pr.get("body") or ""))
@@ -411,9 +413,12 @@ def main() -> int:
             "-f", f"sha={head_sha}",
         )
         print(f"Squash-merged eligible autonomous PR #{number}.")
-        return 0
+        merged_count += 1
 
-    print("No autonomous pull request is currently eligible for automatic merge.")
+    if merged_count:
+        print(f"Squash-merged {merged_count} eligible autonomous pull request(s).")
+    else:
+        print("No autonomous pull request is currently eligible for automatic merge.")
     return 0
 
 
