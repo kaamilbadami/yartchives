@@ -380,15 +380,32 @@
   }
 
   function rankingSummary(result) {
-    const parts = [];
-    for (const key of ["fit", "freshness", "roi", "location"]) {
+    const evaluated = [];
+    for (const key of ["fit", "location", "roi", "freshness"]) {
       const component = result?.components?.[key];
       const max = componentMax(key);
       if (!component || max <= 0) continue;
-      const band = scoreBand(key, component.score, max);
-      if (band) parts.push(band.toLowerCase());
+      const ratio = Number(component.score || 0) / max;
+      evaluated.push({ key, ratio });
     }
-    return parts.length ? `Why this is here: ${parts.join(", ")}.` : "Why this is here: based on your profile and the evidence available.";
+
+    evaluated.sort((a, b) => b.ratio - a.ratio);
+
+    const positive = evaluated.filter(e => e.ratio >= 0.75);
+    const strongest = positive.length ? positive[0] : null;
+
+    const negative = evaluated.filter(e => e.ratio <= 0.4);
+    const limiting = negative.length ? negative[negative.length - 1] : null;
+
+    if (!strongest && !limiting) {
+      return "Why this is here: based on your profile and the evidence available.";
+    }
+
+    const parts = [];
+    if (strongest) parts.push(`strongest factor is ${componentLabel(strongest.key).toLowerCase()}`);
+    if (limiting) parts.push(`limiting factor is ${componentLabel(limiting.key).toLowerCase()}`);
+
+    return `Why this is here: ${parts.join("; ")} (based on available evidence).`;
   }
 
   function componentMax(key) {

@@ -30,7 +30,29 @@ assert.equal(UI.scoreBand("fit", 30, 40), "Strong match");
 assert.equal(UI.scoreBand("freshness", 5, 10), "Recent");
 assert.equal(UI.scoreBand("roi", 10, 30), "Lower value");
 assert.equal(UI.scoreBand("location", 15, 20), "Very convenient");
-assert.match(UI.rankingSummary({ components: { fit: { score: 30 }, freshness: { score: 8 }, roi: { score: 23 }, location: { score: 15 } } }), /^Why this is here: /);
+
+// Test rankingSummary implementation
+// High fit (40/40), low location (2/15)
+assert.equal(
+  UI.rankingSummary({ components: { fit: { score: 40 }, location: { score: 2 } } }),
+  "Why this is here: strongest factor is how well you match; limiting factor is location convenience (based on available evidence)."
+);
+// High location (15/15), low fit (10/40)
+assert.equal(
+  UI.rankingSummary({ components: { fit: { score: 10 }, location: { score: 15 } } }),
+  "Why this is here: strongest factor is location convenience; limiting factor is how well you match (based on available evidence)."
+);
+// Average factors (fit 20/40, location 8/15) -> ratios are 0.5 and 0.53 (neither >=0.75 nor <=0.4)
+assert.equal(
+  UI.rankingSummary({ components: { fit: { score: 20 }, location: { score: 8 } } }),
+  "Why this is here: based on your profile and the evidence available."
+);
+// High fit (40/40), high location (15/15) -> both strongest, tie break using array order.
+assert.match(
+  UI.rankingSummary({ components: { fit: { score: 40 }, location: { score: 15 } } }),
+  /Why this is here: strongest factor is .* \(based on available evidence\)\./
+);
+
 const postedNow = new Date("2026-09-17T12:00:00Z");
 assert.equal(UI.formatPostedDate("2026-09-15T23:30:00-04:00", true, postedNow), "Posted 9/16 · 1 day ago");
 assert.equal(UI.formatPostedDate("2026-09-15", true, postedNow), "Posted 9/15 · 2 days ago");
