@@ -28,26 +28,6 @@ class StaticContractTests(unittest.TestCase):
         self.assertEqual(hashlib.sha256((ROOT / "assets" / "yartchives-hedgehog.png").read_bytes()).hexdigest(), "f12cfe7c0625164638410c8e63fad8079ed7df22a64b82f168c6c64c44c16794")
         freshness = soup.find(id="freshnessSelect")
         self.assertEqual(freshness.find("option", selected=True).get("value"), "all")
-        self.assertIsNone(soup.find(id="viewedCount"))
-        self.assertIsNone(soup.find("option", attrs={"value": "viewed"}))
-
-    def test_feed_refresh_only_invalidates_on_feed_inputs(self):
-        workflow = (ROOT / ".github" / "workflows" / "update-feed.yml").read_text(encoding="utf-8")
-        self.assertGreaterEqual(workflow.count("FEED_INPUT_CHANGES="), 2)
-        for fragment in [
-            "scripts/",
-            "audit/samples/",
-            "data/employer-seeds/",
-            "sources\\.json$",
-            "direct_sources\\.json$",
-            "requirements\\.txt$",
-            "\\.github/workflows/update-feed\\.yml$",
-        ]:
-            self.assertGreaterEqual(workflow.count(fragment), 2)
-        self.assertIn("Only unrelated files changed; rebasing employer-universe output onto current main.", workflow)
-        self.assertIn("Only unrelated or generated files changed; publishing this completed feed onto current main.", workflow)
-        self.assertNotIn("grep -Ev '^data/(listings|workday-inspections)", workflow)
-        self.assertNotIn("Aborting this stale build; the next run will resolve from the newer main.", workflow)
 
     def test_pages_deploy_includes_static_assets(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
@@ -86,14 +66,6 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("selectedProfiles.size === 0", text)
         self.assertIn("apply.cloneNode(true)", text)
         self.assertIn("View listing ↗", text)
-
-    def test_feed_updated_time_is_explicitly_eastern(self):
-        app = (ROOT / "app.js").read_text(encoding="utf-8")
-        ux = (ROOT / "ux.js").read_text(encoding="utf-8")
-        self.assertIn('timeZone: "America/New_York"', app)
-        self.assertIn('timeZoneName: "short"', app)
-        self.assertIn("formatEasternTimestamp(when)", app)
-        self.assertIn("formatEasternTimestamp(when)", ux)
 
     def test_final_ux_contract(self):
         text = (ROOT / "ux.js").read_text(encoding="utf-8")

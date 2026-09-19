@@ -33,63 +33,7 @@ assert.equal(UI.scoreBand("location", 15, 20), "Very convenient");
 assert.equal(UI.totalScoreBandClass(50), "apply-next-score-low");
 assert.equal(UI.totalScoreBandClass(65), "apply-next-score-medium");
 assert.equal(UI.totalScoreBandClass(85), "apply-next-score-high");
-assert.equal(UI.FRESH_MAX_AGE_DAYS, 3);
-assert.equal(UI.FRESH_MIN_SCORE, 55);
-
-const freshNow = new Date("2026-09-19T12:00:00Z");
-const freshRanked = [
-  { total: 88, job: { id: "fresh-best", posted_at: "2026-09-19" } },
-  { total: 86, job: { id: "fresh-three-day", posted_at: "2026-09-16" } },
-  { total: 84, job: { id: "too-old", posted_at: "2026-09-15" } },
-  { total: 54, job: { id: "fresh-low", posted_at: "2026-09-19" } },
-  { total: 72, job: { id: "fresh-good", posted_at: "2026-09-17" } },
-  { total: 70, job: { id: "unknown-date", posted_at: null } },
-];
-assert.equal(UI.postedAgeDays("2026-09-16", freshNow), 3);
-assert.equal(UI.postedAgeDays("not-a-date", freshNow), null);
-assert.deepEqual(
-  UI.freshRankedResults(freshRanked, freshNow).map(result => result.job.id),
-  ["fresh-best", "fresh-three-day", "fresh-good"]
-);
-assert.deepEqual(
-  UI.visibleQueueResults(freshRanked, "recommended", freshNow).map(result => result.job.id),
-  freshRanked.map(result => result.job.id)
-);
-
-const pagedRanked = Array.from({ length: 24 }, (_, index) => ({
-  total: 100 - index,
-  job: { id: `rank-${index + 1}`, posted_at: "2026-09-19" },
-}));
-assert.equal(UI.visibleQueueResults(pagedRanked, "recommended", freshNow).length, 10);
-assert.equal(UI.visibleQueueResults(pagedRanked, "recommended", freshNow, 20).length, 20);
-assert.equal(UI.visibleQueueResults(pagedRanked, "fresh", freshNow).length, 10);
-assert.equal(UI.visibleQueueResults(pagedRanked, "fresh", freshNow, 20).length, 20);
-// rankingSummary tests
-// Note: test environment componentMax: fit=40, freshness=10, roi=15, location=15
-assert.equal(
-  UI.rankingSummary({
-    components: { fit: { score: 30 }, freshness: { score: 8 }, roi: { score: 12 }, location: { score: 12 } } // Ratios: fit: 30/40=0.75, freshness: 8/10=0.8, roi: 12/15=0.8, location: 12/15=0.8
-  }),
-  "Why this is here: strongest drivers: timing, role value, location convenience and profile match."
-);
-assert.equal(
-  UI.rankingSummary({
-    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 6 }, location: { score: 9 } } // Ratios: fit: 35/40=0.875, freshness: 9/10=0.9, roi: 6/15=0.4, location: 9/15=0.6
-  }),
-  "Why this is here: strongest drivers: timing and profile match; limited by: role value."
-);
-assert.equal(
-  UI.rankingSummary({
-    components: { fit: { score: 20 }, freshness: { score: 2 }, roi: { score: 3 }, location: { score: 4 } } // Ratios: fit: 20/40=0.5, freshness: 2/10=0.2, roi: 3/15=0.2, location: 4/15=0.26
-  }),
-  "Why this is here: limited by: location convenience, timing and role value."
-);
-assert.equal(
-  UI.rankingSummary({
-    components: { fit: { score: 40 }, freshness: { score: 2 }, roi: { score: 14 }, location: { score: 4 } } // Ratios: fit: 40/40=1.0, freshness: 2/10=0.2, roi: 14/15=0.93, location: 4/15=0.26
-  }),
-  "Why this is here: strongest drivers: profile match and role value; limited by: location convenience and timing."
-);
+assert.match(UI.rankingSummary({ components: { fit: { score: 30 }, freshness: { score: 8 }, roi: { score: 23 }, location: { score: 15 } } }), /^Why this is here: /);
 
 // worthApplyingSummary tests
 assert.equal(
@@ -297,16 +241,9 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(hideHandler[1], /updateQueueOptimistically/, "Hide should trigger optimistic queue update immediately");
   assert.match(hideHandler[1], /applyFilters\(\);/);
 
-  assert.match(uiSource, /setProfileSetupMode\(true\)/, "Apply Next should enter focused mode");
-  assert.match(uiSource, /setProfileSetupMode\(false\)/, "Closing Apply Next should restore the normal feed");
-  assert.match(uiSource, /apply-next-profile-mode/, "Focused Apply Next should use an explicit main-state class");
+  assert.match(uiSource, /Restore them from the main feed\./, "Should document recovery path for Applied and Hidden jobs");
 
   assert.doesNotMatch(uiSource, /<option value="newest">Newest<\/option>/, "Apply Next should not expose a Newest sort mode");
-  assert.match(uiSource, /\["recommended", "Recommended"\]/, "Apply Next should expose the Recommended queue");
-  assert.match(uiSource, /\["fresh", "Fresh"\]/, "Apply Next should expose a Fresh queue");
-  assert.doesNotMatch(uiSource, /\["top", "Top 10"\]/, "Apply Next should not label a paginated queue Top 10");
-  assert.match(uiSource, /Load 10 more/, "Apply Next queues should paginate ten recommendations at a time");
-  assert.match(uiSource, /Ranked by overall Apply Next score, not posting time\./, "Fresh should preserve recommendation quality ordering");
 
   assert.match(uiSource, /document\.createDocumentFragment\(\)/, "renderQueue should build DOM off-screen before swapping to avoid UI stalls");
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);

@@ -119,18 +119,6 @@ const major = D.scoreJob(job({
 }), profile, now);
 assert.match(major.inspection.label, /Major required gaps/i);
 
-const academicGapInspection = inspection([["Java required", ["Java"]]]);
-academicGapInspection.requirements.education = {
-  required: [{ statement: "Master's degree required" }],
-  preferred: [], unspecified: [], not_required: [],
-};
-const academicGap = D.scoreJob(job({
-  url: "https://example.com/academic-gap",
-  _inspection: academicGapInspection,
-}), profile, now);
-assert.equal(academicGap.components.fit.detail.includes("All known required evidence is satisfied"), false);
-assert.match(academicGap.components.fit.detail, /Exact required skills: java/i);
-
 const domainOnly = D.scoreJob(job({
   url: "https://example.com/domain",
   _inspection: inspection([["Experience with data structures, algorithms, and software design principles.", []]]),

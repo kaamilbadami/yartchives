@@ -1,11 +1,3 @@
-main.apply-next-profile-mode > :not(#applyNextPanel) {
-  display: none !important;
-}
-
-main.apply-next-profile-mode #applyNextPanel {
-  margin-top: 0;
-}
-
 .apply-next-profile-wizard {
   display: grid;
   gap: 1rem;

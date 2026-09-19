@@ -405,7 +405,7 @@
     const pct = jobs.length ? (100 * direct / jobs.length).toFixed(1) : "0.0";
     const active = YartchivesUtils.groupSourceHealth(feed.sources || {}).filter(source => source.successCount > 0).length;
     const when = new Date(feed.generated_at);
-    els.feedMeta.textContent = `${jobs.length.toLocaleString()} indexed · ${pct}% direct links · Updated ${formatEasternTimestamp(when)} · ${active} active sources`;
+    els.feedMeta.textContent = `${jobs.length.toLocaleString()} indexed · ${pct}% direct links · Updated ${when.toLocaleString()} · ${active} active sources`;
   };
 
   const priorApplyFilters = applyFilters;
