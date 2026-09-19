@@ -34,9 +34,9 @@ def task_body(priority, area, autonomous=True, resources=None, depends_on=None):
 
 
 class AutonomousDispatcherTests(unittest.TestCase):
-    def test_workflow_runs_single_dispatch_cycle_without_long_watch(self):
+    def test_workflow_keeps_dispatch_cycle_alive_for_refill_window(self):
         workflow = (ROOT / ".github" / "workflows" / "autonomous-dispatch.yml").read_text()
-        self.assertIn('JULES_WATCH_SECONDS: "0"', workflow)
+        self.assertIn('JULES_WATCH_SECONDS: "780"', workflow)
         self.assertIn("cancel-in-progress: false", workflow)
 
     def test_selects_highest_priority_safe_tasks_without_area_overlap(self):
@@ -132,6 +132,21 @@ class AutonomousDispatcherTests(unittest.TestCase):
         ]
         selected = mod.select_tasks(issues, max_active=2)
         self.assertEqual([task.number for task in selected], [3])
+
+    def test_frontend_state_does_not_claim_identity_resource(self):
+        issues = [
+            issue(
+                1,
+                "active frontend state",
+                body=task_body("P1", "frontend-state"),
+                labels=("jules", "jules-session"),
+            ),
+            issue(2, "identity audit", body=task_body("P1", "identity")),
+        ]
+
+        selected = mod.select_tasks(issues, max_active=2)
+
+        self.assertEqual([task.number for task in selected], [2])
 
     def test_feedback_waiting_session_reserves_wip_and_overlap_locks(self):
         issues = [
