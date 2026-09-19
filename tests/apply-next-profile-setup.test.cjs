@@ -98,6 +98,19 @@ const citizenProfile = Setup.buildProfile({
 }, {});
 assert.equal(citizenProfile.facts.workAuthorization, "Authorized to work in the U.S. without sponsorship");
 
+const defaultRoleProfile = Setup.buildProfile({
+  targetTerm: "Summer 2027",
+  citizenship: "Unknown / not provided",
+  workAuthorization: "Unknown / not provided",
+  securityClearance: "Unknown / not provided",
+  opportunityTypes: ["internship"],
+}, {});
+assert.deepEqual(
+  defaultRoleProfile.roleFamilies.map(family => family.id),
+  Setup.ROLE_FAMILIES.map(family => family.id),
+  "new profiles should default to all role families"
+);
+
 (async () => {
   const textFile = {
     name: "resume.txt",
@@ -144,7 +157,7 @@ assert.equal(citizenProfile.facts.workAuthorization, "Authorized to work in the 
   const source = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.js"), "utf8");
   assert.match(source, /raw resume is never saved or uploaded/i);
   assert.match(source, /When are you looking\?/);
-  assert.match(source, /When are you graduating \(month, year\)/);
+  assert.match(source, /When are you graduating \(month year\)/);
   assert.match(source, /input\("targetTerm", "Summer 2027", "radio"\)/);
   assert.doesNotMatch(source, /field\("Degree"/);
   assert.doesNotMatch(source, /Kaamil|Badami|kaamil\.badami/i);

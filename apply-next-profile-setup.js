@@ -176,7 +176,7 @@
 
   function buildProfile(values, existing) {
     const base = existing && typeof existing === "object" ? existing : {};
-    const roleFamilies = selectedRoleFamilies(values.roleFamilyIds?.length ? values.roleFamilyIds : ["software"]);
+    const roleFamilies = selectedRoleFamilies(values.roleFamilyIds?.length ? values.roleFamilyIds : ROLE_FAMILIES.map(family => family.id));
     const supportedSkills = splitList(values.supportedSkills);
     const cautiousSkills = splitList(values.cautiousSkills);
     const roleKeywords = roleFamilies.flatMap(family => family.keywords || []);
@@ -380,7 +380,7 @@
     const degree = input("degree", values.degree, "hidden");
     basicsGrid.append(
       targetTermField,
-      field("When are you graduating (month, year)", input("graduation", values.graduation)),
+      field("When are you graduating (month year)", input("graduation", values.graduation)),
       field("Major", input("major", values.major))
     );
     basics.append(basicsGrid, degree);
@@ -412,7 +412,7 @@
     const strategy = element("section", "apply-next-profile-section");
     strategy.append(element("h3", "", "5. What are you looking for?"));
     const roleWrap = element("div", "apply-next-profile-checks");
-    const selectedRoles = new Set(values.roleFamilyIds.length ? values.roleFamilyIds : ["software"]);
+    const selectedRoles = new Set(values.roleFamilyIds.length ? values.roleFamilyIds : ROLE_FAMILIES.map(family => family.id));
     for (const family of ROLE_FAMILIES) {
       const label = element("label", "apply-next-profile-check");
       const checkbox = input("roleFamily", family.id, "checkbox");
