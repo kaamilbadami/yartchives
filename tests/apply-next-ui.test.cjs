@@ -30,6 +30,9 @@ assert.equal(UI.scoreBand("fit", 30, 40), "Strong match");
 assert.equal(UI.scoreBand("freshness", 5, 10), "Recent");
 assert.equal(UI.scoreBand("roi", 10, 30), "Lower value");
 assert.equal(UI.scoreBand("location", 15, 20), "Very convenient");
+assert.equal(UI.totalScoreBandClass(50), "apply-next-score-low");
+assert.equal(UI.totalScoreBandClass(65), "apply-next-score-medium");
+assert.equal(UI.totalScoreBandClass(85), "apply-next-score-high");
 assert.match(UI.rankingSummary({ components: { fit: { score: 30 }, freshness: { score: 8 }, roi: { score: 23 }, location: { score: 15 } } }), /^Why this is here: /);
 const postedNow = new Date("2026-09-17T12:00:00Z");
 assert.equal(UI.formatPostedDate("2026-09-15T23:30:00-04:00", true, postedNow), "Posted 9/16 · 1 day ago");
@@ -197,6 +200,14 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(hideHandler[1], /applyFilters\(\);/);
 
   assert.match(uiSource, /Restore them from the main feed\./, "Should document recovery path for Applied and Hidden jobs");
+
+  const sortHandler = uiSource.match(
+    /sortSelect\.addEventListener\("change",\s*\(\)\s*=>\s*\{([\s\S]*?)\n\s*\}\);/
+  );
+  assert.ok(sortHandler, "Apply Next sort change handler should be present");
+  assert.match(sortHandler[1], /sortRankedResults\(lastRankedResults, queueSortMode\)/, "Sort changes should reuse already-scored results");
+  assert.match(sortHandler[1], /updateQueueOptimistically\(panel, profile\)/, "Sort changes should only refresh visible queue DOM");
+  assert.doesNotMatch(sortHandler[1], /renderQueue\(/, "Sort changes must not rerun inspection, distance, and scoring work");
 
   assert.match(uiSource, /document\.createDocumentFragment\(\)/, "renderQueue should build DOM off-screen before swapping to avoid UI stalls");
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
