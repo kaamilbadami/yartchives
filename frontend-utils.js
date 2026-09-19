@@ -223,11 +223,15 @@
     return best;
   }
 
+  function sourceHealthDisplayName(value) {
+    return String(value || "").replace(/^\s*🔥\s*/u, "").trim();
+  }
+
   function groupSourceHealth(sources) {
     const groups = new Map();
     for (const [key, raw] of Object.entries(sources || {})) {
       const src = raw || {};
-      const name = String(src.name || key).trim() || key;
+      const name = sourceHealthDisplayName(src.name || key) || key;
       const groupKey = name.toLocaleLowerCase();
       const current = groups.get(groupKey) || {
         name,
@@ -307,6 +311,7 @@
     coordinatesForJob,
     milesBetween,
     distanceForJob,
+    sourceHealthDisplayName,
     groupSourceHealth,
     classifyEducationFromTitle,
     classifyOpportunityTypeFromTitle,
