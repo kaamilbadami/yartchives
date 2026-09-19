@@ -57,6 +57,11 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertIn('gh run watch "${{ inputs.wait_for_quality_run_id }}"', workflow)
         self.assertIn("--exit-status", workflow)
 
+    def test_automerge_workflow_can_create_and_close_supersession_issues(self):
+        workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
+        self.assertIn("  issues: write", workflow)
+        self.assertNotIn("  issues: read", workflow)
+
     def test_automerge_workflow_has_periodic_recovery_schedule(self):
         workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
         self.assertIn('cron: "*/5 * * * *"', workflow)
