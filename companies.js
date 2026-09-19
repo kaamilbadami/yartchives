@@ -82,32 +82,31 @@
       history.replaceState(null, "", url);
     }
 
-    const sortSelect = document.querySelector("#sortSelect");
-    const jobSortMarkup = sortSelect ? sortSelect.innerHTML : "";
-    let jobSortValue = sortSelect?.value || "newest";
+    const jobSortSelect = document.querySelector("#sortSelect");
+    const jobSortField = jobSortSelect?.closest(".sort-field") || null;
+    const companySortField = document.createElement("label");
+    companySortField.className = "sort-field";
+    companySortField.hidden = true;
+    companySortField.innerHTML = '<span>Sort</span><select id="companySortSelect" aria-label="Sort companies"><option value="openings">Most openings</option><option value="newest">Newest opening</option><option value="company">Company A–Z</option></select>';
+    const companySortSelect = companySortField.querySelector("select");
+    companySortSelect.value = directoryState.sort;
+    companySortSelect.title = "Sort companies by matching openings, newest opening, or name";
+    if (jobSortField?.parentNode) jobSortField.parentNode.insertBefore(companySortField, jobSortField.nextSibling);
 
     function syncSortControl() {
-      if (!sortSelect) return;
-      if (directoryState.view === "companies") {
-        jobSortValue = sortSelect.value || jobSortValue;
-        sortSelect.innerHTML = '<option value="openings">Most openings</option><option value="newest">Newest opening</option><option value="company">Company A–Z</option>';
-        sortSelect.value = directoryState.sort;
-        sortSelect.setAttribute("aria-label", "Sort companies");
-        sortSelect.title = "Sort companies by matching openings, newest opening, or name";
-      } else {
-        sortSelect.innerHTML = jobSortMarkup;
-        sortSelect.value = jobSortValue;
-        sortSelect.setAttribute("aria-label", "Sort opportunities");
-      }
+      const companies = directoryState.view === "companies";
+      if (jobSortField) jobSortField.hidden = companies;
+      companySortField.hidden = !companies;
+      companySortSelect.value = directoryState.sort;
     }
 
-    sortSelect?.addEventListener("change", event => {
-      if (directoryState.view !== "companies") return;
-      event.stopImmediatePropagation();
-      directoryState.sort = ["openings", "newest", "company"].includes(sortSelect.value) ? sortSelect.value : "openings";
+    companySortSelect.addEventListener("change", () => {
+      directoryState.sort = ["openings", "newest", "company"].includes(companySortSelect.value)
+        ? companySortSelect.value
+        : "openings";
       syncUrl();
       renderCompanyDirectory();
-    }, { capture: true });
+    });
 
     function renderCompanyDirectory() {
       els.jobs.innerHTML = "";
