@@ -459,6 +459,15 @@ def send_jules_message(api_key: str, session_id: str, prompt: str) -> None:
     )
 
 
+def delete_jules_session(api_key: str, session_id: str) -> None:
+    """Delete one superseded Jules session."""
+    jules_json(
+        api_key,
+        f"/sessions/{session_id}",
+        method="DELETE",
+    )
+
+
 def pull_request_url(session: dict[str, Any]) -> str | None:
     for output in session.get("outputs", []):
         if not isinstance(output, dict):
@@ -1089,10 +1098,17 @@ def dispatch_task(
     source_name: str,
     comments: Iterable[dict[str, Any]] = (),
     create_session: Callable[..., dict[str, Any]] = create_jules_session,
+    delete_session: Callable[[str], None] | None = None,
     run_gh: Callable[..., None] = gh_run,
 ) -> dict[str, Any]:
+    comment_list = list(comments)
     retry_context = (
-        retry_context_from_comments(comments)
+        retry_context_from_comments(comment_list)
+        if JULES_RETRY_LABEL in task.labels
+        else None
+    )
+    superseded_session_id = (
+        retry_marker_from_comments(comment_list)
         if JULES_RETRY_LABEL in task.labels
         else None
     )
@@ -1136,6 +1152,24 @@ def dispatch_task(
             "The issue is counted as active only while the Jules API reports it non-terminal."
         ),
     )
+
+    if superseded_session_id and superseded_session_id != session_id:
+        if delete_session is None:
+            delete_session = lambda old_session_id: delete_jules_session(
+                api_key, old_session_id
+            )
+        try:
+            delete_session(superseded_session_id)
+            print(
+                f"Deleted superseded Jules session {superseded_session_id} after "
+                f"persisting replacement {session_id} for #{task.number}."
+            )
+        except Exception as exc:
+            print(
+                f"Could not delete superseded Jules session {superseded_session_id}; "
+                f"replacement {session_id} remains persisted for #{task.number}: {exc}"
+            )
+
     return session
 
 
