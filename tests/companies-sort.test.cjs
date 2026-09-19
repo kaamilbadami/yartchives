@@ -11,7 +11,6 @@ const jobs = [
 ];
 
 assert.deepEqual(groupCompanies(jobs, "openings").map(x => x.name), ["Gamma", "Alpha", "Beta"]);
-assert.deepEqual(groupCompanies(jobs, "newest").map(x => x.name), ["Beta", "Gamma", "Alpha"]);
 assert.deepEqual(groupCompanies(jobs, "company").map(x => x.name), ["Alpha", "Beta", "Gamma"]);
 
 const grouped = groupCompanies(jobs);
@@ -24,6 +23,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const source = fs.readFileSync(path.join(__dirname, "..", "companies.js"), "utf8");
 assert.match(source, /id="companySortSelect"/, "Companies should own a dedicated sort select");
+assert.doesNotMatch(source, /<option value="newest">Newest opening<\/option>/, "Companies should not offer newest-opening sorting");
 assert.doesNotMatch(source, /sortSelect\.innerHTML/, "Companies must not rewrite the Jobs sort select");
 assert.doesNotMatch(source, /stopImmediatePropagation/, "Company sorting should not suppress the Jobs sort listener");
 

@@ -56,7 +56,7 @@
     const directoryState = {
       view: params.get("view") === "companies" ? "companies" : "jobs",
       company: params.get("company") || "",
-      sort: ["openings", "newest", "company"].includes(params.get("companySort")) ? params.get("companySort") : "openings",
+      sort: ["openings", "company"].includes(params.get("companySort")) ? params.get("companySort") : "openings",
     };
     globalThis.companyDirectoryState = directoryState;
 
@@ -87,10 +87,10 @@
     const companySortField = document.createElement("label");
     companySortField.className = "sort-field";
     companySortField.hidden = true;
-    companySortField.innerHTML = '<span>Sort</span><select id="companySortSelect" aria-label="Sort companies"><option value="openings">Most openings</option><option value="newest">Newest opening</option><option value="company">Company A–Z</option></select>';
+    companySortField.innerHTML = '<span>Sort</span><select id="companySortSelect" aria-label="Sort companies"><option value="openings">Most openings</option><option value="company">Company A–Z</option></select>';
     const companySortSelect = companySortField.querySelector("select");
     companySortSelect.value = directoryState.sort;
-    companySortSelect.title = "Sort companies by matching openings, newest opening, or name";
+    companySortSelect.title = "Sort companies by matching openings or name";
     if (jobSortField?.parentNode) jobSortField.parentNode.insertBefore(companySortField, jobSortField.nextSibling);
 
     function syncSortControl() {
@@ -101,7 +101,7 @@
     }
 
     companySortSelect.addEventListener("change", () => {
-      directoryState.sort = ["openings", "newest", "company"].includes(companySortSelect.value)
+      directoryState.sort = ["openings", "company"].includes(companySortSelect.value)
         ? companySortSelect.value
         : "openings";
       syncUrl();
