@@ -1,6 +1,6 @@
 {
   "schema_version": 3,
-  "generated_at": "2026-09-17T21:10:58.782354Z",
+  "generated_at": "2026-09-19T01:00:49.700173Z",
   "audit": {
     "name": "Independent Northeast / Mid-Atlantic undergraduate CS coverage benchmark",
     "collected_at": "2026-09-17T20:00:00Z",
@@ -24,9 +24,9 @@
     }
   },
   "feed": {
-    "generated_at": "2026-09-17T20:10:44.120221Z",
-    "content_hash": "28ed2f997158d199aaa435c8a6b9f0e481977986c212c6d3bad698874c049fe7",
-    "indexed_jobs": 5738
+    "generated_at": "2026-09-18T11:29:19.618406Z",
+    "content_hash": "f13bd4fc78f70538bc882b0ecf40872bd4a9dc674dd7202eb6a00d31884227de",
+    "indexed_jobs": 5915
   },
   "scope": {
     "profiles": [
@@ -47,25 +47,45 @@
   },
   "summary": {
     "external_listings": 142,
-    "captured_or_probably_captured": 71,
+    "captured_or_probably_captured": 70,
     "visible_under_expected_filters": 49,
     "actionable_findings": 93,
-    "capture_rate": 0.5,
+    "capture_rate": 0.493,
     "visible_rate": 0.3451,
     "status_counts": {
       "already_in_yartchives": 49,
-      "filtered_or_misclassified": 12,
-      "duplicate_resolution_issue": 10,
+      "filtered_or_misclassified": 15,
+      "duplicate_resolution_issue": 6,
       "employer_exists_but_listing_missing": 25,
       "configured_source_miss": 2,
-      "source_not_covered": 44,
+      "source_not_covered": 45,
       "unknown": 0
+    },
+    "miss_category_counts": {
+      "source_missing": 42,
+      "employer_unresolved": 25,
+      "unsupported_ats": 3,
+      "freshness_lag": 2,
+      "parsing_normalization_failure": 6,
+      "eligibility_filtering_mistake": 15,
+      "uncertain": 0
+    },
+    "reason_code_counts": {
+      "uncovered_source": 45,
+      "exact_match": 42,
+      "known_employer_missing_role": 25,
+      "present_but_hidden": 11,
+      "provider_identity_match": 7,
+      "provider_identity_mismatch": 4,
+      "provider_identity_match_hidden": 3,
+      "configured_source_listing_absent": 2,
+      "probable_duplicate": 2,
+      "probable_match_but_hidden": 1
     },
     "by_source": {
       "Employer/ATS search": {
-        "filtered_or_misclassified": 6,
-        "already_in_yartchives": 9,
-        "duplicate_resolution_issue": 5,
+        "filtered_or_misclassified": 9,
+        "already_in_yartchives": 11,
         "employer_exists_but_listing_missing": 3
       },
       "Indeed": {
@@ -90,9 +110,9 @@
       },
       "Ordinary web search": {
         "employer_exists_but_listing_missing": 12,
-        "already_in_yartchives": 21,
-        "source_not_covered": 14,
-        "duplicate_resolution_issue": 3,
+        "already_in_yartchives": 19,
+        "source_not_covered": 15,
+        "duplicate_resolution_issue": 4,
         "configured_source_miss": 1,
         "filtered_or_misclassified": 2
       }
@@ -103,7 +123,7 @@
     "missing_by_ats_family": {
       "employer/custom": 34,
       "discovery-only": 25,
-      "workday": 6,
+      "workday": 7,
       "greenhouse": 4,
       "icims": 1,
       "usajobs": 1
@@ -126,9 +146,9 @@
         "source_not_covered": 4
       },
       "MA": {
-        "already_in_yartchives": 4,
-        "employer_exists_but_listing_missing": 1,
-        "source_not_covered": 1
+        "source_not_covered": 2,
+        "already_in_yartchives": 3,
+        "employer_exists_but_listing_missing": 1
       },
       "MD": {
         "employer_exists_but_listing_missing": 8,
@@ -144,10 +164,10 @@
         "employer_exists_but_listing_missing": 1
       },
       "NY": {
-        "filtered_or_misclassified": 4,
-        "already_in_yartchives": 17,
-        "duplicate_resolution_issue": 6,
+        "filtered_or_misclassified": 7,
+        "already_in_yartchives": 19,
         "employer_exists_but_listing_missing": 3,
+        "duplicate_resolution_issue": 1,
         "source_not_covered": 4
       },
       "PA": {
@@ -161,15 +181,16 @@
         "employer_exists_but_listing_missing": 1
       },
       "VA": {
-        "already_in_yartchives": 4,
-        "employer_exists_but_listing_missing": 2
+        "already_in_yartchives": 3,
+        "employer_exists_but_listing_missing": 2,
+        "duplicate_resolution_issue": 1
       }
     },
     "missing_by_state": {
       "CT": 10,
       "DC": 14,
       "DE": 6,
-      "MA": 2,
+      "MA": 3,
       "MD": 21,
       "NJ": 4,
       "NY": 7,
@@ -177,13 +198,13 @@
       "VA": 2
     },
     "missing_by_reason_code": {
-      "uncovered_source": 44,
+      "uncovered_source": 45,
       "known_employer_missing_role": 25,
       "configured_source_listing_absent": 2
     },
     "missing_by_discovery_source": {
       "LinkedIn": 36,
-      "Ordinary web search": 27,
+      "Ordinary web search": 28,
       "Internships.com": 4,
       "Employer/ATS search": 3,
       "Major aggregator": 1
@@ -219,7 +240,7 @@
         "company": "CACI",
         "title": "Software Engineering Co-op - Summer & Fall 2027",
         "location": "Danbury, CT, US",
-        "url": "https://caci.wd1.myworkdayjobs.com/External/job/Danbury-CT-US/Software-Engineering-Co-op---Summer---Fall-2027_331354",
+        "url": "https://caci.wd1.myworkdayjobs.com/external/job/Danbury-CT-US/Software-Engineering-Co-op---Summer---Fall-2027_331354",
         "profiles": [
           "cs"
         ],
@@ -230,13 +251,14 @@
         "education_level": "unspecified",
         "source_keys": [
           "applyguy",
-          "ct-auto-workday-caci-external",
           "dreamwork-tech",
-          "simplify"
+          "simplify",
+          "us-feed-workday-caci-external"
         ],
         "link_kind": "direct",
         "posted_at": "2026-09-01T02:56:51.915000Z"
       },
+      "miss_category": null,
       "input_index": 1,
       "observation_count": 1,
       "observed_sources": [
@@ -279,7 +301,7 @@
         "company": "CACI",
         "title": "Embedded Software Engineering Co-Op - Fall 2027",
         "location": "Danbury, CT, US",
-        "url": "https://caci.wd1.myworkdayjobs.com/External/job/Danbury-CT-US/Embedded-Software-Engineering-Co-Op---Fall-2027_331393",
+        "url": "https://caci.wd1.myworkdayjobs.com/external/job/Danbury-CT-US/Embedded-Software-Engineering-Co-Op---Fall-2027_331393",
         "profiles": [
           "cs",
           "electrical"
@@ -291,13 +313,14 @@
         "education_level": "unspecified",
         "source_keys": [
           "applyguy",
-          "ct-auto-workday-caci-external",
           "dreamwork-tech",
+          "us-feed-workday-caci-external",
           "zapply"
         ],
         "link_kind": "direct",
         "posted_at": "2026-09-16T02:56:45.468000Z"
       },
+      "miss_category": null,
       "input_index": 2,
       "observation_count": 1,
       "observed_sources": [
@@ -340,7 +363,7 @@
         "company": "CACI",
         "title": "Software Engineering Co-op - Spring & Summer 2027",
         "location": "Danbury, CT, US",
-        "url": "https://caci.wd1.myworkdayjobs.com/External/job/Danbury-CT-US/Software-Engineering-Co-op---Spring---Summer-2027_331356-1",
+        "url": "https://caci.wd1.myworkdayjobs.com/external/job/Danbury-CT-US/Software-Engineering-Co-op---Spring---Summer-2027_331356-1",
         "profiles": [
           "cs"
         ],
@@ -350,14 +373,14 @@
         "opportunity_type": "co-op",
         "education_level": "unspecified",
         "source_keys": [
-          "applyguy",
-          "ct-auto-workday-caci-external",
           "dreamwork-tech",
-          "simplify"
+          "simplify",
+          "us-feed-workday-caci-external"
         ],
         "link_kind": "direct",
         "posted_at": "2026-09-01T02:56:51.915000Z"
       },
+      "miss_category": null,
       "input_index": 3,
       "observation_count": 1,
       "observed_sources": [
@@ -400,7 +423,7 @@
         "company": "CACI",
         "title": "Embedded Software Engineering Co-op - Spring 2027",
         "location": "Danbury, CT, US",
-        "url": "https://caci.wd1.myworkdayjobs.com/External/job/Danbury-CT-US/Embedded-Software-Engineering-Co-op---Spring-2027_331368",
+        "url": "https://caci.wd1.myworkdayjobs.com/external/job/Danbury-CT-US/Embedded-Software-Engineering-Co-op---Spring-2027_331368",
         "profiles": [
           "cs",
           "electrical"
@@ -412,13 +435,14 @@
         "education_level": "unspecified",
         "source_keys": [
           "applyguy",
-          "ct-auto-workday-caci-external",
           "dreamwork-tech",
+          "us-feed-workday-caci-external",
           "zapply"
         ],
         "link_kind": "direct",
         "posted_at": "2026-09-16T02:56:45.470000Z"
       },
+      "miss_category": null,
       "input_index": 4,
       "observation_count": 1,
       "observed_sources": [
@@ -461,7 +485,7 @@
         "company": "The Hartford",
         "title": "Tech & Data Program Summer 2027 - Software Engineer Intern - Hartford",
         "location": "Hartford, CT",
-        "url": "https://thehartford.wd5.myworkdayjobs.com/Careers_External/job/Hartford-CT/Tech---Data-Program-Summer-2027---Software-Engineer-Intern--Hartford-_R2626105-1",
+        "url": "https://thehartford.wd5.myworkdayjobs.com/careers_external/job/Hartford-CT/Tech---Data-Program-Summer-2027---Software-Engineer-Intern--Hartford-_R2626105-1",
         "profiles": [
           "cs"
         ],
@@ -475,11 +499,13 @@
           "ct-hartford-workday",
           "dreamwork-tech",
           "simplify",
-          "speedyapply"
+          "speedyapply",
+          "us-feed-workday-thehartford-careers-external"
         ],
         "link_kind": "direct",
         "posted_at": "2026-08-27T14:09:57.460000Z"
       },
+      "miss_category": null,
       "input_index": 5,
       "observation_count": 1,
       "observed_sources": [
@@ -518,9 +544,9 @@
       "reason": "matched by canonical URL or normalized company/title/location",
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
-        "id": "186ca679a2c57258",
-        "company": "The Hartford",
-        "title": "Tech & Data Program Summer 2027 - Data Engineer Intern - Hartford",
+        "id": "599486ab629f3b52",
+        "company": "Thehartford",
+        "title": "Tech & Data Program Summer 2027 – Data Engineer Intern (Hartford)",
         "location": "Hartford, CT",
         "url": "https://thehartford.wd5.myworkdayjobs.com/Careers_External/job/Hartford-CT/Tech---Data-Program-Summer-2027---Data-Engineer-Intern--Hartford-_R2626103-1",
         "profiles": [
@@ -532,15 +558,13 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
-          "applyguy",
-          "ct-hartford-workday",
           "dreamwork-tech",
-          "simplify",
-          "speedyapply-ai"
+          "simplify"
         ],
         "link_kind": "direct",
         "posted_at": "2026-08-27T14:09:57.761000Z"
       },
+      "miss_category": null,
       "input_index": 6,
       "observation_count": 1,
       "observed_sources": [
@@ -594,7 +618,7 @@
             "simplify"
           ],
           "link_kind": "direct",
-          "posted_at": "2026-08-18T00:00:00Z"
+          "posted_at": "2026-08-19T00:00:00Z"
         },
         {
           "id": "d7ee8cb1bef701ce",
@@ -640,6 +664,7 @@
           "posted_at": "2026-07-31T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 7,
       "observation_count": 1,
       "observed_sources": [
@@ -692,10 +717,12 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
-          "ct-gartner-workday"
+          "ct-gartner-workday",
+          "us-feed-workday-gartner-ext"
         ],
         "link_kind": "direct"
       },
+      "miss_category": null,
       "input_index": 8,
       "observation_count": 1,
       "observed_sources": [
@@ -733,6 +760,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=2026 81711",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 9,
       "observation_count": 1,
       "observed_sources": [
@@ -770,6 +798,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=2026 81924",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 10,
       "observation_count": 1,
       "observed_sources": [
@@ -805,9 +834,8 @@
       "status": "already_in_yartchives",
       "confidence": "high",
       "reason_code": "provider_identity_match",
-      "reason": "matched by authoritative ATS/listing identifier with compatible title and location",
+      "reason": "matched by canonical provider-native posting identity",
       "recommended_action": "No coverage fix needed.",
-      "match_score": 1.0,
       "matched_job": {
         "id": "0da388ac705c39d6",
         "company": "General Dynamics",
@@ -828,6 +856,7 @@
         "link_kind": "direct",
         "posted_at": "2026-09-14T04:00:00Z"
       },
+      "miss_category": null,
       "input_index": 11,
       "observation_count": 1,
       "observed_sources": [
@@ -885,6 +914,7 @@
         "link_kind": "direct",
         "posted_at": "2026-09-01T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 12,
       "observation_count": 1,
       "observed_sources": [
@@ -922,6 +952,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=4456794958",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 13,
       "observation_count": 1,
       "observed_sources": [
@@ -959,6 +990,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=4450266402",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 14,
       "observation_count": 1,
       "observed_sources": [
@@ -996,6 +1028,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=4462304550",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 15,
       "observation_count": 1,
       "observed_sources": [
@@ -1033,6 +1066,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=14193",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 16,
       "observation_count": 1,
       "observed_sources": [
@@ -1089,11 +1123,13 @@
           "applyguy",
           "ct-allegion-workday",
           "dreamwork-tech",
-          "speedyapply"
+          "speedyapply",
+          "us-feed-workday-allegion-careers"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-08T12:02:46.070000Z"
+        "posted_at": "2026-09-09T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 17,
       "observation_count": 1,
       "observed_sources": [
@@ -1131,6 +1167,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=4459970155",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 18,
       "observation_count": 1,
       "observed_sources": [
@@ -1168,6 +1205,7 @@
       "reason_code": "configured_source_listing_absent",
       "reason": "source appears configured (employer has a configured direct source) but this listing is absent after ingestion",
       "recommended_action": "Inspect source freshness, adapter filters, ingestion errors, and enrichment for this listing.",
+      "miss_category": "freshness_lag",
       "input_index": 19,
       "observation_count": 1,
       "observed_sources": [
@@ -1205,6 +1243,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=selective it product delivery 2027",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 20,
       "observation_count": 1,
       "observed_sources": [
@@ -1265,6 +1304,7 @@
         "link_kind": "direct",
         "posted_at": "2026-09-05T00:00:00Z"
       },
+      "miss_category": "eligibility_filtering_mistake",
       "input_index": 21,
       "observation_count": 1,
       "observed_sources": [
@@ -1322,6 +1362,7 @@
         ],
         "link_kind": "direct"
       },
+      "miss_category": null,
       "input_index": 22,
       "observation_count": 1,
       "observed_sources": [
@@ -1382,6 +1423,7 @@
         "link_kind": "direct",
         "posted_at": "2026-09-05T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 23,
       "observation_count": 1,
       "observed_sources": [
@@ -1414,12 +1456,11 @@
         ],
         "default_visible": true
       },
-      "status": "duplicate_resolution_issue",
+      "status": "filtered_or_misclassified",
       "confidence": "high",
-      "reason_code": "provider_identity_mismatch",
-      "reason": "same ATS/listing identifier exists but title/location evidence is not compatible enough for an exact match",
-      "recommended_action": "Verify provider identity and improve canonicalization/deduplication if these are the same role.",
-      "match_score": 0.651,
+      "reason_code": "provider_identity_match_hidden",
+      "reason": "missing expected profile 'cs'; missing expected state 'NY'",
+      "recommended_action": "Review profile/state/type enrichment or default filter metadata.",
       "matched_job": {
         "id": "a3e825e36cf90fad",
         "company": "Schonfeld",
@@ -1437,6 +1478,7 @@
         "link_kind": "direct",
         "posted_at": "2026-09-05T00:00:00Z"
       },
+      "miss_category": "eligibility_filtering_mistake",
       "input_index": 24,
       "observation_count": 1,
       "observed_sources": [
@@ -1495,6 +1537,7 @@
         "link_kind": "direct",
         "posted_at": "2026-09-10T16:09:58Z"
       },
+      "miss_category": null,
       "input_index": 25,
       "observation_count": 1,
       "observed_sources": [
@@ -1534,7 +1577,7 @@
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "f136b6080eb78c37",
-        "company": "Sage49",
+        "company": "Sage",
         "title": "Software Engineering Intern (Edge) – Summer 2027",
         "location": "New York, New York, United States",
         "url": "https://job-boards.greenhouse.io/sage49/jobs/6131191004",
@@ -1557,6 +1600,7 @@
         "link_kind": "direct",
         "posted_at": "2026-08-25T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 26,
       "observation_count": 1,
       "observed_sources": [
@@ -1596,7 +1640,7 @@
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "6b135cefd8ffbe73",
-        "company": "Sage49",
+        "company": "Sage",
         "title": "Software Engineering Intern (Full Stack) – Summer 2027",
         "location": "New York, New York, United States",
         "url": "https://job-boards.greenhouse.io/sage49/jobs/6131185004",
@@ -1619,6 +1663,7 @@
         "link_kind": "direct",
         "posted_at": "2026-08-25T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 27,
       "observation_count": 1,
       "observed_sources": [
@@ -1658,7 +1703,7 @@
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "2d4edfc8e5e5d4fa",
-        "company": "Viamrobotics",
+        "company": "Viam",
         "title": "Software Engineering Intern (Summer 2027)",
         "location": "New York, NY",
         "url": "https://job-boards.greenhouse.io/viamrobotics/jobs/6185046004",
@@ -1678,8 +1723,9 @@
           "speedyapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-09T00:00:00Z"
+        "posted_at": "2026-09-10T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 28,
       "observation_count": 1,
       "observed_sources": [
@@ -1719,7 +1765,7 @@
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "184b0f97d36f0c39",
-        "company": "Gardacp",
+        "company": "Garda Capital Partners",
         "title": "Software Engineer Intern",
         "location": "New York, New York, United States",
         "url": "https://job-boards.greenhouse.io/gardacp/jobs/6146213004",
@@ -1733,15 +1779,15 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
-          "applyguy",
           "auto-greenhouse-gardacp",
           "dreamwork-tech",
           "simplify",
           "speedyapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-08-19T00:00:00Z"
+        "posted_at": "2026-08-20T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 29,
       "observation_count": 1,
       "observed_sources": [
@@ -1805,8 +1851,9 @@
           "zapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-15T00:00:00Z"
+        "posted_at": "2026-09-16T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 30,
       "observation_count": 1,
       "observed_sources": [
@@ -1863,23 +1910,6 @@
           "posted_at": "2026-09-12T00:00:00Z"
         },
         {
-          "id": "49dd3e268c5bfd49",
-          "company": "DV Trading",
-          "title": "Quantitative Trading Intern - DV Equities",
-          "location": "NYC",
-          "url": "https://job-boards.greenhouse.io/dvtrading/jobs/4702083005?amp%3Bref=Simplify",
-          "profiles": [
-            "finance-econ"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "simplify"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-12T00:00:00Z"
-        },
-        {
           "id": "4c861ffa7a72536f",
           "company": "DV Trading",
           "title": "Quantitative Trading Intern - Summer 2027 - DV Equities",
@@ -1896,9 +1926,29 @@
             "speedyapply-ai"
           ],
           "link_kind": "source",
-          "posted_at": "2026-09-11T00:00:00Z"
+          "posted_at": "2026-09-12T00:00:00Z"
+        },
+        {
+          "id": "b8a653084b0ffbbc",
+          "company": "DV Trading",
+          "title": "Quantitative Research Intern - Summer 2027 - DV Equities",
+          "location": "New York City, NY",
+          "profiles": [
+            "finance-econ"
+          ],
+          "states": [
+            "NY"
+          ],
+          "opportunity_type": "internship",
+          "education_level": "unspecified",
+          "source_keys": [
+            "speedyapply-ai"
+          ],
+          "link_kind": "source",
+          "posted_at": "2026-09-12T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 31,
       "observation_count": 1,
       "observed_sources": [
@@ -1931,12 +1981,11 @@
         ],
         "default_visible": true
       },
-      "status": "duplicate_resolution_issue",
+      "status": "filtered_or_misclassified",
       "confidence": "high",
-      "reason_code": "provider_identity_mismatch",
-      "reason": "same ATS/listing identifier exists but title/location evidence is not compatible enough for an exact match",
-      "recommended_action": "Verify provider identity and improve canonicalization/deduplication if these are the same role.",
-      "match_score": 0.788,
+      "reason_code": "provider_identity_match_hidden",
+      "reason": "missing expected profile 'cs'; missing expected state 'NY'",
+      "recommended_action": "Review profile/state/type enrichment or default filter metadata.",
       "matched_job": {
         "id": "fd7f4ffae20011ed",
         "company": "DV Trading",
@@ -1954,6 +2003,7 @@
         "link_kind": "direct",
         "posted_at": "2026-09-12T00:00:00Z"
       },
+      "miss_category": "eligibility_filtering_mistake",
       "input_index": 32,
       "observation_count": 1,
       "observed_sources": [
@@ -2015,6 +2065,7 @@
         "link_kind": "direct",
         "posted_at": "2026-09-12T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 33,
       "observation_count": 1,
       "observed_sources": [
@@ -2076,6 +2127,7 @@
         "link_kind": "direct",
         "posted_at": "2026-08-21T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 34,
       "observation_count": 1,
       "observed_sources": [
@@ -2133,8 +2185,9 @@
           "zapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-11T19:20:57Z"
+        "posted_at": "2026-09-12T00:00:00Z"
       },
+      "miss_category": "eligibility_filtering_mistake",
       "input_index": 35,
       "observation_count": 1,
       "observed_sources": [
@@ -2175,7 +2228,7 @@
       "matched_job": {
         "id": "db070b52400bf027",
         "company": "Lyft",
-        "title": "Data Science Intern, Algorithms (Summer 2027)",
+        "title": "Data Science Intern, Algorithms (Summer 2027 - SF/NYC)",
         "location": "New York, NY",
         "url": "https://app.careerpuck.com/job-board/lyft/job/8796124002?gh_jid=8796124002",
         "profiles": [
@@ -2187,12 +2240,12 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
-          "dreamwork-tech",
           "zapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-11T16:47:07Z"
+        "posted_at": "2026-09-12T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 36,
       "observation_count": 1,
       "observed_sources": [
@@ -2245,12 +2298,12 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
-          "applyguy",
           "speedyapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-12T00:00:00Z"
+        "posted_at": "2026-09-13T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 37,
       "observation_count": 1,
       "observed_sources": [
@@ -2289,26 +2342,26 @@
       "reason": "matched by canonical URL or normalized company/title/location",
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
-        "id": "21ed1c4a38745ef3",
+        "id": "8dfd56a97afca2eb",
         "company": "Duolingo",
         "title": "Software Engineer, Intern",
-        "location": "New York, NY; New York, NY; Pittsburgh, PA; Pittsburgh, PA; Seattle, WA; Seattle, WA",
+        "location": "New York, NY",
         "url": "https://careers.duolingo.com/jobs/8805925002?gh_jid=8805925002",
         "profiles": [
           "cs"
         ],
         "states": [
-          "NY",
-          "WA"
+          "NY"
         ],
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
-          "dreamwork-tech"
+          "zapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-15T16:00:00Z"
+        "posted_at": "2026-09-16T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 38,
       "observation_count": 1,
       "observed_sources": [
@@ -2341,33 +2394,32 @@
         ],
         "default_visible": true
       },
-      "status": "already_in_yartchives",
+      "status": "filtered_or_misclassified",
       "confidence": "high",
-      "reason_code": "exact_match",
-      "reason": "matched by canonical URL or normalized company/title/location",
-      "recommended_action": "No coverage fix needed.",
+      "reason_code": "present_but_hidden",
+      "reason": "missing expected state 'NY'",
+      "recommended_action": "Review profile/state/type enrichment or default filter metadata.",
       "matched_job": {
-        "id": "89dca5c72c0226ce",
+        "id": "59e44a8bab73c79b",
         "company": "Datadog",
-        "title": "Software Engineering Intern (Summer)",
-        "location": "Boston, Massachusetts, USA; New York, New York, USA",
+        "title": "Software Engineering Intern - Summer",
+        "location": "Boston, MA +1",
         "url": "https://careers.datadoghq.com/detail/8052118?gh_jid=8052118",
         "profiles": [
           "cs"
         ],
         "states": [
-          "MA",
-          "NY",
-          "US"
+          "MA"
         ],
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
-          "dreamwork-tech"
+          "speedyapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-08T14:07:37Z"
+        "posted_at": "2026-09-09T00:00:00Z"
       },
+      "miss_category": "eligibility_filtering_mistake",
       "input_index": 39,
       "observation_count": 1,
       "observed_sources": [
@@ -2400,12 +2452,11 @@
         ],
         "default_visible": true
       },
-      "status": "duplicate_resolution_issue",
-      "confidence": "medium",
-      "reason_code": "probable_duplicate",
-      "reason": "same employer has a very similar title and compatible location",
-      "recommended_action": "Verify requisition identity; if it is the same role, improve normalization.",
-      "match_score": 0.991,
+      "status": "already_in_yartchives",
+      "confidence": "high",
+      "reason_code": "provider_identity_match",
+      "reason": "matched by canonical provider-native posting identity",
+      "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "e37c434b51ff595e",
         "company": "Figma",
@@ -2427,8 +2478,9 @@
           "zapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-14T17:36:27Z"
+        "posted_at": "2026-09-15T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 40,
       "observation_count": 1,
       "observed_sources": [
@@ -2461,12 +2513,11 @@
         ],
         "default_visible": true
       },
-      "status": "duplicate_resolution_issue",
-      "confidence": "medium",
-      "reason_code": "probable_duplicate",
-      "reason": "same employer has a very similar title and compatible location",
-      "recommended_action": "Verify requisition identity; if it is the same role, improve normalization.",
-      "match_score": 0.991,
+      "status": "already_in_yartchives",
+      "confidence": "high",
+      "reason_code": "provider_identity_match",
+      "reason": "matched by canonical provider-native posting identity",
+      "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "87e5c5ae4a796960",
         "company": "Figma",
@@ -2490,8 +2541,9 @@
           "speedyapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-15T00:00:00Z"
+        "posted_at": "2026-09-16T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 41,
       "observation_count": 1,
       "observed_sources": [
@@ -2524,12 +2576,11 @@
         ],
         "default_visible": true
       },
-      "status": "duplicate_resolution_issue",
-      "confidence": "medium",
-      "reason_code": "probable_duplicate",
-      "reason": "same employer has a very similar title and compatible location",
-      "recommended_action": "Verify requisition identity; if it is the same role, improve normalization.",
-      "match_score": 0.991,
+      "status": "already_in_yartchives",
+      "confidence": "high",
+      "reason_code": "provider_identity_match",
+      "reason": "matched by canonical provider-native posting identity",
+      "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "8cf27e2e94bfe349",
         "company": "Figma",
@@ -2551,8 +2602,9 @@
           "speedyapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-08-11T00:00:00Z"
+        "posted_at": "2026-08-12T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 42,
       "observation_count": 1,
       "observed_sources": [
@@ -2610,7 +2662,7 @@
             "speedyapply"
           ],
           "link_kind": "direct",
-          "posted_at": "2026-08-18T00:00:00Z"
+          "posted_at": "2026-08-19T00:00:00Z"
         },
         {
           "id": "4fbfaf1575700c4a",
@@ -2654,6 +2706,7 @@
           "posted_at": "2026-07-11T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 43,
       "observation_count": 1,
       "observed_sources": [
@@ -2712,6 +2765,7 @@
         "link_kind": "direct",
         "posted_at": "2026-07-11T00:00:00Z"
       },
+      "miss_category": "eligibility_filtering_mistake",
       "input_index": 44,
       "observation_count": 1,
       "observed_sources": [
@@ -2769,7 +2823,7 @@
             "speedyapply"
           ],
           "link_kind": "direct",
-          "posted_at": "2026-08-18T00:00:00Z"
+          "posted_at": "2026-08-19T00:00:00Z"
         },
         {
           "id": "4fbfaf1575700c4a",
@@ -2813,6 +2867,7 @@
           "posted_at": "2026-07-11T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 45,
       "observation_count": 1,
       "observed_sources": [
@@ -2869,8 +2924,9 @@
           "speedyapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-08-20T00:00:00Z"
+        "posted_at": "2026-08-21T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 46,
       "observation_count": 1,
       "observed_sources": [
@@ -2928,6 +2984,7 @@
         ],
         "link_kind": "direct"
       },
+      "miss_category": null,
       "input_index": 47,
       "observation_count": 1,
       "observed_sources": [
@@ -2986,6 +3043,7 @@
         "link_kind": "direct",
         "posted_at": "2026-08-24T12:00:00Z"
       },
+      "miss_category": "eligibility_filtering_mistake",
       "input_index": 48,
       "observation_count": 1,
       "observed_sources": [
@@ -3029,7 +3087,7 @@
         "company": "BNY",
         "title": "2027 BNY Summer Internship Program - Engineering (Data Science) - New York, NY",
         "location": "New York, NY, United States",
-        "url": "https://eofe.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_3001/job/81240",
+        "url": "https://eofe.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/BNY-Careers/job/81240",
         "profiles": [
           "cs"
         ],
@@ -3040,11 +3098,13 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
+          "auto-oracle-bny-bny-careers",
           "dreamwork-tech"
         ],
         "link_kind": "direct",
         "posted_at": "2026-08-24T12:00:00Z"
       },
+      "miss_category": "parsing_normalization_failure",
       "input_index": 49,
       "observation_count": 1,
       "observed_sources": [
@@ -3104,6 +3164,7 @@
         "link_kind": "direct",
         "posted_at": "2026-08-21T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 50,
       "observation_count": 1,
       "observed_sources": [
@@ -3141,6 +3202,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=1023521130",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 51,
       "observation_count": 1,
       "observed_sources": [
@@ -3178,6 +3240,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=gemini blockchain 2027",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 52,
       "observation_count": 1,
       "observed_sources": [
@@ -3215,6 +3278,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=1014424208",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 53,
       "observation_count": 1,
       "observed_sources": [
@@ -3252,6 +3316,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=1014424209",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 54,
       "observation_count": 1,
       "observed_sources": [
@@ -3311,6 +3376,26 @@
           "posted_at": "2026-09-15T00:00:00Z"
         },
         {
+          "id": "0415e8a2347d7fef",
+          "company": "Johns Hopkins Applied Physics Laboratory",
+          "title": "Decision Science Intern - Software Engineer",
+          "location": "Laurel, MD",
+          "url": "https://careers.jhuapl.edu/jobs/60040?icims=1&amp%3Butm_source=Simplify&amp%3Bref=Simplify",
+          "profiles": [
+            "cs"
+          ],
+          "states": [
+            "MD"
+          ],
+          "opportunity_type": "internship",
+          "education_level": "unspecified",
+          "source_keys": [
+            "simplify"
+          ],
+          "link_kind": "direct",
+          "posted_at": "2026-09-12T00:00:00Z"
+        },
+        {
           "id": "cbf33e0b44cfe211",
           "company": "Johns Hopkins Applied Physics Laboratory",
           "title": "Engineering/Science Intern - Tailored Autonomous Systems",
@@ -3329,28 +3414,9 @@
           ],
           "link_kind": "direct",
           "posted_at": "2026-09-11T00:00:00Z"
-        },
-        {
-          "id": "8b8c68701ad84e14",
-          "company": "Johns Hopkins Applied Physics Laboratory",
-          "title": "Software Engineer/Data Scientist/Ontologist Intern - Threat Analytic Systems",
-          "location": "Laurel, MD",
-          "url": "https://careers.jhuapl.edu/jobs/59997?icims=1&amp%3Butm_source=Simplify&amp%3Bref=Simplify",
-          "profiles": [
-            "cs"
-          ],
-          "states": [
-            "MD"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "simplify"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-11T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 55,
       "observation_count": 1,
       "observed_sources": [
@@ -3407,8 +3473,9 @@
           "simplify"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-01T00:00:00Z"
+        "posted_at": "2026-09-02T00:00:00Z"
       },
+      "miss_category": "parsing_normalization_failure",
       "input_index": 56,
       "observation_count": 1,
       "observed_sources": [
@@ -3467,6 +3534,7 @@
         "link_kind": "direct",
         "posted_at": "2026-09-11T00:00:00Z"
       },
+      "miss_category": "parsing_normalization_failure",
       "input_index": 57,
       "observation_count": 1,
       "observed_sources": [
@@ -3523,8 +3591,9 @@
           "simplify"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-11T00:00:00Z"
+        "posted_at": "2026-09-12T00:00:00Z"
       },
+      "miss_category": "parsing_normalization_failure",
       "input_index": 58,
       "observation_count": 1,
       "observed_sources": [
@@ -3584,6 +3653,26 @@
           "posted_at": "2026-09-15T00:00:00Z"
         },
         {
+          "id": "0415e8a2347d7fef",
+          "company": "Johns Hopkins Applied Physics Laboratory",
+          "title": "Decision Science Intern - Software Engineer",
+          "location": "Laurel, MD",
+          "url": "https://careers.jhuapl.edu/jobs/60040?icims=1&amp%3Butm_source=Simplify&amp%3Bref=Simplify",
+          "profiles": [
+            "cs"
+          ],
+          "states": [
+            "MD"
+          ],
+          "opportunity_type": "internship",
+          "education_level": "unspecified",
+          "source_keys": [
+            "simplify"
+          ],
+          "link_kind": "direct",
+          "posted_at": "2026-09-12T00:00:00Z"
+        },
+        {
           "id": "cbf33e0b44cfe211",
           "company": "Johns Hopkins Applied Physics Laboratory",
           "title": "Engineering/Science Intern - Tailored Autonomous Systems",
@@ -3602,28 +3691,9 @@
           ],
           "link_kind": "direct",
           "posted_at": "2026-09-11T00:00:00Z"
-        },
-        {
-          "id": "8b8c68701ad84e14",
-          "company": "Johns Hopkins Applied Physics Laboratory",
-          "title": "Software Engineer/Data Scientist/Ontologist Intern - Threat Analytic Systems",
-          "location": "Laurel, MD",
-          "url": "https://careers.jhuapl.edu/jobs/59997?icims=1&amp%3Butm_source=Simplify&amp%3Bref=Simplify",
-          "profiles": [
-            "cs"
-          ],
-          "states": [
-            "MD"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "simplify"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-11T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 59,
       "observation_count": 1,
       "observed_sources": [
@@ -3666,7 +3736,6 @@
         "company": "Leidos",
         "title": "Software Developer Intern",
         "location": "Annapolis Junction, MD",
-        "url": "https://leidos.wd5.myworkdayjobs.com/external/job/Annapolis-Junction-MD/Software-Developer-Intern_R-00191713",
         "profiles": [
           "cs"
         ],
@@ -3678,9 +3747,10 @@
         "source_keys": [
           "applyguy"
         ],
-        "link_kind": "direct",
+        "link_kind": "source",
         "posted_at": "2026-09-09T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 60,
       "observation_count": 1,
       "observed_sources": [
@@ -3716,27 +3786,48 @@
       "status": "employer_exists_but_listing_missing",
       "confidence": "high",
       "reason_code": "known_employer_missing_role",
-      "reason": "Yartchives has 9 listing(s) for this employer but not this role",
+      "reason": "Yartchives has 8 listing(s) for this employer but not this role",
       "recommended_action": "Trace the role to the employer ATS and check source filters or add direct coverage.",
       "candidate_jobs": [
         {
-          "id": "628a4f5047251f93",
+          "id": "fde26dc4b3a5042c",
           "company": "Leidos",
-          "title": "Technical Intern",
-          "location": "6314 Remote/Teleworker US",
-          "url": "https://leidos.wd5.myworkdayjobs.com/External/job/6314-RemoteTeleworker-US/Technical-Intern_R-00192446-1",
+          "title": "Research Engineer Intern",
+          "location": "Pittsburgh, PA",
+          "url": "https://leidos.wd5.myworkdayjobs.com/External/job/Pittsburgh-PA/Research-Engineer-Intern_R-00192500",
           "profiles": [
             "general"
           ],
           "states": [
-            "Remote"
+            "PA"
           ],
           "opportunity_type": "internship",
           "education_level": "unspecified",
           "source_keys": [
             "zapply"
           ],
-          "link_kind": "direct"
+          "link_kind": "direct",
+          "posted_at": "2026-09-17T00:00:00Z"
+        },
+        {
+          "id": "0d70acbddac1a7d3",
+          "company": "Leidos",
+          "title": "Naval Architecture Intern",
+          "location": "New York, NY",
+          "url": "https://leidos.wd5.myworkdayjobs.com/External/job/New-York-NY/Naval-Architecture-Intern_R-00192491/apply",
+          "profiles": [
+            "general"
+          ],
+          "states": [
+            "NY"
+          ],
+          "opportunity_type": "internship",
+          "education_level": "unspecified",
+          "source_keys": [
+            "zapply"
+          ],
+          "link_kind": "direct",
+          "posted_at": "2026-09-17T00:00:00Z"
         },
         {
           "id": "848825e3e094dcec",
@@ -3757,29 +3848,10 @@
             "zapply"
           ],
           "link_kind": "direct",
-          "posted_at": "2026-09-16T00:00:00Z"
-        },
-        {
-          "id": "776dad16e1129746",
-          "company": "Leidos",
-          "title": "Power Delivery Engineering Intern",
-          "location": "Greensboro, NC",
-          "url": "https://leidos.wd5.myworkdayjobs.com/External/job/Greensboro-NC/Power-Delivery-Engineering-Intern_R-00192019",
-          "profiles": [
-            "general"
-          ],
-          "states": [
-            "NC"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "zapply"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-16T00:00:00Z"
+          "posted_at": "2026-09-15T07:19:08.228000Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 61,
       "observation_count": 1,
       "observed_sources": [
@@ -3817,6 +3889,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=115335",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 62,
       "observation_count": 1,
       "observed_sources": [
@@ -3854,6 +3927,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=textron es software 2027",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 63,
       "observation_count": 1,
       "observed_sources": [
@@ -3891,6 +3965,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=342620",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 64,
       "observation_count": 1,
       "observed_sources": [
@@ -3928,6 +4003,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=textron sea software 2027",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 65,
       "observation_count": 1,
       "observed_sources": [
@@ -3965,6 +4041,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=textron firmware weapons 2027",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 66,
       "observation_count": 1,
       "observed_sources": [
@@ -4002,6 +4079,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=30069",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 67,
       "observation_count": 1,
       "observed_sources": [
@@ -4039,6 +4117,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=visionist software intern 2027",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 68,
       "observation_count": 1,
       "observed_sources": [
@@ -4074,9 +4153,33 @@
       "status": "employer_exists_but_listing_missing",
       "confidence": "high",
       "reason_code": "known_employer_missing_role",
-      "reason": "Yartchives has 12 listing(s) for this employer but not this role",
+      "reason": "Yartchives has 13 listing(s) for this employer but not this role",
       "recommended_action": "Trace the role to the employer ATS and check source filters or add direct coverage.",
       "candidate_jobs": [
+        {
+          "id": "d6eabcf82c43a18f",
+          "company": "AeroVironment",
+          "title": "Summer 2027 Software Engineering Intern",
+          "location": "Melbourne, FL",
+          "url": "https://avav.wd1.myworkdayjobs.com/avav/job/Melbourne-FL/Summer-2027-Software-Engineering-Intern_8550",
+          "profiles": [
+            "cs"
+          ],
+          "states": [
+            "FL"
+          ],
+          "opportunity_type": "internship",
+          "education_level": "unspecified",
+          "source_keys": [
+            "applyguy",
+            "simplify",
+            "speedyapply",
+            "us-feed-workday-avav-avav",
+            "zapply"
+          ],
+          "link_kind": "direct",
+          "posted_at": "2026-09-17T00:00:00Z"
+        },
         {
           "id": "e8f651dcb0252b4a",
           "company": "AeroVironment",
@@ -4116,31 +4219,9 @@
           ],
           "link_kind": "direct",
           "posted_at": "2026-09-16T00:00:00Z"
-        },
-        {
-          "id": "d6eabcf82c43a18f",
-          "company": "AeroVironment",
-          "title": "Summer 2027 Software Engineering Intern",
-          "location": "Melbourne, FL",
-          "url": "https://avav.wd1.myworkdayjobs.com/avav/job/Melbourne-FL/Summer-2027-Software-Engineering-Intern_8550",
-          "profiles": [
-            "cs"
-          ],
-          "states": [
-            "FL"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "applyguy",
-            "simplify",
-            "speedyapply",
-            "zapply"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-16T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 69,
       "observation_count": 1,
       "observed_sources": [
@@ -4176,9 +4257,33 @@
       "status": "employer_exists_but_listing_missing",
       "confidence": "high",
       "reason_code": "known_employer_missing_role",
-      "reason": "Yartchives has 12 listing(s) for this employer but not this role",
+      "reason": "Yartchives has 13 listing(s) for this employer but not this role",
       "recommended_action": "Trace the role to the employer ATS and check source filters or add direct coverage.",
       "candidate_jobs": [
+        {
+          "id": "d6eabcf82c43a18f",
+          "company": "AeroVironment",
+          "title": "Summer 2027 Software Engineering Intern",
+          "location": "Melbourne, FL",
+          "url": "https://avav.wd1.myworkdayjobs.com/avav/job/Melbourne-FL/Summer-2027-Software-Engineering-Intern_8550",
+          "profiles": [
+            "cs"
+          ],
+          "states": [
+            "FL"
+          ],
+          "opportunity_type": "internship",
+          "education_level": "unspecified",
+          "source_keys": [
+            "applyguy",
+            "simplify",
+            "speedyapply",
+            "us-feed-workday-avav-avav",
+            "zapply"
+          ],
+          "link_kind": "direct",
+          "posted_at": "2026-09-17T00:00:00Z"
+        },
         {
           "id": "e8f651dcb0252b4a",
           "company": "AeroVironment",
@@ -4218,31 +4323,9 @@
           ],
           "link_kind": "direct",
           "posted_at": "2026-09-16T00:00:00Z"
-        },
-        {
-          "id": "d6eabcf82c43a18f",
-          "company": "AeroVironment",
-          "title": "Summer 2027 Software Engineering Intern",
-          "location": "Melbourne, FL",
-          "url": "https://avav.wd1.myworkdayjobs.com/avav/job/Melbourne-FL/Summer-2027-Software-Engineering-Intern_8550",
-          "profiles": [
-            "cs"
-          ],
-          "states": [
-            "FL"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "applyguy",
-            "simplify",
-            "speedyapply",
-            "zapply"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-16T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 70,
       "observation_count": 1,
       "observed_sources": [
@@ -4278,9 +4361,33 @@
       "status": "employer_exists_but_listing_missing",
       "confidence": "high",
       "reason_code": "known_employer_missing_role",
-      "reason": "Yartchives has 12 listing(s) for this employer but not this role",
+      "reason": "Yartchives has 13 listing(s) for this employer but not this role",
       "recommended_action": "Trace the role to the employer ATS and check source filters or add direct coverage.",
       "candidate_jobs": [
+        {
+          "id": "d6eabcf82c43a18f",
+          "company": "AeroVironment",
+          "title": "Summer 2027 Software Engineering Intern",
+          "location": "Melbourne, FL",
+          "url": "https://avav.wd1.myworkdayjobs.com/avav/job/Melbourne-FL/Summer-2027-Software-Engineering-Intern_8550",
+          "profiles": [
+            "cs"
+          ],
+          "states": [
+            "FL"
+          ],
+          "opportunity_type": "internship",
+          "education_level": "unspecified",
+          "source_keys": [
+            "applyguy",
+            "simplify",
+            "speedyapply",
+            "us-feed-workday-avav-avav",
+            "zapply"
+          ],
+          "link_kind": "direct",
+          "posted_at": "2026-09-17T00:00:00Z"
+        },
         {
           "id": "e8f651dcb0252b4a",
           "company": "AeroVironment",
@@ -4320,31 +4427,9 @@
           ],
           "link_kind": "direct",
           "posted_at": "2026-09-16T00:00:00Z"
-        },
-        {
-          "id": "d6eabcf82c43a18f",
-          "company": "AeroVironment",
-          "title": "Summer 2027 Software Engineering Intern",
-          "location": "Melbourne, FL",
-          "url": "https://avav.wd1.myworkdayjobs.com/avav/job/Melbourne-FL/Summer-2027-Software-Engineering-Intern_8550",
-          "profiles": [
-            "cs"
-          ],
-          "states": [
-            "FL"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "applyguy",
-            "simplify",
-            "speedyapply",
-            "zapply"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-16T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 71,
       "observation_count": 1,
       "observed_sources": [
@@ -4382,6 +4467,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=mitre cs swe aberdeen 2027",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 72,
       "observation_count": 1,
       "observed_sources": [
@@ -4419,6 +4505,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=mitre cyber gaithersburg 2027",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 73,
       "observation_count": 1,
       "observed_sources": [
@@ -4478,6 +4565,7 @@
         "link_kind": "direct",
         "posted_at": "2026-07-28T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 74,
       "observation_count": 1,
       "observed_sources": [
@@ -4540,9 +4628,10 @@
             "simplify"
           ],
           "link_kind": "direct",
-          "posted_at": "2026-08-31T00:00:00Z"
+          "posted_at": "2026-09-01T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 75,
       "observation_count": 1,
       "observed_sources": [
@@ -4605,9 +4694,10 @@
             "simplify"
           ],
           "link_kind": "direct",
-          "posted_at": "2026-08-31T00:00:00Z"
+          "posted_at": "2026-09-01T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 76,
       "observation_count": 1,
       "observed_sources": [
@@ -4645,6 +4735,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=26 005302 0011",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 77,
       "observation_count": 1,
       "observed_sources": [
@@ -4686,24 +4777,27 @@
         "id": "c94895701ea512df",
         "company": "Stanley Black & Decker",
         "title": "Embedded Engineering Summer Intern 2027",
-        "location": "Towson, MD",
-        "url": "https://sbdinc.wd1.myworkdayjobs.com/stanley_black_decker_career_site/job/Towson-MD-United-States/Embedded-Engineering-Summer-Intern-2027_REQ-1000052019",
+        "location": "Towson, MD, United States",
+        "url": "https://sbdinc.wd1.myworkdayjobs.com/Stanley_Black_Decker_Career_Site/job/Towson-MD-United-States/Embedded-Engineering-Summer-Intern-2027_REQ-1000052019",
         "profiles": [
           "cs",
           "electrical"
         ],
         "states": [
-          "MD"
+          "MD",
+          "US"
         ],
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
           "simplify",
-          "speedyapply"
+          "speedyapply",
+          "us-feed-workday-sbdinc-stanley-black-decker-career-site"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-01T00:00:00Z"
+        "posted_at": "2026-09-02T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 78,
       "observation_count": 1,
       "observed_sources": [
@@ -4741,6 +4835,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=2026 170120",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 79,
       "observation_count": 1,
       "observed_sources": [
@@ -4778,6 +4873,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=nsa cryptanalysis signals 2027",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 80,
       "observation_count": 1,
       "observed_sources": [
@@ -4815,6 +4911,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=4454899399",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 81,
       "observation_count": 1,
       "observed_sources": [
@@ -4872,6 +4969,7 @@
         "link_kind": "direct",
         "posted_at": "2024-08-05T23:14:32.789000Z"
       },
+      "miss_category": "eligibility_filtering_mistake",
       "input_index": 82,
       "observation_count": 1,
       "observed_sources": [
@@ -4927,8 +5025,9 @@
           "speedyapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-07-02T00:00:00Z"
+        "posted_at": "2026-07-03T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 83,
       "observation_count": 1,
       "observed_sources": [
@@ -4986,6 +5085,7 @@
         "link_kind": "direct",
         "posted_at": "2021-07-01T22:12:43.840000Z"
       },
+      "miss_category": "eligibility_filtering_mistake",
       "input_index": 84,
       "observation_count": 1,
       "observed_sources": [
@@ -5044,6 +5144,7 @@
         "link_kind": "direct",
         "posted_at": "2026-07-24T00:00:00Z"
       },
+      "miss_category": "eligibility_filtering_mistake",
       "input_index": 85,
       "observation_count": 1,
       "observed_sources": [
@@ -5101,6 +5202,7 @@
         "link_kind": "direct",
         "posted_at": "2025-08-19T09:41:27.314000Z"
       },
+      "miss_category": "eligibility_filtering_mistake",
       "input_index": 86,
       "observation_count": 1,
       "observed_sources": [
@@ -5158,6 +5260,7 @@
         "link_kind": "direct",
         "posted_at": "2026-08-14T20:27:39Z"
       },
+      "miss_category": "eligibility_filtering_mistake",
       "input_index": 87,
       "observation_count": 1,
       "observed_sources": [
@@ -5215,6 +5318,7 @@
         "link_kind": "direct",
         "posted_at": "2026-08-07T18:06:50Z"
       },
+      "miss_category": null,
       "input_index": 88,
       "observation_count": 1,
       "observed_sources": [
@@ -5273,6 +5377,7 @@
         "link_kind": "direct",
         "posted_at": "2026-08-07T18:07:10Z"
       },
+      "miss_category": null,
       "input_index": 89,
       "observation_count": 1,
       "observed_sources": [
@@ -5331,6 +5436,7 @@
         "link_kind": "direct",
         "posted_at": "2026-08-07T18:07:28Z"
       },
+      "miss_category": null,
       "input_index": 90,
       "observation_count": 1,
       "observed_sources": [
@@ -5388,8 +5494,9 @@
           "simplify"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-08-18T00:00:00Z"
+        "posted_at": "2026-08-19T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 91,
       "observation_count": 1,
       "observed_sources": [
@@ -5451,7 +5558,7 @@
             "zapply"
           ],
           "link_kind": "direct",
-          "posted_at": "2026-09-16T00:00:00Z"
+          "posted_at": "2026-09-17T00:00:00Z"
         },
         {
           "id": "3d12055c7a7e837a",
@@ -5477,30 +5584,30 @@
             "zapply"
           ],
           "link_kind": "direct",
-          "posted_at": "2026-09-16T00:00:00Z"
+          "posted_at": "2026-09-17T00:00:00Z"
         },
         {
-          "id": "235792092a9c0a74",
+          "id": "8b6750fcbee4bf76",
           "company": "Anduril",
-          "title": "Winter 2027 Test Automation Engineer Co-op",
-          "location": "Washington, District of Columbia, United States",
-          "url": "https://boards.greenhouse.io/andurilindustries/jobs/5236573007?gh_jid=5236573007",
+          "title": "Winter 2027 Systems Engineer Co-op",
+          "location": "Quincy, Massachusetts, United...",
+          "url": "https://job-boards.greenhouse.io/andurilindustries/jobs/5236599007?gh_jid=5236599007",
           "profiles": [
             "general"
           ],
           "states": [
-            "DC",
-            "US"
+            "MA"
           ],
           "opportunity_type": "co-op",
           "education_level": "unspecified",
           "source_keys": [
-            "dreamwork-tech"
+            "zapply"
           ],
           "link_kind": "direct",
-          "posted_at": "2026-09-15T17:54:42Z"
+          "posted_at": "2026-09-16T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 92,
       "observation_count": 1,
       "observed_sources": [
@@ -5559,6 +5666,7 @@
         "link_kind": "direct",
         "posted_at": "2026-09-15T17:54:42Z"
       },
+      "miss_category": "eligibility_filtering_mistake",
       "input_index": 93,
       "observation_count": 1,
       "observed_sources": [
@@ -5596,6 +5704,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=90413041",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 94,
       "observation_count": 1,
       "observed_sources": [
@@ -5633,6 +5742,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=90413037",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 95,
       "observation_count": 1,
       "observed_sources": [
@@ -5670,6 +5780,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=90413047",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 96,
       "observation_count": 1,
       "observed_sources": [
@@ -5707,6 +5818,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=90413049",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 97,
       "observation_count": 1,
       "observed_sources": [
@@ -5746,6 +5858,26 @@
       "recommended_action": "Trace the role to the employer ATS and check source filters or add direct coverage.",
       "candidate_jobs": [
         {
+          "id": "b4dcf583c70656d1",
+          "company": "Shield AI",
+          "title": "Summer 2027 - Software Engineer Intern",
+          "location": "San Diego, CA +3",
+          "url": "https://jobs.lever.co/shieldai/8c850c75-081d-4d09-bebf-096379a93010",
+          "profiles": [
+            "cs"
+          ],
+          "states": [
+            "CA"
+          ],
+          "opportunity_type": "internship",
+          "education_level": "unspecified",
+          "source_keys": [
+            "speedyapply"
+          ],
+          "link_kind": "direct",
+          "posted_at": "2026-09-10T00:00:00Z"
+        },
+        {
           "id": "5b5789c4006721c9",
           "company": "Shield AI",
           "title": "Software Engineer Intern",
@@ -5764,26 +5896,6 @@
           ],
           "link_kind": "direct",
           "posted_at": "2026-09-10T00:00:00Z"
-        },
-        {
-          "id": "b4dcf583c70656d1",
-          "company": "Shield AI",
-          "title": "Summer 2027 - Software Engineer Intern",
-          "location": "San Diego, CA +3",
-          "url": "https://jobs.lever.co/shieldai/8c850c75-081d-4d09-bebf-096379a93010",
-          "profiles": [
-            "cs"
-          ],
-          "states": [
-            "CA"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "speedyapply"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-09T00:00:00Z"
         },
         {
           "id": "753915f753881949",
@@ -5806,6 +5918,7 @@
           "posted_at": "2026-09-08T20:57:36.032000Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 98,
       "observation_count": 1,
       "observed_sources": [
@@ -5843,6 +5956,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=tiktok usds security dc 2027",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 99,
       "observation_count": 1,
       "observed_sources": [
@@ -5880,6 +5994,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=4461560565",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 100,
       "observation_count": 1,
       "observed_sources": [
@@ -5917,6 +6032,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=pwc cyber consulting dc 2027",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 101,
       "observation_count": 1,
       "observed_sources": [
@@ -5954,6 +6070,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=pwc dtds analytics dc 2027",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs. Keep the discovery platform audit-only rather than scraping it.",
+      "miss_category": "source_missing",
       "input_index": 102,
       "observation_count": 1,
       "observed_sources": [
@@ -5997,7 +6114,7 @@
           "company": "Amgen",
           "title": "Undergrad Intern – Software Engineer – Technology, AI & Data (Summer 2027)",
           "location": "United States - Remote",
-          "url": "https://amgen.wd1.myworkdayjobs.com/Careers/job/United-States---Remote/Undergrad-Intern---Software-Engineer---Amgen-s-Technology---Medical-Organizations--Summer-2027-_R-255719",
+          "url": "https://amgen.wd1.myworkdayjobs.com/careers/job/United-States---Remote/Undergrad-Intern---Software-Engineer---Amgen-s-Technology---Medical-Organizations--Summer-2027-_R-255719",
           "profiles": [
             "cs",
             "health"
@@ -6013,7 +6130,8 @@
             "applyguy",
             "dreamwork-tech",
             "simplify",
-            "speedyapply"
+            "speedyapply",
+            "us-auto-workday-amgen-careers"
           ],
           "link_kind": "direct",
           "posted_at": "2026-09-14T08:43:11.796000Z"
@@ -6066,6 +6184,7 @@
           "posted_at": "2026-09-14T08:43:11.721000Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 103,
       "observation_count": 1,
       "observed_sources": [
@@ -6165,6 +6284,7 @@
           "posted_at": "2026-09-12T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 104,
       "observation_count": 1,
       "observed_sources": [
@@ -6200,7 +6320,7 @@
       "status": "employer_exists_but_listing_missing",
       "confidence": "high",
       "reason_code": "known_employer_missing_role",
-      "reason": "Yartchives has 6 listing(s) for this employer but not this role",
+      "reason": "Yartchives has 2 listing(s) for this employer but not this role",
       "recommended_action": "Trace the role to the employer ATS and check source filters or add direct coverage.",
       "candidate_jobs": [
         {
@@ -6225,27 +6345,6 @@
           "posted_at": "2026-09-16T00:00:00Z"
         },
         {
-          "id": "ddb98d81cf876db9",
-          "company": "Inter-American Development Bank",
-          "title": "IDB. Amazonia Partnerships and Knowledge Management Internship",
-          "location": "Washington, DC, United States",
-          "listing_url": "https://jobright.ai/jobs/info/6a8d472425fc4e7ae3dbb9f8",
-          "profiles": [
-            "general"
-          ],
-          "states": [
-            "DC",
-            "US"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "unspecified",
-          "source_keys": [
-            "public-sector"
-          ],
-          "link_kind": "listing",
-          "posted_at": "2026-09-15T00:00:00Z"
-        },
-        {
           "id": "d22edff615173783",
           "company": "Inter-American Development Bank",
           "title": "IDB. ESG Capacity Building and Knowledge Intern",
@@ -6267,6 +6366,7 @@
           "posted_at": "2026-09-15T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 105,
       "observation_count": 1,
       "observed_sources": [
@@ -6329,9 +6429,10 @@
             "simplify"
           ],
           "link_kind": "direct",
-          "posted_at": "2026-08-31T00:00:00Z"
+          "posted_at": "2026-09-01T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 106,
       "observation_count": 1,
       "observed_sources": [
@@ -6370,11 +6471,11 @@
       "reason": "matched by canonical URL or normalized company/title/location",
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
-        "id": "24cca8612988bb3e",
+        "id": "6aa977d084d323f7",
         "company": "Verizon",
         "title": "Verizon Consumer Group: AI/ML Engineering Summer 2027 Internship",
         "location": "Basking Ridge, New Jersey",
-        "url": "https://verizon.wd12.myworkdayjobs.com/verizon-careers/job/Basking-Ridge-New-Jersey/Verizon-Consumer-Group--AI-ML-Engineering-Summer-2027-Internship_R-1100605",
+        "listing_url": "https://zapply.jobs/l/d/workday-verizon-verizon-careers-R-1100605?s=gh-internships-2027",
         "profiles": [
           "cs"
         ],
@@ -6386,9 +6487,10 @@
         "source_keys": [
           "zapply"
         ],
-        "link_kind": "direct",
-        "posted_at": "2026-09-10T00:00:00Z"
+        "link_kind": "listing",
+        "posted_at": "2026-09-11T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 107,
       "observation_count": 1,
       "observed_sources": [
@@ -6426,6 +6528,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=r26029748",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "unsupported_ats",
       "input_index": 108,
       "observation_count": 1,
       "observed_sources": [
@@ -6463,6 +6566,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=req 68193",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 109,
       "observation_count": 1,
       "observed_sources": [
@@ -6500,6 +6604,7 @@
       "reason_code": "configured_source_listing_absent",
       "reason": "source appears configured (employer has a configured direct source) but this listing is absent after ingestion",
       "recommended_action": "Inspect source freshness, adapter filters, ingestion errors, and enrichment for this listing.",
+      "miss_category": "freshness_lag",
       "input_index": 110,
       "observation_count": 1,
       "observed_sources": [
@@ -6559,6 +6664,7 @@
         "link_kind": "direct",
         "posted_at": "2026-09-14T00:00:00Z"
       },
+      "miss_category": "eligibility_filtering_mistake",
       "input_index": 111,
       "observation_count": 1,
       "observed_sources": [
@@ -6615,9 +6721,10 @@
             "speedyapply-ai"
           ],
           "link_kind": "source",
-          "posted_at": "2026-09-04T00:00:00Z"
+          "posted_at": "2026-09-05T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 112,
       "observation_count": 1,
       "observed_sources": [
@@ -6674,6 +6781,7 @@
         "link_kind": "source",
         "posted_at": "2026-09-16T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 113,
       "observation_count": 1,
       "observed_sources": [
@@ -6713,7 +6821,7 @@
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "547986eb1f230d1d",
-        "company": "Perpay",
+        "company": "Perpay - Career's Page",
         "title": "Software Engineering Internship, Summer 2027",
         "location": "Philadelphia, Pennsylvania, United States",
         "url": "https://job-boards.greenhouse.io/perpay/jobs/4076988007",
@@ -6733,6 +6841,7 @@
         "link_kind": "direct",
         "posted_at": "2023-09-12T13:28:26Z"
       },
+      "miss_category": null,
       "input_index": 114,
       "observation_count": 1,
       "observed_sources": [
@@ -6792,6 +6901,7 @@
         "link_kind": "direct",
         "posted_at": "2026-08-25T00:00:00Z"
       },
+      "miss_category": "parsing_normalization_failure",
       "input_index": 115,
       "observation_count": 1,
       "observed_sources": [
@@ -6829,7 +6939,6 @@
       "reason_code": "provider_identity_match_hidden",
       "reason": "missing expected profile 'cs'",
       "recommended_action": "Review profile/state/type enrichment or default filter metadata.",
-      "match_score": 1.0,
       "matched_job": {
         "id": "dcb2d4a6cd39cb9b",
         "company": "Myhrabc",
@@ -6850,6 +6959,7 @@
         "link_kind": "direct",
         "posted_at": "2026-09-15T01:20:49.214000Z"
       },
+      "miss_category": "eligibility_filtering_mistake",
       "input_index": 116,
       "observation_count": 1,
       "observed_sources": [
@@ -6909,6 +7019,7 @@
         "link_kind": "direct",
         "posted_at": "2026-08-31T23:25:33Z"
       },
+      "miss_category": null,
       "input_index": 117,
       "observation_count": 1,
       "observed_sources": [
@@ -6944,9 +7055,8 @@
       "status": "already_in_yartchives",
       "confidence": "high",
       "reason_code": "provider_identity_match",
-      "reason": "matched by authoritative ATS/listing identifier with compatible title and location",
+      "reason": "matched by canonical provider-native posting identity",
       "recommended_action": "No coverage fix needed.",
-      "match_score": 1.0,
       "matched_job": {
         "id": "8b385fe14ca2936e",
         "company": "Homeoffice Na Urbn",
@@ -6967,8 +7077,9 @@
           "simplify"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-14T04:00:00Z"
+        "posted_at": "2026-09-15T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 118,
       "observation_count": 1,
       "observed_sources": [
@@ -7060,6 +7171,7 @@
           "posted_at": "2026-09-09T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 119,
       "observation_count": 1,
       "observed_sources": [
@@ -7097,6 +7209,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=300000447085490",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 120,
       "observation_count": 1,
       "observed_sources": [
@@ -7134,6 +7247,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=4038437",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "unsupported_ats",
       "input_index": 121,
       "observation_count": 1,
       "observed_sources": [
@@ -7171,6 +7285,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=siemens data analysis new castle 2027",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 122,
       "observation_count": 1,
       "observed_sources": [
@@ -7208,6 +7323,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=delmarva digital ui ux 2027",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 123,
       "observation_count": 1,
       "observed_sources": [
@@ -7304,6 +7420,7 @@
           "posted_at": "2026-07-11T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 124,
       "observation_count": 1,
       "observed_sources": [
@@ -7343,7 +7460,7 @@
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
         "id": "92ba6cd74cc5d78e",
-        "company": "Appian",
+        "company": "Appian Corporation",
         "title": "Software Engineering Intern",
         "location": "McLean, Virginia",
         "url": "https://job-boards.greenhouse.io/appian/jobs/8041237",
@@ -7363,8 +7480,9 @@
           "vansh-cscareers"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-08-18T00:00:00Z"
+        "posted_at": "2026-08-19T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 125,
       "observation_count": 1,
       "observed_sources": [
@@ -7403,11 +7521,10 @@
       "reason": "matched by canonical URL or normalized company/title/location",
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
-        "id": "42d2291468de8d6b",
+        "id": "9b70830d0a7c5fb7",
         "company": "Peraton",
         "title": "Summer 2027 Data Science Intern",
-        "location": "Herndon, VA, US",
-        "url": "https://careers-peraton.icims.com/jobs/170320/job",
+        "location": "Herndon, VA",
         "profiles": [
           "cs"
         ],
@@ -7417,13 +7534,12 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
-          "auto-icims-careers-peraton-icims-com",
-          "dreamwork-tech",
-          "simplify"
+          "speedyapply-ai"
         ],
-        "link_kind": "direct",
-        "posted_at": "2026-09-09T04:00:00Z"
+        "link_kind": "source",
+        "posted_at": "2026-09-10T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 126,
       "observation_count": 1,
       "observed_sources": [
@@ -7459,32 +7575,29 @@
       "status": "already_in_yartchives",
       "confidence": "high",
       "reason_code": "provider_identity_match",
-      "reason": "matched by authoritative ATS/listing identifier with compatible title and location",
+      "reason": "matched by canonical provider-native posting identity",
       "recommended_action": "No coverage fix needed.",
-      "match_score": 0.991,
       "matched_job": {
-        "id": "53c20e14dad14c5c",
-        "company": "Gdit",
-        "title": "Summer 2027 Software Development Internship",
-        "location": "USA VA Falls Church",
-        "url": "https://gdit.wd5.myworkdayjobs.com/External_Career_Site/job/USA-VA-Falls-Church/Summer-2027-Software-Development-Internship_RQ228405",
+        "id": "1766e32d325ecaa8",
+        "company": "General Dynamics Information Technology",
+        "title": "Software Development Intern",
+        "location": "Falls Church, VA",
+        "url": "https://gdit.wd5.myworkdayjobs.com/external_career_site/job/USA-VA-Falls-Church/Summer-2027-Software-Development-Internship_RQ228405?amp%3Bref=Simplify",
         "profiles": [
           "cs"
         ],
         "states": [
-          "US",
           "VA"
         ],
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
-          "dreamwork-tech",
-          "simplify",
-          "zapply"
+          "simplify"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-15T09:15:36.378000Z"
+        "posted_at": "2026-09-15T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 127,
       "observation_count": 1,
       "observed_sources": [
@@ -7541,9 +7654,10 @@
             "simplify"
           ],
           "link_kind": "direct",
-          "posted_at": "2026-09-15T00:00:00Z"
+          "posted_at": "2026-09-16T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 128,
       "observation_count": 1,
       "observed_sources": [
@@ -7579,9 +7693,47 @@
       "status": "employer_exists_but_listing_missing",
       "confidence": "high",
       "reason_code": "known_employer_missing_role",
-      "reason": "Yartchives has 14 listing(s) for this employer but not this role",
+      "reason": "Yartchives has 12 listing(s) for this employer but not this role",
       "recommended_action": "Trace the role to the employer ATS and check source filters or add direct coverage.",
       "candidate_jobs": [
+        {
+          "id": "ea65c740ae5ef2bb",
+          "company": "Capital One",
+          "title": "Current PhD - AI Engineering Internship Program - Summer 2027",
+          "location": "New York City, NY +2",
+          "profiles": [
+            "general"
+          ],
+          "states": [
+            "NY"
+          ],
+          "opportunity_type": "internship",
+          "education_level": "graduate-only",
+          "source_keys": [
+            "speedyapply-ai"
+          ],
+          "link_kind": "source",
+          "posted_at": "2026-09-09T00:00:00Z"
+        },
+        {
+          "id": "c894066d88a79faa",
+          "company": "Capital One",
+          "title": "Current Master's - AI Engineering Internship Program - Summer 2027",
+          "location": "New York City, NY +2",
+          "profiles": [
+            "general"
+          ],
+          "states": [
+            "NY"
+          ],
+          "opportunity_type": "internship",
+          "education_level": "graduate-only",
+          "source_keys": [
+            "speedyapply-ai"
+          ],
+          "link_kind": "source",
+          "posted_at": "2026-09-09T00:00:00Z"
+        },
         {
           "id": "e8f514bc5d043db7",
           "company": "Capital One",
@@ -7604,50 +7756,9 @@
           ],
           "link_kind": "direct",
           "posted_at": "2026-09-08T20:33:19.550000Z"
-        },
-        {
-          "id": "df5e0d320566c49f",
-          "company": "Capital One",
-          "title": "Current PhD, AI Engineering Internship Program - Summer 2027",
-          "location": "New York, NY",
-          "url": "https://capitalone.wd12.myworkdayjobs.com/Capital_One/job/New-York-NY/Current-PhD--AI-Engineering-Internship-Program---Summer-2027_R249110-1",
-          "profiles": [
-            "general"
-          ],
-          "states": [
-            "CA",
-            "NY",
-            "VA"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "graduate-only",
-          "source_keys": [
-            "dreamwork-tech",
-            "simplify"
-          ],
-          "link_kind": "direct",
-          "posted_at": "2026-09-08T20:33:19.488000Z"
-        },
-        {
-          "id": "ea65c740ae5ef2bb",
-          "company": "Capital One",
-          "title": "Current PhD - AI Engineering Internship Program - Summer 2027",
-          "location": "New York City, NY +2",
-          "profiles": [
-            "general"
-          ],
-          "states": [
-            "NY"
-          ],
-          "opportunity_type": "internship",
-          "education_level": "graduate-only",
-          "source_keys": [
-            "speedyapply-ai"
-          ],
-          "link_kind": "source",
-          "posted_at": "2026-09-08T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 129,
       "observation_count": 1,
       "observed_sources": [
@@ -7680,17 +7791,17 @@
         ],
         "default_visible": true
       },
-      "status": "already_in_yartchives",
-      "confidence": "high",
-      "reason_code": "exact_match",
-      "reason": "matched by canonical URL or normalized company/title/location",
-      "recommended_action": "No coverage fix needed.",
+      "status": "duplicate_resolution_issue",
+      "confidence": "medium",
+      "reason_code": "probable_duplicate",
+      "reason": "same employer has a very similar title and compatible location",
+      "recommended_action": "Verify requisition identity; if it is the same role, improve normalization.",
+      "match_score": 0.907,
       "matched_job": {
-        "id": "12374e3502cd1b17",
-        "company": "Icfexternal",
+        "id": "3f80553ac7bc2514",
+        "company": "Icf",
         "title": "2027 Summer Intern, Software Developer (Reston, VA)",
         "location": "Reston, VA",
-        "url": "https://icf.wd5.myworkdayjobs.com/icfexternal_career_site/job/Reston-VA/XMLNAME-2027-Summer-Intern--Software-Developer--Reston--VA-_R2603002",
         "profiles": [
           "cs"
         ],
@@ -7700,12 +7811,12 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
-          "applyguy",
-          "dreamwork-tech"
+          "applyguy"
         ],
-        "link_kind": "direct",
-        "posted_at": "2026-09-07T14:05:36.735000Z"
+        "link_kind": "source",
+        "posted_at": "2026-09-07T00:00:00Z"
       },
+      "miss_category": "parsing_normalization_failure",
       "input_index": 130,
       "observation_count": 1,
       "observed_sources": [
@@ -7738,35 +7849,12 @@
         ],
         "default_visible": true
       },
-      "status": "already_in_yartchives",
+      "status": "source_not_covered",
       "confidence": "high",
-      "reason_code": "provider_identity_match",
-      "reason": "matched by authoritative ATS/listing identifier with compatible title and location",
-      "recommended_action": "No coverage fix needed.",
-      "match_score": 1.0,
-      "matched_job": {
-        "id": "d6567f35b541d118",
-        "company": "Manulife",
-        "title": "Summer Intern 2027 - Software Engineering",
-        "location": "Boston, MA",
-        "url": "https://manulife.wd3.myworkdayjobs.com/mfcjh_jobs/job/Boston-Massachusetts/Summer-Intern-2027---Software-Engineering_JR26081680",
-        "profiles": [
-          "cs"
-        ],
-        "states": [
-          "MA"
-        ],
-        "opportunity_type": "internship",
-        "education_level": "unspecified",
-        "source_keys": [
-          "applyguy",
-          "dreamwork-tech",
-          "simplify",
-          "speedyapply"
-        ],
-        "link_kind": "direct",
-        "posted_at": "2026-08-28T00:00:00Z"
-      },
+      "reason_code": "uncovered_source",
+      "reason": "source_key=jr26081680",
+      "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "unsupported_ats",
       "input_index": 131,
       "observation_count": 1,
       "observed_sources": [
@@ -7805,10 +7893,10 @@
       "reason": "matched by canonical URL or normalized company/title/location",
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
-        "id": "12aa1c68741bafc4",
+        "id": "a769d73e5b0a2f2b",
         "company": "Cyvl",
-        "title": "Software Engineering Intern - SWE/ML (Summer 2027)",
-        "location": "Boston, Massachusetts",
+        "title": "Software Engineering Intern - SWE/ML - Summer 2027",
+        "location": "Boston, MA +1",
         "url": "https://jobs.ashbyhq.com/cyvl/8bfc4116-b0bb-47f8-bca1-7069a37db328",
         "profiles": [
           "cs"
@@ -7819,11 +7907,12 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
-          "dreamwork-tech"
+          "speedyapply"
         ],
         "link_kind": "direct",
-        "posted_at": "2026-09-14T16:14:44.979000Z"
+        "posted_at": "2026-09-15T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 132,
       "observation_count": 1,
       "observed_sources": [
@@ -7883,6 +7972,7 @@
         "link_kind": "direct",
         "posted_at": "2026-09-09T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 133,
       "observation_count": 1,
       "observed_sources": [
@@ -7939,7 +8029,7 @@
             "speedyapply"
           ],
           "link_kind": "direct",
-          "posted_at": "2026-09-17T00:00:00Z"
+          "posted_at": "2026-09-18T00:00:00Z"
         },
         {
           "id": "db68ae7965f6ff37",
@@ -7958,9 +8048,10 @@
             "speedyapply-ai"
           ],
           "link_kind": "source",
-          "posted_at": "2026-09-17T00:00:00Z"
+          "posted_at": "2026-09-18T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 134,
       "observation_count": 1,
       "observed_sources": [
@@ -7999,11 +8090,10 @@
       "reason": "matched by canonical URL or normalized company/title/location",
       "recommended_action": "No coverage fix needed.",
       "matched_job": {
-        "id": "f939283c3f03d33c",
+        "id": "48c8a5d93c532434",
         "company": "S&P Global",
         "title": "Software Engineer - Summer Intern 2027",
         "location": "Cambridge, MA",
-        "url": "https://spgi.wd5.myworkdayjobs.com/SPGI_Careers/job/Cambridge-MA/Software-Engineer---Summer-Intern-2027_331717-2",
         "profiles": [
           "cs"
         ],
@@ -8013,13 +8103,12 @@
         "opportunity_type": "internship",
         "education_level": "unspecified",
         "source_keys": [
-          "dreamwork-tech",
-          "simplify",
-          "speedyapply"
+          "dreamwork-tech"
         ],
-        "link_kind": "direct",
+        "link_kind": "source",
         "posted_at": "2026-09-09T12:33:55.608000Z"
       },
+      "miss_category": null,
       "input_index": 135,
       "observation_count": 1,
       "observed_sources": [
@@ -8057,6 +8146,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=145448",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 136,
       "observation_count": 1,
       "observed_sources": [
@@ -8094,6 +8184,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=49286",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 137,
       "observation_count": 1,
       "observed_sources": [
@@ -8131,6 +8222,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=49285",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 138,
       "observation_count": 1,
       "observed_sources": [
@@ -8168,6 +8260,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=49284",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 139,
       "observation_count": 1,
       "observed_sources": [
@@ -8203,9 +8296,8 @@
       "status": "already_in_yartchives",
       "confidence": "high",
       "reason_code": "provider_identity_match",
-      "reason": "matched by authoritative ATS/listing identifier with compatible title and location",
+      "reason": "matched by canonical provider-native posting identity",
       "recommended_action": "No coverage fix needed.",
-      "match_score": 0.991,
       "matched_job": {
         "id": "edbe27be5f594051",
         "company": "General Dynamics Mission Systems",
@@ -8230,6 +8322,7 @@
         "link_kind": "direct",
         "posted_at": "2026-09-10T00:00:00Z"
       },
+      "miss_category": null,
       "input_index": 140,
       "observation_count": 1,
       "observed_sources": [
@@ -8294,7 +8387,7 @@
           "company": "Workiva",
           "title": "Spring & Summer 2027 Intern - Brand Graphic Design",
           "location": "USA - Remote",
-          "url": "https://workiva.wd503.myworkdayjobs.com/en-US/careers/job/USA---Remote/Spring---Summer-2027-Intern---Brand-Design_R12318",
+          "url": "https://workiva.wd503.myworkdayjobs.com/careers/job/USA---Remote/Spring---Summer-2027-Intern---Brand-Design_R12318/apply",
           "profiles": [
             "general"
           ],
@@ -8308,7 +8401,7 @@
             "zapply"
           ],
           "link_kind": "direct",
-          "posted_at": "2026-09-10T00:00:00Z"
+          "posted_at": "2026-09-11T00:00:00Z"
         },
         {
           "id": "1d2877972d9e5844",
@@ -8331,6 +8424,7 @@
           "posted_at": "2026-09-02T00:00:00Z"
         }
       ],
+      "miss_category": "employer_unresolved",
       "input_index": 141,
       "observation_count": 1,
       "observed_sources": [
@@ -8368,6 +8462,7 @@
       "reason_code": "uncovered_source",
       "reason": "source_key=fm software engineering coop spring 2027",
       "recommended_action": "Trace to the employer career/ATS page and add durable direct coverage if the miss recurs.",
+      "miss_category": "source_missing",
       "input_index": 142,
       "observation_count": 1,
       "observed_sources": [
@@ -8388,5 +8483,5 @@
     "external_unique_listings": 142,
     "duplicate_observations_collapsed": 0
   },
-  "input_file": "audit\\samples\\northeast-midatlantic-cs-2026-09-17.json"
+  "input_file": "audit/samples/northeast-midatlantic-cs-2026-09-17.json"
 }
