@@ -12,7 +12,7 @@ from typing import Any, Callable, Iterable, NamedTuple
 from urllib import parse, request
 
 PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
-MAX_ACTIVE = 5
+MAX_ACTIVE = 15
 AREA_RESOURCE_LOCKS = {
     "feed": frozenset({"feed-core"}),
     "dedupe": frozenset({"feed-core", "identity"}),
@@ -40,6 +40,7 @@ JULES_SESSION_MARKER = "<!-- jules-session-id: {session_id} -->"
 JULES_RETRY_MARKER = "<!-- jules-retry-from: {session_id} -->"
 JULES_FEEDBACK_MARKER = "<!-- jules-feedback: {session_id} -->"
 JULES_FEEDBACK_SENT_MARKER = "<!-- jules-feedback-sent: {comment_id} -->"
+JULES_AUTO_FEEDBACK_MARKER = "<!-- jules-auto-feedback: {session_id} -->"
 JULES_TERMINAL_STATES = {"COMPLETED", "FAILED"}
 JULES_PRODUCTIVE_STATES = {"QUEUED", "PLANNING", "IN_PROGRESS"}
 CODEX_RESERVED_LABEL = "codex"
@@ -180,6 +181,58 @@ def pending_feedback_from_comments(
         if prompt:
             return comment_id, prompt
     return None
+
+
+def auto_feedback_sent_for_session(
+    comments: Iterable[dict[str, Any]], session_id: str
+) -> bool:
+    marker = re.compile(
+        rf"<!--\s*jules-auto-feedback:\s*{re.escape(session_id)}\s*-->"
+    )
+    return any(marker.search(str(comment.get("body") or "")) for comment in comments)
+
+
+def clarification_requires_product_decision(question: str) -> bool:
+    """Keep only genuine user-facing/product-policy choices gated on the user."""
+    text = " ".join(question.casefold().split())
+    product_signals = (
+        "product decision",
+        "user-facing",
+        "user facing",
+        "default behavior",
+        "default option",
+        "default sort",
+        "should be the default",
+        "what should the default",
+        "which should be the default",
+        "ranking weight",
+        "score weight",
+        "scoring weight",
+        "eligibility policy",
+        "location preference",
+        "relocation preference",
+        "should users",
+        "should the user",
+        "what should users",
+        "which option should users",
+        "copy should",
+        "wording should",
+    )
+    return any(signal in text for signal in product_signals)
+
+
+def routine_clarification_response(question: str) -> str:
+    """Tell Jules how to resolve technical ambiguity without inventing product policy."""
+    return (
+        "Proceed autonomously. Resolve this from current main, the issue acceptance "
+        "criteria, existing tests, and repository documentation. Preserve established "
+        "user-visible behavior and choose the smallest root-cause implementation that "
+        "fits the existing architecture. Do not wait for confirmation on technical "
+        "implementation choices, test scope, generated artifacts, or PR creation. If "
+        "repository evidence is genuinely conflicting and the choice would change "
+        "user-facing product semantics, stop and ask again with the conflict and concrete "
+        f"options.\n\nClarification to resolve: {question}"
+    )
 
 
 def retry_marker_from_comments(comments: Iterable[dict[str, Any]]) -> str | None:
@@ -399,44 +452,83 @@ def reconcile_jules_sessions(
         if state == "AWAITING_USER_FEEDBACK":
             if JULES_FEEDBACK_LABEL in labels:
                 pending_feedback = pending_feedback_from_comments(comments, session_id)
-                if pending_feedback is None:
-                    print(f"Jules session {session_id} for #{number} still needs feedback.")
+                if pending_feedback is not None:
+                    comment_id, prompt = pending_feedback
+                    send_feedback(session_id, prompt)
+                    run_gh(
+                        "issue", "comment", str(number), "--repo", repo,
+                        "--body",
+                        (
+                            f"{JULES_FEEDBACK_SENT_MARKER.format(comment_id=comment_id)}\n"
+                            f"Forwarded explicit GitHub feedback to Jules session "
+                            f"`{session_id}`."
+                        ),
+                    )
+                    print(
+                        f"Forwarded GitHub feedback comment {comment_id} to Jules "
+                        f"session {session_id} for #{number}."
+                    )
                     continue
-                comment_id, prompt = pending_feedback
-                send_feedback(session_id, prompt)
-                run_gh(
-                    "issue", "comment", str(number), "--repo", repo,
-                    "--body",
-                    (
-                        f"{JULES_FEEDBACK_SENT_MARKER.format(comment_id=comment_id)}\n"
-                        f"Forwarded explicit GitHub feedback to Jules session "
-                        f"`{session_id}`."
-                    ),
-                )
-                print(
-                    f"Forwarded GitHub feedback comment {comment_id} to Jules "
-                    f"session {session_id} for #{number}."
-                )
+                if explicit_feedback_for_session(comments, session_id) is not None:
+                    print(
+                        f"Jules session {session_id} for #{number} is processing "
+                        "explicit feedback."
+                    )
+                    continue
+
+            if auto_feedback_sent_for_session(comments, session_id):
+                print(f"Jules session {session_id} for #{number} is processing auto-feedback.")
                 continue
+
             activities = (
                 load_activities(session_id)
                 if load_activities is not None
                 else list_jules_activities(api_key, session_id)
             )
             question = latest_agent_message(activities)
-            run_gh(
-                "issue", "edit", str(number), "--repo", repo,
-                "--remove-label", JULES_ACTIVE_LABEL,
-                "--add-label", JULES_FEEDBACK_LABEL,
-            )
-            replace_issue_labels_in_memory(
-                issue,
-                remove=(JULES_ACTIVE_LABEL,),
-                add=(JULES_FEEDBACK_LABEL,),
-            )
+            if question and not clarification_requires_product_decision(question):
+                prompt = routine_clarification_response(question)
+                send_feedback(session_id, prompt)
+                if JULES_FEEDBACK_LABEL in labels:
+                    run_gh(
+                        "issue", "edit", str(number), "--repo", repo,
+                        "--remove-label", JULES_FEEDBACK_LABEL,
+                        "--remove-label", "needs-product-decision",
+                        "--add-label", JULES_ACTIVE_LABEL,
+                    )
+                    replace_issue_labels_in_memory(
+                        issue,
+                        remove=(JULES_FEEDBACK_LABEL, "needs-product-decision"),
+                        add=(JULES_ACTIVE_LABEL,),
+                    )
+                run_gh(
+                    "issue", "comment", str(number), "--repo", repo,
+                    "--body",
+                    (
+                        f"{JULES_AUTO_FEEDBACK_MARKER.format(session_id=session_id)}\n"
+                        "Automatically answered a routine Jules clarification using the "
+                        "repository-first engineering policy. Jules should continue without "
+                        "manual review unless it reaches a genuine product decision."
+                    ),
+                )
+                print(f"Auto-answered routine Jules clarification for #{number}.")
+                continue
+
+            if JULES_FEEDBACK_LABEL not in labels:
+                run_gh(
+                    "issue", "edit", str(number), "--repo", repo,
+                    "--remove-label", JULES_ACTIVE_LABEL,
+                    "--add-label", JULES_FEEDBACK_LABEL,
+                    "--add-label", "needs-product-decision",
+                )
+                replace_issue_labels_in_memory(
+                    issue,
+                    remove=(JULES_ACTIVE_LABEL,),
+                    add=(JULES_FEEDBACK_LABEL, "needs-product-decision"),
+                )
             detail = (
-                f"Jules session `{session_id}` is waiting for user feedback, so this "
-                "session no longer consumes a productive Jules slot."
+                f"Jules session `{session_id}` is waiting on a genuine product decision, "
+                "so this session no longer consumes a productive Jules slot."
             )
             if question:
                 detail += f"\n\nLatest Jules message:\n\n> {question.replace(chr(10), chr(10) + '> ')}"
@@ -444,14 +536,14 @@ def reconcile_jules_sessions(
             if session_url:
                 detail += f"\n\nJules session: {session_url}"
             detail += (
-                "\n\nAfter feedback is provided and Jules resumes, the dispatcher will "
-                "restore the active-session state automatically."
+                "\n\nAfter explicit feedback is provided and Jules resumes, the dispatcher "
+                "will restore the active-session state automatically."
             )
             run_gh(
                 "issue", "comment", str(number), "--repo", repo,
                 "--body", detail,
             )
-            print(f"Released Jules slot for #{number}: awaiting user feedback.")
+            print(f"Released Jules slot for #{number}: awaiting product decision.")
             continue
 
         if state not in JULES_TERMINAL_STATES:
@@ -459,11 +551,12 @@ def reconcile_jules_sessions(
                 run_gh(
                     "issue", "edit", str(number), "--repo", repo,
                     "--remove-label", JULES_FEEDBACK_LABEL,
+                    "--remove-label", "needs-product-decision",
                     "--add-label", JULES_ACTIVE_LABEL,
                 )
                 replace_issue_labels_in_memory(
                     issue,
-                    remove=(JULES_FEEDBACK_LABEL,),
+                    remove=(JULES_FEEDBACK_LABEL, "needs-product-decision"),
                     add=(JULES_ACTIVE_LABEL,),
                 )
                 print(f"Jules session {session_id} for #{number} resumed as {state}.")

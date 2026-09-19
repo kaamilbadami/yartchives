@@ -181,7 +181,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
         self.assertEqual([task.number for task in selected], [3])
 
-    def test_default_wip_allows_five_distinct_areas(self):
+    def test_default_wip_allows_fifteen_distinct_areas(self):
         issues = [
             issue(1, "feed", body=task_body("P1", "feed")),
             issue(2, "coverage", body=task_body("P1", "coverage")),
@@ -193,7 +193,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
         selected = mod.select_tasks(issues)
 
-        self.assertEqual(mod.MAX_ACTIVE, 5)
+        self.assertEqual(mod.MAX_ACTIVE, 15)
         self.assertEqual([task.number for task in selected], [1, 2, 3, 4, 5])
 
     def test_blocked_or_product_decision_tasks_are_not_dispatched(self):
@@ -485,7 +485,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 {
                     "createTime": "2026-09-18T22:01:00Z",
                     "agentMessaged": {
-                        "agentMessage": "Should freshness use posted_at or discovered_at?"
+                        "agentMessage": "Should Recommended remain the default user-facing sort or should Newest become the default?"
                     },
                 },
             ],
@@ -495,15 +495,110 @@ class AutonomousDispatcherTests(unittest.TestCase):
         labels = mod.label_names(issues[0])
         self.assertNotIn("jules-session", labels)
         self.assertIn("jules-needs-feedback", labels)
+        self.assertIn("needs-product-decision", labels)
         self.assertIn("jules", labels)
         self.assertIn("jules-needs-feedback", gh_calls[0])
         self.assertIn(
-            "Should freshness use posted_at or discovered_at?",
+            "Should Recommended remain the default user-facing sort or should Newest become the default?",
             gh_calls[1][-1],
         )
         self.assertEqual(
             [task.number for task in mod.select_tasks(issues, max_active=2)],
             [154],
+        )
+
+    def test_routine_clarification_is_auto_answered_without_releasing_slot(self):
+        issues = [
+            issue(
+                151,
+                "freshness",
+                body=task_body("P1", "apply-next-ui"),
+                labels=("jules", "jules-session", "agent-ready"),
+            )
+        ]
+        gh_calls = []
+        sent = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [{"body": "<!-- jules-session-id: ask1 -->"}],
+            get_session=lambda api_key, path: {
+                "id": "ask1",
+                "state": "AWAITING_USER_FEEDBACK",
+            },
+            load_activities=lambda session_id: [
+                {
+                    "createTime": "2026-09-18T22:01:00Z",
+                    "agentMessaged": {
+                        "agentMessage": "Should freshness use posted_at or discovered_at?"
+                    },
+                }
+            ],
+            send_feedback=lambda session_id, prompt: sent.append((session_id, prompt)),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(len(sent), 1)
+        self.assertEqual(sent[0][0], "ask1")
+        self.assertIn("Resolve this from current main", sent[0][1])
+        self.assertIn("Should freshness use posted_at or discovered_at?", sent[0][1])
+        self.assertIn("jules-session", mod.label_names(issues[0]))
+        self.assertNotIn("jules-needs-feedback", mod.label_names(issues[0]))
+        self.assertEqual(len(gh_calls), 1)
+        self.assertIn("<!-- jules-auto-feedback: ask1 -->", gh_calls[0][-1])
+
+    def test_existing_feedback_block_is_auto_recovered_when_clarification_is_routine(self):
+        issues = [
+            issue(
+                151,
+                "freshness",
+                body=task_body("P1", "apply-next-ui"),
+                labels=("jules", "jules-needs-feedback", "needs-product-decision", "agent-ready"),
+            )
+        ]
+        gh_calls = []
+        sent = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [{"body": "<!-- jules-session-id: ask1 -->"}],
+            get_session=lambda api_key, path: {
+                "id": "ask1",
+                "state": "AWAITING_USER_FEEDBACK",
+            },
+            load_activities=lambda session_id: [
+                {
+                    "agentMessaged": {
+                        "agentMessage": "Can I update the generated fixture after the parser fix?"
+                    }
+                }
+            ],
+            send_feedback=lambda session_id, prompt: sent.append((session_id, prompt)),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(len(sent), 1)
+        labels = mod.label_names(issues[0])
+        self.assertIn("jules-session", labels)
+        self.assertNotIn("jules-needs-feedback", labels)
+        self.assertNotIn("needs-product-decision", labels)
+        self.assertIn("--remove-label", gh_calls[0])
+        self.assertIn("<!-- jules-auto-feedback: ask1 -->", gh_calls[1][-1])
+
+    def test_product_decision_classifier_is_narrow(self):
+        self.assertTrue(
+            mod.clarification_requires_product_decision(
+                "Should Recommended remain the default user-facing sort?"
+            )
+        )
+        self.assertFalse(
+            mod.clarification_requires_product_decision(
+                "Should I regenerate the fixture after changing the parser?"
+            )
         )
 
     def test_explicit_github_feedback_is_forwarded_to_waiting_session(self):
@@ -600,13 +695,16 @@ class AutonomousDispatcherTests(unittest.TestCase):
             issues,
             repo="kaamilbadami/yartchives",
             api_key="secret",
-            load_comments=lambda number: [{"body": "<!-- jules-session-id: ask1 -->"}],
+            load_comments=lambda number: [
+                {"body": "<!-- jules-session-id: ask1 -->"},
+                {"body": "<!-- jules-auto-feedback: ask1 -->\nAutomatically answered."},
+            ],
             get_session=lambda api_key, path: {
                 "id": "ask1",
                 "state": "AWAITING_USER_FEEDBACK",
             },
             load_activities=lambda session_id: self.fail(
-                "activities should not be loaded twice while feedback is still pending"
+                "activities should not be loaded twice after auto-feedback was sent"
             ),
             run_gh=lambda *args: gh_calls.append(args),
         )
@@ -620,7 +718,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 151,
                 "freshness",
                 body=task_body("P1", "apply-next-ui"),
-                labels=("jules", "jules-needs-feedback", "agent-ready"),
+                labels=("jules", "jules-needs-feedback", "needs-product-decision", "agent-ready"),
             )
         ]
         gh_calls = []
@@ -637,6 +735,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
         labels = mod.label_names(issues[0])
         self.assertIn("jules-session", labels)
         self.assertNotIn("jules-needs-feedback", labels)
+        self.assertNotIn("needs-product-decision", labels)
         self.assertIn("jules-session", gh_calls[0])
         self.assertEqual(mod.select_tasks(issues, max_active=2), [])
 

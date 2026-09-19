@@ -154,6 +154,36 @@ def gh_run(*args: str) -> None:
     subprocess.run(["gh", *args], check=True)
 
 
+def update_pull_request_branch(repo: str, number: int, head_sha: str) -> tuple[bool, str]:
+    result = subprocess.run(
+        [
+            "gh",
+            "api",
+            "--method",
+            "PUT",
+            f"repos/{repo}/pulls/{number}/update-branch",
+            "-f",
+            f"expected_head_sha={head_sha}",
+        ],
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode == 0:
+        return True, ""
+    detail = "\n".join(part for part in (result.stdout, result.stderr) if part).strip()
+    lowered = detail.casefold()
+    if "merge conflict between base and head" in lowered or (
+        "http 422" in lowered and "merge conflict" in lowered
+    ):
+        return False, detail
+    raise subprocess.CalledProcessError(
+        result.returncode,
+        result.args,
+        output=result.stdout,
+        stderr=result.stderr,
+    )
+
+
 def flatten_pages(pages: Any) -> list[Any]:
     if not isinstance(pages, list):
         raise TypeError("paginated response must be a list")
@@ -248,12 +278,15 @@ def main() -> int:
         base_ref = str((pr.get("base") or {}).get("ref") or "main")
         comparison = gh_json("api", f"repos/{repo}/compare/{base_ref}...{head_sha}")
         if int(comparison.get("behind_by") or 0) > 0:
-            gh_run(
-                "api",
-                "--method", "PUT",
-                f"repos/{repo}/pulls/{number}/update-branch",
-                "-f", f"expected_head_sha={head_sha}",
-            )
+            updated, detail = update_pull_request_branch(repo, number, head_sha)
+            if not updated:
+                print(
+                    f"Skipping PR #{number}: branch cannot be updated automatically because "
+                    "it conflicts with current base. Continuing with later pull requests."
+                )
+                if detail:
+                    print(detail)
+                continue
             if not head_ref:
                 raise RuntimeError(f"PR #{number} has no head branch for fresh CI")
             gh_run(
