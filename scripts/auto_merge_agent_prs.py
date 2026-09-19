@@ -351,6 +351,22 @@ def replacement_issue_body(original_issue: dict[str, Any], pr_number: int) -> st
     return f"{body}\n\n{context}" if body else context
 
 
+def conflict_replacement_issue_body(
+    original_issue: dict[str, Any], pr_number: int, base_ref: str
+) -> str:
+    body = str(original_issue.get("body") or "").rstrip()
+    marker = SUPERSEDE_MARKER_TEMPLATE.format(pr_number=pr_number)
+    context = (
+        f"{marker}\n\n"
+        "## Merge-conflict recovery context\n"
+        f"PR #{pr_number} could not be updated onto current {base_ref} without conflicts. "
+        "Re-do only the original acceptance criteria from current main. Do not port or "
+        "resolve the stale branch wholesale; inspect current behavior first and make the "
+        "smallest root-cause change still required."
+    )
+    return f"{body}\n\n{context}" if body else context
+
+
 def find_existing_replacement_issue(repo: str, pr_number: int) -> dict[str, Any] | None:
     marker = SUPERSEDE_MARKER_TEMPLATE.format(pr_number=pr_number)
     issues = gh_paginated_json(
@@ -383,6 +399,66 @@ def create_or_find_replacement_issue(
         "-f", "labels[]=autonomous-backlog",
         "-f", "labels[]=agent-ready",
     )
+
+
+def create_or_find_conflict_replacement_issue(
+    repo: str,
+    original_issue: dict[str, Any],
+    pr_number: int,
+    base_ref: str,
+) -> dict[str, Any]:
+    existing = find_existing_replacement_issue(repo, pr_number)
+    if existing is not None:
+        return existing
+    title = f"Rework from current main: {str(original_issue.get('title') or '').strip()}"
+    return gh_json(
+        "api",
+        "--method", "POST",
+        f"repos/{repo}/issues",
+        "-f", f"title={title}",
+        "-f", f"body={conflict_replacement_issue_body(original_issue, pr_number, base_ref)}",
+        "-f", "labels[]=autonomous-backlog",
+        "-f", "labels[]=agent-ready",
+    )
+
+
+def supersede_conflicted_pull_request(
+    repo: str,
+    pr: dict[str, Any],
+    issue: dict[str, Any],
+    base_ref: str,
+) -> int:
+    number = int(pr["number"])
+    replacement = create_or_find_conflict_replacement_issue(
+        repo, issue, number, base_ref
+    )
+    replacement_number = int(replacement["number"])
+    gh_run(
+        "issue", "comment", str(number), "--repo", repo,
+        "--body",
+        (
+            f"Superseded automatically by #{replacement_number}. This PR conflicts with "
+            f"current {base_ref}, so the remaining work is being re-derived from current "
+            "main instead of requiring manual conflict resolution."
+        ),
+    )
+    gh_run(
+        "api", "--method", "PATCH", f"repos/{repo}/pulls/{number}", "-f", "state=closed"
+    )
+    original_number = int(issue["number"])
+    gh_run(
+        "issue", "comment", str(original_number), "--repo", repo,
+        "--body",
+        (
+            f"Superseded by fresh current-main issue #{replacement_number} after PR #{number} "
+            f"could not be updated onto {base_ref} without merge conflicts."
+        ),
+    )
+    gh_run(
+        "api", "--method", "PATCH", f"repos/{repo}/issues/{original_number}",
+        "-f", "state=closed", "-f", "state_reason=not_planned",
+    )
+    return replacement_number
 
 
 def supersede_pull_request(
@@ -824,10 +900,22 @@ def main() -> int:
                     base_ref,
                 )
                 if not updated:
-                    print(
-                        f"Skipping PR #{number}: branch cannot be updated automatically because "
-                        "it conflicts with current base. Continuing with later pull requests."
-                    )
+                    if not maintenance_pre_ci and issue is not None:
+                        replacement_number = supersede_conflicted_pull_request(
+                            repo,
+                            pr,
+                            issue,
+                            base_ref,
+                        )
+                        print(
+                            f"Superseded conflicted PR #{number} with fresh current-main "
+                            f"issue #{replacement_number}."
+                        )
+                    else:
+                        print(
+                            f"Skipping PR #{number}: maintenance branch cannot be updated "
+                            "automatically because it conflicts with current base."
+                        )
                     if detail:
                         print(detail)
                     continue
