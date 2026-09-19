@@ -193,6 +193,50 @@ def exact_head_quality_in_flight(
     )
 
 
+def superseded_action_required_run_ids(
+    runs: Iterable[dict[str, Any]], head_sha: str
+) -> list[int]:
+    """Return approval-gated PR runs superseded by exact-head manual Quality CI."""
+    rows = list(runs)
+    replacement_exists = any(
+        str(run.get("name") or "") == QUALITY_WORKFLOW
+        and str(run.get("head_sha") or "") == head_sha
+        and str(run.get("event") or "") == "workflow_dispatch"
+        for run in rows
+    )
+    if not replacement_exists:
+        return []
+
+    run_ids: list[int] = []
+    for run in rows:
+        if (
+            str(run.get("name") or "") == QUALITY_WORKFLOW
+            and str(run.get("head_sha") or "") == head_sha
+            and str(run.get("event") or "") == "pull_request"
+            and str(run.get("status") or "") == "completed"
+            and str(run.get("conclusion") or "") == "action_required"
+            and run.get("id") is not None
+        ):
+            run_ids.append(int(run["id"]))
+    return run_ids
+
+
+def delete_superseded_action_required_runs(
+    repo: str,
+    runs: Iterable[dict[str, Any]],
+    head_sha: str,
+) -> list[int]:
+    """Delete obsolete approval-gated runs only after replacement CI exists."""
+    run_ids = superseded_action_required_run_ids(runs, head_sha)
+    for run_id in run_ids:
+        gh_run(
+            "api",
+            "--method", "DELETE",
+            f"repos/{repo}/actions/runs/{run_id}",
+        )
+    return run_ids
+
+
 def autonomous_issue_ready(issue: dict[str, Any]) -> bool:
     labels = label_names(issue)
     return (
@@ -449,6 +493,16 @@ def main() -> int:
             "api",
             quality_runs_api_path(repo, head_sha),
         ).get("workflow_runs", [])
+        deleted_run_ids = delete_superseded_action_required_runs(
+            repo,
+            runs,
+            head_sha,
+        )
+        if deleted_run_ids:
+            print(
+                f"Deleted {len(deleted_run_ids)} superseded approval-gated "
+                f"Quality run(s) for PR #{number}."
+            )
 
         changed_paths = [str(row.get("filename") or "") for row in files]
         pre_ci_eligible, reason = eligible_pr(
