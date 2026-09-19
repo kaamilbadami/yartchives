@@ -233,14 +233,6 @@
       competitionPenalty += market.penalty;
       reasons.push(...market.reasons.map(reason => `${reason} (fallback competition heuristic)`));
 
-      const companyCount = Number(context?.employerCounts?.[employerKey(job)] || 0);
-      if (companyCount >= 8) {
-        competitionPenalty += 2;
-        reasons.push(`large current hiring footprint (${companyCount} distinct listings; fallback competition heuristic)`);
-      } else if (companyCount >= 4) {
-        competitionPenalty += 1;
-        reasons.push(`broad current hiring footprint (${companyCount} distinct listings; fallback competition heuristic)`);
-      }
     }
 
     competitionPenalty = Math.min(5, competitionPenalty);

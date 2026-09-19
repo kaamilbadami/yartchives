@@ -345,7 +345,7 @@ def parse_dreamwork(payload: dict[str, Any], source: dict[str, Any], reference: 
             title=item.get("title") or "",
             location=item.get("location") or "Location not listed",
             url=item.get("url"),
-            posted_raw = item.get("postedAt") or item.get("firstIndexedAt"),
+            posted_raw=item.get("postedAt"),
             source=source,
             section=item.get("functionPrimary") or "",
             function_primary=item.get("functionPrimary") or "",
