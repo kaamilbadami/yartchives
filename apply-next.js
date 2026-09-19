@@ -548,15 +548,24 @@
     };
   }
 
-  function rankJobs(jobs, profile, now = new Date()) {
+  function rankJobs(jobs, profile, now = new Date(), sortMode = "recommended") {
     return (jobs || [])
       .map(job => scoreJob(job, profile, now))
       .filter(result => !result.excluded)
       .sort((a, b) => {
-        if (b.total !== a.total) return b.total - a.total;
-        const bPosted = b.job?.posted_at ? new Date(b.job.posted_at).getTime() : 0;
-        const aPosted = a.job?.posted_at ? new Date(a.job.posted_at).getTime() : 0;
-        if (bPosted !== aPosted) return bPosted - aPosted;
+        const bTime = b.job?.posted_at ? new Date(b.job.posted_at).getTime() : 0;
+        const aTime = a.job?.posted_at ? new Date(a.job.posted_at).getTime() : 0;
+        const bPosted = Number.isFinite(bTime) ? bTime : 0;
+        const aPosted = Number.isFinite(aTime) ? aTime : 0;
+
+        if (sortMode === "newest") {
+          if (bPosted !== aPosted) return bPosted - aPosted;
+          if (b.total !== a.total) return b.total - a.total;
+        } else {
+          if (b.total !== a.total) return b.total - a.total;
+          if (bPosted !== aPosted) return bPosted - aPosted;
+        }
+
         return String(a.job?.company || "").localeCompare(String(b.job?.company || ""))
           || String(a.job?.title || "").localeCompare(String(b.job?.title || ""));
       });
