@@ -74,6 +74,82 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertFalse(mod.exact_head_quality_present([], "abc"))
         self.assertFalse(mod.exact_head_quality_present(runs(sha="older"), "abc"))
 
+    def test_superseded_action_required_runs_require_exact_head_manual_replacement(self):
+        approval = {
+            "id": 10,
+            "name": "Quality checks",
+            "head_sha": "abc",
+            "event": "pull_request",
+            "status": "completed",
+            "conclusion": "action_required",
+        }
+        manual = {
+            "id": 11,
+            "name": "Quality checks",
+            "head_sha": "abc",
+            "event": "workflow_dispatch",
+            "status": "in_progress",
+            "conclusion": None,
+        }
+        other_head = {
+            "id": 12,
+            "name": "Quality checks",
+            "head_sha": "other",
+            "event": "workflow_dispatch",
+            "status": "completed",
+            "conclusion": "success",
+        }
+
+        self.assertEqual(
+            mod.superseded_action_required_run_ids([approval, manual], "abc"),
+            [10],
+        )
+        self.assertEqual(
+            mod.superseded_action_required_run_ids([approval, other_head], "abc"),
+            [],
+        )
+
+    def test_delete_superseded_action_required_runs_deletes_only_obsolete_pr_runs(self):
+        runs = [
+            {
+                "id": 10,
+                "name": "Quality checks",
+                "head_sha": "abc",
+                "event": "pull_request",
+                "status": "completed",
+                "conclusion": "action_required",
+            },
+            {
+                "id": 11,
+                "name": "Quality checks",
+                "head_sha": "abc",
+                "event": "workflow_dispatch",
+                "status": "completed",
+                "conclusion": "success",
+            },
+            {
+                "id": 12,
+                "name": "Quality checks",
+                "head_sha": "abc",
+                "event": "pull_request",
+                "status": "completed",
+                "conclusion": "failure",
+            },
+        ]
+        with mock.patch.object(mod, "gh_run") as gh_run:
+            deleted = mod.delete_superseded_action_required_runs(
+                "kaamilbadami/yartchives",
+                runs,
+                "abc",
+            )
+
+        self.assertEqual(deleted, [10])
+        gh_run.assert_called_once_with(
+            "api",
+            "--method", "DELETE",
+            "repos/kaamilbadami/yartchives/actions/runs/10",
+        )
+
     def test_action_required_quality_run_is_detected_for_manual_redispatch(self):
         self.assertTrue(
             mod.exact_head_quality_action_required(
