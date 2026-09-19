@@ -341,6 +341,78 @@ class AutonomousDispatcherTests(unittest.TestCase):
             )
         self.assertEqual(gh_calls, [])
 
+    def test_capacity_classifier_recognizes_quota_and_http_429(self):
+        self.assertTrue(mod.jules_capacity_exhausted("Quota exceeded for Jules tasks"))
+        self.assertTrue(mod.jules_capacity_exhausted("HTTP Error 429: Too Many Requests"))
+        self.assertTrue(mod.jules_capacity_exhausted("RESOURCE_EXHAUSTED"))
+        self.assertFalse(mod.jules_capacity_exhausted("Workspace became unavailable"))
+
+    def test_quota_failed_session_is_released_without_failed_or_retry_label(self):
+        issues = [
+            issue(
+                152,
+                "active feed",
+                body=task_body("P1", "feed"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+
+        capacity_paused = mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [{"body": "<!-- jules-session-id: quota1 -->"}],
+            get_session=lambda api_key, path: {
+                "id": "quota1",
+                "state": "FAILED",
+                "failureReason": "Quota exceeded for Jules tasks.",
+            },
+            load_activities=lambda session_id: [],
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        labels = mod.label_names(issues[0])
+        self.assertTrue(capacity_paused)
+        self.assertNotIn("jules-session", labels)
+        self.assertNotIn("jules", labels)
+        self.assertNotIn("jules-failed", labels)
+        self.assertNotIn("jules-retry-ready", labels)
+        self.assertIn("capacity/quota is exhausted", gh_calls[1][-1])
+        self.assertEqual([task.number for task in mod.select_tasks(issues)], [152])
+
+    def test_dispatch_cycle_ends_cleanly_when_new_session_hits_quota(self):
+        issues = [
+            issue(149, "frontend task", body=task_body("P1", "frontend-state")),
+        ]
+        original_fetch = mod.fetch_open_issues
+        original_reconcile = mod.reconcile_jules_sessions
+        original_migrate = mod.migrate_legacy_jules_failures
+        original_dispatch = mod.dispatch_task
+        try:
+            mod.fetch_open_issues = lambda repo: issues
+            mod.reconcile_jules_sessions = lambda *args, **kwargs: False
+            mod.migrate_legacy_jules_failures = lambda *args, **kwargs: None
+
+            def quota_dispatch(*args, **kwargs):
+                raise RuntimeError("HTTP Error 429: Too Many Requests")
+
+            mod.dispatch_task = quota_dispatch
+            has_active, source_name = mod.run_dispatch_cycle(
+                "kaamilbadami/yartchives",
+                "secret",
+                source_name="source",
+            )
+        finally:
+            mod.fetch_open_issues = original_fetch
+            mod.reconcile_jules_sessions = original_reconcile
+            mod.migrate_legacy_jules_failures = original_migrate
+            mod.dispatch_task = original_dispatch
+
+        self.assertFalse(has_active)
+        self.assertEqual(source_name, "source")
+        self.assertEqual(mod.label_names(issues[0]), frozenset())
+
     def test_successful_session_creation_marks_issue_active_and_links_session(self):
         task = mod.Task(149, "Task", task_body("P1", "frontend"), "P1", "frontend", frozenset())
         gh_calls = []
