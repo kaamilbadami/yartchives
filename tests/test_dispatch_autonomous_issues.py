@@ -1199,6 +1199,30 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertIn("jules-failed", mod.label_names(issues[0]))
         self.assertNotIn("jules-retry-ready", mod.label_names(issues[0]))
 
+    def test_generic_jules_task_error_is_retryable_once(self):
+        self.assertTrue(
+            mod.retryable_jules_failure(
+                ["Jules encountered an error when working on the task."]
+            )
+        )
+
+    def test_generic_modern_jules_failure_gets_one_migration_retry(self):
+        comments = [
+            {"body": "<!-- jules-session-id: modern-generic -->"},
+            {
+                "body": (
+                    "Jules session `modern-generic` ended in FAILED state and released this "
+                    "automation slot. It will not be retried automatically.\n\n"
+                    "Failure diagnostics:\n\n"
+                    "> Jules encountered an error when working on the task."
+                )
+            },
+        ]
+        retry = mod.legacy_failed_retry_context(comments)
+        self.assertIsNotNone(retry)
+        self.assertEqual(retry[0], "modern-generic")
+        self.assertIn("encountered an error", retry[1])
+
     def test_code_failure_does_not_auto_retry(self):
         self.assertFalse(
             mod.retryable_jules_failure(
