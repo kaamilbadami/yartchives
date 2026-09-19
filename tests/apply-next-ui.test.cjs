@@ -91,46 +91,48 @@ assert.equal(
   "Why this is here: strongest drivers: profile match and role value; limited by: location convenience and timing."
 );
 
-// worthApplyingSummary tests
-assert.equal(
-  UI.worthApplyingSummary({
+// decisionHighlights tests
+assert.deepEqual(
+  UI.decisionHighlights({
     components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } },
     inspection: { state: "inspected" }
   }),
-  "Yes: strong match, high value, recent, convenient location, verified posting."
+  ["Strong match", "High value", "Very recent", "Very convenient location"]
 );
 
-assert.equal(
-  UI.worthApplyingSummary({
+assert.deepEqual(
+  UI.decisionHighlights({
     components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } },
     inspection: { state: "metadata-only" }
   }),
-  "Uncertain: strong match, high value, recent, convenient location; unverified evidence."
+  ["Concerns: unverified evidence", "Strong match", "High value", "Very recent"] // concerns is prioritized and capped at 4 total
 );
 
-assert.equal(
-  UI.worthApplyingSummary({
+assert.deepEqual(
+  UI.decisionHighlights({
     components: { fit: { score: 20 }, freshness: { score: 2 }, roi: { score: 5 }, location: { score: 5 } },
     inspection: { state: "unavailable" }
   }),
-  "Mixed: concerns: weak match, lower value, older posting, less convenient location, posting unavailable."
+  ["Concerns: weak match, lower value, older posting, less convenient location, posting unavailable"]
 );
 
-assert.equal(
-  UI.worthApplyingSummary({
+assert.deepEqual(
+  UI.decisionHighlights({
     components: { fit: { score: 20 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } },
     inspection: { state: "inspected" }
   }),
-  "Mixed: high value, recent, convenient location, verified posting; concerns: weak match."
+  ["Concerns: weak match", "High value", "Very recent", "Very convenient location"]
 );
 
-assert.equal(
-  UI.worthApplyingSummary({
+assert.deepEqual(
+  UI.decisionHighlights({
     excluded: true,
     components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } }
   }),
-  "No: excluded by eligibility constraints."
+  ["Excluded by eligibility constraints"]
 );
+
+
 
 const postedNow = new Date("2026-09-17T12:00:00Z");
 assert.equal(UI.formatPostedDate("2026-09-15T23:30:00-04:00", true, postedNow), "Posted 9/16 · 1 day ago");
