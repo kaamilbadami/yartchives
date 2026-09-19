@@ -555,6 +555,81 @@ class AutonomousDispatcherTests(unittest.TestCase):
             [154],
         )
 
+    def test_historical_review_ready_without_pr_moves_to_retry(self):
+        historical = issue(
+            190,
+            "gap explanation",
+            body=task_body("P2", "apply-next-explanation"),
+            labels=("agent-ready", "autonomous-backlog", "jules-review-ready"),
+        )
+        calls = []
+        mod.migrate_historical_no_pr_review_ready(
+            "kaamilbadami/yartchives",
+            load_review_ready=lambda: [historical],
+            load_comments=lambda number: [
+                {
+                    "body": (
+                        "Jules completed session `old-no-pr` and released this automation slot.\n\n"
+                        "No pull request output was reported by the Jules API."
+                    )
+                }
+            ],
+            run_gh=lambda *args: calls.append(args),
+        )
+        self.assertIn("--remove-label", calls[0])
+        self.assertIn("jules-review-ready", calls[0])
+        self.assertIn("jules-retry-ready", calls[0])
+        self.assertIn("<!-- jules-retry-from: old-no-pr -->", calls[1][-1])
+
+    def test_historical_review_ready_without_pr_after_retry_moves_failed(self):
+        historical = issue(
+            153,
+            "evidence audit",
+            body=task_body("P1", "evidence"),
+            labels=("agent-ready", "autonomous-backlog", "jules-review-ready"),
+        )
+        calls = []
+        mod.migrate_historical_no_pr_review_ready(
+            "kaamilbadami/yartchives",
+            load_review_ready=lambda: [historical],
+            load_comments=lambda number: [
+                {"body": "<!-- jules-retry-from: prior-session -->"},
+                {
+                    "body": (
+                        "Jules completed session `retry-no-pr` and released this automation slot.\n\n"
+                        "No pull request output was reported by the Jules API."
+                    )
+                },
+            ],
+            run_gh=lambda *args: calls.append(args),
+        )
+        self.assertIn("jules-failed", calls[0])
+        self.assertNotIn("jules-retry-ready", calls[0])
+        self.assertIn("after an earlier automatic retry", calls[1][-1])
+
+    def test_historical_review_ready_with_pr_is_not_migrated(self):
+        historical = issue(
+            152,
+            "workday verify",
+            body=task_body("P1", "feed"),
+            labels=("agent-ready", "autonomous-backlog", "jules-review-ready"),
+        )
+        calls = []
+        mod.migrate_historical_no_pr_review_ready(
+            "kaamilbadami/yartchives",
+            load_review_ready=lambda: [historical],
+            load_comments=lambda number: [
+                {
+                    "body": (
+                        "Jules completed session `has-pr` and released this automation slot.\n\n"
+                        "Pull request: https://github.com/kaamilbadami/yartchives/pull/999"
+                    )
+                }
+            ],
+            run_gh=lambda *args: calls.append(args),
+        )
+        self.assertEqual(calls, [])
+
     def test_completed_session_without_pr_retries_once_instead_of_review_ready(self):
         issues = [
             issue(
