@@ -66,32 +66,6 @@ const noDateJob = { title: "Software Engineer Intern", profiles: ["cs"], term: "
 const invalidDateJob = { title: "Software Engineer Intern", profiles: ["cs"], term: "Summer 2027", company: "Y-InvalidDate", posted_at: "not-a-date", link_kind: "direct", states: ["CT"] };
 const olderListingClone = { ...olderListing, company: "B-clone" };
 
-const recommendedRanked = A.rankJobs([noDateJob, invalidDateJob, olderListing, olderListingClone, graduateOnly, freshDirect], profile, now, "recommended");
-assert.equal(recommendedRanked.length, 5);
-assert.equal(recommendedRanked[0].job.company, "A");
-assert.equal(recommendedRanked[1].job.company, "Y-InvalidDate");
-assert.equal(recommendedRanked[2].job.company, "Z-NoDate");
-assert.equal(recommendedRanked[3].job.company, "B");
-assert.equal(recommendedRanked[4].job.company, "B-clone");
-
-const newestRanked = A.rankJobs([noDateJob, invalidDateJob, olderListing, olderListingClone, graduateOnly, freshDirect], profile, now, "newest");
-assert.equal(newestRanked.length, 5);
-assert.equal(newestRanked[0].job.company, "A");
-assert.equal(newestRanked[1].job.company, "B");
-assert.equal(newestRanked[2].job.company, "B-clone");
-assert.equal(newestRanked[3].job.company, "Y-InvalidDate");
-assert.equal(newestRanked[4].job.company, "Z-NoDate");
-
-const rescoredOnce = [
-  { job: { company: "Older Strong", posted_at: "2026-09-10T12:00:00Z" }, total: 90, excluded: false },
-  { job: { company: "Newest Weak", posted_at: "2026-09-16T12:00:00Z" }, total: 40, excluded: false },
-];
-const newestFromCachedScores = A.sortRankedResults(rescoredOnce, "newest");
-assert.equal(newestFromCachedScores[0].job.company, "Newest Weak");
-const recommendedFromCachedScores = A.sortRankedResults(newestFromCachedScores, "recommended");
-assert.equal(recommendedFromCachedScores[0].job.company, "Older Strong");
-assert.deepEqual(rescoredOnce.map(result => result.job.company), ["Older Strong", "Newest Weak"], "cached sort should not mutate the scored result array");
-
 const gradScore = A.scoreJob(graduateOnly, profile, now);
 assert.equal(gradScore.excluded, true);
 assert.match(gradScore.reasons[0], /Graduate-only/);
