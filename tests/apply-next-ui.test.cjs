@@ -254,6 +254,12 @@ assert.equal(jobs[2]._inspection, undefined);
   const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
   assert.ok(deployWorkflow.includes("data/workday-inspections.json"), "Pages workflow must deploy Workday inspections");
 
+
+  assert.match(uiSource, /apply-next-state-loading/, "UI should define a loading state");
+  assert.match(uiSource, /apply-next-state-empty/, "UI should define an empty state");
+  assert.match(uiSource, /apply-next-state-exhausted/, "UI should define an exhausted state");
+  assert.match(uiSource, /apply-next-state-error/, "UI should define an error state");
+
   console.log("apply-next UI tests passed");
 })().catch(error => {
   console.error(error);

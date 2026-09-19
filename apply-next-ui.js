@@ -588,16 +588,19 @@
     return card;
   }
 
+
   function updateQueueOptimistically(panel, profile, appliedJobId) {
     const targetPanel = panel || (typeof document !== "undefined" ? document.querySelector("#applyNextPanel") : null);
     if (!targetPanel) return;
     const list = targetPanel.querySelector(".apply-next-list");
     if (!list) return;
 
+    const localState = typeof state !== "undefined" ? state : { applied: new Set(), hidden: new Set() };
+
     if (Array.isArray(lastRankedResults) && lastRankedResults.length) {
-      lastRankedResults = lastRankedResults.filter(r => r.job && r.job.id !== appliedJobId && !state.applied?.has(r.job.id) && !state.hidden?.has(r.job.id));
+      lastRankedResults = lastRankedResults.filter(r => r.job && r.job.id !== appliedJobId && !localState.applied?.has(r.job.id) && !localState.hidden?.has(r.job.id));
     } else if (typeof feed !== "undefined" && Array.isArray(feed?.jobs) && profile && typeof YartchivesApplyNext !== "undefined") {
-      const pool = candidatePool(feed.jobs, profile, state);
+      const pool = candidatePool(feed.jobs, profile, localState);
       lastRankedResults = YartchivesApplyNext.rankJobs(pool, profile, new Date());
     }
 
@@ -607,7 +610,7 @@
     const note = targetPanel.querySelector(".apply-next-note");
     if (note && profile) {
       const poolCount = (typeof feed !== "undefined" && Array.isArray(feed?.jobs))
-        ? candidatePool(feed.jobs, profile, state).length
+        ? candidatePool(feed.jobs, profile, localState).length
         : 0;
       note.textContent = `Showing ${ranked.length} highest-value options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`;
     }
@@ -615,25 +618,37 @@
     list.innerHTML = "";
     ranked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
     if (!ranked.length) {
-      list.append(element("p", "muted", "No eligible Apply Next candidates are available yet."));
+      const allPool = (typeof feed !== "undefined" && feed?.jobs ? feed.jobs : []).filter(job => job && !knownWrongTerm(job, profile));
+      const allRanked = typeof YartchivesApplyNext !== "undefined" ? YartchivesApplyNext.rankJobs(allPool, profile, new Date()) : [];
+
+      if (allRanked.length === 0) {
+        list.append(element("p", "muted apply-next-state-empty", "No eligible recommendations found for this profile."));
+        const actionsDiv = element("div", "apply-next-actions");
+        const editBtn = element("button", "secondary-btn", "Edit profile");
+        editBtn.type = "button";
+        editBtn.addEventListener("click", () => {
+          setupPanel(targetPanel);
+          const input = document.querySelector("#applyNextProfileInput");
+          if (input) input.value = JSON.stringify(profile, null, 2);
+        });
+        actionsDiv.append(editBtn);
+        list.append(actionsDiv);
+      } else {
+        list.append(element("p", "muted apply-next-state-exhausted", "You've reviewed or applied to all current top recommendations for your profile."));
+        const actionsDiv = element("div", "apply-next-actions");
+        const feedBtn = element("button", "secondary-btn", "View main feed");
+        feedBtn.type = "button";
+        feedBtn.addEventListener("click", () => {
+          document.querySelector("#applyNextBtn")?.click();
+        });
+        actionsDiv.append(feedBtn);
+        list.append(actionsDiv);
+      }
     }
   }
 
   async function renderQueue(panel, profile) {
     setProfileSetupMode(false);
-    const pool = candidatePool(feed.jobs, profile, state);
-    const artifact = await loadInspectionArtifact();
-    attachInspections(pool, artifact);
-    await addBaseDistances(pool, profile);
-    const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date());
-
-    const explanation = explainProfileChange(lastProfile, profile, lastRankedResults?.[0]?.job?.id, ranked?.[0]?.job?.id);
-
-    lastRankedResults = ranked;
-    lastProfile = profile;
-
-    const topRanked = ranked.slice(0, TOP_N);
-    const inspectedCount = topRanked.filter(result => result.inspection?.state === "inspected").length;
 
     const fragment = document.createDocumentFragment();
 
@@ -662,28 +677,100 @@
     heading.append(copy, controls);
     fragment.append(heading);
 
-    const note = element(
-      "p",
-      "apply-next-note",
-      `Showing ${topRanked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`
-    );
-    fragment.append(note);
-    if (explanation) {
-      const explanationEl = element("p", "apply-next-explanation apply-next-note", explanation);
-      fragment.append(explanationEl);
-    }
-
-
     const list = element("div", "apply-next-list");
-    topRanked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
-    if (!topRanked.length) list.append(element("p", "muted", "No eligible Apply Next candidates are available yet."));
     fragment.append(list);
-
     panel.innerHTML = "";
     panel.append(fragment);
-  }
 
-  async function renderPanel(panel) {
+    try {
+      list.innerHTML = "";
+      list.append(element("p", "muted apply-next-state-loading", "Evaluating recommendations…"));
+
+      const feedMissing = typeof feed === "undefined" || !feed || !Array.isArray(feed.jobs);
+      const feedFailed = typeof document !== "undefined" && document.querySelector("#errorBox") && !document.querySelector("#errorBox").classList.contains("hidden");
+
+      if (feedMissing || feedFailed) {
+        throw new Error("Feed data is unavailable.");
+      }
+      if (feed.jobs.length === 0 && !feed.generated_at) {
+        list.innerHTML = "";
+        list.append(element("p", "muted apply-next-state-loading", "Waiting for feed data to load…"));
+        return;
+      }
+
+      const localState = typeof state !== "undefined" ? state : { applied: new Set(), hidden: new Set() };
+      const pool = candidatePool(feed.jobs, profile, localState);
+      const artifact = await loadInspectionArtifact();
+      attachInspections(pool, artifact);
+      await addBaseDistances(pool, profile);
+      const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date());
+
+      const explanation = explainProfileChange(lastProfile, profile, lastRankedResults?.[0]?.job?.id, ranked?.[0]?.job?.id);
+
+      lastRankedResults = ranked;
+      lastProfile = profile;
+
+      const topRanked = ranked.slice(0, TOP_N);
+      const inspectedCount = topRanked.filter(result => result.inspection?.state === "inspected").length;
+
+      const note = element(
+        "p",
+        "apply-next-note",
+        `Showing ${topRanked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`
+      );
+      panel.insertBefore(note, list);
+
+      if (explanation) {
+        const explanationEl = element("p", "apply-next-explanation apply-next-note", explanation);
+        panel.insertBefore(explanationEl, list);
+      }
+
+      list.innerHTML = "";
+      topRanked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
+
+      if (!topRanked.length) {
+        const allPool = feed.jobs.filter(job => job && !knownWrongTerm(job, profile));
+        attachInspections(allPool, artifact);
+        await addBaseDistances(allPool, profile);
+        const allRanked = YartchivesApplyNext.rankJobs(allPool, profile, new Date());
+
+        if (allRanked.length === 0) {
+          list.append(element("p", "muted apply-next-state-empty", "No eligible recommendations found for this profile."));
+          const actionsDiv = element("div", "apply-next-actions");
+          const editBtn = element("button", "secondary-btn", "Edit profile");
+          editBtn.type = "button";
+          editBtn.addEventListener("click", () => {
+            setupPanel(panel);
+            const input = document.querySelector("#applyNextProfileInput");
+            if (input) input.value = JSON.stringify(profile, null, 2);
+          });
+          actionsDiv.append(editBtn);
+          list.append(actionsDiv);
+        } else {
+          list.append(element("p", "muted apply-next-state-exhausted", "You've reviewed or applied to all current top recommendations for your profile."));
+          const actionsDiv = element("div", "apply-next-actions");
+          const feedBtn = element("button", "secondary-btn", "View main feed");
+          feedBtn.type = "button";
+          feedBtn.addEventListener("click", () => {
+            document.querySelector("#applyNextBtn")?.click();
+          });
+          actionsDiv.append(feedBtn);
+          list.append(actionsDiv);
+        }
+      }
+    } catch (error) {
+      list.innerHTML = "";
+      const errP = element("p", "error-text apply-next-state-error", `Recommendation engine error: ${error.message}`);
+      list.append(errP);
+      const actionsDiv = element("div", "apply-next-actions");
+      const retryBtn = element("button", "secondary-btn", "Try again");
+      retryBtn.type = "button";
+      retryBtn.addEventListener("click", () => renderQueue(panel, profile));
+      actionsDiv.append(retryBtn);
+      list.append(actionsDiv);
+    }
+  }
+async function renderPanel(panel) {
     const profile = loadProfile(localStorage);
     if (!profile) setupPanel(panel);
     else await renderQueue(panel, profile);
