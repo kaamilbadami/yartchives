@@ -119,6 +119,45 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         )
         self.assertFalse(ok)
 
+    def test_prioritizes_lifecycle_then_ci_then_normal_prs(self):
+        pull_requests = [
+            {"number": 10},
+            {"number": 20},
+            {"number": 30},
+            {"number": 40},
+        ]
+        changed_paths = {
+            10: ["app.js"],
+            20: [".github/workflows/quality.yml"],
+            30: ["scripts/dispatch_autonomous_issues.py"],
+            40: [".github/workflows/autonomous-dispatch.yml"],
+        }
+
+        ordered = mod.prioritize_pull_requests(pull_requests, changed_paths)
+
+        self.assertEqual([pr["number"] for pr in ordered], [30, 40, 20, 10])
+        self.assertEqual(
+            mod.pull_request_queue_priority(["scripts/auto_merge_agent_prs.py"]),
+            0,
+        )
+        self.assertEqual(
+            mod.pull_request_queue_priority([".github/workflows/update-feed.yml"]),
+            1,
+        )
+        self.assertEqual(mod.pull_request_queue_priority(["app.js"]), 2)
+
+    def test_priority_does_not_bypass_protected_path_guard(self):
+        candidate = pr()
+        ok, reason = mod.eligible_pr(
+            candidate,
+            repo="kaamilbadami/yartchives",
+            issue=issue(),
+            changed_paths=["scripts/dispatch_autonomous_issues.py"],
+            quality_runs=runs(),
+        )
+        self.assertFalse(ok)
+        self.assertIn("protected path changed", reason)
+
     def test_blocks_control_plane_and_benchmark_changes(self):
         for path in (
             ".github/workflows/quality.yml",

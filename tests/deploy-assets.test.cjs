@@ -90,8 +90,8 @@ assert.match(
 );
 assert.ok(
   autonomousWorkflow.includes('JULES_POLL_SECONDS: "30"') &&
-    autonomousWorkflow.includes('JULES_WATCH_SECONDS: "0"'),
-  "Each dispatcher invocation should run one reconciliation cycle so newer events are not blocked by a long watch loop"
+    autonomousWorkflow.includes('JULES_WATCH_SECONDS: "780"'),
+  "Dispatcher runs should keep a bounded 13-minute watch window to refill freed Jules capacity promptly"
 );
 
 for (const name of workflowFiles) {
