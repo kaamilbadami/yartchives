@@ -354,12 +354,13 @@ async function runTests() {
     // Wait microtask tick for boot fetch
     await new Promise(r => setTimeout(r, 10));
 
-    // "All" should mean all career areas exposed in the beta UI, not hidden areas.
+    // The CS-only beta should stay scoped to CS even if the sole career chip is clicked.
     assert.equal(document.querySelector("#shownCount").textContent, "1", "CS-first default should show only CS jobs");
     const careerButtons = document.querySelector("#profileChips").children;
+    assert.equal(careerButtons.length, 1, "Only the Computer Science career chip should be rendered");
     careerButtons[0].click();
     await new Promise(r => setTimeout(r, 10));
-    assert.equal(document.querySelector("#shownCount").textContent, "1", "All should stay within exposed CS-only beta scope");
+    assert.equal(document.querySelector("#shownCount").textContent, "1", "Clicking the sole CS chip should keep CS selected");
 
     // Check stat navigation setup
     const savedTile = document.querySelector("#newCount").closest(".stat");
@@ -534,11 +535,13 @@ async function runTests() {
     const profileChips = document.querySelector("#profileChips");
     assert.ok(profileChips, "Profile chips container should exist");
 
-    // There should only be "All" and "Computer Science" buttons (length 2)
+    // The beta currently exposes only Computer Science.
     const chipButtons = profileChips.children;
-    assert.equal(chipButtons.length, 2, "Only 'All' and 'Computer Science' should be rendered in the beta UI");
-    assert.equal(chipButtons[0].textContent, "All");
-    assert.equal(chipButtons[1].textContent, "Computer Science");
+    assert.equal(chipButtons.length, 1, "Only 'Computer Science' should be rendered in the beta UI");
+    assert.equal(chipButtons[0].textContent, "Computer Science");
+    assert.equal(chipButtons[0].classList.contains("active"), true, "Computer Science should remain selected");
+
+    assert.ok(uxCode.includes('More career areas coming soon.'), "Career-area helper should match the CS-only beta UI");
 
     // Check that 'cs' is defaulted
     const stateObj = JSON.parse(localStorage.getItem("yartchives-ux-v1") || "{}");
