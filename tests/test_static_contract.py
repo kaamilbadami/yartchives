@@ -18,6 +18,7 @@ class StaticContractTests(unittest.TestCase):
         }
         missing = sorted(item for item in required if soup.find(id=item) is None)
         self.assertEqual(missing, [])
+        self.assertEqual(soup.find(id="shareBtn").get_text(strip=True), "Copy link")
 
     def test_quick_zip_buttons(self):
         soup = BeautifulSoup((ROOT / "index.html").read_text(encoding="utf-8"), "html.parser")
