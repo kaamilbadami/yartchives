@@ -223,5 +223,46 @@ class BuildFeedTests(unittest.TestCase):
                 self.assertEqual(len(jobs), 1)
                 self.assertEqual(jobs[0]["company"], "Valid Company")
 
+
+    def test_parse_dreamwork_does_not_use_firstIndexedAt_for_posted_date(self):
+        ref = datetime(2026, 9, 18, 12, 0, tzinfo=timezone.utc)
+        source = {
+            "key": "dreamwork-test",
+            "name": "Dreamwork Test",
+            "url": "https://dreamwork.example",
+            "posted_date_provenance": "aggregator",
+        }
+        payload = {
+            "listings": [
+                {
+                    "company": "Company A",
+                    "title": "Intern",
+                    "location": "Remote",
+                    "url": "https://example.com/job",
+                    "firstIndexedAt": "2026-09-01T00:00:00Z"
+                },
+                {
+                    "company": "Company B",
+                    "title": "Intern",
+                    "location": "Remote",
+                    "url": "https://example.com/job2",
+                    "postedAt": "2026-09-02T00:00:00Z",
+                    "firstIndexedAt": "2026-09-01T00:00:00Z"
+                }
+            ]
+        }
+        jobs = mod.parse_dreamwork(payload, source, ref)
+        self.assertEqual(len(jobs), 2)
+        # Company A has only firstIndexedAt, so posted_raw and posted_at should be None
+        job_a = jobs[0]
+        self.assertEqual(job_a["company"], "Company A")
+        self.assertIn(job_a.get("posted_raw"), (None, ""))
+        self.assertIsNone(job_a.get("posted_at"))
+        # Company B has postedAt, so it should be used
+        job_b = jobs[1]
+        self.assertEqual(job_b["company"], "Company B")
+        self.assertEqual(job_b.get("posted_raw"), "2026-09-02T00:00:00Z")
+        self.assertEqual(job_b.get("posted_at"), "2026-09-02T00:00:00Z")
+
 if __name__ == "__main__":
     unittest.main()
