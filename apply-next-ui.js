@@ -7,55 +7,56 @@
   }
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   const STORAGE_KEY = "yartchives-apply-next-profile-v1";
+  const FEEDBACK_STORAGE_KEY = "yartchives-apply-next-feedback-v1";
   const INSPECTION_URL = "data/workday-inspections.json";
   const TOP_N = 10;
-  const FRESH_MAX_AGE_DAYS = 2;
-  const FRESH_MIN_SCORE = 55;
   let inspectionArtifactPromise = null;
   let lastRankedResults = [];
   let lastProfile = null;
-  let activeQueueView = "top";
+  let feedbackState = {};
+
+  function loadFeedback(storage) {
+    try {
+      const raw = storage.getItem(FEEDBACK_STORAGE_KEY);
+      if (raw) feedbackState = JSON.parse(raw) || {};
+    } catch (_) {
+      feedbackState = {};
+    }
+  }
+
+  function saveFeedback(storage) {
+    storage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(feedbackState));
+  }
+
+  function getFeedback(jobId) {
+    return feedbackState[jobId] || null;
+  }
+
+  function setFeedback(storage, jobId, type, reason = null) {
+    if (!type) {
+      delete feedbackState[jobId];
+    } else {
+      feedbackState[jobId] = { type, reason, timestamp: Date.now() };
+    }
+    if (storage) saveFeedback(storage);
+  }
 
   function normalize(value) {
     return String(value || "").trim();
   }
 
-  function postedAgeDays(value, nowValue = new Date()) {
-    if (!value) return null;
-    const date = new Date(value);
-    const now = nowValue instanceof Date ? nowValue : new Date(nowValue);
-    if (!Number.isFinite(date.getTime()) || !Number.isFinite(now.getTime())) return null;
-
-    const postedUtcDay = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-    const nowUtcDay = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-    return Math.max(0, Math.floor((nowUtcDay - postedUtcDay) / 86400000));
-  }
-
   function formatPostedDate(value, isAuthoritative, nowValue = new Date()) {
     if (!value) return "";
     const date = new Date(value);
-    const daysAgo = postedAgeDays(value, nowValue);
-    if (!Number.isFinite(date.getTime()) || daysAgo === null) return "";
+    const now = nowValue instanceof Date ? nowValue : new Date(nowValue);
+    if (!Number.isFinite(date.getTime()) || !Number.isFinite(now.getTime())) return "";
 
+    const postedUtcDay = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+    const nowUtcDay = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const daysAgo = Math.max(0, Math.floor((nowUtcDay - postedUtcDay) / 86400000));
     const monthDay = `${date.getUTCMonth() + 1}/${date.getUTCDate()}`;
     const ageLabel = `${daysAgo} ${daysAgo === 1 ? "day" : "days"} ago`;
     return isAuthoritative ? `Posted ${monthDay} · ${ageLabel}` : ageLabel;
-  }
-
-  function freshRankedResults(ranked, nowValue = new Date()) {
-    return (ranked || [])
-      .filter(result => {
-        if (!result || result.excluded || Number(result.total || 0) < FRESH_MIN_SCORE) return false;
-        const age = postedAgeDays(result.job?.posted_at, nowValue);
-        return age !== null && age <= FRESH_MAX_AGE_DAYS;
-      })
-      .slice(0, TOP_N);
-  }
-
-  function visibleQueueResults(ranked, view = "top", nowValue = new Date()) {
-    return view === "fresh"
-      ? freshRankedResults(ranked, nowValue)
-      : (ranked || []).slice(0, TOP_N);
   }
 
   function validateProfile(profile) {
@@ -642,46 +643,74 @@
     });
     actions.append(saved, applied, hide);
     card.append(actions);
+
+    const feedbackWrap = element("div", "apply-next-feedback-wrap");
+
+    function renderFeedback() {
+      feedbackWrap.innerHTML = "";
+      const feedback = typeof localStorage !== "undefined" ? getFeedback(job.id) : null;
+      if (feedback) {
+        const msg = feedback.type === "good" ? "You marked this as a good suggestion." :
+                    (feedback.reason ? `You marked this as a bad suggestion (${feedback.reason}).` : "You marked this as a bad suggestion.");
+        const p = element("span", "apply-next-feedback-status muted", msg);
+        const undo = element("button", "text-btn", "Undo");
+        undo.type = "button";
+        undo.addEventListener("click", () => {
+          setFeedback(typeof localStorage !== "undefined" ? localStorage : null, job.id, null);
+          renderFeedback();
+        });
+        feedbackWrap.append(p, document.createTextNode(" "), undo);
+      } else {
+        const goodBtn = element("button", "text-btn", "Good suggestion");
+        goodBtn.type = "button";
+        goodBtn.addEventListener("click", () => {
+          setFeedback(typeof localStorage !== "undefined" ? localStorage : null, job.id, "good");
+          renderFeedback();
+        });
+        const badBtn = element("button", "text-btn", "Bad suggestion");
+        badBtn.type = "button";
+        badBtn.addEventListener("click", () => {
+          renderBadFeedbackForm();
+        });
+        feedbackWrap.append(goodBtn, element("span", "muted", " · "), badBtn);
+      }
+    }
+
+    function renderBadFeedbackForm() {
+      feedbackWrap.innerHTML = "";
+      const p = element("span", "muted", "Why? ");
+      const select = element("select", "apply-next-feedback-reason");
+      select.innerHTML = `
+        <option value="">Select a reason (optional)</option>
+        <option value="role interest">Role interest</option>
+        <option value="location">Location</option>
+        <option value="requirements/fit">Requirements/fit</option>
+        <option value="company/industry">Company/industry</option>
+        <option value="other">Other</option>
+      `;
+      const submit = element("button", "text-btn", "Submit");
+      submit.type = "button";
+      submit.addEventListener("click", () => {
+        setFeedback(typeof localStorage !== "undefined" ? localStorage : null, job.id, "bad", select.value || null);
+        renderFeedback();
+      });
+      const cancel = element("button", "text-btn", "Cancel");
+      cancel.type = "button";
+      cancel.addEventListener("click", renderFeedback);
+      feedbackWrap.append(p, select, document.createTextNode(" "), submit, document.createTextNode(" "), cancel);
+    }
+
+    renderFeedback();
+    card.append(feedbackWrap);
+
     return card;
-  }
-
-  function renderCurrentQueue(panel, profile, poolCount) {
-    if (!panel || !profile) return;
-    const list = panel.querySelector(".apply-next-list");
-    const note = panel.querySelector(".apply-next-queue-note");
-    if (!list || !note) return;
-
-    const ranked = visibleQueueResults(lastRankedResults, activeQueueView, new Date());
-    const inspectedCount = ranked.filter(result => result.inspection?.state === "inspected").length;
-
-    panel.querySelectorAll(".apply-next-view-btn").forEach(button => {
-      const active = button.dataset.queueView === activeQueueView;
-      button.classList.toggle("active", active);
-      button.setAttribute("aria-pressed", active ? "true" : "false");
-    });
-
-    if (activeQueueView === "fresh") {
-      note.textContent = `Showing ${ranked.length} strong matches posted within the last ${FRESH_MAX_AGE_DAYS} days from ${poolCount.toLocaleString()} current candidates. Ranked by overall Apply Next score, not posting time. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback.`;
-    } else {
-      note.textContent = `Showing ${ranked.length} highest-value options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`;
-    }
-
-    list.innerHTML = "";
-    ranked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
-    if (!ranked.length) {
-      list.append(element(
-        "p",
-        "muted",
-        activeQueueView === "fresh"
-          ? "No strong matches were posted within the last 2 days."
-          : "No eligible Apply Next candidates are available yet."
-      ));
-    }
   }
 
   function updateQueueOptimistically(panel, profile, appliedJobId) {
     const targetPanel = panel || (typeof document !== "undefined" ? document.querySelector("#applyNextPanel") : null);
     if (!targetPanel) return;
+    const list = targetPanel.querySelector(".apply-next-list");
+    if (!list) return;
 
     if (Array.isArray(lastRankedResults) && lastRankedResults.length) {
       lastRankedResults = lastRankedResults.filter(r => r.job && r.job.id !== appliedJobId && !state.applied?.has(r.job.id) && !state.hidden?.has(r.job.id));
@@ -690,10 +719,22 @@
       lastRankedResults = YartchivesApplyNext.rankJobs(pool, profile, new Date());
     }
 
-    const poolCount = (typeof feed !== "undefined" && Array.isArray(feed?.jobs) && profile)
-      ? candidatePool(feed.jobs, profile, state).length
-      : 0;
-    renderCurrentQueue(targetPanel, profile, poolCount);
+    const ranked = (lastRankedResults || []).slice(0, TOP_N);
+    const inspectedCount = ranked.filter(result => result.inspection?.state === "inspected").length;
+
+    const note = targetPanel.querySelector(".apply-next-note");
+    if (note && profile) {
+      const poolCount = (typeof feed !== "undefined" && Array.isArray(feed?.jobs))
+        ? candidatePool(feed.jobs, profile, state).length
+        : 0;
+      note.textContent = `Showing ${ranked.length} highest-value options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`;
+    }
+
+    list.innerHTML = "";
+    ranked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
+    if (!ranked.length) {
+      list.append(element("p", "muted", "No eligible Apply Next candidates are available yet."));
+    }
   }
 
   async function renderQueue(panel, profile) {
@@ -708,6 +749,9 @@
 
     lastRankedResults = ranked;
     lastProfile = profile;
+
+    const topRanked = ranked.slice(0, TOP_N);
+    const inspectedCount = topRanked.filter(result => result.inspection?.state === "inspected").length;
 
     const fragment = document.createDocumentFragment();
 
@@ -736,35 +780,25 @@
     heading.append(copy, controls);
     fragment.append(heading);
 
-    const viewTabs = element("div", "apply-next-view-tabs");
-    viewTabs.setAttribute("role", "group");
-    viewTabs.setAttribute("aria-label", "Apply Next recommendation view");
-    for (const [view, label] of [["top", "Top 10"], ["fresh", "Fresh"]]) {
-      const button = element("button", "apply-next-view-btn", label);
-      button.type = "button";
-      button.dataset.queueView = view;
-      button.addEventListener("click", () => {
-        if (activeQueueView === view) return;
-        activeQueueView = view;
-        renderCurrentQueue(panel, profile, candidatePool(feed.jobs, profile, state).length);
-      });
-      viewTabs.append(button);
-    }
-    fragment.append(viewTabs);
-
-    const note = element("p", "apply-next-note apply-next-queue-note");
+    const note = element(
+      "p",
+      "apply-next-note",
+      `Showing ${topRanked.length} highest-value options from ${pool.length.toLocaleString()} current candidates. ${inspectedCount} of these ${topRanked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`
+    );
     fragment.append(note);
     if (explanation) {
       const explanationEl = element("p", "apply-next-explanation apply-next-note", explanation);
       fragment.append(explanationEl);
     }
 
+
     const list = element("div", "apply-next-list");
+    topRanked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
+    if (!topRanked.length) list.append(element("p", "muted", "No eligible Apply Next candidates are available yet."));
     fragment.append(list);
 
     panel.innerHTML = "";
     panel.append(fragment);
-    renderCurrentQueue(panel, profile, pool.length);
   }
 
   async function renderPanel(panel) {
@@ -775,6 +809,7 @@
 
   function init() {
     if (typeof YartchivesApplyNext === "undefined") return;
+    if (typeof localStorage !== "undefined") loadFeedback(localStorage);
     loadInspectionArtifact();
     const headerActions = document.querySelector(".header-actions");
     const main = document.querySelector("main");
@@ -813,13 +848,9 @@
 
   return {
     STORAGE_KEY,
+    FEEDBACK_STORAGE_KEY,
     INSPECTION_URL,
     TOP_N,
-    FRESH_MAX_AGE_DAYS,
-    FRESH_MIN_SCORE,
-    postedAgeDays,
-    freshRankedResults,
-    visibleQueueResults,
     validateProfile,
     loadProfile,
     saveProfile,
@@ -846,6 +877,10 @@
     updateQueueOptimistically,
     explainProfileChange,
     setProfileSetupMode,
+    loadFeedback,
+    saveFeedback,
+    getFeedback,
+    setFeedback,
     init,
   };
 });

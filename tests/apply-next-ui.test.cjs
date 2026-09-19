@@ -33,27 +33,6 @@ assert.equal(UI.scoreBand("location", 15, 20), "Very convenient");
 assert.equal(UI.totalScoreBandClass(50), "apply-next-score-low");
 assert.equal(UI.totalScoreBandClass(65), "apply-next-score-medium");
 assert.equal(UI.totalScoreBandClass(85), "apply-next-score-high");
-assert.equal(UI.FRESH_MAX_AGE_DAYS, 2);
-assert.equal(UI.FRESH_MIN_SCORE, 55);
-
-const freshNow = new Date("2026-09-19T12:00:00Z");
-const freshRanked = [
-  { total: 88, job: { id: "fresh-best", posted_at: "2026-09-19" } },
-  { total: 99, job: { id: "older-best", posted_at: "2026-09-16" } },
-  { total: 54, job: { id: "fresh-low", posted_at: "2026-09-19" } },
-  { total: 72, job: { id: "fresh-good", posted_at: "2026-09-17" } },
-  { total: 70, job: { id: "unknown-date", posted_at: null } },
-];
-assert.equal(UI.postedAgeDays("2026-09-17", freshNow), 2);
-assert.equal(UI.postedAgeDays("not-a-date", freshNow), null);
-assert.deepEqual(
-  UI.freshRankedResults(freshRanked, freshNow).map(result => result.job.id),
-  ["fresh-best", "fresh-good"]
-);
-assert.deepEqual(
-  UI.visibleQueueResults(freshRanked, "top", freshNow).map(result => result.job.id),
-  freshRanked.map(result => result.job.id)
-);
 // rankingSummary tests
 // Note: test environment componentMax: fit=40, freshness=10, roi=15, location=15
 assert.equal(
@@ -293,15 +272,46 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /apply-next-profile-mode/, "Focused onboarding should use an explicit main-state class");
 
   assert.doesNotMatch(uiSource, /<option value="newest">Newest<\/option>/, "Apply Next should not expose a Newest sort mode");
-  assert.match(uiSource, /\["top", "Top 10"\]/, "Apply Next should expose the overall Top 10 view");
-  assert.match(uiSource, /\["fresh", "Fresh"\]/, "Apply Next should expose a Fresh view");
-  assert.match(uiSource, /Ranked by overall Apply Next score, not posting time\./, "Fresh should preserve recommendation quality ordering");
 
   assert.match(uiSource, /document\.createDocumentFragment\(\)/, "renderQueue should build DOM off-screen before swapping to avoid UI stalls");
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
 
   const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
   assert.ok(deployWorkflow.includes("data/workday-inspections.json"), "Pages workflow must deploy Workday inspections");
+
+  // Feedback state tests
+  const feedbackStorageVals = new Map();
+  const feedbackStorage = {
+    getItem: key => feedbackStorageVals.get(key) || null,
+    setItem: (key, value) => feedbackStorageVals.set(key, value),
+    removeItem: key => feedbackStorageVals.delete(key),
+  };
+
+  // Ensure we start with clean state
+  UI.loadFeedback(feedbackStorage);
+  assert.equal(UI.getFeedback("job1"), null, "Feedback should default to null");
+
+  UI.setFeedback(feedbackStorage, "job1", "good");
+  let stored = UI.getFeedback("job1");
+  assert.ok(stored, "Feedback should be saved");
+  assert.equal(stored.type, "good", "Feedback type should be good");
+  assert.equal(stored.reason, null, "Reason should be null for good feedback");
+
+  // Verify persistence
+  const rawFeedback = JSON.parse(feedbackStorageVals.get(UI.FEEDBACK_STORAGE_KEY) || "{}");
+  assert.ok(rawFeedback["job1"], "Feedback should be persisted to storage");
+  assert.equal(rawFeedback["job1"].type, "good");
+
+  UI.setFeedback(feedbackStorage, "job1", "bad", "location");
+  stored = UI.getFeedback("job1");
+  assert.equal(stored.type, "bad", "Feedback should update to bad");
+  assert.equal(stored.reason, "location", "Reason should be saved");
+
+  UI.setFeedback(feedbackStorage, "job1", null);
+  assert.equal(UI.getFeedback("job1"), null, "Feedback should be cleared when type is null");
+
+  const rawCleared = JSON.parse(feedbackStorageVals.get(UI.FEEDBACK_STORAGE_KEY) || "{}");
+  assert.ok(!rawCleared["job1"], "Cleared feedback should be removed from storage");
 
   console.log("apply-next UI tests passed");
 })().catch(error => {

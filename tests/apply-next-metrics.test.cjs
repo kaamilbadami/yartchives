@@ -37,5 +37,23 @@ const Metrics = require("../apply-next-metrics.js");
   assert.ok(metricsFile.includes("Current Architecture Limitations for Durable Aggregate Measurement"));
   assert.ok(metricsFile.includes("Smallest Future Instrumentation Requirement"));
 
+
+  const feedbackState = {
+    job1: { type: 'good' },
+    job2: { type: 'bad', reason: 'location' },
+    job3: { type: 'bad', reason: 'role interest' },
+    job4: { type: 'bad', reason: null }, // testing unknown
+    job5: { type: 'good' },
+  };
+
+  const feedbackMetrics = Metrics.analyzeFeedback(rankedPool, feedbackState, 10);
+  assert.strictEqual(feedbackMetrics.totalRated, 5);
+  assert.strictEqual(feedbackMetrics.goodCount, 2);
+  assert.strictEqual(feedbackMetrics.badCount, 3);
+  assert.strictEqual(feedbackMetrics.goodRate, 0.4);
+  assert.strictEqual(feedbackMetrics.reasons['location'], 1);
+  assert.strictEqual(feedbackMetrics.reasons['role interest'], 1);
+  assert.strictEqual(feedbackMetrics.reasons['unknown'], 1);
+
   console.log("Metrics tests passed!");
 })();
