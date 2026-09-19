@@ -257,34 +257,110 @@ def gh_run(*args: str) -> None:
     subprocess.run(["gh", *args], check=True)
 
 
-def update_pull_request_branch(repo: str, number: int, head_sha: str) -> tuple[bool, str]:
-    result = subprocess.run(
+def update_pull_request_branch(
+    repo: str,
+    number: int,
+    head_sha: str,
+    head_ref: str,
+    base_ref: str,
+) -> tuple[bool, str]:
+    """Merge the current base into a PR branch without creating recursive PR CI.
+
+    GitHub's update-branch API emits a bot-authored pull_request synchronize event.
+    In this repository those runs require maintainer approval, producing an
+    action_required queue. A normal GITHUB_TOKEN git push does not recursively
+    trigger Actions, so we push the merge commit directly and then explicitly
+    workflow-dispatch exact-head Quality checks.
+    """
+    fetch = subprocess.run(
         [
-            "gh",
-            "api",
-            "--method",
-            "PUT",
-            f"repos/{repo}/pulls/{number}/update-branch",
-            "-f",
-            f"expected_head_sha={head_sha}",
+            "git",
+            "fetch",
+            "--no-tags",
+            "origin",
+            f"+refs/heads/{base_ref}:refs/remotes/origin/{base_ref}",
+            f"+refs/heads/{head_ref}:refs/remotes/origin/{head_ref}",
         ],
         text=True,
         capture_output=True,
     )
-    if result.returncode == 0:
-        return True, ""
-    detail = "\n".join(part for part in (result.stdout, result.stderr) if part).strip()
-    lowered = detail.casefold()
-    if "merge conflict between base and head" in lowered or (
-        "http 422" in lowered and "merge conflict" in lowered
-    ):
-        return False, detail
-    raise subprocess.CalledProcessError(
-        result.returncode,
-        result.args,
-        output=result.stdout,
-        stderr=result.stderr,
+    if fetch.returncode != 0:
+        raise subprocess.CalledProcessError(
+            fetch.returncode,
+            fetch.args,
+            output=fetch.stdout,
+            stderr=fetch.stderr,
+        )
+
+    remote_head = subprocess.run(
+        ["git", "rev-parse", f"refs/remotes/origin/{head_ref}"],
+        check=True,
+        text=True,
+        capture_output=True,
+    ).stdout.strip()
+    if remote_head != head_sha:
+        raise RuntimeError(
+            f"PR #{number} in {repo} moved from {head_sha} to {remote_head} during branch sync"
+        )
+
+    subprocess.run(
+        ["git", "checkout", "--detach", head_sha],
+        check=True,
+        text=True,
+        capture_output=True,
     )
+    merge = subprocess.run(
+        [
+            "git",
+            "-c",
+            "user.name=github-actions[bot]",
+            "-c",
+            "user.email=41898282+github-actions[bot]@users.noreply.github.com",
+            "merge",
+            "--no-edit",
+            f"refs/remotes/origin/{base_ref}",
+        ],
+        text=True,
+        capture_output=True,
+    )
+    if merge.returncode != 0:
+        detail = "\n".join(
+            part for part in (merge.stdout, merge.stderr) if part
+        ).strip()
+        subprocess.run(
+            ["git", "merge", "--abort"],
+            text=True,
+            capture_output=True,
+        )
+        lowered = detail.casefold()
+        if "conflict" in lowered or "automatic merge failed" in lowered:
+            return False, detail
+        raise subprocess.CalledProcessError(
+            merge.returncode,
+            merge.args,
+            output=merge.stdout,
+            stderr=merge.stderr,
+        )
+
+    push = subprocess.run(
+        [
+            "git",
+            "push",
+            "origin",
+            f"HEAD:refs/heads/{head_ref}",
+            f"--force-with-lease=refs/heads/{head_ref}:{head_sha}",
+        ],
+        text=True,
+        capture_output=True,
+    )
+    if push.returncode != 0:
+        raise subprocess.CalledProcessError(
+            push.returncode,
+            push.args,
+            output=push.stdout,
+            stderr=push.stderr,
+        )
+    return True, ""
 
 
 def flatten_pages(pages: Any) -> list[Any]:
@@ -422,7 +498,13 @@ def main() -> int:
         base_ref = str((pr.get("base") or {}).get("ref") or "main")
         comparison = gh_json("api", f"repos/{repo}/compare/{base_ref}...{head_sha}")
         if int(comparison.get("behind_by") or 0) > 0:
-            updated, detail = update_pull_request_branch(repo, number, head_sha)
+            updated, detail = update_pull_request_branch(
+                repo,
+                number,
+                head_sha,
+                head_ref,
+                base_ref,
+            )
             if not updated:
                 print(
                     f"Skipping PR #{number}: branch cannot be updated automatically because "
