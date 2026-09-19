@@ -59,6 +59,7 @@ const state = {
   saved: new Set(),
   applied: new Set(),
   hidden: new Set(),
+  feedback: {},
 };
 
 const els = {
@@ -114,6 +115,7 @@ function loadSavedState() {
     state.saved = new Set(saved.saved || []);
     state.applied = new Set(saved.applied || []);
     state.hidden = new Set(saved.hidden || []);
+    state.feedback = saved.feedback || {};
     if (!["all", "saved", "applied", "hidden"].includes(state.status)) state.status = "all";
   } catch (_) {}
 
@@ -136,6 +138,7 @@ function persist() {
     saved: [...state.saved],
     applied: [...state.applied],
     hidden: [...state.hidden],
+    feedback: state.feedback,
   }));
 }
 

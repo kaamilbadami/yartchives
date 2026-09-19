@@ -292,6 +292,17 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /setProfileSetupMode\(false\)/, "Queue and panel close paths should restore the normal feed");
   assert.match(uiSource, /apply-next-profile-mode/, "Focused onboarding should use an explicit main-state class");
 
+  // Feedback tests
+  assert.match(uiSource, /state\.feedback\[job\.id\] = \{ rating: "good" \}/, "Good feedback should be recorded in state");
+  assert.match(uiSource, /state\.feedback\[job\.id\] = \{ rating: "bad" \}/, "Bad feedback should be recorded in state");
+  assert.match(uiSource, /delete state\.feedback\[job\.id\]/, "Feedback should be reversible (Undo)");
+  assert.match(uiSource, /state\.feedback\[job\.id\]\.reason = e\.target\.value/, "Feedback should support optional reasons for bad suggestions");
+  assert.match(uiSource, /<option value="role">Role interest<\/option>/, "Optional reason should include Role interest");
+  assert.match(uiSource, /<option value="location">Location<\/option>/, "Optional reason should include Location");
+  assert.match(uiSource, /<option value="fit">Requirements\/Fit<\/option>/, "Optional reason should include Requirements/Fit");
+  assert.match(uiSource, /<option value="company">Company\/Industry<\/option>/, "Optional reason should include Company/Industry");
+  assert.match(uiSource, /<option value="other">Other<\/option>/, "Optional reason should include Other");
+
   assert.doesNotMatch(uiSource, /<option value="newest">Newest<\/option>/, "Apply Next should not expose a Newest sort mode");
   assert.match(uiSource, /\["top", "Top 10"\]/, "Apply Next should expose the overall Top 10 view");
   assert.match(uiSource, /\["fresh", "Fresh"\]/, "Apply Next should expose a Fresh view");
