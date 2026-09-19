@@ -1,5 +1,6 @@
 import importlib.util
 from pathlib import Path
+from datetime import datetime, timezone
 import unittest
 from unittest import mock
 
@@ -1430,6 +1431,131 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertEqual(session["id"], "retry-new")
         self.assertEqual(len(gh_calls), 2)
         self.assertIn("<!-- jules-session-id: retry-new -->", gh_calls[1][-1])
+
+
+    def test_stale_first_attempt_is_deleted_and_queued_for_one_retry(self):
+        issues = [
+            issue(
+                178,
+                "frontend state",
+                body=task_body("P1", "frontend-state"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+        deleted = []
+        comments = [{"body": "<!-- jules-session-id: stale1 -->"}]
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: comments,
+            get_session=lambda *args: {
+                "id": "stale1",
+                "state": "IN_PROGRESS",
+                "createTime": "2026-09-19T01:00:00Z",
+                "updateTime": "2026-09-19T01:30:00Z",
+            },
+            load_activities=lambda session_id: [
+                {
+                    "createTime": "2026-09-19T01:45:00Z",
+                    "agentMessaged": {"agentMessage": "Still working on the test."},
+                }
+            ],
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: gh_calls.append(args),
+            now_fn=lambda: datetime(2026, 9, 19, 5, 0, tzinfo=timezone.utc),
+            stale_seconds=3 * 60 * 60,
+        )
+
+        self.assertEqual(deleted, ["stale1"])
+        labels = mod.label_names(issues[0])
+        self.assertIn("jules-retry-ready", labels)
+        self.assertNotIn("jules-session", labels)
+        self.assertIn("<!-- jules-retry-from: stale1 -->", gh_calls[1][-1])
+        self.assertIn("Still working on the test.", gh_calls[1][-1])
+
+    def test_stale_retry_is_parked_failed_instead_of_retried_forever(self):
+        issues = [
+            issue(
+                178,
+                "frontend state",
+                body=task_body("P1", "frontend-state"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+        deleted = []
+        comments = [
+            {"body": "<!-- jules-retry-from: first -->\nPrior context."},
+            {"body": "<!-- jules-session-id: stale2 -->"},
+        ]
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: comments,
+            get_session=lambda *args: {
+                "id": "stale2",
+                "state": "AWAITING_USER_FEEDBACK",
+                "createTime": "2026-09-18T23:00:00Z",
+                "updateTime": "2026-09-19T00:00:00Z",
+            },
+            load_activities=lambda session_id: [
+                {"createTime": "2026-09-19T00:10:00Z"}
+            ],
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: gh_calls.append(args),
+            now_fn=lambda: datetime(2026, 9, 19, 4, 0, tzinfo=timezone.utc),
+            stale_seconds=3 * 60 * 60,
+        )
+
+        self.assertEqual(deleted, ["stale2"])
+        labels = mod.label_names(issues[0])
+        self.assertIn("jules-failed", labels)
+        self.assertNotIn("jules-retry-ready", labels)
+        self.assertIn("parked the issue as failed", gh_calls[1][-1])
+
+    def test_recent_activity_keeps_long_running_session_active(self):
+        issues = [
+            issue(
+                179,
+                "dedupe",
+                body=task_body("P1", "coverage"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        deleted = []
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [
+                {"body": "<!-- jules-session-id: active1 -->"}
+            ],
+            get_session=lambda *args: {
+                "id": "active1",
+                "state": "IN_PROGRESS",
+                "createTime": "2026-09-19T00:00:00Z",
+                "updateTime": "2026-09-19T00:30:00Z",
+            },
+            load_activities=lambda session_id: [
+                {"createTime": "2026-09-19T03:30:00Z"}
+            ],
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: gh_calls.append(args),
+            now_fn=lambda: datetime(2026, 9, 19, 4, 0, tzinfo=timezone.utc),
+            stale_seconds=3 * 60 * 60,
+        )
+
+        self.assertEqual(deleted, [])
+        self.assertEqual(gh_calls, [])
+        self.assertIn("jules-session", mod.label_names(issues[0]))
+
 
 
 if __name__ == "__main__":
