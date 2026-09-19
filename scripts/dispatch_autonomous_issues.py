@@ -253,6 +253,93 @@ def retry_context_from_comments(comments: Iterable[dict[str, Any]]) -> str | Non
     return None
 
 
+def legacy_failed_retry_context(
+    comments: Iterable[dict[str, Any]],
+) -> tuple[str, str] | None:
+    """Return one retry context for failures parked before retry support existed."""
+    comment_list = list(comments)
+    if retry_marker_from_comments(comment_list) is not None:
+        return None
+
+    session_id = session_id_from_comments(comment_list)
+    if not session_id:
+        return None
+
+    terminal_prefix = (
+        f"Jules session `{session_id}` ended in FAILED state and released this "
+        "automation slot. It will not be retried automatically."
+    )
+    terminal_body: str | None = None
+    for comment in reversed(comment_list):
+        body = str(comment.get("body") or "")
+        if terminal_prefix in body:
+            terminal_body = body
+            break
+    if terminal_body is None:
+        return None
+
+    # Modern failure reconciliation always records either diagnostics or an
+    # explicit no-diagnostics line. Leave those decisions alone. The only
+    # pre-retry diagnostic we migrate is Jules's non-actionable generic failure.
+    no_diagnostics = "No additional failure diagnostics were reported by the Jules API."
+    diagnostics_header = "Failure diagnostics:"
+    generic_failure = "Jules was unable to complete the task."
+    if no_diagnostics in terminal_body:
+        return None
+    if diagnostics_header in terminal_body and generic_failure not in terminal_body:
+        return None
+
+    context = (
+        "This Jules failure was parked before the one-retry lifecycle was available. "
+        "Treat it as the single legacy migration retry; do not infer a code defect from "
+        "the absence of actionable diagnostics."
+    )
+    prior_feedback = explicit_feedback_for_session(comment_list, session_id)
+    if prior_feedback:
+        context += (
+            "\n\nPrior explicit GitHub feedback that must be preserved in the retry:"
+            f"\n\n> {prior_feedback.replace(chr(10), chr(10) + '> ')}"
+        )
+    if diagnostics_header in terminal_body:
+        context += f"\n\nPrior failure record:\n\n{terminal_body}"
+    return session_id, context
+
+
+def migrate_legacy_jules_failures(
+    issues: list[dict[str, Any]],
+    *,
+    repo: str,
+    load_comments: Callable[[int], list[dict[str, Any]]],
+    run_gh: Callable[..., None] = gh_run,
+) -> None:
+    """Move only pre-retry ambiguous failures into the existing one-retry path."""
+    for issue in issues:
+        if JULES_FAILED_LABEL not in label_names(issue):
+            continue
+        number = int(issue["number"])
+        retry = legacy_failed_retry_context(load_comments(number))
+        if retry is None:
+            continue
+
+        session_id, context = retry
+        run_gh(
+            "issue", "edit", str(number), "--repo", repo,
+            "--remove-label", JULES_FAILED_LABEL,
+            "--add-label", JULES_RETRY_LABEL,
+        )
+        replace_issue_labels_in_memory(
+            issue,
+            remove=(JULES_FAILED_LABEL,),
+            add=(JULES_RETRY_LABEL,),
+        )
+        run_gh(
+            "issue", "comment", str(number), "--repo", repo,
+            "--body",
+            f"{JULES_RETRY_MARKER.format(session_id=session_id)}\n{context}",
+        )
+        print(f"Migrated legacy Jules failure for #{number} into one retry.")
+
+
 def explicit_feedback_for_session(
     comments: Iterable[dict[str, Any]], session_id: str
 ) -> str | None:
@@ -985,6 +1072,11 @@ def run_dispatch_cycle(
         issues,
         repo=repo,
         api_key=api_key,
+        load_comments=load_comments,
+    )
+    migrate_legacy_jules_failures(
+        issues,
+        repo=repo,
         load_comments=load_comments,
     )
     selected = select_tasks(issues)
