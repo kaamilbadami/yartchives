@@ -1,6 +1,8 @@
 import importlib.util
 from pathlib import Path
+from datetime import datetime, timezone
 import unittest
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = ROOT / "scripts" / "dispatch_autonomous_issues.py"
@@ -1032,9 +1034,10 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertEqual([call[2] for call in cycles], [None, "source", "source"])
         self.assertEqual(sleeps, [30, 30])
 
-    def test_watch_loop_stops_at_bound_and_leaves_recovery_to_next_run(self):
+    def test_watch_loop_queues_followup_when_bound_expires_with_active_work(self):
         cycles = []
         sleeps = []
+        followups = []
         times = iter([0, 755])
 
         mod.watch_jules_backlog(
@@ -1046,12 +1049,36 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 cycles.append((repo, api_key, source_name)) or True,
                 "source",
             ),
+            schedule_followup=lambda repo: followups.append(repo),
             sleep_fn=lambda seconds: sleeps.append(seconds),
             monotonic_fn=lambda: next(times),
         )
 
         self.assertEqual(len(cycles), 1)
         self.assertEqual(sleeps, [])
+        self.assertEqual(followups, ["kaamilbadami/yartchives"])
+
+    def test_followup_dispatch_uses_same_workflow(self):
+        calls = []
+        with mock.patch.object(mod, "gh_run", side_effect=lambda *args: calls.append(args)):
+            mod.schedule_dispatch_followup("kaamilbadami/yartchives")
+
+        self.assertEqual(
+            calls,
+            [
+                (
+                    "workflow",
+                    "run",
+                    "autonomous-dispatch.yml",
+                    "--repo",
+                    "kaamilbadami/yartchives",
+                )
+            ],
+        )
+
+    def test_dispatch_workflow_grants_actions_write_for_self_handoff(self):
+        workflow = (ROOT / ".github" / "workflows" / "autonomous-dispatch.yml").read_text()
+        self.assertIn("actions: write", workflow)
 
     def test_paginated_issue_pages_are_flattened_without_json_stream_assumptions(self):
         pages = [[{"number": 1}, {"number": 2}], [{"number": 3}]]
@@ -1404,6 +1431,265 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertEqual(session["id"], "retry-new")
         self.assertEqual(len(gh_calls), 2)
         self.assertIn("<!-- jules-session-id: retry-new -->", gh_calls[1][-1])
+
+
+    def test_stale_first_attempt_is_deleted_and_queued_for_one_retry(self):
+        issues = [
+            issue(
+                178,
+                "frontend state",
+                body=task_body("P1", "frontend-state"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+        deleted = []
+        comments = [{"body": "<!-- jules-session-id: stale1 -->"}]
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: comments,
+            get_session=lambda *args: {
+                "id": "stale1",
+                "state": "IN_PROGRESS",
+                "createTime": "2026-09-19T01:00:00Z",
+                "updateTime": "2026-09-19T01:30:00Z",
+            },
+            load_activities=lambda session_id: [
+                {
+                    "createTime": "2026-09-19T01:45:00Z",
+                    "agentMessaged": {"agentMessage": "Still working on the test."},
+                }
+            ],
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: gh_calls.append(args),
+            now_fn=lambda: datetime(2026, 9, 19, 5, 0, tzinfo=timezone.utc),
+            stale_seconds=3 * 60 * 60,
+        )
+
+        self.assertEqual(deleted, ["stale1"])
+        labels = mod.label_names(issues[0])
+        self.assertIn("jules-retry-ready", labels)
+        self.assertNotIn("jules-session", labels)
+        self.assertIn("<!-- jules-retry-from: stale1 -->", gh_calls[1][-1])
+        self.assertIn("Still working on the test.", gh_calls[1][-1])
+
+    def test_stale_retry_is_parked_failed_instead_of_retried_forever(self):
+        issues = [
+            issue(
+                178,
+                "frontend state",
+                body=task_body("P1", "frontend-state"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        gh_calls = []
+        deleted = []
+        comments = [
+            {"body": "<!-- jules-retry-from: first -->\nPrior context."},
+            {"body": "<!-- jules-session-id: stale2 -->"},
+        ]
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: comments,
+            get_session=lambda *args: {
+                "id": "stale2",
+                "state": "AWAITING_USER_FEEDBACK",
+                "createTime": "2026-09-18T23:00:00Z",
+                "updateTime": "2026-09-19T00:00:00Z",
+            },
+            load_activities=lambda session_id: [
+                {"createTime": "2026-09-19T00:10:00Z"}
+            ],
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: gh_calls.append(args),
+            now_fn=lambda: datetime(2026, 9, 19, 4, 0, tzinfo=timezone.utc),
+            stale_seconds=3 * 60 * 60,
+        )
+
+        self.assertEqual(deleted, ["stale2"])
+        labels = mod.label_names(issues[0])
+        self.assertIn("jules-failed", labels)
+        self.assertNotIn("jules-retry-ready", labels)
+        self.assertIn("parked the issue as failed", gh_calls[1][-1])
+
+    def test_recent_activity_keeps_long_running_session_active(self):
+        issues = [
+            issue(
+                179,
+                "dedupe",
+                body=task_body("P1", "coverage"),
+                labels=("jules", "jules-session"),
+            )
+        ]
+        deleted = []
+        gh_calls = []
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: [
+                {"body": "<!-- jules-session-id: active1 -->"}
+            ],
+            get_session=lambda *args: {
+                "id": "active1",
+                "state": "IN_PROGRESS",
+                "createTime": "2026-09-19T00:00:00Z",
+                "updateTime": "2026-09-19T00:30:00Z",
+            },
+            load_activities=lambda session_id: [
+                {"createTime": "2026-09-19T03:30:00Z"}
+            ],
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: gh_calls.append(args),
+            now_fn=lambda: datetime(2026, 9, 19, 4, 0, tzinfo=timezone.utc),
+            stale_seconds=3 * 60 * 60,
+        )
+
+        self.assertEqual(deleted, [])
+        self.assertEqual(gh_calls, [])
+        self.assertIn("jules-session", mod.label_names(issues[0]))
+
+
+
+    def test_completed_session_pr_requires_exact_same_repo_audit_record(self):
+        comments = [
+            {
+                "body": (
+                    "Jules completed session `abc123` and released this automation slot.\n\n"
+                    "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
+                )
+            }
+        ]
+        self.assertEqual(
+            mod.completed_session_pr_from_comments(
+                comments, "kaamilbadami/yartchives"
+            ),
+            ("abc123", 254),
+        )
+        self.assertIsNone(
+            mod.completed_session_pr_from_comments(comments, "other/repo")
+        )
+
+    def test_cleanup_deletes_completed_session_only_after_exact_pr_is_merged(self):
+        deleted = []
+        gh_calls = []
+        issues = [{"number": 211}]
+        comments = {
+            211: [
+                {
+                    "body": (
+                        "Jules completed session `done1` and released this automation slot.\n\n"
+                        "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
+                    )
+                }
+            ]
+        }
+
+        mod.cleanup_merged_jules_sessions(
+            "kaamilbadami/yartchives",
+            "secret",
+            load_review_ready=lambda: issues,
+            load_comments=lambda number: comments[number],
+            get_pr=lambda number: {"number": number, "merged": True},
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(deleted, ["done1"])
+        self.assertEqual(
+            gh_calls,
+            [
+                (
+                    "issue", "close", "211", "--repo", "kaamilbadami/yartchives",
+                    "--reason", "completed",
+                ),
+                (
+                    "issue", "edit", "211", "--repo", "kaamilbadami/yartchives",
+                    "--remove-label", "jules-review-ready",
+                ),
+            ],
+        )
+
+    def test_cleanup_closes_issue_before_clearing_review_ready_label(self):
+        gh_calls = []
+
+        mod.cleanup_merged_jules_sessions(
+            "kaamilbadami/yartchives",
+            "secret",
+            load_review_ready=lambda: [{"number": 211}],
+            load_comments=lambda number: [
+                {
+                    "body": (
+                        "Jules completed session `done1` and released this automation slot.\n\n"
+                        "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
+                    )
+                }
+            ],
+            get_pr=lambda number: {"number": number, "merged": True},
+            delete_session=lambda session_id: None,
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        close_index = next(i for i, call in enumerate(gh_calls) if call[:2] == ("issue", "close"))
+        clear_index = next(i for i, call in enumerate(gh_calls) if call[:2] == ("issue", "edit"))
+        self.assertLess(close_index, clear_index)
+
+    def test_cleanup_keeps_session_when_linked_pr_is_not_merged(self):
+        deleted = []
+        gh_calls = []
+
+        mod.cleanup_merged_jules_sessions(
+            "kaamilbadami/yartchives",
+            "secret",
+            load_review_ready=lambda: [{"number": 211}],
+            load_comments=lambda number: [
+                {
+                    "body": (
+                        "Jules completed session `done1` and released this automation slot.\n\n"
+                        "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
+                    )
+                }
+            ],
+            get_pr=lambda number: {"number": number, "merged": False},
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(deleted, [])
+        self.assertEqual(gh_calls, [])
+
+    def test_cleanup_retries_non_404_delete_failures_without_clearing_label(self):
+        gh_calls = []
+
+        def fail_delete(session_id):
+            raise RuntimeError("Jules API unavailable")
+
+        mod.cleanup_merged_jules_sessions(
+            "kaamilbadami/yartchives",
+            "secret",
+            load_review_ready=lambda: [{"number": 211}],
+            load_comments=lambda number: [
+                {
+                    "body": (
+                        "Jules completed session `done1` and released this automation slot.\n\n"
+                        "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
+                    )
+                }
+            ],
+            get_pr=lambda number: {"number": number, "merged": True},
+            delete_session=fail_delete,
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(gh_calls, [])
+
 
 
 if __name__ == "__main__":

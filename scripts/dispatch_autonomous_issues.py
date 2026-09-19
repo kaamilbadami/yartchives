@@ -9,6 +9,7 @@ import os
 import re
 import subprocess
 import time
+from datetime import datetime, timezone
 from typing import Any, Callable, Iterable, NamedTuple
 from urllib import parse, request
 
@@ -65,6 +66,7 @@ CODEX_RESERVED_LABEL = "codex"
 CODEX_WORKER_PREFIX = "codex-worker-"
 DEFAULT_POLL_SECONDS = 30
 DEFAULT_WATCH_SECONDS = 13 * 60
+DEFAULT_STALE_SECONDS = 3 * 60 * 60
 
 
 class Task(NamedTuple):
@@ -468,6 +470,92 @@ def delete_jules_session(api_key: str, session_id: str) -> None:
     )
 
 
+def completed_session_pr_from_comments(
+    comments: Iterable[dict[str, Any]],
+    repo: str,
+) -> tuple[str, int] | None:
+    """Return the newest completed Jules session tied to a PR in this repository."""
+    owner, name = (re.escape(part) for part in repo.split("/", 1))
+    pattern = re.compile(
+        rf"Jules completed session \`([^\`]+)\`.*?"
+        rf"Pull request:\s*https://github\.com/{owner}/{name}/pull/(\d+)",
+        re.IGNORECASE | re.DOTALL,
+    )
+    for comment in reversed(list(comments)):
+        match = pattern.search(str(comment.get("body") or ""))
+        if match:
+            return match.group(1), int(match.group(2))
+    return None
+
+
+def cleanup_merged_jules_sessions(
+    repo: str,
+    api_key: str,
+    *,
+    load_review_ready: Callable[[], list[dict[str, Any]]] | None = None,
+    load_comments: Callable[[int], list[dict[str, Any]]] | None = None,
+    get_pr: Callable[[int], dict[str, Any]] | None = None,
+    delete_session: Callable[[str], None] | None = None,
+    run_gh: Callable[..., None] | None = None,
+) -> None:
+    """Delete completed Jules sessions only after their exact linked PR is merged."""
+    if load_review_ready is None:
+        load_review_ready = lambda: gh_paginated_json(
+            "api",
+            f"repos/{repo}/issues?state=all&labels={parse.quote(JULES_REVIEW_READY_LABEL)}&per_page=100",
+        )
+    if load_comments is None:
+        load_comments = lambda number: gh_paginated_json(
+            "api",
+            f"repos/{repo}/issues/{number}/comments?per_page=100",
+        )
+    if get_pr is None:
+        get_pr = lambda number: gh_json("api", f"repos/{repo}/pulls/{number}")
+    if delete_session is None:
+        delete_session = lambda session_id: delete_jules_session(api_key, session_id)
+    if run_gh is None:
+        run_gh = gh_run
+
+    for issue in load_review_ready():
+        if "pull_request" in issue:
+            continue
+        number = int(issue["number"])
+        completed = completed_session_pr_from_comments(load_comments(number), repo)
+        if completed is None:
+            continue
+        session_id, pr_number = completed
+        pr = get_pr(pr_number)
+        if pr.get("merged") is not True:
+            continue
+
+        try:
+            delete_session(session_id)
+            print(
+                f"Deleted completed Jules session {session_id} after merged PR "
+                f"#{pr_number} for issue #{number}."
+            )
+        except Exception as exc:
+            if getattr(exc, "code", None) != 404:
+                print(
+                    f"Could not delete completed Jules session {session_id} after merged "
+                    f"PR #{pr_number}; keeping review-ready state for retry: {exc}"
+                )
+                continue
+            print(
+                f"Completed Jules session {session_id} was already deleted after merged "
+                f"PR #{pr_number}; marking cleanup complete."
+            )
+
+        run_gh(
+            "issue", "close", str(number), "--repo", repo,
+            "--reason", "completed",
+        )
+        run_gh(
+            "issue", "edit", str(number), "--repo", repo,
+            "--remove-label", JULES_REVIEW_READY_LABEL,
+        )
+
+
 def pull_request_url(session: dict[str, Any]) -> str | None:
     for output in session.get("outputs", []):
         if not isinstance(output, dict):
@@ -562,6 +650,52 @@ def list_jules_activities(api_key: str, session_id: str) -> list[dict[str, Any]]
             return activities
 
 
+def parse_jules_time(value: Any) -> datetime | None:
+    """Parse Jules RFC3339 timestamps without making missing timestamps fatal."""
+    text = str(value or "").strip()
+    if not text:
+        return None
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def latest_jules_activity_time(
+    session: dict[str, Any],
+    activities: Iterable[dict[str, Any]],
+) -> datetime | None:
+    """Return the newest API-observed session/activity timestamp."""
+    timestamps = [
+        parse_jules_time(session.get("updateTime")),
+        parse_jules_time(session.get("createTime")),
+    ]
+    timestamps.extend(
+        parse_jules_time(activity.get("createTime"))
+        for activity in activities
+        if isinstance(activity, dict)
+    )
+    valid = [timestamp for timestamp in timestamps if timestamp is not None]
+    return max(valid) if valid else None
+
+
+def stale_jules_session(
+    session: dict[str, Any],
+    activities: Iterable[dict[str, Any]],
+    *,
+    now: datetime,
+    stale_seconds: int,
+) -> tuple[bool, datetime | None]:
+    """Return whether a nonterminal Jules session has gone silent past the watchdog."""
+    last_activity = latest_jules_activity_time(session, activities)
+    if last_activity is None:
+        return False, None
+    return (now - last_activity).total_seconds() >= stale_seconds, last_activity
+
+
 def replace_issue_labels_in_memory(
     issue: dict[str, Any],
     *,
@@ -583,7 +717,10 @@ def reconcile_jules_sessions(
     get_session: Callable[..., dict[str, Any]] | None = None,
     load_activities: Callable[[str], list[dict[str, Any]]] | None = None,
     send_feedback: Callable[[str, str], None] | None = None,
+    delete_session: Callable[[str], None] | None = None,
     run_gh: Callable[..., None] | None = None,
+    now_fn: Callable[[], datetime] | None = None,
+    stale_seconds: int = DEFAULT_STALE_SECONDS,
 ) -> bool:
     """Reconcile Jules sessions and report whether account capacity is exhausted."""
     if get_session is None:
@@ -592,8 +729,12 @@ def reconcile_jules_sessions(
         send_feedback = lambda session_id, prompt: send_jules_message(
             api_key, session_id, prompt
         )
+    if delete_session is None:
+        delete_session = lambda session_id: delete_jules_session(api_key, session_id)
     if run_gh is None:
         run_gh = gh_run
+    if now_fn is None:
+        now_fn = lambda: datetime.now(timezone.utc)
 
     capacity_paused = False
 
@@ -613,6 +754,90 @@ def reconcile_jules_sessions(
 
         session = get_session(api_key, f"/sessions/{session_id}")
         state = str(session.get("state") or "STATE_UNSPECIFIED")
+
+        if state not in JULES_TERMINAL_STATES:
+            session_time = latest_jules_activity_time(session, ())
+            now = now_fn()
+            should_probe = (
+                session_time is not None
+                and (now - session_time).total_seconds() >= stale_seconds
+            )
+            if should_probe:
+                activities = (
+                    load_activities(session_id)
+                    if load_activities is not None
+                    else list_jules_activities(api_key, session_id)
+                )
+                is_stale, last_activity = stale_jules_session(
+                    session,
+                    activities,
+                    now=now,
+                    stale_seconds=stale_seconds,
+                )
+                if is_stale:
+                    try:
+                        delete_session(session_id)
+                    except Exception as exc:
+                        print(
+                            f"Could not delete stale Jules session {session_id} for "
+                            f"#{number}; keeping its slot reserved: {exc}"
+                        )
+                        continue
+
+                    already_retried = retry_marker_from_comments(comments) is not None
+                    terminal_label = (
+                        JULES_FAILED_LABEL if already_retried else JULES_RETRY_LABEL
+                    )
+                    run_gh(
+                        "issue", "edit", str(number), "--repo", repo,
+                        "--remove-label", JULES_ACTIVE_LABEL,
+                        "--remove-label", JULES_FEEDBACK_LABEL,
+                        "--remove-label", "jules",
+                        "--add-label", terminal_label,
+                    )
+                    replace_issue_labels_in_memory(
+                        issue,
+                        remove=(JULES_ACTIVE_LABEL, JULES_FEEDBACK_LABEL, "jules"),
+                        add=(terminal_label,),
+                    )
+                    silence = int((now - last_activity).total_seconds()) if last_activity else stale_seconds
+                    if already_retried:
+                        detail = (
+                            f"Jules session `{session_id}` stayed nonterminal with no API "
+                            f"activity for {silence // 60} minutes after its automatic retry. "
+                            "The dispatcher deleted the stale session, released its slot, and "
+                            "parked the issue as failed instead of retrying indefinitely."
+                        )
+                    else:
+                        detail = (
+                            f"{JULES_RETRY_MARKER.format(session_id=session_id)}\n"
+                            f"Jules session `{session_id}` stayed nonterminal with no API "
+                            f"activity for {silence // 60} minutes. The dispatcher deleted "
+                            "the stale session and released its slot. One automatic "
+                            "context-preserving retry is allowed."
+                        )
+                        last_message = latest_agent_message(activities)
+                        if last_message:
+                            detail += (
+                                "\n\nLast Jules message before the session became stale:\n\n> "
+                                + last_message.replace(chr(10), chr(10) + "> ")
+                            )
+                        prior_feedback = explicit_feedback_for_session(comments, session_id)
+                        if prior_feedback:
+                            detail += (
+                                "\n\nPrior explicit GitHub feedback that must be preserved "
+                                "in the retry:\n\n> "
+                                + prior_feedback.replace(chr(10), chr(10) + "> ")
+                            )
+                    run_gh(
+                        "issue", "comment", str(number), "--repo", repo,
+                        "--body", detail,
+                    )
+                    print(
+                        f"Released stale Jules session {session_id} for #{number} after "
+                        f"{silence // 60} minutes without API activity."
+                    )
+                    continue
 
         if state == "AWAITING_USER_FEEDBACK":
             activities = (
@@ -1283,6 +1508,14 @@ def run_dispatch_cycle(
     return has_active, source_name
 
 
+def schedule_dispatch_followup(repo: str) -> None:
+    """Queue the next reconciliation pass before this watch window exits."""
+    gh_run(
+        "workflow", "run", "autonomous-dispatch.yml",
+        "--repo", repo,
+    )
+
+
 def watch_jules_backlog(
     repo: str,
     api_key: str,
@@ -1290,6 +1523,7 @@ def watch_jules_backlog(
     poll_seconds: int = DEFAULT_POLL_SECONDS,
     watch_seconds: int = DEFAULT_WATCH_SECONDS,
     run_cycle: Callable[[str, str, str | None], tuple[bool, str | None]] = run_dispatch_cycle,
+    schedule_followup: Callable[[str], None] = schedule_dispatch_followup,
     sleep_fn: Callable[[float], None] = time.sleep,
     monotonic_fn: Callable[[], float] = time.monotonic,
 ) -> None:
@@ -1309,9 +1543,10 @@ def watch_jules_backlog(
 
         remaining = deadline - monotonic_fn()
         if remaining < poll_seconds:
+            schedule_followup(repo)
             print(
                 "Jules watch window ended with active sessions still running; "
-                "the scheduled recovery run will continue reconciliation."
+                "queued a follow-up dispatcher run for continued reconciliation."
             )
             return
 
@@ -1325,6 +1560,7 @@ def main() -> int:
     repo = os.environ["REPOSITORY"]
     api_key = os.environ["JULES_API_KEY"]
     ensure_labels(repo)
+    cleanup_merged_jules_sessions(repo, api_key)
 
     poll_seconds = int(os.environ.get("JULES_POLL_SECONDS", DEFAULT_POLL_SECONDS))
     watch_seconds = int(os.environ.get("JULES_WATCH_SECONDS", DEFAULT_WATCH_SECONDS))
