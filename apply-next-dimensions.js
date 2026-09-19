@@ -119,47 +119,52 @@
 
   function authoritativeAcademicSupport(result, profile) {
     const inspection = inspectionForResult(result);
-    if (inspection?.status !== "inspected") return { bonus: 0, details: [], requiredMatches: 0 };
+    if (inspection?.status !== "inspected") return { bonus: 0, details: [], requiredMatches: 0, unresolvedRequiredMatches: 0 };
 
     let bonus = 0;
     let requiredMatches = 0;
+    let unresolvedRequiredMatches = 0;
     const details = [];
     const major = normalize(profile?.facts?.major || profile?.major);
     const degree = degreeLevel(profile?.facts?.degree || profile?.degree);
     const majors = requirementField(inspection, "major_fields");
     const education = requirementField(inspection, "education");
 
-    if (major) {
-      const requiredMajors = evidenceFacts(majors, "required");
-      const preferredMajors = evidenceFacts(majors, "preferred");
-      const requiredMatch = requiredMajors.some(fact => normalize(fact?.statement).includes(major));
-      const preferredMatch = preferredMajors.some(fact => normalize(fact?.statement).includes(major));
-      if (requiredMatch) {
+    const requiredMajors = evidenceFacts(majors, "required");
+    if (requiredMajors.length) {
+      if (major && requiredMajors.some(fact => normalize(fact?.statement).includes(major))) {
         bonus += 3;
         requiredMatches += 1;
         details.push(`${profile?.facts?.major || profile?.major} matches a required major`);
-      } else if (preferredMatch) {
+      } else {
+        unresolvedRequiredMatches += 1;
+      }
+    } else if (major) {
+      const preferredMajors = evidenceFacts(majors, "preferred");
+      if (preferredMajors.some(fact => normalize(fact?.statement).includes(major))) {
         bonus += 2;
         details.push(`${profile?.facts?.major || profile?.major} matches a preferred major`);
       }
     }
 
-    if (degree) {
-      const requiredEducation = evidenceFacts(education, "required");
-      const preferredEducation = evidenceFacts(education, "preferred");
-      const requiredMatch = requiredEducation.some(fact => statementMatchesDegree(fact?.statement, degree));
-      const preferredMatch = preferredEducation.some(fact => statementMatchesDegree(fact?.statement, degree));
-      if (requiredMatch) {
+    const requiredEducation = evidenceFacts(education, "required");
+    if (requiredEducation.length) {
+      if (degree && requiredEducation.some(fact => statementMatchesDegree(fact?.statement, degree))) {
         bonus += 2;
         requiredMatches += 1;
         details.push(`${degree} degree matches a required education level`);
-      } else if (preferredMatch) {
+      } else {
+        unresolvedRequiredMatches += 1;
+      }
+    } else if (degree) {
+      const preferredEducation = evidenceFacts(education, "preferred");
+      if (preferredEducation.some(fact => statementMatchesDegree(fact?.statement, degree))) {
         bonus += 1;
         details.push(`${degree} degree matches a preferred education level`);
       }
     }
 
-    return { bonus: Math.min(5, bonus), details, requiredMatches };
+    return { bonus: Math.min(5, bonus), details, requiredMatches, unresolvedRequiredMatches };
   }
 
   function profileSkills(profile, key, fallbackKey) {
@@ -282,7 +287,9 @@
     const positiveRequiredSignals = evidence.exactRequired.length
       + evidence.adjacentRequired.length
       + Number(academic?.requiredMatches || 0);
-    const unresolvedRequired = evidence.hardGaps.length + evidence.cautiousRequired.length;
+    const unresolvedRequired = evidence.hardGaps.length
+      + evidence.cautiousRequired.length
+      + Number(academic?.unresolvedRequiredMatches || 0);
 
     if (!requiredFactCount || !positiveRequiredSignals || unresolvedRequired) {
       return { bonus: 0, detail: "" };
