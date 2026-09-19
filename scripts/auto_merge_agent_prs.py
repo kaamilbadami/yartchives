@@ -292,6 +292,33 @@ def quality_runs_api_path(repo: str, head_sha: str) -> str:
     return f"repos/{repo}/actions/runs?head_sha={head_sha}&per_page=100"
 
 
+def comparison_changed_paths(comparison: dict[str, Any]) -> set[str]:
+    return {
+        str(row.get("filename") or "")
+        for row in comparison.get("files", [])
+        if str(row.get("filename") or "")
+    }
+
+
+def branch_refresh_required(
+    *,
+    comparison: dict[str, Any],
+    pr_changed_paths: Iterable[str],
+    base_changed_paths: Iterable[str],
+) -> bool:
+    """Refresh only when stale-base changes overlap the PR's changed paths.
+
+    A green, mergeable PR that is merely behind main because unrelated files
+    changed does not need another branch-update/CI cycle. If the base changed a
+    file the PR also changes, retain the conservative refresh-and-retest path.
+    """
+    if int(comparison.get("behind_by") or 0) <= 0:
+        return False
+    pr_paths = {str(path) for path in pr_changed_paths if str(path)}
+    base_paths = {str(path) for path in base_changed_paths if str(path)}
+    return bool(pr_paths & base_paths)
+
+
 def gh_json(*args: str) -> Any:
     result = subprocess.run(["gh", *args], check=True, text=True, capture_output=True)
     return json.loads(result.stdout)
@@ -552,33 +579,53 @@ def main() -> int:
         base_ref = str((pr.get("base") or {}).get("ref") or "main")
         comparison = gh_json("api", f"repos/{repo}/compare/{base_ref}...{head_sha}")
         if int(comparison.get("behind_by") or 0) > 0:
-            updated, detail = update_pull_request_branch(
-                repo,
-                number,
-                head_sha,
-                head_ref,
-                base_ref,
-            )
-            if not updated:
-                print(
-                    f"Skipping PR #{number}: branch cannot be updated automatically because "
-                    "it conflicts with current base. Continuing with later pull requests."
+            merge_base = comparison.get("merge_base_commit") or {}
+            merge_base_sha = str(merge_base.get("sha") or "")
+            if not merge_base_sha:
+                raise RuntimeError(
+                    f"PR #{number} comparison has no merge base for stale-branch safety check"
                 )
-                if detail:
-                    print(detail)
+            base_delta = gh_json(
+                "api",
+                f"repos/{repo}/compare/{merge_base_sha}...{base_ref}",
+            )
+            base_changed_paths = comparison_changed_paths(base_delta)
+            if branch_refresh_required(
+                comparison=comparison,
+                pr_changed_paths=changed_paths,
+                base_changed_paths=base_changed_paths,
+            ):
+                updated, detail = update_pull_request_branch(
+                    repo,
+                    number,
+                    head_sha,
+                    head_ref,
+                    base_ref,
+                )
+                if not updated:
+                    print(
+                        f"Skipping PR #{number}: branch cannot be updated automatically because "
+                        "it conflicts with current base. Continuing with later pull requests."
+                    )
+                    if detail:
+                        print(detail)
+                    continue
+                if not head_ref:
+                    raise RuntimeError(f"PR #{number} has no head branch for fresh CI")
+                gh_run(
+                    "workflow", "run", "quality.yml",
+                    "--repo", repo,
+                    "--ref", head_ref,
+                )
+                print(
+                    f"Updated PR #{number} onto current {base_ref} and dispatched fresh "
+                    "Quality checks because main changed overlapping paths."
+                )
                 continue
-            if not head_ref:
-                raise RuntimeError(f"PR #{number} has no head branch for fresh CI")
-            gh_run(
-                "workflow", "run", "quality.yml",
-                "--repo", repo,
-                "--ref", head_ref,
-            )
             print(
-                f"Updated PR #{number} onto current {base_ref} and dispatched fresh "
-                "Quality checks on the updated branch."
+                f"PR #{number} is behind {base_ref}, but base changes do not overlap "
+                "its changed paths; preserving green exact-head CI and fast-merging."
             )
-            continue
 
         fresh = gh_json("api", f"repos/{repo}/pulls/{number}")
         if fresh.get("mergeable") is not True or str(fresh.get("mergeable_state") or "") not in {
