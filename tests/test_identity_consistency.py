@@ -129,5 +129,62 @@ class IdentityConsistencyTests(unittest.TestCase):
         self.assertEqual(repair.choose_applyguy_direct(job, exact, by_title), direct)
 
 
+    def test_workday_identity_preserves_stable_id_when_title_and_slug_change(self):
+        old_job_1 = {
+            "source_key": "x", "source_name": "x", "source_url": "x",
+            "company": "Company A",
+            "title": "Software Engineer",
+            "location": "Sterling, VA",
+            "url": "https://caci.wd1.myworkdayjobs.com/external/job/437-DENVER-CO/Role_331999",
+        }
+        old_job_2 = {
+            "source_key": "y", "source_name": "y", "source_url": "y",
+            "company": "Company A",
+            "title": "Software Eng", # Title changes to lose the tie-breaker
+            "location": "Denver, CO",
+            "url": "https://caci.wd1.myworkdayjobs.com/External/job/Denver-CO-US/Updated-Role_331999",
+        }
+
+        import build_feed as bf
+        import stabilize_job_ids as st
+        import datetime
+        import copy
+
+        # Day 1 Feed: Both jobs present
+        old_dict = {}
+        ref1 = datetime.datetime(2026, 9, 1, tzinfo=datetime.timezone.utc)
+        merged1 = bf.dedupe(copy.deepcopy([old_job_1, old_job_2]), old_dict, ref1)
+        reconciled1, _ = reconcile.reconcile_jobs(merged1)
+        feed1, _ = st.stabilize_jobs(reconciled1, [])
+        self.assertEqual(len(feed1), 1)
+        persisted_id = feed1[0]["id"]
+
+        # Day 2 Feed: Both jobs present, but metadata changed to swap their string tie-breaker precedence
+        new_job_1 = {
+            "source_key": "x", "source_name": "x", "source_url": "x",
+            "company": "Company A",
+            "title": "Software Engineer Intern", # Metadata change
+            "location": "Sterling, VA",
+            "url": "https://caci.wd1.myworkdayjobs.com/external/job/437-DENVER-CO/Role_331999",
+        }
+        new_job_2 = {
+            "source_key": "y", "source_name": "y", "source_url": "y",
+            "company": "Company A",
+            "title": "Software Eng Intern", # Metadata change
+            "location": "Denver, CO",
+            "url": "https://caci.wd1.myworkdayjobs.com/External/job/Denver-CO-US/Updated-Role_331999",
+        }
+
+        old_dict_2 = {j["id"]: j for j in feed1}
+        ref2 = datetime.datetime(2026, 9, 2, tzinfo=datetime.timezone.utc)
+        merged2 = bf.dedupe(copy.deepcopy([new_job_1, new_job_2]), old_dict_2, ref2)
+        reconciled2, _ = reconcile.reconcile_jobs(merged2)
+        feed2, _ = st.stabilize_jobs(reconciled2, feed1)
+        self.assertEqual(len(feed2), 1)
+
+        # ID must survive!
+        self.assertEqual(feed2[0]["id"], persisted_id)
+
+
 if __name__ == "__main__":
     unittest.main()

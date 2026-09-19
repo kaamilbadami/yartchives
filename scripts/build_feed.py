@@ -641,6 +641,26 @@ def merge_job(target: dict[str, Any], incoming: dict[str, Any]) -> None:
             target[key] = incoming.get(key)
 
 
+
+def metadata_signature(job: dict[str, Any]) -> tuple[str, str, str]:
+    return (
+        norm(job.get("company")),
+        norm(job.get("title")),
+        norm(job.get("location")),
+    )
+
+
+def stable_identity_basis(job: dict[str, Any]) -> str:
+    from reconcile_workday_duplicates import posting_identity_key
+    provider = posting_identity_key(job.get("url"))
+    if provider:
+        return "provider|" + "|".join(provider)
+    url = canonical_url(job.get("url"))
+    if url:
+        return f"url|{url}"
+    return "metadata|" + "|".join(metadata_signature(job))
+
+
 def dedupe(jobs: list[dict[str, Any]], old_jobs: dict[str, dict[str, Any]], reference: datetime) -> list[dict[str, Any]]:
     merged: list[dict[str, Any]] = []
     by_url: dict[str, int] = {}
@@ -670,7 +690,7 @@ def dedupe(jobs: list[dict[str, Any]], old_jobs: dict[str, dict[str, Any]], refe
                 by_url[url_key] = idx
 
     for job in merged:
-        stable_basis = "|".join((norm(job.get("company")), norm(job.get("title")), norm(job.get("location"))))
+        stable_basis = stable_identity_basis(job)
         job_id = hashlib.sha1(stable_basis.encode("utf-8")).hexdigest()[:16]
         job["id"] = job_id
         prior = old_jobs.get(job_id)

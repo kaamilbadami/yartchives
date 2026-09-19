@@ -17,29 +17,16 @@ from pathlib import Path
 from typing import Any, Callable, Hashable
 
 import build_feed as bf
+from build_feed import metadata_signature, stable_identity_basis
 from reconcile_workday_duplicates import posting_identity_key
 
 
-def metadata_signature(job: dict[str, Any]) -> tuple[str, str, str]:
-    return (
-        bf.norm(job.get("company")),
-        bf.norm(job.get("title")),
-        bf.norm(job.get("location")),
-    )
 
 
 def canonical_listing_url(job: dict[str, Any]) -> str:
     return bf.canonical_url(job.get("url"))
 
 
-def stable_identity_basis(job: dict[str, Any]) -> str:
-    provider = posting_identity_key(job.get("url"))
-    if provider:
-        return "provider|" + "|".join(provider)
-    url = canonical_listing_url(job)
-    if url:
-        return f"url|{url}"
-    return "metadata|" + "|".join(metadata_signature(job))
 
 
 def deterministic_job_id(job: dict[str, Any]) -> str:
