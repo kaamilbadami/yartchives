@@ -798,7 +798,49 @@ def reconcile_jules_sessions(
             )
             continue
 
-        session = get_session(api_key, f"/sessions/{session_id}")
+        try:
+            session = get_session(api_key, f"/sessions/{session_id}")
+        except Exception as exc:
+            if getattr(exc, "code", None) != 404:
+                raise
+
+            already_retried = retry_marker_from_comments(comments) is not None
+            terminal_label = JULES_FAILED_LABEL if already_retried else JULES_RETRY_LABEL
+            run_gh(
+                "issue", "edit", str(number), "--repo", repo,
+                "--remove-label", JULES_ACTIVE_LABEL,
+                "--remove-label", JULES_FEEDBACK_LABEL,
+                "--remove-label", "jules",
+                "--add-label", terminal_label,
+            )
+            replace_issue_labels_in_memory(
+                issue,
+                remove=(JULES_ACTIVE_LABEL, JULES_FEEDBACK_LABEL, "jules"),
+                add=(terminal_label,),
+            )
+            if already_retried:
+                detail = (
+                    f"Jules session `{session_id}` is no longer available from the Jules API "
+                    "after its automatic retry. The dispatcher released the stale slot and "
+                    "parked the issue as failed instead of creating another duplicate session."
+                )
+            else:
+                detail = (
+                    f"{JULES_RETRY_MARKER.format(session_id=session_id)}\n"
+                    f"Jules session `{session_id}` is no longer available from the Jules API. "
+                    "The dispatcher released the stale slot. One automatic context-preserving "
+                    "retry is allowed."
+                )
+            run_gh(
+                "issue", "comment", str(number), "--repo", repo,
+                "--body", detail,
+            )
+            print(
+                f"Released missing Jules session {session_id} for #{number}; "
+                f"marked {terminal_label}."
+            )
+            continue
+
         state = str(session.get("state") or "STATE_UNSPECIFIED")
 
         if state not in JULES_TERMINAL_STATES:
