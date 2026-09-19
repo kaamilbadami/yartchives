@@ -9,12 +9,13 @@
   const STORAGE_KEY = "yartchives-apply-next-profile-v1";
   const INSPECTION_URL = "data/workday-inspections.json";
   const TOP_N = 10;
-  const FRESH_MAX_AGE_DAYS = 2;
+  const FRESH_MAX_AGE_DAYS = 3;
   const FRESH_MIN_SCORE = 55;
   let inspectionArtifactPromise = null;
   let lastRankedResults = [];
   let lastProfile = null;
-  let activeQueueView = "top";
+  let activeQueueView = "recommended";
+  let queueVisibleCounts = { recommended: TOP_N, fresh: TOP_N };
 
   function normalize(value) {
     return String(value || "").trim();
@@ -43,19 +44,21 @@
   }
 
   function freshRankedResults(ranked, nowValue = new Date()) {
-    return (ranked || [])
-      .filter(result => {
-        if (!result || result.excluded || Number(result.total || 0) < FRESH_MIN_SCORE) return false;
-        const age = postedAgeDays(result.job?.posted_at, nowValue);
-        return age !== null && age <= FRESH_MAX_AGE_DAYS;
-      })
-      .slice(0, TOP_N);
+    return (ranked || []).filter(result => {
+      if (!result || result.excluded || Number(result.total || 0) < FRESH_MIN_SCORE) return false;
+      const age = postedAgeDays(result.job?.posted_at, nowValue);
+      return age !== null && age <= FRESH_MAX_AGE_DAYS;
+    });
   }
 
-  function visibleQueueResults(ranked, view = "top", nowValue = new Date()) {
+  function queueResults(ranked, view = "recommended", nowValue = new Date()) {
     return view === "fresh"
       ? freshRankedResults(ranked, nowValue)
-      : (ranked || []).slice(0, TOP_N);
+      : (ranked || []);
+  }
+
+  function visibleQueueResults(ranked, view = "recommended", nowValue = new Date(), visibleCount = TOP_N) {
+    return queueResults(ranked, view, nowValue).slice(0, Math.max(TOP_N, Number(visibleCount || TOP_N)));
   }
 
   function validateProfile(profile) {
@@ -257,6 +260,7 @@
     textarea.id = "applyNextProfileInput";
     textarea.rows = 12;
     textarea.placeholder = "Paste your Apply Next profile JSON here…";
+    textarea.setAttribute("aria-label", "Paste your Apply Next profile JSON here");
     textarea.autocomplete = "off";
     textarea.spellcheck = false;
     panel.append(textarea);
@@ -544,13 +548,16 @@
       `apply-next-component apply-next-inspection-status apply-next-inspection-${inspectionState}`,
       result.inspection?.label || "Metadata fallback"
     );
+    let statusExplanation = "";
     if (inspectionState === "inspected") {
-      evidenceStatus.title = "Authoritative employer posting evidence is included in this score.";
+      statusExplanation = "Authoritative employer posting evidence is included in this score.";
     } else if (inspectionState === "unavailable") {
-      evidenceStatus.title = "This score falls back to feed metadata because authoritative posting evidence is no longer available.";
+      statusExplanation = "This score falls back to feed metadata because authoritative posting evidence is no longer available.";
     } else {
-      evidenceStatus.title = "This score falls back to feed metadata because authoritative posting evidence is unavailable.";
+      statusExplanation = "This score falls back to feed metadata because authoritative posting evidence is unavailable.";
     }
+    evidenceStatus.title = statusExplanation;
+    evidenceStatus.append(element("span", "sr-only", " " + statusExplanation));
     titleWrap.append(evidenceStatus);
 
     const scoreClass = `apply-next-score ${totalScoreBandClass(result.total)}`;
@@ -728,9 +735,13 @@
     if (!panel || !profile) return;
     const list = panel.querySelector(".apply-next-list");
     const note = panel.querySelector(".apply-next-queue-note");
+    const loadMore = panel.querySelector(".apply-next-load-more");
     if (!list || !note) return;
 
-    const ranked = visibleQueueResults(lastRankedResults, activeQueueView, new Date());
+    const now = new Date();
+    const allForView = queueResults(lastRankedResults, activeQueueView, now);
+    const visibleCount = queueVisibleCounts[activeQueueView] || TOP_N;
+    const ranked = visibleQueueResults(lastRankedResults, activeQueueView, now, visibleCount);
     const inspectedCount = ranked.filter(result => result.inspection?.state === "inspected").length;
 
     panel.querySelectorAll(".apply-next-view-btn").forEach(button => {
@@ -740,9 +751,9 @@
     });
 
     if (activeQueueView === "fresh") {
-      note.textContent = `Showing ${ranked.length} strong matches posted within the last ${FRESH_MAX_AGE_DAYS} days from ${poolCount.toLocaleString()} current candidates. Ranked by overall Apply Next score, not posting time. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback.`;
+      note.textContent = `Showing ${ranked.length} of ${allForView.length} strong matches posted within the last ${FRESH_MAX_AGE_DAYS} days. Ranked by overall Apply Next score, not posting time. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback.`;
     } else {
-      note.textContent = `Showing ${ranked.length} highest-value options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Restore them from the main feed.`;
+      note.textContent = `Showing ${ranked.length} of ${allForView.length} recommended options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`;
     }
 
     list.innerHTML = "";
@@ -752,9 +763,15 @@
         "p",
         "muted",
         activeQueueView === "fresh"
-          ? "No strong matches were posted within the last 2 days."
+          ? `No strong matches were posted within the last ${FRESH_MAX_AGE_DAYS} days.`
           : "No eligible Apply Next candidates are available yet."
       ));
+    }
+
+    if (loadMore) {
+      const remaining = Math.max(0, allForView.length - ranked.length);
+      loadMore.classList.toggle("hidden", remaining === 0);
+      loadMore.textContent = remaining > 0 ? `Load 10 more` : "";
     }
   }
 
@@ -776,7 +793,7 @@
   }
 
   async function renderQueue(panel, profile) {
-    setProfileSetupMode(false);
+    setProfileSetupMode(true);
     const pool = candidatePool(feed.jobs, profile, state);
     const artifact = await loadInspectionArtifact();
     attachInspections(pool, artifact);
@@ -818,7 +835,7 @@
     const viewTabs = element("div", "apply-next-view-tabs");
     viewTabs.setAttribute("role", "group");
     viewTabs.setAttribute("aria-label", "Apply Next recommendation view");
-    for (const [view, label] of [["top", "Top 10"], ["fresh", "Fresh"]]) {
+    for (const [view, label] of [["recommended", "Recommended"], ["fresh", "Fresh"]]) {
       const button = element("button", "apply-next-view-btn", label);
       button.type = "button";
       button.dataset.queueView = view;
@@ -841,6 +858,14 @@
     const list = element("div", "apply-next-list");
     fragment.append(list);
 
+    const loadMore = element("button", "primary-btn apply-next-load-more hidden", "Load 10 more");
+    loadMore.type = "button";
+    loadMore.addEventListener("click", () => {
+      queueVisibleCounts[activeQueueView] = (queueVisibleCounts[activeQueueView] || TOP_N) + TOP_N;
+      renderCurrentQueue(panel, profile, candidatePool(feed.jobs, profile, state).length);
+    });
+    fragment.append(loadMore);
+
     panel.innerHTML = "";
     panel.append(fragment);
     renderCurrentQueue(panel, profile, pool.length);
@@ -862,10 +887,12 @@
     const button = element("button", "primary-btn apply-next-open", "Apply Next");
     button.id = "applyNextBtn";
     button.type = "button";
+    button.setAttribute("aria-controls", "applyNextPanel");
     headerActions.prepend(button);
 
     const panel = element("section", "panel apply-next-panel hidden");
     panel.id = "applyNextPanel";
+    panel.setAttribute("aria-label", "Apply Next");
     const stats = main.querySelector(".stats");
     main.insertBefore(panel, stats ? stats.nextSibling : main.firstChild);
 
@@ -874,6 +901,8 @@
       panel.classList.toggle("hidden", !opening);
       button.setAttribute("aria-expanded", opening ? "true" : "false");
       if (opening) {
+        activeQueueView = "recommended";
+        queueVisibleCounts = { recommended: TOP_N, fresh: TOP_N };
         await renderPanel(panel);
         panel.scrollIntoView({ behavior: "smooth", block: "start" });
       } else {
@@ -898,6 +927,7 @@
     FRESH_MIN_SCORE,
     postedAgeDays,
     freshRankedResults,
+    queueResults,
     visibleQueueResults,
     validateProfile,
     loadProfile,

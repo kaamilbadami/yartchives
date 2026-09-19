@@ -22,7 +22,8 @@
     fit: 40,
     eligibility: 0,
     freshness: 10,
-    roi: 30,
+    roi: 25,
+    effort: 5,
     role: 0,
     location: 20,
     link: 0,
@@ -30,7 +31,7 @@
 
   const APPLICATION_VALUE_PARTS = Object.freeze({
     role: 15,
-    market: 15,
+    market: 10,
   });
 
   const GENERIC_PROFILE_TERMS = new Set([
@@ -426,7 +427,11 @@
       score: 0,
       detail: `${result.components.link?.detail || "Link provenance unavailable"}; provenance only, not a ranking signal`,
     };
-    const components = { fit, eligibility, freshness, roi, location, link };
+    const effort = {
+      ...(result.components.effort || { detail: "Application effort unavailable" }),
+      score: clamp(result.components.effort?.score, 0, SCORE_MAXIMA.effort),
+    };
+    const components = { fit, eligibility, freshness, roi, location, effort, link };
     const total = Math.max(0, Math.min(100,
       Object.values(components).reduce((sum, c) => sum + Number(c?.score || 0), 0)));
     const inspection = alignInspection(result.inspection, readiness);
@@ -448,6 +453,7 @@
         applicationValue: "role preference plus market/opportunity evidence",
         location: "logistics/desirability",
         freshness: "timing",
+        effort: "application friction",
         link: "provenance only",
       },
       scoreMaxima: SCORE_MAXIMA,

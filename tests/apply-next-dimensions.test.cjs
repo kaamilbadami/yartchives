@@ -53,12 +53,13 @@ assert.deepEqual(D.SCORE_MAXIMA, {
   fit: 40,
   eligibility: 0,
   freshness: 10,
-  roi: 30,
+  roi: 25,
+  effort: 5,
   role: 0,
   location: 20,
   link: 0,
 });
-assert.deepEqual(D.APPLICATION_VALUE_PARTS, { role: 15, market: 15 });
+assert.deepEqual(D.APPLICATION_VALUE_PARTS, { role: 15, market: 10 });
 assert.equal(Object.values(D.SCORE_MAXIMA).reduce((sum, value) => sum + value, 0), 100);
 assert.equal(D.LEGACY_MAXIMA, undefined);
 assert.equal(D.scaleScore, undefined);
@@ -66,16 +67,17 @@ assert.equal(D.scaleScore, undefined);
 const metadataOnly = D.scoreJob(job({ _inspection: undefined }), profile, now);
 assert.equal(metadataOnly.components.fit.score, 19);
 assert.equal(metadataOnly.components.role, undefined);
-assert.equal(metadataOnly.components.roi.score, 23);
+assert.equal(metadataOnly.components.roi.score, 18);
 assert.equal(metadataOnly.applicationValue.role.score, 15);
-assert.equal(metadataOnly.applicationValue.market.score, 8);
+assert.equal(metadataOnly.applicationValue.market.score, 3);
 assert.equal(metadataOnly.components.location.score, 20);
 assert.equal(metadataOnly.components.freshness.score, 10);
 assert.equal(metadataOnly.components.eligibility.score, 0);
+assert.equal(metadataOnly.components.effort.score, 5);
 assert.equal(metadataOnly.components.link.score, 0);
 assert.match(metadataOnly.components.fit.detail, /neutral qualification-fit/i);
 assert.match(metadataOnly.components.roi.detail, /Role value 15\/15/i);
-assert.match(metadataOnly.components.roi.detail, /Market opportunity 8\/15/i);
+assert.match(metadataOnly.components.roi.detail, /Market opportunity 3\/10/i);
 assert.deepEqual(metadataOnly.scoreMaxima, D.SCORE_MAXIMA);
 
 const supported = D.scoreJob(job({
@@ -244,12 +246,14 @@ assert.equal(lowerRole.applicationValue.market.score, metadataOnly.applicationVa
 assert.ok(lowerRole.applicationValue.role.score < metadataOnly.applicationValue.role.score);
 assert.ok(lowerRole.components.roi.score < metadataOnly.components.roi.score);
 
-const direct = D.scoreJob(job({ _inspection: inspection() }), profile, now);
+const direct = D.scoreJob(job({ _inspection: inspection(), link_kind: "direct" }), profile, now);
 const listing = D.scoreJob(job({ link_kind: "listing", url: "https://example.com/listing", _inspection: inspection() }), profile, now);
 assert.equal(direct.components.link.score, 0);
 assert.equal(listing.components.link.score, 0);
+assert.equal(direct.components.effort.score, 5);
+assert.equal(listing.components.effort.score, 2);
 assert.match(direct.components.link.detail, /provenance only/i);
-assert.equal(direct.total, listing.total);
+assert.ok(direct.total > listing.total);
 assert.equal(direct.scoringSemantics.link, "provenance only");
 assert.match(direct.scoringSemantics.fit, /screening evidence plus transferable capability/i);
 assert.match(direct.scoringSemantics.applicationValue, /role preference plus market\/opportunity evidence/i);

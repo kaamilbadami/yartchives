@@ -33,27 +33,37 @@ assert.equal(UI.scoreBand("location", 15, 20), "Very convenient");
 assert.equal(UI.totalScoreBandClass(50), "apply-next-score-low");
 assert.equal(UI.totalScoreBandClass(65), "apply-next-score-medium");
 assert.equal(UI.totalScoreBandClass(85), "apply-next-score-high");
-assert.equal(UI.FRESH_MAX_AGE_DAYS, 2);
+assert.equal(UI.FRESH_MAX_AGE_DAYS, 3);
 assert.equal(UI.FRESH_MIN_SCORE, 55);
 
 const freshNow = new Date("2026-09-19T12:00:00Z");
 const freshRanked = [
   { total: 88, job: { id: "fresh-best", posted_at: "2026-09-19" } },
-  { total: 99, job: { id: "older-best", posted_at: "2026-09-16" } },
+  { total: 86, job: { id: "fresh-three-day", posted_at: "2026-09-16" } },
+  { total: 84, job: { id: "too-old", posted_at: "2026-09-15" } },
   { total: 54, job: { id: "fresh-low", posted_at: "2026-09-19" } },
   { total: 72, job: { id: "fresh-good", posted_at: "2026-09-17" } },
   { total: 70, job: { id: "unknown-date", posted_at: null } },
 ];
-assert.equal(UI.postedAgeDays("2026-09-17", freshNow), 2);
+assert.equal(UI.postedAgeDays("2026-09-16", freshNow), 3);
 assert.equal(UI.postedAgeDays("not-a-date", freshNow), null);
 assert.deepEqual(
   UI.freshRankedResults(freshRanked, freshNow).map(result => result.job.id),
-  ["fresh-best", "fresh-good"]
+  ["fresh-best", "fresh-three-day", "fresh-good"]
 );
 assert.deepEqual(
-  UI.visibleQueueResults(freshRanked, "top", freshNow).map(result => result.job.id),
+  UI.visibleQueueResults(freshRanked, "recommended", freshNow).map(result => result.job.id),
   freshRanked.map(result => result.job.id)
 );
+
+const pagedRanked = Array.from({ length: 24 }, (_, index) => ({
+  total: 100 - index,
+  job: { id: `rank-${index + 1}`, posted_at: "2026-09-19" },
+}));
+assert.equal(UI.visibleQueueResults(pagedRanked, "recommended", freshNow).length, 10);
+assert.equal(UI.visibleQueueResults(pagedRanked, "recommended", freshNow, 20).length, 20);
+assert.equal(UI.visibleQueueResults(pagedRanked, "fresh", freshNow).length, 10);
+assert.equal(UI.visibleQueueResults(pagedRanked, "fresh", freshNow, 20).length, 20);
 // rankingSummary tests
 // Note: test environment componentMax: fit=40, freshness=10, roi=15, location=15
 assert.equal(
@@ -287,10 +297,18 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(hideHandler[1], /updateQueueOptimistically/, "Hide should trigger optimistic queue update immediately");
   assert.match(hideHandler[1], /applyFilters\(\);/);
 
-  assert.match(uiSource, /Restore them from the main feed\./, "Should document recovery path for Applied and Hidden jobs");
-  assert.match(uiSource, /setProfileSetupMode\(true\)/, "Profile setup should enter focused onboarding mode");
-  assert.match(uiSource, /setProfileSetupMode\(false\)/, "Queue and panel close paths should restore the normal feed");
-  assert.match(uiSource, /apply-next-profile-mode/, "Focused onboarding should use an explicit main-state class");
+  assert.match(uiSource, /setProfileSetupMode\(true\)/, "Apply Next should enter focused mode");
+  assert.match(uiSource, /setProfileSetupMode\(false\)/, "Closing Apply Next should restore the normal feed");
+  assert.match(uiSource, /apply-next-profile-mode/, "Focused Apply Next should use an explicit main-state class");
+
+  assert.match(uiSource, /panel\.setAttribute\("aria-label", "Apply Next"\)/, "Panel should have an accessible label");
+  assert.match(uiSource, /button\.setAttribute\("aria-controls", "applyNextPanel"\)/, "Button should control the panel via aria-controls");
+  assert.match(uiSource, /textarea\.setAttribute\("aria-label", "Paste your Apply Next profile JSON here"\)/, "Textarea should have an accessible label");
+  assert.match(uiSource, /evidenceStatus\.append\(element\("span", "sr-only", " " \+ statusExplanation\)\)/, "Evidence status should use sr-only text rather than a native title tooltip");
+
+  const cssSource = fs.readFileSync(path.join(__dirname, "..", "styles.css"), "utf8");
+  assert.match(cssSource, /\.sr-only\s*\{/, "Global styles should include a screen-reader-only utility class");
+  assert.match(cssSource, /:focus-visible\s*\{/, "Global styles should include a focus-visible outline for keyboard accessibility");
 
   // Feedback tests
   assert.match(uiSource, /state\.feedback\[job\.id\] = \{ rating: "good" \}/, "Good feedback should be recorded in state");
@@ -304,8 +322,10 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /<option value="other">Other<\/option>/, "Optional reason should include Other");
 
   assert.doesNotMatch(uiSource, /<option value="newest">Newest<\/option>/, "Apply Next should not expose a Newest sort mode");
-  assert.match(uiSource, /\["top", "Top 10"\]/, "Apply Next should expose the overall Top 10 view");
-  assert.match(uiSource, /\["fresh", "Fresh"\]/, "Apply Next should expose a Fresh view");
+  assert.match(uiSource, /\["recommended", "Recommended"\]/, "Apply Next should expose the Recommended queue");
+  assert.match(uiSource, /\["fresh", "Fresh"\]/, "Apply Next should expose a Fresh queue");
+  assert.doesNotMatch(uiSource, /\["top", "Top 10"\]/, "Apply Next should not label a paginated queue Top 10");
+  assert.match(uiSource, /Load 10 more/, "Apply Next queues should paginate ten recommendations at a time");
   assert.match(uiSource, /Ranked by overall Apply Next score, not posting time\./, "Fresh should preserve recommendation quality ordering");
 
   assert.match(uiSource, /document\.createDocumentFragment\(\)/, "renderQueue should build DOM off-screen before swapping to avoid UI stalls");

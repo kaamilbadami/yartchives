@@ -452,26 +452,25 @@
 
   function scoreLink(job) {
     const kind = linkKind(job);
-    if (kind === "direct") return { score: 5, detail: "Direct employer/ATS application" };
-    if (kind === "listing") return { score: 2, detail: "Intermediary listing link" };
+    if (kind === "direct") return { score: 0, detail: "Direct employer/ATS application" };
+    if (kind === "listing") return { score: 0, detail: "Intermediary listing link" };
     return { score: 0, detail: "Source-only link" };
   }
 
+  function scoreEffort(job) {
+    const kind = linkKind(job);
+    if (kind === "direct") return { score: 5, detail: "direct application" };
+    if (kind === "listing") return { score: 2, detail: "intermediary listing link" };
+    return { score: 0, detail: "source-only application friction" };
+  }
+
   function scoreRoi(job, profile, now) {
-    let score = 7;
+    let score = 5;
     const reasons = ["Base application value"];
     const freshness = scoreFreshness(job, now);
-    const kind = linkKind(job);
     const targetTerm = normalize(profile?.targetTerm);
     const jobTerm = normalize(job?.term);
 
-    if (kind === "direct") {
-      score += 3;
-      reasons.push("direct application");
-    } else if (kind === "source") {
-      score -= 2;
-      reasons.push("source-only application friction");
-    }
     if (freshness.score >= 8) {
       score += 3;
       reasons.push("fresh posting");
@@ -484,7 +483,7 @@
       score -= 1;
       reasons.push("posting date unknown");
     }
-    return { score: Math.max(0, Math.min(15, score)), detail: reasons.join("; ") };
+    return { score: Math.max(0, Math.min(10, score)), detail: reasons.join("; ") };
   }
 
   function summarizeInspection(job) {
@@ -535,6 +534,7 @@
       roi: scoreRoi(job, profile || {}, now),
       role: scoreRole(job, profile || {}),
       location: scoreLocation(job, profile || {}),
+      effort: scoreEffort(job),
       link: scoreLink(job),
     };
     const total = Object.values(components).reduce((sum, component) => sum + component.score, 0);
@@ -587,6 +587,7 @@
     scoreLocation,
     linkKind,
     scoreLink,
+    scoreEffort,
     scoreRoi,
     summarizeInspection,
     scoreJob,
