@@ -303,6 +303,23 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(hideHandler[1], /updateQueueOptimistically/, "Hide should trigger optimistic queue update immediately");
   assert.match(hideHandler[1], /applyFilters\(\);/);
 
+  assert.match(uiSource, /Finding your best matches…/, "Apply Next should show an immediate loading message");
+  assert.match(uiSource, /Still finding your best matches…/, "Apply Next should escalate the loading message if ranking takes longer");
+  assert.match(uiSource, /setTimeout\(\(\) => \{[\s\S]*?\}, 1500\)/, "Apply Next should delay the long-loading message rather than showing it immediately");
+  assert.match(uiSource, /panel\.setAttribute\("aria-busy", "true"\)/, "Apply Next should expose loading state to assistive technology");
+  const openHandler = uiSource.match(
+    /button\.addEventListener\("click", async \(\) => \{([\s\S]*?)\n\s*\}\);/
+  );
+  assert.ok(openHandler, "Apply Next open handler should be present");
+  assert.match(openHandler[1], /button\.disabled = true/, "Apply Next should prevent double-clicks while opening");
+  assert.match(openHandler[1], /button\.textContent = "Finding matches…"/, "Apply Next button should acknowledge the click immediately");
+  assert.ok(
+    openHandler[1].indexOf("panel.scrollIntoView") < openHandler[1].indexOf("await renderPanel(panel)"),
+    "Apply Next should reveal and scroll to its shell before recommendation work finishes"
+  );
+  assert.match(openHandler[1], /button\.disabled = false/, "Apply Next button should re-enable after loading");
+  assert.match(openHandler[1], /button\.textContent = "Apply Next"/, "Apply Next button label should reset after loading");
+
   assert.match(uiSource, /setProfileSetupMode\(true\)/, "Apply Next should enter focused mode");
   assert.match(uiSource, /setProfileSetupMode\(false\)/, "Closing Apply Next should restore the normal feed");
   assert.match(uiSource, /apply-next-profile-mode/, "Focused Apply Next should use an explicit main-state class");
