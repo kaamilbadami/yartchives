@@ -131,7 +131,14 @@ def workday_identity(job: dict[str, Any]) -> dict[str, str] | None:
 def _unsupported_icims_identity(url: str) -> dict[str, str] | None:
     parsed = urlparse(html.unescape(url or ""))
     host = (parsed.hostname or "").lower()
-    if parsed.scheme.lower() != "https" or not host.endswith(".icims.com"):
+    is_icims = False
+    if parsed.scheme.lower() == "https":
+        if host.endswith(".icims.com"):
+            is_icims = True
+        elif "icims=1" in url or "icims.com" in url:
+            is_icims = True
+
+    if not is_icims:
         return None
     canonical = urlunparse(("https", host, parsed.path.rstrip("/") or "/", "", "", ""))
     return {
@@ -163,12 +170,18 @@ def icims_identity(job: dict[str, Any]) -> dict[str, str] | None:
 def _unsupported_greenhouse_identity(url: str) -> dict[str, str] | None:
     parsed = urlparse(html.unescape(url or ""))
     host = (parsed.hostname or "").lower()
-    if parsed.scheme.lower() != "https" or host not in {
-        "boards.greenhouse.io",
-        "job-boards.greenhouse.io",
-    }:
+    is_gh = False
+    if parsed.scheme.lower() == "https":
+        if host in {"boards.greenhouse.io", "job-boards.greenhouse.io"}:
+            is_gh = True
+        elif host.endswith(".greenhouse.io"):
+            is_gh = True
+        elif "gh_jid=" in url:
+            is_gh = True
+
+    if not is_gh:
         return None
-    canonical = urlunparse(("https", "job-boards.greenhouse.io", parsed.path.rstrip("/") or "/", "", "", ""))
+    canonical = urlunparse(("https", host, parsed.path.rstrip("/") or "/", "", "", ""))
     return {
         "provider": "greenhouse",
         "canonical_url": canonical,
@@ -278,9 +291,9 @@ def provider_for_url(url: str) -> str | None:
     host = (parsed.hostname or "").lower()
     if re.fullmatch(r"[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com", host, flags=re.I):
         return "workday"
-    if host.endswith(".icims.com"):
+    if host.endswith(".icims.com") or "icims=1" in url or "icims.com" in url:
         return "icims"
-    if host in {"boards.greenhouse.io", "job-boards.greenhouse.io"}:
+    if host.endswith(".greenhouse.io") or "gh_jid=" in url:
         return "greenhouse"
     if host == "jobs.ashbyhq.com":
         return "ashby"
