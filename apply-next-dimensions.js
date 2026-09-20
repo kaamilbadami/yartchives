@@ -8,6 +8,7 @@
     root.YartchivesApplyNextDimensions = api;
     const target = root.YartchivesApplyNext;
     if (target) {
+      target.SCORING_CONTRACT = api.SCORING_CONTRACT;
       target.SCORE_MAXIMA = api.SCORE_MAXIMA;
       target.scoreJob = api.scoreJob;
       target.rankJobs = api.rankJobs;
@@ -18,15 +19,33 @@
     throw new Error("Apply Next scoring dimensions require location scoring first.");
   }
 
-  const SCORE_MAXIMA = Object.freeze({
-    fit: 45,
-    eligibility: 0,
-    freshness: 10,
-    roi: 25,
-    role: 0,
-    location: 20,
-    link: 0,
+  const SCORING_CONTRACT = Object.freeze({
+    fit: Object.freeze({ role: "ranking", max: 45 }),
+    eligibility: Object.freeze({ role: "gate", max: 0 }),
+    freshness: Object.freeze({ role: "ranking", max: 10 }),
+    roi: Object.freeze({ role: "ranking", max: 25 }),
+    location: Object.freeze({ role: "ranking", max: 20 }),
+    link: Object.freeze({ role: "metadata", max: 0 }),
   });
+
+  const SCORE_MAXIMA = Object.freeze(Object.fromEntries(
+    Object.entries(SCORING_CONTRACT).map(([key, definition]) => [key, definition.max])
+  ));
+
+  const RANKING_COMPONENTS = Object.freeze(
+    Object.entries(SCORING_CONTRACT)
+      .filter(([, definition]) => definition.role === "ranking")
+      .map(([key]) => key)
+  );
+
+  const SCORE_TOTAL = RANKING_COMPONENTS.reduce(
+    (sum, key) => sum + Number(SCORING_CONTRACT[key].max || 0),
+    0
+  );
+
+  if (SCORE_TOTAL !== 100) {
+    throw new Error(`Apply Next ranking contract must total 100 points; found ${SCORE_TOTAL}`);
+  }
 
   const APPLICATION_VALUE_PARTS = Object.freeze({
     role: 15,
@@ -405,6 +424,14 @@
     };
   }
 
+  function sumRankingComponents(components) {
+    return RANKING_COMPONENTS.reduce((sum, key) => {
+      const definition = SCORING_CONTRACT[key];
+      const score = clamp(components?.[key]?.score, 0, definition.max);
+      return sum + score;
+    }, 0);
+  }
+
   function transform(result, profile = {}) {
     if (!result) return result;
     const gradExcluded = graduateTitleExclusion(result, profile);
@@ -427,8 +454,7 @@
       detail: `${result.components.link?.detail || "Link provenance unavailable"}; provenance only, not a ranking signal`,
     };
     const components = { fit, eligibility, freshness, roi, location, link };
-    const total = Math.max(0, Math.min(100,
-      Object.values(components).reduce((sum, c) => sum + Number(c?.score || 0), 0)));
+    const total = sumRankingComponents(components);
     const inspection = alignInspection(result.inspection, readiness);
     return {
       ...result,
@@ -450,6 +476,7 @@
         freshness: "timing",
         link: "provenance only",
       },
+      scoringContract: SCORING_CONTRACT,
       scoreMaxima: SCORE_MAXIMA,
     };
   }
@@ -468,6 +495,9 @@
   }
 
   return {
+    SCORING_CONTRACT,
+    RANKING_COMPONENTS,
+    SCORE_TOTAL,
     SCORE_MAXIMA,
     APPLICATION_VALUE_PARTS,
     explicitGraduateOnlyTitle,
@@ -478,6 +508,7 @@
     alignedReadiness,
     scoreEligibilityGate,
     scoreApplicationValue,
+    sumRankingComponents,
     transform,
     scoreJob,
     rankJobs,
