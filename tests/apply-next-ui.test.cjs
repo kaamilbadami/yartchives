@@ -341,6 +341,12 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(cssSource, /\.sr-only\s*\{/, "Global styles should include a screen-reader-only utility class");
   assert.match(cssSource, /:focus-visible\s*\{/, "Global styles should include a focus-visible outline for keyboard accessibility");
 
+  assert.match(uiSource, /FOUNDING_BETA_TESTER_KEY = "yartchives-founding-beta-tester-v1"/, "Founding beta tester status should use a dedicated local key");
+  assert.match(uiSource, /Founding beta tester/, "Apply Next should expose the founding beta tester role");
+  assert.match(uiSource, /awardFoundingBetaTester\(localStorage\)/, "Giving recommendation feedback should award founding beta tester status");
+  assert.match(uiSource, /foundingBetaBadge\(\)/, "Apply Next queue heading should surface earned beta tester status");
+  assert.match(applyNextCss, /\.apply-next-beta-badge\s*\{/, "Founding beta tester status should have dedicated badge styling");
+
   // Feedback tests
   assert.match(uiSource, /state\.feedback\[job\.id\] = \{ rating: "good" \}/, "Good feedback should be recorded in state");
   assert.match(uiSource, /state\.feedback\[job\.id\] = \{ rating: "bad" \}/, "Bad feedback should be recorded in state");
