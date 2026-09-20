@@ -554,6 +554,58 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertTrue(ok)
         self.assertEqual(reason, "control-plane-eligible")
 
+    def test_control_plane_lane_allows_tested_workflow_helper_script(self):
+        candidate = pr()
+        files = [
+            {"filename": ".github/workflows/feed-freshness.yml", "changes": 50},
+            {"filename": "scripts/watchdog_feed_freshness.py", "changes": 90},
+            {"filename": "tests/test_feed_freshness_workflow.py", "changes": 40},
+            {"filename": "tests/test_watchdog_feed_freshness.py", "changes": 70},
+        ]
+        ok, reason = mod.control_plane_pr_eligible(
+            candidate,
+            repo="kaamilbadami/yartchives",
+            files=files,
+            quality_runs=runs(),
+        )
+        self.assertTrue(ok)
+        self.assertEqual(reason, "control-plane-eligible")
+
+    def test_control_plane_lane_rejects_untested_helper_script(self):
+        candidate = pr()
+        files = [
+            {"filename": ".github/workflows/feed-freshness.yml", "changes": 50},
+            {"filename": "scripts/watchdog_feed_freshness.py", "changes": 90},
+            {"filename": "tests/test_feed_freshness_workflow.py", "changes": 40},
+        ]
+        ok, reason = mod.control_plane_pr_eligible(
+            candidate,
+            repo="kaamilbadami/yartchives",
+            files=files,
+            quality_runs=runs(),
+        )
+        self.assertFalse(ok)
+        self.assertIn("helper lacks paired regression test", reason)
+
+    def test_patch_and_orig_scratch_files_are_generated_artifacts(self):
+        self.assertEqual(
+            mod.generated_artifact_paths(
+                [
+                    ".github/workflows/update-feed.yml.orig",
+                    "tests/test_update_feed_workflow.py.orig",
+                    "patch.diff",
+                    "patch2.diff",
+                    "app.js",
+                ]
+            ),
+            [
+                ".github/workflows/update-feed.yml.orig",
+                "tests/test_update_feed_workflow.py.orig",
+                "patch.diff",
+                "patch2.diff",
+            ],
+        )
+
     def test_control_plane_lane_rejects_unpaired_or_non_allowlisted_changes(self):
         candidate = pr()
         cases = (
