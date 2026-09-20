@@ -16,7 +16,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts.provider_fingerprint import fingerprint_provider
-from scripts.dispatch_autonomous_issues import task_from_issue, active_jules_task, task_lock_keys, JULES_FEEDBACK_LABEL
+from scripts.dispatch_autonomous_issues import Task, task_from_issue, active_jules_task, task_lock_keys, JULES_FEEDBACK_LABEL
 
 def _gh_json(*args: str) -> Any:
     result = subprocess.run(
@@ -99,13 +99,23 @@ def issue_already_queued(coverage_issues: list[dict[str, Any]], gap_id: str) -> 
     return False
 
 def resources_conflict_with_active_work(active_tasks: list[Any]) -> bool:
-    new_task_locks = frozenset({"area:coverage-automation", "resource:automation", "resource:coverage-analysis"})
+    candidate = Task(
+        0,
+        "coverage automation candidate",
+        "",
+        "P2",
+        "coverage-automation",
+        frozenset(),
+        frozenset({"automation", "coverage-analysis"}),
+        frozenset(),
+    )
+    new_task_locks = task_lock_keys(candidate)
     for task in active_tasks:
         locks = task_lock_keys(task)
         if locks & new_task_locks:
             return True
-        if "resource:feed-core" in locks or "area:feed" in locks:
-             return True
+        if "resource:feed-core" in locks:
+            return True
     return False
 
 def create_issue(repo: str, gap_name: str, count: int, gap_id: str, employers: list[dict[str, Any]]) -> None:
