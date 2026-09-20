@@ -159,6 +159,7 @@ jobs:
             echo "No feed changes."
           else
             cp data/listings.json /tmp/yartchives-generated-listings.json
+            cp data/workday-inspections.json /tmp/yartchives-generated-workday-inspections-fastpath-backup.json
             START_SHA="$(git rev-parse HEAD)"
             git fetch origin main
             REMOTE_SHA="$(git rev-parse origin/main)"
@@ -178,6 +179,7 @@ jobs:
                 echo "Only unrelated or generated files changed; publishing this completed feed onto current main."
                 git reset --hard origin/main
                 cp /tmp/yartchives-generated-listings.json data/listings.json
+                cp /tmp/yartchives-generated-workday-inspections-fastpath-backup.json data/workday-inspections.json
               fi
             fi
 
@@ -194,6 +196,12 @@ jobs:
             fi
           fi
 
+      - name: Migrate cached requirement semantics
+        run: python scripts/migrate_cached_requirements.py data/workday-inspections.json
+
+      - name: Refresh bounded posting inspections
+        run: python scripts/update_workday_inspections.py data/listings.json --cache data/workday-inspections.json --max-workday-requests 25 --max-icims-requests 10 --max-greenhouse-requests 10 --ttl-days 7
+
       - name: Print coverage audit
         run: python scripts/audit_feed.py data/listings.json
 
@@ -207,10 +215,11 @@ jobs:
 
       - name: Commit slow-path enrichments and audits
         run: |
-          GENERATED_PATHS="README.md"
+          GENERATED_PATHS="data/workday-inspections.json README.md"
           if git diff --quiet -- $GENERATED_PATHS; then
             echo "No inspection or audit changes."
           else
+            cp data/workday-inspections.json /tmp/yartchives-generated-workday-inspections.json
             START_SHA="$(git rev-parse HEAD)"
             git fetch origin main
             REMOTE_SHA="$(git rev-parse origin/main)"
@@ -229,6 +238,7 @@ jobs:
               else
                 echo "Only unrelated or generated files changed; publishing this completed feed onto current main."
                 git reset --hard origin/main
+                cp /tmp/yartchives-generated-workday-inspections.json data/workday-inspections.json
               fi
             fi
 
