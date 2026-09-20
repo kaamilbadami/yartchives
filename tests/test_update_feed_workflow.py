@@ -34,7 +34,7 @@ class UpdateFeedWorkflowTests(unittest.TestCase):
             fast_tail,
         )
         self.assertIn(
-            'GENERATED_PATHS="data/workday-inspections.json README.md"',
+            'GENERATED_PATHS="README.md"',
             slow_tail,
         )
         self.assertNotIn(
