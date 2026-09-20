@@ -14,10 +14,10 @@ const profile = {
 assert.equal(UI.validateProfile(profile).ok, true);
 assert.equal(UI.validateProfile({ roleFamilies: profile.roleFamilies }).ok, false);
 assert.equal(UI.validateProfile({ targetTerm: "Summer 2027", roleFamilies: [] }).ok, false);
-assert.equal(UI.componentMax("fit"), 40);
-assert.equal(UI.componentMax("role"), 20);
-assert.equal(UI.componentMax("location"), 15);
-assert.equal(UI.componentMax("roi"), 15);
+assert.equal(UI.componentMax("fit"), 45);
+assert.equal(UI.componentMax("role"), 0);
+assert.equal(UI.componentMax("location"), 20);
+assert.equal(UI.componentMax("roi"), 25);
 assert.equal(UI.componentMax("freshness"), 10);
 assert.equal(UI.componentMax("eligibility"), 0);
 assert.equal(UI.componentMax("link"), 0);
@@ -67,36 +67,36 @@ assert.equal(UI.visibleQueueResults(pagedRanked, "recommended", freshNow, 20).le
 assert.equal(UI.visibleQueueResults(pagedRanked, "fresh", freshNow).length, 10);
 assert.equal(UI.visibleQueueResults(pagedRanked, "fresh", freshNow, 20).length, 20);
 // rankingSummary tests
-// Note: test environment componentMax: fit=40, freshness=10, roi=15, location=15
+// Canonical contract: fit=45, freshness=10, roi=25, location=20
 assert.equal(
   UI.rankingSummary({
-    components: { fit: { score: 30 }, freshness: { score: 8 }, roi: { score: 12 }, location: { score: 12 } } // Ratios: fit: 30/40=0.75, freshness: 8/10=0.8, roi: 12/15=0.8, location: 12/15=0.8
-  }),
-  "Why this is here: strongest drivers: timing, role value, location convenience and profile match."
-);
-assert.equal(
-  UI.rankingSummary({
-    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 6 }, location: { score: 9 } } // Ratios: fit: 35/40=0.875, freshness: 9/10=0.9, roi: 6/15=0.4, location: 9/15=0.6
+    components: { fit: { score: 30 }, freshness: { score: 8 }, roi: { score: 12 }, location: { score: 12 } } // Ratios: fit=.67, freshness=.8, roi=.48, location=.6
   }),
   "Why this is here: strongest drivers: timing and profile match; limited by: role value."
 );
 assert.equal(
   UI.rankingSummary({
-    components: { fit: { score: 20 }, freshness: { score: 2 }, roi: { score: 3 }, location: { score: 4 } } // Ratios: fit: 20/40=0.5, freshness: 2/10=0.2, roi: 3/15=0.2, location: 4/15=0.26
+    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 6 }, location: { score: 9 } } // Ratios: fit=.78, freshness=.9, roi=.24, location=.45
   }),
-  "Why this is here: limited by: location convenience, timing and role value."
+  "Why this is here: strongest drivers: timing and profile match; limited by: role value."
 );
 assert.equal(
   UI.rankingSummary({
-    components: { fit: { score: 40 }, freshness: { score: 2 }, roi: { score: 14 }, location: { score: 4 } } // Ratios: fit: 40/40=1.0, freshness: 2/10=0.2, roi: 14/15=0.93, location: 4/15=0.26
+    components: { fit: { score: 20 }, freshness: { score: 2 }, roi: { score: 3 }, location: { score: 4 } } // Ratios: fit=.44, freshness=.2, roi=.12, location=.2
   }),
-  "Why this is here: strongest drivers: profile match and role value; limited by: location convenience and timing."
+  "Why this is here: limited by: timing, location convenience and role value."
+);
+assert.equal(
+  UI.rankingSummary({
+    components: { fit: { score: 40 }, freshness: { score: 2 }, roi: { score: 14 }, location: { score: 4 } } // Ratios: fit=.89, freshness=.2, roi=.56, location=.2
+  }),
+  "Why this is here: strongest drivers: profile match; limited by: timing and location convenience."
 );
 
 // decisionHighlights tests
 assert.deepEqual(
   UI.decisionHighlights({
-    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } },
+    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 20 }, location: { score: 16 } },
     inspection: { state: "inspected" }
   }),
   ["Strong match", "High value", "Very recent", "Very convenient location"]
@@ -105,7 +105,7 @@ assert.deepEqual(
 assert.deepEqual(
   UI.decisionHighlights({
     job: { states: ["Remote", "CA"], location: "Remote · Thousand Oaks, CA" },
-    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } },
+    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 20 }, location: { score: 16 } },
     inspection: { state: "inspected" }
   }),
   ["Strong match", "High value", "Very recent", "Remote"]
@@ -113,7 +113,7 @@ assert.deepEqual(
 
 assert.deepEqual(
   UI.decisionHighlights({
-    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } },
+    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 20 }, location: { score: 16 } },
     inspection: { state: "metadata-only" }
   }),
   ["Concerns: unverified evidence", "Strong match", "High value", "Very recent"] // concerns is prioritized and capped at 4 total
@@ -129,7 +129,7 @@ assert.deepEqual(
 
 assert.deepEqual(
   UI.decisionHighlights({
-    components: { fit: { score: 20 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } },
+    components: { fit: { score: 20 }, freshness: { score: 9 }, roi: { score: 20 }, location: { score: 16 } },
     inspection: { state: "inspected" }
   }),
   ["Concerns: weak match", "High value", "Very recent", "Very convenient location"]
@@ -138,7 +138,7 @@ assert.deepEqual(
 assert.deepEqual(
   UI.decisionHighlights({
     excluded: true,
-    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } }
+    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 20 }, location: { score: 16 } }
   }),
   ["Excluded by eligibility constraints"]
 );

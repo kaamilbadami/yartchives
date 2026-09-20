@@ -564,10 +564,17 @@
   }
 
   function componentMax(key) {
-    const maxima = (typeof YartchivesApplyNext !== "undefined" && YartchivesApplyNext.SCORE_MAXIMA)
-      ? YartchivesApplyNext.SCORE_MAXIMA
-      : { fit: 40, eligibility: 0, freshness: 10, roi: 15, role: 20, location: 15, link: 0 };
-    return Number(maxima[key] || 0);
+    const contract = (typeof YartchivesApplyNext !== "undefined" && YartchivesApplyNext.SCORING_CONTRACT)
+      ? YartchivesApplyNext.SCORING_CONTRACT
+      : {
+          fit: { role: "ranking", max: 45 },
+          eligibility: { role: "gate", max: 0 },
+          freshness: { role: "ranking", max: 10 },
+          roi: { role: "ranking", max: 25 },
+          location: { role: "ranking", max: 20 },
+          link: { role: "metadata", max: 0 },
+        };
+    return Number(contract[key]?.max || 0);
   }
 
   function recommendationCard(result, rank) {

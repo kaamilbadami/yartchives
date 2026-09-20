@@ -49,17 +49,39 @@ function job(overrides = {}) {
   };
 }
 
+assert.deepEqual(D.SCORING_CONTRACT, {
+  fit: { role: "ranking", max: 45 },
+  eligibility: { role: "gate", max: 0 },
+  freshness: { role: "ranking", max: 10 },
+  roi: { role: "ranking", max: 25 },
+  location: { role: "ranking", max: 20 },
+  link: { role: "metadata", max: 0 },
+});
+assert.deepEqual(D.RANKING_COMPONENTS, ["fit", "freshness", "roi", "location"]);
+assert.equal(D.SCORE_TOTAL, 100);
 assert.deepEqual(D.SCORE_MAXIMA, {
   fit: 45,
   eligibility: 0,
   freshness: 10,
   roi: 25,
-  role: 0,
   location: 20,
   link: 0,
 });
 assert.deepEqual(D.APPLICATION_VALUE_PARTS, { role: 15, market: 10 });
 assert.equal(Object.values(D.SCORE_MAXIMA).reduce((sum, value) => sum + value, 0), 100);
+assert.equal(
+  D.sumRankingComponents({
+    fit: { score: 45 },
+    freshness: { score: 10 },
+    roi: { score: 25 },
+    location: { score: 20 },
+    eligibility: { score: 999 },
+    link: { score: 999 },
+    inventedFutureSignal: { score: 999 },
+  }),
+  100,
+  "Only explicitly approved ranking components may affect the total"
+);
 assert.equal(D.LEGACY_MAXIMA, undefined);
 assert.equal(D.scaleScore, undefined);
 
@@ -245,14 +267,24 @@ assert.equal(lowerRole.applicationValue.market.score, metadataOnly.applicationVa
 assert.ok(lowerRole.applicationValue.role.score < metadataOnly.applicationValue.role.score);
 assert.ok(lowerRole.components.roi.score < metadataOnly.components.roi.score);
 
-const direct = D.scoreJob(job({ _inspection: inspection(), link_kind: "direct" }), profile, now);
-const listing = D.scoreJob(job({ link_kind: "listing", url: "https://example.com/listing", _inspection: inspection() }), profile, now);
+const direct = D.scoreJob(job({ id: "same-direct", _inspection: inspection(), link_kind: "direct" }), profile, now);
+const listing = D.scoreJob(job({ id: "same-listing", link_kind: "listing", url: "https://example.com/listing", _inspection: inspection() }), profile, now);
+const sourceOnly = D.scoreJob(job({ id: "same-source", link_kind: "source", url: "", _inspection: inspection() }), profile, now);
 assert.equal(direct.components.link.score, 0);
 assert.equal(listing.components.link.score, 0);
+assert.equal(sourceOnly.components.link.score, 0);
 assert.equal(direct.components.effort, undefined);
 assert.equal(listing.components.effort, undefined);
+assert.equal(sourceOnly.components.effort, undefined);
 assert.match(direct.components.link.detail, /provenance only/i);
 assert.equal(direct.total, listing.total);
+assert.equal(direct.total, sourceOnly.total);
+const provenanceVariants = D.rankJobs([direct.job, listing.job, sourceOnly.job], profile, now);
+assert.deepEqual(
+  [...new Set(provenanceVariants.map(result => result.total))],
+  [direct.total],
+  "Changing only link provenance must not change score or rank strength"
+);
 assert.equal(direct.scoringSemantics.link, "provenance only");
 assert.equal(direct.scoringSemantics.effort, undefined);
 assert.match(direct.scoringSemantics.fit, /screening evidence plus transferable capability/i);
@@ -269,11 +301,11 @@ assert.ok(cautious.total <= 100);
 assert.ok(!cautious.inspection.evidence.some(x => /^Qualification readiness adjustment:/i.test(String(x))));
 assert.match(cautious.inspection.label, /Some required gaps/i);
 
-for (const result of [metadataOnly, supported, unsupported, adjacent, learnable, major, domainOnly, aeroLike, conjunctiveLanguages, academicMatch, wexLike, exactTerm, unknownTerm, direct, listing, cautious, lowerRole]) {
-  const weightedTotal = Object.values(result.components).reduce((sum, component) => sum + Number(component.score || 0), 0);
-  assert.equal(result.total, weightedTotal);
+for (const result of [metadataOnly, supported, unsupported, adjacent, learnable, major, domainOnly, aeroLike, conjunctiveLanguages, academicMatch, wexLike, exactTerm, unknownTerm, direct, listing, sourceOnly, cautious, lowerRole]) {
+  assert.equal(result.total, D.sumRankingComponents(result.components));
   assert.ok(result.total >= 0 && result.total <= 100);
   assert.equal(result.components.role, undefined);
+  assert.deepEqual(result.scoringContract, D.SCORING_CONTRACT);
 }
 
 console.log("apply-next evidence-based dimension tests passed");
