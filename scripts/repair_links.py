@@ -583,6 +583,32 @@ def downgrade_dead_link(job: dict[str, Any]) -> None:
         job["link_kind"] = "source"
 
 
+def downgrade_unverified_workday_apply(job: dict[str, Any]) -> bool:
+    """Stop presenting an unverified Workday /apply route as a direct Apply link.
+
+    A transient CXS/network failure should not block publication of the whole feed.
+    Preserve the employer posting by falling back to its parent job page, which is
+    safe to label as employer_job while the application route remains unverified.
+    """
+    value = str(job.get("url") or "")
+    if not is_direct_application_url(value):
+        return False
+    parsed = urlparse(value)
+    host = (parsed.hostname or "").lower()
+    if not re.fullmatch(r"[^.]+\.wd\d+\.myworkdayjobs\.com", host):
+        return False
+    path = parsed.path.rstrip("/")
+    if not path.casefold().endswith("/apply"):
+        return False
+
+    parent_path = path[:-len("/apply")] or "/"
+    parent = urlunparse((parsed.scheme, parsed.netloc, parent_path, "", parsed.query, ""))
+    job["url"] = parent
+    job["link_kind"] = "employer_job"
+    job["unverified_apply_url"] = value
+    return True
+
+
 def validate_repaired_links(doc: dict[str, Any], old_doc: dict[str, Any]) -> dict[str, int]:
     jobs = [job for job in doc.get("jobs", []) if isinstance(job, dict)]
     old_by_id = {
@@ -636,6 +662,8 @@ def validate_repaired_links(doc: dict[str, Any], old_doc: dict[str, Any]) -> dic
             job["link_validation_version"] = LINK_VALIDATION_VERSION
             if status == "dead":
                 downgrade_dead_link(job)
+            elif status == "unknown" and downgrade_unverified_workday_apply(job):
+                pass
             elif is_direct_application_url(final):
                 job["url"] = final
 
