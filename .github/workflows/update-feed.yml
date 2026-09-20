@@ -159,6 +159,50 @@ jobs:
       - name: Validate generated feed
         run: python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8 --enforce-link-contract
 
+      - name: Commit fast-path opportunity feed
+        run: |
+          GENERATED_PATHS="data/listings.json"
+          if git diff --quiet -- $GENERATED_PATHS; then
+            echo "No feed changes."
+          else
+            cp data/listings.json /tmp/yartchives-generated-listings.json
+            cp data/workday-inspections.json /tmp/yartchives-generated-workday-inspections-fastpath-backup.json
+            START_SHA="$(git rev-parse HEAD)"
+            git fetch origin main
+            REMOTE_SHA="$(git rev-parse origin/main)"
+
+            SHOULD_COMMIT="true"
+            if [ "$START_SHA" != "$REMOTE_SHA" ]; then
+              echo "main advanced while this refresh was running."
+              CHANGED="$(git diff --name-only "$START_SHA".."$REMOTE_SHA")"
+              echo "$CHANGED"
+
+              FEED_INPUT_CHANGES="$(echo "$CHANGED" | grep -E '^(scripts/|audit/samples/|data/employer-seeds/|sources\.json$|direct_sources\.json$|requirements\.txt$|\.github/workflows/update-feed\.yml$)' || true)"
+              if [ -n "$FEED_INPUT_CHANGES" ]; then
+                echo "Feed-producing inputs changed on main; leaving this generated result unpublished."
+                echo "The queued or scheduled refresh will rebuild from the newer feed inputs."
+                SHOULD_COMMIT="false"
+              else
+                echo "Only unrelated or generated files changed; publishing this completed feed onto current main."
+                git reset --hard origin/main
+                cp /tmp/yartchives-generated-listings.json data/listings.json
+                cp /tmp/yartchives-generated-workday-inspections-fastpath-backup.json data/workday-inspections.json
+              fi
+            fi
+
+            if [ "$SHOULD_COMMIT" = "true" ]; then
+              if git diff --quiet -- $GENERATED_PATHS; then
+                echo "No generated changes after synchronizing with main."
+              else
+                git config user.name "yartchives-bot"
+                git config user.email "actions@users.noreply.github.com"
+                git add $GENERATED_PATHS
+                git commit -m "chore: refresh opportunity feed"
+                git push origin main
+              fi
+            fi
+          fi
+
       - name: Migrate cached requirement semantics
         run: python scripts/migrate_cached_requirements.py data/workday-inspections.json
 
@@ -176,45 +220,44 @@ jobs:
       - name: Refresh generated README status
         run: python scripts/update_readme_status.py
 
-      - name: Commit updated feed and inspections
+      - name: Commit slow-path enrichments and audits
         run: |
-          GENERATED_PATHS="data/listings.json data/workday-inspections.json README.md"
+          GENERATED_PATHS="data/workday-inspections.json README.md"
           if git diff --quiet -- $GENERATED_PATHS; then
-            echo "No feed or inspection changes."
-            exit 0
-          fi
+            echo "No inspection or audit changes."
+          else
+            cp data/workday-inspections.json /tmp/yartchives-generated-workday-inspections.json
+            START_SHA="$(git rev-parse HEAD)"
+            git fetch origin main
+            REMOTE_SHA="$(git rev-parse origin/main)"
 
-          cp data/listings.json /tmp/yartchives-generated-listings.json
-          cp data/workday-inspections.json /tmp/yartchives-generated-workday-inspections.json
-          START_SHA="$(git rev-parse HEAD)"
-          git fetch origin main
-          REMOTE_SHA="$(git rev-parse origin/main)"
+            SHOULD_COMMIT="true"
+            if [ "$START_SHA" != "$REMOTE_SHA" ]; then
+              echo "main advanced while this refresh was running."
+              CHANGED="$(git diff --name-only "$START_SHA".."$REMOTE_SHA")"
+              echo "$CHANGED"
 
-          if [ "$START_SHA" != "$REMOTE_SHA" ]; then
-            echo "main advanced while this refresh was running."
-            CHANGED="$(git diff --name-only "$START_SHA".."$REMOTE_SHA")"
-            echo "$CHANGED"
-
-            FEED_INPUT_CHANGES="$(echo "$CHANGED" | grep -E '^(scripts/|audit/samples/|data/employer-seeds/|sources\.json$|direct_sources\.json$|requirements\.txt$|\.github/workflows/update-feed\.yml$)' || true)"
-            if [ -n "$FEED_INPUT_CHANGES" ]; then
-              echo "Feed-producing inputs changed on main; leaving this generated result unpublished."
-              echo "The queued or scheduled refresh will rebuild from the newer feed inputs."
-              exit 0
+              FEED_INPUT_CHANGES="$(echo "$CHANGED" | grep -E '^(scripts/|audit/samples/|data/employer-seeds/|sources\.json$|direct_sources\.json$|requirements\.txt$|\.github/workflows/update-feed\.yml$)' || true)"
+              if [ -n "$FEED_INPUT_CHANGES" ]; then
+                echo "Feed-producing inputs changed on main; leaving this generated result unpublished."
+                echo "The queued or scheduled refresh will rebuild from the newer feed inputs."
+                SHOULD_COMMIT="false"
+              else
+                echo "Only unrelated or generated files changed; publishing this completed feed onto current main."
+                git reset --hard origin/main
+                cp /tmp/yartchives-generated-workday-inspections.json data/workday-inspections.json
+              fi
             fi
 
-            echo "Only unrelated or generated files changed; publishing this completed feed onto current main."
-            git reset --hard origin/main
-            cp /tmp/yartchives-generated-listings.json data/listings.json
-            cp /tmp/yartchives-generated-workday-inspections.json data/workday-inspections.json
+            if [ "$SHOULD_COMMIT" = "true" ]; then
+              if git diff --quiet -- $GENERATED_PATHS; then
+                echo "No generated changes after synchronizing with main."
+              else
+                git config user.name "yartchives-bot"
+                git config user.email "actions@users.noreply.github.com"
+                git add $GENERATED_PATHS
+                git commit -m "chore: refresh feed audits and enrichments"
+                git push origin main
+              fi
+            fi
           fi
-
-          if git diff --quiet -- $GENERATED_PATHS; then
-            echo "No generated changes after synchronizing with main."
-            exit 0
-          fi
-
-          git config user.name "yartchives-bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add $GENERATED_PATHS
-          git commit -m "chore: refresh opportunity feed"
-          git push origin main
