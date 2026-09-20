@@ -173,7 +173,6 @@ def review_ready_issue_by_pr(
                 raise RuntimeError(
                     f"Durable Jules output for issue #{number} records issue #{recorded_issue}"
                 )
-            issue = dict(issue)
             issue["_jules_output"] = {
                 "issue": recorded_issue,
                 "session": session_id,
@@ -186,7 +185,6 @@ def review_ready_issue_by_pr(
             if legacy is None:
                 continue
             session_id, pr_number = legacy
-            issue = dict(issue)
             issue["_jules_output"] = {
                 "issue": number,
                 "session": session_id,
