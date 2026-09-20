@@ -9,6 +9,10 @@ on:
         type: string
   schedule:
     - cron: "*/5 * * * *"
+  issue_comment:
+    types:
+      - created
+      - edited
   push:
     branches:
       - main
@@ -31,9 +35,19 @@ concurrency:
 jobs:
   merge:
     if: >-
-      github.event_name != 'workflow_run' ||
-      github.event.workflow_run.conclusion == 'success' ||
-      github.event.workflow_run.conclusion == 'action_required'
+      (
+        github.event_name != 'workflow_run' ||
+        github.event.workflow_run.conclusion == 'success' ||
+        github.event.workflow_run.conclusion == 'action_required'
+      ) &&
+      (
+        github.event_name != 'issue_comment' ||
+        (
+          github.event.issue.pull_request != null &&
+          github.event.comment.user.login == github.repository_owner &&
+          contains(github.event.comment.body, '<!-- owner-authorized-automerge -->')
+        )
+      )
     runs-on: ubuntu-latest
     steps:
       - name: Check out merge policy
