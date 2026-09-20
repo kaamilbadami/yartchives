@@ -447,7 +447,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
     def test_main_does_not_require_issue_link_for_maintenance_lane(self):
         source = MODULE_PATH.read_text()
         self.assertIn(
-            "if issue_number is None and not maintenance_pre_ci:",
+            "if issue_number is None and not maintenance_pre_ci and not owner_authorized:",
             source,
         )
         self.assertIn(
