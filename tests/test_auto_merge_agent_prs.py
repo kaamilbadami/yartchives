@@ -1092,22 +1092,33 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertIn("409", detail)
 
     def test_close_linked_issue_after_merge_is_explicit_and_completed(self):
-        with mock.patch.object(mod, "gh_run") as gh_run:
+        ok = subprocess.CompletedProcess(
+            args=["gh"],
+            returncode=0,
+            stdout="",
+            stderr="",
+        )
+        with mock.patch.object(mod, "gh_json", return_value={"state": "open"}), \
+             mock.patch.object(mod.subprocess, "run", return_value=ok) as run:
             mod.close_linked_issue_after_merge("kaamilbadami/yartchives", 417)
 
-        gh_run.assert_called_once_with(
-            "api",
-            "--method", "PATCH",
-            "repos/kaamilbadami/yartchives/issues/417",
-            "-f", "state=closed",
-            "-f", "state_reason=completed",
+        self.assertEqual(
+            run.call_args.args[0],
+            [
+                "gh", "api", "--method", "PATCH",
+                "repos/kaamilbadami/yartchives/issues/417",
+                "-f", "state=closed",
+                "-f", "state_reason=completed",
+            ],
         )
 
     def test_close_linked_issue_after_merge_ignores_unlinked_maintenance_pr(self):
-        with mock.patch.object(mod, "gh_run") as gh_run:
+        with mock.patch.object(mod, "gh_json") as gh_json, \
+             mock.patch.object(mod.subprocess, "run") as run:
             mod.close_linked_issue_after_merge("kaamilbadami/yartchives", None)
 
-        gh_run.assert_not_called()
+        gh_json.assert_not_called()
+        run.assert_not_called()
 
     def test_successful_merge_paths_explicitly_close_verified_issue(self):
         source = MODULE_PATH.read_text()
