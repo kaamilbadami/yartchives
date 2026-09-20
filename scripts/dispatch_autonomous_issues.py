@@ -399,8 +399,8 @@ def clarification_handled_time(
     """Return when this exact clarification was durably marked handled."""
     key = clarification_key(question)
     marker = re.compile(
-        rf"<!--\\s*jules-clarification-handled:\\s*"
-        rf"{re.escape(session_id)}:{re.escape(key)}\\s*-->"
+        rf"<!--\s*jules-clarification-handled:\s*"
+        rf"{re.escape(session_id)}:{re.escape(key)}\s*-->"
     )
     handled: list[datetime] = []
     for comment in comments:
