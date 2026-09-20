@@ -150,7 +150,6 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
         or priority not in PRIORITY_ORDER
         or not area
         or dependencies is None
-        or (area not in AREA_RESOURCE_LOCKS and not resources)
     ):
         return None
     return Task(
@@ -166,16 +165,19 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
 
 
 def task_lock_keys(task: Task) -> frozenset[str]:
-    """Return the scheduler locks held by a task.
+    """Return the scheduler resource locks held by a task.
 
-    Every task always locks its exact area. Known areas also use conservative
-    shared-resource defaults for cross-area hot paths, and optional issue metadata
-    can add locks with `resources: foo, bar`.
+    Areas are descriptive metadata, not concurrency locks. Explicit `resources:`
+    metadata is authoritative and can be composed with conservative defaults for
+    known legacy areas. New areas are always dispatchable; when they omit explicit
+    resources, use one area-derived fallback resource so same-area work remains
+    serialized without blocking unrelated areas.
     """
-    resources = AREA_RESOURCE_LOCKS.get(task.area, frozenset()) | task.resources
-    return frozenset(
-        {f"area:{task.area}", *(f"resource:{resource}" for resource in resources)}
-    )
+    default_resources = AREA_RESOURCE_LOCKS.get(task.area, frozenset())
+    resources = default_resources | task.resources
+    if not resources:
+        resources = frozenset({f"area-fallback:{task.area}"})
+    return frozenset(f"resource:{resource}" for resource in resources)
 
 
 def active_jules_task(issue: dict[str, Any]) -> Task | None:
