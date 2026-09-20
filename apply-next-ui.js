@@ -438,7 +438,6 @@
       roi: "Worth applying",
       role: "Role",
       location: "Location fit",
-      effort: "Application access",
       link: "Link",
     })[key] || key;
   }
@@ -449,7 +448,6 @@
       freshness: "Newer postings score higher because timing can affect how crowded the applicant pool is.",
       roi: "Balances how valuable this role is for you with the opportunity and competition signals we know.",
       location: "Based on commute distance, remote status, and your location preferences.",
-      effort: "Measures application-link friction: direct employer/ATS links score highest; intermediary or source-only paths score lower.",
     })[key] || "";
   }
 
@@ -461,7 +459,6 @@
     if (key === "roi") return ratio >= 0.75 ? "High value" : (ratio >= 0.55 ? "Worth considering" : "Lower value");
     if (key === "location" && isRemoteJob(job)) return "Remote";
     if (key === "location") return ratio >= 0.75 ? "Very convenient" : (ratio >= 0.55 ? "Manageable" : "Less convenient");
-    if (key === "effort") return ratio >= 0.8 ? "Direct application" : (ratio >= 0.4 ? "Intermediary application" : "Higher application friction");
     return "";
   }
 
