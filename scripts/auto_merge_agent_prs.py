@@ -35,6 +35,7 @@ CLOSING_ISSUE_RE = re.compile(
 )
 JULES_REVIEW_READY_LABEL = "jules-review-ready"
 GITHUB_ACTIONS_BOT = "github-actions[bot]"
+OWNER_AUTHORIZED_AUTOMERGE_MARKER = "<!-- owner-authorized-automerge -->"
 SAFE_MERGEABLE_STATES = {"clean", "has_hooks", "unstable", "behind"}
 MAINTENANCE_TEST_BY_PATH = {
     "scripts/dispatch_autonomous_issues.py": "tests/test_dispatch_autonomous_issues.py",
@@ -75,6 +76,19 @@ def label_names(issue: dict[str, Any]) -> set[str]:
         elif isinstance(label, dict) and label.get("name"):
             names.add(str(label["name"]))
     return names
+
+
+def owner_authorized_pr(pr: dict[str, Any], repo: str) -> bool:
+    """Return whether the repository owner explicitly pre-authorized this PR to merge when green."""
+    if str(pr.get("state") or "") != "open" or bool(pr.get("draft")):
+        return False
+    owner = repo.split("/", 1)[0]
+    if str((pr.get("user") or {}).get("login") or "") != owner:
+        return False
+    head = pr.get("head") or {}
+    if str((head.get("repo") or {}).get("full_name") or "") != repo:
+        return False
+    return OWNER_AUTHORIZED_AUTOMERGE_MARKER in str(pr.get("body") or "")
 
 
 def linked_issue_number(body: str) -> int | None:
@@ -1104,6 +1118,7 @@ def main() -> int:
             require_quality=False,
         )
 
+        owner_authorized = owner_authorized_pr(pr, repo)
         issue_number = linked_issue_number(str(pr.get("body") or ""))
         issue = None
         if issue_number is not None:
@@ -1121,7 +1136,7 @@ def main() -> int:
                     f"issue #{replacement_number}."
                 )
                 continue
-        if issue_number is None and not maintenance_pre_ci:
+        if issue_number is None and not maintenance_pre_ci and not owner_authorized:
             issue = recovered_issue_by_pr.get(number)
             if issue is None:
                 print(
@@ -1142,7 +1157,7 @@ def main() -> int:
                 f"#{issue_number} and added 'Closes #{issue_number}'."
             )
 
-        if issue is None and not maintenance_pre_ci:
+        if issue is None and not maintenance_pre_ci and not owner_authorized:
             issue = gh_json("api", f"repos/{repo}/issues/{issue_number}")
 
         if issue is not None and JULES_REVIEW_READY_LABEL in label_names(issue):
@@ -1243,8 +1258,8 @@ def main() -> int:
 
         if generated:
             if (
-                issue is None
-                or not autonomous_issue_ready(issue)
+                (issue is None or not autonomous_issue_ready(issue))
+                and not owner_authorized
                 or not head_ref
             ):
                 print(
@@ -1268,7 +1283,7 @@ def main() -> int:
             )
             continue
 
-        if control_plane_pre_ci and (
+        if control_plane_pre_ci and not owner_authorized and (
             issue is None or not autonomous_issue_ready(issue)
         ):
             control_plane_pre_ci = False
@@ -1286,7 +1301,9 @@ def main() -> int:
             )
 
         changed_paths = [str(row.get("filename") or "") for row in files]
-        if maintenance_pre_ci:
+        if owner_authorized:
+            pre_ci_eligible, reason = True, "owner-authorized"
+        elif maintenance_pre_ci:
             pre_ci_eligible, reason = True, "maintenance-eligible"
         elif control_plane_pre_ci:
             pre_ci_eligible, reason = True, "control-plane-eligible"
@@ -1330,7 +1347,13 @@ def main() -> int:
                 )
                 continue
 
-        if maintenance_pre_ci:
+        if owner_authorized:
+            eligible, reason = (
+                exact_head_quality_passed(runs, head_sha),
+                "owner-authorized" if exact_head_quality_passed(runs, head_sha)
+                else "exact-head Quality checks have not passed",
+            )
+        elif maintenance_pre_ci:
             eligible, reason = maintenance_pr_eligible(
                 pr,
                 repo=repo,
