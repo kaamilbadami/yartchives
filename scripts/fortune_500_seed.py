@@ -27,6 +27,93 @@ NEXT_DATA_PATTERN = re.compile(
 )
 
 
+def enrich_domains(seed: dict[str, Any]) -> dict[str, Any]:
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    import urllib.request
+    import urllib.parse
+
+    def normalize_company(name: str) -> str:
+        name = name.lower()
+        for suffix in [" inc", " corp", " corporation", " company", " co", " llc", " group", " holdings", " platforms", " technologies"]:
+            if name.endswith(suffix):
+                name = name[:-len(suffix)]
+                break
+        name = re.sub(r'[^a-z0-9]', '', name)
+        return name
+
+    def get_company_domain(name: str) -> str | None:
+        query = urllib.parse.quote(f"{name} company")
+        target_norm = normalize_company(name)
+
+        # Try Wikipedia first, it's highly curated and much less prone to data poisoning
+        url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={query}&utf8=&format=json"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                if data.get('query', {}).get('search'):
+                    title = data['query']['search'][0]['title']
+
+                    title_norm = normalize_company(title)
+                    if target_norm in title_norm or title_norm in target_norm:
+                        title_encoded = urllib.parse.quote(title)
+                        url_page = f"https://en.wikipedia.org/w/api.php?action=parse&page={title_encoded}&prop=text&format=json"
+                        req_page = urllib.request.Request(url_page, headers={'User-Agent': 'Mozilla/5.0'})
+                        with urllib.request.urlopen(req_page, timeout=10) as resp_page:
+                            data_page = json.loads(resp_page.read().decode('utf-8'))
+                            if 'parse' in data_page and 'text' in data_page['parse']:
+                                html_text = data_page['parse']['text']['*']
+                                m = re.search(r'Website.*?<a[^>]*href="([^"]+)"', html_text, re.DOTALL | re.IGNORECASE)
+                                if m:
+                                    domain = urllib.parse.urlparse(m.group(1)).netloc
+                                    if domain and not "wikipedia" in domain and not "wikimedia" in domain:
+                                        return domain.removeprefix("www.")
+        except Exception:
+            pass
+
+        # If Wikipedia fails, try Clearbit, but with strict matching
+        query_cb = urllib.parse.quote(name)
+        url = f"https://autocomplete.clearbit.com/v1/companies/suggest?query={query_cb}"
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read().decode('utf-8'))
+                if data:
+                    for item in data:
+                        res_name = item.get('name', '')
+                        res_norm = normalize_company(res_name)
+                        if not target_norm or not res_norm:
+                            continue
+
+                        if target_norm == res_norm or target_norm in res_norm or res_norm in target_norm:
+                            domain = str(item['domain']).lower()
+                            domain_norm = re.sub(r'[^a-z0-9]', '', domain.split('.')[0])
+                            if domain_norm in target_norm or target_norm in domain_norm:
+                                return str(item['domain'])
+        except Exception:
+            pass
+
+        return None
+
+    def fetch(emp: dict[str, Any]) -> tuple[dict[str, Any], str | None]:
+        return emp, get_company_domain(emp['name'])
+
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        futures = {pool.submit(fetch, emp): emp for emp in seed.get("employers", [])}
+        for future in as_completed(futures):
+            emp, domain = future.result()
+            if domain:
+                emp["domain_hints"] = [domain]
+
+    # Sort keys to maintain stability
+    for emp in seed.get("employers", []):
+        if "domain_hints" in emp:
+            emp["domain_hints"] = sorted(emp["domain_hints"])
+
+    return seed
+
+
 def extract_page_data(page_html: str) -> dict[str, Any]:
     match = NEXT_DATA_PATTERN.search(page_html)
     if not match:
@@ -97,6 +184,8 @@ def build_seed(
         },
         "employers": employers,
     }
+
+    seed = enrich_domains(seed)
     validate_seed(seed)
     return seed
 
