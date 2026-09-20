@@ -55,6 +55,20 @@ def valid_http_url(value: str | None) -> bool:
     return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
+def source_status(source: dict) -> str | None:
+    """Normalize source health across the legacy and explicit status schemas."""
+    status = source.get("status")
+    if isinstance(status, str) and status:
+        return status
+    if source.get("configured") is False:
+        return "quarantined"
+    if source.get("ok") is True:
+        return "healthy"
+    if source.get("ok") is False:
+        return "failed"
+    return None
+
+
 def validate(
     path: Path,
     minimum_jobs: int,
@@ -151,7 +165,7 @@ def validate(
         if not isinstance(source, dict):
             fatal_errors.append(f"source {key} metadata is malformed")
             continue
-        status = source.get("status")
+        status = source_status(source)
         if status in {"healthy", "degraded"}:
             healthy += 1
         if strict_sources and status == "failed":
