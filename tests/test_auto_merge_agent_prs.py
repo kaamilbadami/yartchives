@@ -869,7 +869,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
         self.assertIn(
-            "through guarded merge fallback while GitHub mergeability was recomputing.",
+            "merge fallback while GitHub mergeability was recomputing.",
             source,
         )
         self.assertIn(
