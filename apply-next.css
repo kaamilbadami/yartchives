@@ -298,6 +298,25 @@
   font-size: 0.78rem;
 }
 
+.apply-next-feedback-note {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.apply-next-feedback-note-input {
+  width: 100%;
+  min-height: 3.5rem;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+}
+
 @media (max-width: 720px) {
   .apply-next-breakdown {
     grid-template-columns: 1fr;
