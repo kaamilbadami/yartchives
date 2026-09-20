@@ -1363,6 +1363,13 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             mod.generated_artifact_paths(["patch_workflow.py", "scripts/real_helper.py"]),
             ["patch_workflow.py"],
         )
+        self.assertEqual(
+            mod.generated_artifact_file_paths([
+                {"filename": "patch_workflow.py", "status": "added"},
+                {"filename": "patch_old.py", "status": "removed"},
+            ]),
+            ["patch_workflow.py"],
+        )
 
         candidate = pr()
         ok, reason = mod.control_plane_pr_eligible(
