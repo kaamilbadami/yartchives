@@ -462,9 +462,26 @@ def main() -> int:
         )
     ]
 
-    resolved: list[tuple[dict[str, Any], str, str]] = []
+    def _resolve_and_validate(j: dict[str, Any]) -> tuple[str, str, str, str] | None:
+        employer_job_url = j.get("url") or ""
+        if j.get("link_kind") == "employer_job" and workday_config_from_url(employer_job_url):
+            optimistic_url = employer_job_url.rstrip("/")
+            if not optimistic_url.casefold().endswith("/apply"):
+                optimistic_url += "/apply"
+            val = links.validate_workday_url(optimistic_url)
+            if val is not None and val[0] == "ok":
+                return optimistic_url, "workday-employer-job", val[0], val[1]
+
+        res = resolve_one(j, registry)
+        if not res:
+            return None
+        direct, origin = res
+        status, final = links.validate_direct_url(direct)
+        return direct, origin, status, final
+
+    resolved: list[tuple[dict[str, Any], str, str, str, str]] = []
     with ThreadPoolExecutor(max_workers=WORKERS) as pool:
-        futures = {pool.submit(resolve_one, job, registry): job for job in targets}
+        futures = {pool.submit(_resolve_and_validate, job): job for job in targets}
         for future in as_completed(futures):
             job = futures[future]
             try:
@@ -473,14 +490,13 @@ def main() -> int:
                 print(f"warning: provider resolver failed for {job.get('company')}: {exc}", file=sys.stderr)
                 result = None
             if result:
-                direct, origin = result
-                resolved.append((job, direct, origin))
+                direct, origin, status, final = result
+                resolved.append((job, direct, origin, status, final))
 
     by_origin: dict[str, int] = {}
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-    for job, direct, origin in resolved:
+    for job, direct, origin, status, final in resolved:
         listing = job.get("listing_url") or ""
-        status, final = links.validate_direct_url(direct)
         if status == "dead":
             continue
         if listing:
