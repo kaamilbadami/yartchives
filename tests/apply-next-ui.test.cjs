@@ -351,6 +351,13 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /<option value="fit">Requirements\/Fit<\/option>/, "Optional reason should include Requirements/Fit");
   assert.match(uiSource, /<option value="company">Company\/Industry<\/option>/, "Optional reason should include Company/Industry");
   assert.match(uiSource, /<option value="other">Other<\/option>/, "Optional reason should include Other");
+  assert.match(uiSource, /Anything else\? \(optional\)/, "Feedback should expose an optional written note");
+  assert.match(uiSource, /What made this a good suggestion\?/, "Good feedback should support written context");
+  assert.match(uiSource, /Tell us what was wrong with this suggestion\./, "Bad feedback should support written context");
+  assert.match(uiSource, /state\.feedback\[job\.id\]\.note = value/, "Written feedback should persist with the recommendation");
+  assert.match(uiSource, /delete state\.feedback\[job\.id\]\.note/, "Clearing written feedback should remove the stored note");
+  assert.match(uiSource, /note\.maxLength = 500/, "Written feedback should have a bounded length");
+  assert.match(applyNextCss, /\.apply-next-feedback-note-input\s*\{/, "Written feedback should have dedicated responsive styling");
 
   assert.doesNotMatch(uiSource, /<option value="newest">Newest<\/option>/, "Apply Next should not expose a Newest sort mode");
   assert.match(uiSource, /\["recommended", "Recommended"\]/, "Apply Next should expose the Recommended queue");
