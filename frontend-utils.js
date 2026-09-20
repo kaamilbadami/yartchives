@@ -20,6 +20,63 @@
     Object.entries(STATE_NAMES).map(([code, name]) => [name.toLowerCase(), code.toLowerCase()])
   );
 
+  function waitForBrowserPaint(options = {}) {
+    return new Promise(resolve => {
+      const raf = options.requestAnimationFrame
+        || (typeof requestAnimationFrame === "function" ? requestAnimationFrame : null);
+      const timer = options.setTimeout
+        || (typeof setTimeout === "function" ? setTimeout : null);
+
+      if (raf) {
+        raf(() => resolve());
+      } else if (timer) {
+        timer(resolve, 0);
+      } else {
+        resolve();
+      }
+    });
+  }
+
+  async function runWithPendingUi(options = {}) {
+    const {
+      control = null,
+      busyTarget = null,
+      pendingLabel,
+      prepare,
+      work,
+      paint = waitForBrowserPaint,
+    } = options;
+
+    if (typeof work !== "function") {
+      throw new TypeError("runWithPendingUi requires a work function");
+    }
+
+    const priorDisabled = control ? Boolean(control.disabled) : false;
+    const priorLabel = control && "textContent" in control ? control.textContent : null;
+    const priorBusy = busyTarget?.getAttribute ? busyTarget.getAttribute("aria-busy") : null;
+
+    try {
+      if (control) {
+        control.disabled = true;
+        if (pendingLabel !== undefined && "textContent" in control) control.textContent = pendingLabel;
+      }
+      if (busyTarget?.setAttribute) busyTarget.setAttribute("aria-busy", "true");
+      if (typeof prepare === "function") prepare();
+
+      await paint();
+      return await work();
+    } finally {
+      if (control) {
+        control.disabled = priorDisabled;
+        if (priorLabel !== null && "textContent" in control) control.textContent = priorLabel;
+      }
+      if (busyTarget?.setAttribute) {
+        if (priorBusy === null) busyTarget.removeAttribute?.("aria-busy");
+        else busyTarget.setAttribute("aria-busy", priorBusy);
+      }
+    }
+  }
+
   function normalizePlace(value) {
     return (value || "")
       .normalize("NFD")
@@ -301,6 +358,8 @@
 
   return {
     STATE_NAMES,
+    waitForBrowserPaint,
+    runWithPendingUi,
     normalizePlace,
     matchesTextLocation,
     parseCsvLine,
