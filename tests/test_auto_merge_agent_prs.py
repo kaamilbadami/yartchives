@@ -797,6 +797,21 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
 
+    def test_transient_unknown_mergeability_is_retryable_not_silently_skipped(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            'REPAIR_AND_RETRY PR #{number}: GitHub mergeability is still being recomputed.',
+            source,
+        )
+        self.assertIn(
+            'BLOCKED_REQUIRES_DECISION PR #{number}: GitHub reports mergeable={mergeable}',
+            source,
+        )
+        self.assertNotIn(
+            'Skipping PR #{number}: GitHub does not currently report it as safely mergeable.',
+            source,
+        )
+
     def test_main_drains_all_eligible_prs_instead_of_returning_after_first_merge(self):
         source = MODULE_PATH.read_text()
         merge_log = 'print(f"Squash-merged eligible autonomous PR #{number}.")'

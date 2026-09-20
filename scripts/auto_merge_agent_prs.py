@@ -1124,9 +1124,17 @@ def main() -> int:
 
         fresh = gh_json("api", f"repos/{repo}/pulls/{number}")
         if not github_reports_safe_mergeability(fresh):
-            print(
-                f"Skipping PR #{number}: GitHub does not currently report it as safely mergeable."
-            )
+            mergeable = fresh.get("mergeable")
+            mergeable_state = str(fresh.get("mergeable_state") or "")
+            if mergeable is None or mergeable_state in {"", "unknown"}:
+                print(
+                    f"REPAIR_AND_RETRY PR #{number}: GitHub mergeability is still being recomputed."
+                )
+            else:
+                print(
+                    f"BLOCKED_REQUIRES_DECISION PR #{number}: GitHub reports mergeable={mergeable} "
+                    f"state={mergeable_state or 'unknown'}."
+                )
             continue
 
         gh_run(
