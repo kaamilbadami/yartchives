@@ -128,6 +128,24 @@ def completed_jules_pr_number(
     return None
 
 
+def legacy_completed_jules_output(
+    comments: Iterable[dict[str, Any]], repo: str
+) -> tuple[str, int] | None:
+    pattern = re.compile(
+        rf"Jules completed session `([^`]+)`.*?"
+        rf"Pull request:\s*https://github\.com/{re.escape(repo)}/pull/(\d+)",
+        re.IGNORECASE | re.DOTALL,
+    )
+    for comment in reversed(list(comments)):
+        user = comment.get("user") or {}
+        if str(user.get("login") or "") != GITHUB_ACTIONS_BOT:
+            continue
+        match = pattern.search(str(comment.get("body") or ""))
+        if match:
+            return match.group(1), int(match.group(2))
+    return None
+
+
 def review_ready_issue_by_pr(
     issues: Iterable[dict[str, Any]],
     *,
@@ -150,15 +168,32 @@ def review_ready_issue_by_pr(
         comments = load_comments(number)
         output = completed_jules_output(comments)
         if output is not None:
-            recorded_issue, _session_id, pr_number, _head_sha = output
+            recorded_issue, session_id, pr_number, head_sha = output
             if recorded_issue != number:
                 raise RuntimeError(
                     f"Durable Jules output for issue #{number} records issue #{recorded_issue}"
                 )
+            issue = dict(issue)
+            issue["_jules_output"] = {
+                "issue": recorded_issue,
+                "session": session_id,
+                "pr": pr_number,
+                "head": head_sha,
+                "durable": True,
+            }
         else:
-            pr_number = completed_jules_pr_number(comments, repo)
-        if pr_number is None:
-            continue
+            legacy = legacy_completed_jules_output(comments, repo)
+            if legacy is None:
+                continue
+            session_id, pr_number = legacy
+            issue = dict(issue)
+            issue["_jules_output"] = {
+                "issue": number,
+                "session": session_id,
+                "pr": pr_number,
+                "head": "",
+                "durable": False,
+            }
         existing = mapping.get(pr_number)
         if existing is not None and int(existing.get("number") or 0) != number:
             raise RuntimeError(
@@ -1033,6 +1068,72 @@ def main() -> int:
 
         if issue is None and not maintenance_pre_ci:
             issue = gh_json("api", f"repos/{repo}/issues/{issue_number}")
+
+        if issue is not None and JULES_REVIEW_READY_LABEL in label_names(issue):
+            output_meta = issue.get("_jules_output")
+            if output_meta is None:
+                comments = gh_paginated_json(
+                    "api",
+                    f"repos/{repo}/issues/{issue_number}/comments?per_page=100",
+                )
+                durable = completed_jules_output(comments)
+                if durable is not None:
+                    recorded_issue, session_id, recorded_pr, recorded_head = durable
+                    output_meta = {
+                        "issue": recorded_issue,
+                        "session": session_id,
+                        "pr": recorded_pr,
+                        "head": recorded_head,
+                        "durable": True,
+                    }
+                else:
+                    legacy = legacy_completed_jules_output(comments, repo)
+                    if legacy is not None:
+                        session_id, recorded_pr = legacy
+                        output_meta = {
+                            "issue": issue_number,
+                            "session": session_id,
+                            "pr": recorded_pr,
+                            "head": "",
+                            "durable": False,
+                        }
+            if output_meta is None:
+                print(
+                    f"BLOCKED_REQUIRES_DECISION PR #{number}: review-ready Jules issue "
+                    f"#{issue_number} has no trusted output record."
+                )
+                continue
+            if int(output_meta["issue"]) != int(issue_number) or int(output_meta["pr"]) != number:
+                print(
+                    f"BLOCKED_REQUIRES_DECISION PR #{number}: durable Jules output identity "
+                    f"does not match issue #{issue_number}."
+                )
+                continue
+            recorded_head = str(output_meta.get("head") or "")
+            if recorded_head and recorded_head != head_sha:
+                print(
+                    f"BLOCKED_REQUIRES_DECISION PR #{number}: durable Jules output head "
+                    f"{recorded_head} does not match current head {head_sha}."
+                )
+                continue
+            if not recorded_head:
+                marker = (
+                    f"<!-- jules-output: issue={issue_number} "
+                    f"session={output_meta['session']} pr={number} head={head_sha} -->"
+                )
+                gh_run(
+                    "issue", "comment", str(issue_number), "--repo", repo,
+                    "--body",
+                    (
+                        f"{marker}\nMigrated trusted legacy Jules completion metadata "
+                        "to the durable output identity contract."
+                    ),
+                )
+                output_meta["head"] = head_sha
+                output_meta["durable"] = True
+                print(
+                    f"Migrated Jules output identity for issue #{issue_number}, PR #{number}."
+                )
 
         if generated:
             if (
