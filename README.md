@@ -24,8 +24,8 @@ Yartchives is built around that second problem. Apply Next prioritizes known opp
 <!-- yartchives-status:start -->
 - **Beta scope:** CS-first
 - **Feed refresh:** hourly GitHub Actions pipeline
-- **Published listings:** pending next generated refresh
-- **Distinct source labels:** pending next generated refresh
+- **Published listings:** 5,574
+- **Distinct source labels:** 0
 - **Coverage claim:** not yet certified as a complete single discovery source
 <!-- yartchives-status:end -->
 
