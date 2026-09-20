@@ -432,6 +432,26 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                 )
                 self.assertFalse(ok)
 
+    def test_conflicted_pr_supersedes_only_with_trusted_autonomous_issue(self):
+        self.assertTrue(mod.conflicted_pr_can_supersede(issue()))
+        self.assertFalse(mod.conflicted_pr_can_supersede(None))
+        self.assertFalse(
+            mod.conflicted_pr_can_supersede(
+                issue(labels=("autonomous-backlog",))
+            )
+        )
+        self.assertFalse(
+            mod.conflicted_pr_can_supersede(
+                issue(
+                    labels=(
+                        "autonomous-backlog",
+                        "jules-review-ready",
+                        "needs-product-decision",
+                    )
+                )
+            )
+        )
+
     def test_broad_protected_pr_is_supersession_candidate(self):
         candidate = pr()
         original_issue = issue()
@@ -768,6 +788,14 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         )
         self.assertIn(
             'f"Superseded conflicted PR #{number} with fresh current-main "',
+            source,
+        )
+        self.assertIn(
+            'f"BLOCKED_REQUIRES_DECISION PR #{number}: branch conflicts with "',
+            source,
+        )
+        self.assertNotIn(
+            'f"Skipping PR #{number}: maintenance branch cannot be updated "',
             source,
         )
 

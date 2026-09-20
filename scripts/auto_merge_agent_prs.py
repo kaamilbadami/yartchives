@@ -333,6 +333,11 @@ def autonomous_issue_ready(issue: dict[str, Any]) -> bool:
     )
 
 
+def conflicted_pr_can_supersede(issue: dict[str, Any] | None) -> bool:
+    """Only trusted review-ready autonomous issues may be re-derived from current main."""
+    return issue is not None and autonomous_issue_ready(issue)
+
+
 def maintenance_pr_eligible(
     pr: dict[str, Any],
     *,
@@ -1086,7 +1091,7 @@ def main() -> int:
                     base_ref,
                 )
                 if not updated:
-                    if not maintenance_pre_ci and issue is not None:
+                    if conflicted_pr_can_supersede(issue):
                         replacement_number = supersede_conflicted_pull_request(
                             repo,
                             pr,
@@ -1099,8 +1104,9 @@ def main() -> int:
                         )
                     else:
                         print(
-                            f"Skipping PR #{number}: maintenance branch cannot be updated "
-                            "automatically because it conflicts with current base."
+                            f"BLOCKED_REQUIRES_DECISION PR #{number}: branch conflicts with "
+                            f"current {base_ref} and no trusted autonomous issue is available "
+                            "for safe supersession."
                         )
                     if detail:
                         print(detail)
