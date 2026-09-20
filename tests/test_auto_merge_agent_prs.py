@@ -356,6 +356,65 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
 
+    def test_control_plane_lane_accepts_small_workflow_change_with_contract_test(self):
+        candidate = pr()
+        files = [
+            {"filename": ".github/workflows/coverage-automation.yml", "changes": 40},
+            {"filename": "scripts/queue_coverage_gap.py", "changes": 120},
+            {"filename": "tests/deploy-assets.test.cjs", "changes": 20},
+            {"filename": "tests/test_queue_coverage_gap.py", "changes": 80},
+        ]
+        ok, reason = mod.control_plane_pr_eligible(
+            candidate,
+            repo="kaamilbadami/yartchives",
+            files=files,
+            quality_runs=runs(),
+        )
+        self.assertTrue(ok)
+        self.assertEqual(reason, "control-plane-eligible")
+
+    def test_control_plane_lane_rejects_unpaired_or_non_allowlisted_changes(self):
+        candidate = pr()
+        cases = (
+            (
+                [{"filename": ".github/workflows/coverage-automation.yml", "changes": 40}],
+                "paired regression test",
+            ),
+            (
+                [
+                    {"filename": ".github/workflows/coverage-automation.yml", "changes": 40},
+                    {"filename": "tests/deploy-assets.test.cjs", "changes": 20},
+                    {"filename": "app.js", "changes": 1},
+                ],
+                "non-allowlisted path",
+            ),
+        )
+        for files, expected in cases:
+            with self.subTest(expected=expected):
+                ok, reason = mod.control_plane_pr_eligible(
+                    candidate,
+                    repo="kaamilbadami/yartchives",
+                    files=files,
+                    quality_runs=runs(),
+                )
+                self.assertFalse(ok)
+                self.assertIn(expected, reason)
+
+    def test_generated_artifacts_are_identified_for_repair(self):
+        self.assertEqual(
+            mod.generated_artifact_paths(
+                [
+                    "scripts/__pycache__/dispatch_autonomous_issues.cpython-312.pyc",
+                    "__pycache__/test_issue_exists.cpython-312.pyc",
+                    "app.js",
+                ]
+            ),
+            [
+                "scripts/__pycache__/dispatch_autonomous_issues.cpython-312.pyc",
+                "__pycache__/test_issue_exists.cpython-312.pyc",
+            ],
+        )
+
     def test_maintenance_lane_never_authorizes_automerger_or_workflow_changes(self):
         candidate = pr()
         for path in (
@@ -711,6 +770,17 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             'f"Superseded conflicted PR #{number} with fresh current-main "',
             source,
         )
+
+    def test_main_repairs_generated_artifacts_before_lane_classification(self):
+        source = MODULE_PATH.read_text()
+        repair_index = source.index("remove_generated_artifacts(")
+        maintenance_index = source.index("maintenance_pre_ci, maintenance_reason")
+        self.assertLess(repair_index, maintenance_index)
+        self.assertIn("Repaired PR #{number} by removing generated artifacts", source)
+
+    def test_main_uses_explicit_blocked_disposition_instead_of_silent_skip(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn("BLOCKED_REQUIRES_DECISION PR #{number}", source)
 
     def test_main_continues_past_in_flight_and_redispatched_ci(self):
         source = MODULE_PATH.read_text()
