@@ -45,6 +45,23 @@ MAINTENANCE_ALLOWED_PATHS = frozenset(
 )
 MAINTENANCE_MAX_FILES = 4
 MAINTENANCE_MAX_CHANGES = 250
+GENERATED_ARTIFACT_PATTERNS = (
+    "__pycache__/**",
+    "**/__pycache__/**",
+    "*.pyc",
+    "**/*.pyc",
+    ".pytest_cache/**",
+    "**/.pytest_cache/**",
+)
+CONTROL_PLANE_ALLOWED_PATH_PATTERNS = (
+    ".github/workflows/**",
+    "scripts/queue_coverage_gap.py",
+    "tests/deploy-assets.test.cjs",
+    "tests/test_queue_coverage_gap.py",
+)
+CONTROL_PLANE_REQUIRED_TEST = "tests/deploy-assets.test.cjs"
+CONTROL_PLANE_MAX_FILES = 8
+CONTROL_PLANE_MAX_CHANGES = 500
 SUPERSEDE_PROTECTED_MAX_FILES = 12
 SUPERSEDE_PROTECTED_MAX_CHANGES = 1000
 SUPERSEDE_MARKER_TEMPLATE = "<!-- supersedes-stale-pr: {pr_number} -->"
@@ -131,6 +148,61 @@ def blocked_changed_paths(paths: Iterable[str]) -> list[str]:
         if any(fnmatch(path, pattern) for pattern in BLOCKED_PATH_PATTERNS):
             blocked.append(path)
     return blocked
+
+
+def generated_artifact_paths(paths: Iterable[str]) -> list[str]:
+    return [
+        path
+        for path in paths
+        if any(fnmatch(path, pattern) for pattern in GENERATED_ARTIFACT_PATTERNS)
+    ]
+
+
+def control_plane_pr_eligible(
+    pr: dict[str, Any],
+    *,
+    repo: str,
+    files: Iterable[dict[str, Any]],
+    quality_runs: Iterable[dict[str, Any]],
+    require_quality: bool = True,
+) -> tuple[bool, str]:
+    """Allow bounded workflow/control-plane changes with an explicit test contract."""
+    if str(pr.get("state") or "") != "open":
+        return False, "pull request is not open"
+    if bool(pr.get("draft")):
+        return False, "pull request is a draft"
+
+    head = pr.get("head") or {}
+    if (head.get("repo") or {}).get("full_name") != repo:
+        return False, "pull request branch is not in the source repository"
+
+    rows = list(files)
+    paths = {str(row.get("filename") or "") for row in rows if row.get("filename")}
+    if not paths:
+        return False, "control-plane lane has no changed paths"
+    if generated_artifact_paths(paths):
+        return False, "control-plane lane contains generated artifacts"
+    if not paths <= {
+        path
+        for path in paths
+        if any(fnmatch(path, pattern) for pattern in CONTROL_PLANE_ALLOWED_PATH_PATTERNS)
+    }:
+        return False, "control-plane lane contains a non-allowlisted path"
+    if not any(fnmatch(path, ".github/workflows/**") for path in paths):
+        return False, "control-plane lane does not change a workflow"
+    if CONTROL_PLANE_REQUIRED_TEST not in paths:
+        return False, f"control-plane change lacks paired regression test: {CONTROL_PLANE_REQUIRED_TEST}"
+    if len(paths) > CONTROL_PLANE_MAX_FILES:
+        return False, "control-plane lane changes too many files"
+    if sum(int(row.get("changes") or 0) for row in rows) > CONTROL_PLANE_MAX_CHANGES:
+        return False, "control-plane lane diff is too large"
+
+    head_sha = str(head.get("sha") or "")
+    if not head_sha:
+        return False, "pull request has no head commit"
+    if require_quality and not exact_head_quality_passed(quality_runs, head_sha):
+        return False, "exact pull request head has not passed Quality checks"
+    return True, "control-plane-eligible"
 
 
 def pull_request_queue_priority(paths: Iterable[str]) -> int:
@@ -590,6 +662,57 @@ def gh_run(*args: str) -> None:
     subprocess.run(["gh", *args], check=True)
 
 
+def remove_generated_artifacts(
+    repo: str,
+    number: int,
+    head_sha: str,
+    head_ref: str,
+    paths: Iterable[str],
+) -> None:
+    """Remove known generated junk from a PR branch and let exact-head CI rerun."""
+    clean_paths = sorted(set(paths))
+    if not clean_paths:
+        return
+    subprocess.run(
+        ["git", "fetch", "--no-tags", "origin", f"+refs/heads/{head_ref}:refs/remotes/origin/{head_ref}"],
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    remote_head = subprocess.run(
+        ["git", "rev-parse", f"refs/remotes/origin/{head_ref}"],
+        check=True,
+        text=True,
+        capture_output=True,
+    ).stdout.strip()
+    if remote_head != head_sha:
+        raise RuntimeError(
+            f"PR #{number} in {repo} moved from {head_sha} to {remote_head} during generated-artifact cleanup"
+        )
+    subprocess.run(["git", "checkout", "--detach", head_sha], check=True, text=True, capture_output=True)
+    subprocess.run(["git", "rm", "--", *clean_paths], check=True, text=True, capture_output=True)
+    subprocess.run(
+        [
+            "git",
+            "-c", "user.name=github-actions[bot]",
+            "-c", "user.email=41898282+github-actions[bot]@users.noreply.github.com",
+            "commit", "-m", "chore: remove generated artifacts",
+        ],
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+    subprocess.run(
+        [
+            "git", "push", "origin", f"HEAD:refs/heads/{head_ref}",
+            f"--force-with-lease=refs/heads/{head_ref}:{head_sha}",
+        ],
+        check=True,
+        text=True,
+        capture_output=True,
+    )
+
+
 def update_pull_request_branch(
     repo: str,
     number: int,
@@ -760,7 +883,36 @@ def main() -> int:
             "api",
             quality_runs_api_path(repo, head_sha),
         ).get("workflow_runs", [])
+        generated = generated_artifact_paths(
+            str(row.get("filename") or "") for row in files
+        )
+        head_ref = str((pr.get("head") or {}).get("ref") or "")
+        if generated and head_ref:
+            remove_generated_artifacts(
+                repo,
+                number,
+                head_sha,
+                head_ref,
+                generated,
+            )
+            gh_run(
+                "workflow", "run", "quality.yml",
+                "--repo", repo,
+                "--ref", head_ref,
+            )
+            print(
+                f"Repaired PR #{number} by removing generated artifacts and dispatched fresh Quality checks."
+            )
+            continue
+
         maintenance_pre_ci, maintenance_reason = maintenance_pr_eligible(
+            pr,
+            repo=repo,
+            files=files,
+            quality_runs=runs,
+            require_quality=False,
+        )
+        control_plane_pre_ci, control_plane_reason = control_plane_pr_eligible(
             pr,
             repo=repo,
             files=files,
@@ -785,7 +937,7 @@ def main() -> int:
                     f"issue #{replacement_number}."
                 )
                 continue
-        if issue_number is None and not maintenance_pre_ci:
+        if issue_number is None and not maintenance_pre_ci and not control_plane_pre_ci:
             issue = recovered_issue_by_pr.get(number)
             if issue is None:
                 continue
@@ -803,7 +955,7 @@ def main() -> int:
                 f"#{issue_number} and added 'Closes #{issue_number}'."
             )
 
-        if issue is None and not maintenance_pre_ci:
+        if issue is None and not maintenance_pre_ci and not control_plane_pre_ci:
             issue = gh_json("api", f"repos/{repo}/issues/{issue_number}")
         deleted_run_ids = delete_superseded_action_required_runs(
             repo,
@@ -819,6 +971,8 @@ def main() -> int:
         changed_paths = [str(row.get("filename") or "") for row in files]
         if maintenance_pre_ci:
             pre_ci_eligible, reason = True, "maintenance-eligible"
+        elif control_plane_pre_ci:
+            pre_ci_eligible, reason = True, "control-plane-eligible"
         else:
             pre_ci_eligible, reason = eligible_pr(
                 pr,
@@ -829,8 +983,13 @@ def main() -> int:
                 require_quality=False,
             )
         if not pre_ci_eligible:
-            detail = maintenance_reason if maintenance_reason != "maintenance-eligible" else reason
-            print(f"Skipping PR #{number}: {detail if issue is None else reason}.")
+            details = [reason]
+            if maintenance_reason != "maintenance-eligible":
+                details.append(maintenance_reason)
+            if control_plane_reason != "control-plane-eligible":
+                details.append(control_plane_reason)
+            disposition = "; ".join(dict.fromkeys(details))
+            print(f"BLOCKED_REQUIRES_DECISION PR #{number}: {disposition}.")
             continue
 
         head_ref = str((pr.get("head") or {}).get("ref") or "")
@@ -861,6 +1020,13 @@ def main() -> int:
                 files=files,
                 quality_runs=runs,
             )
+        elif control_plane_pre_ci:
+            eligible, reason = control_plane_pr_eligible(
+                pr,
+                repo=repo,
+                files=files,
+                quality_runs=runs,
+            )
         else:
             eligible, reason = eligible_pr(
                 pr,
@@ -870,7 +1036,7 @@ def main() -> int:
                 quality_runs=runs,
             )
         if not eligible:
-            print(f"Skipping PR #{number}: {reason}.")
+            print(f"BLOCKED_REQUIRES_DECISION PR #{number}: {reason}.")
             continue
 
         base_ref = str((pr.get("base") or {}).get("ref") or "main")
