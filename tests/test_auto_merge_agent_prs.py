@@ -1358,7 +1358,19 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertFalse(ok)
         self.assertIn("lacks paired regression test", reason)
 
-    def test_control_plane_only_allows_patch_scratch_files_when_removed(self):
+    def test_patch_scratch_python_is_repaired_before_control_plane_classification(self):
+        self.assertEqual(
+            mod.generated_artifact_paths(["patch_workflow.py", "scripts/real_helper.py"]),
+            ["patch_workflow.py"],
+        )
+        self.assertEqual(
+            mod.generated_artifact_file_paths([
+                {"filename": "patch_workflow.py", "status": "added"},
+                {"filename": "patch_old.py", "status": "removed"},
+            ]),
+            ["patch_workflow.py"],
+        )
+
         candidate = pr()
         ok, reason = mod.control_plane_pr_eligible(
             candidate,
@@ -1371,7 +1383,40 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             quality_runs=runs(),
         )
         self.assertFalse(ok)
-        self.assertIn("non-allowlisted", reason)
+        self.assertIn("generated artifacts", reason)
+
+    def test_control_plane_accepts_single_workflow_with_paired_helper_bundle(self):
+        candidate = pr()
+        files = [
+            {"filename": ".github/workflows/update-feed.yml", "changes": 80, "status": "modified"},
+            {"filename": "scripts/benchmark_feed_stages.py", "changes": 90, "status": "modified"},
+            {"filename": "tests/test_benchmark_feed_stages.py", "changes": 60, "status": "modified"},
+        ]
+        ok, reason = mod.control_plane_pr_eligible(
+            candidate,
+            repo="kaamilbadami/yartchives",
+            files=files,
+            quality_runs=runs(),
+        )
+        self.assertTrue(ok)
+        self.assertEqual(reason, "control-plane-eligible")
+
+    def test_control_plane_does_not_use_one_helper_test_to_cover_multiple_workflows(self):
+        candidate = pr()
+        files = [
+            {"filename": ".github/workflows/update-feed.yml", "changes": 20, "status": "modified"},
+            {"filename": ".github/workflows/deploy.yml", "changes": 20, "status": "modified"},
+            {"filename": "scripts/benchmark_feed_stages.py", "changes": 20, "status": "modified"},
+            {"filename": "tests/test_benchmark_feed_stages.py", "changes": 20, "status": "modified"},
+        ]
+        ok, reason = mod.control_plane_pr_eligible(
+            candidate,
+            repo="kaamilbadami/yartchives",
+            files=files,
+            quality_runs=runs(),
+        )
+        self.assertFalse(ok)
+        self.assertIn("lacks paired regression test", reason)
 
     def test_codex_review_ready_is_also_terminal(self):
         self.assertTrue(

@@ -57,6 +57,7 @@ GENERATED_ARTIFACT_PATTERNS = (
     "**/*.orig",
     "patch*.diff",
     "**/patch*.diff",
+    "patch_*.py",
 )
 CONTROL_PLANE_STATIC_ALLOWED_PATHS = frozenset({
     "scripts/queue_coverage_gap.py",
@@ -272,6 +273,24 @@ def generated_artifact_paths(paths: Iterable[str]) -> list[str]:
     ]
 
 
+def generated_artifact_file_paths(files: Iterable[dict[str, Any]]) -> list[str]:
+    """Return generated junk that still exists on the PR head.
+
+    Removed root patch helpers are intentional cleanup and should not be
+    reclassified as artifacts that need another cleanup commit.
+    """
+    generated: list[str] = []
+    for row in files:
+        path = str(row.get("filename") or "")
+        if not path:
+            continue
+        if str(row.get("status") or "") == "removed" and fnmatch(path, "patch_*.py"):
+            continue
+        if generated_artifact_paths([path]):
+            generated.append(path)
+    return generated
+
+
 def workflow_regression_test_candidates(path: str) -> frozenset[str]:
     """Return conventional regression-test paths for one workflow file."""
     name = path.rsplit("/", 1)[-1]
@@ -308,7 +327,7 @@ def control_plane_pr_eligible(
     paths = {str(row.get("filename") or "") for row in rows if row.get("filename")}
     if not paths:
         return False, "control-plane lane has no changed paths"
-    if generated_artifact_paths(paths):
+    if generated_artifact_file_paths(rows):
         return False, "control-plane lane contains generated artifacts"
 
     workflow_paths = {
@@ -353,12 +372,18 @@ def control_plane_pr_eligible(
     if not paths <= allowed_paths:
         return False, "control-plane lane contains a non-allowlisted path"
 
+    helper_bundle_has_paired_tests = (
+        len(workflow_paths) == 1
+        and bool(support_scripts)
+        and support_tests <= paths
+    )
     missing_tests = [
         path
         for path in sorted(workflow_paths)
         if not (
             workflow_regression_test_candidates(path) & paths
             or CONTROL_PLANE_LEGACY_REQUIRED_TEST in paths
+            or helper_bundle_has_paired_tests
         )
     ]
     if missing_tests:
@@ -1172,9 +1197,7 @@ def main() -> int:
             "api",
             quality_runs_api_path(repo, head_sha),
         ).get("workflow_runs", [])
-        generated = generated_artifact_paths(
-            str(row.get("filename") or "") for row in files
-        )
+        generated = generated_artifact_file_paths(files)
         head_ref = str((pr.get("head") or {}).get("ref") or "")
 
         maintenance_pre_ci, maintenance_reason = maintenance_pr_eligible(
