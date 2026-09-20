@@ -91,6 +91,74 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertTrue(ok)
         self.assertEqual(reason, "eligible")
 
+    def test_trusted_repair_head_allows_green_owner_commits_after_recorded_jules_head(self):
+        commits = [
+            {
+                "sha": "recorded",
+                "author": {"login": "google-labs-jules[bot]"},
+                "committer": {"login": "google-labs-jules[bot]"},
+            },
+            {
+                "sha": "repair1",
+                "author": {"login": "kaamilbadami"},
+                "committer": {"login": "kaamilbadami"},
+            },
+            {
+                "sha": "current",
+                "author": {"login": "kaamilbadami"},
+                "committer": {"login": "kaamilbadami"},
+            },
+        ]
+        self.assertTrue(
+            mod.trusted_repair_head_allowed(
+                commits,
+                recorded_head="recorded",
+                current_head="current",
+                repo="kaamilbadami/yartchives",
+                quality_runs=runs(sha="current"),
+            )
+        )
+
+    def test_trusted_repair_head_rejects_untrusted_or_red_suffix(self):
+        untrusted = [
+            {
+                "sha": "recorded",
+                "author": {"login": "google-labs-jules[bot]"},
+                "committer": {"login": "google-labs-jules[bot]"},
+            },
+            {
+                "sha": "current",
+                "author": {"login": "someone-else"},
+                "committer": {"login": "someone-else"},
+            },
+        ]
+        self.assertFalse(
+            mod.trusted_repair_head_allowed(
+                untrusted,
+                recorded_head="recorded",
+                current_head="current",
+                repo="kaamilbadami/yartchives",
+                quality_runs=runs(sha="current"),
+            )
+        )
+        owner = [
+            untrusted[0],
+            {
+                "sha": "current",
+                "author": {"login": "kaamilbadami"},
+                "committer": {"login": "kaamilbadami"},
+            },
+        ]
+        self.assertFalse(
+            mod.trusted_repair_head_allowed(
+                owner,
+                recorded_head="recorded",
+                current_head="current",
+                repo="kaamilbadami/yartchives",
+                quality_runs=runs(sha="current", conclusion="failure"),
+            )
+        )
+
     def test_exact_head_quality_presence_detects_missing_run(self):
         self.assertTrue(mod.exact_head_quality_present(runs(), "abc"))
         self.assertFalse(mod.exact_head_quality_present([], "abc"))
