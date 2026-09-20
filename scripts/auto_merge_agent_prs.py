@@ -667,6 +667,22 @@ def gh_run(*args: str) -> None:
     subprocess.run(["gh", *args], check=True)
 
 
+def try_guarded_squash_merge(repo: str, number: int, head_sha: str) -> tuple[bool, str]:
+    """Let GitHub's merge endpoint be the final authority for a proven-safe stale PR."""
+    result = subprocess.run(
+        [
+            "gh", "api", "--method", "PUT",
+            f"repos/{repo}/pulls/{number}/merge",
+            "-f", "merge_method=squash",
+            "-f", f"sha={head_sha}",
+        ],
+        text=True,
+        capture_output=True,
+    )
+    detail = (result.stderr or result.stdout or "").strip()
+    return result.returncode == 0, detail
+
+
 def remove_generated_artifacts(
     repo: str,
     number: int,
@@ -1065,6 +1081,7 @@ def main() -> int:
             continue
 
         base_ref = str((pr.get("base") or {}).get("ref") or "main")
+        stale_nonoverlap_safe = False
         comparison = gh_json("api", f"repos/{repo}/compare/{base_ref}...{head_sha}")
         if int(comparison.get("behind_by") or 0) > 0:
             merge_base = comparison.get("merge_base_commit") or {}
@@ -1123,6 +1140,7 @@ def main() -> int:
                     "Quality checks because main changed overlapping paths."
                 )
                 continue
+            stale_nonoverlap_safe = True
             print(
                 f"PR #{number} is behind {base_ref}, but base changes do not overlap "
                 "its changed paths; preserving green exact-head CI and fast-merging."
@@ -1133,9 +1151,29 @@ def main() -> int:
             mergeable = fresh.get("mergeable")
             mergeable_state = str(fresh.get("mergeable_state") or "")
             if mergeable is None or mergeable_state in {"", "unknown"}:
-                print(
-                    f"REPAIR_AND_RETRY PR #{number}: GitHub mergeability is still being recomputed."
-                )
+                if stale_nonoverlap_safe:
+                    merged, detail = try_guarded_squash_merge(
+                        repo,
+                        number,
+                        head_sha,
+                    )
+                    if merged:
+                        print(
+                            f"Squash-merged eligible autonomous PR #{number} through guarded "
+                            "merge fallback while GitHub mergeability was recomputing."
+                        )
+                        merged_count += 1
+                        continue
+                    print(
+                        f"REPAIR_AND_RETRY PR #{number}: guarded merge was not yet accepted "
+                        "while GitHub mergeability was recomputing."
+                    )
+                    if detail:
+                        print(detail)
+                else:
+                    print(
+                        f"REPAIR_AND_RETRY PR #{number}: GitHub mergeability is still being recomputed."
+                    )
             else:
                 print(
                     f"BLOCKED_REQUIRES_DECISION PR #{number}: GitHub reports mergeable={mergeable} "
@@ -1143,13 +1181,15 @@ def main() -> int:
                 )
             continue
 
-        gh_run(
-            "api",
-            "--method", "PUT",
-            f"repos/{repo}/pulls/{number}/merge",
-            "-f", "merge_method=squash",
-            "-f", f"sha={head_sha}",
-        )
+        merged, detail = try_guarded_squash_merge(repo, number, head_sha)
+        if not merged:
+            print(
+                f"REPAIR_AND_RETRY PR #{number}: guarded merge was not accepted despite "
+                "safe mergeability."
+            )
+            if detail:
+                print(detail)
+            continue
         print(f"Squash-merged eligible autonomous PR #{number}.")
         merged_count += 1
 

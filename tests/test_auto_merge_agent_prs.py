@@ -780,6 +780,42 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                     "main",
                 )
 
+    def test_guarded_squash_merge_uses_expected_head_sha(self):
+        ok = mock.Mock(returncode=0, stdout='{"merged":true}', stderr="", args=["gh"])
+        with mock.patch.object(mod.subprocess, "run", return_value=ok) as run:
+            merged, detail = mod.try_guarded_squash_merge(
+                "kaamilbadami/yartchives",
+                400,
+                "abc123",
+            )
+        self.assertTrue(merged)
+        self.assertEqual(detail, '{"merged":true}')
+        self.assertEqual(
+            run.call_args.args[0],
+            [
+                "gh", "api", "--method", "PUT",
+                "repos/kaamilbadami/yartchives/pulls/400/merge",
+                "-f", "merge_method=squash",
+                "-f", "sha=abc123",
+            ],
+        )
+
+    def test_guarded_squash_merge_returns_rejection_without_crashing(self):
+        rejected = mock.Mock(
+            returncode=1,
+            stdout="",
+            stderr="HTTP 409: Head branch was modified",
+            args=["gh"],
+        )
+        with mock.patch.object(mod.subprocess, "run", return_value=rejected):
+            merged, detail = mod.try_guarded_squash_merge(
+                "kaamilbadami/yartchives",
+                400,
+                "abc123",
+            )
+        self.assertFalse(merged)
+        self.assertIn("409", detail)
+
     def test_main_supersedes_autonomous_pr_when_branch_refresh_conflicts(self):
         source = MODULE_PATH.read_text()
         self.assertIn(
@@ -825,10 +861,15 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
 
-    def test_transient_unknown_mergeability_is_retryable_not_silently_skipped(self):
+    def test_transient_unknown_mergeability_uses_guarded_merge_after_nonoverlap_proof(self):
         source = MODULE_PATH.read_text()
+        self.assertIn("stale_nonoverlap_safe = True", source)
         self.assertIn(
-            'REPAIR_AND_RETRY PR #{number}: GitHub mergeability is still being recomputed.',
+            "if stale_nonoverlap_safe:\n                    merged, detail = try_guarded_squash_merge(",
+            source,
+        )
+        self.assertIn(
+            "merge fallback while GitHub mergeability was recomputing.",
             source,
         )
         self.assertIn(
