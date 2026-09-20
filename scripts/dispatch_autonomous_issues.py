@@ -555,20 +555,27 @@ def supersede_exhausted_jules_failure(
             "preserves the useful failure context instead of retrying this poisoned task again."
         ),
     )
-    edit_args = [
-        "issue", "edit", str(number), "--repo", repo,
-        "--add-label", JULES_REWORKED_LABEL,
+    terminal_labels = sorted(
+        (
+            labels
+            - {
+                JULES_FAILED_LABEL,
+                JULES_RETRY_LABEL,
+                JULES_ACTIVE_LABEL,
+                JULES_FEEDBACK_LABEL,
+                "jules",
+            }
+        )
+        | {JULES_REWORKED_LABEL}
+    )
+    patch_args = [
+        "api", "--method", "PATCH", f"repos/{repo}/issues/{number}",
+        "-f", "state=closed",
+        "-f", "state_reason=completed",
     ]
-    for label in (
-        JULES_FAILED_LABEL,
-        JULES_RETRY_LABEL,
-        JULES_ACTIVE_LABEL,
-        JULES_FEEDBACK_LABEL,
-    ):
-        if label in labels:
-            edit_args.extend(["--remove-label", label])
-    edit_args.extend(["--state", "closed"])
-    run_gh(*edit_args)
+    for label in terminal_labels:
+        patch_args.extend(["-f", f"labels[]={label}"])
+    run_gh(*patch_args)
     replace_issue_labels_in_memory(
         issue,
         remove=(
