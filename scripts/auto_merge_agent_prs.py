@@ -273,6 +273,24 @@ def generated_artifact_paths(paths: Iterable[str]) -> list[str]:
     ]
 
 
+def generated_artifact_file_paths(files: Iterable[dict[str, Any]]) -> list[str]:
+    """Return generated junk that still exists on the PR head.
+
+    Removed root patch helpers are intentional cleanup and should not be
+    reclassified as artifacts that need another cleanup commit.
+    """
+    generated: list[str] = []
+    for row in files:
+        path = str(row.get("filename") or "")
+        if not path:
+            continue
+        if str(row.get("status") or "") == "removed" and fnmatch(path, "patch_*.py"):
+            continue
+        if generated_artifact_paths([path]):
+            generated.append(path)
+    return generated
+
+
 def workflow_regression_test_candidates(path: str) -> frozenset[str]:
     """Return conventional regression-test paths for one workflow file."""
     name = path.rsplit("/", 1)[-1]
@@ -309,7 +327,7 @@ def control_plane_pr_eligible(
     paths = {str(row.get("filename") or "") for row in rows if row.get("filename")}
     if not paths:
         return False, "control-plane lane has no changed paths"
-    if generated_artifact_paths(paths):
+    if generated_artifact_file_paths(rows):
         return False, "control-plane lane contains generated artifacts"
 
     workflow_paths = {
@@ -1179,9 +1197,7 @@ def main() -> int:
             "api",
             quality_runs_api_path(repo, head_sha),
         ).get("workflow_runs", [])
-        generated = generated_artifact_paths(
-            str(row.get("filename") or "") for row in files
-        )
+        generated = generated_artifact_file_paths(files)
         head_ref = str((pr.get("head") or {}).get("ref") or "")
 
         maintenance_pre_ci, maintenance_reason = maintenance_pr_eligible(
