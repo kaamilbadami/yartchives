@@ -7,10 +7,10 @@
     fit: 25,
     eligibility: 20,
     freshness: 10,
-    roi: 15,
+    roi: 10,
     role: 15,
     location: 20,
-    link: 5,
+    link: 0,
   });
 
   function normalize(value) {
@@ -457,13 +457,6 @@
     return { score: 0, detail: "Source-only link" };
   }
 
-  function scoreEffort(job) {
-    const kind = linkKind(job);
-    if (kind === "direct") return { score: 5, detail: "direct application" };
-    if (kind === "listing") return { score: 2, detail: "intermediary listing link" };
-    return { score: 0, detail: "source-only application friction" };
-  }
-
   function scoreRoi(job, profile, now) {
     let score = 5;
     const reasons = ["Base application value"];
@@ -534,7 +527,6 @@
       roi: scoreRoi(job, profile || {}, now),
       role: scoreRole(job, profile || {}),
       location: scoreLocation(job, profile || {}),
-      effort: scoreEffort(job),
       link: scoreLink(job),
     };
     const total = Object.values(components).reduce((sum, component) => sum + component.score, 0);
@@ -587,7 +579,6 @@
     scoreLocation,
     linkKind,
     scoreLink,
-    scoreEffort,
     scoreRoi,
     summarizeInspection,
     scoreJob,
