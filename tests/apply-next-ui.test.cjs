@@ -96,7 +96,7 @@ assert.equal(
 // decisionHighlights tests
 assert.deepEqual(
   UI.decisionHighlights({
-    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } },
+    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 20 }, location: { score: 16 } },
     inspection: { state: "inspected" }
   }),
   ["Strong match", "High value", "Very recent", "Very convenient location"]
@@ -105,7 +105,7 @@ assert.deepEqual(
 assert.deepEqual(
   UI.decisionHighlights({
     job: { states: ["Remote", "CA"], location: "Remote · Thousand Oaks, CA" },
-    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } },
+    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 20 }, location: { score: 16 } },
     inspection: { state: "inspected" }
   }),
   ["Strong match", "High value", "Very recent", "Remote"]
@@ -113,7 +113,7 @@ assert.deepEqual(
 
 assert.deepEqual(
   UI.decisionHighlights({
-    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } },
+    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 20 }, location: { score: 16 } },
     inspection: { state: "metadata-only" }
   }),
   ["Concerns: unverified evidence", "Strong match", "High value", "Very recent"] // concerns is prioritized and capped at 4 total
@@ -129,7 +129,7 @@ assert.deepEqual(
 
 assert.deepEqual(
   UI.decisionHighlights({
-    components: { fit: { score: 20 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } },
+    components: { fit: { score: 20 }, freshness: { score: 9 }, roi: { score: 20 }, location: { score: 16 } },
     inspection: { state: "inspected" }
   }),
   ["Concerns: weak match", "High value", "Very recent", "Very convenient location"]
@@ -138,7 +138,7 @@ assert.deepEqual(
 assert.deepEqual(
   UI.decisionHighlights({
     excluded: true,
-    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } }
+    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 20 }, location: { score: 16 } }
   }),
   ["Excluded by eligibility constraints"]
 );
