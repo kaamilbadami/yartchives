@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 import sys
 import unittest
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
@@ -43,6 +44,26 @@ def page_data(year="2026"):
 
 
 class Fortune500SeedTests(unittest.TestCase):
+    def test_build_seed_is_offline_by_default(self):
+        with mock.patch.object(mod, "enrich_domains") as enrich_domains:
+            seed = mod.build_seed(
+                page_data(),
+                retrieved_at="2026-09-17T21:40:00Z",
+            )
+
+        enrich_domains.assert_not_called()
+        self.assertEqual(len(seed["employers"]), 500)
+
+    def test_build_seed_can_opt_into_domain_enrichment(self):
+        with mock.patch.object(mod, "enrich_domains", side_effect=lambda seed: seed) as enrich_domains:
+            mod.build_seed(
+                page_data(),
+                retrieved_at="2026-09-17T21:40:00Z",
+                enrich_domain_hints=True,
+            )
+
+        enrich_domains.assert_called_once()
+
     def test_builds_exactly_500_ranked_employer_seeds(self):
         first = mod.build_seed(page_data(), retrieved_at="2026-09-17T21:40:00Z")
         second = mod.build_seed(page_data(), retrieved_at="2026-09-17T21:40:00Z")

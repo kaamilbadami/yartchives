@@ -157,6 +157,7 @@ def build_seed(
     *,
     source_url: str = DEFAULT_SOURCE_URL,
     retrieved_at: str,
+    enrich_domain_hints: bool = False,
 ) -> dict[str, Any]:
     ranking = _ranking(page_data)
     if str(ranking.get("year")) != str(EDITION):
@@ -209,7 +210,8 @@ def build_seed(
         "employers": employers,
     }
 
-    seed = enrich_domains(seed)
+    if enrich_domain_hints:
+        seed = enrich_domains(seed)
     validate_seed(seed)
     return seed
 
@@ -233,6 +235,7 @@ def main() -> int:
         extract_page_data(page_html),
         source_url=args.source_url,
         retrieved_at=args.retrieved_at,
+        enrich_domain_hints=True,
     )
     rendered = json.dumps(seed, indent=2, ensure_ascii=False) + "\n"
     if args.output:
