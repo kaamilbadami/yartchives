@@ -110,7 +110,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -1721,7 +1721,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -1852,8 +1852,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T21:32:09Z",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "resolved_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -2009,6 +2009,9 @@
           }
         ]
       },
+      "domain_hints": [
+        "aflac.com"
+      ],
       "careers_url": "https://careers.aflac.com/",
       "careers_platform": "successfactors",
       "provider": {
@@ -2017,10 +2020,7 @@
         "evidence": "url_or_page_marker",
         "marker": "successfactors.com",
         "host": "careers.aflac.com"
-      },
-      "domain_hints": [
-        "aflac.com"
-      ]
+      }
     },
     {
       "id": "agco",
@@ -2055,7 +2055,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -2660,7 +2660,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -2755,8 +2755,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T21:32:09Z",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "resolved_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -2794,10 +2794,14 @@
               },
               {
                 "url": "https://careers.airbnb.com",
+                "status": 302
+              },
+              {
+                "url": "https://careers.airbnb.com/zh/",
                 "status": 200
               }
             ],
-            "final_url": "https://careers.airbnb.com/",
+            "final_url": "https://careers.airbnb.com/zh/",
             "status": 200,
             "signals": [
               "careers page content",
@@ -2888,6 +2892,9 @@
           }
         ]
       },
+      "domain_hints": [
+        "airbnb.com"
+      ],
       "careers_url": "https://www.greenhouse.com/",
       "careers_platform": "greenhouse",
       "provider": {
@@ -2896,10 +2903,7 @@
         "evidence": "url_or_page_marker",
         "marker": "greenhouse.io",
         "host": "www.greenhouse.com"
-      },
-      "domain_hints": [
-        "airbnb.com"
-      ]
+      }
     },
     {
       "id": "airbus",
@@ -3770,7 +3774,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -3943,7 +3947,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -4595,7 +4599,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -4857,7 +4861,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -5152,7 +5156,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -5332,7 +5336,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -5378,7 +5382,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -5577,7 +5581,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -5658,7 +5662,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -10197,7 +10201,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -14289,8 +14293,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T21:32:09Z",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "resolved_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -14401,21 +14405,13 @@
             "type": "http",
             "source": "conventional-path",
             "requested_url": "https://job-boards.greenhouse.io/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://job-boards.greenhouse.io/jobs",
-                "status": 404
-              }
-            ],
-            "final_url": "https://job-boards.greenhouse.io/jobs",
-            "status": 404,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
+            "error": "ReadTimeout: HTTPSConnectionPool(host='job-boards.greenhouse.io', port=443): Read timed out. (read timeout=15)"
           }
         ]
       },
+      "domain_hints": [
+        "doordash.com"
+      ],
       "careers_url": "https://www.greenhouse.com/",
       "careers_platform": "greenhouse",
       "provider": {
@@ -14424,10 +14420,7 @@
         "evidence": "url_or_page_marker",
         "marker": "greenhouse.io",
         "host": "www.greenhouse.com"
-      },
-      "domain_hints": [
-        "doordash.com"
-      ]
+      }
     },
     {
       "id": "dover",
@@ -20302,8 +20295,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T21:32:09Z",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "resolved_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -20366,6 +20359,9 @@
           }
         ]
       },
+      "domain_hints": [
+        "hii.com"
+      ],
       "careers_url": "https://careers.huntingtoningalls.com/careers",
       "careers_platform": "successfactors",
       "provider": {
@@ -20374,10 +20370,7 @@
         "evidence": "url_or_page_marker",
         "marker": "successfactors.com",
         "host": "careers.huntingtoningalls.com"
-      },
-      "domain_hints": [
-        "hii.com"
-      ]
+      }
     },
     {
       "id": "huron-consulting",
@@ -24069,7 +24062,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
@@ -33691,7 +33684,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T21:32:09Z",
+        "last_attempt_at": "2026-09-20T23:57:14Z",
         "evidence": [
           {
             "type": "http",
