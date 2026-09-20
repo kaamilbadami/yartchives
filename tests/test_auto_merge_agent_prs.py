@@ -12,12 +12,13 @@ assert SPEC.loader
 SPEC.loader.exec_module(mod)
 
 
-def pr(*, body="Closes #10", files=(), head_sha="abc", draft=False, repo="kaamilbadami/yartchives"):
+def pr(*, body="Closes #10", files=(), head_sha="abc", draft=False, repo="kaamilbadami/yartchives", user="kaamilbadami"):
     return {
         "number": 20,
         "state": "open",
         "draft": draft,
         "body": body,
+        "user": {"login": user},
         "head": {"sha": head_sha, "repo": {"full_name": repo}},
         "base": {"ref": "main"},
         "_files": list(files),
@@ -79,6 +80,79 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         )
         self.assertNotIn("event=", path)
 
+    def test_owner_authorized_marker_identifies_same_repo_owner_pr(self):
+        candidate = pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER)
+        self.assertTrue(mod.owner_authorized_pr(candidate, "kaamilbadami/yartchives"))
+
+        for blocked in (
+            pr(body=""),
+            pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER, draft=True),
+            pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER, repo="someone/fork"),
+            pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER, user="someone-else"),
+        ):
+            with self.subTest(candidate=blocked):
+                self.assertFalse(
+                    mod.owner_authorized_pr(blocked, "kaamilbadami/yartchives")
+                )
+
+    def test_owner_authorized_comment_can_retroactively_authorize_legacy_pr(self):
+        candidate = pr(body="")
+        comments = [
+            {
+                "user": {"login": "kaamilbadami"},
+                "body": mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER,
+            }
+        ]
+        self.assertTrue(
+            mod.owner_authorized_pr(
+                candidate,
+                "kaamilbadami/yartchives",
+                comments,
+            )
+        )
+
+    def test_owner_authorized_comment_rejects_non_owner_marker(self):
+        candidate = pr(body="")
+        comments = [
+            {
+                "user": {"login": "someone-else"},
+                "body": mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER,
+            }
+        ]
+        self.assertFalse(
+            mod.owner_authorized_pr(
+                candidate,
+                "kaamilbadami/yartchives",
+                comments,
+            )
+        )
+
+    def test_main_loads_comments_only_when_body_marker_is_absent(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            'if OWNER_AUTHORIZED_AUTOMERGE_MARKER not in str(pr.get("body") or ""):',
+            source,
+        )
+        self.assertIn(
+            'f"repos/{repo}/issues/{number}/comments?per_page=100"',
+            source,
+        )
+
+    def test_owner_authorized_lane_bypasses_issue_link_and_protected_paths_but_not_ci(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            "if issue_number is None and not maintenance_pre_ci and not owner_authorized:",
+            source,
+        )
+        self.assertIn(
+            'pre_ci_eligible, reason = True, "owner-authorized"',
+            source,
+        )
+        self.assertIn(
+            '"owner-authorized" if exact_head_quality_passed(runs, head_sha)',
+            source,
+        )
+
     def test_accepts_green_terminal_autonomous_agent_pr(self):
         candidate = pr(files=("app.js", "tests/apply-next-ui.test.cjs"))
         ok, reason = mod.eligible_pr(
@@ -90,6 +164,74 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         )
         self.assertTrue(ok)
         self.assertEqual(reason, "eligible")
+
+    def test_trusted_repair_head_allows_green_owner_commits_after_recorded_jules_head(self):
+        commits = [
+            {
+                "sha": "recorded",
+                "author": {"login": "google-labs-jules[bot]"},
+                "committer": {"login": "google-labs-jules[bot]"},
+            },
+            {
+                "sha": "repair1",
+                "author": {"login": "kaamilbadami"},
+                "committer": {"login": "kaamilbadami"},
+            },
+            {
+                "sha": "current",
+                "author": {"login": "kaamilbadami"},
+                "committer": {"login": "kaamilbadami"},
+            },
+        ]
+        self.assertTrue(
+            mod.trusted_repair_head_allowed(
+                commits,
+                recorded_head="recorded",
+                current_head="current",
+                repo="kaamilbadami/yartchives",
+                quality_runs=runs(sha="current"),
+            )
+        )
+
+    def test_trusted_repair_head_rejects_untrusted_or_red_suffix(self):
+        untrusted = [
+            {
+                "sha": "recorded",
+                "author": {"login": "google-labs-jules[bot]"},
+                "committer": {"login": "google-labs-jules[bot]"},
+            },
+            {
+                "sha": "current",
+                "author": {"login": "someone-else"},
+                "committer": {"login": "someone-else"},
+            },
+        ]
+        self.assertFalse(
+            mod.trusted_repair_head_allowed(
+                untrusted,
+                recorded_head="recorded",
+                current_head="current",
+                repo="kaamilbadami/yartchives",
+                quality_runs=runs(sha="current"),
+            )
+        )
+        owner = [
+            untrusted[0],
+            {
+                "sha": "current",
+                "author": {"login": "kaamilbadami"},
+                "committer": {"login": "kaamilbadami"},
+            },
+        ]
+        self.assertFalse(
+            mod.trusted_repair_head_allowed(
+                owner,
+                recorded_head="recorded",
+                current_head="current",
+                repo="kaamilbadami/yartchives",
+                quality_runs=runs(sha="current", conclusion="failure"),
+            )
+        )
 
     def test_exact_head_quality_presence_detects_missing_run(self):
         self.assertTrue(mod.exact_head_quality_present(runs(), "abc"))
@@ -348,11 +490,11 @@ class AutoMergeAgentPrTests(unittest.TestCase):
     def test_main_does_not_require_issue_link_for_maintenance_lane(self):
         source = MODULE_PATH.read_text()
         self.assertIn(
-            "if issue_number is None and not maintenance_pre_ci:",
+            "if issue_number is None and not maintenance_pre_ci and not owner_authorized:",
             source,
         )
         self.assertIn(
-            "if issue is None and not maintenance_pre_ci:",
+            "if issue is None and not maintenance_pre_ci and not owner_authorized:",
             source,
         )
 

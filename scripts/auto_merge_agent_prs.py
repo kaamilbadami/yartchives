@@ -35,6 +35,7 @@ CLOSING_ISSUE_RE = re.compile(
 )
 JULES_REVIEW_READY_LABEL = "jules-review-ready"
 GITHUB_ACTIONS_BOT = "github-actions[bot]"
+OWNER_AUTHORIZED_AUTOMERGE_MARKER = "<!-- owner-authorized-automerge -->"
 SAFE_MERGEABLE_STATES = {"clean", "has_hooks", "unstable", "behind"}
 MAINTENANCE_TEST_BY_PATH = {
     "scripts/dispatch_autonomous_issues.py": "tests/test_dispatch_autonomous_issues.py",
@@ -75,6 +76,31 @@ def label_names(issue: dict[str, Any]) -> set[str]:
         elif isinstance(label, dict) and label.get("name"):
             names.add(str(label["name"]))
     return names
+
+
+def owner_authorized_pr(
+    pr: dict[str, Any],
+    repo: str,
+    comments: Iterable[dict[str, Any]] = (),
+) -> bool:
+    """Return whether the repository owner explicitly pre-authorized this PR to merge when green."""
+    if str(pr.get("state") or "") != "open" or bool(pr.get("draft")):
+        return False
+    owner = repo.split("/", 1)[0]
+    if str((pr.get("user") or {}).get("login") or "") != owner:
+        return False
+    head = pr.get("head") or {}
+    if str((head.get("repo") or {}).get("full_name") or "") != repo:
+        return False
+    if OWNER_AUTHORIZED_AUTOMERGE_MARKER in str(pr.get("body") or ""):
+        return True
+    for comment in reversed(list(comments)):
+        user = comment.get("user") or {}
+        if str(user.get("login") or "") != owner:
+            continue
+        if OWNER_AUTHORIZED_AUTOMERGE_MARKER in str(comment.get("body") or ""):
+            return True
+    return False
 
 
 def linked_issue_number(body: str) -> int | None:
@@ -372,6 +398,41 @@ def exact_head_quality_passed(runs: Iterable[dict[str, Any]], head_sha: str) -> 
         and str(run.get("conclusion") or "") == "success"
         for run in runs
     )
+
+
+def trusted_repair_head_allowed(
+    commits: Iterable[dict[str, Any]],
+    *,
+    recorded_head: str,
+    current_head: str,
+    repo: str,
+    quality_runs: Iterable[dict[str, Any]],
+) -> bool:
+    """Allow a durable Jules head to advance only through trusted, green repairs."""
+    rows = list(commits)
+    shas = [str(row.get("sha") or "") for row in rows]
+    if (
+        not recorded_head
+        or not current_head
+        or recorded_head not in shas
+        or current_head not in shas
+        or shas[-1] != current_head
+        or shas.index(recorded_head) >= shas.index(current_head)
+        or not exact_head_quality_passed(quality_runs, current_head)
+    ):
+        return False
+
+    owner = repo.split("/", 1)[0]
+    trusted = {owner, GITHUB_ACTIONS_BOT}
+    repair_commits = rows[shas.index(recorded_head) + 1 :]
+    if not repair_commits:
+        return False
+    for commit in repair_commits:
+        author = str((commit.get("author") or {}).get("login") or "")
+        committer = str((commit.get("committer") or {}).get("login") or "")
+        if author not in trusted or committer not in trusted:
+            return False
+    return True
 
 
 def exact_head_quality_present(runs: Iterable[dict[str, Any]], head_sha: str) -> bool:
@@ -1069,6 +1130,13 @@ def main() -> int:
             require_quality=False,
         )
 
+        owner_comments: list[dict[str, Any]] = []
+        if OWNER_AUTHORIZED_AUTOMERGE_MARKER not in str(pr.get("body") or ""):
+            owner_comments = gh_paginated_json(
+                "api",
+                f"repos/{repo}/issues/{number}/comments?per_page=100",
+            )
+        owner_authorized = owner_authorized_pr(pr, repo, owner_comments)
         issue_number = linked_issue_number(str(pr.get("body") or ""))
         issue = None
         if issue_number is not None:
@@ -1086,7 +1154,7 @@ def main() -> int:
                     f"issue #{replacement_number}."
                 )
                 continue
-        if issue_number is None and not maintenance_pre_ci:
+        if issue_number is None and not maintenance_pre_ci and not owner_authorized:
             issue = recovered_issue_by_pr.get(number)
             if issue is None:
                 print(
@@ -1107,7 +1175,7 @@ def main() -> int:
                 f"#{issue_number} and added 'Closes #{issue_number}'."
             )
 
-        if issue is None and not maintenance_pre_ci:
+        if issue is None and not maintenance_pre_ci and not owner_authorized:
             issue = gh_json("api", f"repos/{repo}/issues/{issue_number}")
 
         if issue is not None and JULES_REVIEW_READY_LABEL in label_names(issue):
@@ -1152,11 +1220,41 @@ def main() -> int:
                 continue
             recorded_head = str(output_meta.get("head") or "")
             if recorded_head and recorded_head != head_sha:
-                print(
-                    f"BLOCKED_REQUIRES_DECISION PR #{number}: durable Jules output head "
-                    f"{recorded_head} does not match current head {head_sha}."
+                commits = gh_paginated_json(
+                    "api",
+                    f"repos/{repo}/pulls/{number}/commits?per_page=100",
                 )
-                continue
+                if not trusted_repair_head_allowed(
+                    commits,
+                    recorded_head=recorded_head,
+                    current_head=head_sha,
+                    repo=repo,
+                    quality_runs=runs,
+                ):
+                    print(
+                        f"BLOCKED_REQUIRES_DECISION PR #{number}: durable Jules output head "
+                        f"{recorded_head} does not match current head {head_sha}."
+                    )
+                    continue
+                marker = (
+                    f"<!-- jules-output: issue={issue_number} "
+                    f"session={output_meta['session']} pr={number} head={head_sha} -->"
+                )
+                gh_run(
+                    "issue", "comment", str(issue_number), "--repo", repo,
+                    "--body",
+                    (
+                        f"{marker}\nAdvanced durable Jules output identity after trusted "
+                        "repair commits passed exact-head Quality checks."
+                    ),
+                )
+                output_meta["head"] = head_sha
+                output_meta["durable"] = True
+                print(
+                    f"Advanced Jules output identity for issue #{issue_number}, PR #{number}, "
+                    f"to trusted green repair head {head_sha}."
+                )
+                recorded_head = head_sha
             if not recorded_head:
                 marker = (
                     f"<!-- jules-output: issue={issue_number} "
@@ -1178,8 +1276,8 @@ def main() -> int:
 
         if generated:
             if (
-                issue is None
-                or not autonomous_issue_ready(issue)
+                (issue is None or not autonomous_issue_ready(issue))
+                and not owner_authorized
                 or not head_ref
             ):
                 print(
@@ -1203,7 +1301,7 @@ def main() -> int:
             )
             continue
 
-        if control_plane_pre_ci and (
+        if control_plane_pre_ci and not owner_authorized and (
             issue is None or not autonomous_issue_ready(issue)
         ):
             control_plane_pre_ci = False
@@ -1221,7 +1319,9 @@ def main() -> int:
             )
 
         changed_paths = [str(row.get("filename") or "") for row in files]
-        if maintenance_pre_ci:
+        if owner_authorized:
+            pre_ci_eligible, reason = True, "owner-authorized"
+        elif maintenance_pre_ci:
             pre_ci_eligible, reason = True, "maintenance-eligible"
         elif control_plane_pre_ci:
             pre_ci_eligible, reason = True, "control-plane-eligible"
@@ -1265,7 +1365,13 @@ def main() -> int:
                 )
                 continue
 
-        if maintenance_pre_ci:
+        if owner_authorized:
+            eligible, reason = (
+                exact_head_quality_passed(runs, head_sha),
+                "owner-authorized" if exact_head_quality_passed(runs, head_sha)
+                else "exact-head Quality checks have not passed",
+            )
+        elif maintenance_pre_ci:
             eligible, reason = maintenance_pr_eligible(
                 pr,
                 repo=repo,

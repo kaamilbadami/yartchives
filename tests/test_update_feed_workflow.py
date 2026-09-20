@@ -80,6 +80,14 @@ class UpdateFeedWorkflowTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, f"{commit_name} syntax error:\n{result.stderr}\nScript was:\n{script}")
 
+    def test_workflow_does_not_run_full_test_suite(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+
+        self.assertNotIn("python -m unittest discover", text)
+        self.assertNotIn(".test.cjs", text)
+        self.assertIn("node --check apply-next", text)
+        self.assertIn("python -m py_compile", text)
+
     def test_final_main_advance_guard_only_invalidates_feed_input_changes(self):
         text = WORKFLOW.read_text(encoding="utf-8")
         for commit_name in ["- name: Commit fast-path opportunity feed", "- name: Commit slow-path enrichments and audits"]:
