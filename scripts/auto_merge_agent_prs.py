@@ -1381,31 +1381,6 @@ def main() -> int:
             )
 
         changed_paths = [str(row.get("filename") or "") for row in files]
-        if owner_authorized:
-            pre_ci_eligible, reason = True, "owner-authorized"
-        elif maintenance_pre_ci:
-            pre_ci_eligible, reason = True, "maintenance-eligible"
-        elif control_plane_pre_ci:
-            pre_ci_eligible, reason = True, "control-plane-eligible"
-        else:
-            pre_ci_eligible, reason = eligible_pr(
-                pr,
-                repo=repo,
-                issue=issue,
-                changed_paths=changed_paths,
-                quality_runs=runs,
-                require_quality=False,
-            )
-        if not pre_ci_eligible:
-            details = [reason]
-            if maintenance_reason != "maintenance-eligible":
-                details.append(maintenance_reason)
-            if control_plane_reason != "control-plane-eligible":
-                details.append(control_plane_reason)
-            disposition = "; ".join(dict.fromkeys(details))
-            print(f"BLOCKED_REQUIRES_DECISION PR #{number}: {disposition}.")
-            continue
-
         head_ref = str((pr.get("head") or {}).get("ref") or "")
         base_ref = str((pr.get("base") or {}).get("ref") or "main")
         stale_nonoverlap_safe = False
@@ -1472,6 +1447,31 @@ def main() -> int:
                 f"PR #{number} is behind {base_ref}, but base changes do not overlap "
                 "its changed paths; preserving exact-head CI state."
             )
+
+        if owner_authorized:
+            pre_ci_eligible, reason = True, "owner-authorized"
+        elif maintenance_pre_ci:
+            pre_ci_eligible, reason = True, "maintenance-eligible"
+        elif control_plane_pre_ci:
+            pre_ci_eligible, reason = True, "control-plane-eligible"
+        else:
+            pre_ci_eligible, reason = eligible_pr(
+                pr,
+                repo=repo,
+                issue=issue,
+                changed_paths=changed_paths,
+                quality_runs=runs,
+                require_quality=False,
+            )
+        if not pre_ci_eligible:
+            details = [reason]
+            if maintenance_reason != "maintenance-eligible":
+                details.append(maintenance_reason)
+            if control_plane_reason != "control-plane-eligible":
+                details.append(control_plane_reason)
+            disposition = "; ".join(dict.fromkeys(details))
+            print(f"BLOCKED_REQUIRES_DECISION PR #{number}: {disposition}.")
+            continue
 
         if not exact_head_quality_passed(runs, head_sha):
             if exact_head_quality_in_flight(runs, head_sha):
