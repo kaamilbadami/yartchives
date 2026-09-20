@@ -50,11 +50,10 @@ function job(overrides = {}) {
 }
 
 assert.deepEqual(D.SCORE_MAXIMA, {
-  fit: 40,
+  fit: 45,
   eligibility: 0,
   freshness: 10,
   roi: 25,
-  effort: 5,
   role: 0,
   location: 20,
   link: 0,
@@ -73,7 +72,7 @@ assert.equal(metadataOnly.applicationValue.market.score, 3);
 assert.equal(metadataOnly.components.location.score, 20);
 assert.equal(metadataOnly.components.freshness.score, 10);
 assert.equal(metadataOnly.components.eligibility.score, 0);
-assert.equal(metadataOnly.components.effort.score, 5);
+assert.equal(metadataOnly.components.effort, undefined);
 assert.equal(metadataOnly.components.link.score, 0);
 assert.match(metadataOnly.components.fit.detail, /neutral qualification-fit/i);
 assert.match(metadataOnly.components.roi.detail, /Role value 15\/15/i);
@@ -250,11 +249,12 @@ const direct = D.scoreJob(job({ _inspection: inspection(), link_kind: "direct" }
 const listing = D.scoreJob(job({ link_kind: "listing", url: "https://example.com/listing", _inspection: inspection() }), profile, now);
 assert.equal(direct.components.link.score, 0);
 assert.equal(listing.components.link.score, 0);
-assert.equal(direct.components.effort.score, 5);
-assert.equal(listing.components.effort.score, 2);
+assert.equal(direct.components.effort, undefined);
+assert.equal(listing.components.effort, undefined);
 assert.match(direct.components.link.detail, /provenance only/i);
-assert.ok(direct.total > listing.total);
+assert.equal(direct.total, listing.total);
 assert.equal(direct.scoringSemantics.link, "provenance only");
+assert.equal(direct.scoringSemantics.effort, undefined);
 assert.match(direct.scoringSemantics.fit, /screening evidence plus transferable capability/i);
 assert.match(direct.scoringSemantics.applicationValue, /role preference plus market\/opportunity evidence/i);
 assert.equal(direct.scoringSemantics.role, undefined);
