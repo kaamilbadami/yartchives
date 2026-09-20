@@ -107,7 +107,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -579,7 +579,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -955,7 +955,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -1754,7 +1754,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -2032,7 +2032,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -2394,7 +2394,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -3544,7 +3544,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -4273,7 +4273,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -4433,7 +4433,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -4864,7 +4864,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -5041,7 +5041,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -5442,7 +5442,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -5821,7 +5821,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -6037,7 +6037,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -6697,7 +6697,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -7110,7 +7110,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -7246,7 +7246,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -15946,8 +15946,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T03:11:54Z",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "resolved_at": "2026-09-20T03:36:08Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -19388,7 +19388,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
@@ -27893,7 +27893,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T03:11:54Z",
+        "last_attempt_at": "2026-09-20T03:36:08Z",
         "evidence": [
           {
             "type": "http",
