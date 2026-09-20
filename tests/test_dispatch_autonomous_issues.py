@@ -1689,6 +1689,86 @@ class AutonomousDispatcherTests(unittest.TestCase):
         ]
         self.assertIsNone(mod.legacy_failed_retry_context(comments))
 
+    def test_jules_session_ids_from_comments_returns_all_unique_sessions(self):
+        comments = [
+            {"body": "<!-- jules-session-id: first -->\ncreated Jules session 'first'"},
+            {"body": "Autonomous dispatcher created Jules session 'second' for this task."},
+            {"body": "<!-- jules-session-id: third -->"},
+        ]
+        self.assertEqual(
+            mod.jules_session_ids_from_comments(comments),
+            ["first", "second", "third"],
+        )
+
+    def test_reworked_session_cleanup_deletes_all_and_marks_complete(self):
+        comments = [
+            {"body": "<!-- jules-session-id: old1 -->"},
+            {"body": "<!-- jules-session-id: old2 -->"},
+        ]
+        deleted = []
+        gh_calls = []
+        cleaned = mod.cleanup_reworked_issue_sessions(
+            212,
+            comments,
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: gh_calls.append(args),
+            repo="kaamilbadami/yartchives",
+        )
+        self.assertTrue(cleaned)
+        self.assertEqual(deleted, ["old1", "old2"])
+        self.assertIn("jules-rework-sessions-cleaned", gh_calls[-1][-1])
+        self.assertTrue(mod.rework_session_cleanup_complete(comments))
+
+    def test_reworked_session_cleanup_retries_after_partial_delete_failure(self):
+        comments = [
+            {"body": "<!-- jules-session-id: old1 -->"},
+            {"body": "<!-- jules-session-id: old2 -->"},
+        ]
+        gh_calls = []
+        def delete(session_id):
+            if session_id == "old2":
+                raise RuntimeError("Jules unavailable")
+        cleaned = mod.cleanup_reworked_issue_sessions(
+            152,
+            comments,
+            delete_session=delete,
+            run_gh=lambda *args: gh_calls.append(args),
+            repo="kaamilbadami/yartchives",
+        )
+        self.assertFalse(cleaned)
+        self.assertEqual(gh_calls, [])
+        self.assertFalse(mod.rework_session_cleanup_complete(comments))
+
+    def test_reworked_session_cleanup_treats_404_as_already_deleted(self):
+        class Gone(Exception):
+            code = 404
+        comments = [{"body": "<!-- jules-session-id: old1 -->"}]
+        gh_calls = []
+        cleaned = mod.cleanup_reworked_issue_sessions(
+            180,
+            comments,
+            delete_session=lambda session_id: (_ for _ in ()).throw(Gone()),
+            run_gh=lambda *args: gh_calls.append(args),
+            repo="kaamilbadami/yartchives",
+        )
+        self.assertTrue(cleaned)
+        self.assertIn("jules-rework-sessions-cleaned", gh_calls[-1][-1])
+
+    def test_historical_reworked_sweep_skips_already_cleaned_issue(self):
+        deleted = []
+        mod.cleanup_reworked_jules_sessions(
+            "kaamilbadami/yartchives",
+            "secret",
+            load_reworked=lambda: [{"number": 212}],
+            load_comments=lambda number: [
+                {"body": "<!-- jules-session-id: old1 -->"},
+                {"body": "<!-- jules-rework-sessions-cleaned -->"},
+            ],
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: None,
+        )
+        self.assertEqual(deleted, [])
+
     def test_exhausted_failure_rework_preserves_context_and_rewires_dependencies(self):
         original = issue(
             212,
