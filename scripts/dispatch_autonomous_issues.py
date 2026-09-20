@@ -57,6 +57,7 @@ JULES_RETRY_MARKER = "<!-- jules-retry-from: {session_id} -->"
 JULES_INFRA_RETRY_MARKER = "<!-- jules-infra-retry-from: {session_id} -->"
 JULES_REWORK_MARKER = "<!-- jules-rework-from: {issue_number} -->"
 JULES_REWORKED_LABEL = "jules-reworked"
+JULES_REWORK_SESSION_CLEANUP_MARKER = "<!-- jules-rework-sessions-cleaned -->"
 JULES_FEEDBACK_MARKER = "<!-- jules-feedback: {session_id} -->"
 JULES_FEEDBACK_SENT_MARKER = "<!-- jules-feedback-sent: {comment_id} -->"
 JULES_AUTO_FEEDBACK_MARKER = "<!-- jules-auto-feedback: {session_id}:{question_key} -->"
@@ -178,6 +179,124 @@ def session_id_from_comments(comments: Iterable[dict[str, Any]]) -> str | None:
         if match:
             return match.group(1)
     return None
+
+
+def jules_session_ids_from_comments(
+    comments: Iterable[dict[str, Any]],
+) -> list[str]:
+    """Return all persisted Jules session IDs for one issue, oldest first."""
+    marker = re.compile(r"<!--\s*jules-session-id:\s*([^\s>]+)\s*-->")
+    legacy = re.compile(r"created Jules session ['\x60]?([^'\x60\s]+)['\x60]?")
+    seen: set[str] = set()
+    session_ids: list[str] = []
+    for comment in comments:
+        body = str(comment.get("body") or "")
+        for pattern in (marker, legacy):
+            for match in pattern.finditer(body):
+                session_id = match.group(1)
+                if session_id not in seen:
+                    seen.add(session_id)
+                    session_ids.append(session_id)
+    return session_ids
+
+
+def rework_session_cleanup_complete(comments: Iterable[dict[str, Any]]) -> bool:
+    return any(
+        JULES_REWORK_SESSION_CLEANUP_MARKER in str(comment.get("body") or "")
+        for comment in comments
+    )
+
+
+def cleanup_reworked_issue_sessions(
+    issue_number: int,
+    comments: list[dict[str, Any]],
+    *,
+    delete_session: Callable[[str], None],
+    run_gh: Callable[..., None],
+    repo: str,
+) -> bool:
+    """Delete all old Jules sessions for one durably reworked issue."""
+    if rework_session_cleanup_complete(comments):
+        return True
+
+    session_ids = jules_session_ids_from_comments(comments)
+    all_clean = True
+    for session_id in session_ids:
+        try:
+            delete_session(session_id)
+            print(
+                f"Deleted superseded Jules session {session_id} for reworked "
+                f"issue #{issue_number}."
+            )
+        except Exception as exc:
+            if getattr(exc, "code", None) == 404:
+                print(
+                    f"Superseded Jules session {session_id} for reworked issue "
+                    f"#{issue_number} was already deleted."
+                )
+                continue
+            all_clean = False
+            print(
+                f"Could not delete superseded Jules session {session_id} for "
+                f"reworked issue #{issue_number}; will retry later: {exc}"
+            )
+
+    if not all_clean:
+        return False
+
+    detail = (
+        f"{JULES_REWORK_SESSION_CLEANUP_MARKER}\n"
+        "Jules cleanup complete for this reworked issue."
+    )
+    if session_ids:
+        detail += "\n\nDeleted or already absent session IDs: " + ", ".join(session_ids)
+    else:
+        detail += "\n\nNo persisted Jules session IDs were found."
+    run_gh(
+        "issue", "comment", str(issue_number), "--repo", repo,
+        "--body", detail,
+    )
+    comments.append({"body": detail})
+    return True
+
+
+def cleanup_reworked_jules_sessions(
+    repo: str,
+    api_key: str,
+    *,
+    load_reworked: Callable[[], list[dict[str, Any]]] | None = None,
+    load_comments: Callable[[int], list[dict[str, Any]]] | None = None,
+    delete_session: Callable[[str], None] | None = None,
+    run_gh: Callable[..., None] | None = None,
+) -> None:
+    """Sweep closed reworked issues so old failed Jules cards do not accumulate."""
+    if load_reworked is None:
+        load_reworked = lambda: gh_paginated_json(
+            "api",
+            f"repos/{repo}/issues?state=closed&labels={parse.quote(JULES_REWORKED_LABEL)}&per_page=100",
+        )
+    if load_comments is None:
+        load_comments = lambda number: gh_paginated_json(
+            "api",
+            f"repos/{repo}/issues/{number}/comments?per_page=100",
+        )
+    if delete_session is None:
+        delete_session = lambda session_id: delete_jules_session(api_key, session_id)
+    if run_gh is None:
+        run_gh = gh_run
+
+    for issue in load_reworked():
+        if "pull_request" in issue:
+            continue
+        number = int(issue["number"])
+        comments = load_comments(number)
+        cleanup_reworked_issue_sessions(
+            number,
+            comments,
+            delete_session=delete_session,
+            run_gh=run_gh,
+            repo=repo,
+        )
 
 
 def pending_feedback_from_comments(
@@ -493,6 +612,7 @@ def supersede_exhausted_jules_failure(
     comments: list[dict[str, Any]],
     run_gh_json: Callable[..., Any] | None = None,
     run_gh: Callable[..., None] | None = None,
+    delete_session: Callable[[str], None] | None = None,
 ) -> dict[str, Any] | None:
     """Create one fresh current-main task after bounded Jules retries are exhausted."""
     if run_gh_json is None:
@@ -591,6 +711,14 @@ def supersede_exhausted_jules_failure(
         f"Superseded exhausted Jules failure #{number} with fresh current-main "
         f"issue #{replacement_number}."
     )
+    if delete_session is not None:
+        cleanup_reworked_issue_sessions(
+            number,
+            comments,
+            delete_session=delete_session,
+            run_gh=run_gh,
+            repo=repo,
+        )
     return replacement
 
 
@@ -601,6 +729,7 @@ def rework_exhausted_jules_failures(
     load_comments: Callable[[int], list[dict[str, Any]]],
     run_gh_json: Callable[..., Any] | None = None,
     run_gh: Callable[..., None] | None = None,
+    delete_session: Callable[[str], None] | None = None,
 ) -> None:
     """Turn terminal failed tasks into one fresh bounded current-main replacement."""
     for issue in list(issues):
@@ -617,6 +746,7 @@ def rework_exhausted_jules_failures(
             comments=comments,
             run_gh_json=run_gh_json,
             run_gh=run_gh,
+            delete_session=delete_session,
         )
 
 
@@ -2113,6 +2243,7 @@ def run_dispatch_cycle(
         issues,
         repo=repo,
         load_comments=load_comments,
+        delete_session=lambda session_id: delete_jules_session(api_key, session_id),
     )
     if capacity_paused:
         print(
@@ -2230,6 +2361,7 @@ def main() -> int:
     api_key = os.environ["JULES_API_KEY"]
     ensure_labels(repo)
     cleanup_merged_jules_sessions(repo, api_key)
+    cleanup_reworked_jules_sessions(repo, api_key)
     reconcile_historical_merged_jules_issues(repo)
     migrate_historical_no_pr_review_ready(repo)
 
