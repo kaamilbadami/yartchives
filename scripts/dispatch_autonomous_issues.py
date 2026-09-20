@@ -53,6 +53,10 @@ JULES_FAILED_LABEL = "jules-failed"
 JULES_FEEDBACK_LABEL = "jules-needs-feedback"
 JULES_RETRY_LABEL = "jules-retry-ready"
 JULES_SESSION_MARKER = "<!-- jules-session-id: {session_id} -->"
+JULES_OUTPUT_MARKER = (
+    "<!-- jules-output: issue={issue_number} session={session_id} "
+    "pr={pr_number} head={head_sha} -->"
+)
 JULES_RETRY_MARKER = "<!-- jules-retry-from: {session_id} -->"
 JULES_INFRA_RETRY_MARKER = "<!-- jules-infra-retry-from: {session_id} -->"
 JULES_REWORK_MARKER = "<!-- jules-rework-from: {issue_number} -->"
@@ -1279,6 +1283,7 @@ def reconcile_jules_sessions(
     api_key: str,
     load_comments: Callable[[int], list[dict[str, Any]]],
     get_session: Callable[..., dict[str, Any]] | None = None,
+    get_pr: Callable[[int], dict[str, Any]] | None = None,
     load_activities: Callable[[str], list[dict[str, Any]]] | None = None,
     send_feedback: Callable[[str, str], None] | None = None,
     delete_session: Callable[[str], None] | None = None,
@@ -1289,6 +1294,8 @@ def reconcile_jules_sessions(
     """Reconcile Jules sessions and report whether account capacity is exhausted."""
     if get_session is None:
         get_session = jules_json
+    if get_pr is None:
+        get_pr = lambda pr_number: gh_json("api", f"repos/{repo}/pulls/{pr_number}")
     if send_feedback is None:
         send_feedback = lambda session_id, prompt: send_jules_message(
             api_key, session_id, prompt
@@ -1727,7 +1734,23 @@ def reconcile_jules_sessions(
 
         if state == "COMPLETED":
             if pr_url:
+                pr_match = re.fullmatch(
+                    rf"https://github\.com/{re.escape(repo)}/pull/(\d+)",
+                    pr_url.rstrip("/"),
+                )
+                if pr_match is None:
+                    raise RuntimeError(
+                        f"Jules session {session_id} returned an untrusted pull request URL: {pr_url}"
+                    )
+                pr_number = int(pr_match.group(1))
+                pr = get_pr(pr_number)
+                head_sha = str((pr.get("head") or {}).get("sha") or "")
+                if not head_sha:
+                    raise RuntimeError(
+                        f"Jules PR #{pr_number} for issue #{number} has no head SHA"
+                    )
                 detail = (
+                    f"{JULES_OUTPUT_MARKER.format(issue_number=number, session_id=session_id, pr_number=pr_number, head_sha=head_sha)}\n"
                     f"Jules completed session `{session_id}` and released this automation slot."
                     f"\n\nPull request: {pr_url}"
                 )
