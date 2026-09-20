@@ -423,7 +423,7 @@ def trusted_repair_head_allowed(
         return False
 
     owner = repo.split("/", 1)[0]
-    trusted = {owner, GITHUB_ACTIONS_BOT}
+    trusted = {owner, GITHUB_ACTIONS_BOT, "google-labs-jules[bot]"}
     repair_commits = rows[shas.index(recorded_head) + 1 :]
     if not repair_commits:
         return False
