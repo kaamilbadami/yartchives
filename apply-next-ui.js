@@ -238,6 +238,19 @@
     return node;
   }
 
+  function waitForBrowserPaint() {
+    return new Promise(resolve => {
+      if (typeof requestAnimationFrame === "function") {
+        requestAnimationFrame(() => resolve());
+      } else if (typeof setTimeout === "function") {
+        setTimeout(resolve, 0);
+      } else {
+        resolve();
+      }
+    });
+  }
+
+
   function setProfileError(message) {
     const box = document.querySelector("#applyNextProfileError");
     if (!box) return;
@@ -948,6 +961,10 @@
         loadingMessage.textContent = "Still finding your best matches…";
       }
     }, 1500);
+
+    // Let the browser paint the shell, disabled button, and loading copy before
+    // synchronous candidate filtering/ranking work starts.
+    await waitForBrowserPaint();
 
     try {
       if (typeof feed === "undefined" || !Array.isArray(feed.jobs)) throw new Error("Feed not available");
