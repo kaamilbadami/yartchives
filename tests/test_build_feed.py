@@ -11,6 +11,85 @@ spec.loader.exec_module(mod)
 
 class BuildFeedTests(unittest.TestCase):
 
+
+    def test_merge_job_enforces_link_kind_precedence(self):
+        target = {
+            "source_keys": ["a"],
+            "source_names": ["A"],
+            "source_urls": ["http://a.com"],
+            "url": "https://employer.com/apply",
+            "link_kind": "direct"
+        }
+        incoming = {
+            "source_key": "b",
+            "source_name": "B",
+            "source_url": "http://b.com",
+            "url": "https://employer.com/job",
+            "link_kind": "employer_job"
+        }
+        mod.merge_job(target, incoming)
+        self.assertEqual(target.get("url"), "https://employer.com/apply")
+        self.assertEqual(target.get("link_kind"), "direct")
+
+        target = {
+            "source_keys": ["a"],
+            "source_names": ["A"],
+            "source_urls": ["http://a.com"],
+            "url": "https://employer.com/job",
+            "link_kind": "employer_job"
+        }
+        incoming = {
+            "source_key": "b",
+            "source_name": "B",
+            "source_url": "http://b.com",
+            "url": "https://employer.com/apply",
+            "link_kind": "direct"
+        }
+        mod.merge_job(target, incoming)
+        self.assertEqual(target.get("url"), "https://employer.com/apply")
+        self.assertEqual(target.get("link_kind"), "direct")
+
+
+    def test_merge_job_downgrades_from_aggregator_host_if_equal_rank(self):
+        target = {
+            "source_keys": ["a"],
+            "source_names": ["A"],
+            "source_urls": ["http://a.com"],
+            "url": "https://simplify.jobs/p/some-listing",
+            "link_kind": "direct"
+        }
+        incoming = {
+            "source_key": "b",
+            "source_name": "B",
+            "source_url": "http://b.com",
+            "url": "https://employer.com/apply",
+            "link_kind": "direct"
+        }
+        mod.merge_job(target, incoming)
+        self.assertEqual(target.get("url"), "https://employer.com/apply")
+        self.assertEqual(target.get("link_kind"), "direct")
+
+
+
+    def test_merge_job_preserves_higher_rank_despite_aggregator_host(self):
+        target = {
+            "source_keys": ["a"],
+            "source_names": ["A"],
+            "source_urls": ["http://a.com"],
+            "url": "https://employer.com/listing",
+            "link_kind": "employer_job"
+        }
+        incoming = {
+            "source_key": "b",
+            "source_name": "B",
+            "source_url": "http://b.com",
+            "url": "https://simplify.jobs/p/some-listing",
+            "link_kind": "listing"
+        }
+        mod.merge_job(target, incoming)
+        self.assertEqual(target.get("url"), "https://employer.com/listing")
+        self.assertEqual(target.get("link_kind"), "employer_job")
+
     def test_merge_job_preserves_link_status(self):
         target = {
             "source_keys": ["a"],

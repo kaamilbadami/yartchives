@@ -20,6 +20,7 @@ from typing import Any, Iterable
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import requests
+import link_ranks
 from bs4 import BeautifulSoup
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -594,13 +595,27 @@ def merge_job(target: dict[str, Any], incoming: dict[str, Any]) -> None:
     target["source_urls"] = sorted(set(target.get("source_urls", [])) | {incoming["source_url"]})
     target["profiles"] = sorted(set(target.get("profiles", [])) | set(incoming.get("profiles", [])))
     target["states"] = sorted(set(target.get("states", [])) | set(incoming.get("states", [])))
+    target_kind = target.get("link_kind")
+    incoming_kind = incoming.get("link_kind")
+    target_rank = link_ranks.link_kind_rank(target_kind)
+    incoming_rank = link_ranks.link_kind_rank(incoming_kind)
+
     if not target.get("url") and incoming.get("url"):
         target["url"] = incoming["url"]
+        if incoming_kind:
+            target["link_kind"] = incoming_kind
     elif incoming.get("url"):
-        old_host = urlparse(target.get("url", "")).netloc.lower()
-        new_host = urlparse(incoming["url"]).netloc.lower()
-        if old_host in AGGREGATOR_HOSTS and new_host not in AGGREGATOR_HOSTS:
+        if incoming_rank > target_rank:
             target["url"] = incoming["url"]
+            if incoming_kind:
+                target["link_kind"] = incoming_kind
+        elif incoming_rank == target_rank:
+            old_host = urlparse(target.get("url", "")).netloc.lower()
+            new_host = urlparse(incoming["url"]).netloc.lower()
+            if old_host in AGGREGATOR_HOSTS and new_host not in AGGREGATOR_HOSTS:
+                target["url"] = incoming["url"]
+                if incoming_kind:
+                    target["link_kind"] = incoming_kind
     observations = list(target.get("posted_date_observations") or [])
     seen_observations = {
         (row.get("source_key"), row.get("posted_at"), row.get("posted_raw"))
