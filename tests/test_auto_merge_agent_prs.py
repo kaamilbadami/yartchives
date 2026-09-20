@@ -1007,6 +1007,51 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertGreater(followup_index, merged_guard_index)
         self.assertLess(followup_index, no_merge_index)
 
+    def test_control_plane_accepts_workflow_with_conventional_paired_test(self):
+        candidate = pr()
+        files = [
+            {"filename": ".github/workflows/update-feed.yml", "changes": 117, "status": "modified"},
+            {"filename": "tests/test_update_feed_workflow.py", "changes": 97, "status": "modified"},
+            {"filename": "patch_rwd_apply.py", "changes": 27, "status": "removed"},
+            {"filename": "patch_rwd_tests4.py", "changes": 18, "status": "removed"},
+        ]
+        ok, reason = mod.control_plane_pr_eligible(
+            candidate,
+            repo="kaamilbadami/yartchives",
+            files=files,
+            quality_runs=runs(),
+        )
+        self.assertTrue(ok)
+        self.assertEqual(reason, "control-plane-eligible")
+
+    def test_control_plane_rejects_workflow_without_paired_test(self):
+        candidate = pr()
+        ok, reason = mod.control_plane_pr_eligible(
+            candidate,
+            repo="kaamilbadami/yartchives",
+            files=[
+                {"filename": ".github/workflows/update-feed.yml", "changes": 10, "status": "modified"},
+            ],
+            quality_runs=runs(),
+        )
+        self.assertFalse(ok)
+        self.assertIn("lacks paired regression test", reason)
+
+    def test_control_plane_only_allows_patch_scratch_files_when_removed(self):
+        candidate = pr()
+        ok, reason = mod.control_plane_pr_eligible(
+            candidate,
+            repo="kaamilbadami/yartchives",
+            files=[
+                {"filename": ".github/workflows/update-feed.yml", "changes": 10, "status": "modified"},
+                {"filename": "tests/test_update_feed_workflow.py", "changes": 10, "status": "modified"},
+                {"filename": "patch_new_behavior.py", "changes": 10, "status": "added"},
+            ],
+            quality_runs=runs(),
+        )
+        self.assertFalse(ok)
+        self.assertIn("non-allowlisted", reason)
+
     def test_codex_review_ready_is_also_terminal(self):
         self.assertTrue(
             mod.autonomous_issue_ready(

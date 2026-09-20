@@ -53,13 +53,13 @@ GENERATED_ARTIFACT_PATTERNS = (
     ".pytest_cache/**",
     "**/.pytest_cache/**",
 )
-CONTROL_PLANE_ALLOWED_PATH_PATTERNS = (
-    ".github/workflows/**",
+CONTROL_PLANE_STATIC_ALLOWED_PATHS = frozenset({
     "scripts/queue_coverage_gap.py",
     "tests/deploy-assets.test.cjs",
     "tests/test_queue_coverage_gap.py",
-)
-CONTROL_PLANE_REQUIRED_TEST = "tests/deploy-assets.test.cjs"
+})
+CONTROL_PLANE_LEGACY_REQUIRED_TEST = "tests/deploy-assets.test.cjs"
+CONTROL_PLANE_REMOVABLE_SCRATCH_PATTERNS = ("patch_*.py",)
 CONTROL_PLANE_MAX_FILES = 8
 CONTROL_PLANE_MAX_CHANGES = 500
 SUPERSEDE_PROTECTED_MAX_FILES = 12
@@ -242,6 +242,20 @@ def generated_artifact_paths(paths: Iterable[str]) -> list[str]:
     ]
 
 
+def workflow_regression_test_candidates(path: str) -> frozenset[str]:
+    """Return conventional regression-test paths for one workflow file."""
+    name = path.rsplit("/", 1)[-1]
+    stem = re.sub(r"\.ya?ml$", "", name)
+    normalized = stem.replace("-", "_")
+    return frozenset(
+        {
+            f"tests/test_{normalized}_workflow.py",
+            f"tests/test_{normalized}.py",
+            f"tests/{stem}.test.cjs",
+        }
+    )
+
+
 def control_plane_pr_eligible(
     pr: dict[str, Any],
     *,
@@ -266,16 +280,45 @@ def control_plane_pr_eligible(
         return False, "control-plane lane has no changed paths"
     if generated_artifact_paths(paths):
         return False, "control-plane lane contains generated artifacts"
-    if not paths <= {
-        path
-        for path in paths
-        if any(fnmatch(path, pattern) for pattern in CONTROL_PLANE_ALLOWED_PATH_PATTERNS)
-    }:
-        return False, "control-plane lane contains a non-allowlisted path"
-    if not any(fnmatch(path, ".github/workflows/**") for path in paths):
+
+    workflow_paths = {
+        path for path in paths if fnmatch(path, ".github/workflows/**")
+    }
+    if not workflow_paths:
         return False, "control-plane lane does not change a workflow"
-    if CONTROL_PLANE_REQUIRED_TEST not in paths:
-        return False, f"control-plane change lacks paired regression test: {CONTROL_PLANE_REQUIRED_TEST}"
+
+    conventional_tests = set().union(
+        *(workflow_regression_test_candidates(path) for path in workflow_paths)
+    )
+    scratch_removals = {
+        str(row.get("filename") or "")
+        for row in rows
+        if str(row.get("status") or "") == "removed"
+        and any(
+            fnmatch(str(row.get("filename") or ""), pattern)
+            for pattern in CONTROL_PLANE_REMOVABLE_SCRATCH_PATTERNS
+        )
+    }
+    allowed_paths = (
+        workflow_paths
+        | conventional_tests
+        | CONTROL_PLANE_STATIC_ALLOWED_PATHS
+        | scratch_removals
+    )
+    if not paths <= allowed_paths:
+        return False, "control-plane lane contains a non-allowlisted path"
+
+    missing_tests = [
+        path
+        for path in sorted(workflow_paths)
+        if not (
+            workflow_regression_test_candidates(path) & paths
+            or CONTROL_PLANE_LEGACY_REQUIRED_TEST in paths
+        )
+    ]
+    if missing_tests:
+        expected = sorted(workflow_regression_test_candidates(missing_tests[0]))[0]
+        return False, f"control-plane change lacks paired regression test: {expected}"
     if len(paths) > CONTROL_PLANE_MAX_FILES:
         return False, "control-plane lane changes too many files"
     if sum(int(row.get("changes") or 0) for row in rows) > CONTROL_PLANE_MAX_CHANGES:
