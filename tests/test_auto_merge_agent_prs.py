@@ -119,6 +119,34 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             )
         )
 
+    def test_trusted_repair_head_allows_later_jules_commits_before_green_current_head(self):
+        commits = [
+            {
+                "sha": "recorded",
+                "author": {"login": "google-labs-jules[bot]"},
+                "committer": {"login": "google-labs-jules[bot]"},
+            },
+            {
+                "sha": "jules-later",
+                "author": {"login": "google-labs-jules[bot]"},
+                "committer": {"login": "google-labs-jules[bot]"},
+            },
+            {
+                "sha": "current",
+                "author": {"login": "kaamilbadami"},
+                "committer": {"login": "kaamilbadami"},
+            },
+        ]
+        self.assertTrue(
+            mod.trusted_repair_head_allowed(
+                commits,
+                recorded_head="recorded",
+                current_head="current",
+                repo="kaamilbadami/yartchives",
+                quality_runs=runs(sha="current"),
+            )
+        )
+
     def test_trusted_repair_head_rejects_untrusted_or_red_suffix(self):
         untrusted = [
             {
