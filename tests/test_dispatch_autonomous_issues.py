@@ -266,6 +266,91 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
         self.assertEqual([task.number for task in selected], [2])
 
+    def test_feedback_stuck_session_is_released_into_one_retry(self):
+        candidate = issue(
+            448,
+            "observability",
+            body=task_body("P2", "feed-observability"),
+            labels=("jules", "jules-session"),
+        )
+        question = "Which existing instrumentation should I extend?"
+        key = mod.clarification_key(question)
+        comments = [
+            {"body": "<!-- jules-session-id: session-1 -->"},
+            {
+                "body": (
+                    f"<!-- jules-auto-feedback: session-1:{key} -->\n"
+                    f"<!-- jules-clarification-handled: session-1:{key} -->"
+                ),
+                "created_at": "2026-09-20T18:00:00Z",
+            },
+        ]
+        session = {"state": "AWAITING_USER_FEEDBACK"}
+        activities = [
+            {
+                "createTime": "2026-09-20T18:00:00Z",
+                "agentMessaged": {"agentMessage": question},
+            }
+        ]
+        deleted = []
+        gh_calls = []
+        mod.reconcile_jules_sessions(
+            [candidate],
+            repo="kaamilbadami/yartchives",
+            api_key="test",
+            load_comments=lambda number: comments,
+            get_session=lambda *args: session,
+            load_activities=lambda session_id: activities,
+            delete_session=deleted.append,
+            run_gh=lambda *args: gh_calls.append(args),
+            now_fn=lambda: datetime(2026, 9, 20, 18, 31, tzinfo=timezone.utc),
+            stale_seconds=3 * 60 * 60,
+            feedback_stuck_seconds=30 * 60,
+        )
+        self.assertEqual(deleted, ["session-1"])
+        self.assertIn(mod.JULES_RETRY_LABEL, mod.label_names(candidate))
+        self.assertNotIn(mod.JULES_ACTIVE_LABEL, mod.label_names(candidate))
+        self.assertTrue(any("jules-retry-from: session-1" in str(call) for call in gh_calls))
+
+    def test_feedback_processing_under_grace_period_keeps_session_active(self):
+        candidate = issue(
+            448,
+            "observability",
+            body=task_body("P2", "feed-observability"),
+            labels=("jules", "jules-session"),
+        )
+        question = "Which existing instrumentation should I extend?"
+        key = mod.clarification_key(question)
+        comments = [
+            {"body": "<!-- jules-session-id: session-1 -->"},
+            {
+                "body": f"<!-- jules-clarification-handled: session-1:{key} -->",
+                "created_at": "2026-09-20T18:00:00Z",
+            },
+        ]
+        session = {"state": "AWAITING_USER_FEEDBACK"}
+        activities = [
+            {
+                "createTime": "2026-09-20T18:00:00Z",
+                "agentMessaged": {"agentMessage": question},
+            }
+        ]
+        deleted = []
+        mod.reconcile_jules_sessions(
+            [candidate],
+            repo="kaamilbadami/yartchives",
+            api_key="test",
+            load_comments=lambda number: comments,
+            get_session=lambda *args: session,
+            load_activities=lambda session_id: activities,
+            delete_session=deleted.append,
+            run_gh=lambda *args: None,
+            now_fn=lambda: datetime(2026, 9, 20, 18, 29, tzinfo=timezone.utc),
+            feedback_stuck_seconds=30 * 60,
+        )
+        self.assertEqual(deleted, [])
+        self.assertIn(mod.JULES_ACTIVE_LABEL, mod.label_names(candidate))
+
     def test_feedback_waiting_session_reserves_wip_and_overlap_locks(self):
         issues = [
             issue(
