@@ -99,9 +99,34 @@ def label_names(issue: dict[str, Any]) -> frozenset[str]:
     return frozenset(names)
 
 
+METADATA_KEYS = ("priority", "area", "resources", "depends_on", "autonomous")
+
+
 def metadata_value(body: str, key: str) -> str | None:
     match = re.search(rf"(?mi)^\s*{re.escape(key)}\s*:\s*([^\n]+?)\s*$", body)
-    return match.group(1).strip() if match else None
+    if match:
+        value = match.group(1).strip()
+        # A compact multi-key metadata header can superficially match the
+        # whole-line parser. Fall through so we can stop at the next key.
+        if not any(
+            re.search(rf"(?i)\s+{re.escape(other)}\s*:", value)
+            for other in METADATA_KEYS
+            if other != key
+        ):
+            return value
+
+    first_line = next(
+        (line.strip() for line in body.splitlines() if line.strip()),
+        "",
+    )
+    if not first_line:
+        return None
+    compact = re.search(
+        rf"(?i)(?:^|\s){re.escape(key)}\s*:\s*(.*?)"
+        rf"(?=\s+(?:{'|'.join(re.escape(item) for item in METADATA_KEYS)})\s*:|$)",
+        first_line,
+    )
+    return compact.group(1).strip() if compact else None
 
 
 def dependency_numbers(body: str) -> frozenset[int] | None:
