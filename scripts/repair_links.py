@@ -111,10 +111,11 @@ def is_workday_job_page(value: str | None) -> bool:
         return False
     parsed = urlparse(str(value))
     host = (parsed.hostname or "").lower()
+    path = parsed.path.casefold()
     return bool(
         re.fullmatch(r"[^.]+\.wd\d+\.myworkdayjobs\.com", host)
-        and "/job/" in parsed.path.casefold()
-        and not parsed.path.rstrip("/").casefold().endswith("/apply")
+        and ("/job/" in path or "/details/" in path)
+        and not path.rstrip("/").endswith("/apply")
     )
 
 

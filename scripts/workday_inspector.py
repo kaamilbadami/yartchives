@@ -59,7 +59,7 @@ def derive_cxs_endpoint(job_url: str) -> dict[str, str]:
 
     parts = [unquote(part) for part in parsed.path.split("/") if part]
     if parts and parts[0].lower() == "wday":
-        if len(parts) < 7 or parts[1].lower() != "cxs" or parts[4].lower() != "job":
+        if len(parts) < 7 or parts[1].lower() != "cxs" or parts[4].lower() not in ("job", "details"):
             raise UnsupportedWorkdayUrl("Workday CXS URL does not contain a job path")
         tenant, site = parts[2], parts[3]
         job_parts = parts[4:]
@@ -69,14 +69,16 @@ def derive_cxs_endpoint(job_url: str) -> dict[str, str]:
         if parts and LOCALE.fullmatch(parts[0]):
             parts = parts[1:]
         try:
-            job_index = next(i for i, part in enumerate(parts) if part.lower() == "job")
+            job_index = next(i for i, part in enumerate(parts) if part.lower() in ("job", "details"))
         except StopIteration as exc:
-            raise UnsupportedWorkdayUrl("Workday URL does not contain a /job/ path") from exc
-        if job_index != 1 or len(parts) < 4:
+            raise UnsupportedWorkdayUrl("Workday URL does not contain a /job/ or /details/ path") from exc
+        if job_index != 1 or len(parts) < 3:
             raise UnsupportedWorkdayUrl("Workday job URL must identify one career site and job")
         tenant = host.split(".", 1)[0]
         site = parts[0]
         job_parts = parts[job_index:]
+        if job_parts[0].lower() == "details":
+            job_parts[0] = "job"
         if job_parts and job_parts[-1].casefold() == "apply":
             job_parts = job_parts[:-1]
 
