@@ -44,6 +44,14 @@ These instructions apply to automated coding agents working in this repository.
 - Pending-state regressions must test ordering: pending UI -> paint boundary -> expensive work -> restoration in `finally`. Do not test only that loading text exists somewhere in source.
 - Avoid large synchronous work directly inside click handlers. If work remains materially blocking after a paint boundary, chunk it or move it off the main thread rather than hiding the stall with more loading copy.
 
+## Product invariants and semantic contracts
+
+- Treat product invariants as behavior, not implementation names. A signal forbidden from ranking must not affect rank indirectly through a renamed or newly extracted component.
+- Ranking code must use the canonical scoring contract and explicit ranking-component whitelist. Do not sum arbitrary component objects.
+- Do not introduce a new ranking signal, ranking weight, eligibility rule, persistence semantic, or other product-semantic change as part of a refactor unless the assigned issue explicitly requests that behavior change.
+- Any intentional ranking-contract change must update the canonical contract, executable semantic regression tests, and `PRODUCT_INVARIANTS.md` in the same PR.
+- Prefer paired/golden behavioral tests that vary exactly one input and assert the user-visible invariant (score, ordering, eligibility, persistence, destination, or deployed behavior), rather than tests that only check a field name or implementation detail.
+
 ## Testing
 
 - Run the smallest relevant test set while iterating.
