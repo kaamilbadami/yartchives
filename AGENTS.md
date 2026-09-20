@@ -51,6 +51,13 @@ These instructions apply to automated coding agents working in this repository.
 - If full CI fails for a pre-existing unrelated reason, document the exact failure and do not disguise it as success.
 - Never remove or weaken a failing test without showing why the previous assertion was unstable or incorrect.
 
+## Shipping verification
+
+- A merged frontend change is not considered shipped merely because CI and the merge succeeded.
+- The Pages workflow must stamp the exact commit SHA into the built site and verify the live site serves that SHA after deployment.
+- Live JS/CSS must be verified against the built artifact so a successful Pages API response cannot hide stale or mismatched frontend assets.
+- When reporting user-visible work, distinguish **merged** from **live/verified**. Only call it shipped after the deployment verification step succeeds.
+
 ## Git and pull requests
 
 - Work from current `main` on a dedicated branch.
