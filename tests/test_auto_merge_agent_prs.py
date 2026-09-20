@@ -95,6 +95,49 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                     mod.owner_authorized_pr(blocked, "kaamilbadami/yartchives")
                 )
 
+    def test_owner_authorized_comment_can_retroactively_authorize_legacy_pr(self):
+        candidate = pr(body="")
+        comments = [
+            {
+                "user": {"login": "kaamilbadami"},
+                "body": mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER,
+            }
+        ]
+        self.assertTrue(
+            mod.owner_authorized_pr(
+                candidate,
+                "kaamilbadami/yartchives",
+                comments,
+            )
+        )
+
+    def test_owner_authorized_comment_rejects_non_owner_marker(self):
+        candidate = pr(body="")
+        comments = [
+            {
+                "user": {"login": "someone-else"},
+                "body": mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER,
+            }
+        ]
+        self.assertFalse(
+            mod.owner_authorized_pr(
+                candidate,
+                "kaamilbadami/yartchives",
+                comments,
+            )
+        )
+
+    def test_main_loads_comments_only_when_body_marker_is_absent(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            'if OWNER_AUTHORIZED_AUTOMERGE_MARKER not in str(pr.get("body") or ""):',
+            source,
+        )
+        self.assertIn(
+            'f"repos/{repo}/issues/{number}/comments?per_page=100"',
+            source,
+        )
+
     def test_owner_authorized_lane_bypasses_issue_link_and_protected_paths_but_not_ci(self):
         source = MODULE_PATH.read_text()
         self.assertIn(
