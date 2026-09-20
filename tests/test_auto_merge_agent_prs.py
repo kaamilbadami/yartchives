@@ -12,12 +12,13 @@ assert SPEC.loader
 SPEC.loader.exec_module(mod)
 
 
-def pr(*, body="Closes #10", files=(), head_sha="abc", draft=False, repo="kaamilbadami/yartchives"):
+def pr(*, body="Closes #10", files=(), head_sha="abc", draft=False, repo="kaamilbadami/yartchives", user="kaamilbadami"):
     return {
         "number": 20,
         "state": "open",
         "draft": draft,
         "body": body,
+        "user": {"login": user},
         "head": {"sha": head_sha, "repo": {"full_name": repo}},
         "base": {"ref": "main"},
         "_files": list(files),
@@ -78,6 +79,36 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             "repos/kaamilbadami/yartchives/actions/runs?head_sha=abc123&per_page=100",
         )
         self.assertNotIn("event=", path)
+
+    def test_owner_authorized_marker_identifies_same_repo_owner_pr(self):
+        candidate = pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER)
+        self.assertTrue(mod.owner_authorized_pr(candidate, "kaamilbadami/yartchives"))
+
+        for blocked in (
+            pr(body=""),
+            pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER, draft=True),
+            pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER, repo="someone/fork"),
+            pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER, user="someone-else"),
+        ):
+            with self.subTest(candidate=blocked):
+                self.assertFalse(
+                    mod.owner_authorized_pr(blocked, "kaamilbadami/yartchives")
+                )
+
+    def test_owner_authorized_lane_bypasses_issue_link_and_protected_paths_but_not_ci(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            "if issue_number is None and not maintenance_pre_ci and not owner_authorized:",
+            source,
+        )
+        self.assertIn(
+            'pre_ci_eligible, reason = True, "owner-authorized"',
+            source,
+        )
+        self.assertIn(
+            '"owner-authorized" if exact_head_quality_passed(runs, head_sha)',
+            source,
+        )
 
     def test_accepts_green_terminal_autonomous_agent_pr(self):
         candidate = pr(files=("app.js", "tests/apply-next-ui.test.cjs"))
