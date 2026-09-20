@@ -872,20 +872,53 @@ def try_guarded_squash_merge(repo: str, number: int, head_sha: str) -> tuple[boo
 
 
 def close_linked_issue_after_merge(repo: str, issue_number: int | None) -> None:
-    """Explicitly close the verified linked issue after a successful token-authored merge.
+    """Best-effort, idempotent issue closure after a successful merge.
 
-    GitHub closing keywords are still kept in PR bodies for normal UX/linkage, but the
-    autonomous merge path must not depend on them firing when GITHUB_TOKEN calls the
-    REST merge endpoint.
+    A merge is already irreversible queue progress. Issue bookkeeping must therefore
+    never abort the remaining scan. Closing keywords may also close the issue before
+    this function runs, so an already-closed issue is a successful no-op.
     """
     if issue_number is None:
         return
-    gh_run(
-        "api",
-        "--method", "PATCH",
-        f"repos/{repo}/issues/{issue_number}",
-        "-f", "state=closed",
-        "-f", "state_reason=completed",
+
+    path = f"repos/{repo}/issues/{issue_number}"
+    try:
+        current = gh_json("api", path)
+    except (subprocess.CalledProcessError, json.JSONDecodeError) as exc:
+        print(
+            f"WARNING: merged PR but could not inspect linked issue #{issue_number} "
+            f"before closure: {exc}"
+        )
+        return
+
+    if str(current.get("state") or "") == "closed":
+        return
+
+    result = subprocess.run(
+        [
+            "gh", "api", "--method", "PATCH", path,
+            "-f", "state=closed",
+            "-f", "state_reason=completed",
+        ],
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode == 0:
+        return
+
+    # GitHub may race closing-keyword processing with the explicit PATCH. Re-check
+    # before reporting a bookkeeping failure.
+    try:
+        refreshed = gh_json("api", path)
+        if str(refreshed.get("state") or "") == "closed":
+            return
+    except (subprocess.CalledProcessError, json.JSONDecodeError):
+        pass
+
+    detail = (result.stderr or result.stdout or "unknown GitHub error").strip()
+    print(
+        f"WARNING: merged PR but could not close linked issue #{issue_number}; "
+        f"queue scan will continue: {detail}"
     )
 
 
