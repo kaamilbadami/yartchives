@@ -377,6 +377,18 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /note\.maxLength = 500/, "Written feedback should have a bounded length");
   assert.match(applyNextCss, /\.apply-next-feedback-note-input\s*\{/, "Written feedback should have dedicated responsive styling");
 
+  assert.match(uiSource, /FEEDBACK_ENDPOINT = "https:\/\/formspree\.io\/f\/[^"]+"/, "Apply Next should define a real central receiver for beta feedback");
+  assert.match(uiSource, /currentFeedback\.submitted/, "Feedback should have a submitted state check");
+  assert.match(uiSource, /const submitBtn = element\("button", "primary-btn apply-next-feedback-submit", "Submit feedback"\);/, "Feedback UI should include a Submit feedback button");
+  assert.match(uiSource, /await YartchivesUtils\.runWithPendingUi\(\{[\s\S]*?control:\s*submitBtn,[\s\S]*?pendingLabel:\s*"Submitting\.\.\."/, "Submit action should use the shared pending-UI primitive");
+  assert.match(uiSource, /const payload = \{[\s\S]*?schema:\s*"yartchives-feedback-v1",[\s\S]*?jobId:\s*job\.id,[\s\S]*?rating:\s*currentFeedback\.rating,[\s\S]*?reason:\s*currentFeedback\.reason \|\| "",[\s\S]*?note:\s*currentFeedback\.note \|\| "",[\s\S]*?submittedAt:\s*new Date\(\)\.toISOString\(\)[\s\S]*?\}/, "Payload should be minimized to essential fields only and omit user profiles or private state");
+  assert.match(uiSource, /const res = await fetch\(FEEDBACK_ENDPOINT, \{[\s\S]*?method:\s*"POST",[\s\S]*?body:\s*JSON\.stringify\(payload\)/, "Submit action should perform a real remote fetch request");
+  assert.match(uiSource, /state\.feedback\[job\.id\]\.submitted = true;/, "Feedback state should record submitted status locally to prevent duplicates");
+  assert.match(uiSource, /Feedback submitted\. Thank you!/, "Successfully submitted feedback should show a success message");
+  assert.match(uiSource, /"apply-next-feedback-error", "Failed to submit\. Please try again\."/, "Failed submission should show a retryable error without marking it successful");
+  assert.doesNotMatch(uiSource, /delete state\.feedback\[job\.id\]\.submitted;/, "Once submitted, feedback should not be easily undoable to resubmit");
+
+
   assert.doesNotMatch(uiSource, /<option value="newest">Newest<\/option>/, "Apply Next should not expose a Newest sort mode");
   assert.match(uiSource, /\["recommended", "Recommended"\]/, "Apply Next should expose the Recommended queue");
   assert.match(uiSource, /\["fresh", "Fresh"\]/, "Apply Next should expose a Fresh queue");

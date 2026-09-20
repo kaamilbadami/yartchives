@@ -49,6 +49,10 @@ Federal opportunity data comes from **USAJOBS.gov**. Yartchives stores normalize
 
 The machine-readable `coverage_contract.json` defines the standard required before Yartchives can claim that a US undergraduate CS student can use it as their only discovery queue. Until those gates pass on a fresh independent benchmark, the product should be described as ranking the opportunities it knows about rather than providing complete market coverage.
 
+## Beta feedback
+
+Feedback provided through the "Submit feedback" action in the Apply Next queue is sent directly to a central serverless receiver (Formspree) configured by the product owner. Responses are minimal, capturing only the recommendation ID, rating, structured reason, optional note, and submission timestamp without including browser-local profile data or application state. The product owner can review submissions via the Formspree dashboard.
+
 ## Development approach
 
 Yartchives is product-directed and heavily AI-assisted in implementation. Product scope, prioritization, beta criteria, and tradeoffs are set by the product owner; coding agents and automated GitHub workflows handle much of the implementation, testing, review routing, and maintenance.
