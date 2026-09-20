@@ -52,6 +52,60 @@ def base_job(job_id, company, url, *, direct=False, source="Simplify", posted="2
 
 
 class ReconcileWorkdayDuplicateTests(unittest.TestCase):
+
+    def test_reconcile_workday_duplicates_enforces_link_kind_precedence(self):
+        direct = {
+            "url": "https://company.wd1.myworkdayjobs.com/en-US/Careers/job/City/Role_REQ-123/apply",
+            "link_kind": "direct",
+            "link_status": "ok",
+            "link_checked_at": "2026-09-17T12:00:00Z"
+        }
+        employer_job = {
+            "url": "https://company.wd1.myworkdayjobs.com/en-US/Careers/job/City/Role_REQ-123",
+            "link_kind": "employer_job"
+        }
+        listing = {
+            "url": "https://company.wd1.myworkdayjobs.com/en-US/Careers/job/City/Role_REQ-123/listing",
+            "link_kind": "listing"
+        }
+        source = {
+            "url": "https://company.wd1.myworkdayjobs.com/en-US/Careers/job/City/Role_REQ-123/apply",
+            "link_kind": "source"
+        }
+
+        # Test employer_job doesn't downgrade direct
+        merged, dupes = mod.reconcile_jobs([direct.copy(), employer_job.copy()])
+        self.assertEqual(len(merged), 1)
+        self.assertEqual(merged[0]["link_kind"], "direct")
+
+        # Test listing doesn't downgrade employer_job
+        merged, dupes = mod.reconcile_jobs([listing.copy(), employer_job.copy()])
+        self.assertEqual(len(merged), 1)
+        self.assertEqual(merged[0]["link_kind"], "employer_job")
+
+        # Test source doesn't downgrade listing
+        merged, dupes = mod.reconcile_jobs([listing.copy(), source.copy()])
+        self.assertEqual(len(merged), 1)
+        self.assertEqual(merged[0]["link_kind"], "listing")
+
+
+    def test_reconcile_workday_duplicates_enforces_link_kind_precedence(self):
+        direct = {
+            "url": "https://company.wd1.myworkdayjobs.com/en-US/Careers/job/City/Role_REQ-123/apply",
+            "link_kind": "direct",
+            "link_status": "ok",
+            "link_checked_at": "2026-09-17T12:00:00Z"
+        }
+        employer_job = {
+            "url": "https://company.wd1.myworkdayjobs.com/en-US/Careers/job/City/Role_REQ-123",
+            "link_kind": "employer_job"
+        }
+
+        # Test employer_job doesn't downgrade direct
+        merged, dupes = mod.reconcile_jobs([direct.copy(), employer_job.copy()])
+        self.assertEqual(len(merged), 1)
+        self.assertEqual(merged[0]["link_kind"], "direct")
+
     def test_workday_identity_ignores_locale_and_tracking_query(self):
         with_locale = "https://globalhr.wd5.myworkdayjobs.com/en-US/rec_rtx_ext_gateway" + RTX_PATH
         tracked = (

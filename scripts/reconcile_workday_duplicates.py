@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import copy
+import link_ranks
 import json
 import urllib.parse
 import re
@@ -327,9 +328,11 @@ def exact_direct_identity_key(job: dict[str, Any]) -> tuple[str, ...] | None:
 def authority_rank(job: dict[str, Any]) -> tuple[int, int, int, str, str]:
     """Rank duplicate copies without guessing employer identity from the hostname."""
 
+    kind = str(job.get("link_kind") or "")
+
     return (
         1 if job.get("direct_employer") else 0,
-        1 if job.get("link_kind") == "direct" else 0,
+        link_ranks.link_kind_rank(kind),
         len(job.get("source_keys") or []),
         str(job.get("posted_at") or ""),
         str(job.get("id") or ""),
