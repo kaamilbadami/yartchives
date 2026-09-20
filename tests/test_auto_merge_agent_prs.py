@@ -451,7 +451,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
         self.assertIn(
-            "if issue is None and not maintenance_pre_ci:",
+            "if issue is None and not maintenance_pre_ci and not owner_authorized:",
             source,
         )
 
