@@ -77,19 +77,19 @@ def get_active_and_coverage_issues(repo: str) -> tuple[list[Any], list[dict[str,
     open_issues = [issue for issue in issues if "pull_request" not in issue]
 
     active_issues = []
-    coverage_issues = []
     for issue in open_issues:
         labels = {
             label if isinstance(label, str) else label.get("name")
             for label in issue.get("labels", [])
         }
-        if "coverage-automation" in labels:
-            coverage_issues.append(issue)
         task = task_from_issue(issue)
         if task and ("jules-session" in labels or JULES_FEEDBACK_LABEL in labels or "jules" in labels):
              active_issues.append(task)
 
-    return active_issues, coverage_issues
+    # Gap identity is persisted in the issue body marker, not in an optional
+    # classification label. Scan all open issues so duplicate prevention keeps
+    # working even if labels are renamed, removed, or never created.
+    return active_issues, open_issues
 
 def issue_already_queued(coverage_issues: list[dict[str, Any]], gap_id: str) -> bool:
     for issue in coverage_issues:
@@ -144,10 +144,8 @@ Please investigate this gap.
         "--repo", repo,
         "--title", title,
         "--body", body,
-        "--label", "coverage-automation",
         "--label", "autonomous-backlog",
-        "--label", "agent-ready",
-        "--label", "jules"
+        "--label", "agent-ready"
     )
 
 def main() -> None:
