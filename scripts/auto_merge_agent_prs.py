@@ -374,6 +374,41 @@ def exact_head_quality_passed(runs: Iterable[dict[str, Any]], head_sha: str) -> 
     )
 
 
+def trusted_repair_head_allowed(
+    commits: Iterable[dict[str, Any]],
+    *,
+    recorded_head: str,
+    current_head: str,
+    repo: str,
+    quality_runs: Iterable[dict[str, Any]],
+) -> bool:
+    """Allow a durable Jules head to advance only through trusted, green repairs."""
+    rows = list(commits)
+    shas = [str(row.get("sha") or "") for row in rows]
+    if (
+        not recorded_head
+        or not current_head
+        or recorded_head not in shas
+        or current_head not in shas
+        or shas[-1] != current_head
+        or shas.index(recorded_head) >= shas.index(current_head)
+        or not exact_head_quality_passed(quality_runs, current_head)
+    ):
+        return False
+
+    owner = repo.split("/", 1)[0]
+    trusted = {owner, GITHUB_ACTIONS_BOT}
+    repair_commits = rows[shas.index(recorded_head) + 1 :]
+    if not repair_commits:
+        return False
+    for commit in repair_commits:
+        author = str((commit.get("author") or {}).get("login") or "")
+        committer = str((commit.get("committer") or {}).get("login") or "")
+        if author not in trusted or committer not in trusted:
+            return False
+    return True
+
+
 def exact_head_quality_present(runs: Iterable[dict[str, Any]], head_sha: str) -> bool:
     return any(
         str(run.get("name") or "") == QUALITY_WORKFLOW
@@ -1152,11 +1187,41 @@ def main() -> int:
                 continue
             recorded_head = str(output_meta.get("head") or "")
             if recorded_head and recorded_head != head_sha:
-                print(
-                    f"BLOCKED_REQUIRES_DECISION PR #{number}: durable Jules output head "
-                    f"{recorded_head} does not match current head {head_sha}."
+                commits = gh_paginated_json(
+                    "api",
+                    f"repos/{repo}/pulls/{number}/commits?per_page=100",
                 )
-                continue
+                if not trusted_repair_head_allowed(
+                    commits,
+                    recorded_head=recorded_head,
+                    current_head=head_sha,
+                    repo=repo,
+                    quality_runs=runs,
+                ):
+                    print(
+                        f"BLOCKED_REQUIRES_DECISION PR #{number}: durable Jules output head "
+                        f"{recorded_head} does not match current head {head_sha}."
+                    )
+                    continue
+                marker = (
+                    f"<!-- jules-output: issue={issue_number} "
+                    f"session={output_meta['session']} pr={number} head={head_sha} -->"
+                )
+                gh_run(
+                    "issue", "comment", str(issue_number), "--repo", repo,
+                    "--body",
+                    (
+                        f"{marker}\nAdvanced durable Jules output identity after trusted "
+                        "repair commits passed exact-head Quality checks."
+                    ),
+                )
+                output_meta["head"] = head_sha
+                output_meta["durable"] = True
+                print(
+                    f"Advanced Jules output identity for issue #{issue_number}, PR #{number}, "
+                    f"to trusted green repair head {head_sha}."
+                )
+                recorded_head = head_sha
             if not recorded_head:
                 marker = (
                     f"<!-- jules-output: issue={issue_number} "
