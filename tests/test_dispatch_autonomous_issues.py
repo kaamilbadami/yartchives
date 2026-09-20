@@ -1689,6 +1689,129 @@ class AutonomousDispatcherTests(unittest.TestCase):
         ]
         self.assertIsNone(mod.legacy_failed_retry_context(comments))
 
+    def test_exhausted_failure_rework_preserves_context_and_rewires_dependencies(self):
+        original = issue(
+            212,
+            "Benchmark opportunity-feed runtime by stage",
+            body=task_body("P2", "feed-performance", resources="feed-performance"),
+            labels=("agent-ready", "autonomous-backlog", "jules-failed"),
+        )
+        dependent = issue(
+            391,
+            "Act on measured bottleneck",
+            body=task_body(
+                "P2",
+                "feed-performance-fix",
+                resources="feed-performance",
+                depends_on="#212",
+            ),
+            labels=("agent-ready", "autonomous-backlog"),
+        )
+        issues = [original, dependent]
+        comments = [
+            {"body": "<!-- jules-infra-retry-from: first -->\nPrior infrastructure retry."},
+            {"body": "<!-- jules-session-id: second -->"},
+            {
+                "body": (
+                    "Jules session `second` ended in FAILED state and released this "
+                    "automation slot. It will not be retried automatically.\n\n"
+                    "Failure diagnostics:\n\n> Jules encountered an error when working on the task."
+                )
+            },
+        ]
+        gh_calls = []
+        created = []
+
+        def fake_json(*args):
+            body_arg = next(arg for arg in args if str(arg).startswith("body="))
+            replacement = issue(
+                500,
+                "Rework from current main: Benchmark opportunity-feed runtime by stage",
+                body=body_arg.removeprefix("body="),
+                labels=("agent-ready", "autonomous-backlog"),
+            )
+            created.append(replacement)
+            return replacement
+
+        mod.rework_exhausted_jules_failures(
+            issues,
+            repo="kaamilbadami/yartchives",
+            load_comments=lambda number: comments if number == 212 else [],
+            run_gh_json=fake_json,
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(len(created), 1)
+        replacement = created[0]
+        self.assertIn("<!-- jules-rework-from: 212 -->", replacement["body"])
+        self.assertIn("Jules encountered an error when working on the task.", replacement["body"])
+        self.assertIn("depends_on: #500", dependent["body"])
+        self.assertEqual(original["state"], "closed")
+        self.assertIn("jules-reworked", mod.label_names(original))
+        self.assertNotIn("jules-failed", mod.label_names(original))
+        self.assertEqual([task.number for task in mod.select_tasks(issues)], [500])
+
+    def test_rework_is_idempotent_when_replacement_already_exists(self):
+        original = issue(
+            350,
+            "Expand coverage",
+            body=task_body("P1", "coverage-expansion", resources="feed-core"),
+            labels=("agent-ready", "autonomous-backlog", "jules-failed"),
+        )
+        existing = issue(
+            501,
+            "Rework from current main: Expand coverage",
+            body=(
+                task_body("P1", "coverage-expansion", resources="feed-core")
+                + "\n\n<!-- jules-rework-from: 350 -->"
+            ),
+            labels=("agent-ready", "autonomous-backlog"),
+        )
+        gh_calls = []
+        mod.supersede_exhausted_jules_failure(
+            original,
+            issues=[original, existing],
+            repo="kaamilbadami/yartchives",
+            comments=[{"body": "parked the issue as failed"}],
+            run_gh_json=lambda *args: self.fail("must not create duplicate replacement"),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+        self.assertTrue(any("501" in " ".join(call) for call in gh_calls))
+        self.assertEqual(original["state"], "closed")
+
+    def test_failed_rework_does_not_spawn_infinite_rework_chain(self):
+        failed_rework = issue(
+            500,
+            "Rework from current main: original",
+            body=(
+                task_body("P1", "feed")
+                + "\n\n<!-- jules-rework-from: 152 -->"
+            ),
+            labels=("agent-ready", "autonomous-backlog", "jules-failed"),
+        )
+        created = []
+        mod.rework_exhausted_jules_failures(
+            [failed_rework],
+            repo="kaamilbadami/yartchives",
+            load_comments=lambda number: [
+                {"body": "<!-- jules-retry-from: one -->"},
+                {"body": "parked the issue as failed"},
+            ],
+            run_gh_json=lambda *args: created.append(args),
+            run_gh=lambda *args: None,
+        )
+        self.assertEqual(created, [])
+        self.assertEqual(failed_rework["state"], "open")
+
+    def test_dependency_rewrite_only_changes_depends_on_metadata(self):
+        body = (
+            task_body("P2", "feed-performance-fix", depends_on="#212, #300")
+            + "\n\nMention #212 in prose but do not rewrite it."
+        )
+        updated = mod.replace_dependency_reference(body, 212, 500)
+        self.assertIn("depends_on: #500, #300", updated)
+        self.assertIn("Mention #212 in prose", updated)
+
     def test_second_infrastructure_failure_is_not_retried_again(self):
         issues = [
             issue(
