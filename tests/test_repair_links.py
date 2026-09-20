@@ -333,6 +333,42 @@ class RepairLinksTests(unittest.TestCase):
         self.assertEqual(status, "ok")
         self.assertEqual(final, live)
 
+    def test_unknown_workday_apply_is_downgraded_instead_of_blocking_publish(self):
+        url = "https://jj.wd5.myworkdayjobs.com/jj/job/Cincinnati-Ohio-United-States-of-America/Software-Engineering-Co-Op-Summer-2027_R-096743/apply"
+        job = {
+            "id": "jj-r-096743",
+            "company": "Johnson & Johnson",
+            "title": "Software Engineering Co-Op Summer 2027",
+            "location": "Cincinnati, OH",
+            "source_names": ["Johnson & Johnson"],
+            "source_keys": ["direct-workday-jj"],
+            "source_urls": ["https://jj.wd5.myworkdayjobs.com/jj"],
+            "profiles": ["cs"],
+            "education_level": "undergrad",
+            "opportunity_type": "internship",
+            "link_kind": "direct",
+            "url": url,
+        }
+        checked_at = datetime(2026, 9, 20, 13, 0, tzinfo=timezone.utc)
+        with (
+            patch.object(mod, "now_utc", return_value=checked_at),
+            patch.object(mod, "validate_direct_url", return_value=("unknown", url)),
+        ):
+            stats = mod.validate_repaired_links({"jobs": [job]}, {"jobs": []})
+
+        self.assertEqual(stats["unknown"], 1)
+        self.assertEqual(job["link_status"], "unknown")
+        self.assertEqual(job["link_kind"], "employer_job")
+        self.assertEqual(
+            job["url"],
+            "https://jj.wd5.myworkdayjobs.com/jj/job/Cincinnati-Ohio-United-States-of-America/Software-Engineering-Co-Op-Summer-2027_R-096743",
+        )
+        self.assertEqual(job["unverified_apply_url"], url)
+        self.assertEqual(
+            validate_mod.workday_direct_contract_errors(job, "job jj-r-096743"),
+            [],
+        )
+
     def test_live_workday_job_page_is_recovery_target_not_final_apply_link(self):
         class Response:
             status_code = 200
