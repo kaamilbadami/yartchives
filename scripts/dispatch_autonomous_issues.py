@@ -1807,6 +1807,11 @@ def reconcile_jules_sessions(
             "issue", "comment", str(number), "--repo", repo,
             "--body", detail,
         )
+        if state == "COMPLETED" and pr_url:
+            run_gh(
+                "workflow", "run", "auto-merge-agent-prs.yml",
+                "--repo", repo,
+            )
         print(f"Reconciled Jules session {session_id} for #{number}: {state}.")
 
     return capacity_paused
