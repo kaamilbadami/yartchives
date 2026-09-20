@@ -683,6 +683,24 @@ def try_guarded_squash_merge(repo: str, number: int, head_sha: str) -> tuple[boo
     return result.returncode == 0, detail
 
 
+def close_linked_issue_after_merge(repo: str, issue_number: int | None) -> None:
+    """Explicitly close the verified linked issue after a successful token-authored merge.
+
+    GitHub closing keywords are still kept in PR bodies for normal UX/linkage, but the
+    autonomous merge path must not depend on them firing when GITHUB_TOKEN calls the
+    REST merge endpoint.
+    """
+    if issue_number is None:
+        return
+    gh_run(
+        "api",
+        "--method", "PATCH",
+        f"repos/{repo}/issues/{issue_number}",
+        "-f", "state=closed",
+        "-f", "state_reason=completed",
+    )
+
+
 def remove_generated_artifacts(
     repo: str,
     number: int,
@@ -1162,6 +1180,7 @@ def main() -> int:
                             f"Squash-merged eligible autonomous PR #{number} through guarded "
                             "merge fallback while GitHub mergeability was recomputing."
                         )
+                        close_linked_issue_after_merge(repo, issue_number)
                         merged_count += 1
                         continue
                     print(
@@ -1190,6 +1209,7 @@ def main() -> int:
             if detail:
                 print(detail)
             continue
+        close_linked_issue_after_merge(repo, issue_number)
         print(f"Squash-merged eligible autonomous PR #{number}.")
         merged_count += 1
 
