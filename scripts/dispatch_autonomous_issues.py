@@ -75,6 +75,7 @@ CODEX_WORKER_PREFIX = "codex-worker-"
 DEFAULT_POLL_SECONDS = 30
 DEFAULT_WATCH_SECONDS = 13 * 60
 DEFAULT_STALE_SECONDS = 3 * 60 * 60
+DEFAULT_FEEDBACK_STUCK_SECONDS = 30 * 60
 MAX_AUTO_CLARIFICATIONS = 2
 
 
@@ -391,6 +392,29 @@ def clarification_handled_for_question(
     )
     return any(marker.search(str(comment.get("body") or "")) for comment in comments)
 
+
+def clarification_handled_time(
+    comments: Iterable[dict[str, Any]], session_id: str, question: str
+) -> datetime | None:
+    """Return when this exact clarification was durably marked handled."""
+    key = clarification_key(question)
+    marker = re.compile(
+        rf"<!--\\s*jules-clarification-handled:\\s*"
+        rf"{re.escape(session_id)}:{re.escape(key)}\\s*-->"
+    )
+    handled: list[datetime] = []
+    for comment in comments:
+        if not marker.search(str(comment.get("body") or "")):
+            continue
+        timestamp = parse_jules_time(
+            comment.get("created_at")
+            or comment.get("createdAt")
+            or comment.get("updated_at")
+            or comment.get("updatedAt")
+        )
+        if timestamp is not None:
+            handled.append(timestamp)
+    return max(handled) if handled else None
 
 def auto_clarification_count(
     comments: Iterable[dict[str, Any]], session_id: str
@@ -1317,6 +1341,7 @@ def reconcile_jules_sessions(
     run_gh: Callable[..., None] | None = None,
     now_fn: Callable[[], datetime] | None = None,
     stale_seconds: int = DEFAULT_STALE_SECONDS,
+    feedback_stuck_seconds: int = DEFAULT_FEEDBACK_STUCK_SECONDS,
 ) -> bool:
     """Reconcile Jules sessions and report whether account capacity is exhausted."""
     if get_session is None:
@@ -1594,9 +1619,64 @@ def reconcile_jules_sessions(
                 continue
 
             if question_already_handled:
+                handled_at = clarification_handled_time(comments, session_id, question)
+                feedback_stuck = (
+                    handled_at is not None
+                    and (now_fn() - handled_at).total_seconds() >= feedback_stuck_seconds
+                )
+                if not feedback_stuck:
+                    print(
+                        f"Jules session {session_id} for #{number} is processing feedback "
+                        "for the current clarification."
+                    )
+                    continue
+
+                try:
+                    delete_session(session_id)
+                except Exception as exc:
+                    print(
+                        f"Could not delete feedback-stuck Jules session {session_id} "
+                        f"for #{number}; keeping its slot reserved: {exc}"
+                    )
+                    continue
+
+                already_retried = retry_marker_from_comments(comments) is not None
+                terminal_label = JULES_FAILED_LABEL if already_retried else JULES_RETRY_LABEL
+                run_gh(
+                    "issue", "edit", str(number), "--repo", repo,
+                    "--remove-label", JULES_ACTIVE_LABEL,
+                    "--remove-label", JULES_FEEDBACK_LABEL,
+                    "--remove-label", "jules",
+                    "--remove-label", "needs-product-decision",
+                    "--add-label", terminal_label,
+                )
+                replace_issue_labels_in_memory(
+                    issue,
+                    remove=(JULES_ACTIVE_LABEL, JULES_FEEDBACK_LABEL, "jules", "needs-product-decision"),
+                    add=(terminal_label,),
+                )
+                stuck_minutes = int((now_fn() - handled_at).total_seconds() // 60)
+                if already_retried:
+                    detail = (
+                        f"Jules session `{session_id}` remained stuck processing an "
+                        f"already-answered clarification for {stuck_minutes} minutes after "
+                        "its automatic retry. The dispatcher deleted the stale session, "
+                        "released its slot, and parked the issue as failed instead of retrying indefinitely."
+                    )
+                else:
+                    detail = (
+                        f"{JULES_RETRY_MARKER.format(session_id=session_id)}\n"
+                        f"Jules session `{session_id}` remained stuck processing an "
+                        f"already-answered clarification for {stuck_minutes} minutes. "
+                        "The dispatcher deleted the stale session and released its slot. "
+                        "One automatic context-preserving retry is allowed."
+                    )
+                run_gh(
+                    "issue", "comment", str(number), "--repo", repo, "--body", detail,
+                )
                 print(
-                    f"Jules session {session_id} for #{number} is processing feedback "
-                    "for the current clarification."
+                    f"Released feedback-stuck Jules session {session_id} for #{number} "
+                    f"after {stuck_minutes} minutes."
                 )
                 continue
 
