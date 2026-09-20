@@ -887,23 +887,6 @@ def main() -> int:
             str(row.get("filename") or "") for row in files
         )
         head_ref = str((pr.get("head") or {}).get("ref") or "")
-        if generated and head_ref:
-            remove_generated_artifacts(
-                repo,
-                number,
-                head_sha,
-                head_ref,
-                generated,
-            )
-            gh_run(
-                "workflow", "run", "quality.yml",
-                "--repo", repo,
-                "--ref", head_ref,
-            )
-            print(
-                f"Repaired PR #{number} by removing generated artifacts and dispatched fresh Quality checks."
-            )
-            continue
 
         maintenance_pre_ci, maintenance_reason = maintenance_pr_eligible(
             pr,
@@ -937,9 +920,12 @@ def main() -> int:
                     f"issue #{replacement_number}."
                 )
                 continue
-        if issue_number is None and not maintenance_pre_ci and not control_plane_pre_ci:
+        if issue_number is None and not maintenance_pre_ci:
             issue = recovered_issue_by_pr.get(number)
             if issue is None:
+                print(
+                    f"BLOCKED_REQUIRES_DECISION PR #{number}: no trusted autonomous issue linkage."
+                )
                 continue
             issue_number = int(issue["number"])
             normalized_body = ensure_closing_link(pr, issue_number)
@@ -955,8 +941,42 @@ def main() -> int:
                 f"#{issue_number} and added 'Closes #{issue_number}'."
             )
 
-        if issue is None and not maintenance_pre_ci and not control_plane_pre_ci:
+        if issue is None and not maintenance_pre_ci:
             issue = gh_json("api", f"repos/{repo}/issues/{issue_number}")
+
+        if generated:
+            if (
+                issue is None
+                or not autonomous_issue_ready(issue)
+                or not head_ref
+            ):
+                print(
+                    f"BLOCKED_REQUIRES_DECISION PR #{number}: generated artifacts require trusted autonomous issue linkage."
+                )
+                continue
+            remove_generated_artifacts(
+                repo,
+                number,
+                head_sha,
+                head_ref,
+                generated,
+            )
+            gh_run(
+                "workflow", "run", "quality.yml",
+                "--repo", repo,
+                "--ref", head_ref,
+            )
+            print(
+                f"Repaired PR #{number} by removing generated artifacts and dispatched fresh Quality checks."
+            )
+            continue
+
+        if control_plane_pre_ci and (
+            issue is None or not autonomous_issue_ready(issue)
+        ):
+            control_plane_pre_ci = False
+            control_plane_reason = "linked autonomous issue is not ready for merge"
+
         deleted_run_ids = delete_superseded_action_required_runs(
             repo,
             runs,
