@@ -1,0 +1,73 @@
+name: Refresh bounded inspections
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run slightly offset from the top of the hour to avoid contention
+    - cron: "45 * * * *"
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: refresh-inspections-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  refresh-inspections:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Migrate cached requirement semantics
+        run: python scripts/migrate_cached_requirements.py data/workday-inspections.json
+
+      - name: Refresh bounded posting inspections
+        run: python scripts/update_workday_inspections.py data/listings.json --cache data/workday-inspections.json --max-workday-requests 25 --max-icims-requests 10 --max-greenhouse-requests 10 --ttl-days 7
+
+      - name: Commit inspections
+        run: |
+          GENERATED_PATHS="data/workday-inspections.json"
+          if git diff --quiet -- $GENERATED_PATHS; then
+            echo "No inspection changes."
+          else
+            cp data/workday-inspections.json /tmp/yartchives-generated-workday-inspections.json
+            START_SHA="$(git rev-parse HEAD)"
+            git fetch origin main
+            REMOTE_SHA="$(git rev-parse origin/main)"
+
+            SHOULD_COMMIT="true"
+            if [ "$START_SHA" != "$REMOTE_SHA" ]; then
+              echo "main advanced while this refresh was running."
+              CHANGED="$(git diff --name-only "$START_SHA".."$REMOTE_SHA")"
+              echo "$CHANGED"
+              echo "Rebasing generated inspections onto current main."
+              git reset --hard origin/main
+              cp /tmp/yartchives-generated-workday-inspections.json data/workday-inspections.json
+            fi
+
+            if [ "$SHOULD_COMMIT" = "true" ]; then
+              if git diff --quiet -- $GENERATED_PATHS; then
+                echo "No generated changes after synchronizing with main."
+              else
+                git config user.name "yartchives-bot"
+                git config user.email "actions@users.noreply.github.com"
+                git add $GENERATED_PATHS
+                git commit -m "chore: refresh bounded inspections"
+                git push origin main
+              fi
+            fi
+          fi
