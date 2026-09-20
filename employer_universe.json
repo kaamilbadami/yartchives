@@ -107,7 +107,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -292,6 +292,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "abbvie.com"
+          ],
           "fortune_slug": "/company/abbvie/",
           "order": 77,
           "rank": 77
@@ -319,6 +322,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "abm.com"
+          ],
           "fortune_slug": "/company/abm-industries/",
           "order": 454,
           "rank": 454
@@ -416,6 +422,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "acehardware.com"
+          ],
           "fortune_slug": "/company/ace-hardware-corporation/",
           "order": 419,
           "rank": 419
@@ -559,6 +568,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "adobe.com"
+          ],
           "fortune_slug": "/company/adobe-systems/",
           "order": 192,
           "rank": 192
@@ -579,7 +591,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -658,6 +670,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "advanceautoparts.com"
+          ],
           "fortune_slug": "/company/advance-auto-parts/",
           "order": 461,
           "rank": 461
@@ -757,6 +772,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "aecom.com"
+          ],
           "fortune_slug": "/company/aecom/",
           "order": 276,
           "rank": 276
@@ -821,6 +839,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "aessuccess.org"
+          ],
           "fortune_slug": "/company/aes/",
           "order": 358,
           "rank": 358
@@ -859,6 +880,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "aflac.com"
+          ],
           "fortune_slug": "/company/aflac/",
           "order": 261,
           "rank": 261
@@ -887,6 +911,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "agcocorp.com"
+          ],
           "fortune_slug": "/company/agco/",
           "order": 417,
           "rank": 417
@@ -935,6 +962,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "aig.com"
+          ],
           "fortune_slug": "/company/aig/",
           "order": 172,
           "rank": 172
@@ -955,7 +985,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -1166,6 +1196,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "airproducts.com"
+          ],
           "fortune_slug": "/company/air-products-chemicals/",
           "order": 368,
           "rank": 368
@@ -1183,6 +1216,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "airbnb.com"
+          ],
           "fortune_slug": "/company/airbnb/",
           "order": 357,
           "rank": 357
@@ -1383,6 +1419,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "albertsons.com"
+          ],
           "fortune_slug": "/company/albertsons-cos/",
           "order": 57,
           "rank": 57
@@ -1512,6 +1551,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "alcoa.com"
+          ],
           "fortune_slug": "/company/alcoa/",
           "order": 344,
           "rank": 344
@@ -1734,6 +1776,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "allstate.com"
+          ],
           "fortune_slug": "/company/allstate/",
           "order": 64,
           "rank": 64
@@ -1754,7 +1799,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -1834,6 +1879,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "allyfinancialcoaching.ca"
+          ],
           "fortune_slug": "/company/ally-financial/",
           "order": 295,
           "rank": 295
@@ -1935,6 +1983,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "alphabetagamer.com"
+          ],
           "fortune_slug": "/company/alphabet/",
           "order": 5,
           "rank": 5
@@ -2012,6 +2063,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "amazon.com"
+          ],
           "fortune_slug": "/company/amazon-com/",
           "order": 1,
           "rank": 1
@@ -2032,7 +2086,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -2298,6 +2352,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "ameren.com"
+          ],
           "fortune_slug": "/company/ameren/",
           "order": 466,
           "rank": 466
@@ -2394,7 +2451,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -2482,6 +2539,9 @@
           ]
         },
         "fortune-500-2026": {
+          "domain_hints": [
+            "americanexpress.com"
+          ],
           "fortune_slug": "/company/american-express/",
           "order": 56,
           "rank": 56
@@ -2630,6 +2690,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "americantower.com"
+          ],
           "fortune_slug": "/company/american-tower/",
           "order": 408,
           "rank": 408
@@ -2645,6 +2708,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "ameriprise.com"
+          ],
           "fortune_slug": "/company/ameriprise-financial/",
           "order": 230,
           "rank": 230
@@ -2669,6 +2735,9 @@
           ]
         },
         "fortune-500-2026": {
+          "domain_hints": [
+            "amgen.com"
+          ],
           "fortune_slug": "/company/amgen/",
           "order": 129,
           "rank": 129
@@ -2769,6 +2838,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "amphenol.com"
+          ],
           "fortune_slug": "/company/amphenol/",
           "order": 198,
           "rank": 198
@@ -2880,6 +2952,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "analog.com"
+          ],
           "fortune_slug": "/company/analog-devices/",
           "order": 396,
           "rank": 396
@@ -2895,6 +2970,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "andersonshomeandgarden.com"
+          ],
           "fortune_slug": "/company/andersons/",
           "order": 397,
           "rank": 397
@@ -3011,6 +3089,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "apartments.com"
+          ],
           "fortune_slug": "/company/apache/",
           "order": 438,
           "rank": 438
@@ -3026,6 +3107,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "apigroupinc.com"
+          ],
           "fortune_slug": "/company/api-group/",
           "order": 486,
           "rank": 486
@@ -3041,6 +3125,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "apollo.com"
+          ],
           "fortune_slug": "/company/apollo-global-management/",
           "order": 143,
           "rank": 143
@@ -3078,6 +3165,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "apple.com"
+          ],
           "fortune_slug": "/company/apple/",
           "order": 4,
           "rank": 4
@@ -3224,6 +3314,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "appliedmaterials.com"
+          ],
           "fortune_slug": "/company/applied-materials/",
           "order": 160,
           "rank": 160
@@ -3261,6 +3354,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "aramark.com"
+          ],
           "fortune_slug": "/company/aramark/",
           "order": 235,
           "rank": 235
@@ -3291,6 +3387,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "arista.com"
+          ],
           "fortune_slug": "/company/arista-networks/",
           "order": 444,
           "rank": 444
@@ -3306,6 +3405,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "arrow.com"
+          ],
           "fortune_slug": "/company/arrow-electronics/",
           "order": 148,
           "rank": 148
@@ -3358,6 +3460,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "asburyauto.com"
+          ],
           "fortune_slug": "/company/asbury-automotive-group/",
           "order": 246,
           "rank": 246
@@ -3463,6 +3568,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "assurant.com"
+          ],
           "fortune_slug": "/company/assurant/",
           "order": 345,
           "rank": 345
@@ -3524,6 +3632,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "att.com"
+          ],
           "fortune_slug": "/company/att/",
           "order": 35,
           "rank": 35
@@ -3544,7 +3655,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -3779,6 +3890,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "auto-owners.com"
+          ],
           "fortune_slug": "/company/auto-owners-insurance/",
           "order": 241,
           "rank": 241
@@ -3839,6 +3953,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "autoliv.com"
+          ],
           "fortune_slug": "/company/autoliv/",
           "order": 403,
           "rank": 403
@@ -3869,6 +3986,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "autonation.com"
+          ],
           "fortune_slug": "/company/auto-nation/",
           "order": 166,
           "rank": 166
@@ -3884,6 +4004,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "autozone.com"
+          ],
           "fortune_slug": "/company/autozone/",
           "order": 229,
           "rank": 229
@@ -3916,6 +4039,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "averydennison.com"
+          ],
           "fortune_slug": "/company/avery-dennison/",
           "order": 448,
           "rank": 448
@@ -3931,6 +4057,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "avisbudgetgroup.jobs"
+          ],
           "fortune_slug": "/company/avis-budget-group/",
           "order": 380,
           "rank": 380
@@ -3946,6 +4075,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "avnet.com"
+          ],
           "fortune_slug": "/company/avnet/",
           "order": 206,
           "rank": 206
@@ -4253,6 +4385,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "bakerhughes.com"
+          ],
           "fortune_slug": "/company/baker-hughes/",
           "order": 164,
           "rank": 164
@@ -4273,7 +4408,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -4352,6 +4487,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "ballotpedia.org"
+          ],
           "fortune_slug": "/company/ball/",
           "order": 337,
           "rank": 337
@@ -4433,7 +4571,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -4655,6 +4793,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "baxter.com"
+          ],
           "fortune_slug": "/company/baxter-international/",
           "order": 382,
           "rank": 382
@@ -4864,7 +5005,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -4943,6 +5084,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "berkshirehathaway.com"
+          ],
           "fortune_slug": "/company/berkshire-hathaway/",
           "order": 7,
           "rank": 7
@@ -4958,6 +5102,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "bestbuy.com"
+          ],
           "fortune_slug": "/company/best-buy/",
           "order": 113,
           "rank": 113
@@ -4973,6 +5120,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "biogen.com"
+          ],
           "fortune_slug": "/company/biogen/",
           "order": 421,
           "rank": 421
@@ -5005,6 +5155,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "bjs.com"
+          ],
           "fortune_slug": "/company/bjs-wholesale-club/",
           "order": 213,
           "rank": 213
@@ -5021,6 +5174,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "blackrock.com"
+          ],
           "fortune_slug": "/company/blackrock/",
           "order": 190,
           "rank": 190
@@ -5041,7 +5197,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -5120,6 +5276,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "blackstone.com"
+          ],
           "fortune_slug": "/company/blackstone-group/",
           "order": 310,
           "rank": 310
@@ -5136,6 +5295,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "blockchain.com"
+          ],
           "fortune_slug": "/company/square/",
           "order": 191,
           "rank": 191
@@ -5422,6 +5584,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "boeing.com"
+          ],
           "fortune_slug": "/company/boeing/",
           "order": 47,
           "rank": 47
@@ -5442,7 +5607,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -5701,6 +5866,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "bookingholdings.com"
+          ],
           "fortune_slug": "/company/booking-holdings/",
           "order": 169,
           "rank": 169
@@ -5733,6 +5901,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "borgwarner.com"
+          ],
           "fortune_slug": "/company/borgwarner/",
           "order": 316,
           "rank": 316
@@ -5748,6 +5919,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "bostonscientific.com"
+          ],
           "fortune_slug": "/company/boston-scientific/",
           "order": 222,
           "rank": 222
@@ -5785,6 +5959,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "brightspringhealth.com"
+          ],
           "fortune_slug": "/company/brightspring-health-services/",
           "order": 323,
           "rank": 323
@@ -5821,7 +5998,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -6017,6 +6194,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "broadcom.com"
+          ],
           "fortune_slug": "/company/broadcom/",
           "order": 70,
           "rank": 70
@@ -6037,7 +6217,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -6419,6 +6599,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "caci.com"
+          ],
           "fortune_slug": "/company/caci-international/",
           "order": 459,
           "rank": 459
@@ -6434,6 +6617,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "caesars.com"
+          ],
           "fortune_slug": "/company/eldorado-resorts/",
           "order": 384,
           "rank": 384
@@ -6449,6 +6635,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "campbellsville.edu"
+          ],
           "fortune_slug": "/company/campbell-soup/",
           "order": 413,
           "rank": 413
@@ -6677,6 +6866,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "cardinalhealth.com"
+          ],
           "fortune_slug": "/company/cardinal-health/",
           "order": 15,
           "rank": 15
@@ -6697,7 +6889,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -6776,6 +6968,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "carmax.com"
+          ],
           "fortune_slug": "/company/carmax/",
           "order": 162,
           "rank": 162
@@ -6851,6 +7046,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "carvana.com"
+          ],
           "fortune_slug": "/company/carvana/",
           "order": 220,
           "rank": 220
@@ -7009,6 +7207,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "cat.com"
+          ],
           "fortune_slug": "/company/caterpillar/",
           "order": 65,
           "rank": 65
@@ -7046,6 +7247,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "cbre.com"
+          ],
           "fortune_slug": "/company/cbre-group/",
           "order": 118,
           "rank": 118
@@ -7061,6 +7265,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "cdw.com"
+          ],
           "fortune_slug": "/company/cdw/",
           "order": 205,
           "rank": 205
@@ -7076,6 +7283,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "celanese.com"
+          ],
           "fortune_slug": "/company/celanese/",
           "order": 431,
           "rank": 431
@@ -7110,7 +7320,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -7226,6 +7436,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "centene.com"
+          ],
           "fortune_slug": "/company/centene/",
           "order": 19,
           "rank": 19
@@ -7246,7 +7459,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -7325,6 +7538,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "centerpointenergy.com"
+          ],
           "fortune_slug": "/company/centerpoint-energy/",
           "order": 435,
           "rank": 435
@@ -7340,6 +7556,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "schwab.com"
+          ],
           "fortune_slug": "/company/charles-schwab/",
           "order": 165,
           "rank": 165
@@ -7355,6 +7574,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "charter.com"
+          ],
           "fortune_slug": "/company/charter-communications/",
           "order": 85,
           "rank": 85
@@ -7370,6 +7592,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "cheniere.com"
+          ],
           "fortune_slug": "/company/cheniere-energy/",
           "order": 223,
           "rank": 223
@@ -7386,6 +7611,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "chevron.com"
+          ],
           "fortune_slug": "/company/chevron/",
           "order": 21,
           "rank": 21
@@ -7486,6 +7714,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "chewy.com"
+          ],
           "fortune_slug": "/company/chewy/",
           "order": 349,
           "rank": 349
@@ -7613,6 +7844,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "chipotle.com"
+          ],
           "fortune_slug": "/company/chipotle-mexican-grill/",
           "order": 374,
           "rank": 374
@@ -7673,6 +7907,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "chsinc.com"
+          ],
           "fortune_slug": "/company/chs/",
           "order": 130,
           "rank": 130
@@ -7763,6 +8000,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "cintasdecorrer.com"
+          ],
           "fortune_slug": "/company/cintas/",
           "order": 412,
           "rank": 412
@@ -7846,6 +8086,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "citigroup.com"
+          ],
           "fortune_slug": "/company/citigroup/",
           "order": 24,
           "rank": 24
@@ -7896,6 +8139,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "clevelandcliffs.com"
+          ],
           "fortune_slug": "/company/cleveland-cliffs/",
           "order": 233,
           "rank": 233
@@ -7978,6 +8224,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "cmsenergy.com"
+          ],
           "fortune_slug": "/company/cms-energy/",
           "order": 464,
           "rank": 464
@@ -7993,6 +8242,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "coca-cola.com"
+          ],
           "fortune_slug": "/company/coca-cola/",
           "order": 98,
           "rank": 98
@@ -8113,6 +8365,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "colgatepalmolive.com"
+          ],
           "fortune_slug": "/company/colgate-palmolive/",
           "order": 219,
           "rank": 219
@@ -8231,6 +8486,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "comcast.com"
+          ],
           "fortune_slug": "/company/comcast/",
           "order": 37,
           "rank": 37
@@ -8330,6 +8588,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "comfortsystemsusa.com"
+          ],
           "fortune_slug": "/company/comfort-systems-usa/",
           "order": 440,
           "rank": 440
@@ -8345,6 +8606,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "commercialmetals.co.nz"
+          ],
           "fortune_slug": "/company/commercial-metals/",
           "order": 491,
           "rank": 491
@@ -8375,6 +8639,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "conagrabrands.com"
+          ],
           "fortune_slug": "/company/conagra-brands/",
           "order": 381,
           "rank": 381
@@ -8390,6 +8657,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "concentrix.com"
+          ],
           "fortune_slug": "/company/concentrix/",
           "order": 423,
           "rank": 423
@@ -8473,6 +8743,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "conocophillips.com"
+          ],
           "fortune_slug": "/company/conocophillips/",
           "order": 75,
           "rank": 75
@@ -8638,6 +8911,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "constellationenergy.com"
+          ],
           "fortune_slug": "/company/constellation-energy/",
           "order": 178,
           "rank": 178
@@ -8668,6 +8944,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "coremain.com"
+          ],
           "fortune_slug": "/company/core-main/",
           "order": 495,
           "rank": 495
@@ -8683,6 +8962,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "corebridgefinancial.com"
+          ],
           "fortune_slug": "/company/corebridge-financial/",
           "order": 236,
           "rank": 236
@@ -8699,6 +8981,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "corningcu.org"
+          ],
           "fortune_slug": "/company/corning/",
           "order": 286,
           "rank": 286
@@ -8727,6 +9012,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "corteva.com"
+          ],
           "fortune_slug": "/company/corteva/",
           "order": 254,
           "rank": 254
@@ -8822,6 +9110,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "costco.com"
+          ],
           "fortune_slug": "/company/costco/",
           "order": 13,
           "rank": 13
@@ -8837,6 +9128,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "coterra.com"
+          ],
           "fortune_slug": "/company/coterra-energy/",
           "order": 496,
           "rank": 496
@@ -8853,6 +9147,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "coupang.com"
+          ],
           "fortune_slug": "/company/coupang/",
           "order": 132,
           "rank": 132
@@ -9039,6 +9336,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "crowncork.com"
+          ],
           "fortune_slug": "/company/crown-holdings/",
           "order": 356,
           "rank": 356
@@ -9075,6 +9375,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "csx.com"
+          ],
           "fortune_slug": "/company/csx/",
           "order": 324,
           "rank": 324
@@ -9126,6 +9429,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "cummins.com"
+          ],
           "fortune_slug": "/company/cummins/",
           "order": 137,
           "rank": 137
@@ -9244,6 +9550,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "cvshealth.com"
+          ],
           "fortune_slug": "/company/cvs-health/",
           "order": 6,
           "rank": 6
@@ -9315,6 +9624,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "drhorton.com"
+          ],
           "fortune_slug": "/company/d-r-horton/",
           "order": 134,
           "rank": 134
@@ -9365,6 +9677,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "danawa.com"
+          ],
           "fortune_slug": "/company/dana/",
           "order": 420,
           "rank": 420
@@ -9381,6 +9696,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "danaher.com"
+          ],
           "fortune_slug": "/company/danaher/",
           "order": 186,
           "rank": 186
@@ -9432,6 +9750,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "darden.com"
+          ],
           "fortune_slug": "/company/darden-restaurants/",
           "order": 364,
           "rank": 364
@@ -9739,6 +10060,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "davita.com"
+          ],
           "fortune_slug": "/company/davita/",
           "order": 331,
           "rank": 331
@@ -9776,6 +10100,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "deere.com"
+          ],
           "fortune_slug": "/company/deere/",
           "order": 102,
           "rank": 102
@@ -9885,6 +10212,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "delta.com"
+          ],
           "fortune_slug": "/company/delta-air-lines/",
           "order": 71,
           "rank": 71
@@ -10069,6 +10399,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "devonenergy.com"
+          ],
           "fortune_slug": "/company/devon-energy/",
           "order": 259,
           "rank": 259
@@ -10151,6 +10484,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "diamondbackenergy.com"
+          ],
           "fortune_slug": "/company/diamondback-energy/",
           "order": 301,
           "rank": 301
@@ -10384,6 +10720,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "dollargeneral.com"
+          ],
           "fortune_slug": "/company/dollar-general/",
           "order": 111,
           "rank": 111
@@ -10635,6 +10974,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "dollartree.com"
+          ],
           "fortune_slug": "/company/dollar-tree/",
           "order": 182,
           "rank": 182
@@ -10686,6 +11028,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "dominionenergy.com"
+          ],
           "fortune_slug": "/company/dominion-resources/",
           "order": 272,
           "rank": 272
@@ -10746,6 +11091,9 @@
           ]
         },
         "fortune-500-2026": {
+          "domain_hints": [
+            "doordash.com"
+          ],
           "fortune_slug": "/company/doordash/",
           "order": 329,
           "rank": 329
@@ -10762,6 +11110,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "doversaddlery.com"
+          ],
           "fortune_slug": "/company/dover/",
           "order": 484,
           "rank": 484
@@ -10790,6 +11141,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "downdetector.com"
+          ],
           "fortune_slug": "/company/dow/",
           "order": 120,
           "rank": 120
@@ -10997,6 +11351,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "dteenergy.com"
+          ],
           "fortune_slug": "/company/dte-energy/",
           "order": 285,
           "rank": 285
@@ -11013,6 +11370,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "duke-energy.com"
+          ],
           "fortune_slug": "/company/duke-energy/",
           "order": 145,
           "rank": 145
@@ -11251,6 +11611,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "dupontregistry.com"
+          ],
           "fortune_slug": "/company/dow-chemical/",
           "order": 481,
           "rank": 481
@@ -11322,6 +11685,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "dxc.com"
+          ],
           "fortune_slug": "/company/dxc-technology/",
           "order": 343,
           "rank": 343
@@ -11433,6 +11799,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "ebay.com"
+          ],
           "fortune_slug": "/company/ebay/",
           "order": 393,
           "rank": 393
@@ -11483,6 +11852,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "echostar.com"
+          ],
           "fortune_slug": "/company/echostar/",
           "order": 302,
           "rank": 302
@@ -11499,6 +11871,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "ecolab.com"
+          ],
           "fortune_slug": "/company/ecolab/",
           "order": 280,
           "rank": 280
@@ -11550,6 +11925,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "edison.com"
+          ],
           "fortune_slug": "/company/edison-international/",
           "order": 228,
           "rank": 228
@@ -11760,6 +12138,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "elevancehealth.com"
+          ],
           "fortune_slug": "/company/elevance-health/",
           "order": 18,
           "rank": 18
@@ -11811,6 +12192,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "lilly.com"
+          ],
           "fortune_slug": "/company/eli-lilly/",
           "order": 67,
           "rank": 67
@@ -11861,6 +12245,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "emcorgroup.com"
+          ],
           "fortune_slug": "/company/emcor-group/",
           "order": 265,
           "rank": 265
@@ -12003,6 +12390,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "energytransfer.com"
+          ],
           "fortune_slug": "/company/energy-transfer-equity/",
           "order": 53,
           "rank": 53
@@ -12018,6 +12408,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "entergy.com"
+          ],
           "fortune_slug": "/company/entergy/",
           "order": 340,
           "rank": 340
@@ -12048,6 +12441,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "eogresources.com"
+          ],
           "fortune_slug": "/company/eog-resources/",
           "order": 201,
           "rank": 201
@@ -12152,6 +12548,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "eqt.com"
+          ],
           "fortune_slug": "/company/eqt/",
           "order": 458,
           "rank": 458
@@ -12168,6 +12567,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "equinix.com"
+          ],
           "fortune_slug": "/company/equinix/",
           "order": 436,
           "rank": 436
@@ -12413,6 +12815,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "eversource.com"
+          ],
           "fortune_slug": "/company/eversource-energy/",
           "order": 332,
           "rank": 332
@@ -12438,6 +12843,9 @@
           ]
         },
         "fortune-500-2026": {
+          "domain_hints": [
+            "exeloncorp.com"
+          ],
           "fortune_slug": "/company/exelon/",
           "order": 189,
           "rank": 189
@@ -12551,6 +12959,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "expandenergy.com"
+          ],
           "fortune_slug": "/company/chesapeake-energy/",
           "order": 362,
           "rank": 362
@@ -12611,6 +13022,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "expediagroup.com"
+          ],
           "fortune_slug": "/company/expedia-group/",
           "order": 304,
           "rank": 304
@@ -12737,6 +13151,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "fanniemae.com"
+          ],
           "fortune_slug": "/company/fannie-mae/",
           "order": 26,
           "rank": 26
@@ -12767,6 +13184,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "fastenal.com"
+          ],
           "fortune_slug": "/company/fastenal/",
           "order": 475,
           "rank": 475
@@ -12844,6 +13264,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "fedex.com"
+          ],
           "fortune_slug": "/company/fedex/",
           "order": 50,
           "rank": 50
@@ -13072,6 +13495,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "firstenergycorp.com"
+          ],
           "fortune_slug": "/company/firstenergy/",
           "order": 307,
           "rank": 307
@@ -13087,6 +13513,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "fiserv.com"
+          ],
           "fortune_slug": "/company/fiserv/",
           "order": 215,
           "rank": 215
@@ -13170,6 +13599,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "fluor.com"
+          ],
           "fortune_slug": "/company/fluor/",
           "order": 292,
           "rank": 292
@@ -13228,6 +13660,9 @@
           ]
         },
         "fortune-500-2026": {
+          "domain_hints": [
+            "fmtc.co"
+          ],
           "fortune_slug": "/company/fm-global/",
           "order": 392,
           "rank": 392
@@ -13288,6 +13723,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "ford.com"
+          ],
           "fortune_slug": "/company/ford-motor/",
           "order": 22,
           "rank": 22
@@ -13394,6 +13832,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "foxnews.com"
+          ],
           "fortune_slug": "/company/fox/",
           "order": 275,
           "rank": 275
@@ -13444,6 +13885,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "franklintempleton.com"
+          ],
           "fortune_slug": "/company/franklin-resources/",
           "order": 452,
           "rank": 452
@@ -13459,6 +13903,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "freddiemac.com"
+          ],
           "fortune_slug": "/company/freddie-mac/",
           "order": 33,
           "rank": 33
@@ -13533,6 +13980,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "galaxydigital.com"
+          ],
           "fortune_slug": "/company/galaxy-digital/",
           "order": 76,
           "rank": 76
@@ -13548,6 +13998,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "gap.com"
+          ],
           "fortune_slug": "/company/gap/",
           "order": 293,
           "rank": 293
@@ -13746,6 +14199,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "geaerospace.com"
+          ],
           "fortune_slug": "/company/general-electric/",
           "order": 101,
           "rank": 101
@@ -13812,6 +14268,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "gevernova.com"
+          ],
           "fortune_slug": "/company/gevernova/",
           "order": 124,
           "rank": 124
@@ -14285,6 +14744,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "generalmills.com"
+          ],
           "fortune_slug": "/company/general-mills/",
           "order": 227,
           "rank": 227
@@ -14336,6 +14798,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "generalmotorscentre.com"
+          ],
           "fortune_slug": "/company/general-motors/",
           "order": 23,
           "rank": 23
@@ -14431,6 +14896,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "genuinepartsukni.com"
+          ],
           "fortune_slug": "/company/genuine-parts/",
           "order": 188,
           "rank": 188
@@ -14447,6 +14915,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "gilead.com"
+          ],
           "fortune_slug": "/company/gilead-sciences/",
           "order": 153,
           "rank": 153
@@ -14564,6 +15035,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "globalpartnership.org"
+          ],
           "fortune_slug": "/company/global-partners/",
           "order": 234,
           "rank": 234
@@ -14579,6 +15053,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "globalpaymentsintegrated.com"
+          ],
           "fortune_slug": "/company/global-payments/",
           "order": 415,
           "rank": 415
@@ -14689,6 +15166,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "group1auto.com"
+          ],
           "fortune_slug": "/company/group-1-automotive/",
           "order": 204,
           "rank": 204
@@ -14797,6 +15277,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "halliburton.com"
+          ],
           "fortune_slug": "/company/halliburton/",
           "order": 207,
           "rank": 207
@@ -14907,6 +15390,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "hcahealthcare.com"
+          ],
           "fortune_slug": "/company/hca-holdings/",
           "order": 60,
           "rank": 60
@@ -15046,6 +15532,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "henryschein.com"
+          ],
           "fortune_slug": "/company/henry-schein/",
           "order": 335,
           "rank": 335
@@ -15083,6 +15572,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "hersheypa.com"
+          ],
           "fortune_slug": "/company/hershey/",
           "order": 377,
           "rank": 377
@@ -15152,6 +15644,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "hfsinclair.com"
+          ],
           "fortune_slug": "/company/hollyfrontier/",
           "order": 171,
           "rank": 171
@@ -15368,6 +15863,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "homedepot.com"
+          ],
           "fortune_slug": "/company/home-depot/",
           "order": 25,
           "rank": 25
@@ -15500,6 +15998,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "hormelfoods.com"
+          ],
           "fortune_slug": "/company/hormel-foods/",
           "order": 363,
           "rank": 363
@@ -15597,6 +16098,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "hp.com"
+          ],
           "fortune_slug": "/company/hp/",
           "order": 84,
           "rank": 84
@@ -15862,6 +16366,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "humana.com"
+          ],
           "fortune_slug": "/company/humana/",
           "order": 34,
           "rank": 34
@@ -15946,8 +16453,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T17:14:53Z",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "resolved_at": "2026-09-20T17:56:57Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -16521,6 +17028,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "ingersollrand.com"
+          ],
           "fortune_slug": "/company/gardner-denver/",
           "order": 494,
           "rank": 494
@@ -16553,6 +17063,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "insight.com"
+          ],
           "fortune_slug": "/company/insight-enterprises/",
           "order": 472,
           "rank": 472
@@ -16592,6 +17105,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "intel.com"
+          ],
           "fortune_slug": "/company/intel/",
           "order": 88,
           "rank": 88
@@ -16804,6 +17320,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "internationalpaper.com"
+          ],
           "fortune_slug": "/company/international-paper/",
           "order": 176,
           "rank": 176
@@ -16855,6 +17374,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "intuit.com"
+          ],
           "fortune_slug": "/company/intuit/",
           "order": 231,
           "rank": 231
@@ -16974,6 +17496,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "iqvia.com"
+          ],
           "fortune_slug": "/company/quintiles-ims-holdings/",
           "order": 274,
           "rank": 274
@@ -17091,6 +17616,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "jbhunt.com"
+          ],
           "fortune_slug": "/company/j-b-hunt-transport-services/",
           "order": 371,
           "rank": 371
@@ -17106,6 +17634,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "jmsmucker.com"
+          ],
           "fortune_slug": "/company/j-m-smucker/",
           "order": 456,
           "rank": 456
@@ -17121,6 +17652,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "jabil.com"
+          ],
           "fortune_slug": "/company/jabil-circuit/",
           "order": 151,
           "rank": 151
@@ -17136,6 +17670,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "jacobssolutions.com"
+          ],
           "fortune_slug": "/company/jacobs-engineering-group/",
           "order": 369,
           "rank": 369
@@ -17300,6 +17837,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "jetblue.com"
+          ],
           "fortune_slug": "/company/jetblue-airways/",
           "order": 441,
           "rank": 441
@@ -17911,6 +18451,9 @@
           ]
         },
         "fortune-500-2026": {
+          "domain_hints": [
+            "jpmorganchase.com"
+          ],
           "fortune_slug": "/company/jpmorgan-chase/",
           "order": 12,
           "rank": 12
@@ -18074,6 +18617,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "kbr.com"
+          ],
           "fortune_slug": "/company/kbr/",
           "order": 488,
           "rank": 488
@@ -18213,6 +18759,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "kenvue.com"
+          ],
           "fortune_slug": "/company/kenvue/",
           "order": 299,
           "rank": 299
@@ -18239,6 +18788,9 @@
           ]
         },
         "fortune-500-2026": {
+          "domain_hints": [
+            "keurigdrpepper.com"
+          ],
           "fortune_slug": "/company/dr-pepper-snapple-group/",
           "order": 268,
           "rank": 268
@@ -18435,6 +18987,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "key.cw"
+          ],
           "fortune_slug": "/company/keycorp/",
           "order": 386,
           "rank": 386
@@ -18540,6 +19095,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "kimberly-clark.com"
+          ],
           "fortune_slug": "/company/kimberly-clark/",
           "order": 225,
           "rank": 225
@@ -18590,6 +19148,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "kindermorgan.com"
+          ],
           "fortune_slug": "/company/kinder-morgan/",
           "order": 266,
           "rank": 266
@@ -18605,6 +19166,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "kkr.com"
+          ],
           "fortune_slug": "/company/kkr/",
           "order": 156,
           "rank": 156
@@ -18621,6 +19185,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "klaviyo.com"
+          ],
           "fortune_slug": "/company/kla-tencor/",
           "order": 361,
           "rank": 361
@@ -18716,6 +19283,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "kohls.com"
+          ],
           "fortune_slug": "/company/kohls/",
           "order": 289,
           "rank": 289
@@ -18789,6 +19359,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "kraftheinz.com"
+          ],
           "fortune_slug": "/company/kraft-heinz/",
           "order": 184,
           "rank": 184
@@ -18896,6 +19469,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "kroger.com"
+          ],
           "fortune_slug": "/company/kroger/",
           "order": 27,
           "rank": 27
@@ -19121,6 +19697,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "lamresearch.com"
+          ],
           "fortune_slug": "/company/lam-research/",
           "order": 238,
           "rank": 238
@@ -19228,6 +19807,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "landolakes.com"
+          ],
           "fortune_slug": "/company/land-olakes/",
           "order": 273,
           "rank": 273
@@ -19244,6 +19826,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "sands.com"
+          ],
           "fortune_slug": "/company/las-vegas-sands/",
           "order": 339,
           "rank": 339
@@ -19339,6 +19924,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "learnvest.com"
+          ],
           "fortune_slug": "/company/lear/",
           "order": 196,
           "rank": 196
@@ -19388,7 +19976,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -19468,6 +20056,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "lennar.com"
+          ],
           "fortune_slug": "/company/lennar/",
           "order": 135,
           "rank": 135
@@ -19827,6 +20418,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "lithia.com"
+          ],
           "fortune_slug": "/company/lithia-motors/",
           "order": 123,
           "rank": 123
@@ -19887,6 +20481,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "livenationentertainment.com"
+          ],
           "fortune_slug": "/company/live-nation-entertainment/",
           "order": 180,
           "rank": 180
@@ -19902,6 +20499,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "lkqpickyourpart.com"
+          ],
           "fortune_slug": "/company/lkq/",
           "order": 325,
           "rank": 325
@@ -20006,6 +20606,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "loewshotels.com"
+          ],
           "fortune_slug": "/company/loews/",
           "order": 237,
           "rank": 237
@@ -20112,6 +20715,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "lowes.com"
+          ],
           "fortune_slug": "/company/lowes/",
           "order": 52,
           "rank": 52
@@ -20164,6 +20770,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "lpl.com"
+          ],
           "fortune_slug": "/company/lpl-financial-holdings/",
           "order": 264,
           "rank": 264
@@ -20283,6 +20892,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "lumenpartnersolutionsguide.com"
+          ],
           "fortune_slug": "/company/centurylink/",
           "order": 354,
           "rank": 354
@@ -20481,6 +21093,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "mtb.com"
+          ],
           "fortune_slug": "/company/mt-bank-corp/",
           "order": 334,
           "rank": 334
@@ -20497,6 +21112,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "macys.com"
+          ],
           "fortune_slug": "/company/macys/",
           "order": 203,
           "rank": 203
@@ -20614,6 +21232,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "manpowergroup.com"
+          ],
           "fortune_slug": "/company/manpowergroup/",
           "order": 247,
           "rank": 247
@@ -20650,6 +21271,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "marathonpetroleum.com"
+          ],
           "fortune_slug": "/company/marathon-petroleum/",
           "order": 30,
           "rank": 30
@@ -20849,6 +21473,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "marriott.com"
+          ],
           "fortune_slug": "/company/marriott-international/",
           "order": 174,
           "rank": 174
@@ -20909,6 +21536,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "marshmclennan.com"
+          ],
           "fortune_slug": "/company/marsh-mclennan/",
           "order": 168,
           "rank": 168
@@ -20991,6 +21621,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "marvell.com"
+          ],
           "fortune_slug": "/company/marvell-technology/",
           "order": 476,
           "rank": 476
@@ -21095,6 +21728,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "mascomabank.com"
+          ],
           "fortune_slug": "/company/masco/",
           "order": 498,
           "rank": 498
@@ -21170,6 +21806,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "mastec.com"
+          ],
           "fortune_slug": "/company/mastec/",
           "order": 319,
           "rank": 319
@@ -21186,6 +21825,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "mastercard.com.au"
+          ],
           "fortune_slug": "/company/mastercard/",
           "order": 141,
           "rank": 141
@@ -21371,6 +22013,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "mcdonalds.com"
+          ],
           "fortune_slug": "/company/mcdonalds/",
           "order": 170,
           "rank": 170
@@ -21444,6 +22089,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "mckesson.com"
+          ],
           "fortune_slug": "/company/mckesson/",
           "order": 8,
           "rank": 8
@@ -21516,6 +22164,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "medlineplus.gov"
+          ],
           "fortune_slug": "/company/medline/",
           "order": 159,
           "rank": 159
@@ -21644,6 +22295,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "merck.com"
+          ],
           "fortune_slug": "/company/merck/",
           "order": 68,
           "rank": 68
@@ -21755,6 +22409,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "metlife.com"
+          ],
           "fortune_slug": "/company/metlife/",
           "order": 59,
           "rank": 59
@@ -21850,6 +22507,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "mgmresorts.com"
+          ],
           "fortune_slug": "/company/mgm-resorts-international/",
           "order": 253,
           "rank": 253
@@ -21910,6 +22570,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "micron.com"
+          ],
           "fortune_slug": "/company/micron-technology/",
           "order": 125,
           "rank": 125
@@ -21927,6 +22590,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "microsoft.com"
+          ],
           "fortune_slug": "/company/microsoft/",
           "order": 11,
           "rank": 11
@@ -22199,6 +22865,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "mohawkind.com"
+          ],
           "fortune_slug": "/company/mohawk-industries/",
           "order": 404,
           "rank": 404
@@ -22227,6 +22896,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "molinahealthcare.com"
+          ],
           "fortune_slug": "/company/molina-healthcare/",
           "order": 104,
           "rank": 104
@@ -22299,6 +22971,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "molsoncoors.com"
+          ],
           "fortune_slug": "/company/molson-coors-brewing/",
           "order": 390,
           "rank": 390
@@ -22411,6 +23086,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "moodys.com"
+          ],
           "fortune_slug": "/company/moodys/",
           "order": 492,
           "rank": 492
@@ -22428,6 +23106,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "morganstanley.com"
+          ],
           "fortune_slug": "/company/morgan-stanley/",
           "order": 39,
           "rank": 39
@@ -22478,6 +23159,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "joinmosaic.com"
+          ],
           "fortune_slug": "/company/mosaic/",
           "order": 366,
           "rank": 366
@@ -22493,6 +23177,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "motorolasolutions.com"
+          ],
           "fortune_slug": "/company/motorola-solutions/",
           "order": 378,
           "rank": 378
@@ -22508,6 +23195,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "murphyusa.com"
+          ],
           "fortune_slug": "/company/murphy-usa/",
           "order": 263,
           "rank": 263
@@ -22523,6 +23213,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "mutualofomaha.com"
+          ],
           "fortune_slug": "/company/mutual-of-omaha-insurance/",
           "order": 288,
           "rank": 288
@@ -22560,6 +23253,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "nasdaq.com"
+          ],
           "fortune_slug": "/company/nasdaq/",
           "order": 470,
           "rank": 470
@@ -22576,6 +23272,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "nationwide.com"
+          ],
           "fortune_slug": "/company/nationwide/",
           "order": 69,
           "rank": 69
@@ -22762,6 +23461,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "about.netflix.com"
+          ],
           "fortune_slug": "/company/netflix/",
           "order": 105,
           "rank": 105
@@ -22856,6 +23558,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "newyorklife.com"
+          ],
           "fortune_slug": "/company/new-york-life-insurance/",
           "order": 62,
           "rank": 62
@@ -22871,6 +23576,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "newmont.com"
+          ],
           "fortune_slug": "/company/newmont-mining/",
           "order": 200,
           "rank": 200
@@ -22888,6 +23596,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "newscorpaustralia.com"
+          ],
           "fortune_slug": "/company/news-corp/",
           "order": 422,
           "rank": 422
@@ -22903,6 +23614,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "nexteraenergy.com"
+          ],
           "fortune_slug": "/company/nextera-energy/",
           "order": 167,
           "rank": 167
@@ -22980,6 +23694,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "nike.com"
+          ],
           "fortune_slug": "/company/nike/",
           "order": 99,
           "rank": 99
@@ -23045,6 +23762,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "northerntrust.com"
+          ],
           "fortune_slug": "/company/northern-trust/",
           "order": 317,
           "rank": 317
@@ -23061,6 +23781,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "northropgrumman.com"
+          ],
           "fortune_slug": "/company/northrop-grumman/",
           "order": 112,
           "rank": 112
@@ -23076,6 +23799,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "northwesternmutual.com"
+          ],
           "fortune_slug": "/company/northwestern-mutual/",
           "order": 109,
           "rank": 109
@@ -23113,6 +23839,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "nova.edu"
+          ],
           "fortune_slug": "/company/national-oilwell-varco/",
           "order": 455,
           "rank": 455
@@ -23173,6 +23902,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "nrg.com"
+          ],
           "fortune_slug": "/company/nrg-energy/",
           "order": 149,
           "rank": 149
@@ -23205,6 +23937,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "nucor.com"
+          ],
           "fortune_slug": "/company/nucor/",
           "order": 142,
           "rank": 142
@@ -23222,6 +23957,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "nvidia.com"
+          ],
           "fortune_slug": "/company/nvidia/",
           "order": 16,
           "rank": 16
@@ -23272,6 +24010,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "nvrinc.com"
+          ],
           "fortune_slug": "/company/nvr/",
           "order": 409,
           "rank": 409
@@ -23339,6 +24080,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "oldrepublic.com"
+          ],
           "fortune_slug": "/company/old-republic-international/",
           "order": 439,
           "rank": 439
@@ -23376,6 +24120,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "omnicomgroup.com"
+          ],
           "fortune_slug": "/company/omnicom-group/",
           "order": 257,
           "rank": 257
@@ -23391,6 +24138,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "oneokrock.com"
+          ],
           "fortune_slug": "/company/oneok/",
           "order": 138,
           "rank": 138
@@ -23465,6 +24215,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "oracle.com"
+          ],
           "fortune_slug": "/company/oracle/",
           "order": 82,
           "rank": 82
@@ -23495,6 +24248,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "oshkosh.com"
+          ],
           "fortune_slug": "/company/oshkosh/",
           "order": 411,
           "rank": 411
@@ -23527,6 +24283,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "otisworldwide.com"
+          ],
           "fortune_slug": "/company/otis-worldwide/",
           "order": 312,
           "rank": 312
@@ -23542,6 +24301,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "ovintiv.com"
+          ],
           "fortune_slug": "/company/ovintiv/",
           "order": 447,
           "rank": 447
@@ -23557,6 +24319,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "owenscorning.com"
+          ],
           "fortune_slug": "/company/owens-corning/",
           "order": 385,
           "rank": 385
@@ -23572,6 +24337,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "paccar.com"
+          ],
           "fortune_slug": "/company/paccar/",
           "order": 158,
           "rank": 158
@@ -23587,6 +24355,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "pacificlife.com"
+          ],
           "fortune_slug": "/company/pacific-life/",
           "order": 240,
           "rank": 240
@@ -23683,6 +24454,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "paloaltonetworks.com"
+          ],
           "fortune_slug": "/company/palo-alto-networks/",
           "order": 437,
           "rank": 437
@@ -23838,6 +24612,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "parker.com"
+          ],
           "fortune_slug": "/company/parker-hannifin/",
           "order": 224,
           "rank": 224
@@ -23915,6 +24692,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "pbfenergy.com"
+          ],
           "fortune_slug": "/company/pbf-energy/",
           "order": 154,
           "rank": 154
@@ -23975,6 +24755,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "penskeautomotive.com"
+          ],
           "fortune_slug": "/company/penske-automotive-group/",
           "order": 144,
           "rank": 144
@@ -23991,6 +24774,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "pepsico.com"
+          ],
           "fortune_slug": "/company/pepsico/",
           "order": 46,
           "rank": 46
@@ -24321,6 +25107,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "pfizer.com"
+          ],
           "fortune_slug": "/company/pfizer/",
           "order": 73,
           "rank": 73
@@ -24371,6 +25160,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "gkpge.pl"
+          ],
           "fortune_slug": "/company/pge-corp/",
           "order": 185,
           "rank": 185
@@ -24401,6 +25193,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "phillips.com"
+          ],
           "fortune_slug": "/company/phillips/",
           "order": 29,
           "rank": 29
@@ -24637,6 +25432,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "postholdings.com"
+          ],
           "fortune_slug": "/company/post-holdings/",
           "order": 479,
           "rank": 479
@@ -24697,6 +25495,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "ppg.com"
+          ],
           "fortune_slug": "/company/ppg-industries/",
           "order": 284,
           "rank": 284
@@ -24712,6 +25513,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "pplelectric.com"
+          ],
           "fortune_slug": "/company/ppl/",
           "order": 442,
           "rank": 442
@@ -24772,6 +25576,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "prim.com"
+          ],
           "fortune_slug": "/company/primoris-services/",
           "order": 497,
           "rank": 497
@@ -24787,6 +25594,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "principal.com"
+          ],
           "fortune_slug": "/company/principal-financial/",
           "order": 287,
           "rank": 287
@@ -24817,6 +25627,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "progressive.com"
+          ],
           "fortune_slug": "/company/progressive/",
           "order": 51,
           "rank": 51
@@ -24833,6 +25646,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "prologis.com"
+          ],
           "fortune_slug": "/company/prologis/",
           "order": 451,
           "rank": 451
@@ -24883,6 +25699,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "prudential.com"
+          ],
           "fortune_slug": "/company/prudential-financial/",
           "order": 78,
           "rank": 78
@@ -24929,6 +25748,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "pultegroupinc.com"
+          ],
           "fortune_slug": "/company/pultegroup/",
           "order": 256,
           "rank": 256
@@ -25001,6 +25823,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "pvh.com"
+          ],
           "fortune_slug": "/company/pvh/",
           "order": 446,
           "rank": 446
@@ -25071,6 +25896,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "qualcomm.com"
+          ],
           "fortune_slug": "/company/qualcomm/",
           "order": 108,
           "rank": 108
@@ -25121,6 +25949,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "quantaservices.com"
+          ],
           "fortune_slug": "/company/quanta-services/",
           "order": 157,
           "rank": 157
@@ -25136,6 +25967,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "questdiagnostics.com"
+          ],
           "fortune_slug": "/company/quest-diagnostics/",
           "order": 395,
           "rank": 395
@@ -25494,6 +26328,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "reliancedigital.in"
+          ],
           "fortune_slug": "/company/reliance-steel-aluminum/",
           "order": 320,
           "rank": 320
@@ -25509,6 +26346,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "republicservices.com"
+          ],
           "fortune_slug": "/company/republic-services/",
           "order": 269,
           "rank": 269
@@ -25741,6 +26581,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "rockwellautomation.com"
+          ],
           "fortune_slug": "/company/rockwell-automation/",
           "order": 467,
           "rank": 467
@@ -25835,6 +26678,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "ropertech.com"
+          ],
           "fortune_slug": "/company/roper-technologies/",
           "order": 487,
           "rank": 487
@@ -25878,6 +26724,9 @@
           ]
         },
         "fortune-500-2026": {
+          "domain_hints": [
+            "rtx.com"
+          ],
           "fortune_slug": "/company/raytheon-technologies/",
           "order": 49,
           "rank": 49
@@ -26162,6 +27011,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "ryder.com"
+          ],
           "fortune_slug": "/company/ryder-system/",
           "order": 346,
           "rank": 346
@@ -26188,6 +27040,9 @@
           ]
         },
         "fortune-500-2026": {
+          "domain_hints": [
+            "spglobal.com"
+          ],
           "fortune_slug": "/company/sp-global/",
           "order": 294,
           "rank": 294
@@ -26359,6 +27214,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "salesforce.com"
+          ],
           "fortune_slug": "/company/salesforce-com/",
           "order": 114,
           "rank": 114
@@ -26409,6 +27267,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "sanmina.com"
+          ],
           "fortune_slug": "/company/sanmina/",
           "order": 482,
           "rank": 482
@@ -26556,6 +27417,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "seaboardmarine.com"
+          ],
           "fortune_slug": "/company/seaboard/",
           "order": 426,
           "rank": 426
@@ -26625,6 +27489,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "sempra.com"
+          ],
           "fortune_slug": "/company/sempra-energy/",
           "order": 330,
           "rank": 330
@@ -26685,6 +27552,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "servicenow.com"
+          ],
           "fortune_slug": "/company/servicenow/",
           "order": 333,
           "rank": 333
@@ -26825,6 +27695,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "sherwin-williams.com"
+          ],
           "fortune_slug": "/company/sherwin-williams/",
           "order": 194,
           "rank": 194
@@ -27283,6 +28156,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "solventumenerji.com"
+          ],
           "fortune_slug": "/company/solventum/",
           "order": 468,
           "rank": 468
@@ -27313,6 +28189,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "sonicautomotive.com"
+          ],
           "fortune_slug": "/company/sonic-automotive/",
           "order": 297,
           "rank": 297
@@ -27500,6 +28379,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "southerncompany.com"
+          ],
           "fortune_slug": "/company/southern/",
           "order": 152,
           "rank": 152
@@ -27516,6 +28398,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "southwest.com"
+          ],
           "fortune_slug": "/company/southwest-airlines/",
           "order": 163,
           "rank": 163
@@ -27893,7 +28778,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:14:53Z",
+        "last_attempt_at": "2026-09-20T17:56:57Z",
         "evidence": [
           {
             "type": "http",
@@ -27973,6 +28858,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "starbucks.com"
+          ],
           "fortune_slug": "/company/starbucks/",
           "order": 127,
           "rank": 127
@@ -28084,6 +28972,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "statestreet.com"
+          ],
           "fortune_slug": "/company/state-street-corp/",
           "order": 202,
           "rank": 202
@@ -28135,6 +29026,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "steeldynamics.com"
+          ],
           "fortune_slug": "/company/steel-dynamics/",
           "order": 244,
           "rank": 244
@@ -28230,6 +29124,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "stonex.com"
+          ],
           "fortune_slug": "/company/stonex-group/",
           "order": 31,
           "rank": 31
@@ -28314,6 +29211,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "stryker.com"
+          ],
           "fortune_slug": "/company/stryker/",
           "order": 181,
           "rank": 181
@@ -28719,6 +29619,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "synchrony.com"
+          ],
           "fortune_slug": "/company/synchrony-financial/",
           "order": 197,
           "rank": 197
@@ -28769,6 +29672,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "sysco.com"
+          ],
           "fortune_slug": "/company/sysco/",
           "order": 55,
           "rank": 55
@@ -28941,6 +29847,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "targaresources.com"
+          ],
           "fortune_slug": "/company/targa-resources/",
           "order": 262,
           "rank": 262
@@ -28957,6 +29866,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "target.com"
+          ],
           "fortune_slug": "/company/target/",
           "order": 42,
           "rank": 42
@@ -29067,6 +29979,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "tdsynnex.com"
+          ],
           "fortune_slug": "/company/synnex/",
           "order": 74,
           "rank": 74
@@ -29127,6 +30042,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "tenethealth.com"
+          ],
           "fortune_slug": "/company/tenet-healthcare/",
           "order": 214,
           "rank": 214
@@ -29177,6 +30095,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "tesla.com"
+          ],
           "fortune_slug": "/company/tesla/",
           "order": 43,
           "rank": 43
@@ -29244,6 +30165,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "textron.com"
+          ],
           "fortune_slug": "/company/textron/",
           "order": 303,
           "rank": 303
@@ -29501,6 +30425,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "thermofisher.com"
+          ],
           "fortune_slug": "/company/thermo-fisher-scientific/",
           "order": 106,
           "rank": 106
@@ -29516,6 +30443,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "thorindustries.com"
+          ],
           "fortune_slug": "/company/thor-industries/",
           "order": 429,
           "rank": 429
@@ -29531,6 +30461,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "thriventfinancial.com"
+          ],
           "fortune_slug": "/company/thrivent-financial-for-lutherans/",
           "order": 387,
           "rank": 387
@@ -29546,6 +30479,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "tiaa.org"
+          ],
           "fortune_slug": "/company/tiaa/",
           "order": 94,
           "rank": 94
@@ -29600,6 +30536,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "tjx.com"
+          ],
           "fortune_slug": "/company/tjx/",
           "order": 79,
           "rank": 79
@@ -29638,6 +30577,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "tollbrothers.com"
+          ],
           "fortune_slug": "/company/toll-brothers/",
           "order": 399,
           "rank": 399
@@ -29755,6 +30697,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "tractorsupply.com"
+          ],
           "fortune_slug": "/company/tractor-supply/",
           "order": 290,
           "rank": 290
@@ -29876,6 +30821,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "travelers.com"
+          ],
           "fortune_slug": "/company/travelers-cos/",
           "order": 96,
           "rank": 96
@@ -30141,6 +31089,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "tyson.com"
+          ],
           "fortune_slug": "/company/tyson-foods/",
           "order": 87,
           "rank": 87
@@ -30191,6 +31142,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "usbancorpassetmanagement.com"
+          ],
           "fortune_slug": "/company/u-s-bancorp/",
           "order": 110,
           "rank": 110
@@ -30297,6 +31251,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "ubertechnologies.com"
+          ],
           "fortune_slug": "/company/uber-technologies/",
           "order": 92,
           "rank": 92
@@ -30447,6 +31404,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "ulta.com"
+          ],
           "fortune_slug": "/company/ulta-beauty/",
           "order": 355,
           "rank": 355
@@ -30543,6 +31503,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "unionpacific.com.ar"
+          ],
           "fortune_slug": "/company/union-pacific/",
           "order": 187,
           "rank": 187
@@ -30647,6 +31610,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "ups.com"
+          ],
           "fortune_slug": "/company/ups/",
           "order": 48,
           "rank": 48
@@ -30662,6 +31628,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "unitedrentals.com"
+          ],
           "fortune_slug": "/company/united-rentals/",
           "order": 279,
           "rank": 279
@@ -30692,6 +31661,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "unitedhealthgroup.com"
+          ],
           "fortune_slug": "/company/unitedhealth-group/",
           "order": 3,
           "rank": 3
@@ -30722,6 +31694,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "unumgroup.com"
+          ],
           "fortune_slug": "/company/unum-group/",
           "order": 338,
           "rank": 338
@@ -30884,6 +31859,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "valero.com"
+          ],
           "fortune_slug": "/company/valero-energy/",
           "order": 40,
           "rank": 40
@@ -30966,6 +31944,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "venture.hk"
+          ],
           "fortune_slug": "/company/venutre-global/",
           "order": 328,
           "rank": 328
@@ -31151,6 +32132,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "vfsglobal.com"
+          ],
           "fortune_slug": "/company/vf/",
           "order": 425,
           "rank": 425
@@ -31186,6 +32170,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "viatris.com"
+          ],
           "fortune_slug": "/company/viatris/",
           "order": 318,
           "rank": 318
@@ -31202,6 +32189,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "visa.com"
+          ],
           "fortune_slug": "/company/visa/",
           "order": 119,
           "rank": 119
@@ -31269,6 +32259,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "vistracorp.com"
+          ],
           "fortune_slug": "/company/vistra-energy/",
           "order": 251,
           "rank": 251
@@ -31432,6 +32425,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "vulcanmaterials.com"
+          ],
           "fortune_slug": "/company/vulcan-materials/",
           "order": 485,
           "rank": 485
@@ -31447,6 +32443,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "berkley.com"
+          ],
           "fortune_slug": "/company/w-r-berkley/",
           "order": 305,
           "rank": 305
@@ -31545,6 +32544,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "walmart.com"
+          ],
           "fortune_slug": "/company/walmart/",
           "order": 2,
           "rank": 2
@@ -31648,6 +32650,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "waltdisney.org"
+          ],
           "fortune_slug": "/company/disney/",
           "order": 44,
           "rank": 44
@@ -31664,6 +32669,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "warnerbrosdiscoveryinc.com"
+          ],
           "fortune_slug": "/company/discovery/",
           "order": 126,
           "rank": 126
@@ -31804,6 +32812,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "360wastemanagement.co.uk"
+          ],
           "fortune_slug": "/company/waste-management/",
           "order": 179,
           "rank": 179
@@ -31819,6 +32830,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "wayfair.com"
+          ],
           "fortune_slug": "/company/wayfair/",
           "order": 353,
           "rank": 353
@@ -31834,6 +32848,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "wecenergygroup.com"
+          ],
           "fortune_slug": "/company/wec-energy-group/",
           "order": 424,
           "rank": 424
@@ -31850,6 +32867,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "wellsfargo.com"
+          ],
           "fortune_slug": "/company/wells-fargo/",
           "order": 38,
           "rank": 38
@@ -31959,6 +32979,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "welltower.com"
+          ],
           "fortune_slug": "/company/welltower/",
           "order": 401,
           "rank": 401
@@ -32064,6 +33087,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "wesco.us.com"
+          ],
           "fortune_slug": "/company/wesco-international/",
           "order": 195,
           "rank": 195
@@ -32095,6 +33121,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "westerndigital.com"
+          ],
           "fortune_slug": "/company/western-digital/",
           "order": 432,
           "rank": 432
@@ -32179,6 +33208,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "westlakefinancial.com"
+          ],
           "fortune_slug": "/company/westlake-chemical/",
           "order": 388,
           "rank": 388
@@ -32195,6 +33227,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "whirlpool.com"
+          ],
           "fortune_slug": "/company/whirlpool/",
           "order": 291,
           "rank": 291
@@ -32357,6 +33392,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "williams-sonoma.com"
+          ],
           "fortune_slug": "/company/williams/",
           "order": 373,
           "rank": 373
@@ -32417,6 +33455,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "williams-sonoma.com"
+          ],
           "fortune_slug": "/company/williams-sonoma/",
           "order": 490,
           "rank": 490
@@ -32521,6 +33562,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "workday.com"
+          ],
           "fortune_slug": "/company/workday/",
           "order": 430,
           "rank": 430
@@ -32610,6 +33654,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "world-kinect.com"
+          ],
           "fortune_slug": "/company/world-fuel-services/",
           "order": 128,
           "rank": 128
@@ -32737,6 +33784,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "xcelenergy.com"
+          ],
           "fortune_slug": "/company/xcel-energy/",
           "order": 306,
           "rank": 306
@@ -32787,6 +33837,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "xpo.com"
+          ],
           "fortune_slug": "/company/xpo-logistics/",
           "order": 480,
           "rank": 480
@@ -32824,6 +33877,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "xylem.com"
+          ],
           "fortune_slug": "/company/xylem/",
           "order": 443,
           "rank": 443
@@ -32840,6 +33896,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "yum.com"
+          ],
           "fortune_slug": "/company/yum-brands/",
           "order": 474,
           "rank": 474
@@ -33014,6 +34073,9 @@
       ],
       "seed_metadata": {
         "fortune-500-2026": {
+          "domain_hints": [
+            "zoetispetcare.com"
+          ],
           "fortune_slug": "/company/zoetis/",
           "order": 434,
           "rank": 434

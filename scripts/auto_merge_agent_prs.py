@@ -35,6 +35,7 @@ CLOSING_ISSUE_RE = re.compile(
 )
 JULES_REVIEW_READY_LABEL = "jules-review-ready"
 GITHUB_ACTIONS_BOT = "github-actions[bot]"
+OWNER_AUTHORIZED_AUTOMERGE_MARKER = "<!-- owner-authorized-automerge -->"
 SAFE_MERGEABLE_STATES = {"clean", "has_hooks", "unstable", "behind"}
 MAINTENANCE_TEST_BY_PATH = {
     "scripts/dispatch_autonomous_issues.py": "tests/test_dispatch_autonomous_issues.py",
@@ -75,6 +76,31 @@ def label_names(issue: dict[str, Any]) -> set[str]:
         elif isinstance(label, dict) and label.get("name"):
             names.add(str(label["name"]))
     return names
+
+
+def owner_authorized_pr(
+    pr: dict[str, Any],
+    repo: str,
+    comments: Iterable[dict[str, Any]] = (),
+) -> bool:
+    """Return whether the repository owner explicitly pre-authorized this PR to merge when green."""
+    if str(pr.get("state") or "") != "open" or bool(pr.get("draft")):
+        return False
+    owner = repo.split("/", 1)[0]
+    if str((pr.get("user") or {}).get("login") or "") != owner:
+        return False
+    head = pr.get("head") or {}
+    if str((head.get("repo") or {}).get("full_name") or "") != repo:
+        return False
+    if OWNER_AUTHORIZED_AUTOMERGE_MARKER in str(pr.get("body") or ""):
+        return True
+    for comment in reversed(list(comments)):
+        user = comment.get("user") or {}
+        if str(user.get("login") or "") != owner:
+            continue
+        if OWNER_AUTHORIZED_AUTOMERGE_MARKER in str(comment.get("body") or ""):
+            return True
+    return False
 
 
 def linked_issue_number(body: str) -> int | None:
@@ -846,20 +872,53 @@ def try_guarded_squash_merge(repo: str, number: int, head_sha: str) -> tuple[boo
 
 
 def close_linked_issue_after_merge(repo: str, issue_number: int | None) -> None:
-    """Explicitly close the verified linked issue after a successful token-authored merge.
+    """Best-effort, idempotent issue closure after a successful merge.
 
-    GitHub closing keywords are still kept in PR bodies for normal UX/linkage, but the
-    autonomous merge path must not depend on them firing when GITHUB_TOKEN calls the
-    REST merge endpoint.
+    A merge is already irreversible queue progress. Issue bookkeeping must therefore
+    never abort the remaining scan. Closing keywords may also close the issue before
+    this function runs, so an already-closed issue is a successful no-op.
     """
     if issue_number is None:
         return
-    gh_run(
-        "api",
-        "--method", "PATCH",
-        f"repos/{repo}/issues/{issue_number}",
-        "-f", "state=closed",
-        "-f", "state_reason=completed",
+
+    path = f"repos/{repo}/issues/{issue_number}"
+    try:
+        current = gh_json("api", path)
+    except (subprocess.CalledProcessError, json.JSONDecodeError) as exc:
+        print(
+            f"WARNING: merged PR but could not inspect linked issue #{issue_number} "
+            f"before closure: {exc}"
+        )
+        return
+
+    if str(current.get("state") or "") == "closed":
+        return
+
+    result = subprocess.run(
+        [
+            "gh", "api", "--method", "PATCH", path,
+            "-f", "state=closed",
+            "-f", "state_reason=completed",
+        ],
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode == 0:
+        return
+
+    # GitHub may race closing-keyword processing with the explicit PATCH. Re-check
+    # before reporting a bookkeeping failure.
+    try:
+        refreshed = gh_json("api", path)
+        if str(refreshed.get("state") or "") == "closed":
+            return
+    except (subprocess.CalledProcessError, json.JSONDecodeError):
+        pass
+
+    detail = (result.stderr or result.stdout or "unknown GitHub error").strip()
+    print(
+        f"WARNING: merged PR but could not close linked issue #{issue_number}; "
+        f"queue scan will continue: {detail}"
     )
 
 
@@ -1104,6 +1163,13 @@ def main() -> int:
             require_quality=False,
         )
 
+        owner_comments: list[dict[str, Any]] = []
+        if OWNER_AUTHORIZED_AUTOMERGE_MARKER not in str(pr.get("body") or ""):
+            owner_comments = gh_paginated_json(
+                "api",
+                f"repos/{repo}/issues/{number}/comments?per_page=100",
+            )
+        owner_authorized = owner_authorized_pr(pr, repo, owner_comments)
         issue_number = linked_issue_number(str(pr.get("body") or ""))
         issue = None
         if issue_number is not None:
@@ -1121,7 +1187,7 @@ def main() -> int:
                     f"issue #{replacement_number}."
                 )
                 continue
-        if issue_number is None and not maintenance_pre_ci:
+        if issue_number is None and not maintenance_pre_ci and not owner_authorized:
             issue = recovered_issue_by_pr.get(number)
             if issue is None:
                 print(
@@ -1142,7 +1208,7 @@ def main() -> int:
                 f"#{issue_number} and added 'Closes #{issue_number}'."
             )
 
-        if issue is None and not maintenance_pre_ci:
+        if issue is None and not maintenance_pre_ci and not owner_authorized:
             issue = gh_json("api", f"repos/{repo}/issues/{issue_number}")
 
         if issue is not None and JULES_REVIEW_READY_LABEL in label_names(issue):
@@ -1243,8 +1309,8 @@ def main() -> int:
 
         if generated:
             if (
-                issue is None
-                or not autonomous_issue_ready(issue)
+                (issue is None or not autonomous_issue_ready(issue))
+                and not owner_authorized
                 or not head_ref
             ):
                 print(
@@ -1268,7 +1334,7 @@ def main() -> int:
             )
             continue
 
-        if control_plane_pre_ci and (
+        if control_plane_pre_ci and not owner_authorized and (
             issue is None or not autonomous_issue_ready(issue)
         ):
             control_plane_pre_ci = False
@@ -1286,7 +1352,9 @@ def main() -> int:
             )
 
         changed_paths = [str(row.get("filename") or "") for row in files]
-        if maintenance_pre_ci:
+        if owner_authorized:
+            pre_ci_eligible, reason = True, "owner-authorized"
+        elif maintenance_pre_ci:
             pre_ci_eligible, reason = True, "maintenance-eligible"
         elif control_plane_pre_ci:
             pre_ci_eligible, reason = True, "control-plane-eligible"
@@ -1330,7 +1398,13 @@ def main() -> int:
                 )
                 continue
 
-        if maintenance_pre_ci:
+        if owner_authorized:
+            eligible, reason = (
+                exact_head_quality_passed(runs, head_sha),
+                "owner-authorized" if exact_head_quality_passed(runs, head_sha)
+                else "exact-head Quality checks have not passed",
+            )
+        elif maintenance_pre_ci:
             eligible, reason = maintenance_pr_eligible(
                 pr,
                 repo=repo,

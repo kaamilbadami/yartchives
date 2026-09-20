@@ -12,12 +12,13 @@ assert SPEC.loader
 SPEC.loader.exec_module(mod)
 
 
-def pr(*, body="Closes #10", files=(), head_sha="abc", draft=False, repo="kaamilbadami/yartchives"):
+def pr(*, body="Closes #10", files=(), head_sha="abc", draft=False, repo="kaamilbadami/yartchives", user="kaamilbadami"):
     return {
         "number": 20,
         "state": "open",
         "draft": draft,
         "body": body,
+        "user": {"login": user},
         "head": {"sha": head_sha, "repo": {"full_name": repo}},
         "base": {"ref": "main"},
         "_files": list(files),
@@ -62,6 +63,17 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertIn("  issues: write", workflow)
         self.assertNotIn("  issues: read", workflow)
 
+    def test_owner_authorization_comment_wakes_automerge_without_waiting_for_cron(self):
+        workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
+        self.assertIn("  issue_comment:", workflow)
+        self.assertIn("      - created", workflow)
+        self.assertIn("      - edited", workflow)
+        self.assertIn("github.event.comment.user.login == github.repository_owner", workflow)
+        self.assertIn(
+            "contains(github.event.comment.body, '<!-- owner-authorized-automerge -->')",
+            workflow,
+        )
+
     def test_automerge_workflow_has_periodic_recovery_schedule(self):
         workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
         self.assertIn('cron: "*/5 * * * *"', workflow)
@@ -78,6 +90,79 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             "repos/kaamilbadami/yartchives/actions/runs?head_sha=abc123&per_page=100",
         )
         self.assertNotIn("event=", path)
+
+    def test_owner_authorized_marker_identifies_same_repo_owner_pr(self):
+        candidate = pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER)
+        self.assertTrue(mod.owner_authorized_pr(candidate, "kaamilbadami/yartchives"))
+
+        for blocked in (
+            pr(body=""),
+            pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER, draft=True),
+            pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER, repo="someone/fork"),
+            pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER, user="someone-else"),
+        ):
+            with self.subTest(candidate=blocked):
+                self.assertFalse(
+                    mod.owner_authorized_pr(blocked, "kaamilbadami/yartchives")
+                )
+
+    def test_owner_authorized_comment_can_retroactively_authorize_legacy_pr(self):
+        candidate = pr(body="")
+        comments = [
+            {
+                "user": {"login": "kaamilbadami"},
+                "body": mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER,
+            }
+        ]
+        self.assertTrue(
+            mod.owner_authorized_pr(
+                candidate,
+                "kaamilbadami/yartchives",
+                comments,
+            )
+        )
+
+    def test_owner_authorized_comment_rejects_non_owner_marker(self):
+        candidate = pr(body="")
+        comments = [
+            {
+                "user": {"login": "someone-else"},
+                "body": mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER,
+            }
+        ]
+        self.assertFalse(
+            mod.owner_authorized_pr(
+                candidate,
+                "kaamilbadami/yartchives",
+                comments,
+            )
+        )
+
+    def test_main_loads_comments_only_when_body_marker_is_absent(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            'if OWNER_AUTHORIZED_AUTOMERGE_MARKER not in str(pr.get("body") or ""):',
+            source,
+        )
+        self.assertIn(
+            'f"repos/{repo}/issues/{number}/comments?per_page=100"',
+            source,
+        )
+
+    def test_owner_authorized_lane_bypasses_issue_link_and_protected_paths_but_not_ci(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            "if issue_number is None and not maintenance_pre_ci and not owner_authorized:",
+            source,
+        )
+        self.assertIn(
+            'pre_ci_eligible, reason = True, "owner-authorized"',
+            source,
+        )
+        self.assertIn(
+            '"owner-authorized" if exact_head_quality_passed(runs, head_sha)',
+            source,
+        )
 
     def test_accepts_green_terminal_autonomous_agent_pr(self):
         candidate = pr(files=("app.js", "tests/apply-next-ui.test.cjs"))
@@ -444,11 +529,11 @@ class AutoMergeAgentPrTests(unittest.TestCase):
     def test_main_does_not_require_issue_link_for_maintenance_lane(self):
         source = MODULE_PATH.read_text()
         self.assertIn(
-            "if issue_number is None and not maintenance_pre_ci:",
+            "if issue_number is None and not maintenance_pre_ci and not owner_authorized:",
             source,
         )
         self.assertIn(
-            "if issue is None and not maintenance_pre_ci:",
+            "if issue is None and not maintenance_pre_ci and not owner_authorized:",
             source,
         )
 
@@ -495,6 +580,59 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                 )
                 self.assertFalse(ok)
                 self.assertIn(expected, reason)
+
+    def test_post_merge_issue_close_is_noop_when_keyword_already_closed_issue(self):
+        with mock.patch.object(mod, "gh_json", return_value={"state": "closed"}) as gh_json, \
+             mock.patch.object(mod.subprocess, "run") as run:
+            mod.close_linked_issue_after_merge("kaamilbadami/yartchives", 457)
+
+        gh_json.assert_called_once_with(
+            "api",
+            "repos/kaamilbadami/yartchives/issues/457",
+        )
+        run.assert_not_called()
+
+    def test_post_merge_issue_close_failure_is_nonfatal_and_scan_can_continue(self):
+        failed = subprocess.CompletedProcess(
+            args=["gh"],
+            returncode=1,
+            stdout="",
+            stderr="Validation Failed (HTTP 422)",
+        )
+        with mock.patch.object(
+            mod,
+            "gh_json",
+            side_effect=[{"state": "open"}, {"state": "open"}],
+        ), mock.patch.object(
+            mod.subprocess,
+            "run",
+            return_value=failed,
+        ), mock.patch("builtins.print") as print_mock:
+            mod.close_linked_issue_after_merge("kaamilbadami/yartchives", 457)
+
+        self.assertTrue(
+            any(
+                "queue scan will continue" in str(call)
+                for call in print_mock.call_args_list
+            )
+        )
+
+    def test_post_merge_issue_close_treats_racing_keyword_close_as_success(self):
+        failed = subprocess.CompletedProcess(
+            args=["gh"],
+            returncode=1,
+            stdout="",
+            stderr="Validation Failed (HTTP 422)",
+        )
+        with mock.patch.object(
+            mod,
+            "gh_json",
+            side_effect=[{"state": "open"}, {"state": "closed"}],
+        ), mock.patch.object(mod.subprocess, "run", return_value=failed), \
+             mock.patch("builtins.print") as print_mock:
+            mod.close_linked_issue_after_merge("kaamilbadami/yartchives", 457)
+
+        print_mock.assert_not_called()
 
     def test_generated_artifacts_are_identified_for_repair(self):
         self.assertEqual(
@@ -982,22 +1120,33 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertIn("409", detail)
 
     def test_close_linked_issue_after_merge_is_explicit_and_completed(self):
-        with mock.patch.object(mod, "gh_run") as gh_run:
+        ok = subprocess.CompletedProcess(
+            args=["gh"],
+            returncode=0,
+            stdout="",
+            stderr="",
+        )
+        with mock.patch.object(mod, "gh_json", return_value={"state": "open"}), \
+             mock.patch.object(mod.subprocess, "run", return_value=ok) as run:
             mod.close_linked_issue_after_merge("kaamilbadami/yartchives", 417)
 
-        gh_run.assert_called_once_with(
-            "api",
-            "--method", "PATCH",
-            "repos/kaamilbadami/yartchives/issues/417",
-            "-f", "state=closed",
-            "-f", "state_reason=completed",
+        self.assertEqual(
+            run.call_args.args[0],
+            [
+                "gh", "api", "--method", "PATCH",
+                "repos/kaamilbadami/yartchives/issues/417",
+                "-f", "state=closed",
+                "-f", "state_reason=completed",
+            ],
         )
 
     def test_close_linked_issue_after_merge_ignores_unlinked_maintenance_pr(self):
-        with mock.patch.object(mod, "gh_run") as gh_run:
+        with mock.patch.object(mod, "gh_json") as gh_json, \
+             mock.patch.object(mod.subprocess, "run") as run:
             mod.close_linked_issue_after_merge("kaamilbadami/yartchives", None)
 
-        gh_run.assert_not_called()
+        gh_json.assert_not_called()
+        run.assert_not_called()
 
     def test_successful_merge_paths_explicitly_close_verified_issue(self):
         source = MODULE_PATH.read_text()

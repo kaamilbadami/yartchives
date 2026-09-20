@@ -78,7 +78,7 @@ class Fortune500SeedTests(unittest.TestCase):
             "50a5abf698e3e495cb9bf129385e5db13a0b9233d191e6142d01de0f06b180e3",
         )
         self.assertEqual([row["order"] for row in seed["employers"]], list(range(1, 501)))
-        forbidden = {"careers_url", "domain_hints", "provider", "tenant", "jobs", "listings"}
+        forbidden = {"careers_url", "provider", "tenant", "jobs", "listings"}
         self.assertFalse(any(forbidden & set(row) for row in seed["employers"]))
 
     def test_checked_in_universe_has_expected_dedup_and_is_idempotent(self):
