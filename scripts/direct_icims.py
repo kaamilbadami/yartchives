@@ -281,8 +281,7 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Sessio
             for job in direct_jobs:
                 upsert_direct_job(jobs, job, old_jobs_by_id, reference)
             health[source["key"]] = {
-                "ok": True,
-                "configured": True,
+                "status": "healthy",
                 "count": len(direct_jobs),
                 "name": source["name"],
                 "direct": True,
@@ -291,15 +290,15 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Sessio
             print(f"{source['name']}: {len(direct_jobs)} direct US CS-relevant listing(s)")
         else:
             health[source["key"]] = {
-                "ok": False,
-                "configured": True,
+                "status": "failed",
                 "count": 0,
                 "name": source["name"],
                 "direct": True,
                 "auto_discovered": True,
                 "error": f"{type(exc).__name__}: {exc}",
             }
-            carry_failed_source(jobs, old_jobs, source["key"])
+            if carry_failed_source(jobs, old_jobs, source["key"]):
+                health[source["key"]]["status"] = "degraded"
             print(f"{source['name']}: FAILED: {exc}", file=sys.stderr)
     return doc
 

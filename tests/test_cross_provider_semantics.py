@@ -157,7 +157,7 @@ class CrossProviderATSSemanticsTests(unittest.TestCase):
 
         doc = {
             "generated_at": "2026-09-18T12:00:00Z",
-            "sources": {"test-source": {"ok": True}},
+            "sources": {"test-source": {"status": "healthy"}},
             "jobs": [job]
         }
 

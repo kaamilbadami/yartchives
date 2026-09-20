@@ -172,8 +172,7 @@ class DiscoverWorkdaySourcesTests(unittest.TestCase):
             "jobs": [job],
             "sources": {
                 source["key"]: {
-                    "ok": False,
-                    "configured": False,
+                    "status": "quarantined",
                     "quarantined": True,
                     "error": "StructuralSourceError: HTTP 422",
                 }

@@ -14,7 +14,7 @@ class SourceContributionAuditTests(unittest.TestCase):
     def test_unique_overlap_and_removal_semantics(self):
         feed = {
             "generated_at": "2026-09-17T00:00:00Z",
-            "sources": {"a": {"count": 3}, "b": {"count": 2}, "unused": {"count": 0, "configured": True}},
+            "sources": {"a": {"count": 3}, "b": {"count": 2}, "unused": {"count": 0, "status": "healthy"}},
             "jobs": [
                 {"source_keys": ["a"], "link_kind": "direct"},
                 {"source_keys": ["a", "b"], "link_kind": "listing"},

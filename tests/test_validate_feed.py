@@ -7,7 +7,7 @@ import scripts.validate_feed as vf
 class ValidateFeedTests(unittest.TestCase):
     def _create_feed(self, jobs, sources=None):
         if sources is None:
-            sources = {"source1": {"ok": True}}
+            sources = {"source1": {"status": "healthy"}}
         return {
             "jobs": jobs,
             "sources": sources

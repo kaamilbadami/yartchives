@@ -151,10 +151,10 @@ def validate(
         if not isinstance(source, dict):
             fatal_errors.append(f"source {key} metadata is malformed")
             continue
-        configured = source.get("configured", True)
-        if configured is not False and source.get("ok"):
+        status = source.get("status")
+        if status in {"healthy", "degraded"}:
             healthy += 1
-        if strict_sources and configured is not False and not source.get("ok"):
+        if strict_sources and status == "failed":
             fatal_errors.append(f"source {source.get('name', key)} failed: {source.get('error', 'unknown error')}")
     if healthy < minimum_healthy_sources:
         fatal_errors.append(f"healthy source count {healthy} is below minimum {minimum_healthy_sources}")

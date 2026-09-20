@@ -313,17 +313,21 @@ def carry_failed_source(
     jobs: list[dict[str, Any]],
     old_jobs: list[dict[str, Any]],
     source_key: str,
-) -> None:
+) -> bool:
     by_id, by_url = make_indexes(jobs)
+    carried_any = False
     for old in old_jobs:
         if source_key not in (old.get("source_keys") or []):
             continue
+        carried_any = True
         target = by_id.get(old.get("id"))
         if target is None:
             old_url = bf.canonical_url(old.get("url"))
             target = by_url.get(old_url) if old_url else None
         if target is None:
-            jobs.append(copy.deepcopy(old))
+            carried = copy.deepcopy(old)
+            carried["carried_forward"] = True
+            jobs.append(carried)
             by_id, by_url = make_indexes(jobs)
             continue
         target["source_keys"] = sorted(set(target.get("source_keys", [])) | {source_key})
@@ -333,6 +337,7 @@ def carry_failed_source(
         if old.get("direct_employer") and old.get("url"):
             target["url"] = old["url"]
             target["direct_employer"] = True
+    return carried_any
 
 
 def stable_projection(doc: dict[str, Any]) -> str:
@@ -374,8 +379,7 @@ def enrich_direct_sources(
             for job in direct_jobs:
                 upsert_direct_job(jobs, job, old_jobs_by_id, reference)
             health[source["key"]] = {
-                "ok": True,
-                "configured": True,
+                "status": "healthy",
                 "count": len(direct_jobs),
                 "name": source["name"],
                 "direct": True,
@@ -384,27 +388,25 @@ def enrich_direct_sources(
             print(f"{source['name']}: {len(direct_jobs)} direct {scope_label} CS-relevant listing(s)")
         except StructuralSourceError as exc:
             health[source["key"]] = {
-                "ok": False,
-                "configured": False,
+                "status": "quarantined",
                 "count": 0,
                 "name": source["name"],
                 "direct": True,
                 "auto_discovered": bool(source.get("auto_discovered")),
-                "quarantined": True,
                 "error": f"{type(exc).__name__}: {exc}",
             }
             carry_failed_source(jobs, old_jobs, source["key"])
             print(f"{source['name']}: QUARANTINED: {exc}", file=sys.stderr)
         except Exception as exc:
             health[source["key"]] = {
-                "ok": False,
-                "configured": True,
+                "status": "failed",
                 "count": 0,
                 "name": source["name"],
                 "direct": True,
                 "error": f"{type(exc).__name__}: {exc}",
             }
-            carry_failed_source(jobs, old_jobs, source["key"])
+            if carry_failed_source(jobs, old_jobs, source["key"]):
+                health[source["key"]]["status"] = "degraded"
             print(f"{source['name']}: FAILED: {exc}", file=sys.stderr)
 
     jobs.sort(

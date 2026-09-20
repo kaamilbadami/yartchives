@@ -142,7 +142,7 @@ def build_report(feed: dict[str, Any], catalog: dict[str, dict[str, Any]]) -> di
         "sources": source_rows,
         "pairwise_overlap": pairs,
         "configured_zero_contribution": sorted(
-            key for key, value in health.items() if value.get("configured") and key not in keys
+            key for key, value in health.items() if value.get("status") in {"healthy", "degraded"} and key not in keys
         ),
     }
 

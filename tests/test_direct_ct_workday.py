@@ -182,9 +182,7 @@ class DirectWorkdayTests(unittest.TestCase):
         doc = {"jobs": [], "sources": {}}
         mod.enrich_direct_sources(doc, {"jobs": []}, [source], StructuralFailureSession(), ref)
         health = doc["sources"][source["key"]]
-        self.assertFalse(health["configured"])
-        self.assertTrue(health["quarantined"])
-        self.assertFalse(health["ok"])
+        self.assertEqual(health["status"], "quarantined")
 
 
     def test_direct_url_replaces_intermediary_url(self):
