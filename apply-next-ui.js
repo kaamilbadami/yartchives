@@ -424,6 +424,12 @@
     }
   }
 
+  function isRemoteJob(job) {
+    const states = Array.isArray(job?.states) ? job.states.map(value => normalize(value).toLowerCase()) : [];
+    if (states.includes("remote")) return true;
+    return normalize(job?.location || job?._displayLocation).toLowerCase().split(/[·,]/).some(part => part.trim() === "remote");
+  }
+
   function componentLabel(key) {
     return ({
       fit: "How well you match",
@@ -431,26 +437,27 @@
       freshness: "How recent it is",
       roi: "Worth applying",
       role: "Role",
-      location: "Location convenience",
+      location: "Location fit",
       link: "Link",
     })[key] || key;
   }
 
   function componentExplanation(key) {
     return ({
-      fit: "Based on your skills, major, degree level, and the job\'s known requirements.",
+      fit: "Based on your skills, major, degree level, and the job's known requirements.",
       freshness: "Newer postings score higher because timing can affect how crowded the applicant pool is.",
       roi: "Balances how valuable this role is for you with the opportunity and competition signals we know.",
       location: "Based on commute distance, remote status, and your location preferences.",
     })[key] || "";
   }
 
-  function scoreBand(key, score, max) {
+  function scoreBand(key, score, max, job = null) {
     if (!max) return "";
     const ratio = Number(score || 0) / max;
     if (key === "fit") return ratio >= 0.75 ? "Strong match" : (ratio >= 0.55 ? "Good match" : "Possible match");
     if (key === "freshness") return ratio >= 0.8 ? "Very recent" : (ratio >= 0.5 ? "Recent" : "Older posting");
     if (key === "roi") return ratio >= 0.75 ? "High value" : (ratio >= 0.55 ? "Worth considering" : "Lower value");
+    if (key === "location" && isRemoteJob(job)) return "Remote";
     if (key === "location") return ratio >= 0.75 ? "Very convenient" : (ratio >= 0.55 ? "Manageable" : "Less convenient");
     return "";
   }
@@ -483,7 +490,10 @@
     else concerns.push("older posting");
 
     const locRatio = (result?.components?.location?.score || 0) / (componentMax("location") || 1);
-    if (locRatio >= 0.75) highlights.push("Very convenient location");
+    if (isRemoteJob(result?.job)) {
+      if (locRatio >= 0.55) highlights.push("Remote");
+      else concerns.push("remote preference mismatch");
+    } else if (locRatio >= 0.75) highlights.push("Very convenient location");
     else if (locRatio >= 0.55) highlights.push("Manageable location");
     else concerns.push("less convenient location");
 
@@ -616,7 +626,7 @@
       const scoreText = element("span", "", `${component.score}/${max}`);
       line.append(label, scoreText);
       metric.append(line);
-      const band = scoreBand(key, component.score, max);
+      const band = scoreBand(key, component.score, max, job);
       if (band) metric.append(element("p", "apply-next-metric-band", band));
       const explanation = componentExplanation(key);
       if (explanation) metric.append(element("p", "apply-next-metric-explanation", explanation));
@@ -1132,6 +1142,7 @@
     loadInspectionArtifact,
     attachInspections,
     addBaseDistances,
+    isRemoteJob,
     componentLabel,
     componentExplanation,
     scoreBand,
