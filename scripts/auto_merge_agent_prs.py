@@ -57,6 +57,7 @@ GENERATED_ARTIFACT_PATTERNS = (
     "**/*.orig",
     "patch*.diff",
     "**/patch*.diff",
+    "patch_*.py",
 )
 CONTROL_PLANE_STATIC_ALLOWED_PATHS = frozenset({
     "scripts/queue_coverage_gap.py",
@@ -353,12 +354,18 @@ def control_plane_pr_eligible(
     if not paths <= allowed_paths:
         return False, "control-plane lane contains a non-allowlisted path"
 
+    helper_bundle_has_paired_tests = (
+        len(workflow_paths) == 1
+        and bool(support_scripts)
+        and support_tests <= paths
+    )
     missing_tests = [
         path
         for path in sorted(workflow_paths)
         if not (
             workflow_regression_test_candidates(path) & paths
             or CONTROL_PLANE_LEGACY_REQUIRED_TEST in paths
+            or helper_bundle_has_paired_tests
         )
     ]
     if missing_tests:
