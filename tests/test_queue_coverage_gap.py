@@ -116,8 +116,18 @@ class TestQueueCoverageGap(unittest.TestCase):
         active_task_2 = Task(1, "Test", "", "P1", "feed", frozenset(), frozenset(), frozenset())
         self.assertTrue(resources_conflict_with_active_work([active_task_2]))
 
-        # Conflicting coverage task
-        active_task_3 = Task(1, "Test", "", "P1", "coverage-automation", frozenset(), frozenset(), frozenset())
+        # Conflicting coverage task shares the explicit scheduling resources used
+        # by generated coverage-automation issues.
+        active_task_3 = Task(
+            1,
+            "Test",
+            "",
+            "P1",
+            "coverage-automation",
+            frozenset(),
+            frozenset({"automation", "coverage-analysis"}),
+            frozenset(),
+        )
         self.assertTrue(resources_conflict_with_active_work([active_task_3]))
 
 if __name__ == '__main__':
