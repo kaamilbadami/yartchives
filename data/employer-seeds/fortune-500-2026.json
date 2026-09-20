@@ -18,49 +18,73 @@
       "order": 1,
       "rank": 1,
       "name": "Amazon",
-      "fortune_slug": "/company/amazon-com/"
+      "fortune_slug": "/company/amazon-com/",
+      "domain_hints": [
+        "amazon.com"
+      ]
     },
     {
       "order": 2,
       "rank": 2,
       "name": "Walmart",
-      "fortune_slug": "/company/walmart/"
+      "fortune_slug": "/company/walmart/",
+      "domain_hints": [
+        "walmart.com"
+      ]
     },
     {
       "order": 3,
       "rank": 3,
       "name": "UnitedHealth Group",
-      "fortune_slug": "/company/unitedhealth-group/"
+      "fortune_slug": "/company/unitedhealth-group/",
+      "domain_hints": [
+        "unitedhealthgroup.com"
+      ]
     },
     {
       "order": 4,
       "rank": 4,
       "name": "Apple",
-      "fortune_slug": "/company/apple/"
+      "fortune_slug": "/company/apple/",
+      "domain_hints": [
+        "apple.com"
+      ]
     },
     {
       "order": 5,
       "rank": 5,
       "name": "Alphabet",
-      "fortune_slug": "/company/alphabet/"
+      "fortune_slug": "/company/alphabet/",
+      "domain_hints": [
+        "alphabetagamer.com"
+      ]
     },
     {
       "order": 6,
       "rank": 6,
       "name": "CVS Health",
-      "fortune_slug": "/company/cvs-health/"
+      "fortune_slug": "/company/cvs-health/",
+      "domain_hints": [
+        "cvshealth.com"
+      ]
     },
     {
       "order": 7,
       "rank": 7,
       "name": "Berkshire Hathaway",
-      "fortune_slug": "/company/berkshire-hathaway/"
+      "fortune_slug": "/company/berkshire-hathaway/",
+      "domain_hints": [
+        "berkshirehathaway.com"
+      ]
     },
     {
       "order": 8,
       "rank": 8,
       "name": "McKesson",
-      "fortune_slug": "/company/mckesson/"
+      "fortune_slug": "/company/mckesson/",
+      "domain_hints": [
+        "mckesson.com"
+      ]
     },
     {
       "order": 9,
@@ -81,19 +105,28 @@
       "order": 11,
       "rank": 11,
       "name": "Microsoft",
-      "fortune_slug": "/company/microsoft/"
+      "fortune_slug": "/company/microsoft/",
+      "domain_hints": [
+        "microsoft.com"
+      ]
     },
     {
       "order": 12,
       "rank": 12,
       "name": "JPMorgan Chase",
-      "fortune_slug": "/company/jpmorgan-chase/"
+      "fortune_slug": "/company/jpmorgan-chase/",
+      "domain_hints": [
+        "jpmorganchase.com"
+      ]
     },
     {
       "order": 13,
       "rank": 13,
       "name": "Costco Wholesale",
-      "fortune_slug": "/company/costco/"
+      "fortune_slug": "/company/costco/",
+      "domain_hints": [
+        "costco.com"
+      ]
     },
     {
       "order": 14,
@@ -105,13 +138,19 @@
       "order": 15,
       "rank": 15,
       "name": "Cardinal Health",
-      "fortune_slug": "/company/cardinal-health/"
+      "fortune_slug": "/company/cardinal-health/",
+      "domain_hints": [
+        "cardinalhealth.com"
+      ]
     },
     {
       "order": 16,
       "rank": 16,
       "name": "Nvidia",
-      "fortune_slug": "/company/nvidia/"
+      "fortune_slug": "/company/nvidia/",
+      "domain_hints": [
+        "nvidia.com"
+      ]
     },
     {
       "order": 17,
@@ -123,13 +162,19 @@
       "order": 18,
       "rank": 18,
       "name": "Elevance Health",
-      "fortune_slug": "/company/elevance-health/"
+      "fortune_slug": "/company/elevance-health/",
+      "domain_hints": [
+        "elevancehealth.com"
+      ]
     },
     {
       "order": 19,
       "rank": 19,
       "name": "Centene",
-      "fortune_slug": "/company/centene/"
+      "fortune_slug": "/company/centene/",
+      "domain_hints": [
+        "centene.com"
+      ]
     },
     {
       "order": 20,
@@ -141,43 +186,64 @@
       "order": 21,
       "rank": 21,
       "name": "Chevron",
-      "fortune_slug": "/company/chevron/"
+      "fortune_slug": "/company/chevron/",
+      "domain_hints": [
+        "chevron.com"
+      ]
     },
     {
       "order": 22,
       "rank": 22,
       "name": "Ford Motor",
-      "fortune_slug": "/company/ford-motor/"
+      "fortune_slug": "/company/ford-motor/",
+      "domain_hints": [
+        "ford.com"
+      ]
     },
     {
       "order": 23,
       "rank": 23,
       "name": "General Motors",
-      "fortune_slug": "/company/general-motors/"
+      "fortune_slug": "/company/general-motors/",
+      "domain_hints": [
+        "generalmotorscentre.com"
+      ]
     },
     {
       "order": 24,
       "rank": 24,
       "name": "Citigroup",
-      "fortune_slug": "/company/citigroup/"
+      "fortune_slug": "/company/citigroup/",
+      "domain_hints": [
+        "citigroup.com"
+      ]
     },
     {
       "order": 25,
       "rank": 25,
       "name": "Home Depot",
-      "fortune_slug": "/company/home-depot/"
+      "fortune_slug": "/company/home-depot/",
+      "domain_hints": [
+        "homedepot.com"
+      ]
     },
     {
       "order": 26,
       "rank": 26,
       "name": "Fannie Mae",
-      "fortune_slug": "/company/fannie-mae/"
+      "fortune_slug": "/company/fannie-mae/",
+      "domain_hints": [
+        "fanniemae.com"
+      ]
     },
     {
       "order": 27,
       "rank": 27,
       "name": "Kroger",
-      "fortune_slug": "/company/kroger/"
+      "fortune_slug": "/company/kroger/",
+      "domain_hints": [
+        "kroger.com"
+      ]
     },
     {
       "order": 28,
@@ -189,19 +255,28 @@
       "order": 29,
       "rank": 29,
       "name": "Phillips 66",
-      "fortune_slug": "/company/phillips/"
+      "fortune_slug": "/company/phillips/",
+      "domain_hints": [
+        "phillips.com"
+      ]
     },
     {
       "order": 30,
       "rank": 30,
       "name": "Marathon Petroleum",
-      "fortune_slug": "/company/marathon-petroleum/"
+      "fortune_slug": "/company/marathon-petroleum/",
+      "domain_hints": [
+        "marathonpetroleum.com"
+      ]
     },
     {
       "order": 31,
       "rank": 31,
       "name": "StoneX Group",
-      "fortune_slug": "/company/stonex-group/"
+      "fortune_slug": "/company/stonex-group/",
+      "domain_hints": [
+        "stonex.com"
+      ]
     },
     {
       "order": 32,
@@ -213,19 +288,28 @@
       "order": 33,
       "rank": 33,
       "name": "Freddie Mac",
-      "fortune_slug": "/company/freddie-mac/"
+      "fortune_slug": "/company/freddie-mac/",
+      "domain_hints": [
+        "freddiemac.com"
+      ]
     },
     {
       "order": 34,
       "rank": 34,
       "name": "Humana",
-      "fortune_slug": "/company/humana/"
+      "fortune_slug": "/company/humana/",
+      "domain_hints": [
+        "humana.com"
+      ]
     },
     {
       "order": 35,
       "rank": 35,
       "name": "AT&T",
-      "fortune_slug": "/company/att/"
+      "fortune_slug": "/company/att/",
+      "domain_hints": [
+        "att.com"
+      ]
     },
     {
       "order": 36,
@@ -237,25 +321,37 @@
       "order": 37,
       "rank": 37,
       "name": "Comcast",
-      "fortune_slug": "/company/comcast/"
+      "fortune_slug": "/company/comcast/",
+      "domain_hints": [
+        "comcast.com"
+      ]
     },
     {
       "order": 38,
       "rank": 38,
       "name": "Wells Fargo",
-      "fortune_slug": "/company/wells-fargo/"
+      "fortune_slug": "/company/wells-fargo/",
+      "domain_hints": [
+        "wellsfargo.com"
+      ]
     },
     {
       "order": 39,
       "rank": 39,
       "name": "Morgan Stanley",
-      "fortune_slug": "/company/morgan-stanley/"
+      "fortune_slug": "/company/morgan-stanley/",
+      "domain_hints": [
+        "morganstanley.com"
+      ]
     },
     {
       "order": 40,
       "rank": 40,
       "name": "Valero Energy",
-      "fortune_slug": "/company/valero-energy/"
+      "fortune_slug": "/company/valero-energy/",
+      "domain_hints": [
+        "valero.com"
+      ]
     },
     {
       "order": 41,
@@ -267,19 +363,28 @@
       "order": 42,
       "rank": 42,
       "name": "Target",
-      "fortune_slug": "/company/target/"
+      "fortune_slug": "/company/target/",
+      "domain_hints": [
+        "target.com"
+      ]
     },
     {
       "order": 43,
       "rank": 43,
       "name": "Tesla",
-      "fortune_slug": "/company/tesla/"
+      "fortune_slug": "/company/tesla/",
+      "domain_hints": [
+        "tesla.com"
+      ]
     },
     {
       "order": 44,
       "rank": 44,
       "name": "Walt Disney",
-      "fortune_slug": "/company/disney/"
+      "fortune_slug": "/company/disney/",
+      "domain_hints": [
+        "waltdisney.org"
+      ]
     },
     {
       "order": 45,
@@ -291,49 +396,73 @@
       "order": 46,
       "rank": 46,
       "name": "PepsiCo",
-      "fortune_slug": "/company/pepsico/"
+      "fortune_slug": "/company/pepsico/",
+      "domain_hints": [
+        "pepsico.com"
+      ]
     },
     {
       "order": 47,
       "rank": 47,
       "name": "Boeing",
-      "fortune_slug": "/company/boeing/"
+      "fortune_slug": "/company/boeing/",
+      "domain_hints": [
+        "boeing.com"
+      ]
     },
     {
       "order": 48,
       "rank": 48,
       "name": "United Parcel Service",
-      "fortune_slug": "/company/ups/"
+      "fortune_slug": "/company/ups/",
+      "domain_hints": [
+        "ups.com"
+      ]
     },
     {
       "order": 49,
       "rank": 49,
       "name": "RTX",
-      "fortune_slug": "/company/raytheon-technologies/"
+      "fortune_slug": "/company/raytheon-technologies/",
+      "domain_hints": [
+        "rtx.com"
+      ]
     },
     {
       "order": 50,
       "rank": 50,
       "name": "FedEx",
-      "fortune_slug": "/company/fedex/"
+      "fortune_slug": "/company/fedex/",
+      "domain_hints": [
+        "fedex.com"
+      ]
     },
     {
       "order": 51,
       "rank": 51,
       "name": "Progressive",
-      "fortune_slug": "/company/progressive/"
+      "fortune_slug": "/company/progressive/",
+      "domain_hints": [
+        "progressive.com"
+      ]
     },
     {
       "order": 52,
       "rank": 52,
       "name": "Lowe's",
-      "fortune_slug": "/company/lowes/"
+      "fortune_slug": "/company/lowes/",
+      "domain_hints": [
+        "lowes.com"
+      ]
     },
     {
       "order": 53,
       "rank": 53,
       "name": "Energy Transfer",
-      "fortune_slug": "/company/energy-transfer-equity/"
+      "fortune_slug": "/company/energy-transfer-equity/",
+      "domain_hints": [
+        "energytransfer.com"
+      ]
     },
     {
       "order": 54,
@@ -345,19 +474,28 @@
       "order": 55,
       "rank": 55,
       "name": "Sysco",
-      "fortune_slug": "/company/sysco/"
+      "fortune_slug": "/company/sysco/",
+      "domain_hints": [
+        "sysco.com"
+      ]
     },
     {
       "order": 56,
       "rank": 56,
       "name": "American Express",
-      "fortune_slug": "/company/american-express/"
+      "fortune_slug": "/company/american-express/",
+      "domain_hints": [
+        "americanexpress.com"
+      ]
     },
     {
       "order": 57,
       "rank": 57,
       "name": "Albertsons",
-      "fortune_slug": "/company/albertsons-cos/"
+      "fortune_slug": "/company/albertsons-cos/",
+      "domain_hints": [
+        "albertsons.com"
+      ]
     },
     {
       "order": 58,
@@ -369,13 +507,19 @@
       "order": 59,
       "rank": 59,
       "name": "MetLife",
-      "fortune_slug": "/company/metlife/"
+      "fortune_slug": "/company/metlife/",
+      "domain_hints": [
+        "metlife.com"
+      ]
     },
     {
       "order": 60,
       "rank": 60,
       "name": "HCA Healthcare",
-      "fortune_slug": "/company/hca-holdings/"
+      "fortune_slug": "/company/hca-holdings/",
+      "domain_hints": [
+        "hcahealthcare.com"
+      ]
     },
     {
       "order": 61,
@@ -387,7 +531,10 @@
       "order": 62,
       "rank": 62,
       "name": "New York Life Insurance",
-      "fortune_slug": "/company/new-york-life-insurance/"
+      "fortune_slug": "/company/new-york-life-insurance/",
+      "domain_hints": [
+        "newyorklife.com"
+      ]
     },
     {
       "order": 63,
@@ -399,13 +546,19 @@
       "order": 64,
       "rank": 64,
       "name": "Allstate",
-      "fortune_slug": "/company/allstate/"
+      "fortune_slug": "/company/allstate/",
+      "domain_hints": [
+        "allstate.com"
+      ]
     },
     {
       "order": 65,
       "rank": 65,
       "name": "Caterpillar",
-      "fortune_slug": "/company/caterpillar/"
+      "fortune_slug": "/company/caterpillar/",
+      "domain_hints": [
+        "cat.com"
+      ]
     },
     {
       "order": 66,
@@ -417,31 +570,46 @@
       "order": 67,
       "rank": 67,
       "name": "Eli Lilly",
-      "fortune_slug": "/company/eli-lilly/"
+      "fortune_slug": "/company/eli-lilly/",
+      "domain_hints": [
+        "lilly.com"
+      ]
     },
     {
       "order": 68,
       "rank": 68,
       "name": "Merck",
-      "fortune_slug": "/company/merck/"
+      "fortune_slug": "/company/merck/",
+      "domain_hints": [
+        "merck.com"
+      ]
     },
     {
       "order": 69,
       "rank": 69,
       "name": "Nationwide",
-      "fortune_slug": "/company/nationwide/"
+      "fortune_slug": "/company/nationwide/",
+      "domain_hints": [
+        "nationwide.com"
+      ]
     },
     {
       "order": 70,
       "rank": 70,
       "name": "Broadcom",
-      "fortune_slug": "/company/broadcom/"
+      "fortune_slug": "/company/broadcom/",
+      "domain_hints": [
+        "broadcom.com"
+      ]
     },
     {
       "order": 71,
       "rank": 71,
       "name": "Delta Air Lines",
-      "fortune_slug": "/company/delta-air-lines/"
+      "fortune_slug": "/company/delta-air-lines/",
+      "domain_hints": [
+        "delta.com"
+      ]
     },
     {
       "order": 72,
@@ -453,43 +621,64 @@
       "order": 73,
       "rank": 73,
       "name": "Pfizer",
-      "fortune_slug": "/company/pfizer/"
+      "fortune_slug": "/company/pfizer/",
+      "domain_hints": [
+        "pfizer.com"
+      ]
     },
     {
       "order": 74,
       "rank": 74,
       "name": "TD Synnex",
-      "fortune_slug": "/company/synnex/"
+      "fortune_slug": "/company/synnex/",
+      "domain_hints": [
+        "tdsynnex.com"
+      ]
     },
     {
       "order": 75,
       "rank": 75,
       "name": "ConocoPhillips",
-      "fortune_slug": "/company/conocophillips/"
+      "fortune_slug": "/company/conocophillips/",
+      "domain_hints": [
+        "conocophillips.com"
+      ]
     },
     {
       "order": 76,
       "rank": 76,
       "name": "Galaxy Digital",
-      "fortune_slug": "/company/galaxy-digital/"
+      "fortune_slug": "/company/galaxy-digital/",
+      "domain_hints": [
+        "galaxydigital.com"
+      ]
     },
     {
       "order": 77,
       "rank": 77,
       "name": "AbbVie",
-      "fortune_slug": "/company/abbvie/"
+      "fortune_slug": "/company/abbvie/",
+      "domain_hints": [
+        "abbvie.com"
+      ]
     },
     {
       "order": 78,
       "rank": 78,
       "name": "Prudential Financial",
-      "fortune_slug": "/company/prudential-financial/"
+      "fortune_slug": "/company/prudential-financial/",
+      "domain_hints": [
+        "prudential.com"
+      ]
     },
     {
       "order": 79,
       "rank": 79,
       "name": "TJX",
-      "fortune_slug": "/company/tjx/"
+      "fortune_slug": "/company/tjx/",
+      "domain_hints": [
+        "tjx.com"
+      ]
     },
     {
       "order": 80,
@@ -510,7 +699,10 @@
       "order": 82,
       "rank": 82,
       "name": "Oracle",
-      "fortune_slug": "/company/oracle/"
+      "fortune_slug": "/company/oracle/",
+      "domain_hints": [
+        "oracle.com"
+      ]
     },
     {
       "order": 83,
@@ -522,13 +714,19 @@
       "order": 84,
       "rank": 84,
       "name": "HP",
-      "fortune_slug": "/company/hp/"
+      "fortune_slug": "/company/hp/",
+      "domain_hints": [
+        "hp.com"
+      ]
     },
     {
       "order": 85,
       "rank": 85,
       "name": "Charter Communications",
-      "fortune_slug": "/company/charter-communications/"
+      "fortune_slug": "/company/charter-communications/",
+      "domain_hints": [
+        "charter.com"
+      ]
     },
     {
       "order": 86,
@@ -540,13 +738,19 @@
       "order": 87,
       "rank": 87,
       "name": "Tyson Foods",
-      "fortune_slug": "/company/tyson-foods/"
+      "fortune_slug": "/company/tyson-foods/",
+      "domain_hints": [
+        "tyson.com"
+      ]
     },
     {
       "order": 88,
       "rank": 88,
       "name": "Intel",
-      "fortune_slug": "/company/intel/"
+      "fortune_slug": "/company/intel/",
+      "domain_hints": [
+        "intel.com"
+      ]
     },
     {
       "order": 89,
@@ -573,7 +777,10 @@
       "order": 92,
       "rank": 92,
       "name": "Uber Technologies",
-      "fortune_slug": "/company/uber-technologies/"
+      "fortune_slug": "/company/uber-technologies/",
+      "domain_hints": [
+        "ubertechnologies.com"
+      ]
     },
     {
       "order": 93,
@@ -585,7 +792,10 @@
       "order": 94,
       "rank": 94,
       "name": "TIAA",
-      "fortune_slug": "/company/tiaa/"
+      "fortune_slug": "/company/tiaa/",
+      "domain_hints": [
+        "tiaa.org"
+      ]
     },
     {
       "order": 95,
@@ -597,7 +807,10 @@
       "order": 96,
       "rank": 96,
       "name": "Travelers",
-      "fortune_slug": "/company/travelers-cos/"
+      "fortune_slug": "/company/travelers-cos/",
+      "domain_hints": [
+        "travelers.com"
+      ]
     },
     {
       "order": 97,
@@ -609,13 +822,19 @@
       "order": 98,
       "rank": 98,
       "name": "Coca-Cola",
-      "fortune_slug": "/company/coca-cola/"
+      "fortune_slug": "/company/coca-cola/",
+      "domain_hints": [
+        "coca-cola.com"
+      ]
     },
     {
       "order": 99,
       "rank": 99,
       "name": "Nike",
-      "fortune_slug": "/company/nike/"
+      "fortune_slug": "/company/nike/",
+      "domain_hints": [
+        "nike.com"
+      ]
     },
     {
       "order": 100,
@@ -627,13 +846,19 @@
       "order": 101,
       "rank": 101,
       "name": "GE Aerospace",
-      "fortune_slug": "/company/general-electric/"
+      "fortune_slug": "/company/general-electric/",
+      "domain_hints": [
+        "geaerospace.com"
+      ]
     },
     {
       "order": 102,
       "rank": 102,
       "name": "Deere",
-      "fortune_slug": "/company/deere/"
+      "fortune_slug": "/company/deere/",
+      "domain_hints": [
+        "deere.com"
+      ]
     },
     {
       "order": 103,
@@ -648,19 +873,28 @@
       "order": 104,
       "rank": 104,
       "name": "Molina Healthcare",
-      "fortune_slug": "/company/molina-healthcare/"
+      "fortune_slug": "/company/molina-healthcare/",
+      "domain_hints": [
+        "molinahealthcare.com"
+      ]
     },
     {
       "order": 105,
       "rank": 105,
       "name": "Netflix",
-      "fortune_slug": "/company/netflix/"
+      "fortune_slug": "/company/netflix/",
+      "domain_hints": [
+        "about.netflix.com"
+      ]
     },
     {
       "order": 106,
       "rank": 106,
       "name": "Thermo Fisher Scientific",
-      "fortune_slug": "/company/thermo-fisher-scientific/"
+      "fortune_slug": "/company/thermo-fisher-scientific/",
+      "domain_hints": [
+        "thermofisher.com"
+      ]
     },
     {
       "order": 107,
@@ -672,43 +906,64 @@
       "order": 108,
       "rank": 108,
       "name": "Qualcomm",
-      "fortune_slug": "/company/qualcomm/"
+      "fortune_slug": "/company/qualcomm/",
+      "domain_hints": [
+        "qualcomm.com"
+      ]
     },
     {
       "order": 109,
       "rank": 109,
       "name": "Northwestern Mutual",
-      "fortune_slug": "/company/northwestern-mutual/"
+      "fortune_slug": "/company/northwestern-mutual/",
+      "domain_hints": [
+        "northwesternmutual.com"
+      ]
     },
     {
       "order": 110,
       "rank": 110,
       "name": "U.S. Bancorp",
-      "fortune_slug": "/company/u-s-bancorp/"
+      "fortune_slug": "/company/u-s-bancorp/",
+      "domain_hints": [
+        "usbancorpassetmanagement.com"
+      ]
     },
     {
       "order": 111,
       "rank": 111,
       "name": "Dollar General",
-      "fortune_slug": "/company/dollar-general/"
+      "fortune_slug": "/company/dollar-general/",
+      "domain_hints": [
+        "dollargeneral.com"
+      ]
     },
     {
       "order": 112,
       "rank": 112,
       "name": "Northrop Grumman",
-      "fortune_slug": "/company/northrop-grumman/"
+      "fortune_slug": "/company/northrop-grumman/",
+      "domain_hints": [
+        "northropgrumman.com"
+      ]
     },
     {
       "order": 113,
       "rank": 113,
       "name": "Best Buy",
-      "fortune_slug": "/company/best-buy/"
+      "fortune_slug": "/company/best-buy/",
+      "domain_hints": [
+        "bestbuy.com"
+      ]
     },
     {
       "order": 114,
       "rank": 114,
       "name": "Salesforce",
-      "fortune_slug": "/company/salesforce-com/"
+      "fortune_slug": "/company/salesforce-com/",
+      "domain_hints": [
+        "salesforce.com"
+      ]
     },
     {
       "order": 115,
@@ -736,19 +991,28 @@
       "order": 118,
       "rank": 118,
       "name": "CBRE Group",
-      "fortune_slug": "/company/cbre-group/"
+      "fortune_slug": "/company/cbre-group/",
+      "domain_hints": [
+        "cbre.com"
+      ]
     },
     {
       "order": 119,
       "rank": 119,
       "name": "Visa",
-      "fortune_slug": "/company/visa/"
+      "fortune_slug": "/company/visa/",
+      "domain_hints": [
+        "visa.com"
+      ]
     },
     {
       "order": 120,
       "rank": 120,
       "name": "Dow",
-      "fortune_slug": "/company/dow/"
+      "fortune_slug": "/company/dow/",
+      "domain_hints": [
+        "downdetector.com"
+      ]
     },
     {
       "order": 121,
@@ -769,49 +1033,73 @@
       "order": 123,
       "rank": 123,
       "name": "Lithia Motors",
-      "fortune_slug": "/company/lithia-motors/"
+      "fortune_slug": "/company/lithia-motors/",
+      "domain_hints": [
+        "lithia.com"
+      ]
     },
     {
       "order": 124,
       "rank": 124,
       "name": "GE Vernova",
-      "fortune_slug": "/company/gevernova/"
+      "fortune_slug": "/company/gevernova/",
+      "domain_hints": [
+        "gevernova.com"
+      ]
     },
     {
       "order": 125,
       "rank": 125,
       "name": "Micron Technology",
-      "fortune_slug": "/company/micron-technology/"
+      "fortune_slug": "/company/micron-technology/",
+      "domain_hints": [
+        "micron.com"
+      ]
     },
     {
       "order": 126,
       "rank": 126,
       "name": "Warner Bros. Discovery",
-      "fortune_slug": "/company/discovery/"
+      "fortune_slug": "/company/discovery/",
+      "domain_hints": [
+        "warnerbrosdiscoveryinc.com"
+      ]
     },
     {
       "order": 127,
       "rank": 127,
       "name": "Starbucks",
-      "fortune_slug": "/company/starbucks/"
+      "fortune_slug": "/company/starbucks/",
+      "domain_hints": [
+        "starbucks.com"
+      ]
     },
     {
       "order": 128,
       "rank": 128,
       "name": "World Kinect",
-      "fortune_slug": "/company/world-fuel-services/"
+      "fortune_slug": "/company/world-fuel-services/",
+      "domain_hints": [
+        "world-kinect.com"
+      ]
     },
     {
       "order": 129,
       "rank": 129,
       "name": "Amgen",
-      "fortune_slug": "/company/amgen/"
+      "fortune_slug": "/company/amgen/",
+      "domain_hints": [
+        "amgen.com"
+      ]
     },
     {
       "order": 130,
       "rank": 130,
       "name": "CHS",
-      "fortune_slug": "/company/chs/"
+      "fortune_slug": "/company/chs/",
+      "domain_hints": [
+        "chsinc.com"
+      ]
     },
     {
       "order": 131,
@@ -823,7 +1111,10 @@
       "order": 132,
       "rank": 132,
       "name": "Coupang",
-      "fortune_slug": "/company/coupang/"
+      "fortune_slug": "/company/coupang/",
+      "domain_hints": [
+        "coupang.com"
+      ]
     },
     {
       "order": 133,
@@ -835,13 +1126,19 @@
       "order": 134,
       "rank": 134,
       "name": "D.R. Horton",
-      "fortune_slug": "/company/d-r-horton/"
+      "fortune_slug": "/company/d-r-horton/",
+      "domain_hints": [
+        "drhorton.com"
+      ]
     },
     {
       "order": 135,
       "rank": 135,
       "name": "Lennar",
-      "fortune_slug": "/company/lennar/"
+      "fortune_slug": "/company/lennar/",
+      "domain_hints": [
+        "lennar.com"
+      ]
     },
     {
       "order": 136,
@@ -853,13 +1150,19 @@
       "order": 137,
       "rank": 137,
       "name": "Cummins",
-      "fortune_slug": "/company/cummins/"
+      "fortune_slug": "/company/cummins/",
+      "domain_hints": [
+        "cummins.com"
+      ]
     },
     {
       "order": 138,
       "rank": 138,
       "name": "Oneok",
-      "fortune_slug": "/company/oneok/"
+      "fortune_slug": "/company/oneok/",
+      "domain_hints": [
+        "oneokrock.com"
+      ]
     },
     {
       "order": 139,
@@ -883,31 +1186,46 @@
       "order": 141,
       "rank": 141,
       "name": "Mastercard",
-      "fortune_slug": "/company/mastercard/"
+      "fortune_slug": "/company/mastercard/",
+      "domain_hints": [
+        "mastercard.com.au"
+      ]
     },
     {
       "order": 142,
       "rank": 142,
       "name": "Nucor",
-      "fortune_slug": "/company/nucor/"
+      "fortune_slug": "/company/nucor/",
+      "domain_hints": [
+        "nucor.com"
+      ]
     },
     {
       "order": 143,
       "rank": 143,
       "name": "Apollo Global Management",
-      "fortune_slug": "/company/apollo-global-management/"
+      "fortune_slug": "/company/apollo-global-management/",
+      "domain_hints": [
+        "apollo.com"
+      ]
     },
     {
       "order": 144,
       "rank": 144,
       "name": "Penske Automotive Group",
-      "fortune_slug": "/company/penske-automotive-group/"
+      "fortune_slug": "/company/penske-automotive-group/",
+      "domain_hints": [
+        "penskeautomotive.com"
+      ]
     },
     {
       "order": 145,
       "rank": 145,
       "name": "Duke Energy",
-      "fortune_slug": "/company/duke-energy/"
+      "fortune_slug": "/company/duke-energy/",
+      "domain_hints": [
+        "duke-energy.com"
+      ]
     },
     {
       "order": 146,
@@ -925,13 +1243,19 @@
       "order": 148,
       "rank": 148,
       "name": "Arrow Electronics",
-      "fortune_slug": "/company/arrow-electronics/"
+      "fortune_slug": "/company/arrow-electronics/",
+      "domain_hints": [
+        "arrow.com"
+      ]
     },
     {
       "order": 149,
       "rank": 149,
       "name": "NRG Energy",
-      "fortune_slug": "/company/nrg-energy/"
+      "fortune_slug": "/company/nrg-energy/",
+      "domain_hints": [
+        "nrg.com"
+      ]
     },
     {
       "order": 150,
@@ -943,25 +1267,37 @@
       "order": 151,
       "rank": 151,
       "name": "Jabil",
-      "fortune_slug": "/company/jabil-circuit/"
+      "fortune_slug": "/company/jabil-circuit/",
+      "domain_hints": [
+        "jabil.com"
+      ]
     },
     {
       "order": 152,
       "rank": 152,
       "name": "Southern",
-      "fortune_slug": "/company/southern/"
+      "fortune_slug": "/company/southern/",
+      "domain_hints": [
+        "southerncompany.com"
+      ]
     },
     {
       "order": 153,
       "rank": 153,
       "name": "Gilead Sciences",
-      "fortune_slug": "/company/gilead-sciences/"
+      "fortune_slug": "/company/gilead-sciences/",
+      "domain_hints": [
+        "gilead.com"
+      ]
     },
     {
       "order": 154,
       "rank": 154,
       "name": "PBF Energy",
-      "fortune_slug": "/company/pbf-energy/"
+      "fortune_slug": "/company/pbf-energy/",
+      "domain_hints": [
+        "pbfenergy.com"
+      ]
     },
     {
       "order": 155,
@@ -973,31 +1309,46 @@
       "order": 156,
       "rank": 156,
       "name": "KKR",
-      "fortune_slug": "/company/kkr/"
+      "fortune_slug": "/company/kkr/",
+      "domain_hints": [
+        "kkr.com"
+      ]
     },
     {
       "order": 157,
       "rank": 157,
       "name": "Quanta Services",
-      "fortune_slug": "/company/quanta-services/"
+      "fortune_slug": "/company/quanta-services/",
+      "domain_hints": [
+        "quantaservices.com"
+      ]
     },
     {
       "order": 158,
       "rank": 158,
       "name": "Paccar",
-      "fortune_slug": "/company/paccar/"
+      "fortune_slug": "/company/paccar/",
+      "domain_hints": [
+        "paccar.com"
+      ]
     },
     {
       "order": 159,
       "rank": 159,
       "name": "Medline",
-      "fortune_slug": "/company/medline/"
+      "fortune_slug": "/company/medline/",
+      "domain_hints": [
+        "medlineplus.gov"
+      ]
     },
     {
       "order": 160,
       "rank": 160,
       "name": "Applied Materials",
-      "fortune_slug": "/company/applied-materials/"
+      "fortune_slug": "/company/applied-materials/",
+      "domain_hints": [
+        "appliedmaterials.com"
+      ]
     },
     {
       "order": 161,
@@ -1009,43 +1360,64 @@
       "order": 162,
       "rank": 162,
       "name": "CarMax",
-      "fortune_slug": "/company/carmax/"
+      "fortune_slug": "/company/carmax/",
+      "domain_hints": [
+        "carmax.com"
+      ]
     },
     {
       "order": 163,
       "rank": 163,
       "name": "Southwest Airlines",
-      "fortune_slug": "/company/southwest-airlines/"
+      "fortune_slug": "/company/southwest-airlines/",
+      "domain_hints": [
+        "southwest.com"
+      ]
     },
     {
       "order": 164,
       "rank": 164,
       "name": "Baker Hughes",
-      "fortune_slug": "/company/baker-hughes/"
+      "fortune_slug": "/company/baker-hughes/",
+      "domain_hints": [
+        "bakerhughes.com"
+      ]
     },
     {
       "order": 165,
       "rank": 165,
       "name": "Charles Schwab",
-      "fortune_slug": "/company/charles-schwab/"
+      "fortune_slug": "/company/charles-schwab/",
+      "domain_hints": [
+        "schwab.com"
+      ]
     },
     {
       "order": 166,
       "rank": 166,
       "name": "AutoNation",
-      "fortune_slug": "/company/auto-nation/"
+      "fortune_slug": "/company/auto-nation/",
+      "domain_hints": [
+        "autonation.com"
+      ]
     },
     {
       "order": 167,
       "rank": 167,
       "name": "NextEra Energy",
-      "fortune_slug": "/company/nextera-energy/"
+      "fortune_slug": "/company/nextera-energy/",
+      "domain_hints": [
+        "nexteraenergy.com"
+      ]
     },
     {
       "order": 168,
       "rank": 168,
       "name": "Marsh & McLennan",
-      "fortune_slug": "/company/marsh-mclennan/"
+      "fortune_slug": "/company/marsh-mclennan/",
+      "domain_hints": [
+        "marshmclennan.com"
+      ]
     },
     {
       "order": 169,
@@ -1054,25 +1426,37 @@
       "fortune_slug": "/company/booking-holdings/",
       "aliases": [
         "Booking"
+      ],
+      "domain_hints": [
+        "bookingholdings.com"
       ]
     },
     {
       "order": 170,
       "rank": 170,
       "name": "McDonald's",
-      "fortune_slug": "/company/mcdonalds/"
+      "fortune_slug": "/company/mcdonalds/",
+      "domain_hints": [
+        "mcdonalds.com"
+      ]
     },
     {
       "order": 171,
       "rank": 171,
       "name": "HF Sinclair",
-      "fortune_slug": "/company/hollyfrontier/"
+      "fortune_slug": "/company/hollyfrontier/",
+      "domain_hints": [
+        "hfsinclair.com"
+      ]
     },
     {
       "order": 172,
       "rank": 172,
       "name": "AIG",
-      "fortune_slug": "/company/aig/"
+      "fortune_slug": "/company/aig/",
+      "domain_hints": [
+        "aig.com"
+      ]
     },
     {
       "order": 173,
@@ -1084,7 +1468,10 @@
       "order": 174,
       "rank": 174,
       "name": "Marriott International",
-      "fortune_slug": "/company/marriott-international/"
+      "fortune_slug": "/company/marriott-international/",
+      "domain_hints": [
+        "marriott.com"
+      ]
     },
     {
       "order": 175,
@@ -1096,7 +1483,10 @@
       "order": 176,
       "rank": 176,
       "name": "International Paper",
-      "fortune_slug": "/company/international-paper/"
+      "fortune_slug": "/company/international-paper/",
+      "domain_hints": [
+        "internationalpaper.com"
+      ]
     },
     {
       "order": 177,
@@ -1108,31 +1498,46 @@
       "order": 178,
       "rank": 178,
       "name": "Constellation Energy",
-      "fortune_slug": "/company/constellation-energy/"
+      "fortune_slug": "/company/constellation-energy/",
+      "domain_hints": [
+        "constellationenergy.com"
+      ]
     },
     {
       "order": 179,
       "rank": 179,
       "name": "Waste Management",
-      "fortune_slug": "/company/waste-management/"
+      "fortune_slug": "/company/waste-management/",
+      "domain_hints": [
+        "360wastemanagement.co.uk"
+      ]
     },
     {
       "order": 180,
       "rank": 180,
       "name": "Live Nation Entertainment",
-      "fortune_slug": "/company/live-nation-entertainment/"
+      "fortune_slug": "/company/live-nation-entertainment/",
+      "domain_hints": [
+        "livenationentertainment.com"
+      ]
     },
     {
       "order": 181,
       "rank": 181,
       "name": "Stryker",
-      "fortune_slug": "/company/stryker/"
+      "fortune_slug": "/company/stryker/",
+      "domain_hints": [
+        "stryker.com"
+      ]
     },
     {
       "order": 182,
       "rank": 182,
       "name": "Dollar Tree",
-      "fortune_slug": "/company/dollar-tree/"
+      "fortune_slug": "/company/dollar-tree/",
+      "domain_hints": [
+        "dollartree.com"
+      ]
     },
     {
       "order": 183,
@@ -1144,55 +1549,82 @@
       "order": 184,
       "rank": 184,
       "name": "Kraft Heinz",
-      "fortune_slug": "/company/kraft-heinz/"
+      "fortune_slug": "/company/kraft-heinz/",
+      "domain_hints": [
+        "kraftheinz.com"
+      ]
     },
     {
       "order": 185,
       "rank": 185,
       "name": "PG&E",
-      "fortune_slug": "/company/pge-corp/"
+      "fortune_slug": "/company/pge-corp/",
+      "domain_hints": [
+        "gkpge.pl"
+      ]
     },
     {
       "order": 186,
       "rank": 186,
       "name": "Danaher",
-      "fortune_slug": "/company/danaher/"
+      "fortune_slug": "/company/danaher/",
+      "domain_hints": [
+        "danaher.com"
+      ]
     },
     {
       "order": 187,
       "rank": 187,
       "name": "Union Pacific",
-      "fortune_slug": "/company/union-pacific/"
+      "fortune_slug": "/company/union-pacific/",
+      "domain_hints": [
+        "unionpacific.com.ar"
+      ]
     },
     {
       "order": 188,
       "rank": 188,
       "name": "Genuine Parts",
-      "fortune_slug": "/company/genuine-parts/"
+      "fortune_slug": "/company/genuine-parts/",
+      "domain_hints": [
+        "genuinepartsukni.com"
+      ]
     },
     {
       "order": 189,
       "rank": 189,
       "name": "Exelon",
-      "fortune_slug": "/company/exelon/"
+      "fortune_slug": "/company/exelon/",
+      "domain_hints": [
+        "exeloncorp.com"
+      ]
     },
     {
       "order": 190,
       "rank": 190,
       "name": "BlackRock",
-      "fortune_slug": "/company/blackrock/"
+      "fortune_slug": "/company/blackrock/",
+      "domain_hints": [
+        "blackrock.com"
+      ]
     },
     {
       "order": 191,
       "rank": 191,
       "name": "Block",
-      "fortune_slug": "/company/square/"
+      "fortune_slug": "/company/square/",
+      "domain_hints": [
+        "blockchain.com"
+      ]
     },
     {
       "order": 192,
       "rank": 192,
       "name": "Adobe",
-      "fortune_slug": "/company/adobe-systems/"
+      "fortune_slug": "/company/adobe-systems/",
+      "domain_hints": [
+        "adobe.com"
+      ]
     },
     {
       "order": 193,
@@ -1204,31 +1636,46 @@
       "order": 194,
       "rank": 194,
       "name": "Sherwin-Williams",
-      "fortune_slug": "/company/sherwin-williams/"
+      "fortune_slug": "/company/sherwin-williams/",
+      "domain_hints": [
+        "sherwin-williams.com"
+      ]
     },
     {
       "order": 195,
       "rank": 195,
       "name": "WESCO International",
-      "fortune_slug": "/company/wesco-international/"
+      "fortune_slug": "/company/wesco-international/",
+      "domain_hints": [
+        "wesco.us.com"
+      ]
     },
     {
       "order": 196,
       "rank": 196,
       "name": "Lear",
-      "fortune_slug": "/company/lear/"
+      "fortune_slug": "/company/lear/",
+      "domain_hints": [
+        "learnvest.com"
+      ]
     },
     {
       "order": 197,
       "rank": 197,
       "name": "Synchrony",
-      "fortune_slug": "/company/synchrony-financial/"
+      "fortune_slug": "/company/synchrony-financial/",
+      "domain_hints": [
+        "synchrony.com"
+      ]
     },
     {
       "order": 198,
       "rank": 198,
       "name": "Amphenol",
-      "fortune_slug": "/company/amphenol/"
+      "fortune_slug": "/company/amphenol/",
+      "domain_hints": [
+        "amphenol.com"
+      ]
     },
     {
       "order": 199,
@@ -1240,49 +1687,73 @@
       "order": 200,
       "rank": 200,
       "name": "Newmont",
-      "fortune_slug": "/company/newmont-mining/"
+      "fortune_slug": "/company/newmont-mining/",
+      "domain_hints": [
+        "newmont.com"
+      ]
     },
     {
       "order": 201,
       "rank": 201,
       "name": "EOG Resources",
-      "fortune_slug": "/company/eog-resources/"
+      "fortune_slug": "/company/eog-resources/",
+      "domain_hints": [
+        "eogresources.com"
+      ]
     },
     {
       "order": 202,
       "rank": 202,
       "name": "State Street",
-      "fortune_slug": "/company/state-street-corp/"
+      "fortune_slug": "/company/state-street-corp/",
+      "domain_hints": [
+        "statestreet.com"
+      ]
     },
     {
       "order": 203,
       "rank": 203,
       "name": "Macy's",
-      "fortune_slug": "/company/macys/"
+      "fortune_slug": "/company/macys/",
+      "domain_hints": [
+        "macys.com"
+      ]
     },
     {
       "order": 204,
       "rank": 204,
       "name": "Group 1 Automotive",
-      "fortune_slug": "/company/group-1-automotive/"
+      "fortune_slug": "/company/group-1-automotive/",
+      "domain_hints": [
+        "group1auto.com"
+      ]
     },
     {
       "order": 205,
       "rank": 205,
       "name": "CDW",
-      "fortune_slug": "/company/cdw/"
+      "fortune_slug": "/company/cdw/",
+      "domain_hints": [
+        "cdw.com"
+      ]
     },
     {
       "order": 206,
       "rank": 206,
       "name": "Avnet",
-      "fortune_slug": "/company/avnet/"
+      "fortune_slug": "/company/avnet/",
+      "domain_hints": [
+        "avnet.com"
+      ]
     },
     {
       "order": 207,
       "rank": 207,
       "name": "Halliburton",
-      "fortune_slug": "/company/halliburton/"
+      "fortune_slug": "/company/halliburton/",
+      "domain_hints": [
+        "halliburton.com"
+      ]
     },
     {
       "order": 208,
@@ -1318,19 +1789,28 @@
       "order": 213,
       "rank": 213,
       "name": "BJ's Wholesale Club",
-      "fortune_slug": "/company/bjs-wholesale-club/"
+      "fortune_slug": "/company/bjs-wholesale-club/",
+      "domain_hints": [
+        "bjs.com"
+      ]
     },
     {
       "order": 214,
       "rank": 214,
       "name": "Tenet Healthcare",
-      "fortune_slug": "/company/tenet-healthcare/"
+      "fortune_slug": "/company/tenet-healthcare/",
+      "domain_hints": [
+        "tenethealth.com"
+      ]
     },
     {
       "order": 215,
       "rank": 215,
       "name": "Fiserv",
-      "fortune_slug": "/company/fiserv/"
+      "fortune_slug": "/company/fiserv/",
+      "domain_hints": [
+        "fiserv.com"
+      ]
     },
     {
       "order": 216,
@@ -1354,13 +1834,19 @@
       "order": 219,
       "rank": 219,
       "name": "Colgate-Palmolive",
-      "fortune_slug": "/company/colgate-palmolive/"
+      "fortune_slug": "/company/colgate-palmolive/",
+      "domain_hints": [
+        "colgatepalmolive.com"
+      ]
     },
     {
       "order": 220,
       "rank": 220,
       "name": "Carvana",
-      "fortune_slug": "/company/carvana/"
+      "fortune_slug": "/company/carvana/",
+      "domain_hints": [
+        "carvana.com"
+      ]
     },
     {
       "order": 221,
@@ -1372,25 +1858,37 @@
       "order": 222,
       "rank": 222,
       "name": "Boston Scientific",
-      "fortune_slug": "/company/boston-scientific/"
+      "fortune_slug": "/company/boston-scientific/",
+      "domain_hints": [
+        "bostonscientific.com"
+      ]
     },
     {
       "order": 223,
       "rank": 223,
       "name": "Cheniere Energy",
-      "fortune_slug": "/company/cheniere-energy/"
+      "fortune_slug": "/company/cheniere-energy/",
+      "domain_hints": [
+        "cheniere.com"
+      ]
     },
     {
       "order": 224,
       "rank": 224,
       "name": "Parker-Hannifin",
-      "fortune_slug": "/company/parker-hannifin/"
+      "fortune_slug": "/company/parker-hannifin/",
+      "domain_hints": [
+        "parker.com"
+      ]
     },
     {
       "order": 225,
       "rank": 225,
       "name": "Kimberly-Clark",
-      "fortune_slug": "/company/kimberly-clark/"
+      "fortune_slug": "/company/kimberly-clark/",
+      "domain_hints": [
+        "kimberly-clark.com"
+      ]
     },
     {
       "order": 226,
@@ -1402,31 +1900,46 @@
       "order": 227,
       "rank": 227,
       "name": "General Mills",
-      "fortune_slug": "/company/general-mills/"
+      "fortune_slug": "/company/general-mills/",
+      "domain_hints": [
+        "generalmills.com"
+      ]
     },
     {
       "order": 228,
       "rank": 228,
       "name": "Edison International",
-      "fortune_slug": "/company/edison-international/"
+      "fortune_slug": "/company/edison-international/",
+      "domain_hints": [
+        "edison.com"
+      ]
     },
     {
       "order": 229,
       "rank": 229,
       "name": "AutoZone",
-      "fortune_slug": "/company/autozone/"
+      "fortune_slug": "/company/autozone/",
+      "domain_hints": [
+        "autozone.com"
+      ]
     },
     {
       "order": 230,
       "rank": 230,
       "name": "Ameriprise Financial",
-      "fortune_slug": "/company/ameriprise-financial/"
+      "fortune_slug": "/company/ameriprise-financial/",
+      "domain_hints": [
+        "ameriprise.com"
+      ]
     },
     {
       "order": 231,
       "rank": 231,
       "name": "Intuit",
-      "fortune_slug": "/company/intuit/"
+      "fortune_slug": "/company/intuit/",
+      "domain_hints": [
+        "intuit.com"
+      ]
     },
     {
       "order": 232,
@@ -1438,37 +1951,55 @@
       "order": 233,
       "rank": 233,
       "name": "Cleveland-Cliffs",
-      "fortune_slug": "/company/cleveland-cliffs/"
+      "fortune_slug": "/company/cleveland-cliffs/",
+      "domain_hints": [
+        "clevelandcliffs.com"
+      ]
     },
     {
       "order": 234,
       "rank": 234,
       "name": "Global Partners",
-      "fortune_slug": "/company/global-partners/"
+      "fortune_slug": "/company/global-partners/",
+      "domain_hints": [
+        "globalpartnership.org"
+      ]
     },
     {
       "order": 235,
       "rank": 235,
       "name": "Aramark",
-      "fortune_slug": "/company/aramark/"
+      "fortune_slug": "/company/aramark/",
+      "domain_hints": [
+        "aramark.com"
+      ]
     },
     {
       "order": 236,
       "rank": 236,
       "name": "Corebridge Financial",
-      "fortune_slug": "/company/corebridge-financial/"
+      "fortune_slug": "/company/corebridge-financial/",
+      "domain_hints": [
+        "corebridgefinancial.com"
+      ]
     },
     {
       "order": 237,
       "rank": 237,
       "name": "Loews",
-      "fortune_slug": "/company/loews/"
+      "fortune_slug": "/company/loews/",
+      "domain_hints": [
+        "loewshotels.com"
+      ]
     },
     {
       "order": 238,
       "rank": 238,
       "name": "Lam Research",
-      "fortune_slug": "/company/lam-research/"
+      "fortune_slug": "/company/lam-research/",
+      "domain_hints": [
+        "lamresearch.com"
+      ]
     },
     {
       "order": 239,
@@ -1480,13 +2011,19 @@
       "order": 240,
       "rank": 240,
       "name": "Pacific Life",
-      "fortune_slug": "/company/pacific-life/"
+      "fortune_slug": "/company/pacific-life/",
+      "domain_hints": [
+        "pacificlife.com"
+      ]
     },
     {
       "order": 241,
       "rank": 241,
       "name": "Auto-Owners Insurance",
-      "fortune_slug": "/company/auto-owners-insurance/"
+      "fortune_slug": "/company/auto-owners-insurance/",
+      "domain_hints": [
+        "auto-owners.com"
+      ]
     },
     {
       "order": 242,
@@ -1504,7 +2041,10 @@
       "order": 244,
       "rank": 244,
       "name": "Steel Dynamics",
-      "fortune_slug": "/company/steel-dynamics/"
+      "fortune_slug": "/company/steel-dynamics/",
+      "domain_hints": [
+        "steeldynamics.com"
+      ]
     },
     {
       "order": 245,
@@ -1516,13 +2056,19 @@
       "order": 246,
       "rank": 246,
       "name": "Asbury Automotive Group",
-      "fortune_slug": "/company/asbury-automotive-group/"
+      "fortune_slug": "/company/asbury-automotive-group/",
+      "domain_hints": [
+        "asburyauto.com"
+      ]
     },
     {
       "order": 247,
       "rank": 247,
       "name": "ManpowerGroup",
-      "fortune_slug": "/company/manpowergroup/"
+      "fortune_slug": "/company/manpowergroup/",
+      "domain_hints": [
+        "manpowergroup.com"
+      ]
     },
     {
       "order": 248,
@@ -1550,7 +2096,10 @@
       "order": 251,
       "rank": 251,
       "name": "Vistra",
-      "fortune_slug": "/company/vistra-energy/"
+      "fortune_slug": "/company/vistra-energy/",
+      "domain_hints": [
+        "vistracorp.com"
+      ]
     },
     {
       "order": 252,
@@ -1562,13 +2111,19 @@
       "order": 253,
       "rank": 253,
       "name": "MGM Resorts International",
-      "fortune_slug": "/company/mgm-resorts-international/"
+      "fortune_slug": "/company/mgm-resorts-international/",
+      "domain_hints": [
+        "mgmresorts.com"
+      ]
     },
     {
       "order": 254,
       "rank": 254,
       "name": "Corteva",
-      "fortune_slug": "/company/corteva/"
+      "fortune_slug": "/company/corteva/",
+      "domain_hints": [
+        "corteva.com"
+      ]
     },
     {
       "order": 255,
@@ -1580,13 +2135,19 @@
       "order": 256,
       "rank": 256,
       "name": "PulteGroup",
-      "fortune_slug": "/company/pultegroup/"
+      "fortune_slug": "/company/pultegroup/",
+      "domain_hints": [
+        "pultegroupinc.com"
+      ]
     },
     {
       "order": 257,
       "rank": 257,
       "name": "Omnicom Group",
-      "fortune_slug": "/company/omnicom-group/"
+      "fortune_slug": "/company/omnicom-group/",
+      "domain_hints": [
+        "omnicomgroup.com"
+      ]
     },
     {
       "order": 258,
@@ -1598,7 +2159,10 @@
       "order": 259,
       "rank": 259,
       "name": "Devon Energy",
-      "fortune_slug": "/company/devon-energy/"
+      "fortune_slug": "/company/devon-energy/",
+      "domain_hints": [
+        "devonenergy.com"
+      ]
     },
     {
       "order": 260,
@@ -1613,19 +2177,28 @@
       "order": 261,
       "rank": 261,
       "name": "Aflac",
-      "fortune_slug": "/company/aflac/"
+      "fortune_slug": "/company/aflac/",
+      "domain_hints": [
+        "aflac.com"
+      ]
     },
     {
       "order": 262,
       "rank": 262,
       "name": "Targa Resources",
-      "fortune_slug": "/company/targa-resources/"
+      "fortune_slug": "/company/targa-resources/",
+      "domain_hints": [
+        "targaresources.com"
+      ]
     },
     {
       "order": 263,
       "rank": 263,
       "name": "Murphy USA",
-      "fortune_slug": "/company/murphy-usa/"
+      "fortune_slug": "/company/murphy-usa/",
+      "domain_hints": [
+        "murphyusa.com"
+      ]
     },
     {
       "order": 264,
@@ -1634,19 +2207,28 @@
       "fortune_slug": "/company/lpl-financial-holdings/",
       "aliases": [
         "LPL Financial"
+      ],
+      "domain_hints": [
+        "lpl.com"
       ]
     },
     {
       "order": 265,
       "rank": 265,
       "name": "EMCOR Group",
-      "fortune_slug": "/company/emcor-group/"
+      "fortune_slug": "/company/emcor-group/",
+      "domain_hints": [
+        "emcorgroup.com"
+      ]
     },
     {
       "order": 266,
       "rank": 266,
       "name": "Kinder Morgan",
-      "fortune_slug": "/company/kinder-morgan/"
+      "fortune_slug": "/company/kinder-morgan/",
+      "domain_hints": [
+        "kindermorgan.com"
+      ]
     },
     {
       "order": 267,
@@ -1658,13 +2240,19 @@
       "order": 268,
       "rank": 268,
       "name": "Keurig Dr Pepper",
-      "fortune_slug": "/company/dr-pepper-snapple-group/"
+      "fortune_slug": "/company/dr-pepper-snapple-group/",
+      "domain_hints": [
+        "keurigdrpepper.com"
+      ]
     },
     {
       "order": 269,
       "rank": 269,
       "name": "Republic Services",
-      "fortune_slug": "/company/republic-services/"
+      "fortune_slug": "/company/republic-services/",
+      "domain_hints": [
+        "republicservices.com"
+      ]
     },
     {
       "order": 270,
@@ -1682,13 +2270,19 @@
       "order": 272,
       "rank": 272,
       "name": "Dominion Energy",
-      "fortune_slug": "/company/dominion-resources/"
+      "fortune_slug": "/company/dominion-resources/",
+      "domain_hints": [
+        "dominionenergy.com"
+      ]
     },
     {
       "order": 273,
       "rank": 273,
       "name": "Land O'Lakes",
-      "fortune_slug": "/company/land-olakes/"
+      "fortune_slug": "/company/land-olakes/",
+      "domain_hints": [
+        "landolakes.com"
+      ]
     },
     {
       "order": 274,
@@ -1697,19 +2291,28 @@
       "fortune_slug": "/company/quintiles-ims-holdings/",
       "aliases": [
         "IQVIA"
+      ],
+      "domain_hints": [
+        "iqvia.com"
       ]
     },
     {
       "order": 275,
       "rank": 275,
       "name": "Fox",
-      "fortune_slug": "/company/fox/"
+      "fortune_slug": "/company/fox/",
+      "domain_hints": [
+        "foxnews.com"
+      ]
     },
     {
       "order": 276,
       "rank": 276,
       "name": "AECOM",
-      "fortune_slug": "/company/aecom/"
+      "fortune_slug": "/company/aecom/",
+      "domain_hints": [
+        "aecom.com"
+      ]
     },
     {
       "order": 277,
@@ -1730,13 +2333,19 @@
       "order": 279,
       "rank": 279,
       "name": "United Rentals",
-      "fortune_slug": "/company/united-rentals/"
+      "fortune_slug": "/company/united-rentals/",
+      "domain_hints": [
+        "unitedrentals.com"
+      ]
     },
     {
       "order": 280,
       "rank": 280,
       "name": "Ecolab",
-      "fortune_slug": "/company/ecolab/"
+      "fortune_slug": "/company/ecolab/",
+      "domain_hints": [
+        "ecolab.com"
+      ]
     },
     {
       "order": 281,
@@ -1760,73 +2369,109 @@
       "order": 284,
       "rank": 284,
       "name": "PPG Industries",
-      "fortune_slug": "/company/ppg-industries/"
+      "fortune_slug": "/company/ppg-industries/",
+      "domain_hints": [
+        "ppg.com"
+      ]
     },
     {
       "order": 285,
       "rank": 285,
       "name": "DTE Energy",
-      "fortune_slug": "/company/dte-energy/"
+      "fortune_slug": "/company/dte-energy/",
+      "domain_hints": [
+        "dteenergy.com"
+      ]
     },
     {
       "order": 286,
       "rank": 286,
       "name": "Corning",
-      "fortune_slug": "/company/corning/"
+      "fortune_slug": "/company/corning/",
+      "domain_hints": [
+        "corningcu.org"
+      ]
     },
     {
       "order": 287,
       "rank": 287,
       "name": "Principal Financial",
-      "fortune_slug": "/company/principal-financial/"
+      "fortune_slug": "/company/principal-financial/",
+      "domain_hints": [
+        "principal.com"
+      ]
     },
     {
       "order": 288,
       "rank": 288,
       "name": "Mutual of Omaha",
-      "fortune_slug": "/company/mutual-of-omaha-insurance/"
+      "fortune_slug": "/company/mutual-of-omaha-insurance/",
+      "domain_hints": [
+        "mutualofomaha.com"
+      ]
     },
     {
       "order": 289,
       "rank": 289,
       "name": "Kohl's",
-      "fortune_slug": "/company/kohls/"
+      "fortune_slug": "/company/kohls/",
+      "domain_hints": [
+        "kohls.com"
+      ]
     },
     {
       "order": 290,
       "rank": 290,
       "name": "Tractor Supply",
-      "fortune_slug": "/company/tractor-supply/"
+      "fortune_slug": "/company/tractor-supply/",
+      "domain_hints": [
+        "tractorsupply.com"
+      ]
     },
     {
       "order": 291,
       "rank": 291,
       "name": "Whirlpool",
-      "fortune_slug": "/company/whirlpool/"
+      "fortune_slug": "/company/whirlpool/",
+      "domain_hints": [
+        "whirlpool.com"
+      ]
     },
     {
       "order": 292,
       "rank": 292,
       "name": "Fluor",
-      "fortune_slug": "/company/fluor/"
+      "fortune_slug": "/company/fluor/",
+      "domain_hints": [
+        "fluor.com"
+      ]
     },
     {
       "order": 293,
       "rank": 293,
       "name": "Gap",
-      "fortune_slug": "/company/gap/"
+      "fortune_slug": "/company/gap/",
+      "domain_hints": [
+        "gap.com"
+      ]
     },
     {
       "order": 294,
       "rank": 294,
       "name": "S&P Global",
-      "fortune_slug": "/company/sp-global/"
+      "fortune_slug": "/company/sp-global/",
+      "domain_hints": [
+        "spglobal.com"
+      ]
     },
     {
       "order": 295,
       "rank": 295,
       "name": "Ally Financial",
-      "fortune_slug": "/company/ally-financial/"
+      "fortune_slug": "/company/ally-financial/",
+      "domain_hints": [
+        "allyfinancialcoaching.ca"
+      ]
     },
     {
       "order": 296,
@@ -1838,7 +2483,10 @@
       "order": 297,
       "rank": 297,
       "name": "Sonic Automotive",
-      "fortune_slug": "/company/sonic-automotive/"
+      "fortune_slug": "/company/sonic-automotive/",
+      "domain_hints": [
+        "sonicautomotive.com"
+      ]
     },
     {
       "order": 298,
@@ -1850,7 +2498,10 @@
       "order": 299,
       "rank": 299,
       "name": "Kenvue",
-      "fortune_slug": "/company/kenvue/"
+      "fortune_slug": "/company/kenvue/",
+      "domain_hints": [
+        "kenvue.com"
+      ]
     },
     {
       "order": 300,
@@ -1865,43 +2516,64 @@
       "order": 301,
       "rank": 301,
       "name": "Diamondback Energy",
-      "fortune_slug": "/company/diamondback-energy/"
+      "fortune_slug": "/company/diamondback-energy/",
+      "domain_hints": [
+        "diamondbackenergy.com"
+      ]
     },
     {
       "order": 302,
       "rank": 302,
       "name": "EchoStar",
-      "fortune_slug": "/company/echostar/"
+      "fortune_slug": "/company/echostar/",
+      "domain_hints": [
+        "echostar.com"
+      ]
     },
     {
       "order": 303,
       "rank": 303,
       "name": "Textron",
-      "fortune_slug": "/company/textron/"
+      "fortune_slug": "/company/textron/",
+      "domain_hints": [
+        "textron.com"
+      ]
     },
     {
       "order": 304,
       "rank": 304,
       "name": "Expedia Group",
-      "fortune_slug": "/company/expedia-group/"
+      "fortune_slug": "/company/expedia-group/",
+      "domain_hints": [
+        "expediagroup.com"
+      ]
     },
     {
       "order": 305,
       "rank": 305,
       "name": "W.R. Berkley",
-      "fortune_slug": "/company/w-r-berkley/"
+      "fortune_slug": "/company/w-r-berkley/",
+      "domain_hints": [
+        "berkley.com"
+      ]
     },
     {
       "order": 306,
       "rank": 306,
       "name": "Xcel Energy",
-      "fortune_slug": "/company/xcel-energy/"
+      "fortune_slug": "/company/xcel-energy/",
+      "domain_hints": [
+        "xcelenergy.com"
+      ]
     },
     {
       "order": 307,
       "rank": 307,
       "name": "FirstEnergy",
-      "fortune_slug": "/company/firstenergy/"
+      "fortune_slug": "/company/firstenergy/",
+      "domain_hints": [
+        "firstenergycorp.com"
+      ]
     },
     {
       "order": 308,
@@ -1919,7 +2591,10 @@
       "order": 310,
       "rank": 310,
       "name": "Blackstone",
-      "fortune_slug": "/company/blackstone-group/"
+      "fortune_slug": "/company/blackstone-group/",
+      "domain_hints": [
+        "blackstone.com"
+      ]
     },
     {
       "order": 311,
@@ -1931,7 +2606,10 @@
       "order": 312,
       "rank": 312,
       "name": "Otis Worldwide",
-      "fortune_slug": "/company/otis-worldwide/"
+      "fortune_slug": "/company/otis-worldwide/",
+      "domain_hints": [
+        "otisworldwide.com"
+      ]
     },
     {
       "order": 313,
@@ -1958,31 +2636,46 @@
       "order": 316,
       "rank": 316,
       "name": "BorgWarner",
-      "fortune_slug": "/company/borgwarner/"
+      "fortune_slug": "/company/borgwarner/",
+      "domain_hints": [
+        "borgwarner.com"
+      ]
     },
     {
       "order": 317,
       "rank": 317,
       "name": "Northern Trust",
-      "fortune_slug": "/company/northern-trust/"
+      "fortune_slug": "/company/northern-trust/",
+      "domain_hints": [
+        "northerntrust.com"
+      ]
     },
     {
       "order": 318,
       "rank": 318,
       "name": "Viatris",
-      "fortune_slug": "/company/viatris/"
+      "fortune_slug": "/company/viatris/",
+      "domain_hints": [
+        "viatris.com"
+      ]
     },
     {
       "order": 319,
       "rank": 319,
       "name": "MasTec",
-      "fortune_slug": "/company/mastec/"
+      "fortune_slug": "/company/mastec/",
+      "domain_hints": [
+        "mastec.com"
+      ]
     },
     {
       "order": 320,
       "rank": 320,
       "name": "Reliance",
-      "fortune_slug": "/company/reliance-steel-aluminum/"
+      "fortune_slug": "/company/reliance-steel-aluminum/",
+      "domain_hints": [
+        "reliancedigital.in"
+      ]
     },
     {
       "order": 321,
@@ -2000,19 +2693,28 @@
       "order": 323,
       "rank": 323,
       "name": "BrightSpring Health Services",
-      "fortune_slug": "/company/brightspring-health-services/"
+      "fortune_slug": "/company/brightspring-health-services/",
+      "domain_hints": [
+        "brightspringhealth.com"
+      ]
     },
     {
       "order": 324,
       "rank": 324,
       "name": "CSX",
-      "fortune_slug": "/company/csx/"
+      "fortune_slug": "/company/csx/",
+      "domain_hints": [
+        "csx.com"
+      ]
     },
     {
       "order": 325,
       "rank": 325,
       "name": "LKQ",
-      "fortune_slug": "/company/lkq/"
+      "fortune_slug": "/company/lkq/",
+      "domain_hints": [
+        "lkqpickyourpart.com"
+      ]
     },
     {
       "order": 326,
@@ -2033,49 +2735,73 @@
       "order": 328,
       "rank": 328,
       "name": "Venture Global",
-      "fortune_slug": "/company/venutre-global/"
+      "fortune_slug": "/company/venutre-global/",
+      "domain_hints": [
+        "venture.hk"
+      ]
     },
     {
       "order": 329,
       "rank": 329,
       "name": "DoorDash",
-      "fortune_slug": "/company/doordash/"
+      "fortune_slug": "/company/doordash/",
+      "domain_hints": [
+        "doordash.com"
+      ]
     },
     {
       "order": 330,
       "rank": 330,
       "name": "Sempra",
-      "fortune_slug": "/company/sempra-energy/"
+      "fortune_slug": "/company/sempra-energy/",
+      "domain_hints": [
+        "sempra.com"
+      ]
     },
     {
       "order": 331,
       "rank": 331,
       "name": "DaVita",
-      "fortune_slug": "/company/davita/"
+      "fortune_slug": "/company/davita/",
+      "domain_hints": [
+        "davita.com"
+      ]
     },
     {
       "order": 332,
       "rank": 332,
       "name": "Eversource Energy",
-      "fortune_slug": "/company/eversource-energy/"
+      "fortune_slug": "/company/eversource-energy/",
+      "domain_hints": [
+        "eversource.com"
+      ]
     },
     {
       "order": 333,
       "rank": 333,
       "name": "ServiceNow",
-      "fortune_slug": "/company/servicenow/"
+      "fortune_slug": "/company/servicenow/",
+      "domain_hints": [
+        "servicenow.com"
+      ]
     },
     {
       "order": 334,
       "rank": 334,
       "name": "M&T Bank",
-      "fortune_slug": "/company/mt-bank-corp/"
+      "fortune_slug": "/company/mt-bank-corp/",
+      "domain_hints": [
+        "mtb.com"
+      ]
     },
     {
       "order": 335,
       "rank": 335,
       "name": "Henry Schein",
-      "fortune_slug": "/company/henry-schein/"
+      "fortune_slug": "/company/henry-schein/",
+      "domain_hints": [
+        "henryschein.com"
+      ]
     },
     {
       "order": 336,
@@ -2087,25 +2813,37 @@
       "order": 337,
       "rank": 337,
       "name": "Ball",
-      "fortune_slug": "/company/ball/"
+      "fortune_slug": "/company/ball/",
+      "domain_hints": [
+        "ballotpedia.org"
+      ]
     },
     {
       "order": 338,
       "rank": 338,
       "name": "Unum Group",
-      "fortune_slug": "/company/unum-group/"
+      "fortune_slug": "/company/unum-group/",
+      "domain_hints": [
+        "unumgroup.com"
+      ]
     },
     {
       "order": 339,
       "rank": 339,
       "name": "Las Vegas Sands",
-      "fortune_slug": "/company/las-vegas-sands/"
+      "fortune_slug": "/company/las-vegas-sands/",
+      "domain_hints": [
+        "sands.com"
+      ]
     },
     {
       "order": 340,
       "rank": 340,
       "name": "Entergy",
-      "fortune_slug": "/company/entergy/"
+      "fortune_slug": "/company/entergy/",
+      "domain_hints": [
+        "entergy.com"
+      ]
     },
     {
       "order": 341,
@@ -2123,25 +2861,37 @@
       "order": 343,
       "rank": 343,
       "name": "DXC Technology",
-      "fortune_slug": "/company/dxc-technology/"
+      "fortune_slug": "/company/dxc-technology/",
+      "domain_hints": [
+        "dxc.com"
+      ]
     },
     {
       "order": 344,
       "rank": 344,
       "name": "Alcoa",
-      "fortune_slug": "/company/alcoa/"
+      "fortune_slug": "/company/alcoa/",
+      "domain_hints": [
+        "alcoa.com"
+      ]
     },
     {
       "order": 345,
       "rank": 345,
       "name": "Assurant",
-      "fortune_slug": "/company/assurant/"
+      "fortune_slug": "/company/assurant/",
+      "domain_hints": [
+        "assurant.com"
+      ]
     },
     {
       "order": 346,
       "rank": 346,
       "name": "Ryder System",
-      "fortune_slug": "/company/ryder-system/"
+      "fortune_slug": "/company/ryder-system/",
+      "domain_hints": [
+        "ryder.com"
+      ]
     },
     {
       "order": 347,
@@ -2159,7 +2909,10 @@
       "order": 349,
       "rank": 349,
       "name": "Chewy",
-      "fortune_slug": "/company/chewy/"
+      "fortune_slug": "/company/chewy/",
+      "domain_hints": [
+        "chewy.com"
+      ]
     },
     {
       "order": 350,
@@ -2183,19 +2936,28 @@
       "order": 353,
       "rank": 353,
       "name": "Wayfair",
-      "fortune_slug": "/company/wayfair/"
+      "fortune_slug": "/company/wayfair/",
+      "domain_hints": [
+        "wayfair.com"
+      ]
     },
     {
       "order": 354,
       "rank": 354,
       "name": "Lumen Technologies",
-      "fortune_slug": "/company/centurylink/"
+      "fortune_slug": "/company/centurylink/",
+      "domain_hints": [
+        "lumenpartnersolutionsguide.com"
+      ]
     },
     {
       "order": 355,
       "rank": 355,
       "name": "Ulta Beauty",
-      "fortune_slug": "/company/ulta-beauty/"
+      "fortune_slug": "/company/ulta-beauty/",
+      "domain_hints": [
+        "ulta.com"
+      ]
     },
     {
       "order": 356,
@@ -2204,19 +2966,28 @@
       "fortune_slug": "/company/crown-holdings/",
       "aliases": [
         "Crown"
+      ],
+      "domain_hints": [
+        "crowncork.com"
       ]
     },
     {
       "order": 357,
       "rank": 357,
       "name": "Airbnb",
-      "fortune_slug": "/company/airbnb/"
+      "fortune_slug": "/company/airbnb/",
+      "domain_hints": [
+        "airbnb.com"
+      ]
     },
     {
       "order": 358,
       "rank": 358,
       "name": "AES",
-      "fortune_slug": "/company/aes/"
+      "fortune_slug": "/company/aes/",
+      "domain_hints": [
+        "aessuccess.org"
+      ]
     },
     {
       "order": 359,
@@ -2234,25 +3005,37 @@
       "order": 361,
       "rank": 361,
       "name": "KLA",
-      "fortune_slug": "/company/kla-tencor/"
+      "fortune_slug": "/company/kla-tencor/",
+      "domain_hints": [
+        "klaviyo.com"
+      ]
     },
     {
       "order": 362,
       "rank": 362,
       "name": "Expand Energy",
-      "fortune_slug": "/company/chesapeake-energy/"
+      "fortune_slug": "/company/chesapeake-energy/",
+      "domain_hints": [
+        "expandenergy.com"
+      ]
     },
     {
       "order": 363,
       "rank": 363,
       "name": "Hormel Foods",
-      "fortune_slug": "/company/hormel-foods/"
+      "fortune_slug": "/company/hormel-foods/",
+      "domain_hints": [
+        "hormelfoods.com"
+      ]
     },
     {
       "order": 364,
       "rank": 364,
       "name": "Darden Restaurants",
-      "fortune_slug": "/company/darden-restaurants/"
+      "fortune_slug": "/company/darden-restaurants/",
+      "domain_hints": [
+        "darden.com"
+      ]
     },
     {
       "order": 365,
@@ -2264,7 +3047,10 @@
       "order": 366,
       "rank": 366,
       "name": "Mosaic",
-      "fortune_slug": "/company/mosaic/"
+      "fortune_slug": "/company/mosaic/",
+      "domain_hints": [
+        "joinmosaic.com"
+      ]
     },
     {
       "order": 367,
@@ -2279,13 +3065,19 @@
       "order": 368,
       "rank": 368,
       "name": "Air Products & Chemicals",
-      "fortune_slug": "/company/air-products-chemicals/"
+      "fortune_slug": "/company/air-products-chemicals/",
+      "domain_hints": [
+        "airproducts.com"
+      ]
     },
     {
       "order": 369,
       "rank": 369,
       "name": "Jacobs Solutions",
-      "fortune_slug": "/company/jacobs-engineering-group/"
+      "fortune_slug": "/company/jacobs-engineering-group/",
+      "domain_hints": [
+        "jacobssolutions.com"
+      ]
     },
     {
       "order": 370,
@@ -2297,7 +3089,10 @@
       "order": 371,
       "rank": 371,
       "name": "J.B. Hunt Transport Services",
-      "fortune_slug": "/company/j-b-hunt-transport-services/"
+      "fortune_slug": "/company/j-b-hunt-transport-services/",
+      "domain_hints": [
+        "jbhunt.com"
+      ]
     },
     {
       "order": 372,
@@ -2312,13 +3107,19 @@
       "order": 373,
       "rank": 373,
       "name": "Williams",
-      "fortune_slug": "/company/williams/"
+      "fortune_slug": "/company/williams/",
+      "domain_hints": [
+        "williams-sonoma.com"
+      ]
     },
     {
       "order": 374,
       "rank": 374,
       "name": "Chipotle Mexican Grill",
-      "fortune_slug": "/company/chipotle-mexican-grill/"
+      "fortune_slug": "/company/chipotle-mexican-grill/",
+      "domain_hints": [
+        "chipotle.com"
+      ]
     },
     {
       "order": 375,
@@ -2339,13 +3140,19 @@
       "order": 377,
       "rank": 377,
       "name": "Hershey",
-      "fortune_slug": "/company/hershey/"
+      "fortune_slug": "/company/hershey/",
+      "domain_hints": [
+        "hersheypa.com"
+      ]
     },
     {
       "order": 378,
       "rank": 378,
       "name": "Motorola Solutions",
-      "fortune_slug": "/company/motorola-solutions/"
+      "fortune_slug": "/company/motorola-solutions/",
+      "domain_hints": [
+        "motorolasolutions.com"
+      ]
     },
     {
       "order": 379,
@@ -2360,19 +3167,28 @@
       "order": 380,
       "rank": 380,
       "name": "Avis Budget Group",
-      "fortune_slug": "/company/avis-budget-group/"
+      "fortune_slug": "/company/avis-budget-group/",
+      "domain_hints": [
+        "avisbudgetgroup.jobs"
+      ]
     },
     {
       "order": 381,
       "rank": 381,
       "name": "Conagra Brands",
-      "fortune_slug": "/company/conagra-brands/"
+      "fortune_slug": "/company/conagra-brands/",
+      "domain_hints": [
+        "conagrabrands.com"
+      ]
     },
     {
       "order": 382,
       "rank": 382,
       "name": "Baxter International",
-      "fortune_slug": "/company/baxter-international/"
+      "fortune_slug": "/company/baxter-international/",
+      "domain_hints": [
+        "baxter.com"
+      ]
     },
     {
       "order": 383,
@@ -2384,31 +3200,46 @@
       "order": 384,
       "rank": 384,
       "name": "Caesars Entertainment",
-      "fortune_slug": "/company/eldorado-resorts/"
+      "fortune_slug": "/company/eldorado-resorts/",
+      "domain_hints": [
+        "caesars.com"
+      ]
     },
     {
       "order": 385,
       "rank": 385,
       "name": "Owens Corning",
-      "fortune_slug": "/company/owens-corning/"
+      "fortune_slug": "/company/owens-corning/",
+      "domain_hints": [
+        "owenscorning.com"
+      ]
     },
     {
       "order": 386,
       "rank": 386,
       "name": "KeyCorp",
-      "fortune_slug": "/company/keycorp/"
+      "fortune_slug": "/company/keycorp/",
+      "domain_hints": [
+        "key.cw"
+      ]
     },
     {
       "order": 387,
       "rank": 387,
       "name": "Thrivent Financial",
-      "fortune_slug": "/company/thrivent-financial-for-lutherans/"
+      "fortune_slug": "/company/thrivent-financial-for-lutherans/",
+      "domain_hints": [
+        "thriventfinancial.com"
+      ]
     },
     {
       "order": 388,
       "rank": 388,
       "name": "Westlake",
-      "fortune_slug": "/company/westlake-chemical/"
+      "fortune_slug": "/company/westlake-chemical/",
+      "domain_hints": [
+        "westlakefinancial.com"
+      ]
     },
     {
       "order": 389,
@@ -2420,7 +3251,10 @@
       "order": 390,
       "rank": 390,
       "name": "Molson Coors Beverage",
-      "fortune_slug": "/company/molson-coors-brewing/"
+      "fortune_slug": "/company/molson-coors-brewing/",
+      "domain_hints": [
+        "molsoncoors.com"
+      ]
     },
     {
       "order": 391,
@@ -2432,13 +3266,19 @@
       "order": 392,
       "rank": 392,
       "name": "FM",
-      "fortune_slug": "/company/fm-global/"
+      "fortune_slug": "/company/fm-global/",
+      "domain_hints": [
+        "fmtc.co"
+      ]
     },
     {
       "order": 393,
       "rank": 393,
       "name": "Ebay",
-      "fortune_slug": "/company/ebay/"
+      "fortune_slug": "/company/ebay/",
+      "domain_hints": [
+        "ebay.com"
+      ]
     },
     {
       "order": 394,
@@ -2450,19 +3290,28 @@
       "order": 395,
       "rank": 395,
       "name": "Quest Diagnostics",
-      "fortune_slug": "/company/quest-diagnostics/"
+      "fortune_slug": "/company/quest-diagnostics/",
+      "domain_hints": [
+        "questdiagnostics.com"
+      ]
     },
     {
       "order": 396,
       "rank": 396,
       "name": "Analog Devices",
-      "fortune_slug": "/company/analog-devices/"
+      "fortune_slug": "/company/analog-devices/",
+      "domain_hints": [
+        "analog.com"
+      ]
     },
     {
       "order": 397,
       "rank": 397,
       "name": "Andersons",
-      "fortune_slug": "/company/andersons/"
+      "fortune_slug": "/company/andersons/",
+      "domain_hints": [
+        "andersonshomeandgarden.com"
+      ]
     },
     {
       "order": 398,
@@ -2474,7 +3323,10 @@
       "order": 399,
       "rank": 399,
       "name": "Toll Brothers",
-      "fortune_slug": "/company/toll-brothers/"
+      "fortune_slug": "/company/toll-brothers/",
+      "domain_hints": [
+        "tollbrothers.com"
+      ]
     },
     {
       "order": 400,
@@ -2486,7 +3338,10 @@
       "order": 401,
       "rank": 401,
       "name": "Welltower",
-      "fortune_slug": "/company/welltower/"
+      "fortune_slug": "/company/welltower/",
+      "domain_hints": [
+        "welltower.com"
+      ]
     },
     {
       "order": 402,
@@ -2498,13 +3353,19 @@
       "order": 403,
       "rank": 403,
       "name": "Autoliv",
-      "fortune_slug": "/company/autoliv/"
+      "fortune_slug": "/company/autoliv/",
+      "domain_hints": [
+        "autoliv.com"
+      ]
     },
     {
       "order": 404,
       "rank": 404,
       "name": "Mohawk Industries",
-      "fortune_slug": "/company/mohawk-industries/"
+      "fortune_slug": "/company/mohawk-industries/",
+      "domain_hints": [
+        "mohawkind.com"
+      ]
     },
     {
       "order": 405,
@@ -2535,13 +3396,19 @@
       "order": 408,
       "rank": 408,
       "name": "American Tower",
-      "fortune_slug": "/company/american-tower/"
+      "fortune_slug": "/company/american-tower/",
+      "domain_hints": [
+        "americantower.com"
+      ]
     },
     {
       "order": 409,
       "rank": 409,
       "name": "NVR",
-      "fortune_slug": "/company/nvr/"
+      "fortune_slug": "/company/nvr/",
+      "domain_hints": [
+        "nvrinc.com"
+      ]
     },
     {
       "order": 410,
@@ -2553,19 +3420,28 @@
       "order": 411,
       "rank": 411,
       "name": "Oshkosh",
-      "fortune_slug": "/company/oshkosh/"
+      "fortune_slug": "/company/oshkosh/",
+      "domain_hints": [
+        "oshkosh.com"
+      ]
     },
     {
       "order": 412,
       "rank": 412,
       "name": "Cintas",
-      "fortune_slug": "/company/cintas/"
+      "fortune_slug": "/company/cintas/",
+      "domain_hints": [
+        "cintasdecorrer.com"
+      ]
     },
     {
       "order": 413,
       "rank": 413,
       "name": "Campbell's",
-      "fortune_slug": "/company/campbell-soup/"
+      "fortune_slug": "/company/campbell-soup/",
+      "domain_hints": [
+        "campbellsville.edu"
+      ]
     },
     {
       "order": 414,
@@ -2580,7 +3456,10 @@
       "order": 415,
       "rank": 415,
       "name": "Global Payments",
-      "fortune_slug": "/company/global-payments/"
+      "fortune_slug": "/company/global-payments/",
+      "domain_hints": [
+        "globalpaymentsintegrated.com"
+      ]
     },
     {
       "order": 416,
@@ -2592,7 +3471,10 @@
       "order": 417,
       "rank": 417,
       "name": "AGCO",
-      "fortune_slug": "/company/agco/"
+      "fortune_slug": "/company/agco/",
+      "domain_hints": [
+        "agcocorp.com"
+      ]
     },
     {
       "order": 418,
@@ -2604,19 +3486,28 @@
       "order": 419,
       "rank": 419,
       "name": "Ace Hardware",
-      "fortune_slug": "/company/ace-hardware-corporation/"
+      "fortune_slug": "/company/ace-hardware-corporation/",
+      "domain_hints": [
+        "acehardware.com"
+      ]
     },
     {
       "order": 420,
       "rank": 420,
       "name": "Dana",
-      "fortune_slug": "/company/dana/"
+      "fortune_slug": "/company/dana/",
+      "domain_hints": [
+        "danawa.com"
+      ]
     },
     {
       "order": 421,
       "rank": 421,
       "name": "Biogen",
-      "fortune_slug": "/company/biogen/"
+      "fortune_slug": "/company/biogen/",
+      "domain_hints": [
+        "biogen.com"
+      ]
     },
     {
       "order": 422,
@@ -2625,31 +3516,46 @@
       "fortune_slug": "/company/news-corp/",
       "aliases": [
         "News"
+      ],
+      "domain_hints": [
+        "newscorpaustralia.com"
       ]
     },
     {
       "order": 423,
       "rank": 423,
       "name": "Concentrix",
-      "fortune_slug": "/company/concentrix/"
+      "fortune_slug": "/company/concentrix/",
+      "domain_hints": [
+        "concentrix.com"
+      ]
     },
     {
       "order": 424,
       "rank": 424,
       "name": "WEC Energy Group",
-      "fortune_slug": "/company/wec-energy-group/"
+      "fortune_slug": "/company/wec-energy-group/",
+      "domain_hints": [
+        "wecenergygroup.com"
+      ]
     },
     {
       "order": 425,
       "rank": 425,
       "name": "VF",
-      "fortune_slug": "/company/vf/"
+      "fortune_slug": "/company/vf/",
+      "domain_hints": [
+        "vfsglobal.com"
+      ]
     },
     {
       "order": 426,
       "rank": 426,
       "name": "Seaboard",
-      "fortune_slug": "/company/seaboard/"
+      "fortune_slug": "/company/seaboard/",
+      "domain_hints": [
+        "seaboardmarine.com"
+      ]
     },
     {
       "order": 427,
@@ -2667,25 +3573,37 @@
       "order": 429,
       "rank": 429,
       "name": "Thor Industries",
-      "fortune_slug": "/company/thor-industries/"
+      "fortune_slug": "/company/thor-industries/",
+      "domain_hints": [
+        "thorindustries.com"
+      ]
     },
     {
       "order": 430,
       "rank": 430,
       "name": "Workday",
-      "fortune_slug": "/company/workday/"
+      "fortune_slug": "/company/workday/",
+      "domain_hints": [
+        "workday.com"
+      ]
     },
     {
       "order": 431,
       "rank": 431,
       "name": "Celanese",
-      "fortune_slug": "/company/celanese/"
+      "fortune_slug": "/company/celanese/",
+      "domain_hints": [
+        "celanese.com"
+      ]
     },
     {
       "order": 432,
       "rank": 432,
       "name": "Western Digital",
-      "fortune_slug": "/company/western-digital/"
+      "fortune_slug": "/company/western-digital/",
+      "domain_hints": [
+        "westerndigital.com"
+      ]
     },
     {
       "order": 433,
@@ -2697,67 +3615,100 @@
       "order": 434,
       "rank": 434,
       "name": "Zoetis",
-      "fortune_slug": "/company/zoetis/"
+      "fortune_slug": "/company/zoetis/",
+      "domain_hints": [
+        "zoetispetcare.com"
+      ]
     },
     {
       "order": 435,
       "rank": 435,
       "name": "CenterPoint Energy",
-      "fortune_slug": "/company/centerpoint-energy/"
+      "fortune_slug": "/company/centerpoint-energy/",
+      "domain_hints": [
+        "centerpointenergy.com"
+      ]
     },
     {
       "order": 436,
       "rank": 436,
       "name": "Equinix",
-      "fortune_slug": "/company/equinix/"
+      "fortune_slug": "/company/equinix/",
+      "domain_hints": [
+        "equinix.com"
+      ]
     },
     {
       "order": 437,
       "rank": 437,
       "name": "Palo Alto Networks",
-      "fortune_slug": "/company/palo-alto-networks/"
+      "fortune_slug": "/company/palo-alto-networks/",
+      "domain_hints": [
+        "paloaltonetworks.com"
+      ]
     },
     {
       "order": 438,
       "rank": 438,
       "name": "APA",
-      "fortune_slug": "/company/apache/"
+      "fortune_slug": "/company/apache/",
+      "domain_hints": [
+        "apartments.com"
+      ]
     },
     {
       "order": 439,
       "rank": 439,
       "name": "Old Republic International",
-      "fortune_slug": "/company/old-republic-international/"
+      "fortune_slug": "/company/old-republic-international/",
+      "domain_hints": [
+        "oldrepublic.com"
+      ]
     },
     {
       "order": 440,
       "rank": 440,
       "name": "Comfort Systems USA",
-      "fortune_slug": "/company/comfort-systems-usa/"
+      "fortune_slug": "/company/comfort-systems-usa/",
+      "domain_hints": [
+        "comfortsystemsusa.com"
+      ]
     },
     {
       "order": 441,
       "rank": 441,
       "name": "JetBlue Airways",
-      "fortune_slug": "/company/jetblue-airways/"
+      "fortune_slug": "/company/jetblue-airways/",
+      "domain_hints": [
+        "jetblue.com"
+      ]
     },
     {
       "order": 442,
       "rank": 442,
       "name": "PPL",
-      "fortune_slug": "/company/ppl/"
+      "fortune_slug": "/company/ppl/",
+      "domain_hints": [
+        "pplelectric.com"
+      ]
     },
     {
       "order": 443,
       "rank": 443,
       "name": "Xylem",
-      "fortune_slug": "/company/xylem/"
+      "fortune_slug": "/company/xylem/",
+      "domain_hints": [
+        "xylem.com"
+      ]
     },
     {
       "order": 444,
       "rank": 444,
       "name": "Arista Networks",
-      "fortune_slug": "/company/arista-networks/"
+      "fortune_slug": "/company/arista-networks/",
+      "domain_hints": [
+        "arista.com"
+      ]
     },
     {
       "order": 445,
@@ -2769,19 +3720,28 @@
       "order": 446,
       "rank": 446,
       "name": "PVH",
-      "fortune_slug": "/company/pvh/"
+      "fortune_slug": "/company/pvh/",
+      "domain_hints": [
+        "pvh.com"
+      ]
     },
     {
       "order": 447,
       "rank": 447,
       "name": "Ovintiv",
-      "fortune_slug": "/company/ovintiv/"
+      "fortune_slug": "/company/ovintiv/",
+      "domain_hints": [
+        "ovintiv.com"
+      ]
     },
     {
       "order": 448,
       "rank": 448,
       "name": "Avery Dennison",
-      "fortune_slug": "/company/avery-dennison/"
+      "fortune_slug": "/company/avery-dennison/",
+      "domain_hints": [
+        "averydennison.com"
+      ]
     },
     {
       "order": 449,
@@ -2799,13 +3759,19 @@
       "order": 451,
       "rank": 451,
       "name": "Prologis",
-      "fortune_slug": "/company/prologis/"
+      "fortune_slug": "/company/prologis/",
+      "domain_hints": [
+        "prologis.com"
+      ]
     },
     {
       "order": 452,
       "rank": 452,
       "name": "Franklin Templeton",
-      "fortune_slug": "/company/franklin-resources/"
+      "fortune_slug": "/company/franklin-resources/",
+      "domain_hints": [
+        "franklintempleton.com"
+      ]
     },
     {
       "order": 453,
@@ -2817,19 +3783,28 @@
       "order": 454,
       "rank": 454,
       "name": "ABM Industries",
-      "fortune_slug": "/company/abm-industries/"
+      "fortune_slug": "/company/abm-industries/",
+      "domain_hints": [
+        "abm.com"
+      ]
     },
     {
       "order": 455,
       "rank": 455,
       "name": "NOV",
-      "fortune_slug": "/company/national-oilwell-varco/"
+      "fortune_slug": "/company/national-oilwell-varco/",
+      "domain_hints": [
+        "nova.edu"
+      ]
     },
     {
       "order": 456,
       "rank": 456,
       "name": "J.M. Smucker",
-      "fortune_slug": "/company/j-m-smucker/"
+      "fortune_slug": "/company/j-m-smucker/",
+      "domain_hints": [
+        "jmsmucker.com"
+      ]
     },
     {
       "order": 457,
@@ -2841,13 +3816,19 @@
       "order": 458,
       "rank": 458,
       "name": "EQT",
-      "fortune_slug": "/company/eqt/"
+      "fortune_slug": "/company/eqt/",
+      "domain_hints": [
+        "eqt.com"
+      ]
     },
     {
       "order": 459,
       "rank": 459,
       "name": "CACI International",
-      "fortune_slug": "/company/caci-international/"
+      "fortune_slug": "/company/caci-international/",
+      "domain_hints": [
+        "caci.com"
+      ]
     },
     {
       "order": 460,
@@ -2862,7 +3843,10 @@
       "order": 461,
       "rank": 461,
       "name": "Advance Auto Parts",
-      "fortune_slug": "/company/advance-auto-parts/"
+      "fortune_slug": "/company/advance-auto-parts/",
+      "domain_hints": [
+        "advanceautoparts.com"
+      ]
     },
     {
       "order": 462,
@@ -2883,7 +3867,10 @@
       "order": 464,
       "rank": 464,
       "name": "CMS Energy",
-      "fortune_slug": "/company/cms-energy/"
+      "fortune_slug": "/company/cms-energy/",
+      "domain_hints": [
+        "cmsenergy.com"
+      ]
     },
     {
       "order": 465,
@@ -2898,19 +3885,28 @@
       "order": 466,
       "rank": 466,
       "name": "Ameren",
-      "fortune_slug": "/company/ameren/"
+      "fortune_slug": "/company/ameren/",
+      "domain_hints": [
+        "ameren.com"
+      ]
     },
     {
       "order": 467,
       "rank": 467,
       "name": "Rockwell Automation",
-      "fortune_slug": "/company/rockwell-automation/"
+      "fortune_slug": "/company/rockwell-automation/",
+      "domain_hints": [
+        "rockwellautomation.com"
+      ]
     },
     {
       "order": 468,
       "rank": 468,
       "name": "Solventum",
-      "fortune_slug": "/company/solventum/"
+      "fortune_slug": "/company/solventum/",
+      "domain_hints": [
+        "solventumenerji.com"
+      ]
     },
     {
       "order": 469,
@@ -2922,7 +3918,10 @@
       "order": 470,
       "rank": 470,
       "name": "Nasdaq",
-      "fortune_slug": "/company/nasdaq/"
+      "fortune_slug": "/company/nasdaq/",
+      "domain_hints": [
+        "nasdaq.com"
+      ]
     },
     {
       "order": 471,
@@ -2934,7 +3933,10 @@
       "order": 472,
       "rank": 472,
       "name": "Insight Enterprises",
-      "fortune_slug": "/company/insight-enterprises/"
+      "fortune_slug": "/company/insight-enterprises/",
+      "domain_hints": [
+        "insight.com"
+      ]
     },
     {
       "order": 473,
@@ -2949,19 +3951,28 @@
       "order": 474,
       "rank": 474,
       "name": "Yum Brands",
-      "fortune_slug": "/company/yum-brands/"
+      "fortune_slug": "/company/yum-brands/",
+      "domain_hints": [
+        "yum.com"
+      ]
     },
     {
       "order": 475,
       "rank": 475,
       "name": "Fastenal",
-      "fortune_slug": "/company/fastenal/"
+      "fortune_slug": "/company/fastenal/",
+      "domain_hints": [
+        "fastenal.com"
+      ]
     },
     {
       "order": 476,
       "rank": 476,
       "name": "Marvell Technology",
-      "fortune_slug": "/company/marvell-technology/"
+      "fortune_slug": "/company/marvell-technology/",
+      "domain_hints": [
+        "marvell.com"
+      ]
     },
     {
       "order": 477,
@@ -2982,25 +3993,37 @@
       "fortune_slug": "/company/post-holdings/",
       "aliases": [
         "Post"
+      ],
+      "domain_hints": [
+        "postholdings.com"
       ]
     },
     {
       "order": 480,
       "rank": 480,
       "name": "XPO",
-      "fortune_slug": "/company/xpo-logistics/"
+      "fortune_slug": "/company/xpo-logistics/",
+      "domain_hints": [
+        "xpo.com"
+      ]
     },
     {
       "order": 481,
       "rank": 481,
       "name": "DuPont",
-      "fortune_slug": "/company/dow-chemical/"
+      "fortune_slug": "/company/dow-chemical/",
+      "domain_hints": [
+        "dupontregistry.com"
+      ]
     },
     {
       "order": 482,
       "rank": 482,
       "name": "Sanmina",
-      "fortune_slug": "/company/sanmina/"
+      "fortune_slug": "/company/sanmina/",
+      "domain_hints": [
+        "sanmina.com"
+      ]
     },
     {
       "order": 483,
@@ -3012,31 +4035,46 @@
       "order": 484,
       "rank": 484,
       "name": "Dover",
-      "fortune_slug": "/company/dover/"
+      "fortune_slug": "/company/dover/",
+      "domain_hints": [
+        "doversaddlery.com"
+      ]
     },
     {
       "order": 485,
       "rank": 485,
       "name": "Vulcan Materials",
-      "fortune_slug": "/company/vulcan-materials/"
+      "fortune_slug": "/company/vulcan-materials/",
+      "domain_hints": [
+        "vulcanmaterials.com"
+      ]
     },
     {
       "order": 486,
       "rank": 486,
       "name": "APi Group",
-      "fortune_slug": "/company/api-group/"
+      "fortune_slug": "/company/api-group/",
+      "domain_hints": [
+        "apigroupinc.com"
+      ]
     },
     {
       "order": 487,
       "rank": 487,
       "name": "Roper Technologies",
-      "fortune_slug": "/company/roper-technologies/"
+      "fortune_slug": "/company/roper-technologies/",
+      "domain_hints": [
+        "ropertech.com"
+      ]
     },
     {
       "order": 488,
       "rank": 488,
       "name": "KBR",
-      "fortune_slug": "/company/kbr/"
+      "fortune_slug": "/company/kbr/",
+      "domain_hints": [
+        "kbr.com"
+      ]
     },
     {
       "order": 489,
@@ -3048,19 +4086,28 @@
       "order": 490,
       "rank": 490,
       "name": "Williams-Sonoma",
-      "fortune_slug": "/company/williams-sonoma/"
+      "fortune_slug": "/company/williams-sonoma/",
+      "domain_hints": [
+        "williams-sonoma.com"
+      ]
     },
     {
       "order": 491,
       "rank": 491,
       "name": "Commercial Metals",
-      "fortune_slug": "/company/commercial-metals/"
+      "fortune_slug": "/company/commercial-metals/",
+      "domain_hints": [
+        "commercialmetals.co.nz"
+      ]
     },
     {
       "order": 492,
       "rank": 492,
       "name": "Moody's",
-      "fortune_slug": "/company/moodys/"
+      "fortune_slug": "/company/moodys/",
+      "domain_hints": [
+        "moodys.com"
+      ]
     },
     {
       "order": 493,
@@ -3072,31 +4119,46 @@
       "order": 494,
       "rank": 494,
       "name": "Ingersoll Rand",
-      "fortune_slug": "/company/gardner-denver/"
+      "fortune_slug": "/company/gardner-denver/",
+      "domain_hints": [
+        "ingersollrand.com"
+      ]
     },
     {
       "order": 495,
       "rank": 495,
       "name": "Core & Main",
-      "fortune_slug": "/company/core-main/"
+      "fortune_slug": "/company/core-main/",
+      "domain_hints": [
+        "coremain.com"
+      ]
     },
     {
       "order": 496,
       "rank": 496,
       "name": "Coterra Energy",
-      "fortune_slug": "/company/coterra-energy/"
+      "fortune_slug": "/company/coterra-energy/",
+      "domain_hints": [
+        "coterra.com"
+      ]
     },
     {
       "order": 497,
       "rank": 497,
       "name": "Primoris Services",
-      "fortune_slug": "/company/primoris-services/"
+      "fortune_slug": "/company/primoris-services/",
+      "domain_hints": [
+        "prim.com"
+      ]
     },
     {
       "order": 498,
       "rank": 498,
       "name": "Masco",
-      "fortune_slug": "/company/masco/"
+      "fortune_slug": "/company/masco/",
+      "domain_hints": [
+        "mascomabank.com"
+      ]
     },
     {
       "order": 499,
