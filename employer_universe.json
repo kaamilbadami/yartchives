@@ -107,7 +107,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:56:57Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
         "evidence": [
           {
             "type": "http",
@@ -311,6 +311,157 @@
           "source_url": "https://withresumeai.com/ats-checker/abbvie",
           "upstream_slug": "abbvie"
         }
+      },
+      "careers_url": "https://careers.smartrecruiters.com/jobs",
+      "careers_platform": "smartrecruiters",
+      "provider": {
+        "family": "smartrecruiters",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "smartrecruiters.com",
+        "host": "careers.smartrecruiters.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-20T18:37:29Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://abbvie.com/",
+            "redirect_chain": [
+              {
+                "url": "https://abbvie.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.abbvie.com/",
+                "status": 403
+              }
+            ],
+            "final_url": "https://www.abbvie.com/",
+            "status": 403,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://abbvie.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://abbvie.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.abbvie.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.abbvie.com/join-us.html?utm_source=CAREERS-URL",
+                "status": 403
+              }
+            ],
+            "final_url": "https://www.abbvie.com/join-us.html?utm_source=CAREERS-URL",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://abbvie.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://abbvie.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.abbvie.com/jobs",
+                "status": 403
+              }
+            ],
+            "final_url": "https://www.abbvie.com/jobs",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://jobs.smartrecruiters.com/",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.smartrecruiters.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.smartrecruiters.com/",
+            "status": 200,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.smartrecruiters.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.smartrecruiters.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://careers.smartrecruiters.com/careers",
+                "status": 302
+              },
+              {
+                "url": "https://jobs.smartrecruiters.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.smartrecruiters.com/",
+            "status": 200,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.smartrecruiters.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.smartrecruiters.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://careers.smartrecruiters.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.smartrecruiters.com/jobs",
+            "status": 200,
+            "signals": [
+              "smartrecruiters provider fingerprint",
+              "careers path",
+              "careers page content"
+            ],
+            "score": 10
+          }
+        ]
       }
     },
     {
@@ -329,6 +480,222 @@
           "order": 454,
           "rank": 454
         }
+      },
+      "careers_url": "https://www.abm.com/careers",
+      "careers_platform": "company-branded",
+      "provider": {
+        "family": "unknown",
+        "status": "ambiguous",
+        "evidence": "multiple_provider_markers",
+        "candidates": [
+          "lever",
+          "oracle"
+        ],
+        "host": "www.abm.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-20T18:37:29Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://abm.com/",
+            "redirect_chain": [
+              {
+                "url": "https://abm.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.abm.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.abm.com/",
+            "status": 200,
+            "signals": [
+              "oracle provider fingerprint",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://abm.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://abm.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.abm.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.abm.com/careers",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://abm.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://abm.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.abm.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.abm.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.abm.com/careers",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://eiqg.fa.us2.oraclecloud.com/fscmUI/redwood/internalmobility/",
+            "linked_from": "https://www.abm.com/",
+            "redirect_chain": [
+              {
+                "url": "https://eiqg.fa.us2.oraclecloud.com/fscmUI/redwood/internalmobility/",
+                "status": 302
+              },
+              {
+                "url": "https://idcs-821fd68b7b28404b9ee6943950fe9b09.identity.oraclecloud.com/oauth2/v1/authorize?response_mode=form_post&response_type=id_token&scope=openid&IDCS_CG_ENC_VER=v2&state=Ugl32pH8HQmPzqck99ysAvrEdbAmrRcLtVF9VcYf6gw&nonce=5bfviLQTlY7L0pobf6PFvKSK34iB13Wyod-c37UuluQ&IDCS_IS_CLOUDGATE=true&X-HOST-IDENTIFIER-NAME=eiqg.fa.us2.oraclecloud.com%3A443&idcs_app_name=FAAppResource_11-13-26-07-0-08000_APPID&idcs_app_resource_url=https%3A%2F%2Feiqg.fa.us2.oraclecloud.com%3A443%2FfscmUI%2Fredwood%2Finternalmobility%2F&client_id=28e457011e874804be5f86a12a1488f2_APPID&IDCS_CG_ENC=true&enc=wFlDVGXR3SRaAgAAIAIAABAgIAIAAAYCAAAQAMFKa2NvzrPTHKhlLsuAGFS2NCRPsFMCsuB1dPiPl2WQ3Hu4UXLTnv2fOz1s_uOhzOqLSVoh63u774JD5dzRTf8yMLHttY7Q5w4Htq2KsLG6T9dN9tYFh9P57RlauMxkqWHNb9QHPkFgwXk6U3CINhdut1D8KcmPXqD80RJBd70x_NVIkDNePywECx_kuepEgtrFvnT7iecKJgyIedekm5FnxhRgAl3FyhqXdm7sVLoM7C9kDgt8Y2grTIkKX1122HdxkzrY7AK8IQG_tWpR4JvXwXF2GZ7jabVdKOf5wspRPyXfVmaHkjWs7QnRVw8NUfX-gcS5f5YxUaMG2lldMbcjbfrLCy3mO89G2bKCbBizM_h1IohxYAqPEHOwx8_rHBozrZ_ncCvOqYVoJ4_Jn5odkpCZiOPNEcc_95ezCNTPXh2JrxRpqnT0AMwwX7-qTlomnCZzqmARqqYr-LHEB5FAA5-9GHa-YV_e-LfK8tF1I_OVQ75QdQjKyxqA2WykV_t_pHkdfECTQUcKQYAZrAbMI6qTBH3d98LOOnptvjKRFsRIr5sC_vq2LTU79n2QRgxsnkuyZmUmCLczUPkNzBM_OJWPwdqbV6nNcqvY6KHabDX_Gcyip5DN1Ny7k5bsSZYfYSGS2H7tN_hNL14TduDZoWQ4ehfkaaypcDkPc6tghEf65NDZwFaHLnqW9T8ClnhHXG9m05osSpKvWnwtkzp2LVW_SzqA7TcBZm0sLOAx5w0LM1OaA6xl2sjDiFnyTDHwBp3T9w",
+                "status": 200
+              }
+            ],
+            "final_url": "https://idcs-821fd68b7b28404b9ee6943950fe9b09.identity.oraclecloud.com/oauth2/v1/authorize?response_mode=form_post&response_type=id_token&scope=openid&IDCS_CG_ENC_VER=v2&state=Ugl32pH8HQmPzqck99ysAvrEdbAmrRcLtVF9VcYf6gw&nonce=5bfviLQTlY7L0pobf6PFvKSK34iB13Wyod-c37UuluQ&IDCS_IS_CLOUDGATE=true&X-HOST-IDENTIFIER-NAME=eiqg.fa.us2.oraclecloud.com%3A443&idcs_app_name=FAAppResource_11-13-26-07-0-08000_APPID&idcs_app_resource_url=https%3A%2F%2Feiqg.fa.us2.oraclecloud.com%3A443%2FfscmUI%2Fredwood%2Finternalmobility%2F&client_id=28e457011e874804be5f86a12a1488f2_APPID&IDCS_CG_ENC=true&enc=wFlDVGXR3SRaAgAAIAIAABAgIAIAAAYCAAAQAMFKa2NvzrPTHKhlLsuAGFS2NCRPsFMCsuB1dPiPl2WQ3Hu4UXLTnv2fOz1s_uOhzOqLSVoh63u774JD5dzRTf8yMLHttY7Q5w4Htq2KsLG6T9dN9tYFh9P57RlauMxkqWHNb9QHPkFgwXk6U3CINhdut1D8KcmPXqD80RJBd70x_NVIkDNePywECx_kuepEgtrFvnT7iecKJgyIedekm5FnxhRgAl3FyhqXdm7sVLoM7C9kDgt8Y2grTIkKX1122HdxkzrY7AK8IQG_tWpR4JvXwXF2GZ7jabVdKOf5wspRPyXfVmaHkjWs7QnRVw8NUfX-gcS5f5YxUaMG2lldMbcjbfrLCy3mO89G2bKCbBizM_h1IohxYAqPEHOwx8_rHBozrZ_ncCvOqYVoJ4_Jn5odkpCZiOPNEcc_95ezCNTPXh2JrxRpqnT0AMwwX7-qTlomnCZzqmARqqYr-LHEB5FAA5-9GHa-YV_e-LfK8tF1I_OVQ75QdQjKyxqA2WykV_t_pHkdfECTQUcKQYAZrAbMI6qTBH3d98LOOnptvjKRFsRIr5sC_vq2LTU79n2QRgxsnkuyZmUmCLczUPkNzBM_OJWPwdqbV6nNcqvY6KHabDX_Gcyip5DN1Ny7k5bsSZYfYSGS2H7tN_hNL14TduDZoWQ4ehfkaaypcDkPc6tghEf65NDZwFaHLnqW9T8ClnhHXG9m05osSpKvWnwtkzp2LVW_SzqA7TcBZm0sLOAx5w0LM1OaA6xl2sjDiFnyTDHwBp3T9w",
+            "status": 200,
+            "signals": [
+              "oracle provider fingerprint",
+              "linked from employer site"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://www.abm.com/careers",
+            "linked_from": "https://www.abm.com/",
+            "redirect_chain": [
+              {
+                "url": "https://www.abm.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.abm.com/careers",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://eiqg.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/jobs",
+            "linked_from": "https://www.abm.com/",
+            "redirect_chain": [
+              {
+                "url": "https://eiqg.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://eiqg.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/jobs",
+            "status": 200,
+            "signals": [
+              "oracle provider fingerprint",
+              "careers path",
+              "linked from employer site"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://jobs.lever.co/ableserve",
+            "linked_from": "https://www.abm.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.lever.co/ableserve",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.lever.co/ableserve",
+            "status": 200,
+            "signals": [
+              "lever provider fingerprint",
+              "careers link text",
+              "linked from employer site"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://eiqg.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/join-talent-community?sortBy=RELEVANCY",
+            "linked_from": "https://www.abm.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://eiqg.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/join-talent-community?sortBy=RELEVANCY",
+                "status": 200
+              }
+            ],
+            "final_url": "https://eiqg.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/join-talent-community?sortBy=RELEVANCY",
+            "status": 200,
+            "signals": [
+              "oracle provider fingerprint",
+              "careers link text",
+              "linked from employer site"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://eiqg.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/my-profile/sign-in",
+            "linked_from": "https://www.abm.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://eiqg.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/my-profile/sign-in",
+                "status": 200
+              }
+            ],
+            "final_url": "https://eiqg.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/my-profile/sign-in",
+            "status": 200,
+            "signals": [
+              "oracle provider fingerprint",
+              "linked from employer site"
+            ],
+            "score": 9
+          }
+        ]
       }
     },
     {
@@ -429,6 +796,116 @@
           "order": 419,
           "rank": 419
         }
+      },
+      "careers_url": "https://careers.acehardware.com/",
+      "careers_platform": "company-branded",
+      "provider": {
+        "family": "custom_unknown",
+        "status": "unresolved",
+        "evidence": "no_known_provider_marker",
+        "host": "careers.acehardware.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-20T18:37:29Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://acehardware.com/",
+            "redirect_chain": [
+              {
+                "url": "https://acehardware.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.acehardware.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.acehardware.com/",
+            "status": 200,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://acehardware.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://acehardware.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.acehardware.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://careers.acehardware.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.acehardware.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://acehardware.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://acehardware.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.acehardware.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.acehardware.com/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://www.acehardware.com/careers",
+            "linked_from": "https://www.acehardware.com/",
+            "redirect_chain": [
+              {
+                "url": "https://www.acehardware.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://careers.acehardware.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.acehardware.com/",
+            "status": 200,
+            "signals": [
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 11
+          }
+        ]
       }
     },
     {
@@ -589,10 +1066,86 @@
         }
       },
       "careers_resolution": {
-        "status": "provider_resolved",
-        "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:56:57Z",
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-20T18:37:29Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
         "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://adobe.com/",
+            "redirect_chain": [
+              {
+                "url": "https://adobe.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.adobe.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.adobe.com/",
+            "status": 200,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://adobe.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://adobe.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.adobe.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.adobe.com/careers.html",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.adobe.com/careers.html",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://adobe.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://adobe.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.adobe.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.adobe.com/careers.html",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.adobe.com/careers.html",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          },
           {
             "type": "http",
             "source": "input-hint",
@@ -649,17 +1202,16 @@
             ],
             "score": 10
           }
-        ],
-        "resolved_at": "2026-09-17T23:38:23Z"
+        ]
       },
-      "careers_platform": "workday",
+      "careers_platform": "company-branded",
       "provider": {
-        "family": "workday",
-        "status": "resolved",
-        "evidence": "url_or_page_marker",
-        "marker": "myworkdayjobs.com",
-        "host": "adobe.wd5.myworkdayjobs.com"
-      }
+        "family": "custom_unknown",
+        "status": "unresolved",
+        "evidence": "no_known_provider_marker",
+        "host": "www.adobe.com"
+      },
+      "careers_url": "https://www.adobe.com/careers.html"
     },
     {
       "id": "advance-auto-parts",
@@ -677,6 +1229,63 @@
           "order": 461,
           "rank": 461
         }
+      },
+      "careers_url": "https://advanceautoparts.com/jobs",
+      "careers_platform": "company-branded",
+      "provider": {
+        "family": "custom_unknown",
+        "status": "unresolved",
+        "evidence": "no_known_provider_marker",
+        "host": "advanceautoparts.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-20T18:37:29Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://advanceautoparts.com/",
+            "redirect_chain": [
+              {
+                "url": "https://advanceautoparts.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://advanceautoparts.com/",
+            "status": 200,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://advanceautoparts.com/careers",
+            "error": "ReadTimeout: HTTPSConnectionPool(host='advanceautoparts.com', port=443): Read timed out. (read timeout=15)"
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://advanceautoparts.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://advanceautoparts.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://advanceautoparts.com/jobs",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          }
+        ]
       }
     },
     {
@@ -791,6 +1400,207 @@
           "source_url": "https://withresumeai.com/ats-checker/aecom",
           "upstream_slug": "aecom"
         }
+      },
+      "careers_url": "https://careers.smartrecruiters.com/jobs",
+      "careers_platform": "smartrecruiters",
+      "provider": {
+        "family": "smartrecruiters",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "smartrecruiters.com",
+        "host": "careers.smartrecruiters.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-20T18:37:29Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://aecom.com/",
+            "redirect_chain": [
+              {
+                "url": "https://aecom.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://aecom.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://aecom.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://aecom.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://aecom.com/careers/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://aecom.com/careers/",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://aecom.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://aecom.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://aecom.com/jobs-aggregator-block-test/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://aecom.com/jobs-aggregator-block-test/",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers.smartrecruiters.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.smartrecruiters.com/",
+                "status": 404
+              }
+            ],
+            "final_url": "https://careers.smartrecruiters.com/",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.smartrecruiters.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers.smartrecruiters.com/careers",
+                "status": 302
+              },
+              {
+                "url": "https://jobs.smartrecruiters.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.smartrecruiters.com/",
+            "status": 200,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.smartrecruiters.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.smartrecruiters.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.smartrecruiters.com/jobs",
+            "status": 200,
+            "signals": [
+              "smartrecruiters provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://aecom.com/careers/",
+            "linked_from": "https://aecom.com/",
+            "redirect_chain": [
+              {
+                "url": "https://aecom.com/careers/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://aecom.com/careers/",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers.smartrecruiters.com/jobs?oga=true",
+            "linked_from": "https://careers.smartrecruiters.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.smartrecruiters.com/jobs?oga=true",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.smartrecruiters.com/jobs?oga=true",
+            "status": 200,
+            "signals": [
+              "smartrecruiters provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 16
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://www.smartrecruiters.com/?utm_source=referral&utm_medium=careerwebsitepage&utm_campaign=careerwebsite&utm_content=none&km_partner=none&km_adgroup=none&utm_term=none&km_matchtype=none",
+            "linked_from": "https://careers.smartrecruiters.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://www.smartrecruiters.com/?utm_source=referral&utm_medium=careerwebsitepage&utm_campaign=careerwebsite&utm_content=none&km_partner=none&km_adgroup=none&utm_term=none&km_matchtype=none",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.smartrecruiters.com/?utm_source=referral&utm_medium=careerwebsitepage&utm_campaign=careerwebsite&utm_content=none&km_partner=none&km_adgroup=none&utm_term=none&km_matchtype=none",
+            "status": 200,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          }
+        ]
       }
     },
     {
@@ -846,6 +1656,78 @@
           "order": 358,
           "rank": 358
         }
+      },
+      "careers_resolution": {
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://aessuccess.org/",
+            "redirect_chain": [
+              {
+                "url": "https://aessuccess.org/",
+                "status": 301
+              },
+              {
+                "url": "https://www.aessuccess.org/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.aessuccess.org/",
+            "status": 200,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://aessuccess.org/careers",
+            "redirect_chain": [
+              {
+                "url": "https://aessuccess.org/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.aessuccess.org/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.aessuccess.org/careers",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://aessuccess.org/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://aessuccess.org/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.aessuccess.org/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.aessuccess.org/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          }
+        ]
       }
     },
     {
@@ -899,6 +1781,175 @@
           "source_url": "https://withresumeai.com/ats-checker/aflac",
           "upstream_slug": "aflac"
         }
+      },
+      "careers_url": "https://careers.aflac.com/",
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "careers.aflac.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-20T18:37:29Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://aflac.com/",
+            "redirect_chain": [
+              {
+                "url": "https://aflac.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.aflac.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.aflac.com/",
+            "status": 200,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://aflac.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://aflac.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.aflac.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://careers.aflac.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.aflac.com/",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://aflac.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://aflac.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.aflac.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.aflac.com/agents/default.aspx",
+                "status": 301
+              },
+              {
+                "url": "https://www.aflac.com/sales-jobs/default.aspx",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.aflac.com/sales-jobs/default.aspx",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://career4.successfactors.com/",
+            "redirect_chain": [
+              {
+                "url": "https://career4.successfactors.com/",
+                "status": 404
+              }
+            ],
+            "final_url": "https://career4.successfactors.com/",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://career4.successfactors.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://career4.successfactors.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://career4.successfactors.com/careers",
+            "status": 200,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://career4.successfactors.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://career4.successfactors.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://career4.successfactors.com/jobs",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://www.successfactors.com/",
+            "linked_from": "https://career4.successfactors.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://www.successfactors.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.sap.com/products/hcm.html?src=sfsf",
+                "status": 403
+              }
+            ],
+            "final_url": "https://www.sap.com/products/hcm.html?src=sfsf",
+            "status": 403,
+            "signals": [
+              "linked from employer site"
+            ],
+            "score": 4
+          }
+        ]
       }
     },
     {
@@ -930,6 +1981,160 @@
           "source_url": "https://withresumeai.com/ats-checker/agco",
           "upstream_slug": "agco"
         }
+      },
+      "careers_resolution": {
+        "status": "blocked",
+        "attempt_status": "blocked",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://agcocorp.com/",
+            "redirect_chain": [
+              {
+                "url": "https://agcocorp.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.agcocorp.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.agcocorp.com/us/en/",
+                "status": 302
+              },
+              {
+                "url": "https://www.agcocorp.com/us/en/home.html",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.agcocorp.com/us/en/home.html",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://agcocorp.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://agcocorp.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.agcocorp.com/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.agcocorp.com/careers",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://agcocorp.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://agcocorp.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.agcocorp.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.agcocorp.com/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://career4.successfactors.com/",
+            "redirect_chain": [
+              {
+                "url": "https://career4.successfactors.com/",
+                "status": 404
+              }
+            ],
+            "final_url": "https://career4.successfactors.com/",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://career4.successfactors.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://career4.successfactors.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://career4.successfactors.com/careers",
+            "status": 200,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://career4.successfactors.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://career4.successfactors.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://career4.successfactors.com/jobs",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://www.successfactors.com/",
+            "linked_from": "https://career4.successfactors.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://www.successfactors.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.sap.com/products/hcm.html?src=sfsf",
+                "status": 403
+              }
+            ],
+            "final_url": "https://www.sap.com/products/hcm.html?src=sfsf",
+            "status": 403,
+            "signals": [
+              "linked from employer site"
+            ],
+            "score": 4
+          }
+        ]
       }
     },
     {
@@ -983,10 +2188,84 @@
         }
       },
       "careers_resolution": {
-        "status": "provider_resolved",
-        "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:56:57Z",
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-20T18:37:29Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
         "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://aig.com/",
+            "redirect_chain": [
+              {
+                "url": "https://aig.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.aig.com:443/",
+                "status": 301
+              },
+              {
+                "url": "https://www.aig.com/home",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.aig.com/home",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://aig.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://aig.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.aig.com:443/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.aig.com:443/careers",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://aig.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://aig.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.aig.com:443/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.aig.com:443/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
           {
             "type": "http",
             "source": "input-hint",
@@ -1042,9 +2321,97 @@
               "employer domain"
             ],
             "score": 10
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://www.aig.com/home/careers",
+            "linked_from": "https://www.aig.com/home",
+            "redirect_chain": [
+              {
+                "url": "https://www.aig.com/home/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.aig.com/home/careers",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 19
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://aig.wd1.myworkdayjobs.com/aig",
+            "linked_from": "https://www.aig.com/home",
+            "redirect_chain": [
+              {
+                "url": "https://aig.wd1.myworkdayjobs.com/aig",
+                "status": 200
+              }
+            ],
+            "final_url": "https://aig.wd1.myworkdayjobs.com/aig",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 11
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://www.aig.com:443/home/careers",
+            "linked_from": "https://www.aig.com:443/careers",
+            "redirect_chain": [
+              {
+                "url": "https://www.aig.com:443/home/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.aig.com:443/home/careers",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 19
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://www.aig.com:443/careers",
+            "linked_from": "https://www.aig.com:443/careers",
+            "redirect_chain": [
+              {
+                "url": "https://www.aig.com:443/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.aig.com:443/careers",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 19
           }
-        ],
-        "resolved_at": "2026-09-17T23:38:23Z"
+        ]
       },
       "careers_platform": "workday",
       "provider": {
@@ -1052,8 +2419,9 @@
         "status": "resolved",
         "evidence": "url_or_page_marker",
         "marker": "myworkdayjobs.com",
-        "host": "aig.wd1.myworkdayjobs.com"
-      }
+        "host": "www.aig.com"
+      },
+      "careers_url": "https://www.aig.com/home/careers"
     },
     {
       "id": "air-france-klm",
@@ -1203,6 +2571,66 @@
           "order": 368,
           "rank": 368
         }
+      },
+      "careers_resolution": {
+        "status": "blocked",
+        "attempt_status": "blocked",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://airproducts.com/",
+            "redirect_chain": [
+              {
+                "url": "https://airproducts.com/",
+                "status": 403
+              }
+            ],
+            "final_url": "https://airproducts.com/",
+            "status": 403,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://airproducts.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://airproducts.com/careers",
+                "status": 403
+              }
+            ],
+            "final_url": "https://airproducts.com/careers",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://airproducts.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://airproducts.com/jobs",
+                "status": 403
+              }
+            ],
+            "final_url": "https://airproducts.com/jobs",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          }
+        ]
       }
     },
     {
@@ -1235,6 +2663,151 @@
           "source_url": "https://withresumeai.com/ats-checker/airbnb",
           "upstream_slug": "airbnb"
         }
+      },
+      "careers_url": "https://www.greenhouse.com/",
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "www.greenhouse.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-20T18:37:29Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://airbnb.com/",
+            "redirect_chain": [
+              {
+                "url": "https://airbnb.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.airbnb.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.airbnb.com/",
+            "status": 200,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://airbnb.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://airbnb.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.airbnb.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://careers.airbnb.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.airbnb.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://airbnb.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://airbnb.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.airbnb.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.airbnb.com/404",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.airbnb.com/404",
+            "status": 404,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://job-boards.greenhouse.io/",
+            "redirect_chain": [
+              {
+                "url": "https://job-boards.greenhouse.io/",
+                "status": 302
+              },
+              {
+                "url": "https://www.greenhouse.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.greenhouse.com/",
+            "status": 200,
+            "signals": [
+              "greenhouse provider fingerprint",
+              "careers page content"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://job-boards.greenhouse.io/careers",
+            "redirect_chain": [
+              {
+                "url": "https://job-boards.greenhouse.io/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://job-boards.greenhouse.io/careers",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://job-boards.greenhouse.io/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://job-boards.greenhouse.io/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://job-boards.greenhouse.io/jobs",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          }
+        ]
       }
     },
     {
@@ -1797,10 +3370,86 @@
         }
       },
       "careers_resolution": {
-        "status": "provider_resolved",
-        "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:56:57Z",
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-20T18:37:29Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
         "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://allstate.com/",
+            "redirect_chain": [
+              {
+                "url": "https://allstate.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.allstate.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.allstate.com/",
+            "status": 200,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://allstate.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://allstate.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.allstate.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.allstatecorporation.com/careers.aspx",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.allstatecorporation.com/careers.aspx",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "careers page content"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://allstate.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://allstate.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.allstate.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.allstatecorporation.com/careers.aspx",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.allstatecorporation.com/careers.aspx",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "careers path",
+              "careers page content"
+            ],
+            "score": 10
+          },
           {
             "type": "http",
             "source": "input-hint",
@@ -1857,8 +3506,7 @@
             ],
             "score": 10
           }
-        ],
-        "resolved_at": "2026-09-17T23:38:23Z"
+        ]
       },
       "careers_platform": "workday",
       "provider": {
@@ -1866,8 +3514,9 @@
         "status": "resolved",
         "evidence": "url_or_page_marker",
         "marker": "myworkdayjobs.com",
-        "host": "allstate.wd5.myworkdayjobs.com"
-      }
+        "host": "www.allstatecorporation.com"
+      },
+      "careers_url": "https://www.allstatecorporation.com/careers.aspx"
     },
     {
       "id": "ally-financial",
@@ -7320,7 +8969,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:56:57Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
         "evidence": [
           {
             "type": "http",
@@ -11098,6 +12747,134 @@
           "order": 329,
           "rank": 329
         }
+      },
+      "careers_url": "https://www.greenhouse.com/",
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "www.greenhouse.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-20T18:37:29Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://doordash.com/",
+            "redirect_chain": [
+              {
+                "url": "https://doordash.com/",
+                "status": 302
+              },
+              {
+                "url": "https://www.doordash.com/",
+                "status": 403
+              }
+            ],
+            "final_url": "https://www.doordash.com/",
+            "status": 403,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://doordash.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://doordash.com/careers",
+                "status": 302
+              },
+              {
+                "url": "https://www.doordash.com/careers",
+                "status": 302
+              },
+              {
+                "url": "https://careersatdoordash.com",
+                "status": 403
+              }
+            ],
+            "final_url": "https://careersatdoordash.com/",
+            "status": 403,
+            "signals": [],
+            "score": 0
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://doordash.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://doordash.com/jobs",
+                "status": 302
+              },
+              {
+                "url": "https://www.doordash.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.doordash.com/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://job-boards.greenhouse.io/",
+            "redirect_chain": [
+              {
+                "url": "https://job-boards.greenhouse.io/",
+                "status": 302
+              },
+              {
+                "url": "https://www.greenhouse.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.greenhouse.com/",
+            "status": 200,
+            "signals": [
+              "greenhouse provider fingerprint",
+              "careers page content"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://job-boards.greenhouse.io/careers",
+            "redirect_chain": [
+              {
+                "url": "https://job-boards.greenhouse.io/careers",
+                "status": 404
+              }
+            ],
+            "final_url": "https://job-boards.greenhouse.io/careers",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://job-boards.greenhouse.io/jobs",
+            "error": "ReadTimeout: HTTPSConnectionPool(host='job-boards.greenhouse.io', port=443): Read timed out. (read timeout=15)"
+          }
+        ]
       }
     },
     {
@@ -13667,6 +15444,80 @@
           "order": 392,
           "rank": 392
         }
+      },
+      "careers_url": "https://fmtc.co/careers",
+      "careers_platform": "company-branded",
+      "provider": {
+        "family": "custom_unknown",
+        "status": "unresolved",
+        "evidence": "no_known_provider_marker",
+        "host": "fmtc.co"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-20T18:37:29Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://fmtc.co/",
+            "redirect_chain": [
+              {
+                "url": "https://fmtc.co/",
+                "status": 302
+              },
+              {
+                "url": "https://www.fmtc.co",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.fmtc.co/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://fmtc.co/careers",
+            "redirect_chain": [
+              {
+                "url": "https://fmtc.co/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://fmtc.co/careers",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://fmtc.co/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://fmtc.co/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://fmtc.co/jobs",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          }
+        ]
       }
     },
     {
@@ -16453,8 +18304,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T17:56:57Z",
-        "last_attempt_at": "2026-09-20T17:56:57Z",
+        "resolved_at": "2026-09-20T18:37:29Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
         "evidence": [
           {
             "type": "http",
@@ -19976,7 +21827,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:56:57Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
         "evidence": [
           {
             "type": "http",
@@ -28778,7 +30629,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:56:57Z",
+        "last_attempt_at": "2026-09-20T18:37:29Z",
         "evidence": [
           {
             "type": "http",
