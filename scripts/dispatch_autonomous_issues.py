@@ -506,7 +506,7 @@ def supersede_exhausted_jules_failure(
         return None
     if JULES_REWORKED_LABEL in labels:
         return None
-    if jules_rework_marker(number) in str(issue.get("body") or ""):
+    if re.search(r"<!--\s*jules-rework-from:\s*\d+\s*-->", str(issue.get("body") or "")):
         # A rework that itself fails is terminal; do not create an infinite issue chain.
         return None
 
@@ -595,16 +595,9 @@ def rework_exhausted_jules_failures(
         if JULES_FAILED_LABEL not in label_names(issue):
             continue
         comments = load_comments(int(issue["number"]))
-        # Existing bounded retry paths always run first. Only rework when no retry
-        # remains available under the existing classifier.
-        infra_failure = latest_retryable_failed_session(comments)
-        infra_retry_available = (
-            infra_failure is not None
-            and infrastructure_retry_marker_from_comments(comments) is None
-        )
-        legacy_retry_available = legacy_failed_retry_context(comments) is not None
-        if infra_retry_available or legacy_retry_available:
-            continue
+        # migrate_legacy_jules_failures() runs immediately before this function in
+        # the dispatch cycle. Any issue still carrying jules-failed has therefore
+        # exhausted every currently-supported bounded retry path.
         supersede_exhausted_jules_failure(
             issue,
             issues=issues,
