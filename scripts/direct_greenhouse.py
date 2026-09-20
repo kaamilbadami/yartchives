@@ -284,8 +284,7 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Sessio
                 upsert_direct_job(jobs, job, old_jobs_by_id, reference)
                 apply_authoritative_board_brand(jobs, job, source["board_token"])
             health[source["key"]] = {
-                "ok": True,
-                "configured": True,
+                "status": "healthy",
                 "count": len(direct_jobs),
                 "name": source["name"],
                 "direct": True,
@@ -295,15 +294,15 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Sessio
             continue
 
         health[source["key"]] = {
-            "ok": False,
-            "configured": True,
+            "status": "failed",
             "count": 0,
             "name": source["name"],
             "direct": True,
             "auto_discovered": True,
             "error": f"{type(exc).__name__}: {exc}",
         }
-        carry_failed_source(jobs, old_jobs, source["key"])
+        if carry_failed_source(jobs, old_jobs, source["key"]):
+            health[source["key"]]["status"] = "degraded"
         print(f"{source['name']}: FAILED: {exc}", file=sys.stderr)
     return doc
 

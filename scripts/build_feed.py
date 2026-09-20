@@ -514,7 +514,7 @@ def fetch_usajobs(s: requests.Session, reference: datetime) -> tuple[list[dict[s
         "homepage": "https://www.usajobs.gov/Search/Results?k=intern",
     }
     if not api_key or not email:
-        return [], {"ok": True, "configured": False, "count": 0, "note": "API credentials not configured"}
+        return [], {"status": "quarantined", "count": 0, "note": "API credentials not configured"}
 
     headers = {
         "Host": "data.usajobs.gov",
@@ -573,7 +573,7 @@ def fetch_usajobs(s: requests.Session, reference: datetime) -> tuple[list[dict[s
         if page >= pages:
             break
         page += 1
-    return out, {"ok": True, "configured": True, "count": len(out)}
+    return out, {"status": "healthy", "count": len(out)}
 
 
 PROVENANCE_PRIORITY = {
@@ -733,7 +733,7 @@ def dedupe(jobs: list[dict[str, Any]], old_jobs: dict[str, dict[str, Any]], refe
 def content_hash(jobs: list[dict[str, Any]], sources: dict[str, Any]) -> str:
     # Ignore volatile build timestamps so an unchanged feed does not create an hourly commit.
     source_shape = {
-        k: {"ok": v.get("ok"), "configured": v.get("configured", True), "count": v.get("count", 0)}
+        k: {"status": v.get("status"), "count": v.get("count", 0)}
         for k, v in sources.items()
     }
     stable_jobs = []
@@ -766,13 +766,12 @@ def main() -> int:
         try:
             jobs = fetch_source(s, source, reference)
             all_jobs.extend(jobs)
-            health[source["key"]] = {"ok": True, "configured": True, "count": len(jobs), "name": source["name"]}
+            health[source["key"]] = {"status": "healthy", "count": len(jobs), "name": source["name"]}
             print(f"{source['name']}: {len(jobs)}")
         except Exception as exc:
             failed_keys.add(source["key"])
             health[source["key"]] = {
-                "ok": False,
-                "configured": True,
+                "status": "failed",
                 "count": 0,
                 "name": source["name"],
                 "error": f"{type(exc).__name__}: {exc}",
@@ -784,14 +783,15 @@ def main() -> int:
         all_jobs.extend(federal_jobs)
         federal_health["name"] = "USAJOBS"
         health["usajobs"] = federal_health
-        print(f"USAJOBS: {len(federal_jobs)}" + ("" if federal_health.get("configured") else " (not configured)"))
+        print(f"USAJOBS: {len(federal_jobs)}" + ("" if federal_health.get("status") != "quarantined" else " (not configured)"))
     except Exception as exc:
         failed_keys.add("usajobs")
-        health["usajobs"] = {"ok": False, "configured": True, "count": 0, "name": "USAJOBS", "error": f"{type(exc).__name__}: {exc}"}
+        health["usajobs"] = {"status": "failed", "count": 0, "name": "USAJOBS", "error": f"{type(exc).__name__}: {exc}"}
         print(f"USAJOBS: FAILED: {exc}", file=sys.stderr)
 
     # If a source is temporarily down, carry its previously generated listings forward.
     if failed_keys:
+        degraded_keys = set()
         for old in old_jobs_list:
             if failed_keys.intersection(old.get("source_keys", [])):
                 if old.get("link_status") == "dead":
@@ -802,10 +802,16 @@ def main() -> int:
                 key = next((k for k in source_keys if k in failed_keys), None)
                 if not key:
                     continue
+                degraded_keys.add(key)
                 carry["source_key"] = key
                 carry["source_name"] = next(iter(carry.get("source_names", [])), key)
                 carry["source_url"] = next(iter(carry.get("source_urls", [])), "")
+                carry["carried_forward"] = True
                 all_jobs.append(carry)
+
+        for key in degraded_keys:
+            if key in health and health[key].get("status") == "failed":
+                health[key]["status"] = "degraded"
 
     final_jobs = dedupe(all_jobs, old_jobs_by_id, reference)
     new_hash = content_hash(final_jobs, health)

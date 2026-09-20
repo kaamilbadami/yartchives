@@ -301,6 +301,7 @@ class BuildFeedTests(unittest.TestCase):
 
                 self.assertEqual(len(jobs), 1)
                 self.assertEqual(jobs[0]["company"], "Valid Company")
+                self.assertTrue(jobs[0]["carried_forward"])
 
 
     def test_parse_dreamwork_does_not_use_firstIndexedAt_for_posted_date(self):

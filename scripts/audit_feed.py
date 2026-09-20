@@ -81,7 +81,7 @@ def stale_unavailable_report(
         job_id = str(job.get("id") or "")
         source_keys = [str(key) for key in (job.get("source_keys") or []) if key]
         known_sources = [sources.get(key) for key in source_keys if isinstance(sources.get(key), dict)]
-        if known_sources and len(known_sources) == len(source_keys) and all(source.get("ok") is False for source in known_sources):
+        if known_sources and len(known_sources) == len(source_keys) and all(source.get("status") == "failed" for source in known_sources):
             failed_source_only.append(job)
 
         if job.get("link_status") == "dead":

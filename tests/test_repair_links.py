@@ -451,7 +451,7 @@ class WorkdayEmployerJobSemanticsTests(unittest.TestCase):
         )
         job = self._feed_job(url)
         job["link_kind"] = "employer_job"
-        doc = {"jobs": [job], "sources": {"medtronic": {"ok": True, "configured": True}}}
+        doc = {"jobs": [job], "sources": {"medtronic": {"status": "healthy"}}}
         from tempfile import NamedTemporaryFile
         with NamedTemporaryFile("w+", suffix=".json") as handle:
             json.dump(doc, handle)

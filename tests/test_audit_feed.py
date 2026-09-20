@@ -14,8 +14,8 @@ class StaleUnavailableAuditTests(unittest.TestCase):
         doc = {
             "generated_at": "2026-09-18T12:00:00Z",
             "sources": {
-                "dead-source": {"ok": False},
-                "healthy-source": {"ok": True},
+                "dead-source": {"status": "failed"},
+                "healthy-source": {"status": "healthy"},
             },
             "jobs": [
                 {
@@ -87,7 +87,7 @@ class StaleUnavailableAuditTests(unittest.TestCase):
     def test_old_posting_is_review_bucket_not_evidence_backed_stale(self):
         doc = {
             "generated_at": "2026-09-18T12:00:00Z",
-            "sources": {"healthy": {"ok": True}},
+            "sources": {"healthy": {"status": "healthy"}},
             "jobs": [
                 {
                     "id": "old",
@@ -194,7 +194,7 @@ class BuildAuditReportTests(unittest.TestCase):
     def test_builds_and_renders_comprehensive_audit_report(self):
         doc = {
             "generated_at": "2026-09-18T12:00:00Z",
-            "sources": {"direct-source": {"ok": True}},
+            "sources": {"direct-source": {"status": "healthy"}},
             "jobs": [
                 {
                     "id": "job1",

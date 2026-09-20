@@ -52,7 +52,7 @@ class ParallelAtsCollectTests(unittest.TestCase):
                 "profiles": ["cs"],
                 "states": ["Remote"],
             }],
-            "sources": {"aggregator": {"ok": True}},
+            "sources": {"aggregator": {"status": "healthy"}},
         }
         workday = {
             "jobs": [dict(base["jobs"][0])],
@@ -70,7 +70,7 @@ class ParallelAtsCollectTests(unittest.TestCase):
             "jobs": [greenhouse_job],
             "sources": {
                 **base["sources"],
-                "direct-greenhouse-sage": {"ok": True, "direct": True},
+                "direct-greenhouse-sage": {"status": "healthy", "direct": True},
             },
         }
 
@@ -108,7 +108,7 @@ class ParallelAtsCollectTests(unittest.TestCase):
                     "states": ["Remote"],
                     "direct_employer": True,
                 }],
-                "sources": {name: {"ok": True, "direct": True}},
+                "sources": {name: {"status": "healthy", "direct": True}},
             }
 
         merged = mod.merge_provider_documents(base, provider_docs)

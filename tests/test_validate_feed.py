@@ -7,7 +7,7 @@ import scripts.validate_feed as vf
 class ValidateFeedTests(unittest.TestCase):
     def _create_feed(self, jobs, sources=None):
         if sources is None:
-            sources = {"source1": {"ok": True}}
+            sources = {"source1": {"status": "healthy"}}
         return {
             "jobs": jobs,
             "sources": sources
@@ -36,6 +36,25 @@ class ValidateFeedTests(unittest.TestCase):
             json.dump(feed, f)
             f.flush()
             errors = vf.validate(Path(f.name), minimum_jobs=1, minimum_healthy_sources=1, strict_sources=False)
+            self.assertEqual(errors, [])
+
+    def test_legacy_source_health_is_accepted_during_status_migration(self):
+        feed = self._create_feed(
+            [self._valid_job()],
+            sources={
+                "legacy-healthy": {"ok": True, "configured": True},
+                "legacy-disabled": {"ok": False, "configured": False},
+            },
+        )
+        with NamedTemporaryFile("w+", suffix=".json") as f:
+            json.dump(feed, f)
+            f.flush()
+            errors = vf.validate(
+                Path(f.name),
+                minimum_jobs=1,
+                minimum_healthy_sources=1,
+                strict_sources=True,
+            )
             self.assertEqual(errors, [])
 
     def test_record_level_quarantine_missing_title(self):
