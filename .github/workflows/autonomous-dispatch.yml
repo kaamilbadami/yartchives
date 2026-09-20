@@ -6,6 +6,10 @@ on:
     - cron: "*/5 * * * *"
   issues:
     types:
+      - opened
+      - labeled
+      - reopened
+      - edited
       - closed
   issue_comment:
     types:
