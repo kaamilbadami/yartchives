@@ -303,12 +303,12 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(hideHandler[1], /updateQueueOptimistically/, "Hide should trigger optimistic queue update immediately");
   assert.match(hideHandler[1], /applyFilters\(\);/);
 
-  assert.match(uiSource, /function waitForBrowserPaint\(\)/, "Apply Next should have an explicit browser-paint yield");
-  assert.match(uiSource, /await waitForBrowserPaint\(\)/, "Apply Next should paint loading feedback before ranking work starts");
+  assert.doesNotMatch(uiSource, /function waitForBrowserPaint\(\)/, "Apply Next should not own a feature-specific paint helper");
+  assert.match(uiSource, /await YartchivesUtils\.waitForBrowserPaint\(\)/, "Apply Next should use the shared browser-paint primitive");
   const renderQueueSource = uiSource.match(/async function renderQueue\(panel, profile\) \{([\s\S]*?)\n  \}/);
   assert.ok(renderQueueSource, "renderQueue should be present");
   assert.ok(
-    renderQueueSource[1].indexOf("await waitForBrowserPaint()") < renderQueueSource[1].indexOf("candidatePool(feed.jobs"),
+    renderQueueSource[1].indexOf("await YartchivesUtils.waitForBrowserPaint()") < renderQueueSource[1].indexOf("candidatePool(feed.jobs"),
     "Apply Next should yield a paint before synchronous candidate filtering"
   );
   const applyNextCss = fs.readFileSync(path.join(__dirname, "..", "apply-next.css"), "utf8");
@@ -322,14 +322,11 @@ assert.equal(jobs[2]._inspection, undefined);
     /button\.addEventListener\("click", async \(\) => \{([\s\S]*?)\n\s*\}\);/
   );
   assert.ok(openHandler, "Apply Next open handler should be present");
-  assert.match(openHandler[1], /button\.disabled = true/, "Apply Next should prevent double-clicks while opening");
-  assert.match(openHandler[1], /button\.textContent = "Finding matches…"/, "Apply Next button should acknowledge the click immediately");
-  assert.ok(
-    openHandler[1].indexOf("panel.scrollIntoView") < openHandler[1].indexOf("await renderPanel(panel)"),
-    "Apply Next should reveal and scroll to its shell before recommendation work finishes"
-  );
-  assert.match(openHandler[1], /button\.disabled = false/, "Apply Next button should re-enable after loading");
-  assert.match(openHandler[1], /button\.textContent = "Apply Next"/, "Apply Next button label should reset after loading");
+  assert.match(openHandler[1], /YartchivesUtils\.runWithPendingUi\(\{/, "Apply Next should use the shared pending-UI helper");
+  assert.match(openHandler[1], /control:\s*button/, "Apply Next should delegate button disabling/restoration to the shared helper");
+  assert.match(openHandler[1], /pendingLabel:\s*"Finding matches…"/, "Apply Next should acknowledge the click immediately");
+  assert.match(openHandler[1], /prepare:\s*\(\) => \{[\s\S]*?panel\.scrollIntoView/, "Apply Next should reveal its shell in the helper prepare phase");
+  assert.match(openHandler[1], /work:\s*\(\) => renderPanel\(panel\)/, "Apply Next should start recommendation work only after the shared paint boundary");
 
   assert.match(uiSource, /setProfileSetupMode\(true\)/, "Apply Next should enter focused mode");
   assert.match(uiSource, /setProfileSetupMode\(false\)/, "Closing Apply Next should restore the normal feed");

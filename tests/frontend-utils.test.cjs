@@ -87,3 +87,70 @@ assert.match(appSource, /job\.link_kind === "employer_job"/);
 assert.match(appSource, /View posting ↗/);
 assert.match(appSource, /src\.errors\.join/);
 assert.doesNotMatch(appSource, /trackView|state\\.viewed|viewedCount/);
+
+
+async function testPendingUiHelper() {
+  const events = [];
+  const control = { disabled: false, textContent: "Apply Next" };
+  const attrs = new Map();
+  const busyTarget = {
+    setAttribute(name, value) { attrs.set(name, value); },
+    getAttribute(name) { return attrs.has(name) ? attrs.get(name) : null; },
+    removeAttribute(name) { attrs.delete(name); },
+  };
+
+  const result = await U.runWithPendingUi({
+    control,
+    busyTarget,
+    pendingLabel: "Finding matches…",
+    prepare: () => {
+      events.push(["prepare", control.disabled, control.textContent, attrs.get("aria-busy")]);
+    },
+    paint: async () => {
+      events.push(["paint", control.disabled, control.textContent, attrs.get("aria-busy")]);
+    },
+    work: async () => {
+      events.push(["work", control.disabled, control.textContent, attrs.get("aria-busy")]);
+      return "done";
+    },
+  });
+
+  assert.equal(result, "done");
+  assert.deepEqual(events.map(event => event[0]), ["prepare", "paint", "work"]);
+  assert.deepEqual(events[0].slice(1), [true, "Finding matches…", "true"]);
+  assert.deepEqual(events[1].slice(1), [true, "Finding matches…", "true"]);
+  assert.deepEqual(events[2].slice(1), [true, "Finding matches…", "true"]);
+  assert.equal(control.disabled, false);
+  assert.equal(control.textContent, "Apply Next");
+  assert.equal(attrs.has("aria-busy"), false);
+
+  let restoredAfterFailure = false;
+  await assert.rejects(
+    U.runWithPendingUi({
+      control,
+      pendingLabel: "Working…",
+      paint: async () => {},
+      work: async () => { throw new Error("boom"); },
+    }),
+    /boom/
+  );
+  restoredAfterFailure = control.disabled === false && control.textContent === "Apply Next";
+  assert.equal(restoredAfterFailure, true, "pending UI must restore in finally after failures");
+
+  const paintEvents = [];
+  await U.waitForBrowserPaint({
+    requestAnimationFrame: callback => {
+      paintEvents.push("raf");
+      callback();
+    },
+    setTimeout: () => {
+      throw new Error("RAF path should win");
+    },
+  });
+  assert.deepEqual(paintEvents, ["raf"]);
+}
+
+testPendingUiHelper().catch(error => {
+  console.error(error);
+  process.exit(1);
+});

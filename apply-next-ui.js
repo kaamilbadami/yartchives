@@ -238,19 +238,6 @@
     return node;
   }
 
-  function waitForBrowserPaint() {
-    return new Promise(resolve => {
-      if (typeof requestAnimationFrame === "function") {
-        requestAnimationFrame(() => resolve());
-      } else if (typeof setTimeout === "function") {
-        setTimeout(resolve, 0);
-      } else {
-        resolve();
-      }
-    });
-  }
-
-
   function setProfileError(message) {
     const box = document.querySelector("#applyNextProfileError");
     if (!box) return;
@@ -964,7 +951,7 @@
 
     // Let the browser paint the shell, disabled button, and loading copy before
     // synchronous candidate filtering/ranking work starts.
-    await waitForBrowserPaint();
+    await YartchivesUtils.waitForBrowserPaint();
 
     try {
       if (typeof feed === "undefined" || !Array.isArray(feed.jobs)) throw new Error("Feed not available");
@@ -1028,16 +1015,15 @@
       if (opening) {
         activeQueueView = "recommended";
         queueVisibleCounts = { recommended: TOP_N, fresh: TOP_N };
-        button.disabled = true;
-        button.textContent = "Finding matches…";
-        setProfileSetupMode(true);
-        panel.scrollIntoView({ behavior: "smooth", block: "start" });
-        try {
-          await renderPanel(panel);
-        } finally {
-          button.disabled = false;
-          button.textContent = "Apply Next";
-        }
+        await YartchivesUtils.runWithPendingUi({
+          control: button,
+          pendingLabel: "Finding matches…",
+          prepare: () => {
+            setProfileSetupMode(true);
+            panel.scrollIntoView({ behavior: "smooth", block: "start" });
+          },
+          work: () => renderPanel(panel),
+        });
       } else {
         setProfileSetupMode(false);
       }

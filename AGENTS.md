@@ -37,6 +37,13 @@ These instructions apply to automated coding agents working in this repository.
 - Improve measured coverage through source, parser, provider, identity, or visibility fixes rather than editing benchmark expectations.
 - When diagnosing coverage gaps, distinguish uncovered sources, known-employer missing roles, hidden/presentation issues, provider identity mismatches, and probable duplicates.
 
+## Frontend interaction responsiveness
+
+- For any user action that can perform noticeable synchronous or asynchronous work, update the pending UI before starting that work.
+- A DOM mutation is not evidence that the user saw the state. Use the shared `YartchivesUtils.runWithPendingUi(...)` / `waitForBrowserPaint()` primitive so the browser gets a paint boundary before expensive work begins.
+- Pending-state regressions must test ordering: pending UI -> paint boundary -> expensive work -> restoration in `finally`. Do not test only that loading text exists somewhere in source.
+- Avoid large synchronous work directly inside click handlers. If work remains materially blocking after a paint boundary, chunk it or move it off the main thread rather than hiding the stall with more loading copy.
+
 ## Testing
 
 - Run the smallest relevant test set while iterating.
