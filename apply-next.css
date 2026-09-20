@@ -332,6 +332,19 @@
   font: inherit;
 }
 
+
+.apply-next-feedback-submit-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.apply-next-feedback-error {
+  color: var(--danger);
+  font-size: 0.78rem;
+}
+
 @media (max-width: 720px) {
   .apply-next-breakdown {
     grid-template-columns: 1fr;

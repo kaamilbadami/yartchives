@@ -12,6 +12,7 @@
   const TOP_N = 10;
   const FRESH_MAX_AGE_DAYS = 3;
   const FRESH_MIN_SCORE = 55;
+  const FEEDBACK_ENDPOINT = "https://formspree.io/f/mqakpejw";
   let inspectionArtifactPromise = null;
   let lastRankedResults = [];
   let lastProfile = null;
@@ -745,8 +746,11 @@
         const btnGroup = element("div", "apply-next-feedback-group");
         btnGroup.append(goodBtn, badBtn);
         feedbackSection.append(p, btnGroup);
-      } else if (currentFeedback.rating === "good") {
-        const p = element("span", "muted", "Rated as a good suggestion.");
+      } else if (currentFeedback.submitted) {
+        const p = element("span", "muted", "Feedback submitted. Thank you!");
+        feedbackSection.append(p);
+      } else {
+        const p = element("span", "muted", `Rated as a ${currentFeedback.rating} suggestion.`);
         const undoBtn = element("button", "text-btn", "Undo");
         undoBtn.type = "button";
         undoBtn.addEventListener("click", () => {
@@ -756,12 +760,39 @@
         });
         feedbackSection.append(p, undoBtn);
 
+        if (currentFeedback.rating === "bad") {
+          const reasonWrap = element("div", "apply-next-feedback-reason");
+          const reasonLabel = element("span", "muted", "Optional reason:");
+          const select = element("select", "apply-next-feedback-select");
+          select.innerHTML = `
+            <option value="">Select reason...</option>
+            <option value="role">Role interest</option>
+            <option value="location">Location</option>
+            <option value="fit">Requirements/Fit</option>
+            <option value="company">Company/Industry</option>
+            <option value="other">Other</option>
+          `;
+          if (currentFeedback.reason) select.value = currentFeedback.reason;
+
+          select.addEventListener("change", (e) => {
+            if (e.target.value) {
+              state.feedback[job.id].reason = e.target.value;
+            } else {
+              delete state.feedback[job.id].reason;
+            }
+            persist();
+          });
+
+          reasonWrap.append(reasonLabel, select);
+          feedbackSection.append(reasonWrap);
+        }
+
         const noteWrap = element("label", "apply-next-feedback-note");
         noteWrap.append(element("span", "muted", "Anything else? (optional)"));
         const note = element("textarea", "apply-next-feedback-note-input");
         note.rows = 2;
         note.maxLength = 500;
-        note.placeholder = "What made this a good suggestion?";
+        note.placeholder = currentFeedback.rating === "good" ? "What made this a good suggestion?" : "Tell us what was wrong with this suggestion.";
         note.value = currentFeedback.note || "";
         note.addEventListener("input", (e) => {
           const value = e.target.value.trim();
@@ -771,57 +802,51 @@
         });
         noteWrap.append(note);
         feedbackSection.append(noteWrap);
-      } else if (currentFeedback.rating === "bad") {
-        const p = element("span", "muted", "Rated as a bad suggestion.");
-        const undoBtn = element("button", "text-btn", "Undo");
-        undoBtn.type = "button";
-        undoBtn.addEventListener("click", () => {
-          delete state.feedback[job.id];
-          persist();
-          renderFeedback();
-        });
-        feedbackSection.append(p, undoBtn);
 
-        const reasonWrap = element("div", "apply-next-feedback-reason");
-        const reasonLabel = element("span", "muted", "Optional reason:");
-        const select = element("select", "apply-next-feedback-select");
-        select.innerHTML = `
-          <option value="">Select reason...</option>
-          <option value="role">Role interest</option>
-          <option value="location">Location</option>
-          <option value="fit">Requirements/Fit</option>
-          <option value="company">Company/Industry</option>
-          <option value="other">Other</option>
-        `;
-        if (currentFeedback.reason) select.value = currentFeedback.reason;
+        const submitAction = element("div", "apply-next-feedback-submit-wrap");
+        const submitBtn = element("button", "primary-btn apply-next-feedback-submit", "Submit feedback");
+        submitBtn.type = "button";
 
-        select.addEventListener("change", (e) => {
-          if (e.target.value) {
-            state.feedback[job.id].reason = e.target.value;
-          } else {
-            delete state.feedback[job.id].reason;
+        let errorSpan = null;
+
+        submitBtn.addEventListener("click", async () => {
+          if (errorSpan) {
+            errorSpan.remove();
+            errorSpan = null;
           }
-          persist();
+          await YartchivesUtils.runWithPendingUi({
+            control: submitBtn,
+            pendingLabel: "Submitting...",
+            work: async () => {
+              try {
+                const payload = {
+                  schema: "yartchives-feedback-v1",
+                  jobId: job.id,
+                  rating: currentFeedback.rating,
+                  reason: currentFeedback.reason || "",
+                  note: currentFeedback.note || "",
+                  submittedAt: new Date().toISOString()
+                };
+                const res = await fetch(FEEDBACK_ENDPOINT, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                  body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error("Submission failed");
+
+                state.feedback[job.id].submitted = true;
+                persist();
+                renderFeedback();
+              } catch (err) {
+                errorSpan = element("span", "apply-next-feedback-error", "Failed to submit. Please try again.");
+                submitAction.append(errorSpan);
+              }
+            }
+          });
         });
 
-        reasonWrap.append(reasonLabel, select);
-        feedbackSection.append(reasonWrap);
-
-        const noteWrap = element("label", "apply-next-feedback-note");
-        noteWrap.append(element("span", "muted", "Anything else? (optional)"));
-        const note = element("textarea", "apply-next-feedback-note-input");
-        note.rows = 2;
-        note.maxLength = 500;
-        note.placeholder = "Tell us what was wrong with this suggestion.";
-        note.value = currentFeedback.note || "";
-        note.addEventListener("input", (e) => {
-          const value = e.target.value.trim();
-          if (value) state.feedback[job.id].note = value;
-          else delete state.feedback[job.id].note;
-          persist();
-        });
-        noteWrap.append(note);
-        feedbackSection.append(noteWrap);
+        submitAction.append(submitBtn);
+        feedbackSection.append(submitAction);
       }
     }
 
