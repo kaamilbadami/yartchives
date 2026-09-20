@@ -282,16 +282,51 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
         self.assertEqual([task.number for task in selected], [184])
 
-    def test_unmapped_area_requires_explicit_resource_metadata(self):
+    def test_unmapped_area_is_dispatchable_without_explicit_resource_metadata(self):
         unmapped = issue(1, "unknown area", body=task_body("P1", "future-area"))
-        explicit = issue(
-            2,
-            "explicitly locked future area",
-            body=task_body("P1", "future-area", resources="future-resource"),
+        task = mod.task_from_issue(unmapped)
+
+        self.assertIsNotNone(task)
+        self.assertEqual(task.area, "future-area")
+        self.assertEqual(task.resources, frozenset())
+        self.assertEqual(
+            mod.task_lock_keys(task),
+            frozenset({"resource:area-fallback:future-area"}),
         )
 
-        self.assertIsNone(mod.task_from_issue(unmapped))
-        self.assertEqual(mod.task_from_issue(explicit).resources, frozenset({"future-resource"}))
+    def test_explicit_resources_are_authoritative_for_new_areas(self):
+        first = issue(
+            1,
+            "alpha work",
+            body=task_body("P1", "alpha", resources="shared-hot-file"),
+            labels=("jules", "jules-session"),
+        )
+        second = issue(
+            2,
+            "beta work",
+            body=task_body("P1", "beta", resources="shared-hot-file"),
+        )
+
+        self.assertEqual(mod.select_tasks([first, second], max_active=2), [])
+
+    def test_same_area_can_run_concurrently_when_resources_do_not_overlap(self):
+        issues = [
+            issue(
+                1,
+                "active custom area task",
+                body=task_body("P1", "custom-area", resources="resource-a"),
+                labels=("jules", "jules-session"),
+            ),
+            issue(
+                2,
+                "independent custom area task",
+                body=task_body("P1", "custom-area", resources="resource-b"),
+            ),
+        ]
+
+        selected = mod.select_tasks(issues, max_active=2)
+
+        self.assertEqual([task.number for task in selected], [2])
 
     def test_shared_resource_lock_blocks_cross_area_overlap(self):
         issues = [
