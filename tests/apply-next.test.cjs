@@ -104,11 +104,11 @@ assert.match(cautiousOnly.detail, /Not credited as strengths/);
 
 const direct = A.scoreJob({ ...freshDirect, company: "D", link_kind: "direct" }, profile, now);
 const listing = A.scoreJob({ ...freshDirect, company: "E", link_kind: "listing" }, profile, now);
-assert.ok(direct.total > listing.total);
+assert.equal(direct.total, listing.total);
 assert.equal(direct.components.link.score, 0);
 assert.equal(listing.components.link.score, 0);
-assert.equal(direct.components.effort.score, 5);
-assert.equal(listing.components.effort.score, 2);
+assert.equal(direct.components.effort, undefined);
+assert.equal(listing.components.effort, undefined);
 assert.equal(direct.components.freshness.score, 10);
 assert.equal(direct.components.role.score, 15);
 assert.equal(direct.components.location.score, 20);
@@ -267,6 +267,7 @@ assert.equal(A.summarizeInspection(inspectedStrong).label, "Authoritative eviden
 
 const totalFromParts = Object.values(direct.components).reduce((sum, part) => sum + part.score, 0);
 assert.equal(direct.total, totalFromParts);
+assert.equal(Object.values(A.DEFAULT_WEIGHTS).reduce((sum, value) => sum + value, 0), 100);
 assert.equal(direct.total <= 100, true);
 
 console.log("apply-next tests passed");
