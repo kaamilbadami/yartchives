@@ -24,12 +24,18 @@ assert.equal(UI.componentMax("link"), 0);
 assert.equal(UI.componentLabel("fit"), "How well you match");
 assert.equal(UI.componentLabel("freshness"), "How recent it is");
 assert.equal(UI.componentLabel("roi"), "Worth applying");
-assert.equal(UI.componentLabel("location"), "Location convenience");
+assert.equal(UI.componentLabel("location"), "Location fit");
+assert.equal(UI.componentLabel("effort"), "Application access");
 assert.match(UI.componentExplanation("fit"), /skills, major, degree level/i);
+assert.match(UI.componentExplanation("effort"), /application-link friction/i);
 assert.equal(UI.scoreBand("fit", 30, 40), "Strong match");
 assert.equal(UI.scoreBand("freshness", 5, 10), "Recent");
 assert.equal(UI.scoreBand("roi", 10, 30), "Lower value");
 assert.equal(UI.scoreBand("location", 15, 20), "Very convenient");
+assert.equal(UI.scoreBand("location", 18, 20, { states: ["Remote", "CA"] }), "Remote");
+assert.equal(UI.scoreBand("effort", 5, 5), "Direct application");
+assert.equal(UI.scoreBand("effort", 2, 5), "Intermediary application");
+assert.equal(UI.scoreBand("effort", 0, 5), "Higher application friction");
 assert.equal(UI.totalScoreBandClass(50), "apply-next-score-low");
 assert.equal(UI.totalScoreBandClass(65), "apply-next-score-medium");
 assert.equal(UI.totalScoreBandClass(85), "apply-next-score-high");
@@ -98,6 +104,15 @@ assert.deepEqual(
     inspection: { state: "inspected" }
   }),
   ["Strong match", "High value", "Very recent", "Very convenient location"]
+);
+
+assert.deepEqual(
+  UI.decisionHighlights({
+    job: { states: ["Remote", "CA"], location: "Remote · Thousand Oaks, CA" },
+    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 12 }, location: { score: 12 } },
+    inspection: { state: "inspected" }
+  }),
+  ["Strong match", "High value", "Very recent", "Remote"]
 );
 
 assert.deepEqual(
