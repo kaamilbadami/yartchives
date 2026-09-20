@@ -705,6 +705,22 @@
           renderFeedback();
         });
         feedbackSection.append(p, undoBtn);
+
+        const noteWrap = element("label", "apply-next-feedback-note");
+        noteWrap.append(element("span", "muted", "Anything else? (optional)"));
+        const note = element("textarea", "apply-next-feedback-note-input");
+        note.rows = 2;
+        note.maxLength = 500;
+        note.placeholder = "What made this a good suggestion?";
+        note.value = currentFeedback.note || "";
+        note.addEventListener("input", (e) => {
+          const value = e.target.value.trim();
+          if (value) state.feedback[job.id].note = value;
+          else delete state.feedback[job.id].note;
+          persist();
+        });
+        noteWrap.append(note);
+        feedbackSection.append(noteWrap);
       } else if (currentFeedback.rating === "bad") {
         const p = element("span", "muted", "Rated as a bad suggestion.");
         const undoBtn = element("button", "text-btn", "Undo");
@@ -740,6 +756,22 @@
 
         reasonWrap.append(reasonLabel, select);
         feedbackSection.append(reasonWrap);
+
+        const noteWrap = element("label", "apply-next-feedback-note");
+        noteWrap.append(element("span", "muted", "Anything else? (optional)"));
+        const note = element("textarea", "apply-next-feedback-note-input");
+        note.rows = 2;
+        note.maxLength = 500;
+        note.placeholder = "Tell us what was wrong with this suggestion.";
+        note.value = currentFeedback.note || "";
+        note.addEventListener("input", (e) => {
+          const value = e.target.value.trim();
+          if (value) state.feedback[job.id].note = value;
+          else delete state.feedback[job.id].note;
+          persist();
+        });
+        noteWrap.append(note);
+        feedbackSection.append(noteWrap);
       }
     }
 
