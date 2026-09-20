@@ -38,6 +38,28 @@ class RepairLinksTests(unittest.TestCase):
         stats = mod.repair_document(doc, payload)
         job = doc["jobs"][0]
         self.assertEqual(job["link_kind"], "employer_job")
+
+    def test_applyguy_workday_details_page_becomes_employer_job(self):
+        doc = {
+            "jobs": [{
+                "id": "2",
+                "company": "Boeing",
+                "title": "Software Engineer",
+                "location": "Seattle, WA",
+                "source_keys": ["applyguy"],
+                "url": "",
+            }]
+        }
+        payload = {
+            "jobs": [{
+                "company": "Boeing",
+                "title": "Software Engineer",
+                "listingUrl": "https://boeing.wd1.myworkdayjobs.com/en-US/EXTERNAL_CAREERS/details/Software-Engineer_00000000",
+            }]
+        }
+        stats = mod.repair_document(doc, payload)
+        job = doc["jobs"][0]
+        self.assertEqual(job["link_kind"], "employer_job")
         self.assertEqual(job["link_origin"], "applyguy-feed")
         self.assertIn("myworkdayjobs.com", job["url"])
         self.assertEqual(stats["applyguy_repaired"], 1)
