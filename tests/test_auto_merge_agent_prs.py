@@ -1226,6 +1226,31 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
 
+    def test_main_reconciles_stale_overlap_before_exact_head_ci_gate(self):
+        source = MODULE_PATH.read_text()
+        main_source = source[source.index("def main() -> int:"):]
+        stale_index = main_source.index(
+            'comparison = gh_json("api", f"repos/{repo}/compare/{base_ref}...{head_sha}")'
+        )
+        ci_index = main_source.index(
+            "if not exact_head_quality_passed(runs, head_sha):"
+        )
+        eligible_index = main_source.index(
+            "if owner_authorized:",
+            ci_index,
+        )
+
+        self.assertLess(stale_index, ci_index)
+        self.assertLess(ci_index, eligible_index)
+        self.assertIn(
+            "replacement_number = supersede_conflicted_pull_request(",
+            main_source[stale_index:ci_index],
+        )
+        self.assertIn(
+            '"Quality checks because main changed overlapping paths."',
+            main_source[stale_index:ci_index],
+        )
+
     def test_main_repairs_generated_artifacts_before_lane_classification(self):
         source = MODULE_PATH.read_text()
         repair_index = source.index("remove_generated_artifacts(")
