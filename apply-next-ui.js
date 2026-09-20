@@ -7,6 +7,7 @@
   }
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   const STORAGE_KEY = "yartchives-apply-next-profile-v1";
+  const FOUNDING_BETA_TESTER_KEY = "yartchives-founding-beta-tester-v1";
   const INSPECTION_URL = "data/workday-inspections.json";
   const TOP_N = 10;
   const FRESH_MAX_AGE_DAYS = 3;
@@ -20,6 +21,36 @@
 
   function normalize(value) {
     return String(value || "").trim();
+  }
+
+  function hasFoundingBetaTester(storage) {
+    try {
+      return storage?.getItem(FOUNDING_BETA_TESTER_KEY) === "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function awardFoundingBetaTester(storage) {
+    try {
+      storage?.setItem(FOUNDING_BETA_TESTER_KEY, "1");
+    } catch (_) {}
+    refreshFoundingBetaStatus();
+  }
+
+  function refreshFoundingBetaStatus() {
+    if (typeof document === "undefined") return;
+    const badge = document.querySelector("#applyNextFoundingBetaBadge");
+    if (!badge) return;
+    badge.classList.toggle("hidden", !hasFoundingBetaTester(typeof localStorage !== "undefined" ? localStorage : null));
+  }
+
+  function foundingBetaBadge() {
+    const badge = element("span", "apply-next-beta-badge", "Founding beta tester");
+    badge.id = "applyNextFoundingBetaBadge";
+    badge.classList.toggle("hidden", !hasFoundingBetaTester(typeof localStorage !== "undefined" ? localStorage : null));
+    badge.setAttribute("title", "Thanks for helping shape the Apply Next beta.");
+    return badge;
   }
 
   function postedAgeDays(value, nowValue = new Date()) {
@@ -680,6 +711,7 @@
         goodBtn.type = "button";
         goodBtn.addEventListener("click", () => {
           state.feedback[job.id] = { rating: "good" };
+          awardFoundingBetaTester(localStorage);
           persist();
           renderFeedback();
         });
@@ -688,6 +720,7 @@
         badBtn.type = "button";
         badBtn.addEventListener("click", () => {
           state.feedback[job.id] = { rating: "bad" };
+          awardFoundingBetaTester(localStorage);
           persist();
           renderFeedback();
         });
@@ -910,6 +943,7 @@
     copy.append(
       element("p", "eyebrow", "your next application queue"),
       element("h2", "", "Apply Next"),
+      foundingBetaBadge(),
       element("p", "muted", profileSummary(profile) || "Private strategy loaded")
     );
     const controls = element("div", "apply-next-profile-actions");
@@ -1072,6 +1106,9 @@
 
   return {
     STORAGE_KEY,
+    FOUNDING_BETA_TESTER_KEY,
+    hasFoundingBetaTester,
+    awardFoundingBetaTester,
     INSPECTION_URL,
     TOP_N,
     FRESH_MAX_AGE_DAYS,
