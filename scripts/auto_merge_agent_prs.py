@@ -1407,58 +1407,6 @@ def main() -> int:
             continue
 
         head_ref = str((pr.get("head") or {}).get("ref") or "")
-        if not exact_head_quality_passed(runs, head_sha):
-            if exact_head_quality_in_flight(runs, head_sha):
-                print(f"PR #{number} already has exact-head Quality checks in flight.")
-                continue
-            should_redispatch = (
-                exact_head_quality_action_required(runs, head_sha)
-                or not exact_head_quality_present(runs, head_sha)
-            )
-            if should_redispatch and head_ref:
-                gh_run(
-                    "workflow", "run", "quality.yml",
-                    "--repo", repo,
-                    "--ref", head_ref,
-                )
-                print(
-                    f"Dispatched Quality checks manually for PR #{number} because the "
-                    "exact-head run was missing or required manual approval."
-                )
-                continue
-
-        if owner_authorized:
-            eligible, reason = (
-                exact_head_quality_passed(runs, head_sha),
-                "owner-authorized" if exact_head_quality_passed(runs, head_sha)
-                else "exact-head Quality checks have not passed",
-            )
-        elif maintenance_pre_ci:
-            eligible, reason = maintenance_pr_eligible(
-                pr,
-                repo=repo,
-                files=files,
-                quality_runs=runs,
-            )
-        elif control_plane_pre_ci:
-            eligible, reason = control_plane_pr_eligible(
-                pr,
-                repo=repo,
-                files=files,
-                quality_runs=runs,
-            )
-        else:
-            eligible, reason = eligible_pr(
-                pr,
-                repo=repo,
-                issue=issue,
-                changed_paths=changed_paths,
-                quality_runs=runs,
-            )
-        if not eligible:
-            print(f"BLOCKED_REQUIRES_DECISION PR #{number}: {reason}.")
-            continue
-
         base_ref = str((pr.get("base") or {}).get("ref") or "main")
         stale_nonoverlap_safe = False
         comparison = gh_json("api", f"repos/{repo}/compare/{base_ref}...{head_sha}")
@@ -1522,8 +1470,60 @@ def main() -> int:
             stale_nonoverlap_safe = True
             print(
                 f"PR #{number} is behind {base_ref}, but base changes do not overlap "
-                "its changed paths; preserving green exact-head CI and fast-merging."
+                "its changed paths; preserving exact-head CI state."
             )
+
+        if not exact_head_quality_passed(runs, head_sha):
+            if exact_head_quality_in_flight(runs, head_sha):
+                print(f"PR #{number} already has exact-head Quality checks in flight.")
+                continue
+            should_redispatch = (
+                exact_head_quality_action_required(runs, head_sha)
+                or not exact_head_quality_present(runs, head_sha)
+            )
+            if should_redispatch and head_ref:
+                gh_run(
+                    "workflow", "run", "quality.yml",
+                    "--repo", repo,
+                    "--ref", head_ref,
+                )
+                print(
+                    f"Dispatched Quality checks manually for PR #{number} because the "
+                    "exact-head run was missing or required manual approval."
+                )
+                continue
+
+        if owner_authorized:
+            eligible, reason = (
+                exact_head_quality_passed(runs, head_sha),
+                "owner-authorized" if exact_head_quality_passed(runs, head_sha)
+                else "exact-head Quality checks have not passed",
+            )
+        elif maintenance_pre_ci:
+            eligible, reason = maintenance_pr_eligible(
+                pr,
+                repo=repo,
+                files=files,
+                quality_runs=runs,
+            )
+        elif control_plane_pre_ci:
+            eligible, reason = control_plane_pr_eligible(
+                pr,
+                repo=repo,
+                files=files,
+                quality_runs=runs,
+            )
+        else:
+            eligible, reason = eligible_pr(
+                pr,
+                repo=repo,
+                issue=issue,
+                changed_paths=changed_paths,
+                quality_runs=runs,
+            )
+        if not eligible:
+            print(f"BLOCKED_REQUIRES_DECISION PR #{number}: {reason}.")
+            continue
 
         fresh = gh_json("api", f"repos/{repo}/pulls/{number}")
         if not github_reports_safe_mergeability(fresh):
