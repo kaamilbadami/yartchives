@@ -2,6 +2,11 @@
   white-space: nowrap;
 }
 
+.apply-next-open:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
 .apply-next-panel {
   margin: 1rem 0 1.4rem;
 }
