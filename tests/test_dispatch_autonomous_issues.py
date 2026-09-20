@@ -1751,7 +1751,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertNotIn("jules-failed", mod.label_names(original))
         self.assertEqual([task.number for task in mod.select_tasks(issues)], [500])
 
-    def test_rework_cleanup_only_removes_labels_that_are_present(self):
+    def test_rework_cleanup_uses_atomic_issue_patch_with_exact_terminal_labels(self):
         original = issue(
             350,
             "Expand coverage",
@@ -1776,18 +1776,23 @@ class AutonomousDispatcherTests(unittest.TestCase):
             run_gh_json=lambda *args: self.fail("must reuse existing replacement"),
             run_gh=lambda *args: gh_calls.append(args),
         )
-        edit = next(
+        patch = next(
             call for call in gh_calls
-            if call[:3] == ("issue", "edit", "350")
+            if call[:4] == (
+                "api", "--method", "PATCH",
+                "repos/kaamilbadami/yartchives/issues/350",
+            )
         )
-        self.assertIn("--add-label", edit)
-        self.assertIn("jules-reworked", edit)
-        self.assertIn("--remove-label", edit)
-        self.assertIn("jules-failed", edit)
-        self.assertNotIn("jules-retry-ready", edit)
-        self.assertNotIn("jules-session", edit)
-        self.assertNotIn("jules-needs-feedback", edit)
-        self.assertEqual(edit[-2:], ("--state", "closed"))
+        joined = " ".join(patch)
+        self.assertIn("state=closed", joined)
+        self.assertIn("state_reason=completed", joined)
+        self.assertIn("labels[]=agent-ready", joined)
+        self.assertIn("labels[]=autonomous-backlog", joined)
+        self.assertIn("labels[]=jules-reworked", joined)
+        self.assertNotIn("labels[]=jules-failed", joined)
+        self.assertNotIn("labels[]=jules-retry-ready", joined)
+        self.assertNotIn("labels[]=jules-session", joined)
+        self.assertNotIn("labels[]=jules-needs-feedback", joined)
 
     def test_rework_is_idempotent_when_replacement_already_exists(self):
         original = issue(
