@@ -14,10 +14,10 @@ const profile = {
 assert.equal(UI.validateProfile(profile).ok, true);
 assert.equal(UI.validateProfile({ roleFamilies: profile.roleFamilies }).ok, false);
 assert.equal(UI.validateProfile({ targetTerm: "Summer 2027", roleFamilies: [] }).ok, false);
-assert.equal(UI.componentMax("fit"), 40);
-assert.equal(UI.componentMax("role"), 20);
-assert.equal(UI.componentMax("location"), 15);
-assert.equal(UI.componentMax("roi"), 15);
+assert.equal(UI.componentMax("fit"), 45);
+assert.equal(UI.componentMax("role"), 0);
+assert.equal(UI.componentMax("location"), 20);
+assert.equal(UI.componentMax("roi"), 25);
 assert.equal(UI.componentMax("freshness"), 10);
 assert.equal(UI.componentMax("eligibility"), 0);
 assert.equal(UI.componentMax("link"), 0);
