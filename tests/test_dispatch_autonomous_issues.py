@@ -633,6 +633,10 @@ class AutonomousDispatcherTests(unittest.TestCase):
                     }
                 ],
             },
+            get_pr=lambda number: {
+                "number": number,
+                "head": {"sha": "a" * 40},
+            },
             run_gh=lambda *args: gh_calls.append(args),
         )
 
@@ -642,6 +646,17 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertIn("jules-review-ready", labels)
         self.assertIn("jules-review-ready", gh_calls[0])
         self.assertIn("https://github.com/kaamilbadami/yartchives/pull/999", gh_calls[1][-1])
+        self.assertIn(
+            "<!-- jules-output: issue=149 session=abc123 pr=999 head=" + "a" * 40 + " -->",
+            gh_calls[1][-1],
+        )
+        self.assertEqual(
+            gh_calls[2],
+            (
+                "workflow", "run", "auto-merge-agent-prs.yml",
+                "--repo", "kaamilbadami/yartchives",
+            ),
+        )
         self.assertEqual(
             [task.number for task in mod.select_tasks(issues, max_active=2)],
             [154],

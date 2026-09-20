@@ -640,6 +640,75 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         )
         self.assertEqual(mod.linked_issue_number(normalized), 10)
 
+    def test_durable_jules_output_records_issue_session_pr_and_head(self):
+        comments = [
+            {
+                "user": {"login": "github-actions[bot]"},
+                "body": (
+                    "<!-- jules-output: issue=424 session=session-1 pr=441 "
+                    "head=dec3e850d83ee145a0d77848c441128a9877b4fe -->\n"
+                    "Jules completed session `session-1` and released this automation slot."
+                ),
+            }
+        ]
+
+        self.assertEqual(
+            mod.completed_jules_output(comments),
+            (
+                424,
+                "session-1",
+                441,
+                "dec3e850d83ee145a0d77848c441128a9877b4fe",
+            ),
+        )
+
+    def test_review_ready_mapping_carries_durable_output_identity(self):
+        review_issue = issue()
+        review_issue["number"] = 424
+        comments = {
+            424: [
+                {
+                    "user": {"login": "github-actions[bot]"},
+                    "body": (
+                        "<!-- jules-output: issue=424 session=session-1 pr=441 "
+                        "head=dec3e850d83ee145a0d77848c441128a9877b4fe -->"
+                    ),
+                }
+            ]
+        }
+
+        mapping = mod.review_ready_issue_by_pr(
+            [review_issue],
+            repo="kaamilbadami/yartchives",
+            load_comments=lambda number: comments[number],
+        )
+
+        self.assertEqual(mapping[441]["_jules_output"]["issue"], 424)
+        self.assertEqual(mapping[441]["_jules_output"]["pr"], 441)
+        self.assertEqual(
+            mapping[441]["_jules_output"]["head"],
+            "dec3e850d83ee145a0d77848c441128a9877b4fe",
+        )
+        self.assertTrue(mapping[441]["_jules_output"]["durable"])
+
+    def test_legacy_completion_can_be_migrated_with_session_and_pr(self):
+        comments = [
+            {
+                "user": {"login": "github-actions[bot]"},
+                "body": (
+                    "Jules completed session `12215979585609756013` and released "
+                    "this automation slot.\n\n"
+                    "Pull request: https://github.com/kaamilbadami/yartchives/pull/441"
+                ),
+            }
+        ]
+        self.assertEqual(
+            mod.legacy_completed_jules_output(
+                comments, "kaamilbadami/yartchives"
+            ),
+            ("12215979585609756013", 441),
+        )
+
     def test_untrusted_completion_comment_cannot_authorize_pr(self):
         review_issue = issue()
         mapping = mod.review_ready_issue_by_pr(
