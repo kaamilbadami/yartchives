@@ -1,117 +1,161 @@
 import json
+import sys
 from pathlib import Path
 from datetime import datetime, timezone
 import subprocess
-from collections import defaultdict
-import re
+from collections import defaultdict, Counter
 
 ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from scripts.provider_fingerprint import fingerprint_provider
 
 def main():
-    with open(ROOT / "data" / "listings.json") as f:
+    feed_path = ROOT / "data" / "listings.json"
+    cache_path = ROOT / "data" / "workday-inspections.json"
+
+    if not feed_path.exists() or not cache_path.exists():
+        print("Required data files not found.")
+        return
+
+    with open(feed_path) as f:
         feed = json.load(f)
 
+    with open(cache_path) as f:
+        cache = json.load(f)
+
     jobs = feed.get("jobs", [])
+    listing_index = cache.get("listing_index", {})
+    entries = cache.get("entries", {})
+
+    # Pre-attach inspections matching canonical identity lookup
+    for job in jobs:
+        job_id = str(job.get("id") or "")
+        canonical = listing_index.get(job_id)
+        if canonical:
+            entry = entries.get(canonical)
+            if isinstance(entry, dict):
+                job["_inspection"] = entry.get("inspection")
+        if "_inspection" not in job or job["_inspection"] is None:
+            job["_inspection"] = {}
 
     script = '''
     const fs = require('fs');
     const applyNext = require('./apply-next.js');
     const input = JSON.parse(fs.readFileSync(0, 'utf-8'));
     const jobs = input.jobs;
-    const cache = input.cache;
     const reference = new Date();
-
-    // Ensure all jobs have the inspection field
-    jobs.forEach(job => {
-        job._inspection = applyNext.inspectionForJob(job, cache) || {};
-    });
 
     const ranked = applyNext.rankJobs(jobs, {}, reference);
 
-    console.log(JSON.stringify(ranked.slice(0, 50).map(item => item.job)));
-    '''
+    const output = ranked.map(item => {
+        const job = item.job;
+        const summary = applyNext.summarizeInspection(job);
+        return {
+            job: job,
+            state: summary.state
+        };
+    });
 
-    with open(ROOT / "data" / "workday-inspections.json") as f:
-        cache = json.load(f)
+    console.log(JSON.stringify(output));
+    '''
 
     process = subprocess.run(
         ["node", "-e", script],
-        input=json.dumps({"jobs": jobs, "cache": cache}),
+        input=json.dumps({"jobs": jobs}),
         capture_output=True,
         text=True,
         cwd=str(ROOT),
         check=True
     )
 
-    top50 = json.loads(process.stdout)
-    top10 = top50[:10]
+    ranked_jobs = json.loads(process.stdout)
 
-    print("Top 10:")
-    top10_inspected = sum(1 for job in top10 if job.get("_inspection", {}).get("status") == "inspected")
-    print(f"Inspected: {top10_inspected}/10")
+    def print_stats(pool_name, pool_jobs):
+        total = len(pool_jobs)
+        if total == 0:
+            print(f"{pool_name}: 0 jobs")
+            return
 
-    print("\nTop 50:")
-    top50_inspected = sum(1 for job in top50 if job.get("_inspection", {}).get("status") == "inspected")
-    print(f"Inspected: {top50_inspected}/50")
+        states = Counter(j.get("state") for j in pool_jobs)
+        inspected = states.get("inspected", 0)
+        unavailable = states.get("unavailable", 0)
+        metadata = states.get("metadata-only", 0)
+        unknown = states.get("unknown", 0)
 
-    metadata_only = [job for job in top50 if job.get("_inspection", {}).get("status") != "inspected"]
+        print(f"=== {pool_name} Coverage ===")
+        print(f"Total:       {total}")
+        print(f"Inspected:   {inspected} ({inspected/total*100:.1f}%)")
+        print(f"Unavailable: {unavailable} ({unavailable/total*100:.1f}%)")
+        print(f"Metadata:    {metadata} ({metadata/total*100:.1f}%)")
+        print(f"Unknown:     {unknown} ({unknown/total*100:.1f}%)")
+        print()
 
-    print("\nMetadata-only Breakdown:")
+    print_stats("Top 10", ranked_jobs[:10])
+    print_stats("Top 50", ranked_jobs[:50])
+    print_stats("Full Pool", ranked_jobs)
+
+    metadata_jobs = [j for j in ranked_jobs if j.get("state") == "metadata-only"]
     categories = defaultdict(int)
-    reasons = []
 
-    for job in metadata_only:
+    for item in metadata_jobs:
+        job = item["job"]
         url = job.get("url") or ""
         status = job.get("_inspection", {}).get("status")
 
-        # Check cache explicitly to get more detailed status if _inspection is empty/None
-        url_key = url
-        # Simple extraction for some providers to match cache key
-        if "?" in url:
-            url_key = url.split("?")[0]
-
-        # Actually, let's just use what's in _inspection
         if "jobvite.com" in url or "paylocity.com" in url or "careerpuck.com" in url or "careers.microsoft.com" in url:
             categories["unsupported_provider"] += 1
-            reasons.append((job.get("company"), url, "unsupported_provider"))
         elif "greenhouse.io" in url or "jobs.dropbox.com" in url or "gh_jid" in url:
             if "job-boards.eu.greenhouse.io" in url or "jobs.dropbox.com" in url:
                 categories["unsupported_source_shape (greenhouse)"] += 1
-                reasons.append((job.get("company"), url, "unsupported_source_shape (greenhouse)"))
             else:
                 categories[f"other: {status}"] += 1
-                reasons.append((job.get("company"), url, f"other: {status}"))
         elif "careers.principal.com" in url:
             categories["unsupported_source_shape (icims)"] += 1
-            reasons.append((job.get("company"), url, "unsupported_source_shape (icims)"))
         elif status == "queued" or status == "retry_cooldown":
             categories["throughput_queue"] += 1
-            reasons.append((job.get("company"), url, f"queue_status: {status}"))
         elif status == "unsupported_url":
             categories["unsupported_source_shape"] += 1
-            reasons.append((job.get("company"), url, "unsupported_url"))
         else:
-            # Let's inspect the actual cache for these URLs to find out why they are "other: None"
-            cache_entry = None
-            for key, entry in cache.get("entries", {}).items():
-                if key in url or url in key:
-                    cache_entry = entry
-                    break
-
-            if cache_entry:
-                status_cache = cache_entry.get("inspection", {}).get("status")
-                categories[f"cache_state: {status_cache}"] += 1
-                reasons.append((job.get("company"), url, f"cache_state: {status_cache}"))
+            if status:
+                categories[f"cache_state: {status}"] += 1
             else:
-                categories["not_in_cache"] += 1
-                reasons.append((job.get("company"), url, "not_in_cache"))
+                cache_entry = None
+                for key, entry in entries.items():
+                    if key in url or url in key:
+                        cache_entry = entry
+                        break
 
+                if cache_entry:
+                    status_cache = cache_entry.get("inspection", {}).get("status")
+                    categories[f"cache_state: {status_cache}"] += 1
+                else:
+                    categories["not_in_cache"] += 1
+
+    provider_counts = Counter()
+    for item in metadata_jobs:
+        job = item["job"]
+        url = job.get("url") or ""
+        fingerprint = fingerprint_provider(url)
+        family = fingerprint.get("family", "unknown")
+        provider_counts[family] += 1
+
+    print("=== Full Pool Metadata-Only by Provider Family ===")
+    for family, count in provider_counts.most_common():
+        print(f"  {family}: {count}")
+
+    print("\n=== Metadata-only Breakdown by Reason ===")
     for k, v in categories.items():
         print(f"  {k}: {v}")
 
-    print("\nDetailed breakdown of unsupported shapes:")
-    for company, url, reason in reasons:
-        print(f"  {company}: {url} -> {reason}")
+    print("\nPrioritized Action:")
+    if provider_counts:
+        top_family = provider_counts.most_common(1)[0][0]
+        print(f"The largest actionable gap is '{top_family}'. Extend authoritative inspection coverage to this provider family to improve full-pool quality.")
+        print("This prioritized follow-up addresses the bounded generic defect dominating metadata-only coverage.")
+    else:
+        print("No metadata-only gaps found.")
 
 if __name__ == "__main__":
     main()
