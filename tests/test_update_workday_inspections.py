@@ -103,6 +103,38 @@ def inspection(url, status="inspected", at="2026-09-16T17:30:00Z"):
 
 
 class UpdateWorkdayInspectionTests(unittest.TestCase):
+    def test_provider_for_url_handles_custom_domains(self):
+        from update_workday_inspections import provider_for_url
+
+        self.assertEqual(provider_for_url("https://careers.principal.com/jobs/52574?icims=1&amp;utm_source=Simplify&amp;ref=Simplify"), "icims")
+        self.assertEqual(provider_for_url("https://job-boards.eu.greenhouse.io/veeamsoftware/jobs/4955300101"), "greenhouse")
+        self.assertEqual(provider_for_url("https://jobs.dropbox.com/listing/8106224?gh_jid=8106224"), "greenhouse")
+        self.assertIsNone(provider_for_url("https://careers.microsoft.com/jobs/123"))
+
+    def test_unsupported_icims_identity_handles_custom_domains(self):
+        from update_workday_inspections import _unsupported_icims_identity
+
+        identity = _unsupported_icims_identity("https://careers.principal.com/jobs/52574?icims=1&amp;utm_source=Simplify&amp;ref=Simplify")
+        self.assertIsNotNone(identity)
+        self.assertEqual(identity["provider"], "icims")
+        self.assertEqual(identity["canonical_url"], "https://careers.principal.com/jobs/52574")
+        self.assertEqual(identity["supported"], "false")
+
+    def test_unsupported_greenhouse_identity_handles_custom_domains(self):
+        from update_workday_inspections import _unsupported_greenhouse_identity
+
+        identity_eu = _unsupported_greenhouse_identity("https://job-boards.eu.greenhouse.io/veeamsoftware/jobs/4955300101")
+        self.assertIsNotNone(identity_eu)
+        self.assertEqual(identity_eu["provider"], "greenhouse")
+        self.assertEqual(identity_eu["canonical_url"], "https://job-boards.eu.greenhouse.io/veeamsoftware/jobs/4955300101")
+        self.assertEqual(identity_eu["supported"], "false")
+
+        identity_custom = _unsupported_greenhouse_identity("https://jobs.dropbox.com/listing/8106224?gh_jid=8106224")
+        self.assertIsNotNone(identity_custom)
+        self.assertEqual(identity_custom["provider"], "greenhouse")
+        self.assertEqual(identity_custom["canonical_url"], "https://jobs.dropbox.com/listing/8106224")
+        self.assertEqual(identity_custom["supported"], "false")
+
     def test_applies_explicit_independent_provider_request_caps(self):
         jobs = [
             workday_job("wd-new", "REQ-1", "2026-09-16T15:00:00Z"),

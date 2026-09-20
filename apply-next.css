@@ -162,9 +162,13 @@
   opacity: 0.7;
 }
 
-.apply-next-ranking-summary {
+.apply-next-highlights {
   margin: 0.85rem 0 0.65rem;
+  padding-left: 1.2rem;
   font-weight: 600;
+}
+.apply-next-highlights li + li {
+  margin-top: 0.25rem;
 }
 
 .apply-next-breakdown {
@@ -301,6 +305,41 @@
 
   .apply-next-score {
     align-self: flex-start;
+  }
+
+  .apply-next-card {
+    position: relative;
+  }
+
+  .apply-next-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+    padding-right: 0;
+  }
+
+  .apply-next-actions .primary-btn {
+    grid-column: 1 / -1;
+    justify-content: center;
+  }
+
+  .apply-next-actions .hide-btn {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.5rem;
+    width: auto;
+    margin: 0;
+  }
+
+  .apply-next-view-tabs {
+    display: flex;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .apply-next-view-tabs .apply-next-view-btn {
+    flex: 1;
+    text-align: center;
   }
 }
 

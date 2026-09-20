@@ -29,6 +29,9 @@ import build_feed as bf  # noqa: E402
 from greenhouse_inspector import derive_greenhouse_endpoint  # noqa: E402
 from icims_inspector import derive_icims_endpoint  # noqa: E402
 from workday_inspector import derive_cxs_endpoint  # noqa: E402
+from ashby_inspector import derive_ashby_endpoint  # noqa: E402
+  # noqa: E402
+
 
 ROOT = SCRIPT_DIR.parent
 DEFAULT_FEED = ROOT / "data" / "listings.json"
@@ -46,7 +49,7 @@ FILL_FIELDS = (
     "link_checked_at",
     "resolved_from_url",
 )
-PROVIDERS = ("workday", "greenhouse", "icims", "oracle_hcm")
+PROVIDERS = ("workday", "greenhouse", "icims", "oracle_hcm", "ashby")
 WORKDAY_REQUISITION_SUFFIX = re.compile(r"_((?:[A-Za-z]+-?)?\d{4,})$", flags=re.I)
 
 
@@ -180,6 +183,28 @@ def icims_identity_key(url: str | None) -> tuple[str, str] | None:
         return None
 
 
+
+def ashby_canonical_url(url: str | None) -> str | None:
+    if not url:
+        return None
+    try:
+
+        return derive_ashby_endpoint(str(url))["canonical_job_url"]
+    except (ValueError, KeyError, TypeError):
+        return None
+
+
+def ashby_identity_key(url: str | None) -> tuple[str, str] | None:
+    if not url:
+        return None
+    try:
+
+        derived = derive_ashby_endpoint(str(url))
+        return (str(derived["board_name"]).casefold(), str(derived["posting_id"]).casefold())
+    except (ValueError, KeyError, TypeError):
+        return None
+
+
 def posting_identity_key(url: str | None) -> tuple[str, ...] | None:
     """Return a provider-qualified authoritative posting identity when supported."""
 
@@ -195,13 +220,16 @@ def posting_identity_key(url: str | None) -> tuple[str, ...] | None:
     oracle_hcm = oracle_hcm_identity_key(url)
     if oracle_hcm:
         return ("oracle_hcm", *oracle_hcm)
+    ashby = ashby_identity_key(url)
+    if ashby:
+        return ("ashby", *ashby)
     return None
 
 
 def canonical_posting_url(url: str | None) -> str | None:
     """Return the provider-native canonical job URL for a supported ATS posting."""
 
-    return workday_canonical_url(url) or greenhouse_canonical_url(url) or icims_canonical_url(url) or oracle_hcm_canonical_url(url)
+    return workday_canonical_url(url) or greenhouse_canonical_url(url) or icims_canonical_url(url) or oracle_hcm_canonical_url(url) or ashby_canonical_url(url)
 
 
 def is_verified_workday_apply(job: dict[str, Any]) -> bool:

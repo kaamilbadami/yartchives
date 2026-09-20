@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "source": {
+    "key": "cs-benchmark",
+    "kind": "coverage_benchmark",
+    "name": "High-Value CS Employer Benchmark",
+    "status": "active"
+  },
+  "employers": [
+    { "name": "Apple" },
+    { "name": "Microsoft" },
+    { "name": "Alphabet" },
+    { "name": "Meta Platforms" },
+    { "name": "Amazon" },
+    { "name": "Netflix" },
+    { "name": "Nvidia" },
+    { "name": "Advanced Micro Devices" },
+    { "name": "Intel" },
+    { "name": "Qualcomm" },
+    { "name": "Lockheed Martin" },
+    { "name": "Northrop Grumman" },
+    { "name": "Boeing" },
+    { "name": "RTX" },
+    { "name": "JPMorgan Chase" },
+    { "name": "Goldman Sachs Group" },
+    { "name": "Morgan Stanley" },
+    { "name": "Citadel" },
+    { "name": "Jane Street" },
+    { "name": "Two Sigma" },
+    { "name": "Palantir Technologies" },
+    { "name": "Databricks" },
+    { "name": "Snowflake" },
+    { "name": "Stripe" },
+    { "name": "Uber Technologies" },
+    { "name": "Airbnb" },
+    { "name": "Salesforce" },
+    { "name": "Atlassian" },
+    { "name": "SpaceX" },
+    { "name": "Anduril" }
+  ]
+}
