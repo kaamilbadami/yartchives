@@ -55,6 +55,8 @@ JULES_RETRY_LABEL = "jules-retry-ready"
 JULES_SESSION_MARKER = "<!-- jules-session-id: {session_id} -->"
 JULES_RETRY_MARKER = "<!-- jules-retry-from: {session_id} -->"
 JULES_INFRA_RETRY_MARKER = "<!-- jules-infra-retry-from: {session_id} -->"
+JULES_REWORK_MARKER = "<!-- jules-rework-from: {issue_number} -->"
+JULES_REWORKED_LABEL = "jules-reworked"
 JULES_FEEDBACK_MARKER = "<!-- jules-feedback: {session_id} -->"
 JULES_FEEDBACK_SENT_MARKER = "<!-- jules-feedback-sent: {comment_id} -->"
 JULES_AUTO_FEEDBACK_MARKER = "<!-- jules-auto-feedback: {session_id}:{question_key} -->"
@@ -405,6 +407,212 @@ def latest_retryable_failed_session(
         if match and retryable_jules_failure([body]):
             return match.group(1), body
     return None
+
+
+def jules_rework_marker(issue_number: int) -> str:
+    return JULES_REWORK_MARKER.format(issue_number=issue_number)
+
+
+def find_existing_jules_rework(
+    issues: Iterable[dict[str, Any]], issue_number: int
+) -> dict[str, Any] | None:
+    marker = jules_rework_marker(issue_number)
+    for candidate in issues:
+        if marker in str(candidate.get("body") or ""):
+            return candidate
+    return None
+
+
+def exhausted_failure_context(comments: Iterable[dict[str, Any]]) -> str:
+    """Preserve the most useful durable tail of the failed lifecycle."""
+    bodies = [
+        str(comment.get("body") or "").strip()
+        for comment in comments
+        if str(comment.get("body") or "").strip()
+    ]
+    relevant = [
+        body
+        for body in bodies
+        if (
+            "jules-retry-from:" in body
+            or "jules-infra-retry-from:" in body
+            or "ended in FAILED state" in body
+            or "parked the issue as failed" in body
+            or "No pull request output was reported" in body
+            or "asked more than" in body
+            or "no longer available from the Jules API" in body
+        )
+    ]
+    tail = relevant[-4:] if relevant else bodies[-4:]
+    return "\n\n---\n\n".join(tail)
+
+
+def jules_rework_body(
+    issue: dict[str, Any],
+    comments: Iterable[dict[str, Any]],
+) -> str:
+    number = int(issue["number"])
+    original = str(issue.get("body") or "").rstrip()
+    context = exhausted_failure_context(comments)
+    rework = (
+        f"{jules_rework_marker(number)}\n\n"
+        "## Exhausted Jules lifecycle rework\n"
+        f"This task supersedes #{number}, whose bounded Jules retry lifecycle was exhausted. "
+        "Start from current main and re-derive the smallest still-needed implementation. "
+        "Do not replay the stale session or branch wholesale. Preserve the original acceptance "
+        "criteria, use the durable failure history below to avoid repeating the same dead end, "
+        "and make technical decisions autonomously unless a genuine product decision is required."
+    )
+    if context:
+        rework += f"\n\n### Durable failure context\n\n{context}"
+    return f"{original}\n\n{rework}" if original else rework
+
+
+def replace_dependency_reference(body: str, old_number: int, new_number: int) -> str:
+    """Replace an exact issue dependency reference in metadata without touching prose."""
+    pattern = re.compile(r"(?im)^(depends_on:\s*[^\n]*)$")
+    match = pattern.search(body or "")
+    if not match:
+        return body
+    line = match.group(1)
+    updated = re.sub(
+        rf"(?<!\d)#{old_number}(?!\d)",
+        f"#{new_number}",
+        line,
+    )
+    if updated == line:
+        return body
+    return body[:match.start(1)] + updated + body[match.end(1):]
+
+
+def supersede_exhausted_jules_failure(
+    issue: dict[str, Any],
+    *,
+    issues: list[dict[str, Any]],
+    repo: str,
+    comments: list[dict[str, Any]],
+    run_gh_json: Callable[..., Any] | None = None,
+    run_gh: Callable[..., None] | None = None,
+) -> dict[str, Any] | None:
+    """Create one fresh current-main task after bounded Jules retries are exhausted."""
+    if run_gh_json is None:
+        run_gh_json = gh_json
+    if run_gh is None:
+        run_gh = gh_run
+
+    number = int(issue["number"])
+    labels = label_names(issue)
+    if JULES_FAILED_LABEL not in labels:
+        return None
+    if JULES_REWORKED_LABEL in labels:
+        return None
+    if jules_rework_marker(number) in str(issue.get("body") or ""):
+        # A rework that itself fails is terminal; do not create an infinite issue chain.
+        return None
+
+    existing = find_existing_jules_rework(issues, number)
+    if existing is not None:
+        replacement = existing
+    else:
+        title = f"Rework from current main: {str(issue.get('title') or '').strip()}"
+        replacement = run_gh_json(
+            "api", "--method", "POST", f"repos/{repo}/issues",
+            "-f", f"title={title}",
+            "-f", f"body={jules_rework_body(issue, comments)}",
+            "-f", "labels[]=agent-ready",
+            "-f", "labels[]=autonomous-backlog",
+        )
+        issues.append(replacement)
+
+    replacement_number = int(replacement["number"])
+
+    for dependent in list(issues):
+        if int(dependent.get("number") or 0) in {number, replacement_number}:
+            continue
+        if str(dependent.get("state") or "open") != "open":
+            continue
+        body = str(dependent.get("body") or "")
+        updated = replace_dependency_reference(body, number, replacement_number)
+        if updated == body:
+            continue
+        dep_number = int(dependent["number"])
+        run_gh(
+            "issue", "edit", str(dep_number), "--repo", repo,
+            "--body", updated,
+        )
+        dependent["body"] = updated
+        print(
+            f"Rewired dependency on exhausted Jules issue #{number} to "
+            f"replacement #{replacement_number} for #{dep_number}."
+        )
+
+    run_gh(
+        "issue", "comment", str(number), "--repo", repo,
+        "--body",
+        (
+            f"Superseded automatically by #{replacement_number} after the bounded Jules "
+            "retry lifecycle was exhausted. The replacement starts from current main and "
+            "preserves the useful failure context instead of retrying this poisoned task again."
+        ),
+    )
+    run_gh(
+        "issue", "edit", str(number), "--repo", repo,
+        "--add-label", JULES_REWORKED_LABEL,
+        "--remove-label", JULES_FAILED_LABEL,
+        "--remove-label", JULES_RETRY_LABEL,
+        "--remove-label", JULES_ACTIVE_LABEL,
+        "--remove-label", JULES_FEEDBACK_LABEL,
+        "--state", "closed",
+    )
+    replace_issue_labels_in_memory(
+        issue,
+        remove=(
+            JULES_FAILED_LABEL,
+            JULES_RETRY_LABEL,
+            JULES_ACTIVE_LABEL,
+            JULES_FEEDBACK_LABEL,
+        ),
+        add=(JULES_REWORKED_LABEL,),
+    )
+    issue["state"] = "closed"
+    print(
+        f"Superseded exhausted Jules failure #{number} with fresh current-main "
+        f"issue #{replacement_number}."
+    )
+    return replacement
+
+
+def rework_exhausted_jules_failures(
+    issues: list[dict[str, Any]],
+    *,
+    repo: str,
+    load_comments: Callable[[int], list[dict[str, Any]]],
+    run_gh_json: Callable[..., Any] | None = None,
+    run_gh: Callable[..., None] | None = None,
+) -> None:
+    """Turn terminal failed tasks into one fresh bounded current-main replacement."""
+    for issue in list(issues):
+        if JULES_FAILED_LABEL not in label_names(issue):
+            continue
+        comments = load_comments(int(issue["number"]))
+        # Existing bounded retry paths always run first. Only rework when no retry
+        # remains available under the existing classifier.
+        infra_failure = latest_retryable_failed_session(comments)
+        infra_retry_available = (
+            infra_failure is not None
+            and infrastructure_retry_marker_from_comments(comments) is None
+        )
+        legacy_retry_available = legacy_failed_retry_context(comments) is not None
+        if infra_retry_available or legacy_retry_available:
+            continue
+        supersede_exhausted_jules_failure(
+            issue,
+            issues=issues,
+            repo=repo,
+            comments=comments,
+            run_gh_json=run_gh_json,
+            run_gh=run_gh,
+        )
 
 
 def migrate_legacy_jules_failures(
@@ -1747,6 +1955,7 @@ def ensure_labels(repo: str) -> None:
         (JULES_FAILED_LABEL, "D73A4A", "Jules session failed and requires follow-up"),
         (JULES_FEEDBACK_LABEL, "FBCA04", "Jules is waiting for user feedback; does not consume productive WIP"),
         (JULES_RETRY_LABEL, "BFD4F2", "One automatic retry is pending after a retryable Jules/platform failure"),
+        (JULES_REWORKED_LABEL, "6F42C1", "Superseded after bounded Jules retries were exhausted"),
         (CODEX_RESERVED_LABEL, "0969DA", "Reserved for a scheduled Codex worker"),
         ("codex-worker-1", "1F6FEB", "Reserved for Codex scheduled worker 1"),
         ("codex-worker-2", "54AEFF", "Reserved for Codex scheduled worker 2"),
@@ -1891,6 +2100,11 @@ def run_dispatch_cycle(
         load_comments=load_comments,
     )
     migrate_legacy_jules_failures(
+        issues,
+        repo=repo,
+        load_comments=load_comments,
+    )
+    rework_exhausted_jules_failures(
         issues,
         repo=repo,
         load_comments=load_comments,
