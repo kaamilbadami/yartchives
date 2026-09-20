@@ -1751,6 +1751,44 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertNotIn("jules-failed", mod.label_names(original))
         self.assertEqual([task.number for task in mod.select_tasks(issues)], [500])
 
+    def test_rework_cleanup_only_removes_labels_that_are_present(self):
+        original = issue(
+            350,
+            "Expand coverage",
+            body=task_body("P1", "coverage-expansion", resources="feed-core"),
+            labels=("agent-ready", "autonomous-backlog", "jules-failed"),
+        )
+        existing = issue(
+            410,
+            "Rework from current main: Expand coverage",
+            body=(
+                task_body("P1", "coverage-expansion", resources="feed-core")
+                + "\n\n<!-- jules-rework-from: 350 -->"
+            ),
+            labels=("agent-ready", "autonomous-backlog"),
+        )
+        gh_calls = []
+        mod.supersede_exhausted_jules_failure(
+            original,
+            issues=[original, existing],
+            repo="kaamilbadami/yartchives",
+            comments=[{"body": "parked the issue as failed"}],
+            run_gh_json=lambda *args: self.fail("must reuse existing replacement"),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+        edit = next(
+            call for call in gh_calls
+            if call[:3] == ("issue", "edit", "350")
+        )
+        self.assertIn("--add-label", edit)
+        self.assertIn("jules-reworked", edit)
+        self.assertIn("--remove-label", edit)
+        self.assertIn("jules-failed", edit)
+        self.assertNotIn("jules-retry-ready", edit)
+        self.assertNotIn("jules-session", edit)
+        self.assertNotIn("jules-needs-feedback", edit)
+        self.assertEqual(edit[-2:], ("--state", "closed"))
+
     def test_rework_is_idempotent_when_replacement_already_exists(self):
         original = issue(
             350,
