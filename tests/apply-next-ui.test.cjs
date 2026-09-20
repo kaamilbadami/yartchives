@@ -303,6 +303,17 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(hideHandler[1], /updateQueueOptimistically/, "Hide should trigger optimistic queue update immediately");
   assert.match(hideHandler[1], /applyFilters\(\);/);
 
+  assert.match(uiSource, /function waitForBrowserPaint\(\)/, "Apply Next should have an explicit browser-paint yield");
+  assert.match(uiSource, /await waitForBrowserPaint\(\)/, "Apply Next should paint loading feedback before ranking work starts");
+  const renderQueueSource = uiSource.match(/async function renderQueue\(panel, profile\) \{([\s\S]*?)\n  \}/);
+  assert.ok(renderQueueSource, "renderQueue should be present");
+  assert.ok(
+    renderQueueSource[1].indexOf("await waitForBrowserPaint()") < renderQueueSource[1].indexOf("candidatePool(feed.jobs"),
+    "Apply Next should yield a paint before synchronous candidate filtering"
+  );
+  const applyNextCss = fs.readFileSync(path.join(__dirname, "..", "apply-next.css"), "utf8");
+  assert.match(applyNextCss, /\.apply-next-open:disabled\s*\{[\s\S]*?cursor:\s*progress/, "Disabled Apply Next should have a visible loading treatment");
+
   assert.match(uiSource, /Finding your best matches…/, "Apply Next should show an immediate loading message");
   assert.match(uiSource, /Still finding your best matches…/, "Apply Next should escalate the loading message if ranking takes longer");
   assert.match(uiSource, /setTimeout\(\(\) => \{[\s\S]*?\}, 1500\)/, "Apply Next should delay the long-loading message rather than showing it immediately");
