@@ -53,6 +53,10 @@ GENERATED_ARTIFACT_PATTERNS = (
     "**/*.pyc",
     ".pytest_cache/**",
     "**/.pytest_cache/**",
+    "*.orig",
+    "**/*.orig",
+    "patch*.diff",
+    "**/patch*.diff",
 )
 CONTROL_PLANE_STATIC_ALLOWED_PATHS = frozenset({
     "scripts/queue_coverage_gap.py",
@@ -316,6 +320,19 @@ def control_plane_pr_eligible(
     conventional_tests = set().union(
         *(workflow_regression_test_candidates(path) for path in workflow_paths)
     )
+    support_scripts = {
+        path for path in paths
+        if fnmatch(path, "scripts/*.py")
+        and path not in {
+            "scripts/dispatch_autonomous_issues.py",
+            "scripts/triage_workflow_failures.py",
+            "scripts/auto_merge_agent_prs.py",
+        }
+    }
+    support_tests = {
+        f"tests/test_{path.rsplit('/', 1)[-1].removesuffix('.py')}.py"
+        for path in support_scripts
+    }
     scratch_removals = {
         str(row.get("filename") or "")
         for row in rows
@@ -328,6 +345,8 @@ def control_plane_pr_eligible(
     allowed_paths = (
         workflow_paths
         | conventional_tests
+        | support_scripts
+        | support_tests
         | CONTROL_PLANE_STATIC_ALLOWED_PATHS
         | scratch_removals
     )
@@ -345,6 +364,16 @@ def control_plane_pr_eligible(
     if missing_tests:
         expected = sorted(workflow_regression_test_candidates(missing_tests[0]))[0]
         return False, f"control-plane change lacks paired regression test: {expected}"
+
+    missing_support_tests = sorted(
+        path for path in support_scripts
+        if f"tests/test_{path.rsplit('/', 1)[-1].removesuffix('.py')}.py" not in paths
+    )
+    if missing_support_tests:
+        expected = (
+            f"tests/test_{missing_support_tests[0].rsplit('/', 1)[-1].removesuffix('.py')}.py"
+        )
+        return False, f"control-plane helper lacks paired regression test: {expected}"
     if len(paths) > CONTROL_PLANE_MAX_FILES:
         return False, "control-plane lane changes too many files"
     if sum(int(row.get("changes") or 0) for row in rows) > CONTROL_PLANE_MAX_CHANGES:
