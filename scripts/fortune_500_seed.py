@@ -34,7 +34,7 @@ def enrich_domains(seed: dict[str, Any]) -> dict[str, Any]:
 
     def normalize_company(name: str) -> str:
         name = name.lower()
-        for suffix in [" inc", " corp", " corporation", " company", " co", " llc", " group", " holdings", " platforms", " technologies"]:
+        for suffix in [" inc", " corp", " corporation", " company", " co", " llc", " group", " holdings", " platforms", " technologies", " laboratories", " devices", " brands", " systems", " enterprises", " groups", " international", " network"]:
             if name.endswith(suffix):
                 name = name[:-len(suffix)]
                 break
@@ -47,18 +47,32 @@ def enrich_domains(seed: dict[str, Any]) -> dict[str, Any]:
 
         # Try Wikipedia first, it's highly curated and much less prone to data poisoning
         url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={query}&utf8=&format=json"
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-        try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                data = json.loads(resp.read().decode('utf-8'))
-                if data.get('query', {}).get('search'):
-                    title = data['query']['search'][0]['title']
+        import time
+        max_retries = 5
+        data = None
+        for attempt in range(max_retries):
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            try:
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    data = json.loads(resp.read().decode('utf-8'))
+                    break
+            except Exception as e:
+                if '429' in str(e) and attempt < max_retries - 1:
+                    time.sleep(1 + attempt)
+                else:
+                    break
 
-                    title_norm = normalize_company(title)
-                    if target_norm in title_norm or title_norm in target_norm:
-                        title_encoded = urllib.parse.quote(title)
-                        url_page = f"https://en.wikipedia.org/w/api.php?action=parse&page={title_encoded}&prop=text&format=json"
-                        req_page = urllib.request.Request(url_page, headers={'User-Agent': 'Mozilla/5.0'})
+        if data and data.get('query', {}).get('search'):
+            title = data['query']['search'][0]['title']
+
+            title_norm = normalize_company(title)
+            if target_norm in title_norm or title_norm in target_norm:
+                title_encoded = urllib.parse.quote(title)
+                url_page = f"https://en.wikipedia.org/w/api.php?action=parse&page={title_encoded}&prop=text&format=json"
+
+                for attempt in range(max_retries):
+                    req_page = urllib.request.Request(url_page, headers={'User-Agent': 'Mozilla/5.0'})
+                    try:
                         with urllib.request.urlopen(req_page, timeout=10) as resp_page:
                             data_page = json.loads(resp_page.read().decode('utf-8'))
                             if 'parse' in data_page and 'text' in data_page['parse']:
@@ -68,31 +82,41 @@ def enrich_domains(seed: dict[str, Any]) -> dict[str, Any]:
                                     domain = urllib.parse.urlparse(m.group(1)).netloc
                                     if domain and not "wikipedia" in domain and not "wikimedia" in domain:
                                         return domain.removeprefix("www.")
-        except Exception:
-            pass
+                            break
+                    except Exception as e:
+                        if '429' in str(e) and attempt < max_retries - 1:
+                            time.sleep(1 + attempt)
+                        else:
+                            break
 
         # If Wikipedia fails, try Clearbit, but with strict matching
         query_cb = urllib.parse.quote(name)
         url = f"https://autocomplete.clearbit.com/v1/companies/suggest?query={query_cb}"
-        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        data = None
+        for attempt in range(max_retries):
+            req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+            try:
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    data = json.loads(resp.read().decode('utf-8'))
+                    break
+            except Exception as e:
+                if '429' in str(e) and attempt < max_retries - 1:
+                    time.sleep(1 + attempt)
+                else:
+                    break
 
-        try:
-            with urllib.request.urlopen(req, timeout=10) as resp:
-                data = json.loads(resp.read().decode('utf-8'))
-                if data:
-                    for item in data:
-                        res_name = item.get('name', '')
-                        res_norm = normalize_company(res_name)
-                        if not target_norm or not res_norm:
-                            continue
+        if data:
+            for item in data:
+                res_name = item.get('name', '')
+                res_norm = normalize_company(res_name)
+                if not target_norm or not res_norm:
+                    continue
 
-                        if target_norm == res_norm or target_norm in res_norm or res_norm in target_norm:
-                            domain = str(item['domain']).lower()
-                            domain_norm = re.sub(r'[^a-z0-9]', '', domain.split('.')[0])
-                            if domain_norm in target_norm or target_norm in domain_norm:
-                                return str(item['domain'])
-        except Exception:
-            pass
+                if target_norm == res_norm or target_norm in res_norm or res_norm in target_norm:
+                    domain = str(item['domain']).lower()
+                    domain_norm = re.sub(r'[^a-z0-9]', '', domain.split('.')[0])
+                    if domain_norm in target_norm or target_norm in domain_norm:
+                        return str(item['domain'])
 
         return None
 
