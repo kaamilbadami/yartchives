@@ -62,7 +62,7 @@ def validate(
     strict_sources: bool,
     enforce_link_contract: bool = False,
 ) -> list[str]:
-    errors: list[str] = []
+    fatal_errors: list[str] = []
     try:
         doc = json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:
@@ -74,77 +74,106 @@ def validate(
         return ["jobs must be a list"]
     if not isinstance(sources, dict):
         return ["sources must be an object"]
-    if len(jobs) < minimum_jobs:
-        errors.append(f"job count {len(jobs)} is below minimum {minimum_jobs}")
 
+    valid_jobs = []
+    quarantined = 0
+    downgraded = 0
     ids: set[str] = set()
+
     for i, job in enumerate(jobs):
         if not isinstance(job, dict):
-            errors.append(f"job[{i}] is not an object")
+            quarantined += 1
             continue
-        for field in ("id", "company", "title", "location"):
-            if not str(job.get(field) or "").strip():
-                errors.append(f"job[{i}] missing {field}")
+
         job_id = str(job.get("id") or "")
         if job_id in ids:
-            errors.append(f"duplicate job id {job_id}")
-        ids.add(job_id)
+            fatal_errors.append(f"duplicate job id {job_id}")
+            continue
+        if job_id:
+            ids.add(job_id)
 
+        structural_errors = []
+        for field in ("id", "company", "title", "location"):
+            if not str(job.get(field) or "").strip():
+                structural_errors.append(field)
         if not isinstance(job.get("source_names"), list) or not job.get("source_names"):
-            errors.append(f"job {job_id or i} missing source_names")
+            structural_errors.append("source_names")
         if not isinstance(job.get("profiles"), list) or not job.get("profiles"):
-            errors.append(f"job {job_id or i} missing profiles")
+            structural_errors.append("profiles")
         if job.get("education_level") not in ALLOWED_EDUCATION:
-            errors.append(f"job {job_id or i} has invalid education_level {job.get('education_level')!r}")
+            structural_errors.append("education_level")
         if job.get("opportunity_type") not in ALLOWED_TYPES:
-            errors.append(f"job {job_id or i} has invalid opportunity_type {job.get('opportunity_type')!r}")
+            structural_errors.append("opportunity_type")
 
+        if structural_errors:
+            quarantined += 1
+            continue
+
+        link_errors = []
         kind = job.get("link_kind")
         if kind not in ALLOWED_LINK_KINDS:
-            errors.append(f"job {job_id or i} has invalid link_kind {kind!r}")
+            link_errors.append("link_kind")
 
         url = job.get("url")
         listing_url = job.get("listing_url")
         if url and not valid_http_url(url):
-            errors.append(f"job {job_id or i} has unsafe/invalid URL {url!r}")
+            link_errors.append("url")
         if listing_url and not valid_http_url(listing_url):
-            errors.append(f"job {job_id or i} has unsafe/invalid listing_url {listing_url!r}")
+            link_errors.append("listing_url")
 
         if kind == "direct":
-            if not valid_http_url(url):
-                errors.append(f"job {job_id or i} direct link_kind has no direct URL")
-            elif urlparse(str(url)).netloc.lower() in NON_DIRECT_HOSTS:
-                errors.append(f"job {job_id or i} labels non-direct host as Apply: {urlparse(str(url)).netloc}")
+            if not valid_http_url(url) or urlparse(str(url)).netloc.lower() in NON_DIRECT_HOSTS:
+                link_errors.append("direct contract")
         elif kind == "employer_job":
-            if not valid_http_url(url):
-                errors.append(f"job {job_id or i} employer_job link_kind has no employer URL")
-            elif urlparse(str(url)).netloc.lower() in NON_DIRECT_HOSTS:
-                errors.append(f"job {job_id or i} labels non-employer host as employer_job: {urlparse(str(url)).netloc}")
+            if not valid_http_url(url) or urlparse(str(url)).netloc.lower() in NON_DIRECT_HOSTS:
+                link_errors.append("employer_job contract")
         elif kind == "listing" and not valid_http_url(listing_url):
-            errors.append(f"job {job_id or i} listing link_kind has no listing_url")
+            link_errors.append("listing contract")
         elif kind == "source" and url:
-            errors.append(f"job {job_id or i} source-only link should not populate url")
+            link_errors.append("source contract")
 
-        if enforce_link_contract:
-            errors.extend(workday_direct_contract_errors(job, f"job {job_id or i}"))
+        if enforce_link_contract and workday_direct_contract_errors(job, f"job {job_id or i}"):
+            link_errors.append("workday contract")
+
+        if link_errors:
+            job["link_kind"] = "source"
+            job.pop("url", None)
+            job.pop("listing_url", None)
+            downgraded += 1
+
+        valid_jobs.append(job)
+
+    if len(valid_jobs) < minimum_jobs:
+        fatal_errors.append(f"job count {len(valid_jobs)} is below minimum {minimum_jobs}")
 
     healthy = 0
     for key, source in sources.items():
         if not isinstance(source, dict):
-            errors.append(f"source {key} metadata is malformed")
+            fatal_errors.append(f"source {key} metadata is malformed")
             continue
         configured = source.get("configured", True)
         if configured is not False and source.get("ok"):
             healthy += 1
         if strict_sources and configured is not False and not source.get("ok"):
-            errors.append(f"source {source.get('name', key)} failed: {source.get('error', 'unknown error')}")
+            fatal_errors.append(f"source {source.get('name', key)} failed: {source.get('error', 'unknown error')}")
     if healthy < minimum_healthy_sources:
-        errors.append(f"healthy source count {healthy} is below minimum {minimum_healthy_sources}")
+        fatal_errors.append(f"healthy source count {healthy} is below minimum {minimum_healthy_sources}")
+
+    if (quarantined > 0 or downgraded > 0) and not fatal_errors:
+        doc["jobs"] = valid_jobs
+        try:
+            path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        except Exception as exc:
+            fatal_errors.append(f"failed to write quarantined feed: {exc}")
+
+    if quarantined > 0 or downgraded > 0:
+        print(f"Record-level containment: quarantined={quarantined}, downgraded={downgraded}")
 
     workday_direct = [
         job for job in jobs
         if isinstance(job, dict) and job.get("link_kind") == "direct" and is_workday_url(job.get("url"))
     ]
+    # For metrics, we run the workday contract errors regardless of enforce_link_contract.
     workday_violations = sum(
         bool(workday_direct_contract_errors(job, f"job {job.get('id') or i}"))
         for i, job in enumerate(workday_direct)
@@ -155,7 +184,7 @@ def validate(
         f"enforced={str(enforce_link_contract).lower()}"
     )
 
-    return errors
+    return fatal_errors
 
 
 def main() -> int:
