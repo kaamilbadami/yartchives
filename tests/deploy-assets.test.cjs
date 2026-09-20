@@ -176,15 +176,15 @@ assert.equal(
   "Employer-universe refresh should not remain pinned to the 106-role legacy benchmark"
 );
 
-assert.equal(
-  /\n\s*workflow_run:\s*\n/.test(workflow),
-  false,
-  "Pages should not start shell workflows for every feed completion; the successful feed commit already triggers deployment"
+assert.match(
+  workflow,
+  /workflow_run:[\s\S]*?workflows:[\s\S]*?- Update opportunity feed[\s\S]*?types:[\s\S]*?- completed/,
+  "Pages should wake after the feed workflow completes because GITHUB_TOKEN feed commits do not trigger downstream push workflows"
 );
-assert.equal(
-  /github\.event\.workflow_run/.test(workflow),
-  false,
-  "Pages should not depend on upstream workflow completion state"
+assert.match(
+  workflow,
+  /if:\s*github\.event_name != 'workflow_run' \|\| github\.event\.workflow_run\.conclusion == 'success'/,
+  "Pages should deploy feed workflow completions only when the upstream refresh succeeded"
 );
 assert.ok(
   workflow.includes('- "data/listings.json"') && workflow.includes('- "data/workday-inspections.json"'),
