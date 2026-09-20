@@ -6,7 +6,7 @@ from unittest.mock import patch
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scripts.queue_coverage_gap import find_biggest_gap, issue_already_queued, resources_conflict_with_active_work
+from scripts.queue_coverage_gap import create_issue, find_biggest_gap, get_active_and_coverage_issues, issue_already_queued, resources_conflict_with_active_work
 
 class TestQueueCoverageGap(unittest.TestCase):
     def test_find_biggest_gap_no_hint(self):
@@ -72,6 +72,38 @@ class TestQueueCoverageGap(unittest.TestCase):
         ]
         self.assertTrue(issue_already_queued(issues, "ats-workday"))
         self.assertFalse(issue_already_queued(issues, "ats-greenhouse"))
+
+    def test_duplicate_detection_does_not_depend_on_classification_label(self):
+        issues = [
+            {
+                "number": 10,
+                "body": "<!-- coverage-gap: discovery -->\npriority: P2\narea: coverage-automation\nresources: automation, coverage-analysis\nautonomous: true",
+                "labels": [{"name": "agent-ready"}, {"name": "autonomous-backlog"}],
+            }
+        ]
+        with patch("scripts.queue_coverage_gap._gh_json", return_value=issues):
+            _, queued = get_active_and_coverage_issues("kaamilbadami/yartchives")
+
+        self.assertTrue(issue_already_queued(queued, "discovery"))
+
+    def test_create_issue_uses_only_canonical_autonomous_labels(self):
+        calls = []
+        employers = [{"name": "Employer 1"}]
+
+        with patch("scripts.queue_coverage_gap._gh_run", side_effect=lambda *args: calls.append(args)):
+            create_issue(
+                "kaamilbadami/yartchives",
+                "Discovery gap (No domain hint)",
+                1,
+                "discovery",
+                employers,
+            )
+
+        args = calls[0]
+        labels = [args[i + 1] for i, value in enumerate(args[:-1]) if value == "--label"]
+        self.assertEqual(labels, ["autonomous-backlog", "agent-ready"])
+        self.assertNotIn("coverage-automation", labels)
+        self.assertNotIn("jules", labels)
 
     def test_resources_conflict_with_active_work(self):
         from scripts.dispatch_autonomous_issues import Task
