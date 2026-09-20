@@ -107,7 +107,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -1660,7 +1660,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -1785,8 +1785,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T18:59:38Z",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "resolved_at": "2026-09-20T20:25:52Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -1930,15 +1930,16 @@
               },
               {
                 "url": "https://www.sap.com/products/hcm.html?src=sfsf",
-                "status": 403
+                "status": 200
               }
             ],
             "final_url": "https://www.sap.com/products/hcm.html?src=sfsf",
-            "status": 403,
+            "status": 200,
             "signals": [
+              "successfactors provider fingerprint",
               "linked from employer site"
             ],
-            "score": 4
+            "score": 9
           }
         ]
       },
@@ -1985,7 +1986,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -2575,7 +2576,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -2667,8 +2668,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T18:59:38Z",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "resolved_at": "2026-09-20T20:25:52Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -2706,10 +2707,14 @@
               },
               {
                 "url": "https://careers.airbnb.com",
+                "status": 302
+              },
+              {
+                "url": "https://careers.airbnb.com/zh/",
                 "status": 200
               }
             ],
-            "final_url": "https://careers.airbnb.com/",
+            "final_url": "https://careers.airbnb.com/zh/",
             "status": 200,
             "signals": [
               "careers page content",
@@ -3643,7 +3648,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -3807,7 +3812,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -4437,7 +4442,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -4687,7 +4692,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -4973,7 +4978,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -5147,7 +5152,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -5190,7 +5195,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -5373,6 +5378,66 @@
           "order": 438,
           "rank": 438
         }
+      },
+      "careers_resolution": {
+        "status": "blocked",
+        "attempt_status": "blocked",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://apartments.com/",
+            "redirect_chain": [
+              {
+                "url": "https://apartments.com/",
+                "status": 403
+              }
+            ],
+            "final_url": "https://apartments.com/",
+            "status": 403,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://apartments.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://apartments.com/careers",
+                "status": 403
+              }
+            ],
+            "final_url": "https://apartments.com/careers",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://apartments.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://apartments.com/jobs",
+                "status": 403
+              }
+            ],
+            "final_url": "https://apartments.com/jobs",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          }
+        ]
       }
     },
     {
@@ -5391,6 +5456,66 @@
           "order": 486,
           "rank": 486
         }
+      },
+      "careers_resolution": {
+        "status": "blocked",
+        "attempt_status": "blocked",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://apigroupinc.com/",
+            "redirect_chain": [
+              {
+                "url": "https://apigroupinc.com/",
+                "status": 403
+              }
+            ],
+            "final_url": "https://apigroupinc.com/",
+            "status": 403,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://apigroupinc.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://apigroupinc.com/careers",
+                "status": 403
+              }
+            ],
+            "final_url": "https://apigroupinc.com/careers",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://apigroupinc.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://apigroupinc.com/jobs",
+                "status": 403
+              }
+            ],
+            "final_url": "https://apigroupinc.com/jobs",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          }
+        ]
       }
     },
     {
@@ -9597,7 +9722,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -13379,8 +13504,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T18:59:38Z",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "resolved_at": "2026-09-20T20:25:52Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -18943,8 +19068,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T18:59:38Z",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "resolved_at": "2026-09-20T20:25:52Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -22466,7 +22591,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
@@ -31268,7 +31393,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T18:59:38Z",
+        "last_attempt_at": "2026-09-20T20:25:52Z",
         "evidence": [
           {
             "type": "http",
