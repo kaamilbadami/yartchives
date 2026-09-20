@@ -96,6 +96,41 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertEqual(task.area, "beta-feedback")
         self.assertEqual(task.resources, frozenset({"frontend-state"}))
 
+    def test_compact_metadata_header_is_parsed_without_silently_dropping_task(self):
+        candidate = issue(
+            442,
+            "Split hourly feed publishing from slow enrichment and audits",
+            body=(
+                "priority: P1 area: feed-architecture autonomous: true\n\n"
+                "## Problem\nCompact metadata should still dispatch."
+            ),
+            labels=("agent-ready", "autonomous-backlog"),
+        )
+
+        task = mod.task_from_issue(candidate)
+
+        self.assertIsNotNone(task)
+        self.assertEqual(task.priority, "P1")
+        self.assertEqual(task.area, "feed-architecture")
+        self.assertEqual(task.dependencies, frozenset())
+
+    def test_compact_metadata_header_parses_dependency_and_resources(self):
+        candidate = issue(
+            443,
+            "Generalize record-level quarantine",
+            body=(
+                "priority: P1 area: feed-validation resources: feed-core, links "
+                "depends_on: #437 autonomous: true\n"
+            ),
+            labels=("agent-ready", "autonomous-backlog"),
+        )
+
+        task = mod.task_from_issue(candidate)
+
+        self.assertIsNotNone(task)
+        self.assertEqual(task.resources, frozenset({"feed-core", "links"}))
+        self.assertEqual(task.dependencies, frozenset({437}))
+
     def test_markerless_issue_requires_both_visible_autonomous_labels(self):
         body = (
             "priority: P1\n"
