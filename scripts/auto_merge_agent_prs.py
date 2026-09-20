@@ -78,7 +78,11 @@ def label_names(issue: dict[str, Any]) -> set[str]:
     return names
 
 
-def owner_authorized_pr(pr: dict[str, Any], repo: str) -> bool:
+def owner_authorized_pr(
+    pr: dict[str, Any],
+    repo: str,
+    comments: Iterable[dict[str, Any]] = (),
+) -> bool:
     """Return whether the repository owner explicitly pre-authorized this PR to merge when green."""
     if str(pr.get("state") or "") != "open" or bool(pr.get("draft")):
         return False
@@ -88,7 +92,15 @@ def owner_authorized_pr(pr: dict[str, Any], repo: str) -> bool:
     head = pr.get("head") or {}
     if str((head.get("repo") or {}).get("full_name") or "") != repo:
         return False
-    return OWNER_AUTHORIZED_AUTOMERGE_MARKER in str(pr.get("body") or "")
+    if OWNER_AUTHORIZED_AUTOMERGE_MARKER in str(pr.get("body") or ""):
+        return True
+    for comment in reversed(list(comments)):
+        user = comment.get("user") or {}
+        if str(user.get("login") or "") != owner:
+            continue
+        if OWNER_AUTHORIZED_AUTOMERGE_MARKER in str(comment.get("body") or ""):
+            return True
+    return False
 
 
 def linked_issue_number(body: str) -> int | None:
@@ -1118,7 +1130,13 @@ def main() -> int:
             require_quality=False,
         )
 
-        owner_authorized = owner_authorized_pr(pr, repo)
+        owner_comments: list[dict[str, Any]] = []
+        if OWNER_AUTHORIZED_AUTOMERGE_MARKER not in str(pr.get("body") or ""):
+            owner_comments = gh_paginated_json(
+                "api",
+                f"repos/{repo}/issues/{number}/comments?per_page=100",
+            )
+        owner_authorized = owner_authorized_pr(pr, repo, owner_comments)
         issue_number = linked_issue_number(str(pr.get("body") or ""))
         issue = None
         if issue_number is not None:
