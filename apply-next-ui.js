@@ -754,7 +754,9 @@
     const p = element("p", "apply-next-note");
 
     if (type === "loading") {
-      p.textContent = "Loading recommendations and validating current posting status...";
+      p.textContent = "Finding your best matches…";
+      p.setAttribute("role", "status");
+      p.setAttribute("aria-live", "polite");
       empty.append(p);
     } else if (type === "error") {
       p.textContent = "Apply Next could not load the current feed.";
@@ -938,6 +940,14 @@
     panel.innerHTML = "";
     panel.append(buildQueueSkeleton(profile, panel, null));
     renderCurrentQueue(panel, profile, 0, "loading");
+    panel.setAttribute("aria-busy", "true");
+
+    const slowLoadingTimer = setTimeout(() => {
+      const loadingMessage = panel.querySelector(".apply-next-empty .apply-next-note");
+      if (loadingMessage && panel.getAttribute("aria-busy") === "true") {
+        loadingMessage.textContent = "Still finding your best matches…";
+      }
+    }, 1500);
 
     try {
       if (typeof feed === "undefined" || !Array.isArray(feed.jobs)) throw new Error("Feed not available");
@@ -963,6 +973,9 @@
       panel.innerHTML = "";
       panel.append(buildQueueSkeleton(profile, panel, null));
       renderCurrentQueue(panel, profile, 0, "error");
+    } finally {
+      clearTimeout(slowLoadingTimer);
+      panel.setAttribute("aria-busy", "false");
     }
   }
 
@@ -998,8 +1011,16 @@
       if (opening) {
         activeQueueView = "recommended";
         queueVisibleCounts = { recommended: TOP_N, fresh: TOP_N };
-        await renderPanel(panel);
+        button.disabled = true;
+        button.textContent = "Finding matches…";
+        setProfileSetupMode(true);
         panel.scrollIntoView({ behavior: "smooth", block: "start" });
+        try {
+          await renderPanel(panel);
+        } finally {
+          button.disabled = false;
+          button.textContent = "Apply Next";
+        }
       } else {
         setProfileSetupMode(false);
       }
