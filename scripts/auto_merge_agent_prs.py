@@ -82,10 +82,36 @@ def linked_issue_number(body: str) -> int | None:
     return int(match.group(1)) if match else None
 
 
+def completed_jules_output(
+    comments: Iterable[dict[str, Any]],
+) -> tuple[int, str, int, str] | None:
+    """Return durable (issue, session, PR, head) identity from a trusted bot comment."""
+    pattern = re.compile(
+        r"<!--\s*jules-output:\s*issue=(\d+)\s+session=([^\s>]+)\s+"
+        r"pr=(\d+)\s+head=([0-9a-fA-F]{40})\s*-->"
+    )
+    for comment in reversed(list(comments)):
+        user = comment.get("user") or {}
+        if str(user.get("login") or "") != GITHUB_ACTIONS_BOT:
+            continue
+        match = pattern.search(str(comment.get("body") or ""))
+        if match:
+            return (
+                int(match.group(1)),
+                match.group(2),
+                int(match.group(3)),
+                match.group(4).lower(),
+            )
+    return None
+
+
 def completed_jules_pr_number(
     comments: Iterable[dict[str, Any]], repo: str
 ) -> int | None:
-    """Return the PR number from a trusted Jules completion comment."""
+    """Backward-compatible PR lookup for historical trusted completion comments."""
+    output = completed_jules_output(comments)
+    if output is not None:
+        return output[2]
     pattern = re.compile(
         rf"(?m)^Pull request:\s+https://github\.com/{re.escape(repo)}/pull/(\d+)\s*$"
     )
@@ -121,7 +147,16 @@ def review_ready_issue_by_pr(
         ):
             continue
         number = int(issue.get("number") or 0)
-        pr_number = completed_jules_pr_number(load_comments(number), repo)
+        comments = load_comments(number)
+        output = completed_jules_output(comments)
+        if output is not None:
+            recorded_issue, _session_id, pr_number, _head_sha = output
+            if recorded_issue != number:
+                raise RuntimeError(
+                    f"Durable Jules output for issue #{number} records issue #{recorded_issue}"
+                )
+        else:
+            pr_number = completed_jules_pr_number(comments, repo)
         if pr_number is None:
             continue
         existing = mapping.get(pr_number)
@@ -131,6 +166,22 @@ def review_ready_issue_by_pr(
             )
         mapping[pr_number] = issue
     return mapping
+
+
+def durable_output_for_issue(
+    issue: dict[str, Any],
+    *,
+    load_comments: Callable[[int], list[dict[str, Any]]],
+) -> tuple[int, str, int, str] | None:
+    number = int(issue.get("number") or 0)
+    output = completed_jules_output(load_comments(number))
+    if output is None:
+        return None
+    if output[0] != number:
+        raise RuntimeError(
+            f"Durable Jules output for issue #{number} records issue #{output[0]}"
+        )
+    return output
 
 
 def ensure_closing_link(pr: dict[str, Any], issue_number: int) -> str:
