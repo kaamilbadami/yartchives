@@ -74,6 +74,63 @@ class AutonomousDispatcherTests(unittest.TestCase):
         selected = mod.select_tasks(issues, max_active=2)
         self.assertEqual([task.number for task in selected], [11, 12])
 
+    def test_visible_autonomous_labels_authorize_markerless_issue(self):
+        body = (
+            "priority: P1\n"
+            "area: beta-feedback\n"
+            "resources: frontend-state\n"
+            "autonomous: true\n"
+        )
+        candidate = issue(
+            424,
+            "Add real Apply Next feedback submission endpoint",
+            body=body,
+            labels=("agent-ready", "autonomous-backlog"),
+        )
+
+        task = mod.task_from_issue(candidate)
+
+        self.assertIsNotNone(task)
+        self.assertEqual(task.number, 424)
+        self.assertEqual(task.priority, "P1")
+        self.assertEqual(task.area, "beta-feedback")
+        self.assertEqual(task.resources, frozenset({"frontend-state"}))
+
+    def test_markerless_issue_requires_both_visible_autonomous_labels(self):
+        body = (
+            "priority: P1\n"
+            "area: beta-feedback\n"
+            "resources: frontend-state\n"
+            "autonomous: true\n"
+        )
+        for labels in (
+            (),
+            ("agent-ready",),
+            ("autonomous-backlog",),
+        ):
+            with self.subTest(labels=labels):
+                self.assertIsNone(
+                    mod.task_from_issue(
+                        issue(424, "Feedback endpoint", body=body, labels=labels)
+                    )
+                )
+
+    def test_visible_labels_do_not_override_autonomous_false(self):
+        body = (
+            "priority: P1\n"
+            "area: beta-feedback\n"
+            "resources: frontend-state\n"
+            "autonomous: false\n"
+        )
+        candidate = issue(
+            424,
+            "Feedback endpoint",
+            body=body,
+            labels=("agent-ready", "autonomous-backlog"),
+        )
+
+        self.assertIsNone(mod.task_from_issue(candidate))
+
     def test_real_jules_sessions_count_against_wip_limit(self):
         issues = [
             issue(1, "active feed", body=task_body("P1", "feed"), labels=("jules", "jules-session")),

@@ -115,9 +115,25 @@ def dependency_numbers(body: str) -> frozenset[int] | None:
     return frozenset(dependencies)
 
 
+def autonomous_issue_authorized(issue: dict[str, Any]) -> bool:
+    """Return whether an issue is explicitly authorized for autonomous dispatch.
+
+    The hidden HTML marker remains supported for legacy/generated tasks, but the
+    visible GitHub contract is also authoritative: both backlog labels must be
+    present. This prevents valid autonomous issues from becoming silently
+    undispatchable solely because a hidden marker was omitted.
+    """
+    body = str(issue.get("body") or "")
+    labels = label_names(issue)
+    return (
+        AUTONOMOUS_MARKER in body
+        or {"agent-ready", "autonomous-backlog"} <= labels
+    )
+
+
 def task_from_issue(issue: dict[str, Any]) -> Task | None:
     body = str(issue.get("body") or "")
-    if AUTONOMOUS_MARKER not in body:
+    if not autonomous_issue_authorized(issue):
         return None
     safe = (metadata_value(body, "autonomous") or "").casefold()
     priority = (metadata_value(body, "priority") or "").upper()
