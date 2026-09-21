@@ -538,7 +538,7 @@ function renderJobs() {
     saveBtn.textContent = state.saved.has(job.id) ? "Saved" : "Save";
     saveBtn.addEventListener("click", () => {
       toggleSet(state.saved, job.id);
-      if (state.saved.has(job.id)) YartchivesAnalytics?.track("saved");
+      if (state.saved.has(job.id)) typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("saved");
       persist();
       applyFilters();
     });
@@ -558,11 +558,11 @@ function renderJobs() {
       if (job.link_kind === "employer_job") {
         applyBtn.textContent = "View posting ↗";
         applyBtn.addEventListener("click", () => {
-          YartchivesAnalytics?.track("apply_clicked");
+          typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("apply_clicked");
         });
       } else {
         applyBtn.addEventListener("click", () => {
-          YartchivesAnalytics?.track("apply_clicked");
+          typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("apply_clicked");
           state.applied.add(job.id);
           persist();
         });
@@ -574,7 +574,7 @@ function renderJobs() {
 
     card.querySelector(".hide-btn").addEventListener("click", () => {
       state.hidden.add(job.id);
-      YartchivesAnalytics?.track("hidden");
+      typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("hidden");
       persist();
       applyFilters();
     });
