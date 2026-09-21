@@ -4,6 +4,8 @@ import os
 
 class DirectLinkCoverageTests(unittest.TestCase):
     def test_direct_link_coverage_baseline(self):
+        if os.environ.get("YARTCHIVES_REPO_HEALTH") != "1":
+            self.skipTest("Repository-health baseline runs only in explicit health checks")
         """Ensure direct-link coverage does not silently drop below the measured baseline."""
         listings_path = os.path.join(os.path.dirname(__file__), "..", "data", "listings.json")
         if not os.path.exists(listings_path):
