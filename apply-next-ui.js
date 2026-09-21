@@ -61,7 +61,7 @@
     }
     const counts = payload.counts || {};
     lines.push(
-      `Candidates: ${Number(counts.candidates || 0)} · Rankable: ${Number(counts.rankable || 0)} · Distance candidates: ${Number(counts.distance_candidates || 0)} · Recommendations: ${Number(counts.recommendations || 0)}`
+      `Candidates: ${Number(counts.candidates || 0)} · Rankable: ${Number(counts.rankable || 0)} · Distance candidates: ${Number(counts.distance_candidates || 0)} · Unique distance lookups: ${Number(counts.distance_unique_lookups || 0)} · Distance cache hits: ${Number(counts.distance_cache_hits || 0)} · Recommendations: ${Number(counts.recommendations || 0)}`
     );
     lines.push(`Status: ${payload.status || "unknown"}`);
     return lines.join("\n");
@@ -126,6 +126,8 @@
         candidates: Number(metadata.candidates || 0),
         rankable: Number(metadata.rankable || 0),
         distance_candidates: Number(metadata.distance_candidates || 0),
+        distance_unique_lookups: Number(metadata.distance_unique_lookups || 0),
+        distance_cache_hits: Number(metadata.distance_cache_hits || 0),
         recommendations: Number(metadata.recommendations || 0),
       },
       status: metadata.status || "success",
@@ -648,17 +650,21 @@
     }
 
     const zips = (profile?.baseZips || []).filter(value => /^\d{5}$/.test(String(value)));
-    if (!zips.length || typeof loadGeoIndex !== "function" || typeof distanceForJob !== "function") return;
+    if (!zips.length || typeof loadGeoIndex !== "function" || typeof distanceForJob !== "function") return { unique_lookups: 0, cache_hits: 0 };
     try {
       const geo = await loadGeoIndex();
       const origins = zips.map(zip => geo.zips.get(zip)).filter(Boolean);
-      if (!origins.length) return;
+      if (!origins.length) return { unique_lookups: 0, cache_hits: 0 };
       const distanceCache = new Map();
+      let cacheHits = 0;
       for (const job of jobs) {
         const values = locationDisplayValues(job);
         const perLocation = values.map(value => origins.map(origin => {
           const cacheKey = distanceCacheKey(value, job, origin);
-          if (distanceCache.has(cacheKey)) return distanceCache.get(cacheKey);
+          if (distanceCache.has(cacheKey)) {
+            cacheHits += 1;
+            return distanceCache.get(cacheKey);
+          }
           const pseudoJob = { ...job, location: value, _inspection: null };
           delete pseudoJob._geo;
           delete pseudoJob._geoResolved;
@@ -682,8 +688,10 @@
           delete job._displayLocation;
         }
       }
+      return { unique_lookups: distanceCache.size, cache_hits: cacheHits };
     } catch (_) {
       // Location scoring still has state/remote/relocation fallbacks if ZIP data is unavailable.
+      return { unique_lookups: 0, cache_hits: 0 };
     }
   }
 
@@ -1322,7 +1330,7 @@
 
   async function renderQueue(panel, profile) {
     const timing = { startedAt: timingNow(), stages: {} };
-    const counts = { candidates: 0, rankable: 0, distance_candidates: 0, recommendations: 0 };
+    const counts = { candidates: 0, rankable: 0, distance_candidates: 0, distance_unique_lookups: 0, distance_cache_hits: 0, recommendations: 0 };
     let timingStatus = "success";
 
     setProfileSetupMode(true);
@@ -1371,7 +1379,9 @@
       const preliminaryRanked = YartchivesApplyNext.rankJobs(rankablePool, profile, rankingNow);
       const distanceCandidates = distanceEnrichmentCandidates(preliminaryRanked, rankingNow);
       counts.distance_candidates = distanceCandidates.length;
-      await addBaseDistances(distanceCandidates, profile);
+      const distanceStats = await addBaseDistances(distanceCandidates, profile);
+      counts.distance_unique_lookups = Number(distanceStats?.unique_lookups || 0);
+      counts.distance_cache_hits = Number(distanceStats?.cache_hits || 0);
       recordTimingStage(timing, "location_enrichment", stageStartedAt);
 
       stageStartedAt = timingNow();
