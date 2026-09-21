@@ -14,6 +14,7 @@ import json
 import os
 import re
 import sys
+import warnings
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
@@ -21,7 +22,7 @@ from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 import requests
 import link_ranks
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, MarkupResemblesLocatorWarning
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -148,6 +149,9 @@ def fetch_text(s: requests.Session, url: str, headers: dict[str, str] | None = N
     response = s.get(url, headers=headers, timeout=TIMEOUT)
     response.raise_for_status()
     return response.text
+
+
+warnings.filterwarnings("ignore", category=MarkupResemblesLocatorWarning)
 
 
 def clean_text(value: str | None) -> str:
