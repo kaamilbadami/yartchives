@@ -21,6 +21,7 @@
 
   const ALLOWED_STAGES = new Set([
     "paint_wait",
+    "candidate_artifact",
     "candidate_filter",
     "inspection_artifact",
     "inspection_attach",
@@ -260,6 +261,7 @@
     ENDPOINT,
     SCHEMA,
     ALLOWED_EVENTS,
+    ALLOWED_STAGES,
     sanitizeTimingPayload,
     loadVisitorState,
     track,
