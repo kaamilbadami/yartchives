@@ -492,6 +492,8 @@ assert.deepEqual(timingPayload, {
   stages_ms: { location_enrichment: 25.7 },
   counts: { candidates: 500, rankable: 42, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, recommendations: 10 },
   geo_error: null,
+  geo_warm_state: null,
+  page_visibility: null,
   status: "success",
 });
 assert.deepEqual(loggedTiming, timingPayload);
