@@ -321,22 +321,22 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
         self.assertEqual([task.number for task in selected], [3])
 
-    def test_non_backlog_jules_work_does_not_consume_backlog_wip(self):
+    def test_workflow_failures_are_now_dispatched_as_backlog_wip(self):
         issues = [
             issue(
                 1,
                 "[workflow failure] Update opportunity feed: Validate code",
-                labels=("workflow-failure", "agent-ready", "jules"),
+                labels=("workflow-failure", "agent-ready", "autonomous-backlog"),
             ),
             issue(
                 2,
                 "[workflow failure] Update opportunity feed: Validate generated feed",
-                labels=("workflow-failure", "agent-ready", "jules"),
+                labels=("workflow-failure", "agent-ready", "autonomous-backlog"),
             ),
             issue(3, "roadmap", body=task_body("P1", "frontend-state")),
         ]
         selected = mod.select_tasks(issues, max_active=2)
-        self.assertEqual([task.number for task in selected], [3])
+        self.assertEqual([task.number for task in selected], [1, 3])
 
     def test_active_area_blocks_overlapping_task_but_allows_other_area(self):
         issues = [

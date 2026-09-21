@@ -83,7 +83,7 @@ def get_active_and_coverage_issues(repo: str) -> tuple[list[Any], list[dict[str,
             for label in issue.get("labels", [])
         }
         task = task_from_issue(issue)
-        if task and ("jules-session" in labels or JULES_FEEDBACK_LABEL in labels or "jules" in labels):
+        if task and ("jules-session" in labels or JULES_FEEDBACK_LABEL in labels):
              active_issues.append(task)
 
     # Gap identity is persisted in the issue body marker, not in an optional

@@ -99,7 +99,7 @@ def failed_jobs():
 
 
 class TriageWorkflowFailuresTests(unittest.TestCase):
-    def test_new_default_branch_failure_creates_jules_labeled_issue(self):
+    def test_new_default_branch_failure_creates_autonomous_labeled_issue(self):
         gh = FakeGh()
         gh.jobs_by_run["1"] = failed_jobs()
 
@@ -107,29 +107,29 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
 
         self.assertEqual(len(gh.issues), 1)
         labels = {label["name"] for label in gh.issues[0]["labels"]}
-        self.assertEqual(labels, {"workflow-failure", "agent-ready", "jules"})
+        self.assertEqual(labels, {"workflow-failure", "agent-ready", "autonomous-backlog"})
         self.assertIn("Quality checks::tests::Python tests", gh.issues[0]["body"])
 
-    def test_success_closes_failure_cycle_and_next_failure_dispatches_fresh_jules_issue(self):
+    def test_success_closes_failure_cycle_and_next_failure_dispatches_fresh_autonomous_issue(self):
         gh = FakeGh()
         gh.jobs_by_run["1"] = failed_jobs()
         gh.jobs_by_run["3"] = failed_jobs()
 
         mod.triage(ctx(run_id="1", conclusion="failure"), gh.json, gh.run)
         first_issue = gh.issues[0]
-        self.assertIn("jules", {label["name"] for label in first_issue["labels"]})
+        self.assertIn("autonomous-backlog", {label["name"] for label in first_issue["labels"]})
 
         mod.triage(ctx(run_id="2", conclusion="success"), gh.json, gh.run)
         self.assertEqual(first_issue["state"], "closed")
         first_labels = {label["name"] for label in first_issue["labels"]}
-        self.assertNotIn("jules", first_labels)
+        self.assertNotIn("autonomous-backlog", first_labels)
         self.assertNotIn("agent-ready", first_labels)
 
         mod.triage(ctx(run_id="3", conclusion="failure"), gh.json, gh.run)
         open_issues = [issue for issue in gh.issues if issue["state"] == "open"]
         self.assertEqual(len(open_issues), 1)
         self.assertNotEqual(open_issues[0]["number"], first_issue["number"])
-        self.assertIn("jules", {label["name"] for label in open_issues[0]["labels"]})
+        self.assertIn("autonomous-backlog", {label["name"] for label in open_issues[0]["labels"]})
 
     def test_pr_failure_does_not_dispatch_jules(self):
         gh = FakeGh()
@@ -151,13 +151,13 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
                 "number": 1,
                 "state": "open",
                 "body": "<!-- workflow-failure-signature: Quality checks::tests::Python tests -->",
-                "labels": [{"name": "workflow-failure"}, {"name": "agent-ready"}, {"name": "jules"}],
+                "labels": [{"name": "workflow-failure"}, {"name": "agent-ready"}, {"name": "autonomous-backlog"}],
             },
             {
                 "number": 2,
                 "state": "open",
                 "body": "<!-- workflow-failure-signature: Update opportunity feed::build::Validate generated feed -->",
-                "labels": [{"name": "workflow-failure"}, {"name": "agent-ready"}, {"name": "jules"}],
+                "labels": [{"name": "workflow-failure"}, {"name": "agent-ready"}, {"name": "autonomous-backlog"}],
             },
         ]
 
@@ -175,19 +175,19 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
                 "number": 1,
                 "state": "open",
                 "body": "<!-- workflow-failure-signature: Quality checks::tests::Python tests -->",
-                "labels": [{"name": "workflow-failure"}, {"name": "agent-ready"}, {"name": "jules"}],
+                "labels": [{"name": "workflow-failure"}, {"name": "agent-ready"}, {"name": "autonomous-backlog"}],
             },
             {
                 "number": 2,
                 "state": "open",
                 "body": "<!-- workflow-failure-signature: Quality checks::lint::Check formatting -->",
-                "labels": [{"name": "workflow-failure"}, {"name": "agent-ready"}, {"name": "jules"}],
+                "labels": [{"name": "workflow-failure"}, {"name": "agent-ready"}, {"name": "autonomous-backlog"}],
             },
             {
                 "number": 3,
                 "state": "open",
                 "body": "<!-- workflow-failure-signature: Update opportunity feed::build::Validate generated feed -->",
-                "labels": [{"name": "workflow-failure"}, {"name": "agent-ready"}, {"name": "jules"}],
+                "labels": [{"name": "workflow-failure"}, {"name": "agent-ready"}, {"name": "autonomous-backlog"}],
             },
         ]
 
@@ -212,6 +212,30 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
 
         # Issue 3 is from a different workflow ("Update opportunity feed"), so it stays open
         self.assertEqual(gh.issues[2]["state"], "open")
+
+    def test_failure_on_existing_issue_does_not_duplicate_sessions(self):
+        gh = FakeGh()
+        # Mock an existing workflow-failure issue that was already handled but remains open
+        # E.g. Jules is still working on it.
+        gh.issues = [
+            {
+                "number": 1,
+                "state": "open",
+                "body": "<!-- workflow-failure-signature: Quality checks::tests::Python tests -->\npriority: P1",
+                "labels": [{"name": "workflow-failure"}],
+            }
+        ]
+        gh.jobs_by_run["2"] = failed_jobs()
+
+        mod.triage(ctx(run_id="2", conclusion="failure"), gh.json, gh.run)
+
+        # Should still be one issue, and it should get agent-ready/autonomous-backlog
+        self.assertEqual(len(gh.issues), 1)
+        self.assertEqual(gh.issues[0]["state"], "open")
+        labels = {label["name"] for label in gh.issues[0]["labels"]}
+        self.assertEqual(labels, {"workflow-failure", "agent-ready", "autonomous-backlog"})
+        # Should NOT have created a new issue
+        self.assertFalse(any(call[:2] == ("issue", "create") for call in gh.calls))
 
 if __name__ == "__main__":
     unittest.main()
