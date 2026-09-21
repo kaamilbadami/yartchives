@@ -38,15 +38,15 @@ button, a { -webkit-tap-highlight-color: transparent; }
 a { color: inherit; }
 
 .site-header, main {
-  width: min(1220px, calc(100% - 36px));
+  width: min(1440px, calc(100% - 48px));
   margin-inline: auto;
 }
 .site-header {
   display: flex;
   justify-content: space-between;
   gap: 28px;
-  align-items: flex-end;
-  padding: 44px 0 24px;
+  align-items: flex-start;
+  padding: 32px 0 24px;
 }
 .brand-block { max-width: 820px; }
 .brand-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -356,7 +356,7 @@ button:hover, .apply-btn:hover, .ghost-btn:hover { filter: brightness(1.07); }
 }
 
 @media (max-width: 620px) {
-  .site-header, main { width: min(100% - 20px, 1220px); }
+  .site-header, main { width: min(100% - 20px, 1440px); }
   .site-header { padding-top: 28px; }
   h1 { font-size: clamp(2.7rem, 17vw, 4rem); }
   .stats { grid-template-columns: 1fr 1fr; }
