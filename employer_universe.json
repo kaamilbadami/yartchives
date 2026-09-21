@@ -110,7 +110,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -1684,7 +1684,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -1815,8 +1815,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T23:12:25Z",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "resolved_at": "2026-09-21T23:33:06Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -2018,7 +2018,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -2624,7 +2624,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -3766,7 +3766,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -3939,7 +3939,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -4591,7 +4591,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -4853,7 +4853,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -5148,7 +5148,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -5326,74 +5326,27 @@
         }
       },
       "careers_resolution": {
-        "status": "blocked",
-        "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "status": "transient",
+        "attempt_status": "transient",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
             "source": "input-hint",
             "requested_url": "https://analog.com/",
-            "redirect_chain": [
-              {
-                "url": "https://analog.com/",
-                "status": 301
-              },
-              {
-                "url": "https://www.analog.com/",
-                "status": 403
-              }
-            ],
-            "final_url": "https://www.analog.com/",
-            "status": 403,
-            "signals": [
-              "employer domain"
-            ],
-            "score": 2
+            "error": "ReadTimeout: HTTPSConnectionPool(host='www.analog.com', port=443): Read timed out. (read timeout=15)"
           },
           {
             "type": "http",
             "source": "conventional-path",
             "requested_url": "https://analog.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://analog.com/careers",
-                "status": 301
-              },
-              {
-                "url": "https://www.analog.com/careers",
-                "status": 403
-              }
-            ],
-            "final_url": "https://www.analog.com/careers",
-            "status": 403,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
+            "error": "ReadTimeout: HTTPSConnectionPool(host='www.analog.com', port=443): Read timed out. (read timeout=15)"
           },
           {
             "type": "http",
             "source": "conventional-path",
             "requested_url": "https://analog.com/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://analog.com/jobs",
-                "status": 301
-              },
-              {
-                "url": "https://www.analog.com/jobs",
-                "status": 403
-              }
-            ],
-            "final_url": "https://www.analog.com/jobs",
-            "status": 403,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
+            "error": "ReadTimeout: HTTPSConnectionPool(host='www.analog.com', port=443): Read timed out. (read timeout=15)"
           }
         ]
       },
@@ -5421,7 +5374,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -5620,7 +5573,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -5701,7 +5654,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -6095,7 +6048,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -10421,7 +10374,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -14513,8 +14466,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T23:12:25Z",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "resolved_at": "2026-09-21T23:33:06Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -20526,8 +20479,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T23:12:25Z",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "resolved_at": "2026-09-21T23:33:06Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -24256,7 +24209,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
@@ -33841,7 +33794,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T23:12:25Z",
+        "last_attempt_at": "2026-09-21T23:33:06Z",
         "evidence": [
           {
             "type": "http",
