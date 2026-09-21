@@ -55,6 +55,10 @@ def main():
                         p_info = fingerprint_provider(hint)
                         providers.add(p_info.get("family", "unknown"))
 
+            for hint in e.get("domain_hints", []):
+                p_info = fingerprint_provider(hint)
+                providers.add(p_info.get("family", "unknown"))
+
             if providers:
                 for p in providers:
                     provider_families_unresolved[p] += 1

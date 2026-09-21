@@ -51,6 +51,10 @@ def find_all_gaps(universe: dict[str, Any]) -> list[tuple[str, int, list[dict[st
                     p_info = fingerprint_provider(hint)
                     providers.add(p_info.get("family", "unknown"))
 
+        for hint in e.get("domain_hints", []):
+            p_info = fingerprint_provider(hint)
+            providers.add(p_info.get("family", "unknown"))
+
         if providers:
             for p in providers:
                 unresolved_families[p].append(e)

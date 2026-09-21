@@ -61,6 +61,7 @@ def main() -> int:
             domains = set()
             for md in emp.get("seed_metadata", {}).values():
                 domains.update(md.get("domain_hints", []))
+            domains.update(emp.get("domain_hints", []))
             valid_domains = [d for d in domains if _url(d)]
 
             statuses = {_hint_identity_status(d) for d in valid_domains}
