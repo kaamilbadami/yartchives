@@ -125,7 +125,12 @@ def run_parallel(
         futures = {pool.submit(fn): name for name, fn in collectors.items()}
         for future in as_completed(futures):
             name = futures[future]
-            results[name] = future.result()
+            try:
+                results[name] = future.result()
+            except Exception as e:
+                import sys
+                print(f"{name} task failed with exception: {e}", file=sys.stderr)
+                results[name] = {}
     return results
 
 
