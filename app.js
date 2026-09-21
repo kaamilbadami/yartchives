@@ -231,7 +231,7 @@ async function loadGeoIndex() {
   if (geoLoadingPromise) return geoLoadingPromise;
 
   geoLoadingPromise = (async () => {
-    const response = await fetch(GEO_DATA_URL, { cache: "force-cache" });
+    const response = await fetch(GEO_DATA_URL, { cache: "no-cache" });
     if (!response.ok) throw new Error(`ZIP data request failed (${response.status})`);
     const payload = await response.json();
     if (!payload || !Array.isArray(payload.zips) || !Array.isArray(payload.cities)) {
