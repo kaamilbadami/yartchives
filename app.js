@@ -39,7 +39,7 @@ const STATE_CODE_BY_NAME = Object.fromEntries(Object.entries(STATE_NAMES).map(([
 const STORAGE_KEY = "yartchives-state-v1";
 const PAGE_SIZE = 40;
 const PRIORITY_STATE = "CT";
-const GEO_DATA_URL = "https://raw.githubusercontent.com/ReadyAPIs-com/curated-us-zips/f9eb7daabdade9b2a9f3cbc80327a5c152fc82d3/data/us-zips.csv";
+const GEO_DATA_URL = "data/geo-index.json";
 
 let feed = { jobs: [], sources: {}, generated_at: null };
 let feedReady = false;
@@ -231,43 +231,31 @@ async function loadGeoIndex() {
   if (geoLoadingPromise) return geoLoadingPromise;
 
   geoLoadingPromise = (async () => {
-    const response = await fetch(GEO_DATA_URL, { cache: "force-cache", mode: "cors" });
+    const response = await fetch(GEO_DATA_URL, { cache: "force-cache" });
     if (!response.ok) throw new Error(`ZIP data request failed (${response.status})`);
-    const text = await response.text();
-    const lines = text.split(/\r?\n/).filter(Boolean);
-    const headers = parseCsvLine(lines[0]);
-    const col = Object.fromEntries(headers.map((name, i) => [name, i]));
-    for (const needed of ["zip_code", "city", "state", "latitude", "longitude"]) {
-      if (col[needed] === undefined) throw new Error(`ZIP data is missing ${needed}`);
+    const payload = await response.json();
+    if (!payload || !Array.isArray(payload.zips) || !Array.isArray(payload.cities)) {
+      throw new Error("ZIP data is malformed");
     }
 
     const zips = new Map();
-    const cityAcc = new Map();
-    for (let i = 1; i < lines.length; i++) {
-      const row = parseCsvLine(lines[i]);
-      const zip = (row[col.zip_code] || "").padStart(5, "0");
-      const city = row[col.city] || "";
-      const st = (row[col.state] || "").toUpperCase();
-      const lat = Number(row[col.latitude]);
-      const lon = Number(row[col.longitude]);
-      if (!zip || !city || !st || !Number.isFinite(lat) || !Number.isFinite(lon)) continue;
-      const point = { lat, lon, state: st, city };
-      zips.set(zip, point);
-      const key = `${st}|${normalizePlace(city)}`;
-      const acc = cityAcc.get(key) || { lat: 0, lon: 0, count: 0, name: normalizePlace(city), state: st };
-      acc.lat += lat;
-      acc.lon += lon;
-      acc.count += 1;
-      cityAcc.set(key, acc);
+    for (const row of payload.zips) {
+      if (!Array.isArray(row) || row.length < 5) continue;
+      const [zip, lat, lon, st, city] = row;
+      if (!/^\d{5}$/.test(String(zip)) || !Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+      zips.set(String(zip), { lat, lon, state: st, city, zip: String(zip), precision: "zip" });
     }
 
     const cities = new Map();
     const citiesByState = new Map();
-    for (const [key, acc] of cityAcc.entries()) {
-      const point = { lat: acc.lat / acc.count, lon: acc.lon / acc.count, state: acc.state, city: acc.name };
-      cities.set(key, point);
-      if (!citiesByState.has(acc.state)) citiesByState.set(acc.state, []);
-      citiesByState.get(acc.state).push([acc.name, point]);
+    for (const row of payload.cities) {
+      if (!Array.isArray(row) || row.length < 4) continue;
+      const [st, city, lat, lon] = row;
+      if (!st || !city || !Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+      const point = { lat, lon, state: st, city, precision: "city" };
+      cities.set(`${st}|${city}`, point);
+      if (!citiesByState.has(st)) citiesByState.set(st, []);
+      citiesByState.get(st).push([city, point]);
     }
     for (const list of citiesByState.values()) list.sort((a, b) => b[0].length - a[0].length);
 
