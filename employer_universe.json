@@ -77,8 +77,7 @@
         }
       },
       "domain_hints": [
-        "2u.com",
-        "job-boards.greenhouse.io"
+        "2u.com"
       ]
     },
     {
@@ -181,8 +180,7 @@
         "host": "3m.wd1.myworkdayjobs.com"
       },
       "domain_hints": [
-        "3m.com",
-        "3m.wd1.myworkdayjobs.com"
+        "3m.com"
       ]
     },
     {
@@ -230,7 +228,6 @@
         ]
       },
       "domain_hints": [
-        "abb.wd3.myworkdayjobs.com",
         "abbvie.com"
       ]
     },
@@ -279,8 +276,7 @@
         ]
       },
       "domain_hints": [
-        "abbott.com",
-        "abbott.wd5.myworkdayjobs.com"
+        "abbott.com"
       ]
     },
     {
@@ -483,8 +479,7 @@
         ]
       },
       "domain_hints": [
-        "abbvie.com",
-        "jobs.smartrecruiters.com"
+        "abbvie.com"
       ]
     },
     {
@@ -787,8 +782,7 @@
         ]
       },
       "domain_hints": [
-        "accenture.com",
-        "accenture.wd103.myworkdayjobs.com"
+        "accenture.com"
       ]
     },
     {
@@ -813,8 +807,7 @@
         }
       },
       "domain_hints": [
-        "accor.com",
-        "jobs.smartrecruiters.com"
+        "accor.com"
       ]
     },
     {
@@ -993,8 +986,7 @@
         ]
       },
       "domain_hints": [
-        "activisionblizzard.com",
-        "xboxgaming.wd1.myworkdayjobs.com"
+        "activisionblizzard.com"
       ]
     },
     {
@@ -1034,8 +1026,7 @@
         ]
       },
       "domain_hints": [
-        "admitad.com",
-        "sjobs.brassring.com"
+        "admitad.com"
       ],
       "careers_platform": "brassring",
       "provider": {
@@ -1224,8 +1215,7 @@
       },
       "careers_url": "https://www.adobe.com/careers.html",
       "domain_hints": [
-        "adobe.com",
-        "adobe.wd5.myworkdayjobs.com"
+        "adobe.com"
       ]
     },
     {
@@ -1368,8 +1358,7 @@
         ]
       },
       "domain_hints": [
-        "adventhealth.com",
-        "adventhealth.wd12.myworkdayjobs.com"
+        "adventhealth.com"
       ]
     },
     {
@@ -1394,8 +1383,7 @@
         }
       },
       "domain_hints": [
-        "adyen.com",
-        "job-boards.greenhouse.io"
+        "adyen.com"
       ]
     },
     {
@@ -1630,8 +1618,7 @@
         ]
       },
       "domain_hints": [
-        "aecom.com",
-        "careers.smartrecruiters.com"
+        "aecom.com"
       ]
     },
     {
@@ -1767,8 +1754,7 @@
         ]
       },
       "domain_hints": [
-        "aes.com",
-        "aessuccess.org"
+        "aes.com"
       ]
     },
     {
@@ -1793,8 +1779,7 @@
         }
       },
       "domain_hints": [
-        "affirm.com",
-        "job-boards.greenhouse.io"
+        "affirm.com"
       ]
     },
     {
@@ -1988,8 +1973,7 @@
         ]
       },
       "domain_hints": [
-        "aflac.com",
-        "career4.successfactors.com"
+        "aflac.com"
       ],
       "careers_url": "https://careers.aflac.com/",
       "careers_platform": "successfactors",
@@ -2188,8 +2172,7 @@
         ]
       },
       "domain_hints": [
-        "agcocorp.com",
-        "career4.successfactors.com"
+        "agcocorp.com"
       ],
       "careers_url": "https://www.sap.com/products/hcm.html",
       "careers_platform": "successfactors",
@@ -2490,8 +2473,7 @@
       },
       "careers_url": "https://www.aig.com/home/careers",
       "domain_hints": [
-        "aig.com",
-        "aig.wd1.myworkdayjobs.com"
+        "aig.com"
       ]
     },
     {
@@ -2581,8 +2563,7 @@
         ]
       },
       "domain_hints": [
-        "airfranceklm.com",
-        "recrutement.airfrance.com"
+        "airfranceklm.com"
       ]
     },
     {
@@ -2630,8 +2611,7 @@
         ]
       },
       "domain_hints": [
-        "airproducts.com",
-        "airproducts.wd5.myworkdayjobs.com"
+        "airproducts.com"
       ]
     },
     {
@@ -2916,8 +2896,7 @@
         ]
       },
       "domain_hints": [
-        "airbnb.com",
-        "job-boards.greenhouse.io"
+        "airbnb.com"
       ],
       "careers_url": "https://careers.airbnb.com/zh",
       "careers_platform": "company-branded",
@@ -2973,7 +2952,6 @@
         ]
       },
       "domain_hints": [
-        "ag.wd3.myworkdayjobs.com",
         "airbus.com"
       ]
     },
@@ -2999,8 +2977,7 @@
         }
       },
       "domain_hints": [
-        "airbyte.com",
-        "jobs.ashbyhq.com"
+        "airbyte.com"
       ]
     },
     {
@@ -3048,8 +3025,7 @@
         ]
       },
       "domain_hints": [
-        "akamai.com",
-        "fa-extu-saasfaprod1.fa.ocs.oraclecloud.com"
+        "akamai.com"
       ]
     },
     {
@@ -3115,8 +3091,7 @@
         ]
       },
       "domain_hints": [
-        "alaskaair.com",
-        "careers-alaskaair.icims.com"
+        "alaskaair.com"
       ]
     },
     {
@@ -3251,8 +3226,7 @@
         ]
       },
       "domain_hints": [
-        "albertsons.com",
-        "eofd.fa.us6.oraclecloud.com"
+        "albertsons.com"
       ]
     },
     {
@@ -3359,8 +3333,7 @@
         ]
       },
       "domain_hints": [
-        "alcoa.com",
-        "alcoa.wd5.myworkdayjobs.com"
+        "alcoa.com"
       ]
     },
     {
@@ -3445,8 +3418,7 @@
         ]
       },
       "domain_hints": [
-        "alibaba.com",
-        "talent.alibaba.com"
+        "alibaba.com"
       ]
     },
     {
@@ -3471,8 +3443,7 @@
         }
       },
       "domain_hints": [
-        "alixpartners.com",
-        "job-boards.greenhouse.io"
+        "alixpartners.com"
       ]
     },
     {
@@ -3674,8 +3645,7 @@
       },
       "careers_url": "https://www.allstatecorporation.com/careers.aspx",
       "domain_hints": [
-        "allstate.com",
-        "allstate.wd5.myworkdayjobs.com"
+        "allstate.com"
       ]
     },
     {
@@ -3782,7 +3752,6 @@
         ]
       },
       "domain_hints": [
-        "ally.avature.net",
         "allyfinancialcoaching.ca"
       ]
     },
@@ -3943,8 +3912,7 @@
         ]
       },
       "domain_hints": [
-        "amadeus.com",
-        "amadeus.wd502.myworkdayjobs.com"
+        "amadeus.com"
       ]
     },
     {
@@ -4133,8 +4101,7 @@
         ]
       },
       "domain_hints": [
-        "amazon.com",
-        "www.amazon.jobs"
+        "amazon.com"
       ]
     },
     {
@@ -4223,9 +4190,7 @@
           }
         ]
       },
-      "domain_hints": [
-        "www.amazon.jobs"
-      ]
+      "domain_hints": []
     },
     {
       "id": "amc-networks",
@@ -4272,7 +4237,6 @@
         ]
       },
       "domain_hints": [
-        "amcn.wd5.myworkdayjobs.com",
         "amcnetworks.com"
       ]
     },
@@ -4321,8 +4285,7 @@
         ]
       },
       "domain_hints": [
-        "amd.com",
-        "careers-amd.icims.com"
+        "amd.com"
       ]
     },
     {
@@ -4605,8 +4568,7 @@
         ]
       },
       "domain_hints": [
-        "americaneagle.com",
-        "hcml.fa.us2.oraclecloud.com"
+        "americaneagle.com"
       ]
     },
     {
@@ -4709,8 +4671,7 @@
         "host": "aep.wd1.myworkdayjobs.com"
       },
       "domain_hints": [
-        "aep.com",
-        "aep.wd1.myworkdayjobs.com"
+        "aep.com"
       ]
     },
     {
@@ -4843,8 +4804,7 @@
         ]
       },
       "domain_hints": [
-        "americanexpress.com",
-        "careers.americanexpress.com"
+        "americanexpress.com"
       ]
     },
     {
@@ -5175,8 +5135,7 @@
         ]
       },
       "domain_hints": [
-        "amgen.com",
-        "amgen.wd1.myworkdayjobs.com"
+        "amgen.com"
       ]
     },
     {
@@ -5528,8 +5487,7 @@
         }
       },
       "domain_hints": [
-        "anduril.com",
-        "boards.greenhouse.io"
+        "anduril.com"
       ]
     },
     {
@@ -5554,8 +5512,7 @@
         }
       },
       "domain_hints": [
-        "anthropics.com",
-        "job-boards.greenhouse.io"
+        "anthropics.com"
       ]
     },
     {
@@ -5603,8 +5560,7 @@
         ]
       },
       "domain_hints": [
-        "aon.com",
-        "careers-aon.icims.com"
+        "aon.com"
       ]
     },
     {
@@ -6028,8 +5984,7 @@
         ]
       },
       "domain_hints": [
-        "apple.com",
-        "jobs.apple.com"
+        "apple.com"
       ]
     },
     {
@@ -6077,8 +6032,7 @@
         ]
       },
       "domain_hints": [
-        "applebees.com",
-        "dinebrands.wd503.myworkdayjobs.com"
+        "applebees.com"
       ]
     },
     {
@@ -6196,8 +6150,7 @@
         }
       },
       "domain_hints": [
-        "aqr.com",
-        "boards.greenhouse.io"
+        "aqr.com"
       ]
     },
     {
@@ -6321,8 +6274,7 @@
         }
       },
       "domain_hints": [
-        "asana.com",
-        "job-boards.greenhouse.io"
+        "asana.com"
       ]
     },
     {
@@ -6391,8 +6343,7 @@
         ]
       },
       "domain_hints": [
-        "ascension.org",
-        "careers-ascension.icims.com"
+        "ascension.org"
       ]
     },
     {
@@ -6440,8 +6391,7 @@
         ]
       },
       "domain_hints": [
-        "asml.com",
-        "asml.wd3.myworkdayjobs.com"
+        "asml.com"
       ]
     },
     {
@@ -6510,8 +6460,7 @@
         ]
       },
       "domain_hints": [
-        "astrazeneca.com",
-        "astrazeneca.eightfold.ai"
+        "astrazeneca.com"
       ]
     },
     {
@@ -6617,8 +6566,7 @@
         "host": "att.wd1.myworkdayjobs.com"
       },
       "domain_hints": [
-        "att.com",
-        "att.wd1.myworkdayjobs.com"
+        "att.com"
       ]
     },
     {
@@ -6666,8 +6614,7 @@
         ]
       },
       "domain_hints": [
-        "athleta.net",
-        "gapinc.wd1.myworkdayjobs.com"
+        "athleta.net"
       ]
     },
     {
@@ -6716,8 +6663,7 @@
         ]
       },
       "domain_hints": [
-        "atlassian.com",
-        "careers-atlassian.icims.com"
+        "atlassian.com"
       ]
     },
     {
@@ -6764,9 +6710,7 @@
           }
         ]
       },
-      "domain_hints": [
-        "globalcareers-atlassian.icims.com"
-      ]
+      "domain_hints": []
     },
     {
       "id": "audax-group",
@@ -6857,8 +6801,7 @@
         ]
       },
       "domain_hints": [
-        "autodesk.com",
-        "autodesk.wd1.myworkdayjobs.com"
+        "autodesk.com"
       ]
     },
     {
@@ -7110,8 +7053,7 @@
         ]
       },
       "domain_hints": [
-        "aws.training",
-        "www.amazon.jobs"
+        "aws.training"
       ]
     },
     {
@@ -7222,8 +7164,7 @@
         ]
       },
       "domain_hints": [
-        "baesystems.com",
-        "jobs.baesystems.com"
+        "baesystems.com"
       ]
     },
     {
@@ -7322,8 +7263,7 @@
         ]
       },
       "domain_hints": [
-        "bain.com",
-        "careers.bain.com"
+        "bain.com"
       ]
     },
     {
@@ -7429,8 +7369,7 @@
         "host": "bakerhughes.wd5.myworkdayjobs.com"
       },
       "domain_hints": [
-        "bakerhughes.com",
-        "bakerhughes.wd5.myworkdayjobs.com"
+        "bakerhughes.com"
       ]
     },
     {
@@ -7499,8 +7438,7 @@
         ]
       },
       "domain_hints": [
-        "bananarepublic.cl",
-        "gapinc.wd1.myworkdayjobs.com"
+        "bananarepublic.cl"
       ]
     },
     {
@@ -7603,8 +7541,7 @@
         "host": "ghr.wd1.myworkdayjobs.com"
       },
       "domain_hints": [
-        "bankofamerica.com",
-        "ghr.wd1.myworkdayjobs.com"
+        "bankofamerica.com"
       ]
     },
     {
@@ -7652,8 +7589,7 @@
         ]
       },
       "domain_hints": [
-        "bannerhealth.com",
-        "bannerhealth.wd108.myworkdayjobs.com"
+        "bannerhealth.com"
       ]
     },
     {
@@ -7709,8 +7645,7 @@
         ]
       },
       "domain_hints": [
-        "barclays.co.uk",
-        "barclays.wd3.myworkdayjobs.com"
+        "barclays.co.uk"
       ]
     },
     {
@@ -7758,8 +7693,7 @@
         ]
       },
       "domain_hints": [
-        "baxter.com",
-        "baxter.wd1.myworkdayjobs.com"
+        "baxter.com"
       ]
     },
     {
@@ -7828,8 +7762,7 @@
         ]
       },
       "domain_hints": [
-        "bayer.com",
-        "bayer.eightfold.ai"
+        "bayer.com"
       ]
     },
     {
@@ -7960,8 +7893,7 @@
         ]
       },
       "domain_hints": [
-        "bc.game",
-        "careers.bcg.com"
+        "bc.game"
       ]
     },
     {
@@ -8063,9 +7995,7 @@
         "marker": "myworkdayjobs.com",
         "host": "bdx.wd1.myworkdayjobs.com"
       },
-      "domain_hints": [
-        "bdx.wd1.myworkdayjobs.com"
-      ]
+      "domain_hints": []
     },
     {
       "id": "berkshire-hathaway",
@@ -8274,8 +8204,7 @@
         "host": "blackrock.wd1.myworkdayjobs.com"
       },
       "domain_hints": [
-        "blackrock.com",
-        "blackrock.wd1.myworkdayjobs.com"
+        "blackrock.com"
       ]
     },
     {
@@ -8330,8 +8259,7 @@
         }
       },
       "domain_hints": [
-        "blockchain.com",
-        "job-boards.greenhouse.io"
+        "blockchain.com"
       ]
     },
     {
@@ -8379,8 +8307,7 @@
         ]
       },
       "domain_hints": [
-        "bloomenergy.com",
-        "bloomenergy.wd1.myworkdayjobs.com"
+        "bloomenergy.com"
       ]
     },
     {
@@ -8428,8 +8355,7 @@
         ]
       },
       "domain_hints": [
-        "blueorigin.com",
-        "blueorigin.wd5.myworkdayjobs.com"
+        "blueorigin.com"
       ]
     },
     {
@@ -8599,8 +8525,7 @@
         ]
       },
       "domain_hints": [
-        "bnymellon.com",
-        "www.bny.com"
+        "bnymellon.com"
       ]
     },
     {
@@ -8707,8 +8632,7 @@
         "host": "boeing.wd1.myworkdayjobs.com"
       },
       "domain_hints": [
-        "boeing.com",
-        "boeing.wd1.myworkdayjobs.com"
+        "boeing.com"
       ]
     },
     {
@@ -8889,8 +8813,7 @@
         ]
       },
       "domain_hints": [
-        "booking.com",
-        "jobs.booking.com"
+        "booking.com"
       ]
     },
     {
@@ -9000,8 +8923,7 @@
         }
       },
       "domain_hints": [
-        "brex.com",
-        "job-boards.greenhouse.io"
+        "brex.com"
       ]
     },
     {
@@ -9125,8 +9047,7 @@
         "host": "bristolmyerssquibb.wd5.myworkdayjobs.com"
       },
       "domain_hints": [
-        "bms.com",
-        "bristolmyerssquibb.wd5.myworkdayjobs.com"
+        "bms.com"
       ]
     },
     {
@@ -9245,7 +9166,6 @@
         ]
       },
       "domain_hints": [
-        "apply.ba.com",
         "britishairways.com"
       ]
     },
@@ -9352,8 +9272,7 @@
         "host": "broadcom.wd1.myworkdayjobs.com"
       },
       "domain_hints": [
-        "broadcom.com",
-        "broadcom.wd1.myworkdayjobs.com"
+        "broadcom.com"
       ]
     },
     {
@@ -9419,8 +9338,7 @@
         ]
       },
       "domain_hints": [
-        "burlington.com",
-        "burlington.wd5.myworkdayjobs.com"
+        "burlington.com"
       ]
     },
     {
@@ -9484,8 +9402,7 @@
         ]
       },
       "domain_hints": [
-        "chrobinson.com",
-        "chrobinson.wd5.myworkdayjobs.com"
+        "chrobinson.com"
       ]
     },
     {
@@ -9674,8 +9591,7 @@
         ]
       },
       "domain_hints": [
-        "caci.com",
-        "caci.wd1.myworkdayjobs.com"
+        "caci.com"
       ]
     },
     {
@@ -9763,8 +9679,7 @@
         }
       },
       "domain_hints": [
-        "canonical.com",
-        "job-boards.greenhouse.io"
+        "canonical.com"
       ]
     },
     {
@@ -9886,8 +9801,7 @@
         ]
       },
       "domain_hints": [
-        "capgemini.com",
-        "careers.capgemini.com"
+        "capgemini.com"
       ]
     },
     {
@@ -9946,8 +9860,7 @@
         ]
       },
       "domain_hints": [
-        "capitalone.com",
-        "capitalone.wd12.myworkdayjobs.com"
+        "capitalone.com"
       ]
     },
     {
@@ -10071,8 +9984,7 @@
         "host": "cardinalhealth.wd1.myworkdayjobs.com"
       },
       "domain_hints": [
-        "cardinalhealth.com",
-        "cardinalhealth.wd1.myworkdayjobs.com"
+        "cardinalhealth.com"
       ]
     },
     {
@@ -10141,8 +10053,7 @@
         ]
       },
       "domain_hints": [
-        "carrier.com",
-        "carrier.wd5.myworkdayjobs.com"
+        "carrier.com"
       ]
     },
     {
@@ -10333,8 +10244,7 @@
         ]
       },
       "domain_hints": [
-        "catalent.com",
-        "catalent.wd1.myworkdayjobs.com"
+        "catalent.com"
       ]
     },
     {
@@ -10380,7 +10290,6 @@
         }
       },
       "domain_hints": [
-        "careers.cbre.com",
         "cbre.com"
       ]
     },
@@ -10584,8 +10493,7 @@
         ]
       },
       "domain_hints": [
-        "cengage.com",
-        "cengage.wd5.myworkdayjobs.com"
+        "cengage.com"
       ]
     },
     {
@@ -10691,8 +10599,7 @@
         "host": "centene.wd5.myworkdayjobs.com"
       },
       "domain_hints": [
-        "centene.com",
-        "centene.wd5.myworkdayjobs.com"
+        "centene.com"
       ]
     },
     {
@@ -10734,8 +10641,7 @@
         }
       },
       "domain_hints": [
-        "aboutschwab.com",
-        "schwab.com"
+        "aboutschwab.com"
       ]
     },
     {
@@ -10756,7 +10662,6 @@
         }
       },
       "domain_hints": [
-        "charter.com",
         "corporate.charter.com"
       ]
     },
@@ -10885,8 +10790,7 @@
         ]
       },
       "domain_hints": [
-        "chevron.com",
-        "chevron.wd5.myworkdayjobs.com"
+        "chevron.com"
       ]
     },
     {
@@ -10955,7 +10859,6 @@
         ]
       },
       "domain_hints": [
-        "careers-chickfila.icims.com",
         "chick-fil-a.com"
       ]
     },
@@ -10981,8 +10884,7 @@
         }
       },
       "domain_hints": [
-        "chime.com",
-        "job-boards.greenhouse.io"
+        "chime.com"
       ]
     },
     {
@@ -11030,8 +10932,7 @@
         ]
       },
       "domain_hints": [
-        "chipotle.com",
-        "chipotle.wd5.myworkdayjobs.com"
+        "chipotle.com"
       ]
     },
     {
@@ -11100,8 +11001,7 @@
         ]
       },
       "domain_hints": [
-        "choicehotels.com",
-        "choicehotels.wd5.myworkdayjobs.com"
+        "choicehotels.com"
       ]
     },
     {
@@ -11170,8 +11070,7 @@
         ]
       },
       "domain_hints": [
-        "cigna.com",
-        "cigna.wd5.myworkdayjobs.com"
+        "cigna.com"
       ]
     },
     {
@@ -11276,8 +11175,7 @@
         ]
       },
       "domain_hints": [
-        "cisco.com",
-        "cisco.wd5.myworkdayjobs.com"
+        "cisco.com"
       ]
     },
     {
@@ -11437,8 +11335,7 @@
         ]
       },
       "domain_hints": [
-        "clorox.com",
-        "clorox.wd1.myworkdayjobs.com"
+        "clorox.com"
       ]
     },
     {
@@ -11463,8 +11360,7 @@
         }
       },
       "domain_hints": [
-        "cloudflare.com",
-        "job-boards.greenhouse.io"
+        "cloudflare.com"
       ]
     },
     {
@@ -11549,8 +11445,7 @@
         }
       },
       "domain_hints": [
-        "coherentmarketinsights.com",
-        "jobs.ashbyhq.com"
+        "coherentmarketinsights.com"
       ]
     },
     {
@@ -11575,8 +11470,7 @@
         }
       },
       "domain_hints": [
-        "coinbase.com",
-        "job-boards.greenhouse.io"
+        "coinbase.com"
       ]
     },
     {
@@ -11624,8 +11518,7 @@
         ]
       },
       "domain_hints": [
-        "coldwellbanker.com",
-        "ibmqjb.fa.ocs.oraclecloud.com"
+        "coldwellbanker.com"
       ]
     },
     {
@@ -11659,7 +11552,6 @@
         }
       },
       "domain_hints": [
-        "career4.successfactors.com",
         "colgatepalmolive.com"
       ]
     },
@@ -11708,8 +11600,7 @@
         ]
       },
       "domain_hints": [
-        "colliers.com",
-        "colliers.wd3.myworkdayjobs.com"
+        "colliers.com"
       ]
     },
     {
@@ -11757,8 +11648,7 @@
         ]
       },
       "domain_hints": [
-        "collinsaerospace.com",
-        "globalhr.wd5.myworkdayjobs.com"
+        "collinsaerospace.com"
       ]
     },
     {
@@ -11864,8 +11754,7 @@
         "host": "comcast.wd5.myworkdayjobs.com"
       },
       "domain_hints": [
-        "comcast.com",
-        "comcast.wd5.myworkdayjobs.com"
+        "comcast.com"
       ]
     },
     {
@@ -12015,7 +11904,6 @@
         ]
       },
       "domain_hints": [
-        "condenast.wd115.myworkdayjobs.com",
         "condenaststore.com"
       ]
     },
@@ -12041,8 +11929,7 @@
         }
       },
       "domain_hints": [
-        "confluent.io",
-        "jobs.ashbyhq.com"
+        "confluent.io"
       ]
     },
     {
@@ -12148,8 +12035,7 @@
         "host": "conocophillips.wd1.myworkdayjobs.com"
       },
       "domain_hints": [
-        "conocophillips.com",
-        "conocophillips.wd1.myworkdayjobs.com"
+        "conocophillips.com"
       ]
     },
     {
@@ -12221,8 +12107,7 @@
         ]
       },
       "domain_hints": [
-        "cbrands.com",
-        "cbrands.wd5.myworkdayjobs.com"
+        "cbrands.com"
       ]
     },
     {
@@ -12282,8 +12167,7 @@
         }
       },
       "domain_hints": [
-        "coreandmain.com",
-        "coremain.com"
+        "coreandmain.com"
       ]
     },
     {
@@ -12338,9 +12222,7 @@
         }
       },
       "domain_hints": [
-        "career4.successfactors.com",
-        "corning.com",
-        "corningcu.org"
+        "corning.com"
       ]
     },
     {
@@ -12397,8 +12279,7 @@
         ]
       },
       "domain_hints": [
-        "corteva.com",
-        "corteva.wd5.myworkdayjobs.com"
+        "corteva.com"
       ]
     },
     {
@@ -12446,7 +12327,6 @@
         ]
       },
       "domain_hints": [
-        "careers-costco.icims.com",
         "costco.com"
       ]
     },
@@ -12523,8 +12403,7 @@
         }
       },
       "domain_hints": [
-        "coupang.com",
-        "job-boards.greenhouse.io"
+        "coupang.com"
       ]
     },
     {
@@ -12549,8 +12428,7 @@
         }
       },
       "domain_hints": [
-        "coursera.org",
-        "job-boards.greenhouse.io"
+        "coursera.org"
       ]
     },
     {
@@ -12598,8 +12476,7 @@
         ]
       },
       "domain_hints": [
-        "cox.com",
-        "cox.wd1.myworkdayjobs.com"
+        "cox.com"
       ]
     },
     {
@@ -12647,7 +12524,6 @@
         ]
       },
       "domain_hints": [
-        "cbrlgroup.wd503.myworkdayjobs.com",
         "crackerbarrel.com"
       ]
     },
@@ -12696,8 +12572,7 @@
         ]
       },
       "domain_hints": [
-        "crowdstrike.com",
-        "crowdstrike.wd5.myworkdayjobs.com"
+        "crowdstrike.com"
       ]
     },
     {
@@ -12798,8 +12673,7 @@
         ]
       },
       "domain_hints": [
-        "csx.com",
-        "fa-eowa-saasfaprod1.fa.ocs.oraclecloud.com"
+        "csx.com"
       ]
     },
     {
@@ -12856,8 +12730,7 @@
         ]
       },
       "domain_hints": [
-        "cummins.com",
-        "fa-espx-saasfaprod1.fa.ocs.oraclecloud.com"
+        "cummins.com"
       ]
     },
     {
@@ -12882,8 +12755,7 @@
         }
       },
       "domain_hints": [
-        "cursorinfo.co.il",
-        "jobs.ashbyhq.com"
+        "cursorinfo.co.il"
       ]
     },
     {
@@ -12931,8 +12803,7 @@
         ]
       },
       "domain_hints": [
-        "cushmanwakefield.com",
-        "cw.wd1.myworkdayjobs.com"
+        "cushmanwakefield.com"
       ]
     },
     {
@@ -12989,8 +12860,7 @@
         ]
       },
       "domain_hints": [
-        "cvshealth.com",
-        "cvshealth.wd1.myworkdayjobs.com"
+        "cvshealth.com"
       ]
     },
     {
@@ -13070,8 +12940,7 @@
         ]
       },
       "domain_hints": [
-        "drhorton.com",
-        "drhorton.taleo.net"
+        "drhorton.com"
       ]
     },
     {
@@ -13149,8 +13018,7 @@
         ]
       },
       "domain_hints": [
-        "danaher.com",
-        "danaher.wd1.myworkdayjobs.com"
+        "danaher.com"
       ]
     },
     {
@@ -13251,8 +13119,7 @@
         ]
       },
       "domain_hints": [
-        "darden.com",
-        "darden.paradox.ai"
+        "darden.com"
       ]
     },
     {
@@ -13277,8 +13144,7 @@
         }
       },
       "domain_hints": [
-        "darpa.mil",
-        "www.usajobs.gov"
+        "darpa.mil"
       ]
     },
     {
@@ -13304,8 +13170,7 @@
         }
       },
       "domain_hints": [
-        "databricks.com",
-        "job-boards.greenhouse.io"
+        "databricks.com"
       ]
     },
     {
@@ -13476,8 +13341,7 @@
         "host": "www.greenhouse.com"
       },
       "domain_hints": [
-        "datadoghq.com",
-        "job-boards.greenhouse.io"
+        "datadoghq.com"
       ]
     },
     {
@@ -13523,7 +13387,6 @@
         }
       },
       "domain_hints": [
-        "apply.deshaw.com",
         "deshaw.com"
       ]
     },
@@ -13570,7 +13433,6 @@
         }
       },
       "domain_hints": [
-        "careers.deere.com",
         "deere.com"
       ]
     },
@@ -13654,7 +13516,6 @@
         }
       },
       "domain_hints": [
-        "apply.deloitte.com",
         "www2.deloitte.com"
       ]
     },
@@ -13712,7 +13573,6 @@
         ]
       },
       "domain_hints": [
-        "delta.avature.net",
         "delta.com"
       ]
     },
@@ -13761,8 +13621,7 @@
         ]
       },
       "domain_hints": [
-        "dennys.com",
-        "dennys.wd1.myworkdayjobs.com"
+        "dennys.com"
       ]
     },
     {
@@ -13787,8 +13646,7 @@
         }
       },
       "domain_hints": [
-        "energy.gov",
-        "www.usajobs.gov"
+        "energy.gov"
       ]
     },
     {
@@ -13836,7 +13694,6 @@
         ]
       },
       "domain_hints": [
-        "db.wd3.myworkdayjobs.com",
         "deutsche-bank.de"
       ]
     },
@@ -13862,7 +13719,6 @@
         }
       },
       "domain_hints": [
-        "rec.telekom.com",
         "telekom.de"
       ]
     },
@@ -13909,7 +13765,6 @@
         }
       },
       "domain_hints": [
-        "careers.dhl.com",
         "dhl.com"
       ]
     },
@@ -13958,8 +13813,7 @@
         ]
       },
       "domain_hints": [
-        "diageo.com",
-        "diageo.wd3.myworkdayjobs.com"
+        "diageo.com"
       ]
     },
     {
@@ -14046,8 +13900,7 @@
         ]
       },
       "domain_hints": [
-        "digitalrealty.com",
-        "hdep.fa.us2.oraclecloud.com"
+        "digitalrealty.com"
       ]
     },
     {
@@ -14072,8 +13925,7 @@
         }
       },
       "domain_hints": [
-        "discord.com",
-        "job-boards.greenhouse.io"
+        "discord.com"
       ]
     },
     {
@@ -14121,8 +13973,7 @@
         ]
       },
       "domain_hints": [
-        "discover.com",
-        "discover.wd5.myworkdayjobs.com"
+        "discover.com"
       ]
     },
     {
@@ -14170,7 +14021,6 @@
         ]
       },
       "domain_hints": [
-        "disney.wd5.myworkdayjobs.com",
         "disneyplus.com"
       ]
     },
@@ -14219,7 +14069,6 @@
         ]
       },
       "domain_hints": [
-        "careers-docusign.icims.com",
         "docusign.com"
       ]
     },
@@ -14477,7 +14326,6 @@
         ]
       },
       "domain_hints": [
-        "careers.dollargeneral.com",
         "dollargeneral.com"
       ]
     },
@@ -14535,8 +14383,7 @@
         ]
       },
       "domain_hints": [
-        "dollartree.com",
-        "dollartree.wd5.myworkdayjobs.com"
+        "dollartree.com"
       ]
     },
     {
@@ -14570,7 +14417,6 @@
         }
       },
       "domain_hints": [
-        "career8.successfactors.com",
         "dominionenergy.com"
       ]
     },
@@ -14596,8 +14442,7 @@
         }
       },
       "domain_hints": [
-        "dominos.com",
-        "jobs.smartrecruiters.com"
+        "dominos.com"
       ]
     },
     {
@@ -14802,7 +14647,6 @@
         }
       },
       "domain_hints": [
-        "career2.successfactors.eu",
         "doversaddlery.com"
       ]
     },
@@ -14860,7 +14704,6 @@
         ]
       },
       "domain_hints": [
-        "dow.wd1.myworkdayjobs.com",
         "downdetector.com"
       ]
     },
@@ -14909,8 +14752,7 @@
         ]
       },
       "domain_hints": [
-        "dowjones.com",
-        "dowjones.wd1.myworkdayjobs.com"
+        "dowjones.com"
       ]
     },
     {
@@ -14958,8 +14800,7 @@
         ]
       },
       "domain_hints": [
-        "dpr.com",
-        "mydpr.wd5.myworkdayjobs.com"
+        "dpr.com"
       ]
     },
     {
@@ -15007,8 +14848,7 @@
         ]
       },
       "domain_hints": [
-        "draftkings.com",
-        "draftkings.wd1.myworkdayjobs.com"
+        "draftkings.com"
       ]
     },
     {
@@ -15033,8 +14873,7 @@
         }
       },
       "domain_hints": [
-        "dropbox.com",
-        "job-boards.greenhouse.io"
+        "dropbox.com"
       ]
     },
     {
@@ -15112,8 +14951,7 @@
         ]
       },
       "domain_hints": [
-        "duke-energy.com",
-        "dukeenergy.wd1.myworkdayjobs.com"
+        "duke-energy.com"
       ]
     },
     {
@@ -15138,7 +14976,6 @@
         }
       },
       "domain_hints": [
-        "careers.dunkindonuts.com",
         "dunkindonuts.com"
       ]
     },
@@ -15307,8 +15144,7 @@
         "host": "careers.duolingo.com"
       },
       "domain_hints": [
-        "duolingo.com",
-        "job-boards.greenhouse.io"
+        "duolingo.com"
       ]
     },
     {
@@ -15365,7 +15201,6 @@
         ]
       },
       "domain_hints": [
-        "dupont.wd5.myworkdayjobs.com",
         "dupontregistry.com"
       ]
     },
@@ -15446,8 +15281,7 @@
         ]
       },
       "domain_hints": [
-        "dxc.com",
-        "dxctechnology.wd1.myworkdayjobs.com"
+        "dxc.com"
       ]
     },
     {
@@ -15513,8 +15347,7 @@
         ]
       },
       "domain_hints": [
-        "eaton.com",
-        "eaton.eightfold.ai"
+        "eaton.com"
       ]
     },
     {
@@ -15571,8 +15404,7 @@
         ]
       },
       "domain_hints": [
-        "ebay.com",
-        "ebay.wd5.myworkdayjobs.com"
+        "ebay.com"
       ]
     },
     {
@@ -15650,8 +15482,7 @@
         ]
       },
       "domain_hints": [
-        "ecolab.com",
-        "ecolab.wd1.myworkdayjobs.com"
+        "ecolab.com"
       ]
     },
     {
@@ -15778,8 +15609,7 @@
         ]
       },
       "domain_hints": [
-        "edison.com",
-        "www.edisoncareers.com"
+        "edison.com"
       ]
     },
     {
@@ -15827,8 +15657,7 @@
         ]
       },
       "domain_hints": [
-        "edwards.com",
-        "edwards.wd5.myworkdayjobs.com"
+        "edwards.com"
       ]
     },
     {
@@ -15853,8 +15682,7 @@
         }
       },
       "domain_hints": [
-        "elastic.co",
-        "job-boards.greenhouse.io"
+        "elastic.co"
       ]
     },
     {
@@ -15879,8 +15707,7 @@
         }
       },
       "domain_hints": [
-        "ea.com",
-        "jobs.ea.com"
+        "ea.com"
       ]
     },
     {
@@ -15937,8 +15764,7 @@
         ]
       },
       "domain_hints": [
-        "elevancehealth.com",
-        "elevancehealth.wd1.myworkdayjobs.com"
+        "elevancehealth.com"
       ]
     },
     {
@@ -15995,8 +15821,7 @@
         ]
       },
       "domain_hints": [
-        "lilly.com",
-        "lilly.wd115.myworkdayjobs.com"
+        "lilly.com"
       ]
     },
     {
@@ -16065,8 +15890,7 @@
         ]
       },
       "domain_hints": [
-        "emerson.edu",
-        "hdjq.fa.us2.oraclecloud.com"
+        "emerson.edu"
       ]
     },
     {
@@ -16109,8 +15933,7 @@
         }
       },
       "domain_hints": [
-        "emirates.com",
-        "www.emiratesgroupcareers.com"
+        "emirates.com"
       ]
     },
     {
@@ -16158,7 +15981,6 @@
         ]
       },
       "domain_hints": [
-        "enbridge.wd3.myworkdayjobs.com",
         "enbridgegas.com"
       ]
     },
@@ -16265,8 +16087,7 @@
         }
       },
       "domain_hints": [
-        "epa.gov",
-        "www.usajobs.gov"
+        "epa.gov"
       ]
     },
     {
@@ -16291,8 +16112,7 @@
         }
       },
       "domain_hints": [
-        "epicgames.com",
-        "job-boards.greenhouse.io"
+        "epicgames.com"
       ]
     },
     {
@@ -16340,7 +16160,6 @@
         ]
       },
       "domain_hints": [
-        "epic.avature.net",
         "epic.com"
       ]
     },
@@ -16362,7 +16181,6 @@
         }
       },
       "domain_hints": [
-        "eqt.com",
         "eqtgroup.com"
       ]
     },
@@ -16420,8 +16238,7 @@
         ]
       },
       "domain_hints": [
-        "equinix.com",
-        "equinix.wd1.myworkdayjobs.com"
+        "equinix.com"
       ]
     },
     {
@@ -16507,7 +16324,6 @@
         ]
       },
       "domain_hints": [
-        "disney.wd5.myworkdayjobs.com",
         "plus.espn.com"
       ]
     },
@@ -16562,8 +16378,7 @@
         ]
       },
       "domain_hints": [
-        "elcompanies.com",
-        "elcompanies.eightfold.ai"
+        "elcompanies.com"
       ]
     },
     {
@@ -16611,8 +16426,7 @@
         ]
       },
       "domain_hints": [
-        "etsy.com",
-        "etsy.wd5.myworkdayjobs.com"
+        "etsy.com"
       ]
     },
     {
@@ -16637,8 +16451,7 @@
         }
       },
       "domain_hints": [
-        "evercore.com",
-        "evercore.tal.net"
+        "evercore.com"
       ]
     },
     {
@@ -16788,7 +16601,6 @@
         ]
       },
       "domain_hints": [
-        "careers-exeloncorp.icims.com",
         "exeloncorp.com"
       ]
     },
@@ -16858,7 +16670,6 @@
         ]
       },
       "domain_hints": [
-        "expedia.wd108.myworkdayjobs.com",
         "expediagroup.com"
       ]
     },
@@ -16905,8 +16716,7 @@
         }
       },
       "domain_hints": [
-        "expeditors.com",
-        "jobs.smartrecruiters.com"
+        "expeditors.com"
       ]
     },
     {
@@ -16957,7 +16767,6 @@
         }
       },
       "domain_hints": [
-        "career4.successfactors.com",
         "corporate.exxonmobil.com"
       ]
     },
@@ -16983,7 +16792,6 @@
         }
       },
       "domain_hints": [
-        "career5.successfactors.eu",
         "eyebuydirect.com"
       ]
     },
@@ -17009,8 +16817,7 @@
         }
       },
       "domain_hints": [
-        "fanduel.com",
-        "job-boards.greenhouse.io"
+        "fanduel.com"
       ]
     },
     {
@@ -17095,8 +16902,7 @@
         }
       },
       "domain_hints": [
-        "fastly.com",
-        "job-boards.greenhouse.io"
+        "fastly.com"
       ]
     },
     {
@@ -17120,9 +16926,7 @@
           "upstream_slug": "fda"
         }
       },
-      "domain_hints": [
-        "www.usajobs.gov"
-      ]
+      "domain_hints": []
     },
     {
       "id": "federal-reserve-bank-of-philadelphia",
@@ -17198,8 +17002,7 @@
         ]
       },
       "domain_hints": [
-        "fedex.com",
-        "fedex.wd1.myworkdayjobs.com"
+        "fedex.com"
       ]
     },
     {
@@ -17242,7 +17045,6 @@
         }
       },
       "domain_hints": [
-        "career55.sapsf.eu",
         "ferrari.com"
       ]
     },
@@ -17332,8 +17134,7 @@
         }
       },
       "domain_hints": [
-        "figma.com",
-        "job-boards.greenhouse.io"
+        "figma.com"
       ]
     },
     {
@@ -17399,7 +17200,6 @@
         ]
       },
       "domain_hints": [
-        "fa-esbv-saasfaprod1.fa.ocs.oraclecloud.com",
         "firstsolar.com"
       ]
     },
@@ -17490,8 +17290,7 @@
         ]
       },
       "domain_hints": [
-        "fivebelow.com",
-        "fivebelow.wd1.myworkdayjobs.com"
+        "fivebelow.com"
       ]
     },
     {
@@ -17516,8 +17315,7 @@
         }
       },
       "domain_hints": [
-        "fivetran.com",
-        "job-boards.greenhouse.io"
+        "fivetran.com"
       ]
     },
     {
@@ -17574,8 +17372,7 @@
         ]
       },
       "domain_hints": [
-        "fluor.com",
-        "fluor.eightfold.ai"
+        "fluor.com"
       ]
     },
     {
@@ -17678,8 +17475,7 @@
         ]
       },
       "domain_hints": [
-        "fm.com",
-        "fmtc.co"
+        "fm.com"
       ]
     },
     {
@@ -17727,8 +17523,7 @@
         ]
       },
       "domain_hints": [
-        "fmc.com",
-        "fmc.wd12.myworkdayjobs.com"
+        "fmc.com"
       ]
     },
     {
@@ -17797,7 +17592,6 @@
         ]
       },
       "domain_hints": [
-        "edel.fa.us2.oraclecloud.com",
         "fortinet.com"
       ]
     },
@@ -17846,8 +17640,7 @@
         ]
       },
       "domain_hints": [
-        "fourseasons.com",
-        "fourseasons.wd3.myworkdayjobs.com"
+        "fourseasons.com"
       ]
     },
     {
@@ -17904,7 +17697,6 @@
         ]
       },
       "domain_hints": [
-        "fox.wd1.myworkdayjobs.com",
         "foxnews.com"
       ]
     },
@@ -17990,8 +17782,7 @@
         }
       },
       "domain_hints": [
-        "freshworks.com",
-        "jobs.smartrecruiters.com"
+        "freshworks.com"
       ]
     },
     {
@@ -18016,7 +17807,6 @@
         }
       },
       "domain_hints": [
-        "career50.sapsf.com",
         "fujitsu.com"
       ]
     },
@@ -18130,7 +17920,6 @@
         ]
       },
       "domain_hints": [
-        "careers-garmin.icims.com",
         "garmin.com"
       ]
     },
@@ -18308,8 +18097,7 @@
         ]
       },
       "domain_hints": [
-        "geaerospace.com",
-        "geaerospace.wd5.myworkdayjobs.com"
+        "geaerospace.com"
       ]
     },
     {
@@ -18384,8 +18172,7 @@
         ]
       },
       "domain_hints": [
-        "gevernova.com",
-        "gevernova.wd5.myworkdayjobs.com"
+        "gevernova.com"
       ]
     },
     {
@@ -18433,8 +18220,7 @@
         ]
       },
       "domain_hints": [
-        "geico.com",
-        "geico.wd1.myworkdayjobs.com"
+        "geico.com"
       ]
     },
     {
@@ -18508,7 +18294,6 @@
         ]
       },
       "domain_hints": [
-        "careers-generaldynamics.icims.com",
         "gd.com"
       ]
     },
@@ -18884,7 +18669,6 @@
         ]
       },
       "domain_hints": [
-        "careers-generalmills.icims.com",
         "generalmills.com"
       ]
     },
@@ -18942,7 +18726,6 @@
         ]
       },
       "domain_hints": [
-        "generalmotors.wd5.myworkdayjobs.com",
         "generalmotorscentre.com"
       ]
     },
@@ -18991,8 +18774,7 @@
         ]
       },
       "domain_hints": [
-        "genpact.com",
-        "genpact.wd108.myworkdayjobs.com"
+        "genpact.com"
       ]
     },
     {
@@ -19070,8 +18852,7 @@
         ]
       },
       "domain_hints": [
-        "gilead.com",
-        "gilead.wd1.myworkdayjobs.com"
+        "gilead.com"
       ]
     },
     {
@@ -19119,8 +18900,7 @@
         ]
       },
       "domain_hints": [
-        "github.com",
-        "globalcareers-githubinc.icims.com"
+        "github.com"
       ]
     },
     {
@@ -19145,8 +18925,7 @@
         }
       },
       "domain_hints": [
-        "gitlab.com",
-        "job-boards.greenhouse.io"
+        "gitlab.com"
       ]
     },
     {
@@ -19167,8 +18946,7 @@
         }
       },
       "domain_hints": [
-        "globalp.com",
-        "globalpartnership.org"
+        "globalp.com"
       ]
     },
     {
@@ -19367,8 +19145,7 @@
         ]
       },
       "domain_hints": [
-        "gsk.com",
-        "gsk.wd5.myworkdayjobs.com"
+        "gsk.com"
       ]
     },
     {
@@ -19454,7 +19231,6 @@
         }
       },
       "domain_hints": [
-        "career4.successfactors.com",
         "halliburton.com"
       ]
     },
@@ -19480,7 +19256,6 @@
         }
       },
       "domain_hints": [
-        "career8.successfactors.com",
         "harley-davidson.com"
       ]
     },
@@ -19528,9 +19303,7 @@
           }
         ]
       },
-      "domain_hints": [
-        "thehartford.wd5.myworkdayjobs.com"
-      ]
+      "domain_hints": []
     },
     {
       "id": "hartford-insurance-group",
@@ -19602,8 +19375,7 @@
         ]
       },
       "domain_hints": [
-        "hcahealthcare.com",
-        "hcahealthcare.wd3.myworkdayjobs.com"
+        "hcahealthcare.com"
       ]
     },
     {
@@ -19628,7 +19400,6 @@
         }
       },
       "domain_hints": [
-        "careers.hcltech.com",
         "hclsrilanka.com"
       ]
     },
@@ -19677,7 +19448,6 @@
         ]
       },
       "domain_hints": [
-        "hdr.taleo.net",
         "hdrezka.co"
       ]
     },
@@ -19703,7 +19473,6 @@
         }
       },
       "domain_hints": [
-        "career5.successfactors.eu",
         "heineken.com"
       ]
     },
@@ -19750,7 +19519,6 @@
         }
       },
       "domain_hints": [
-        "careers.henselphelps.com",
         "henselphelps.com"
       ]
     },
@@ -19797,7 +19565,6 @@
         }
       },
       "domain_hints": [
-        "career4.successfactors.com",
         "hersheysoftware.co.uk"
       ]
     },
@@ -19979,8 +19746,7 @@
         }
       },
       "domain_hints": [
-        "hiltongrandvacations.com",
-        "jobs.hilton.com"
+        "hiltongrandvacations.com"
       ]
     },
     {
@@ -20048,8 +19814,7 @@
         ]
       },
       "domain_hints": [
-        "hitachi.com",
-        "hitachi.wd1.myworkdayjobs.com"
+        "hitachi.com"
       ]
     },
     {
@@ -20129,8 +19894,7 @@
         ]
       },
       "domain_hints": [
-        "homedepot.com",
-        "homedepot.wd5.myworkdayjobs.com"
+        "homedepot.com"
       ]
     },
     {
@@ -20178,8 +19942,7 @@
         ]
       },
       "domain_hints": [
-        "honeywell.com",
-        "ibqbjb.fa.ocs.oraclecloud.com"
+        "honeywell.com"
       ]
     },
     {
@@ -20222,8 +19985,7 @@
         }
       },
       "domain_hints": [
-        "hopper.com",
-        "jobs.ashbyhq.com"
+        "hopper.com"
       ]
     },
     {
@@ -20292,7 +20054,6 @@
         ]
       },
       "domain_hints": [
-        "expedia.wd108.myworkdayjobs.com",
         "hotels.com"
       ]
     },
@@ -20318,7 +20079,6 @@
         }
       },
       "domain_hints": [
-        "career4.successfactors.com",
         "hmhco.com"
       ]
     },
@@ -20406,7 +20166,6 @@
         ]
       },
       "domain_hints": [
-        "hpinc.wd5.myworkdayjobs.com",
         "hpincket.com"
       ]
     },
@@ -20455,7 +20214,6 @@
         ]
       },
       "domain_hints": [
-        "hpe.wd5.myworkdayjobs.com",
         "hpecas.com"
       ]
     },
@@ -20575,8 +20333,7 @@
         }
       },
       "domain_hints": [
-        "hubspot.com",
-        "job-boards.greenhouse.io"
+        "hubspot.com"
       ]
     },
     {
@@ -20601,7 +20358,6 @@
         }
       },
       "domain_hints": [
-        "boards.greenhouse.io",
         "hudsonrivertrading.com"
       ]
     },
@@ -20627,7 +20383,6 @@
         }
       },
       "domain_hints": [
-        "apply.workable.com",
         "huggingface.co"
       ]
     },
@@ -20685,8 +20440,7 @@
         ]
       },
       "domain_hints": [
-        "humana.com",
-        "humana.wd5.myworkdayjobs.com"
+        "humana.com"
       ]
     },
     {
@@ -20857,7 +20611,6 @@
         ]
       },
       "domain_hints": [
-        "huron.wd1.myworkdayjobs.com",
         "huronconsultinggroup.com"
       ]
     },
@@ -20906,8 +20659,7 @@
         ]
       },
       "domain_hints": [
-        "hyatt.com",
-        "hyatt.taleo.net"
+        "hyatt.com"
       ]
     },
     {
@@ -20932,7 +20684,6 @@
         }
       },
       "domain_hints": [
-        "careers-americas.hyundai.com",
         "hyundaiusa.com"
       ]
     },
@@ -21045,7 +20796,6 @@
         }
       },
       "domain_hints": [
-        "careers.ibm.com",
         "ibm.com"
       ]
     },
@@ -21135,7 +20885,6 @@
         ]
       },
       "domain_hints": [
-        "fa-evax-saasfaprod1.fa.ocs.oraclecloud.com",
         "ihg.com"
       ]
     },
@@ -21184,7 +20933,6 @@
         ]
       },
       "domain_hints": [
-        "dinebrands.wd503.myworkdayjobs.com",
         "ihop.com"
       ]
     },
@@ -21233,7 +20981,6 @@
         ]
       },
       "domain_hints": [
-        "ikea.avature.net",
         "ikea.com"
       ]
     },
@@ -21300,7 +21047,6 @@
         ]
       },
       "domain_hints": [
-        "illumina.wd1.myworkdayjobs.com",
         "illuminateed.com"
       ]
     },
@@ -21326,8 +21072,7 @@
         }
       },
       "domain_hints": [
-        "in-n-out.com",
-        "talent.innout.com"
+        "in-n-out.com"
       ]
     },
     {
@@ -21352,7 +21097,6 @@
         }
       },
       "domain_hints": [
-        "career.infosys.com",
         "infosys.com"
       ]
     },
@@ -21440,8 +21184,7 @@
         }
       },
       "domain_hints": [
-        "instacart.com",
-        "job-boards.greenhouse.io"
+        "instacart.com"
       ]
     },
     {
@@ -21499,8 +21242,7 @@
         ]
       },
       "domain_hints": [
-        "intel.com",
-        "intel.wd1.myworkdayjobs.com"
+        "intel.com"
       ]
     },
     {
@@ -21732,7 +21474,6 @@
         ]
       },
       "domain_hints": [
-        "iazbqy.fa.ocs.oraclecloud.com",
         "internationalpaper.com"
       ]
     },
@@ -21828,8 +21569,7 @@
         ]
       },
       "domain_hints": [
-        "intuit.com",
-        "jobs.intuit.com"
+        "intuit.com"
       ]
     },
     {
@@ -21860,8 +21600,7 @@
         }
       },
       "domain_hints": [
-        "intuitive.com",
-        "jobs.smartrecruiters.com"
+        "intuitive.com"
       ]
     },
     {
@@ -21920,8 +21659,7 @@
         ]
       },
       "domain_hints": [
-        "iqvia.com",
-        "iqvia.wd1.myworkdayjobs.com"
+        "iqvia.com"
       ]
     },
     {
@@ -21946,8 +21684,7 @@
         }
       },
       "domain_hints": [
-        "irs.com",
-        "usajobs.gov"
+        "irs.com"
       ]
     },
     {
@@ -21995,8 +21732,7 @@
         ]
       },
       "domain_hints": [
-        "jbhunt.com",
-        "jbhunt.wd501.myworkdayjobs.com"
+        "jbhunt.com"
       ]
     },
     {
@@ -22106,8 +21842,7 @@
         }
       },
       "domain_hints": [
-        "janestreet.com",
-        "job-boards.greenhouse.io"
+        "janestreet.com"
       ]
     },
     {
@@ -22155,7 +21890,6 @@
         ]
       },
       "domain_hints": [
-        "careers-jcpenney.icims.com",
         "jcpenney.com"
       ]
     },
@@ -22181,8 +21915,7 @@
         }
       },
       "domain_hints": [
-        "jd.com",
-        "zhaopin.jd.com"
+        "jd.com"
       ]
     },
     {
@@ -22207,8 +21940,7 @@
         }
       },
       "domain_hints": [
-        "jefferies.com",
-        "jefferies.tal.net"
+        "jefferies.com"
       ]
     },
     {
@@ -22251,7 +21983,6 @@
         }
       },
       "domain_hints": [
-        "career8.successfactors.com",
         "jetblue.com"
       ]
     },
@@ -22321,8 +22052,7 @@
         ]
       },
       "domain_hints": [
-        "jll.com",
-        "jll.wd1.myworkdayjobs.com"
+        "jll.com"
       ]
     },
     {
@@ -22347,7 +22077,6 @@
         }
       },
       "domain_hints": [
-        "careers.deere.com",
         "deere.com"
       ]
     },
@@ -22372,9 +22101,7 @@
           "upstream_slug": "johns-hopkins"
         }
       },
-      "domain_hints": [
-        "jobs.hopkinsmedicine.org"
-      ]
+      "domain_hints": []
     },
     {
       "id": "johns-hopkins-applied-physics-laboratory",
@@ -22768,7 +22495,6 @@
       },
       "careers_url": "https://www.careers.jnj.com/en/jobs",
       "domain_hints": [
-        "jj.wd5.myworkdayjobs.com",
         "jnj.com"
       ]
     },
@@ -22817,9 +22543,7 @@
           }
         ]
       },
-      "domain_hints": [
-        "sjobs.brassring.com"
-      ],
+      "domain_hints": [],
       "careers_platform": "brassring",
       "provider": {
         "family": "brassring",
@@ -22908,7 +22632,6 @@
         ]
       },
       "domain_hints": [
-        "jpmc.fa.oraclecloud.com",
         "jpmorganchase.com"
       ]
     },
@@ -22957,8 +22680,7 @@
         ]
       },
       "domain_hints": [
-        "kaiserpermanente.org",
-        "kp.taleo.net"
+        "kaiserpermanente.org"
       ]
     },
     {
@@ -22983,7 +22705,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "kayak.com"
       ]
     },
@@ -23032,7 +22753,6 @@
         ]
       },
       "domain_hints": [
-        "careers-kbhome.icims.com",
         "kbhome.com"
       ]
     },
@@ -23090,8 +22810,7 @@
         ]
       },
       "domain_hints": [
-        "kbr.com",
-        "kbr.wd5.myworkdayjobs.com"
+        "kbr.com"
       ]
     },
     {
@@ -23139,7 +22858,6 @@
         ]
       },
       "domain_hints": [
-        "kearney.taleo.net",
         "kearneyco.com"
       ]
     },
@@ -23165,7 +22883,6 @@
         }
       },
       "domain_hints": [
-        "jobs.kellanova.com",
         "kellanova.com"
       ]
     },
@@ -23191,8 +22908,7 @@
         }
       },
       "domain_hints": [
-        "kw.com",
-        "myjobs.adp.com"
+        "kw.com"
       ]
     },
     {
@@ -23495,7 +23211,6 @@
         ]
       },
       "domain_hints": [
-        "eczd.fa.us2.oraclecloud.com",
         "kfc.com"
       ]
     },
@@ -23521,7 +23236,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "khanacademy.org"
       ]
     },
@@ -23547,7 +23261,6 @@
         }
       },
       "domain_hints": [
-        "careers-americas.kia.com",
         "kia.com"
       ]
     },
@@ -23605,8 +23318,7 @@
         ]
       },
       "domain_hints": [
-        "kimberly-clark.com",
-        "kimberlyclark.wd1.myworkdayjobs.com"
+        "kimberly-clark.com"
       ]
     },
     {
@@ -23705,7 +23417,6 @@
         ]
       },
       "domain_hints": [
-        "kla.wd1.myworkdayjobs.com",
         "klaviyo.com"
       ]
     },
@@ -23731,7 +23442,6 @@
         }
       },
       "domain_hints": [
-        "jobs.deel.com",
         "klarna.com"
       ]
     },
@@ -23757,7 +23467,6 @@
         }
       },
       "domain_hints": [
-        "jobs.jobvite.com",
         "knighttrans.com"
       ]
     },
@@ -23815,8 +23524,7 @@
         ]
       },
       "domain_hints": [
-        "kohls.com",
-        "kohls.wd504.myworkdayjobs.com"
+        "kohls.com"
       ]
     },
     {
@@ -23841,8 +23549,7 @@
         }
       },
       "domain_hints": [
-        "kpmg.com",
-        "us-jobs.kpmg.com"
+        "kpmg.com"
       ]
     },
     {
@@ -23955,8 +23662,6 @@
         ]
       },
       "domain_hints": [
-        "jobs.kraftheinz.com",
-        "kraftheinz.com",
         "kraftheinzcompany.com"
       ]
     },
@@ -24014,7 +23719,6 @@
         ]
       },
       "domain_hints": [
-        "eluq.fa.us2.oraclecloud.com",
         "kroger.com"
       ]
     },
@@ -24040,7 +23744,6 @@
         }
       },
       "domain_hints": [
-        "jobs.kuehne-nagel.com",
         "kuehne-nagel.com"
       ]
     },
@@ -24086,8 +23789,7 @@
         }
       },
       "domain_hints": [
-        "lek.com",
-        "lek.tal.net"
+        "lek.com"
       ]
     },
     {
@@ -24111,9 +23813,7 @@
           "upstream_slug": "loreal"
         }
       },
-      "domain_hints": [
-        "careers.loreal.com"
-      ]
+      "domain_hints": []
     },
     {
       "id": "l3harris",
@@ -24137,7 +23837,6 @@
         }
       },
       "domain_hints": [
-        "careers.l3harris.com",
         "l3harris.com"
       ]
     },
@@ -24213,8 +23912,7 @@
         ]
       },
       "domain_hints": [
-        "labcorp.com",
-        "labcorp.wd1.myworkdayjobs.com"
+        "labcorp.com"
       ]
     },
     {
@@ -24328,7 +24026,6 @@
         ]
       },
       "domain_hints": [
-        "careers.lamresearch.com",
         "lamresearch.com"
       ]
     },
@@ -24407,8 +24104,7 @@
         ]
       },
       "domain_hints": [
-        "sands.com",
-        "sands.wd1.myworkdayjobs.com"
+        "sands.com"
       ]
     },
     {
@@ -24456,7 +24152,6 @@
         ]
       },
       "domain_hints": [
-        "icbpjb.fa.ocs.oraclecloud.com",
         "lazard.com"
       ]
     },
@@ -24594,8 +24289,7 @@
         "host": "leidos.wd5.myworkdayjobs.com"
       },
       "domain_hints": [
-        "leidos.com",
-        "leidos.wd5.myworkdayjobs.com"
+        "leidos.com"
       ]
     },
     {
@@ -24652,8 +24346,7 @@
         ]
       },
       "domain_hints": [
-        "lennar.com",
-        "lennar.wd1.myworkdayjobs.com"
+        "lennar.com"
       ]
     },
     {
@@ -24678,7 +24371,6 @@
         }
       },
       "domain_hints": [
-        "jobs.lenovo.com",
         "lenovo.com.cn"
       ]
     },
@@ -24837,8 +24529,7 @@
         ]
       },
       "domain_hints": [
-        "libertymutual.com",
-        "libertymutual.eightfold.ai"
+        "libertymutual.com"
       ]
     },
     {
@@ -24881,7 +24572,6 @@
         }
       },
       "domain_hints": [
-        "career4.successfactors.com",
         "lincolnfinancial.com"
       ]
     },
@@ -24925,8 +24615,7 @@
         }
       },
       "domain_hints": [
-        "linde.com",
-        "linde.csod.com"
+        "linde.com"
       ]
     },
     {
@@ -24951,8 +24640,7 @@
         }
       },
       "domain_hints": [
-        "linkedin.com",
-        "www.linkedin.com"
+        "linkedin.com"
       ]
     },
     {
@@ -24977,7 +24665,6 @@
         }
       },
       "domain_hints": [
-        "career4.successfactors.com",
         "lionsgate.com"
       ]
     },
@@ -25067,8 +24754,7 @@
         ]
       },
       "domain_hints": [
-        "livenation.com",
-        "livenation.wd503.myworkdayjobs.com"
+        "livenation.com"
       ]
     },
     {
@@ -25156,9 +24842,7 @@
           }
         ]
       },
-      "domain_hints": [
-        "sjobs.brassring.com"
-      ],
+      "domain_hints": [],
       "careers_platform": "brassring",
       "provider": {
         "family": "brassring",
@@ -25234,8 +24918,7 @@
         ]
       },
       "domain_hints": [
-        "logitech.com",
-        "logitech.wd5.myworkdayjobs.com"
+        "logitech.com"
       ]
     },
     {
@@ -25283,8 +24966,7 @@
         ]
       },
       "domain_hints": [
-        "lonza.com",
-        "lonza.wd3.myworkdayjobs.com"
+        "lonza.com"
       ]
     },
     {
@@ -25341,8 +25023,7 @@
         ]
       },
       "domain_hints": [
-        "lowes.com",
-        "lowes.wd5.myworkdayjobs.com"
+        "lowes.com"
       ]
     },
     {
@@ -25390,7 +25071,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "lucidmotors.com"
       ]
     },
@@ -25416,7 +25096,6 @@
         }
       },
       "domain_hints": [
-        "apply.lufthansagroup.careers",
         "lufthansa.com"
       ]
     },
@@ -25465,8 +25144,7 @@
         ]
       },
       "domain_hints": [
-        "lululemon.com",
-        "lululemon.wd3.myworkdayjobs.com"
+        "lululemon.com"
       ]
     },
     {
@@ -25669,7 +25347,6 @@
         "host": "www.greenhouse.com"
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "lyft.com"
       ]
     },
@@ -25695,7 +25372,6 @@
         }
       },
       "domain_hints": [
-        "career4.successfactors.com",
         "lyondellbasell.com"
       ]
     },
@@ -25774,7 +25450,6 @@
         ]
       },
       "domain_hints": [
-        "ebwh.fa.us2.oraclecloud.com",
         "macys.com"
       ]
     },
@@ -25823,8 +25498,7 @@
         ]
       },
       "domain_hints": [
-        "maersk.com",
-        "maersk.wd3.myworkdayjobs.com"
+        "maersk.com"
       ]
     },
     {
@@ -25849,7 +25523,6 @@
         }
       },
       "domain_hints": [
-        "careers.mandarinoriental.com",
         "mandarinoriental.com"
       ]
     },
@@ -25951,8 +25624,7 @@
         ]
       },
       "domain_hints": [
-        "marathonpetroleum.com",
-        "mpc.wd1.myworkdayjobs.com"
+        "marathonpetroleum.com"
       ]
     },
     {
@@ -26000,8 +25672,7 @@
         ]
       },
       "domain_hints": [
-        "marcusmillichap.com",
-        "marcusmillichap.wd108.myworkdayjobs.com"
+        "marcusmillichap.com"
       ]
     },
     {
@@ -26026,7 +25697,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.eu.greenhouse.io",
         "mariadb.com"
       ]
     },
@@ -26070,7 +25740,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "marqeta.com"
       ]
     },
@@ -26119,7 +25788,6 @@
         ]
       },
       "domain_hints": [
-        "ejwl.fa.us2.oraclecloud.com",
         "marriott.com"
       ]
     },
@@ -26189,8 +25857,7 @@
         ]
       },
       "domain_hints": [
-        "mars.com",
-        "mars.wd3.myworkdayjobs.com"
+        "mars.com"
       ]
     },
     {
@@ -26259,8 +25926,7 @@
         ]
       },
       "domain_hints": [
-        "marshmclennan.com",
-        "mmc.wd1.myworkdayjobs.com"
+        "marshmclennan.com"
       ]
     },
     {
@@ -26285,8 +25951,7 @@
         }
       },
       "domain_hints": [
-        "marshalls.com",
-        "wd1.myworkdaysite.com"
+        "marshalls.com"
       ]
     },
     {
@@ -26468,8 +26133,7 @@
         ]
       },
       "domain_hints": [
-        "massgeneralbrigham.org",
-        "massgeneralbrigham.wd1.myworkdayjobs.com"
+        "massgeneralbrigham.org"
       ]
     },
     {
@@ -26563,8 +26227,7 @@
         ]
       },
       "domain_hints": [
-        "mastercard.com.au",
-        "mastercard.wd1.myworkdayjobs.com"
+        "mastercard.com.au"
       ]
     },
     {
@@ -26612,7 +26275,6 @@
         ]
       },
       "domain_hints": [
-        "maxar.wd1.myworkdayjobs.com",
         "maxaroma.com"
       ]
     },
@@ -26661,7 +26323,6 @@
         ]
       },
       "domain_hints": [
-        "fa-euwp-saasfaprod1.fa.ocs.oraclecloud.com",
         "mayoclinic.org"
       ]
     },
@@ -26687,8 +26348,7 @@
         }
       },
       "domain_hints": [
-        "mazda.com",
-        "wd5.myworkdaysite.com"
+        "mazda.com"
       ]
     },
     {
@@ -26713,7 +26373,6 @@
         }
       },
       "domain_hints": [
-        "app.jobvite.com",
         "mccarthy.com"
       ]
     },
@@ -26748,7 +26407,6 @@
         }
       },
       "domain_hints": [
-        "jobs.smartrecruiters.com",
         "mcdonalds.com"
       ]
     },
@@ -26797,7 +26455,6 @@
         ]
       },
       "domain_hints": [
-        "careers-mheducation.icims.com",
         "mheducation.com"
       ]
     },
@@ -26855,8 +26512,7 @@
         ]
       },
       "domain_hints": [
-        "mckesson.com",
-        "mckesson.wd3.myworkdayjobs.com"
+        "mckesson.com"
       ]
     },
     {
@@ -26881,7 +26537,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "medium.com"
       ]
     },
@@ -26951,8 +26606,7 @@
         ]
       },
       "domain_hints": [
-        "medtronic.com",
-        "medtronic.wd1.myworkdayjobs.com"
+        "medtronic.com"
       ]
     },
     {
@@ -27000,8 +26654,7 @@
         ]
       },
       "domain_hints": [
-        "mercadolibre.com.ar",
-        "mercadolibre.eightfold.ai"
+        "mercadolibre.com.ar"
       ]
     },
     {
@@ -27026,7 +26679,6 @@
         }
       },
       "domain_hints": [
-        "jobs.mercedes-benz.com",
         "mercedes-benz.com"
       ]
     },
@@ -27084,8 +26736,7 @@
         ]
       },
       "domain_hints": [
-        "merck.com",
-        "msd.wd5.myworkdayjobs.com"
+        "merck.com"
       ]
     },
     {
@@ -27110,7 +26761,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "mercurynews.com"
       ]
     },
@@ -27136,8 +26786,7 @@
         }
       },
       "domain_hints": [
-        "metacritic.com",
-        "www.metacareers.com"
+        "metacritic.com"
       ]
     },
     {
@@ -27213,7 +26862,6 @@
         ]
       },
       "domain_hints": [
-        "metlife.avature.net",
         "metlife.com"
       ]
     },
@@ -27262,8 +26910,7 @@
         ]
       },
       "domain_hints": [
-        "mgmresorts.com",
-        "mgmresorts.wd5.myworkdayjobs.com"
+        "mgmresorts.com"
       ]
     },
     {
@@ -27332,8 +26979,7 @@
         ]
       },
       "domain_hints": [
-        "micron.com",
-        "micron.eightfold.ai"
+        "micron.com"
       ]
     },
     {
@@ -27468,7 +27114,6 @@
         ]
       },
       "domain_hints": [
-        "apply.careers.microsoft.com",
         "microsoft.com"
       ]
     },
@@ -27525,8 +27170,7 @@
         ]
       },
       "domain_hints": [
-        "mitre.org",
-        "mitre.wd5.myworkdayjobs.com"
+        "mitre.org"
       ]
     },
     {
@@ -27551,7 +27195,6 @@
         }
       },
       "domain_hints": [
-        "boards.greenhouse.io",
         "mlb.com"
       ]
     },
@@ -27600,7 +27243,6 @@
         ]
       },
       "domain_hints": [
-        "careers-mlssoccer.icims.com",
         "mlspin.com"
       ]
     },
@@ -27649,8 +27291,7 @@
         ]
       },
       "domain_hints": [
-        "modern.az",
-        "modernatx.wd1.myworkdayjobs.com"
+        "modern.az"
       ]
     },
     {
@@ -27684,7 +27325,6 @@
         }
       },
       "domain_hints": [
-        "career4.successfactors.com",
         "mohawkind.com"
       ]
     },
@@ -27742,7 +27382,6 @@
         ]
       },
       "domain_hints": [
-        "hckd.fa.us2.oraclecloud.com",
         "molinahealthcare.com"
       ]
     },
@@ -27768,7 +27407,6 @@
         }
       },
       "domain_hints": [
-        "careers.molsoncoors.com",
         "molsoncoors.com"
       ]
     },
@@ -27838,7 +27476,6 @@
         ]
       },
       "domain_hints": [
-        "mdlz.wd3.myworkdayjobs.com",
         "mondelez-professional.de"
       ]
     },
@@ -27880,7 +27517,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "mongodb.com"
       ]
     },
@@ -27978,8 +27614,7 @@
         ]
       },
       "domain_hints": [
-        "morganstanley.com",
-        "morganstanley.eightfold.ai"
+        "morganstanley.com"
       ]
     },
     {
@@ -28088,8 +27723,7 @@
         }
       },
       "domain_hints": [
-        "nasa.gov",
-        "usajobs.gov"
+        "nasa.gov"
       ]
     },
     {
@@ -28167,8 +27801,7 @@
         ]
       },
       "domain_hints": [
-        "nationwide.com",
-        "nationwide.wd1.myworkdayjobs.com"
+        "nationwide.com"
       ]
     },
     {
@@ -28216,7 +27849,6 @@
         ]
       },
       "domain_hints": [
-        "nba.wd108.myworkdayjobs.com",
         "nbatopshot.com"
       ]
     },
@@ -28242,7 +27874,6 @@
         }
       },
       "domain_hints": [
-        "jobs.smartrecruiters.com",
         "nbcuniversal.com"
       ]
     },
@@ -28268,7 +27899,6 @@
         }
       },
       "domain_hints": [
-        "career2.successfactors.eu",
         "nestle.com"
       ]
     },
@@ -28317,8 +27947,7 @@
         ]
       },
       "domain_hints": [
-        "netapp.com",
-        "netapp.eightfold.ai"
+        "netapp.com"
       ]
     },
     {
@@ -28376,9 +28005,7 @@
         ]
       },
       "domain_hints": [
-        "about.netflix.com",
-        "netflix.com",
-        "netflix.eightfold.ai"
+        "netflix.com"
       ]
     },
     {
@@ -28403,7 +28030,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "netlify.com"
       ]
     },
@@ -28429,7 +28055,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "newrelic.com"
       ]
     },
@@ -28541,8 +28166,7 @@
         }
       },
       "domain_hints": [
-        "nhl.com",
-        "www.nhl.com"
+        "nhl.com"
       ]
     },
     {
@@ -28567,7 +28191,6 @@
         }
       },
       "domain_hints": [
-        "api.ashbyhq.com",
         "nianticspatial.com"
       ]
     },
@@ -28645,8 +28268,7 @@
         ]
       },
       "domain_hints": [
-        "nike.com",
-        "nike.wd1.myworkdayjobs.com"
+        "nike.com"
       ]
     },
     {
@@ -28753,7 +28375,6 @@
         }
       },
       "domain_hints": [
-        "jobs.ashbyhq.com",
         "notion.so"
       ]
     },
@@ -28775,8 +28396,7 @@
         }
       },
       "domain_hints": [
-        "nov.com",
-        "nova.edu"
+        "nov.com"
       ]
     },
     {
@@ -28824,8 +28444,7 @@
         ]
       },
       "domain_hints": [
-        "novartis.com",
-        "novartis.wd3.myworkdayjobs.com"
+        "novartis.com"
       ]
     },
     {
@@ -28945,8 +28564,7 @@
         ]
       },
       "domain_hints": [
-        "nvidia.com",
-        "nvidia.wd5.myworkdayjobs.com"
+        "nvidia.com"
       ]
     },
     {
@@ -29026,7 +28644,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "okta.com"
       ]
     },
@@ -29073,7 +28690,6 @@
         }
       },
       "domain_hints": [
-        "jobs.olivegarden.com",
         "olivegarden.com"
       ]
     },
@@ -29116,8 +28732,7 @@
         }
       },
       "domain_hints": [
-        "oneok.com",
-        "oneokrock.com"
+        "oneok.com"
       ]
     },
     {
@@ -29142,7 +28757,6 @@
         }
       },
       "domain_hints": [
-        "jobs.ashbyhq.com",
         "openai.com"
       ]
     },
@@ -29168,7 +28782,6 @@
         }
       },
       "domain_hints": [
-        "ats.rippling.com",
         "opendoor.com"
       ]
     },
@@ -29411,7 +29024,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "pagerduty.com"
       ]
     },
@@ -29437,7 +29049,6 @@
         }
       },
       "domain_hints": [
-        "jobs.lever.co",
         "palantir.com"
       ]
     },
@@ -29519,8 +29130,7 @@
         ]
       },
       "domain_hints": [
-        "paloaltonetworks.com",
-        "paloaltonetworks.wd5.myworkdayjobs.com"
+        "paloaltonetworks.com"
       ]
     },
     {
@@ -29568,8 +29178,7 @@
         ]
       },
       "domain_hints": [
-        "panerabread.com",
-        "panerabread.wd5.myworkdayjobs.com"
+        "panerabread.com"
       ]
     },
     {
@@ -29617,8 +29226,7 @@
         ]
       },
       "domain_hints": [
-        "papajohns.com",
-        "papajohns.wd1.myworkdayjobs.com"
+        "papajohns.com"
       ]
     },
     {
@@ -29705,8 +29313,7 @@
         ]
       },
       "domain_hints": [
-        "parsons.com",
-        "parsons.wd5.myworkdayjobs.com"
+        "parsons.com"
       ]
     },
     {
@@ -29795,7 +29402,6 @@
         ]
       },
       "domain_hints": [
-        "careers-pennentertainment.icims.com",
         "pennentertainment.com"
       ]
     },
@@ -29874,7 +29480,6 @@
         ]
       },
       "domain_hints": [
-        "careers-pepsico.icims.com",
         "pepsico.com"
       ]
     },
@@ -30154,7 +29759,6 @@
         }
       },
       "domain_hints": [
-        "jobs.ashbyhq.com",
         "perplexity.ca"
       ]
     },
@@ -30230,8 +29834,7 @@
         ]
       },
       "domain_hints": [
-        "pfizer.com",
-        "pfizer.wd1.myworkdayjobs.com"
+        "pfizer.com"
       ]
     },
     {
@@ -30339,7 +29942,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "pinterest.com"
       ]
     },
@@ -30365,7 +29967,6 @@
         }
       },
       "domain_hints": [
-        "jobs.ashbyhq.com",
         "plaid.com"
       ]
     },
@@ -30432,8 +30033,7 @@
         ]
       },
       "domain_hints": [
-        "plugpower.com",
-        "plugpower.wd5.myworkdayjobs.com"
+        "plugpower.com"
       ]
     },
     {
@@ -30487,7 +30087,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "point72.com"
       ]
     },
@@ -30536,8 +30135,7 @@
         ]
       },
       "domain_hints": [
-        "polaris.com",
-        "polaris.wd5.myworkdayjobs.com"
+        "polaris.com"
       ]
     },
     {
@@ -30608,8 +30206,7 @@
         ]
       },
       "domain_hints": [
-        "ppg.com",
-        "ppg.wd5.myworkdayjobs.com"
+        "ppg.com"
       ]
     },
     {
@@ -30699,8 +30296,7 @@
         ]
       },
       "domain_hints": [
-        "priceline.com",
-        "priceline.wd1.myworkdayjobs.com"
+        "priceline.com"
       ]
     },
     {
@@ -30838,8 +30434,7 @@
         ]
       },
       "domain_hints": [
-        "prologis.com",
-        "prologis.wd5.myworkdayjobs.com"
+        "prologis.com"
       ]
     },
     {
@@ -30953,9 +30548,7 @@
         ]
       },
       "domain_hints": [
-        "pulte.com",
-        "pultegroup.wd1.myworkdayjobs.com",
-        "pultegroupinc.com"
+        "pulte.com"
       ]
     },
     {
@@ -30980,7 +30573,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "purestorage.com"
       ]
     },
@@ -31058,8 +30650,7 @@
         "host": "pwc.wd3.myworkdayjobs.com"
       },
       "domain_hints": [
-        "pwc.com",
-        "pwc.wd3.myworkdayjobs.com"
+        "pwc.com"
       ]
     },
     {
@@ -31117,8 +30708,7 @@
         ]
       },
       "domain_hints": [
-        "qualcomm.com",
-        "qualcomm.wd12.myworkdayjobs.com"
+        "qualcomm.com"
       ]
     },
     {
@@ -31185,7 +30775,6 @@
         }
       },
       "domain_hints": [
-        "jobs.intuit.com",
         "quickbooksmadeeasy.com"
       ]
     },
@@ -31211,7 +30800,6 @@
         }
       },
       "domain_hints": [
-        "jobs.ashbyhq.com",
         "quora.com"
       ]
     },
@@ -31255,7 +30843,6 @@
         }
       },
       "domain_hints": [
-        "jobs.ashbyhq.com",
         "ramp.com"
       ]
     },
@@ -31304,8 +30891,7 @@
         ]
       },
       "domain_hints": [
-        "raymondjames.com",
-        "raymondjames.wd1.myworkdayjobs.com"
+        "raymondjames.com"
       ]
     },
     {
@@ -31371,8 +30957,7 @@
         ]
       },
       "domain_hints": [
-        "redhat.com",
-        "redhat.wd5.myworkdayjobs.com"
+        "redhat.com"
       ]
     },
     {
@@ -31397,7 +30982,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "reddit.com"
       ]
     },
@@ -31446,8 +31030,7 @@
         ]
       },
       "domain_hints": [
-        "redfin.com",
-        "redfin.wd1.myworkdayjobs.com"
+        "redfin.com"
       ]
     },
     {
@@ -31495,8 +31078,7 @@
         ]
       },
       "domain_hints": [
-        "regeneron.com",
-        "regeneron.wd1.myworkdayjobs.com"
+        "regeneron.com"
       ]
     },
     {
@@ -31571,7 +31153,6 @@
         }
       },
       "domain_hints": [
-        "reliancedigital.in",
         "relianceinsurance.com"
       ]
     },
@@ -31636,7 +31217,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "riotgames.com"
       ]
     },
@@ -31685,7 +31265,6 @@
         ]
       },
       "domain_hints": [
-        "careers-rivian.icims.com",
         "rivian.com"
       ]
     },
@@ -31711,7 +31290,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "robinhood.com"
       ]
     },
@@ -31737,7 +31315,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "roblox.com"
       ]
     },
@@ -31786,7 +31363,6 @@
         ]
       },
       "domain_hints": [
-        "roche.wd3.myworkdayjobs.com",
         "rochester.edu"
       ]
     },
@@ -31835,7 +31411,6 @@
         ]
       },
       "domain_hints": [
-        "rocketlab.wd5.myworkdayjobs.com",
         "rocketlabusa.com"
       ]
     },
@@ -31893,8 +31468,7 @@
         ]
       },
       "domain_hints": [
-        "rockwellautomation.com",
-        "rockwellautomation.wd1.myworkdayjobs.com"
+        "rockwellautomation.com"
       ]
     },
     {
@@ -31919,7 +31493,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "roku.com"
       ]
     },
@@ -31945,7 +31518,6 @@
         }
       },
       "domain_hints": [
-        "jobs.smartrecruiters.com",
         "rolandberger.com"
       ]
     },
@@ -32288,7 +31860,6 @@
         ]
       },
       "domain_hints": [
-        "careers.rtx.com",
         "rtx.com"
       ]
     },
@@ -32479,8 +32050,7 @@
         ]
       },
       "domain_hints": [
-        "sabre.com",
-        "sabre.wd1.myworkdayjobs.com"
+        "sabre.com"
       ]
     },
     {
@@ -32561,8 +32131,7 @@
         ]
       },
       "domain_hints": [
-        "salesforce.com",
-        "salesforce.wd12.myworkdayjobs.com"
+        "salesforce.com"
       ]
     },
     {
@@ -32631,8 +32200,7 @@
         ]
       },
       "domain_hints": [
-        "sanofi.com",
-        "sanofi.wd3.myworkdayjobs.com"
+        "sanofi.com"
       ]
     },
     {
@@ -32657,7 +32225,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "scale.com"
       ]
     },
@@ -32706,8 +32273,7 @@
         ]
       },
       "domain_hints": [
-        "schneider-electric.cn",
-        "schneiderele.taleo.net"
+        "schneider-electric.cn"
       ]
     },
     {
@@ -32776,7 +32342,6 @@
         }
       },
       "domain_hints": [
-        "career41.sapsf.com",
         "seagate.com"
       ]
     },
@@ -32861,7 +32426,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "sentinelone.com"
       ]
     },
@@ -32887,7 +32451,6 @@
         }
       },
       "domain_hints": [
-        "career55.sapsf.eu",
         "sephora.com"
       ]
     },
@@ -32922,7 +32485,6 @@
         }
       },
       "domain_hints": [
-        "jobs.smartrecruiters.com",
         "servicenow.com"
       ]
     },
@@ -32971,8 +32533,7 @@
         ]
       },
       "domain_hints": [
-        "shakeshack.com",
-        "shakeshack.wd5.myworkdayjobs.com"
+        "shakeshack.com"
       ]
     },
     {
@@ -32997,7 +32558,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "shein.com"
       ]
     },
@@ -33046,8 +32606,7 @@
         ]
       },
       "domain_hints": [
-        "shell.com",
-        "shell.wd3.myworkdayjobs.com"
+        "shell.com"
       ]
     },
     {
@@ -33104,7 +32663,6 @@
         ]
       },
       "domain_hints": [
-        "ejhp.fa.us6.oraclecloud.com",
         "sherwin-williams.com"
       ]
     },
@@ -33150,7 +32708,6 @@
         }
       },
       "domain_hints": [
-        "jobs.siemens.com",
         "siemens.com"
       ]
     },
@@ -33219,8 +32776,7 @@
         ]
       },
       "domain_hints": [
-        "sierraspace.com",
-        "sierraspace.wd1.myworkdayjobs.com"
+        "sierraspace.com"
       ]
     },
     {
@@ -33268,8 +32824,7 @@
         ]
       },
       "domain_hints": [
-        "simon.com",
-        "simon.wd1.myworkdayjobs.com"
+        "simon.com"
       ]
     },
     {
@@ -33294,7 +32849,6 @@
         }
       },
       "domain_hints": [
-        "career44.sapsf.com",
         "singaporeair.com"
       ]
     },
@@ -33363,7 +32917,6 @@
         ]
       },
       "domain_hints": [
-        "careers-skanska.icims.com",
         "skanska.com"
       ]
     },
@@ -33412,7 +32965,6 @@
         ]
       },
       "domain_hints": [
-        "slb.eightfold.ai",
         "slbcnews.lk"
       ]
     },
@@ -33438,7 +32990,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "smartsheet.com"
       ]
     },
@@ -33464,8 +33015,7 @@
         }
       },
       "domain_hints": [
-        "smurfitwestrock.com",
-        "www.smurfitwestrock.com"
+        "smurfitwestrock.com"
       ]
     },
     {
@@ -33490,8 +33040,7 @@
         }
       },
       "domain_hints": [
-        "snap.com",
-        "wd1.myworkdaysite.com"
+        "snap.com"
       ]
     },
     {
@@ -33516,8 +33065,7 @@
         }
       },
       "domain_hints": [
-        "snapinc.net",
-        "wd1.myworkdaysite.com"
+        "snapinc.net"
       ]
     },
     {
@@ -33543,7 +33091,6 @@
         }
       },
       "domain_hints": [
-        "jobs.ashbyhq.com",
         "snowflake.com"
       ]
     },
@@ -33569,7 +33116,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "sofi.com"
       ]
     },
@@ -33696,8 +33242,7 @@
         ]
       },
       "domain_hints": [
-        "sonos.com",
-        "sonos.wd1.myworkdayjobs.com"
+        "sonos.com"
       ]
     },
     {
@@ -33745,8 +33290,7 @@
         ]
       },
       "domain_hints": [
-        "sony.com",
-        "sonyglobal.wd1.myworkdayjobs.com"
+        "sony.com"
       ]
     },
     {
@@ -33771,7 +33315,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "sonymusic.com"
       ]
     },
@@ -33820,8 +33363,7 @@
         ]
       },
       "domain_hints": [
-        "sonypictures.com",
-        "spe.wd1.myworkdayjobs.com"
+        "sonypictures.com"
       ]
     },
     {
@@ -33899,8 +33441,7 @@
         ]
       },
       "domain_hints": [
-        "southwest.com",
-        "swa.wd1.myworkdayjobs.com"
+        "southwest.com"
       ]
     },
     {
@@ -33926,7 +33467,6 @@
         }
       },
       "domain_hints": [
-        "boards.greenhouse.io",
         "spacex.com"
       ]
     },
@@ -34059,7 +33599,6 @@
         ]
       },
       "domain_hints": [
-        "careers-spiritaero.icims.com",
         "spiritaero.com"
       ]
     },
@@ -34108,7 +33647,6 @@
         ]
       },
       "domain_hints": [
-        "externalportal-spirit.icims.com",
         "spirit.com"
       ]
     },
@@ -34134,7 +33672,6 @@
         }
       },
       "domain_hints": [
-        "jobs.lever.co",
         "spotify.com"
       ]
     },
@@ -34160,7 +33697,6 @@
         }
       },
       "domain_hints": [
-        "jobs.lever.co",
         "spotify.com"
       ]
     },
@@ -34227,8 +33763,7 @@
         ]
       },
       "domain_hints": [
-        "stanfordhealthcare.org",
-        "stanfordmedicine.wd115.myworkdayjobs.com"
+        "stanfordhealthcare.org"
       ]
     },
     {
@@ -34339,7 +33874,6 @@
         "host": "sbdinc.wd1.myworkdayjobs.com"
       },
       "domain_hints": [
-        "sbdinc.wd1.myworkdayjobs.com",
         "stanleyblackanddecker.com"
       ]
     },
@@ -34397,8 +33931,7 @@
         ]
       },
       "domain_hints": [
-        "starbucks.com",
-        "starbucks.eightfold.ai"
+        "starbucks.com"
       ]
     },
     {
@@ -34446,7 +33979,6 @@
         ]
       },
       "domain_hints": [
-        "careers-statefarm.icims.com",
         "statefarm.com"
       ]
     },
@@ -34522,8 +34054,7 @@
         ]
       },
       "domain_hints": [
-        "statestreet.com",
-        "statestreet.wd1.myworkdayjobs.com"
+        "statestreet.com"
       ]
     },
     {
@@ -34580,7 +34111,6 @@
         ]
       },
       "domain_hints": [
-        "careers-steeldynamics.icims.com",
         "steeldynamics.com"
       ]
     },
@@ -34629,8 +34159,7 @@
         ]
       },
       "domain_hints": [
-        "stellantis.com",
-        "stellantis.wd3.myworkdayjobs.com"
+        "stellantis.com"
       ]
     },
     {
@@ -34699,7 +34228,6 @@
         ]
       },
       "domain_hints": [
-        "strideinc.wd1.myworkdayjobs.com",
         "striderite.com"
       ]
     },
@@ -34726,7 +34254,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "stripe.com"
       ]
     },
@@ -34784,8 +34311,7 @@
         ]
       },
       "domain_hints": [
-        "stryker.com",
-        "stryker.wd1.myworkdayjobs.com"
+        "stryker.com"
       ]
     },
     {
@@ -34833,7 +34359,6 @@
         ]
       },
       "domain_hints": [
-        "hcal.fa.us2.oraclecloud.com",
         "subaru.com"
       ]
     },
@@ -34859,7 +34384,6 @@
         }
       },
       "domain_hints": [
-        "jobs.ashbyhq.com",
         "substack.com"
       ]
     },
@@ -34885,7 +34409,6 @@
         }
       },
       "domain_hints": [
-        "careers.subway.com",
         "subway.com"
       ]
     },
@@ -34934,7 +34457,6 @@
         ]
       },
       "domain_hints": [
-        "careers-suffolkconstruction.icims.com",
         "suffolk.com"
       ]
     },
@@ -34983,8 +34505,7 @@
         ]
       },
       "domain_hints": [
-        "sunrun.com",
-        "sunrun.wd5.myworkdayjobs.com"
+        "sunrun.com"
       ]
     },
     {
@@ -35146,8 +34667,7 @@
         ]
       },
       "domain_hints": [
-        "sutterhealth.org",
-        "sutterhealth.wd1.myworkdayjobs.com"
+        "sutterhealth.org"
       ]
     },
     {
@@ -35172,7 +34692,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "sweetgreen.com"
       ]
     },
@@ -35230,8 +34749,7 @@
         ]
       },
       "domain_hints": [
-        "synchrony.com",
-        "synchronyfinancial.wd5.myworkdayjobs.com"
+        "synchrony.com"
       ]
     },
     {
@@ -35300,8 +34818,7 @@
         ]
       },
       "domain_hints": [
-        "t-mobile.com",
-        "tmobile.wd1.myworkdayjobs.com"
+        "t-mobile.com"
       ]
     },
     {
@@ -35349,7 +34866,6 @@
         ]
       },
       "domain_hints": [
-        "eczd.fa.us2.oraclecloud.com",
         "tacobell.com"
       ]
     },
@@ -35375,7 +34891,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "take2games.com"
       ]
     },
@@ -35424,8 +34939,7 @@
         ]
       },
       "domain_hints": [
-        "takeda.com",
-        "takeda.wd502.myworkdayjobs.com"
+        "takeda.com"
       ]
     },
     {
@@ -35503,8 +35017,7 @@
         ]
       },
       "domain_hints": [
-        "target.com",
-        "target.wd5.myworkdayjobs.com"
+        "target.com"
       ]
     },
     {
@@ -35570,7 +35083,6 @@
         ]
       },
       "domain_hints": [
-        "td.wd3.myworkdayjobs.com",
         "tdbank.jobs"
       ]
     },
@@ -35617,7 +35129,6 @@
         }
       },
       "domain_hints": [
-        "career8.successfactors.com",
         "te.com"
       ]
     },
@@ -35643,7 +35154,6 @@
         }
       },
       "domain_hints": [
-        "career5.successfactors.eu",
         "telefonica.com.ar"
       ]
     },
@@ -35701,7 +35211,6 @@
         ]
       },
       "domain_hints": [
-        "eodr.fa.us2.oraclecloud.com",
         "tenethealth.com"
       ]
     },
@@ -35777,7 +35286,6 @@
         ]
       },
       "domain_hints": [
-        "edbz.fa.us2.oraclecloud.com",
         "ti.com"
       ]
     },
@@ -35835,8 +35343,7 @@
         ]
       },
       "domain_hints": [
-        "textron.com",
-        "textron.taleo.net"
+        "textron.com"
       ]
     },
     {
@@ -35990,7 +35497,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "nytco.com"
       ]
     },
@@ -36060,8 +35566,7 @@
         ]
       },
       "domain_hints": [
-        "thermofisher.com",
-        "thermofisher.wd5.myworkdayjobs.com"
+        "thermofisher.com"
       ]
     },
     {
@@ -36170,7 +35675,6 @@
         }
       },
       "domain_hints": [
-        "careers.tiktok.com",
         "tiktok.com"
       ]
     },
@@ -36237,8 +35741,7 @@
         }
       },
       "domain_hints": [
-        "tjx.com",
-        "wd1.myworkdaysite.com"
+        "tjx.com"
       ]
     },
     {
@@ -36295,7 +35798,6 @@
         ]
       },
       "domain_hints": [
-        "careers-tollbrothers.icims.com",
         "tollbrothers.com"
       ]
     },
@@ -36321,7 +35823,6 @@
         }
       },
       "domain_hints": [
-        "jobs.totalenergies.com",
         "totalenergies.com"
       ]
     },
@@ -36370,8 +35871,7 @@
         ]
       },
       "domain_hints": [
-        "toyota.com",
-        "toyota.wd503.myworkdayjobs.com"
+        "toyota.com"
       ]
     },
     {
@@ -36440,7 +35940,6 @@
         ]
       },
       "domain_hints": [
-        "traderjoes.avature.net",
         "traderjoes.com"
       ]
     },
@@ -36489,8 +35988,7 @@
         ]
       },
       "domain_hints": [
-        "tranetechnologies.com",
-        "tranetechnologies.wd12.myworkdayjobs.com"
+        "tranetechnologies.com"
       ]
     },
     {
@@ -36565,8 +36063,7 @@
         ]
       },
       "domain_hints": [
-        "travelers.com",
-        "travelers.wd5.myworkdayjobs.com"
+        "travelers.com"
       ]
     },
     {
@@ -36590,9 +36087,7 @@
           "upstream_slug": "tripactions"
         }
       },
-      "domain_hints": [
-        "job-boards.greenhouse.io"
-      ]
+      "domain_hints": []
     },
     {
       "id": "tripadvisor",
@@ -36616,7 +36111,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "tripadvisor.com"
       ]
     },
@@ -36660,7 +36154,6 @@
         }
       },
       "domain_hints": [
-        "careers.tsmc.com",
         "tsmc.com"
       ]
     },
@@ -36686,7 +36179,6 @@
         }
       },
       "domain_hints": [
-        "my.greenhouse.io",
         "tumblr.com"
       ]
     },
@@ -36712,7 +36204,6 @@
         }
       },
       "domain_hints": [
-        "jobs.intuit.com",
         "turbotax.com.au"
       ]
     },
@@ -36738,8 +36229,7 @@
         }
       },
       "domain_hints": [
-        "turnerconstruction.com",
-        "turnerconstruction.csod.com"
+        "turnerconstruction.com"
       ]
     },
     {
@@ -36764,7 +36254,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "twilio.com"
       ]
     },
@@ -36790,7 +36279,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "twitch.tv"
       ]
     },
@@ -36817,7 +36305,6 @@
         }
       },
       "domain_hints": [
-        "careers.twosigma.com",
         "twosigma.com"
       ]
     },
@@ -36875,8 +36362,7 @@
         ]
       },
       "domain_hints": [
-        "tyson.com",
-        "tysonfoods.wd5.myworkdayjobs.com"
+        "tyson.com"
       ]
     },
     {
@@ -36945,8 +36431,7 @@
         ]
       },
       "domain_hints": [
-        "usbank.com",
-        "usbank.wd1.myworkdayjobs.com"
+        "usbank.com"
       ]
     },
     {
@@ -36994,7 +36479,6 @@
         ]
       },
       "domain_hints": [
-        "careers-uber.icims.com",
         "uber.com"
       ]
     },
@@ -37042,7 +36526,6 @@
         }
       },
       "domain_hints": [
-        "jobs.ubs.com",
         "ubs.com"
       ]
     },
@@ -37091,7 +36574,6 @@
         ]
       },
       "domain_hints": [
-        "iazuqy.fa.ocs.oraclecloud.com",
         "ucsfhealth.org"
       ]
     },
@@ -37117,7 +36599,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "udemy.com"
       ]
     },
@@ -37166,8 +36647,7 @@
         ]
       },
       "domain_hints": [
-        "ufc.com",
-        "wwecorp.wd5.myworkdayjobs.com"
+        "ufc.com"
       ]
     },
     {
@@ -37224,8 +36704,7 @@
         ]
       },
       "domain_hints": [
-        "ulta.com",
-        "ulta.icims.com"
+        "ulta.com"
       ]
     },
     {
@@ -37273,8 +36752,7 @@
         ]
       },
       "domain_hints": [
-        "unilever.com",
-        "unilever.wd3.myworkdayjobs.com"
+        "unilever.com"
       ]
     },
     {
@@ -37308,7 +36786,6 @@
         }
       },
       "domain_hints": [
-        "career4.successfactors.com",
         "unionpacific.com.ar"
       ]
     },
@@ -37357,7 +36834,6 @@
         ]
       },
       "domain_hints": [
-        "fastretailing.wd3.myworkdayjobs.com",
         "uniqlo.com"
       ]
     },
@@ -37626,8 +37102,7 @@
         ]
       },
       "domain_hints": [
-        "usaa.com",
-        "usaa.wd1.myworkdayjobs.com"
+        "usaa.com"
       ]
     },
     {
@@ -37675,8 +37150,7 @@
         ]
       },
       "domain_hints": [
-        "valero.com",
-        "valero.taleo.net"
+        "valero.com"
       ]
     },
     {
@@ -37745,8 +37219,7 @@
         ]
       },
       "domain_hints": [
-        "vanguard.com",
-        "vanguard.wd5.myworkdayjobs.com"
+        "vanguard.com"
       ]
     },
     {
@@ -37771,7 +37244,6 @@
         }
       },
       "domain_hints": [
-        "jobs.lever.co",
         "veeva.com"
       ]
     },
@@ -37841,8 +37313,7 @@
         ]
       },
       "domain_hints": [
-        "veradigm.com",
-        "veradigm.wd12.myworkdayjobs.com"
+        "veradigm.com"
       ]
     },
     {
@@ -37867,7 +37338,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "vercel.com"
       ]
     },
@@ -37927,8 +37397,7 @@
         ]
       },
       "domain_hints": [
-        "verizon.com",
-        "verizon.wd12.myworkdayjobs.com"
+        "verizon.com"
       ]
     },
     {
@@ -38106,8 +37575,7 @@
         ]
       },
       "domain_hints": [
-        "visa.com",
-        "visa.wd5.myworkdayjobs.com"
+        "visa.com"
       ]
     },
     {
@@ -38148,8 +37616,7 @@
         }
       },
       "domain_hints": [
-        "vistra.com",
-        "vistracorp.com"
+        "vistra.com"
       ]
     },
     {
@@ -38174,7 +37641,6 @@
         }
       },
       "domain_hints": [
-        "jobs.vodafone.com",
         "vodafone.co.uk"
       ]
     },
@@ -38200,7 +37666,6 @@
         }
       },
       "domain_hints": [
-        "career5.successfactors.eu",
         "volkswagen.co.in"
       ]
     },
@@ -38226,7 +37691,6 @@
         }
       },
       "domain_hints": [
-        "career55.sapsf.eu",
         "volvogroup.com"
       ]
     },
@@ -38252,7 +37716,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "voxmedia.com"
       ]
     },
@@ -38319,7 +37782,6 @@
         ]
       },
       "domain_hints": [
-        "expedia.wd108.myworkdayjobs.com",
         "vrbo.com"
       ]
     },
@@ -38405,7 +37867,6 @@
         }
       },
       "domain_hints": [
-        "sjobs.brassring.com",
         "walgreens.com"
       ],
       "careers_platform": "brassring",
@@ -38477,7 +37938,6 @@
         ]
       },
       "domain_hints": [
-        "dowjones.wd1.myworkdayjobs.com",
         "wallstreetjournal.com"
       ]
     },
@@ -38588,7 +38048,6 @@
         ]
       },
       "domain_hints": [
-        "careers.walmart.com",
         "walmart.com"
       ]
     },
@@ -38610,8 +38069,7 @@
         }
       },
       "domain_hints": [
-        "thewaltdisneycompany.com",
-        "waltdisney.org"
+        "thewaltdisneycompany.com"
       ]
     },
     {
@@ -38668,8 +38126,6 @@
         ]
       },
       "domain_hints": [
-        "warnerbros.wd5.myworkdayjobs.com",
-        "warnerbrosdiscoveryinc.com",
         "web.archive.org"
       ]
     },
@@ -38717,9 +38173,7 @@
           }
         ]
       },
-      "domain_hints": [
-        "wmg.wd1.myworkdayjobs.com"
-      ]
+      "domain_hints": []
     },
     {
       "id": "washington-post",
@@ -38766,8 +38220,7 @@
         ]
       },
       "domain_hints": [
-        "washingtonpost.com",
-        "washpost.wd5.myworkdayjobs.com"
+        "washingtonpost.com"
       ]
     },
     {
@@ -38924,7 +38377,6 @@
         ]
       },
       "domain_hints": [
-        "wd1.myworkdaysite.com",
         "wellsfargo.com"
       ]
     },
@@ -38950,7 +38402,6 @@
         }
       },
       "domain_hints": [
-        "wd1.myworkdaysite.com",
         "wellsfargoadvisors.com"
       ]
     },
@@ -39020,7 +38471,6 @@
         ]
       },
       "domain_hints": [
-        "careers-wendys.icims.com",
         "wendys.com"
       ]
     },
@@ -39069,8 +38519,7 @@
         ]
       },
       "domain_hints": [
-        "werner.com",
-        "werner.wd501.myworkdayjobs.com"
+        "werner.com"
       ]
     },
     {
@@ -39143,7 +38592,6 @@
         }
       },
       "domain_hints": [
-        "jobs.smartrecruiters.com",
         "westerndigital.com"
       ]
     },
@@ -39169,7 +38617,6 @@
         }
       },
       "domain_hints": [
-        "career4.successfactors.com",
         "westinghouseoutdoorpower.com"
       ]
     },
@@ -39287,8 +38734,7 @@
         ]
       },
       "domain_hints": [
-        "whirlpool.com",
-        "whirlpool.eightfold.ai"
+        "whirlpool.com"
       ]
     },
     {
@@ -39313,7 +38759,6 @@
         }
       },
       "domain_hints": [
-        "jobs.silkroad.com",
         "whiting-turner.com"
       ]
     },
@@ -39362,7 +38807,6 @@
         ]
       },
       "domain_hints": [
-        "wholefoods.wd5.myworkdayjobs.com",
         "wholefoodsmarket.com"
       ]
     },
@@ -39411,8 +38855,7 @@
         ]
       },
       "domain_hints": [
-        "wiley.com",
-        "wiley.wd1.myworkdayjobs.com"
+        "wiley.com"
       ]
     },
     {
@@ -39481,8 +38924,7 @@
         ]
       },
       "domain_hints": [
-        "williams.com",
-        "williams.wd5.myworkdayjobs.com"
+        "williams.com"
       ]
     },
     {
@@ -39528,7 +38970,6 @@
         }
       },
       "domain_hints": [
-        "career55.sapsf.eu",
         "wipro.com"
       ]
     },
@@ -39554,7 +38995,6 @@
         }
       },
       "domain_hints": [
-        "jobs.smartrecruiters.com",
         "wise.com"
       ]
     },
@@ -39605,7 +39045,6 @@
         }
       },
       "domain_hints": [
-        "careers.smartrecruiters.com",
         "wns.com"
       ]
     },
@@ -39663,8 +39102,7 @@
         ]
       },
       "domain_hints": [
-        "workday.com",
-        "workday.wd5.myworkdayjobs.com"
+        "workday.com"
       ]
     },
     {
@@ -39709,8 +39147,7 @@
         }
       },
       "domain_hints": [
-        "worldbank.org",
-        "worldbankgroup.csod.com"
+        "worldbank.org"
       ]
     },
     {
@@ -39779,8 +39216,7 @@
         ]
       },
       "domain_hints": [
-        "wwe.com",
-        "wwecorp.wd5.myworkdayjobs.com"
+        "wwe.com"
       ]
     },
     {
@@ -39805,7 +39241,6 @@
         }
       },
       "domain_hints": [
-        "career4.successfactors.com",
         "wyndhamhotels.com"
       ]
     },
@@ -39831,7 +39266,6 @@
         }
       },
       "domain_hints": [
-        "jobs.smartrecruiters.com",
         "wynnresorts.com"
       ]
     },
@@ -39857,7 +39291,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "x.ai"
       ]
     },
@@ -39915,9 +39348,7 @@
         ]
       },
       "domain_hints": [
-        "my.xcelenergy.com",
-        "xcelenergy.com",
-        "xcelenergy.wd1.myworkdayjobs.com"
+        "my.xcelenergy.com"
       ]
     },
     {
@@ -39962,9 +39393,7 @@
           "upstream_slug": "xpo-logistics"
         }
       },
-      "domain_hints": [
-        "career4.successfactors.com"
-      ]
+      "domain_hints": []
     },
     {
       "id": "xylem",
@@ -40041,7 +39470,6 @@
         ]
       },
       "domain_hints": [
-        "eczd.fa.us2.oraclecloud.com",
         "yum.com"
       ]
     },
@@ -40110,8 +39538,7 @@
         ]
       },
       "domain_hints": [
-        "zendesk.com",
-        "zendesk.wd1.myworkdayjobs.com"
+        "zendesk.com"
       ]
     },
     {
@@ -40159,8 +39586,7 @@
         ]
       },
       "domain_hints": [
-        "zillow.com",
-        "zillow.wd5.myworkdayjobs.com"
+        "zillow.com"
       ]
     },
     {
@@ -40249,7 +39675,6 @@
         ]
       },
       "domain_hints": [
-        "zoom.wd5.myworkdayjobs.com",
         "zoominfo.com"
       ]
     },
@@ -40298,7 +39723,6 @@
         ]
       },
       "domain_hints": [
-        "careers-zs.icims.com",
         "zs.com"
       ]
     },
@@ -40324,7 +39748,6 @@
         }
       },
       "domain_hints": [
-        "job-boards.greenhouse.io",
         "zscaler.com"
       ]
     }
