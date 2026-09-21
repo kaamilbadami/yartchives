@@ -336,8 +336,8 @@ assert.equal(jobs[2]._inspection, undefined);
   const renderQueueSource = uiSource.match(/async function renderQueue\(panel, profile\) \{([\s\S]*?)\n  \}/);
   assert.ok(renderQueueSource, "renderQueue should be present");
   assert.ok(
-    renderQueueSource[1].indexOf("await YartchivesUtils.waitForBrowserPaint()") < renderQueueSource[1].indexOf("candidatePool(feed.jobs"),
-    "Apply Next should yield a paint before synchronous candidate filtering"
+    renderQueueSource[1].indexOf("await YartchivesUtils.waitForBrowserPaint()") < renderQueueSource[1].indexOf("recommendationJobs = await loadCandidateArtifact()"),
+    "Apply Next should yield a paint before candidate loading and synchronous filtering"
   );
   const applyNextCss = fs.readFileSync(path.join(__dirname, "..", "apply-next.css"), "utf8");
   assert.match(applyNextCss, /\.apply-next-open:disabled\s*\{[\s\S]*?cursor:\s*progress/, "Disabled Apply Next should have a visible loading treatment");
