@@ -7,7 +7,6 @@ import argparse
 import json
 import math
 from collections import defaultdict
-from datetime import datetime, timezone
 from pathlib import Path
 from statistics import median
 from typing import Any
@@ -143,7 +142,7 @@ def build_snapshot(payload: dict[str, Any], *, max_samples: int = 20) -> dict[st
 
     return {
         "version": 1,
-        "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+        "generated_at": rows[0]["received_at"] if rows else None,
         "privacy": "aggregate timing only; visitor/session/profile/job fields omitted",
         "recent": rows,
         "summary": summarize(rows),
