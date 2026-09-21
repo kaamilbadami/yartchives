@@ -48,6 +48,14 @@ class StaticContractTests(unittest.TestCase):
         self.assertNotIn("grep -Ev '^data/(listings|workday-inspections)", workflow)
         self.assertNotIn("Aborting this stale build; the next run will resolve from the newer main.", workflow)
 
+    def test_geo_index_is_local_and_built_at_deploy_time(self):
+        app = (ROOT / "app.js").read_text(encoding="utf-8")
+        workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
+        self.assertIn('const GEO_DATA_URL = "data/geo-index.json";', app)
+        self.assertNotIn("raw.githubusercontent.com/ReadyAPIs-com/curated-us-zips", app)
+        self.assertIn("scripts/build_geo_index.py /tmp/us-zips.csv _site/data/geo-index.json", workflow)
+        self.assertIn("f9eb7daabdade9b2a9f3cbc80327a5c152fc82d3", workflow)
+
     def test_pages_deploy_includes_static_assets(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
         self.assertIn('- "assets/**"', workflow)
