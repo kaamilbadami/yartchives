@@ -107,6 +107,13 @@ class UpdateFeedWorkflowTests(unittest.TestCase):
             self.assertEqual(tail.count("git reset --hard origin/main"), 1)
 
 
+    def test_metric_stage_names_with_spaces_are_shell_quoted(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+
+        self.assertNotIn('--record \\"', text)
+        self.assertIn('--record "link repair" -- python scripts/repair_links.py', text)
+        self.assertIn('--record "ATS reconciliation" -- python scripts/reconcile_workday_duplicates.py', text)
+
 
 if __name__ == "__main__":
     unittest.main()
