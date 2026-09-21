@@ -208,6 +208,15 @@ UI.saveProfile(storage, profile);
 assert.deepEqual(UI.loadProfile(storage), profile);
 assert.ok(values.has(UI.STORAGE_KEY));
 
+assert.equal(UI.loadEntryMode(storage), null);
+assert.equal(UI.saveEntryMode(storage, "apply-next"), "apply-next");
+assert.equal(UI.loadEntryMode(storage), "apply-next");
+assert.equal(UI.saveEntryMode(storage, "browse"), "browse");
+assert.equal(UI.loadEntryMode(storage), "browse");
+assert.throws(() => UI.saveEntryMode(storage, "unknown"), /Invalid entry mode/);
+values.set(UI.ENTRY_MODE_KEY, "stale-value");
+assert.equal(UI.loadEntryMode(storage), null);
+
 const jobs = [
   { id: "good", term: "Summer 2027" },
   { id: "unknown-term", term: null },
@@ -330,18 +339,32 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /Still finding your best matches…/, "Apply Next should escalate the loading message if ranking takes longer");
   assert.match(uiSource, /setTimeout\(\(\) => \{[\s\S]*?\}, 1500\)/, "Apply Next should delay the long-loading message rather than showing it immediately");
   assert.match(uiSource, /panel\.setAttribute\("aria-busy", "true"\)/, "Apply Next should expose loading state to assistive technology");
+  const openApplyNextSource = uiSource.match(
+    /async function openApplyNext\(\{ persist = true, scroll = true \} = \{\}\) \{([\s\S]*?)\n    \}/
+  );
+  assert.ok(openApplyNextSource, "Apply Next entry helper should be present");
+  assert.match(openApplyNextSource[1], /YartchivesUtils\.runWithPendingUi\(\{/, "Apply Next should use the shared pending-UI helper");
+  assert.match(openApplyNextSource[1], /control:\s*button/, "Apply Next should delegate button disabling/restoration to the shared helper");
+  assert.match(openApplyNextSource[1], /pendingLabel:\s*"Finding matches…"/, "Apply Next should acknowledge the click immediately");
+  assert.match(openApplyNextSource[1], /work:\s*\(\) => renderPanel\(panel\)/, "Apply Next should start recommendation work only after the shared paint boundary");
+
   const openHandler = uiSource.match(
-    /button\.addEventListener\("click", async \(\) => \{([\s\S]*?)\n\s*\}\);/
+    /button\.addEventListener\("click", async \(\) => \{([\s\S]*?)\n    \}\);/
   );
   assert.ok(openHandler, "Apply Next open handler should be present");
-  assert.match(openHandler[1], /YartchivesUtils\.runWithPendingUi\(\{/, "Apply Next should use the shared pending-UI helper");
-  assert.match(openHandler[1], /control:\s*button/, "Apply Next should delegate button disabling/restoration to the shared helper");
-  assert.match(openHandler[1], /pendingLabel:\s*"Finding matches…"/, "Apply Next should acknowledge the click immediately");
-  assert.match(openHandler[1], /prepare:\s*\(\) => \{[\s\S]*?panel\.scrollIntoView/, "Apply Next should reveal its shell in the helper prepare phase");
-  assert.match(openHandler[1], /work:\s*\(\) => renderPanel\(panel\)/, "Apply Next should start recommendation work only after the shared paint boundary");
+  assert.match(openHandler[1], /await openApplyNext\(\)/, "Apply Next header control should always enter/focus Apply Next rather than toggle it closed");
+  assert.doesNotMatch(openHandler[1], /classList\.toggle/, "Apply Next header control should not double as an undiscoverable close toggle");
+
+  assert.match(uiSource, /ENTRY_MODE_KEY = "yartchives-entry-mode-v1"/, "Entry preference should use a dedicated local key");
+  assert.match(uiSource, /Get internships ranked for you/, "First-use entry should emphasize ranked recommendations");
+  assert.match(uiSource, /Browse all internships/, "First-use entry should preserve a direct browse choice");
+  assert.match(uiSource, /Browse internships/, "Focused Apply Next should expose an explicit browse exit");
+  assert.match(uiSource, /if \(!rememberedMode\) \{\s*renderEntryChoice\(panel\)/, "First visit should show the entry decision");
+  assert.match(uiSource, /rememberedMode === "apply-next"/, "Returning Apply Next users should resume their chosen mode");
+  assert.match(uiSource, /saveEntryMode\([^\n]+, "browse"\)/, "Browse exit should remember browse mode");
 
   assert.match(uiSource, /setProfileSetupMode\(true\)/, "Apply Next should enter focused mode");
-  assert.match(uiSource, /setProfileSetupMode\(false\)/, "Closing Apply Next should restore the normal feed");
+  assert.match(uiSource, /setProfileSetupMode\(false\)/, "Browsing internships should restore the normal feed");
   assert.match(uiSource, /apply-next-profile-mode/, "Focused Apply Next should use an explicit main-state class");
 
   assert.match(uiSource, /panel\.setAttribute\("aria-label", "Apply Next"\)/, "Panel should have an accessible label");
@@ -358,6 +381,8 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /awardFoundingBetaTester\(localStorage\)/, "Giving recommendation feedback should award founding beta tester status");
   assert.match(uiSource, /foundingBetaBadge\(\)/, "Apply Next queue heading should surface earned beta tester status");
   assert.match(applyNextCss, /\.apply-next-beta-badge\s*\{/, "Founding beta tester status should have dedicated badge styling");
+  assert.match(applyNextCss, /\.apply-next-entry\s*\{/, "First-use entry decision should have dedicated layout styling");
+  assert.match(applyNextCss, /\.apply-next-entry-primary\s*\{/, "Apply Next should receive dedicated primary emphasis");
 
   // Feedback tests
   assert.match(uiSource, /state\.feedback\[job\.id\] = \{ rating: "good" \}/, "Good feedback should be recorded in state");

@@ -8,6 +8,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   const STORAGE_KEY = "yartchives-apply-next-profile-v1";
   const FOUNDING_BETA_TESTER_KEY = "yartchives-founding-beta-tester-v1";
+  const ENTRY_MODE_KEY = "yartchives-entry-mode-v1";
   const INSPECTION_URL = "data/workday-inspections.json";
   const TOP_N = 10;
   const FRESH_MAX_AGE_DAYS = 3;
@@ -283,9 +284,71 @@
     main.classList.toggle("apply-next-profile-mode", Boolean(active));
   }
 
+  function loadEntryMode(storage) {
+    try {
+      const mode = storage?.getItem(ENTRY_MODE_KEY);
+      return mode === "apply-next" || mode === "browse" ? mode : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function saveEntryMode(storage, mode) {
+    if (mode !== "apply-next" && mode !== "browse") throw new Error("Invalid entry mode.");
+    try {
+      storage?.setItem(ENTRY_MODE_KEY, mode);
+    } catch (_) {}
+    return mode;
+  }
+
+  function switchToBrowse(panel) {
+    saveEntryMode(typeof localStorage !== "undefined" ? localStorage : null, "browse");
+    panel?.classList.add("hidden");
+    delete panel?.dataset?.view;
+    const button = typeof document !== "undefined" ? document.querySelector("#applyNextBtn") : null;
+    if (button) button.setAttribute("aria-expanded", "false");
+    setProfileSetupMode(false);
+  }
+
+  function browseInternshipsButton(panel, className = "ghost-btn") {
+    const browse = element("button", className, "Browse internships");
+    browse.type = "button";
+    browse.addEventListener("click", () => switchToBrowse(panel));
+    return browse;
+  }
+
+  function renderEntryChoice(panel) {
+    panel.dataset.view = "entry";
+    panel.classList.remove("hidden");
+    setProfileSetupMode(true);
+    panel.innerHTML = "";
+
+    const entry = element("div", "apply-next-entry");
+    const copy = element("div", "apply-next-entry-copy");
+    copy.append(
+      element("p", "eyebrow", "Start here"),
+      element("h2", "", "Find the internships worth applying to"),
+      element("p", "apply-next-entry-lede", "Apply Next ranks current internships around your profile so you can spend your time on the strongest opportunities first.")
+    );
+
+    const actions = element("div", "apply-next-entry-actions");
+    const ranked = element("button", "primary-btn apply-next-entry-primary", "Get internships ranked for you");
+    ranked.type = "button";
+    ranked.addEventListener("click", () => document.querySelector("#applyNextBtn")?.click());
+
+    const browse = element("button", "ghost-btn apply-next-entry-secondary", "Browse all internships");
+    browse.type = "button";
+    browse.addEventListener("click", () => switchToBrowse(panel));
+
+    actions.append(ranked, browse);
+    entry.append(copy, actions);
+    panel.append(entry);
+  }
+
   function setupPanel(panel) {
     setProfileSetupMode(true);
     panel.innerHTML = "";
+    panel.dataset.view = "apply-next";
     const header = element("div", "apply-next-heading");
     const copy = element("div");
     copy.append(
@@ -293,7 +356,7 @@
       element("h2", "", "Apply Next"),
       element("p", "muted", "Import your private strategy once. It stays in this browser's local storage and is never added to the public feed or shared URL.")
     );
-    header.append(copy);
+    header.append(copy, browseInternshipsButton(panel));
     panel.append(header);
 
     const textarea = element("textarea", "apply-next-profile-input");
@@ -989,6 +1052,7 @@
       element("p", "muted", profileSummary(profile) || "Private strategy loaded")
     );
     const controls = element("div", "apply-next-profile-actions");
+    controls.append(browseInternshipsButton(panel, "text-btn"));
     const edit = element("button", "ghost-btn", "Edit profile");
     edit.type = "button";
     edit.addEventListener("click", () => {
@@ -1044,6 +1108,7 @@
 
   async function renderQueue(panel, profile) {
     setProfileSetupMode(true);
+    panel.dataset.view = "apply-next";
 
     panel.innerHTML = "";
     panel.append(buildQueueSkeleton(profile, panel, null));
@@ -1116,26 +1181,38 @@
     const stats = main.querySelector(".stats");
     main.insertBefore(panel, stats ? stats.nextSibling : main.firstChild);
 
-    button.addEventListener("click", async () => {
-      const opening = panel.classList.contains("hidden");
-      panel.classList.toggle("hidden", !opening);
-      button.setAttribute("aria-expanded", opening ? "true" : "false");
-      if (opening) {
-        activeQueueView = "recommended";
-        queueVisibleCounts = { recommended: TOP_N, fresh: TOP_N };
-        await YartchivesUtils.runWithPendingUi({
-          control: button,
-          pendingLabel: "Finding matches…",
-          prepare: () => {
-            setProfileSetupMode(true);
-            panel.scrollIntoView({ behavior: "smooth", block: "start" });
-          },
-          work: () => renderPanel(panel),
-        });
-      } else {
-        setProfileSetupMode(false);
+    async function openApplyNext({ persist = true, scroll = true } = {}) {
+      if (!panel.classList.contains("hidden") && panel.dataset.view === "apply-next") {
+        if (scroll) panel.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
       }
+      if (persist) saveEntryMode(localStorage, "apply-next");
+      panel.classList.remove("hidden");
+      panel.dataset.view = "apply-next";
+      button.setAttribute("aria-expanded", "true");
+      activeQueueView = "recommended";
+      queueVisibleCounts = { recommended: TOP_N, fresh: TOP_N };
+      await YartchivesUtils.runWithPendingUi({
+        control: button,
+        pendingLabel: "Finding matches…",
+        prepare: () => {
+          setProfileSetupMode(true);
+          if (scroll) panel.scrollIntoView({ behavior: "smooth", block: "start" });
+        },
+        work: () => renderPanel(panel),
+      });
+    }
+
+    button.addEventListener("click", async () => {
+      await openApplyNext();
     });
+
+    const rememberedMode = loadEntryMode(localStorage);
+    if (!rememberedMode) {
+      renderEntryChoice(panel);
+    } else if (rememberedMode === "apply-next") {
+      void openApplyNext({ persist: false, scroll: false });
+    }
 
     if (typeof renderJobs === "function") {
       const priorRenderJobs = renderJobs;
@@ -1149,6 +1226,9 @@
   return {
     STORAGE_KEY,
     FOUNDING_BETA_TESTER_KEY,
+    ENTRY_MODE_KEY,
+    loadEntryMode,
+    saveEntryMode,
     hasFoundingBetaTester,
     awardFoundingBetaTester,
     INSPECTION_URL,
