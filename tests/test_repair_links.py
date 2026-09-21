@@ -514,6 +514,57 @@ class WorkdayPublishContractTests(unittest.TestCase):
             [],
         )
 
+    def test_cached_unknown_workday_apply_is_downgraded(self):
+        url = "https://jj.wd5.myworkdayjobs.com/jj/job/Cincinnati-Ohio-United-States-of-America/Software-Engineering-Co-Op-Summer-2027_R-096743/apply"
+        job = {
+            "id": "jj-r-096743",
+            "link_kind": "direct",
+            "url": url,
+            "opportunity_type": "internship",
+            "profiles": ["cs"]
+        }
+        checked_at = datetime(2026, 9, 20, 13, 0, tzinfo=timezone.utc)
+        old_doc = {
+            "jobs": [
+                {
+                    **job,
+                    "link_status": "unknown",
+                    "link_checked_at": "2026-09-20T13:00:00Z",
+                    "link_validation_version": mod.LINK_VALIDATION_VERSION
+                }
+            ]
+        }
+
+        with patch.object(mod, "now_utc", return_value=checked_at):
+            mod.validate_repaired_links({"jobs": [job]}, old_doc)
+
+        self.assertEqual(job["link_status"], "unknown")
+        self.assertEqual(job["link_kind"], "employer_job")
+        self.assertFalse(job["url"].endswith("/apply"))
+
+    def test_unselected_workday_apply_is_downgraded(self):
+        url = "https://jj.wd5.myworkdayjobs.com/jj/job/Cincinnati-Ohio-United-States-of-America/Software-Engineering-Co-Op-Summer-2027_R-096743/apply"
+        doc = {
+            "jobs": [
+                {
+                    "id": f"jj-{i}",
+                    "link_kind": "direct",
+                    "url": url,
+                    "opportunity_type": "internship",
+                    "profiles": ["cs"]
+                }
+                for i in range(mod.MAX_VALIDATIONS_PER_RUN + 1)
+            ]
+        }
+
+        with patch.object(mod, "validate_direct_url", return_value=("ok", url)):
+            mod.validate_repaired_links(doc, {})
+
+        unselected = [job for job in doc["jobs"] if not job.get("link_status")]
+        self.assertEqual(len(unselected), 1)
+        self.assertEqual(unselected[0]["link_kind"], "employer_job")
+        self.assertFalse(unselected[0]["url"].endswith("/apply"))
+
 
 if __name__ == "__main__":
     unittest.main()
