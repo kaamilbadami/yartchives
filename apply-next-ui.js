@@ -452,10 +452,25 @@
     const zips = (profile?.baseZips || []).filter(value => /^\d{5}$/.test(String(value)));
     if (!zips.length || typeof loadGeoIndex !== "function") return false;
     geoWarmScheduled = true;
+
     const warm = () => { void loadGeoIndex().catch(() => { geoWarmScheduled = false; }); };
-    if (typeof requestIdleCallback === "function") requestIdleCallback(warm, { timeout: 1000 });
-    else if (typeof setTimeout === "function") setTimeout(warm, 0);
-    else warm();
+    const scheduleWhenIdle = () => {
+      if (typeof requestIdleCallback === "function") {
+        requestIdleCallback(warm);
+      } else if (typeof setTimeout === "function") {
+        setTimeout(warm, 1500);
+      } else {
+        warm();
+      }
+    };
+
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(() => scheduleWhenIdle());
+    } else if (typeof setTimeout === "function") {
+      setTimeout(scheduleWhenIdle, 0);
+    } else {
+      scheduleWhenIdle();
+    }
     return true;
   }
 
