@@ -107,6 +107,22 @@ class UpdateFeedWorkflowTests(unittest.TestCase):
             self.assertEqual(tail.count("git reset --hard origin/main"), 1)
 
 
+
+    def test_stale_feed_publication_explicitly_queues_replacement_refresh(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+
+        self.assertIn("actions: write", text)
+        fast_commit = text.index("- name: Commit fast-path opportunity feed")
+        next_step = text.index("- name: Print coverage audit")
+        fast_tail = text[fast_commit:next_step]
+
+        self.assertIn(
+            "Feed-producing inputs changed on main; leaving this generated result unpublished.",
+            fast_tail,
+        )
+        self.assertIn("Queueing a replacement refresh from current main.", fast_tail)
+        self.assertIn("gh workflow run update-feed.yml --ref main", fast_tail)
+
     def test_metric_stage_names_with_spaces_are_shell_quoted(self):
         text = WORKFLOW.read_text(encoding="utf-8")
 
