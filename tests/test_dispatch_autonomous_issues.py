@@ -120,6 +120,171 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
         self.assertEqual(len(called_args), 0)
 
+
+    def test_reconcile_jules_sessions_cleans_up_closed_issue(self):
+        from scripts.dispatch_autonomous_issues import reconcile_jules_sessions
+        issues = [
+            issue(
+                116,
+                "closed issue with stale active label",
+                state="closed",
+                labels=("jules-session",),
+            )
+        ]
+
+        called_gh = []
+        def mock_run_gh(*args):
+            called_gh.append(args)
+
+        deleted = []
+        def mock_delete_session(session_id):
+            deleted.append(session_id)
+
+        def mock_load_comments(number):
+            return [{"body": "<!-- jules-session-id: sess1 -->"}]
+
+        reconcile_jules_sessions(
+            issues,
+            repo="test/repo",
+            api_key="key",
+            load_comments=mock_load_comments,
+            get_session=lambda key, path: {"state": "IN_PROGRESS"},
+            run_gh=mock_run_gh,
+            delete_session=mock_delete_session,
+        )
+
+        self.assertIn("sess1", deleted)
+        self.assertTrue(any("--remove-label" in arg for args in called_gh for arg in args))
+
+    def test_reconcile_jules_sessions_cleans_up_merged_pr(self):
+        from scripts.dispatch_autonomous_issues import reconcile_jules_sessions
+        issues = [
+            issue(
+                117,
+                "open issue with merged pr and stale active label",
+                state="open",
+                labels=("jules-session",),
+            )
+        ]
+
+        called_gh = []
+        def mock_run_gh(*args):
+            called_gh.append(args)
+
+        deleted = []
+        def mock_delete_session(session_id):
+            deleted.append(session_id)
+
+        def mock_load_comments(number):
+            return [
+                {"body": "<!-- jules-session-id: sess2 -->"},
+                {"body": "Jules completed session `sess2`... Pull request: https://github.com/test/repo/pull/999"}
+            ]
+
+        def mock_get_pr(number):
+            if number == 999:
+                return {"merged": True}
+            return {}
+
+        reconcile_jules_sessions(
+            issues,
+            repo="test/repo",
+            api_key="key",
+            load_comments=mock_load_comments,
+            get_session=lambda key, path: {"state": "IN_PROGRESS"},
+            get_pr=mock_get_pr,
+            run_gh=mock_run_gh,
+            delete_session=mock_delete_session,
+        )
+
+        self.assertIn("sess2", deleted)
+        self.assertTrue(any("--remove-label" in arg for args in called_gh for arg in args))
+
+    def test_reconcile_jules_sessions_keeps_genuinely_active(self):
+        from scripts.dispatch_autonomous_issues import reconcile_jules_sessions
+        issues = [
+            issue(
+                118,
+                "genuinely active session",
+                state="open",
+                labels=("jules-session",),
+            )
+        ]
+
+        called_gh = []
+        def mock_run_gh(*args):
+            called_gh.append(args)
+
+        deleted = []
+        def mock_delete_session(session_id):
+            deleted.append(session_id)
+
+        def mock_load_comments(number):
+            return [{"body": "<!-- jules-session-id: sess3 -->"}]
+
+        def mock_get_pr(number):
+            return {}
+
+        reconcile_jules_sessions(
+            issues,
+            repo="test/repo",
+            api_key="key",
+            load_comments=mock_load_comments,
+            get_session=lambda key, path: {"state": "IN_PROGRESS"},
+            get_pr=mock_get_pr,
+            run_gh=mock_run_gh,
+            delete_session=mock_delete_session,
+        )
+
+        self.assertEqual(len(deleted), 0)
+        self.assertEqual(len(called_gh), 0)
+
+    def test_reconcile_jules_sessions_transient_failure_ignored(self):
+        from scripts.dispatch_autonomous_issues import reconcile_jules_sessions
+        issues = [
+            issue(
+                119,
+                "transient failure test",
+                state="open",
+                labels=("jules-session",),
+            )
+        ]
+
+        called_gh = []
+        def mock_run_gh(*args):
+            called_gh.append(args)
+
+        deleted = []
+        def mock_delete_session(session_id):
+            deleted.append(session_id)
+
+        def mock_load_comments(number):
+            return [{"body": "<!-- jules-session-id: sess4 -->"}]
+
+        def mock_get_pr(number):
+            return {}
+
+        class TransientError(Exception):
+            pass
+
+        def mock_get_session(key, path):
+            raise TransientError("Transient error!")
+
+        with self.assertRaises(TransientError):
+            reconcile_jules_sessions(
+                issues,
+                repo="test/repo",
+                api_key="key",
+                load_comments=mock_load_comments,
+                get_session=mock_get_session,
+                get_pr=mock_get_pr,
+                run_gh=mock_run_gh,
+                delete_session=mock_delete_session,
+            )
+
+        self.assertEqual(len(deleted), 0)
+        self.assertEqual(len(called_gh), 0)
+
     def test_reconcile_autonomous_labels_unchanged_if_invalid_dependencies(self):
         issues = [
             issue(
@@ -771,12 +936,12 @@ class AutonomousDispatcherTests(unittest.TestCase):
         issues = [
             issue(149, "frontend task", body=task_body("P1", "frontend-state")),
         ]
-        original_fetch = mod.fetch_open_issues
+        original_fetch = mod.fetch_active_issues
         original_reconcile = mod.reconcile_jules_sessions
         original_migrate = mod.migrate_legacy_jules_failures
         original_dispatch = mod.dispatch_task
         try:
-            mod.fetch_open_issues = lambda repo: issues
+            mod.fetch_active_issues = lambda repo: issues
             mod.reconcile_jules_sessions = lambda *args, **kwargs: False
             mod.migrate_legacy_jules_failures = lambda *args, **kwargs: None
 
@@ -790,7 +955,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 source_name="source",
             )
         finally:
-            mod.fetch_open_issues = original_fetch
+            mod.fetch_active_issues = original_fetch
             mod.reconcile_jules_sessions = original_reconcile
             mod.migrate_legacy_jules_failures = original_migrate
             mod.dispatch_task = original_dispatch
@@ -1776,7 +1941,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
             )
         ]
 
-        with mock.patch.object(mod, "fetch_open_issues", return_value=issues):
+        with mock.patch.object(mod, "fetch_active_issues", return_value=issues):
             with mock.patch.object(mod, "reconcile_jules_sessions", return_value=False):
                 with mock.patch.object(mod, "migrate_legacy_jules_failures", return_value=None):
                     with mock.patch.object(mod, "select_tasks", return_value=[]):

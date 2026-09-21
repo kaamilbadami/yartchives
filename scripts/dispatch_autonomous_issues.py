@@ -1414,6 +1414,46 @@ def reconcile_jules_sessions(
         number = int(issue["number"])
         comments = load_comments(number)
         session_id = session_id_from_comments(comments)
+
+        is_closed = issue.get("state") == "closed"
+        is_pr_merged = False
+        completed_pr = completed_session_pr_from_comments(comments, repo)
+        if completed_pr is not None:
+            _, pr_number = completed_pr
+            try:
+                pr = get_pr(pr_number)
+                if pr.get("merged") is True:
+                    is_pr_merged = True
+            except Exception:
+                pass
+
+        if is_closed or is_pr_merged:
+            if session_id:
+                try:
+                    delete_session(session_id)
+                except Exception as exc:
+                    if getattr(exc, "code", None) != 404:
+                        print(
+                            f"Could not delete active Jules session {session_id} for "
+                            f"terminal issue #{number} (closed/merged); proceeding to clear labels: {exc}"
+                        )
+
+            run_gh(
+                "issue", "edit", str(number), "--repo", repo,
+                "--remove-label", JULES_ACTIVE_LABEL,
+                "--remove-label", JULES_FEEDBACK_LABEL,
+                "--remove-label", "jules",
+            )
+            replace_issue_labels_in_memory(
+                issue,
+                remove=(JULES_ACTIVE_LABEL, JULES_FEEDBACK_LABEL, "jules"),
+            )
+            reason = "merged PR" if is_pr_merged else "closed issue"
+            print(
+                f"Released Jules slot for #{number}: GitHub state is terminal ({reason})."
+            )
+            continue
+
         if not session_id:
             print(
                 f"Keeping #{number} active: no persisted Jules session ID could be found."
@@ -2300,12 +2340,28 @@ def ensure_labels(repo: str) -> None:
         )
 
 
-def fetch_open_issues(repo: str) -> list[dict[str, Any]]:
-    issues = gh_paginated_json(
+def fetch_active_issues(repo: str) -> list[dict[str, Any]]:
+    open_issues = gh_paginated_json(
         "api",
         f"repos/{repo}/issues?state=open&per_page=100",
     )
-    return [issue for issue in issues if "pull_request" not in issue]
+
+    closed_active = gh_paginated_json(
+        "api",
+        f"repos/{repo}/issues?state=closed&labels={parse.quote(JULES_ACTIVE_LABEL)}&per_page=100",
+    )
+
+    closed_feedback = gh_paginated_json(
+        "api",
+        f"repos/{repo}/issues?state=closed&labels={parse.quote(JULES_FEEDBACK_LABEL)}&per_page=100",
+    )
+
+    issues = {
+        issue["number"]: issue
+        for issue in open_issues + closed_active + closed_feedback
+        if "pull_request" not in issue
+    }
+    return sorted(issues.values(), key=lambda i: i["number"], reverse=True)
 
 
 
@@ -2544,7 +2600,7 @@ def run_dispatch_cycle(
     source_name: str | None = None,
 ) -> tuple[bool, str | None]:
     """Reconcile finished work, dispatch available work, and report whether Jules stays active."""
-    issues = fetch_open_issues(repo)
+    issues = fetch_active_issues(repo)
 
     def load_comments(number: int) -> list[dict[str, Any]]:
         return gh_paginated_json(
