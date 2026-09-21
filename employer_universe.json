@@ -110,7 +110,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -1684,7 +1684,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -1815,8 +1815,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T21:34:11Z",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "resolved_at": "2026-09-21T21:55:34Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -2016,9 +2016,10 @@
         }
       },
       "careers_resolution": {
-        "status": "blocked",
-        "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-21T21:55:34Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -2157,21 +2158,31 @@
               },
               {
                 "url": "https://www.sap.com/products/hcm.html?src=sfsf",
-                "status": 403
+                "status": 200
               }
             ],
             "final_url": "https://www.sap.com/products/hcm.html?src=sfsf",
-            "status": 403,
+            "status": 200,
             "signals": [
+              "successfactors provider fingerprint",
               "linked from employer site"
             ],
-            "score": 4
+            "score": 9
           }
         ]
       },
       "domain_hints": [
         "agcocorp.com"
-      ]
+      ],
+      "careers_url": "https://www.sap.com/products/hcm.html",
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "www.sap.com"
+      }
     },
     {
       "id": "agilent-technologies",
@@ -2623,7 +2634,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -3765,7 +3776,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -3938,7 +3949,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -4590,7 +4601,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -4852,7 +4863,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -5147,7 +5158,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -5327,7 +5338,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -5373,7 +5384,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -5572,7 +5583,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -5653,7 +5664,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -6047,7 +6058,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -10373,7 +10384,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -14465,8 +14476,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T21:34:11Z",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "resolved_at": "2026-09-21T21:55:34Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -20478,8 +20489,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T21:34:11Z",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "resolved_at": "2026-09-21T21:55:34Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -24208,7 +24219,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
@@ -33793,7 +33804,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T21:34:11Z",
+        "last_attempt_at": "2026-09-21T21:55:34Z",
         "evidence": [
           {
             "type": "http",
