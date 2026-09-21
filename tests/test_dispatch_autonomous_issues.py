@@ -36,6 +36,107 @@ def task_body(priority, area, autonomous=True, resources=None, depends_on=None):
 
 
 class AutonomousDispatcherTests(unittest.TestCase):
+    def setUp(self):
+        self.original_reconcile_labels = mod.reconcile_autonomous_labels
+        mod.reconcile_autonomous_labels = lambda *args, **kwargs: None
+
+    def tearDown(self):
+        mod.reconcile_autonomous_labels = self.original_reconcile_labels
+
+
+    def test_reconcile_autonomous_labels_adds_missing_labels(self):
+        issues = [
+            issue(
+                111,
+                "valid marker-only issue",
+                body=task_body("P1", "infra", autonomous=True, depends_on=None),
+                labels=("bug",),
+            )
+        ]
+        called_args = []
+        def mock_run_gh(*args):
+            called_args.append(args)
+
+        self.original_reconcile_labels(issues, repo="test/repo", run_gh=mock_run_gh)
+
+        self.assertEqual(len(called_args), 1)
+        self.assertEqual(
+            called_args[0],
+            ("issue", "edit", "111", "--repo", "test/repo", "--add-label", "agent-ready", "--add-label", "autonomous-backlog")
+        )
+        labels = {l["name"] for l in issues[0]["labels"]}
+        self.assertEqual(labels, {"bug", "agent-ready", "autonomous-backlog"})
+
+    def test_reconcile_autonomous_labels_unchanged_if_already_correct(self):
+        issues = [
+            issue(
+                112,
+                "already correct issue",
+                body=task_body("P1", "infra", autonomous=True),
+                labels=("bug", "agent-ready", "autonomous-backlog"),
+            )
+        ]
+        called_args = []
+        def mock_run_gh(*args):
+            called_args.append(args)
+
+        self.original_reconcile_labels(issues, repo="test/repo", run_gh=mock_run_gh)
+
+        self.assertEqual(len(called_args), 0)
+        labels = {l["name"] for l in issues[0]["labels"]}
+        self.assertEqual(labels, {"bug", "agent-ready", "autonomous-backlog"})
+
+    def test_reconcile_autonomous_labels_unchanged_if_autonomous_false(self):
+        issues = [
+            issue(
+                113,
+                "autonomous false issue",
+                body=task_body("P1", "infra", autonomous=False),
+                labels=("bug",),
+            )
+        ]
+        called_args = []
+        def mock_run_gh(*args):
+            called_args.append(args)
+
+        self.original_reconcile_labels(issues, repo="test/repo", run_gh=mock_run_gh)
+
+        self.assertEqual(len(called_args), 0)
+
+    def test_reconcile_autonomous_labels_unchanged_if_malformed_metadata(self):
+        issues = [
+            issue(
+                114,
+                "malformed priority issue",
+                body=task_body("P999", "infra", autonomous=True),
+                labels=("bug",),
+            )
+        ]
+        called_args = []
+        def mock_run_gh(*args):
+            called_args.append(args)
+
+        self.original_reconcile_labels(issues, repo="test/repo", run_gh=mock_run_gh)
+
+        self.assertEqual(len(called_args), 0)
+
+    def test_reconcile_autonomous_labels_unchanged_if_invalid_dependencies(self):
+        issues = [
+            issue(
+                115,
+                "invalid dependencies issue",
+                body=task_body("P1", "infra", autonomous=True, depends_on="invalid"),
+                labels=("bug",),
+            )
+        ]
+        called_args = []
+        def mock_run_gh(*args):
+            called_args.append(args)
+
+        self.original_reconcile_labels(issues, repo="test/repo", run_gh=mock_run_gh)
+
+        self.assertEqual(len(called_args), 0)
+
     def test_workflow_keeps_dispatch_cycle_alive_for_refill_window(self):
         workflow = (ROOT / ".github" / "workflows" / "autonomous-dispatch.yml").read_text()
         self.assertIn('JULES_WATCH_SECONDS: "780"', workflow)

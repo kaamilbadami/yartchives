@@ -1327,6 +1327,39 @@ def replace_issue_labels_in_memory(
     issue["labels"] = [{"name": label} for label in sorted(labels)]
 
 
+def reconcile_autonomous_labels(
+    issues: list[dict[str, Any]],
+    *,
+    repo: str,
+    run_gh: Callable[..., None] | None = None,
+) -> None:
+    """Ensure valid autonomous issues visibly show agent-ready and autonomous-backlog."""
+    if run_gh is None:
+        run_gh = gh_run
+
+    for issue in issues:
+        if str(issue.get("state") or "open") != "open":
+            continue
+
+        task = task_from_issue(issue)
+        if not task:
+            continue
+
+        missing = {"agent-ready", "autonomous-backlog"} - task.labels
+        if missing:
+            add_args = []
+            for label in sorted(missing):
+                add_args.extend(["--add-label", label])
+
+            run_gh(
+                "issue", "edit", str(task.number),
+                "--repo", repo,
+                *add_args,
+            )
+            replace_issue_labels_in_memory(issue, add=missing)
+            print(f"Reconciled visible dispatch labels for #{task.number}")
+
+
 def reconcile_jules_sessions(
     issues: list[dict[str, Any]],
     *,
@@ -2402,6 +2435,8 @@ def run_dispatch_cycle(
             "The scheduled run will try again later."
         )
         return False, source_name
+
+    reconcile_autonomous_labels(issues, repo=repo)
 
     selected = select_tasks(issues)
     print(dispatch_capacity_summary(issues, selected))
