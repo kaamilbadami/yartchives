@@ -432,6 +432,10 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /Ranked by overall Apply Next score, not posting time\./, "Fresh should preserve recommendation quality ordering");
 
   assert.match(uiSource, /document\.createDocumentFragment\(\)/, "renderQueue should build DOM off-screen before swapping to avoid UI stalls");
+  for (const stage of ["paint_wait", "candidate_filter", "inspection_artifact", "inspection_attach", "location_enrichment", "ranking", "render"]) {
+    assert.ok(uiSource.includes(`recordTimingStage(timing, "${stage}"`), `Apply Next should record ${stage} timing`);
+  }
+  assert.ok(uiSource.includes("__YARTCHIVES_APPLY_NEXT_TIMING__"), "Latest Apply Next timing should be inspectable in-browser without network telemetry");
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
 
   const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
@@ -443,6 +447,27 @@ assert.equal(jobs[2]._inspection, undefined);
   console.error(error);
   process.exit(1);
 });
+const timing = { startedAt: 100, stages: {} };
+assert.ok(Math.abs(UI.recordTimingStage(timing, "location_enrichment", 120, 145.67) - 25.67) < 1e-9);
+assert.equal(timing.stages.location_enrichment, 25.7);
+const priorInfo = console.info;
+let loggedTiming = null;
+console.info = (_label, payload) => { loggedTiming = payload; };
+const timingPayload = UI.publishApplyNextTiming(
+  timing,
+  { candidates: 500, rankable: 42, recommendations: 10, status: "success" },
+  180.04
+);
+console.info = priorInfo;
+assert.deepEqual(timingPayload, {
+  total_ms: 80,
+  stages_ms: { location_enrichment: 25.7 },
+  counts: { candidates: 500, rankable: 42, recommendations: 10 },
+  status: "success",
+});
+assert.deepEqual(loggedTiming, timingPayload);
+assert.deepEqual(globalThis.__YARTCHIVES_APPLY_NEXT_TIMING__, timingPayload);
+
 const oldProfile = { targetTerm: "Summer 2027", roleFamilies: [{ id: "software" }] };
 assert.equal(UI.explainProfileChange(oldProfile, oldProfile, "1", "1"), null);
 

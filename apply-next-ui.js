@@ -25,6 +25,37 @@
   function normalize(value) {
     return String(value || "").trim();
   }
+  function timingNow() {
+    if (typeof performance !== "undefined" && typeof performance.now === "function") return performance.now();
+    return Date.now();
+  }
+
+  function recordTimingStage(timing, name, startedAt, endedAt = timingNow()) {
+    if (!timing || !name) return 0;
+    const duration = Math.max(0, endedAt - startedAt);
+    timing.stages[name] = Math.round(duration * 10) / 10;
+    return duration;
+  }
+
+  function publishApplyNextTiming(timing, metadata = {}, endedAt = timingNow()) {
+    if (!timing) return null;
+    const payload = {
+      total_ms: Math.round(Math.max(0, endedAt - timing.startedAt) * 10) / 10,
+      stages_ms: { ...timing.stages },
+      counts: {
+        candidates: Number(metadata.candidates || 0),
+        rankable: Number(metadata.rankable || 0),
+        recommendations: Number(metadata.recommendations || 0),
+      },
+      status: metadata.status || "success",
+    };
+    if (typeof globalThis !== "undefined") globalThis.__YARTCHIVES_APPLY_NEXT_TIMING__ = payload;
+    if (typeof console !== "undefined" && typeof console.info === "function") {
+      console.info("[Yartchives Apply Next timing]", payload);
+    }
+    return payload;
+  }
+
 
   function hasFoundingBetaTester(storage) {
     try {
@@ -1131,6 +1162,10 @@
   }
 
   async function renderQueue(panel, profile) {
+    const timing = { startedAt: timingNow(), stages: {} };
+    const counts = { candidates: 0, rankable: 0, recommendations: 0 };
+    let timingStatus = "success";
+
     setProfileSetupMode(true);
     panel.dataset.view = "apply-next";
 
@@ -1146,35 +1181,50 @@
       }
     }, 1500);
 
-    // Let the browser paint the shell, disabled button, and loading copy before
-    // synchronous candidate filtering/ranking work starts.
+    let stageStartedAt = timingNow();
     await YartchivesUtils.waitForBrowserPaint();
+    recordTimingStage(timing, "paint_wait", stageStartedAt);
 
     try {
       if (typeof feed === "undefined" || !Array.isArray(feed.jobs)) throw new Error("Feed not available");
 
+      stageStartedAt = timingNow();
       const pool = candidatePool(feed.jobs, profile, state);
       lastTotalEligibleCount = eligiblePoolCount(feed.jobs, profile);
+      counts.candidates = pool.length;
+      recordTimingStage(timing, "candidate_filter", stageStartedAt);
 
+      stageStartedAt = timingNow();
       const artifact = await loadInspectionArtifact();
-      attachInspections(pool, artifact);
+      recordTimingStage(timing, "inspection_artifact", stageStartedAt);
 
-      // Apply Next ranking only admits authoritative inspected postings. Restrict
-      // expensive ZIP/location work to that same rankable set instead of
-      // geocoding thousands of candidates that rankJobs will immediately drop.
+      stageStartedAt = timingNow();
+      attachInspections(pool, artifact);
       const rankablePool = authoritativeCandidatePool(pool);
+      counts.rankable = rankablePool.length;
+      recordTimingStage(timing, "inspection_attach", stageStartedAt);
+
+      stageStartedAt = timingNow();
       await addBaseDistances(rankablePool, profile);
+      recordTimingStage(timing, "location_enrichment", stageStartedAt);
+
+      stageStartedAt = timingNow();
       const ranked = YartchivesApplyNext.rankJobs(rankablePool, profile, new Date());
+      counts.recommendations = ranked.length;
+      recordTimingStage(timing, "ranking", stageStartedAt);
 
       const explanation = explainProfileChange(lastProfile, profile, lastRankedResults?.[0]?.job?.id, ranked?.[0]?.job?.id);
 
       lastRankedResults = ranked;
       lastProfile = profile;
 
+      stageStartedAt = timingNow();
       panel.innerHTML = "";
       panel.append(buildQueueSkeleton(profile, panel, explanation));
       renderCurrentQueue(panel, profile, pool.length);
+      recordTimingStage(timing, "render", stageStartedAt);
     } catch (error) {
+      timingStatus = "error";
       console.error(error);
       panel.innerHTML = "";
       panel.append(buildQueueSkeleton(profile, panel, null));
@@ -1182,6 +1232,7 @@
     } finally {
       clearTimeout(slowLoadingTimer);
       panel.setAttribute("aria-busy", "false");
+      publishApplyNextTiming(timing, { ...counts, status: timingStatus });
     }
   }
 
@@ -1272,6 +1323,9 @@
     validateProfile,
     loadProfile,
     saveProfile,
+    timingNow,
+    recordTimingStage,
+    publishApplyNextTiming,
     knownWrongTerm,
     candidatePool,
     authoritativeCandidatePool,
