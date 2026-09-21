@@ -432,11 +432,10 @@ assert.equal(jobs[2]._inspection, undefined);
 
   assert.match(uiSource, /document\.createDocumentFragment\(\)/, "renderQueue should build DOM off-screen before swapping to avoid UI stalls");
   assert.ok(uiSource.includes("if (!feedReadyForRecommendations())"), "Apply Next must keep the loading state until the listings feed is ready");
-  const renderQueueSource = uiSource.slice(
-    uiSource.indexOf("async function renderQueue"),
-    uiSource.indexOf("async function renderPanel")
+  assert.ok(
+    renderQueueSource[1].indexOf("if (!feedReadyForRecommendations())") < renderQueueSource[1].indexOf("const pool = candidatePool(feed.jobs"),
+    "Feed readiness must be checked before candidate filtering"
   );
-  assert.ok(renderQueueSource.indexOf("if (!feedReadyForRecommendations())") < renderQueueSource.indexOf("const pool = candidatePool(feed.jobs"), "Feed readiness must be checked before candidate filtering");
   assert.ok(uiSource.includes("return typeof isFeedReady === \"function\""), "Apply Next should use the feed boot readiness signal when available");
   for (const stage of ["paint_wait", "candidate_filter", "inspection_artifact", "inspection_attach", "location_enrichment", "ranking", "render"]) {
     assert.ok(uiSource.includes(`recordTimingStage(timing, "${stage}"`), `Apply Next should record ${stage} timing`);
