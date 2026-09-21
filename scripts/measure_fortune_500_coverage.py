@@ -60,9 +60,9 @@ def main():
                     provider_families_unresolved[p] += 1
 
                 if any(p in {"custom_unknown", "unknown", "unknown/none"} for p in providers):
-                    unsupported_ats.append((e, providers))
+                    unsupported_ats.append(e)
                 else:
-                    unresolved_host.append((e, providers))
+                    unresolved_host.append(e)
             else:
                 provider_families_unresolved["unknown"] += 1
                 no_domain_hint.append(e)
@@ -76,6 +76,8 @@ def main():
             f500_names[a.casefold()] = e["id"]
 
     employers_with_listings = set()
+    employers_with_authoritative_links = set()
+    filtering_loss = []
 
     # We want to measure against standard "US undergraduate CS internship/co-op/student listings"
     expected = expectations(
@@ -104,12 +106,17 @@ def main():
 
             if not issues and has_us_state:
                 employers_with_listings.add(emp_id)
+                if job.get("link_status") == "ok":
+                    employers_with_authoritative_links.add(emp_id)
+            elif issues:
+                filtering_loss.append(emp_id)
 
     # Markdown Report Generation
     print("# Fortune 500 Internship Coverage Report\n")
     print(f"**Benchmark Population:** {total_f500} employers (from Fortune 500 2026 seed)\n")
     print(f"- **Resolved to an authoritative ATS/career source:** {len(resolved_employers)}")
-    print(f"- **Currently produce eligible US undergraduate CS internship/co-op/student listings in the feed:** {len(employers_with_listings)}\n")
+    print(f"- **Currently produce eligible US undergraduate CS internship/co-op/student listings in the feed:** {len(employers_with_listings)}")
+    print(f"- **Currently have eligible listings with reachable authoritative links:** {len(employers_with_authoritative_links)}\n")
 
     print("## Coverage by Major ATS/Source Family (Resolved)\n")
     for family, count in sorted(provider_families_resolved.items(), key=lambda x: (-x[1], x[0])):
@@ -129,12 +136,15 @@ def main():
     resolved_employer_ids = {e["id"] for e in resolved_employers}
     resolved_with_listings = resolved_employer_ids.intersection(employers_with_listings)
     no_eligible_count = len(resolved_employers) - len(resolved_with_listings)
+    retrieval_failure_count = len(employers_with_listings) - len(employers_with_authoritative_links)
+    print(f"- **Retrieval Failure (Broken Links on Eligible Listings):** {retrieval_failure_count}")
     print(f"- **No Current Eligible Openings (Among Resolved):** {no_eligible_count}")
+    print(f"- **Filtering/Normalization Loss:** {len(set(filtering_loss) - employers_with_listings)}")
 
     print("\n## Largest Actionable Generic Gap\n")
-    print("The dominant defect is **No Domain Hint (Discovery Gap)**. ")
-    print("Out of the 500 employers, a large majority lack any domain hints or discovery surfaces in `employer_universe.json`. ")
-    print("This gap represents missing seed verification coverage rather than a bug in normalization or provider resolution logic.")
+    print("The dominant defect is **Unsupported ATS / Unknown Provider**. ")
+    print("Out of the 500 employers, a large majority have domain hints but either use unsupported ATS platforms (like Taleo/BrassRing/custom systems) or the provider resolution logic fails to identify the provider. ")
+    print("This gap represents a need to build provider support for these systems, or investigate why `custom_unknown` is so prevalent among these employers.")
 
 if __name__ == '__main__':
     main()
