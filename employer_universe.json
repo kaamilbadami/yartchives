@@ -110,7 +110,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -1684,7 +1684,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -1815,8 +1815,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T18:05:01Z",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "resolved_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -2018,7 +2018,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -2623,7 +2623,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -2718,8 +2718,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T18:05:01Z",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "resolved_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -2757,10 +2757,14 @@
               },
               {
                 "url": "https://careers.airbnb.com",
+                "status": 302
+              },
+              {
+                "url": "https://careers.airbnb.com/zh/",
                 "status": 200
               }
             ],
-            "final_url": "https://careers.airbnb.com/",
+            "final_url": "https://careers.airbnb.com/zh/",
             "status": 200,
             "signals": [
               "careers page content",
@@ -2848,20 +2852,48 @@
               "shared provider host lacks employer tenant identity"
             ],
             "score": -50
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://www.airbnb.com/careers",
+            "linked_from": "https://www.airbnb.com/",
+            "redirect_chain": [
+              {
+                "url": "https://www.airbnb.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://careers.airbnb.com",
+                "status": 302
+              },
+              {
+                "url": "https://careers.airbnb.com/zh/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.airbnb.com/zh/",
+            "status": 200,
+            "signals": [
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 11
           }
         ]
       },
       "domain_hints": [
         "airbnb.com"
       ],
-      "careers_url": "https://www.greenhouse.com/",
-      "careers_platform": "greenhouse",
+      "careers_url": "https://careers.airbnb.com/zh",
+      "careers_platform": "company-branded",
       "provider": {
-        "family": "greenhouse",
-        "status": "resolved",
-        "evidence": "url_or_page_marker",
-        "marker": "greenhouse.io",
-        "host": "www.greenhouse.com"
+        "family": "custom_unknown",
+        "status": "unresolved",
+        "evidence": "no_known_provider_marker",
+        "host": "careers.airbnb.com"
       }
     },
     {
@@ -3733,7 +3765,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -3906,7 +3938,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -4558,7 +4590,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -4820,7 +4852,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -5115,7 +5147,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -5295,7 +5327,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -5341,7 +5373,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -5540,7 +5572,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -5621,7 +5653,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -10160,7 +10192,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -14252,8 +14284,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T18:05:01Z",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "resolved_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -20265,8 +20297,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T18:05:01Z",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "resolved_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -23995,7 +24027,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
@@ -33580,7 +33612,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:05:01Z",
+        "last_attempt_at": "2026-09-21T18:28:47Z",
         "evidence": [
           {
             "type": "http",
