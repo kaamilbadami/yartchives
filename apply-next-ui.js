@@ -319,7 +319,7 @@
     const zips = (profile?.baseZips || []).filter(value => /^\d{5}$/.test(String(value)));
     if (!zips.length || typeof loadGeoIndex !== "function") return false;
     geoWarmScheduled = true;
-    const warm = () => { void loadGeoIndex().catch(() => {}); };
+    const warm = () => { void loadGeoIndex().catch(() => { geoWarmScheduled = false; }); };
     if (typeof requestIdleCallback === "function") requestIdleCallback(warm, { timeout: 1000 });
     else if (typeof setTimeout === "function") setTimeout(warm, 0);
     else warm();
