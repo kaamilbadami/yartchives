@@ -42,6 +42,13 @@
     return duration;
   }
 
+  function normalizeGeoErrorCode(value) {
+    const code = normalize(value);
+    if (!code) return null;
+    if (code === "geo_network" || code === "geo_malformed" || /^geo_http_(?:[1-5][0-9]{2}|error)$/.test(code)) return code;
+    return "geo_unknown";
+  }
+
   const TIMING_STAGE_LABELS = {
     paint_wait: "Paint wait",
     candidate_artifact: "Candidate download",
@@ -63,6 +70,7 @@
     lines.push(
       `Candidates: ${Number(counts.candidates || 0)} · Rankable: ${Number(counts.rankable || 0)} · Distance candidates: ${Number(counts.distance_candidates || 0)} · Unique distance lookups: ${Number(counts.distance_unique_lookups || 0)} · Distance cache hits: ${Number(counts.distance_cache_hits || 0)} · Distance lookup failures: ${Number(counts.distance_lookup_failures || 0)} · Recommendations: ${Number(counts.recommendations || 0)}`
     );
+    if (payload.geo_error) lines.push(`Geo load error: ${payload.geo_error}`);
     lines.push(`Status: ${payload.status || "unknown"}`);
     return lines.join("\n");
   }
@@ -131,6 +139,7 @@
         distance_lookup_failures: Number(metadata.distance_lookup_failures || 0),
         recommendations: Number(metadata.recommendations || 0),
       },
+      geo_error: normalizeGeoErrorCode(metadata.geo_error),
       status: metadata.status || "success",
     };
     if (typeof globalThis !== "undefined") globalThis.__YARTCHIVES_APPLY_NEXT_TIMING__ = payload;
@@ -650,15 +659,16 @@
       delete job._distanceMilesBasis;
     }
 
-    const stats = { unique_lookups: 0, cache_hits: 0, lookup_failures: 0 };
+    const stats = { unique_lookups: 0, cache_hits: 0, lookup_failures: 0, geo_error: null };
     const zips = (profile?.baseZips || []).filter(value => /^\d{5}$/.test(String(value)));
     if (!zips.length || typeof loadGeoIndex !== "function" || typeof distanceForJob !== "function") return stats;
 
     let geo;
     try {
       geo = await loadGeoIndex();
-    } catch (_) {
+    } catch (error) {
       stats.lookup_failures += 1;
+      stats.geo_error = normalizeGeoErrorCode(error?.code);
       return stats;
     }
 
@@ -1355,6 +1365,7 @@
   async function renderQueue(panel, profile) {
     const timing = { startedAt: timingNow(), stages: {} };
     const counts = { candidates: 0, rankable: 0, distance_candidates: 0, distance_unique_lookups: 0, distance_cache_hits: 0, distance_lookup_failures: 0, recommendations: 0 };
+    let geoError = null;
     let timingStatus = "success";
 
     setProfileSetupMode(true);
@@ -1407,6 +1418,7 @@
       counts.distance_unique_lookups = Number(distanceStats?.unique_lookups || 0);
       counts.distance_cache_hits = Number(distanceStats?.cache_hits || 0);
       counts.distance_lookup_failures = Number(distanceStats?.lookup_failures || 0);
+      geoError = distanceStats?.geo_error || null;
       recordTimingStage(timing, "location_enrichment", stageStartedAt);
 
       stageStartedAt = timingNow();
@@ -1433,7 +1445,7 @@
     } finally {
       clearTimeout(slowLoadingTimer);
       panel.setAttribute("aria-busy", "false");
-      const timingPayload = publishApplyNextTiming(timing, { ...counts, status: timingStatus });
+      const timingPayload = publishApplyNextTiming(timing, { ...counts, geo_error: geoError, status: timingStatus });
       renderTimingDiagnostic(panel, timingPayload);
     }
   }
@@ -1529,6 +1541,7 @@
     saveProfile,
     timingNow,
     recordTimingStage,
+    normalizeGeoErrorCode,
     publishApplyNextTiming,
     timingDiagnosticText,
     dominantTimingStage,

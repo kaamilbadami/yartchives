@@ -484,18 +484,27 @@ assert.deepEqual(timingPayload, {
   total_ms: 80,
   stages_ms: { location_enrichment: 25.7 },
   counts: { candidates: 500, rankable: 42, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, recommendations: 10 },
+  geo_error: null,
   status: "success",
 });
 assert.deepEqual(loggedTiming, timingPayload);
 assert.deepEqual(globalThis.__YARTCHIVES_APPLY_NEXT_TIMING__, timingPayload);
 
+assert.equal(UI.normalizeGeoErrorCode("geo_http_404"), "geo_http_404");
+assert.equal(UI.normalizeGeoErrorCode("geo_http_503"), "geo_http_503");
+assert.equal(UI.normalizeGeoErrorCode("geo_network"), "geo_network");
+assert.equal(UI.normalizeGeoErrorCode("geo_malformed"), "geo_malformed");
+assert.equal(UI.normalizeGeoErrorCode("anything-sensitive-or-unexpected"), "geo_unknown");
+
 const diagnosticText = UI.timingDiagnosticText({
   total_ms: 10400,
   stages_ms: { candidate_artifact: 9600, ranking: 100, render: 200 },
   counts: { candidates: 5000, rankable: 42, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, recommendations: 10 },
+  geo_error: "geo_http_404",
   status: "success",
 });
 assert.match(diagnosticText, /Apply Next total: 10400\.0 ms/);
+assert.match(diagnosticText, /Geo load error: geo_http_404/);
 assert.match(diagnosticText, /Candidate download: 9600\.0 ms/);
 assert.match(diagnosticText, /Candidates: 5000 · Rankable: 42 · Distance candidates: 12 · Unique distance lookups: 7 · Distance cache hits: 5 · Distance lookup failures: 2 · Recommendations: 10/);
 assert.doesNotMatch(diagnosticText, /profile|ZIP|company|jobId|URL/i);
