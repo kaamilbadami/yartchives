@@ -92,9 +92,11 @@ jobs:
 
           changed_paths="$(git diff --name-only "$BEFORE_SHA" "$AFTER_SHA")"
 
-          if printf '%s\n' "$changed_paths" | grep -Eq '^(index\.html|[^/]+\.(js|css)|assets/|data/listings\.json$|data/workday-inspections\.json$|scripts/build_apply_next_inspections\.py$|\.nojekyll$|\.github/workflows/deploy-pages\.yml$)'; then
+          if printf '%s\n' "$changed_paths" | grep -Eq '^(index\.html|[^/]+\.(js|css)|assets/|data/listings\.json$|data/workday-inspections\.json$|scripts/build_apply_next_inspections\.py$|scripts/build_apply_next_candidates\.py$|scripts/build_geo_index\.py$|\.nojekyll$|\.github/workflows/deploy-pages\.yml$)'; then
             echo "Auto-merge changed deploy-relevant files; dispatching Pages from resulting main."
-            gh workflow run deploy-pages.yml --repo "$REPOSITORY" --ref main
+            gh api --method POST "repos/$REPOSITORY/dispatches" \
+              -f event_type=deploy_yartchives_site \
+              -f "client_payload[sha]=$AFTER_SHA"
           else
             echo "Auto-merge changed only non-site files; no Pages deploy needed."
           fi

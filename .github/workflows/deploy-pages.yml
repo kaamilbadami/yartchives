@@ -21,6 +21,9 @@ on:
       - Update opportunity feed
     types:
       - completed
+  repository_dispatch:
+    types:
+      - deploy_yartchives_site
   workflow_dispatch:
 
 permissions:
