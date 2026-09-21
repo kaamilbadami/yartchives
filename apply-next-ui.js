@@ -10,11 +10,14 @@
   const FOUNDING_BETA_TESTER_KEY = "yartchives-founding-beta-tester-v1";
   const ENTRY_MODE_KEY = "yartchives-entry-mode-v1";
   const INSPECTION_URL = "data/apply-next-inspections.json";
+  const CANDIDATE_URL = "data/apply-next-candidates.json";
   const TOP_N = 10;
   const FRESH_MAX_AGE_DAYS = 3;
   const FRESH_MIN_SCORE = 55;
   const FEEDBACK_ENDPOINT = "https://formspree.io/f/mqakpejw";
   let inspectionArtifactPromise = null;
+  let candidateArtifactPromise = null;
+  let recommendationJobs = [];
   let lastRankedResults = [];
   let lastProfile = null;
   let lastTotalEligibleCount = 0;
@@ -289,6 +292,25 @@
     if (fetchImpl) return fetchInspectionArtifact(fetchImpl);
     if (!inspectionArtifactPromise) inspectionArtifactPromise = fetchInspectionArtifact();
     return inspectionArtifactPromise;
+  }
+
+  async function fetchCandidateArtifact(fetchImpl) {
+    const client = fetchImpl || (typeof fetch === "function" ? fetch : null);
+    if (!client) return [];
+    try {
+      const response = await client(CANDIDATE_URL);
+      if (!response || !response.ok) return [];
+      const payload = await response.json();
+      return Array.isArray(payload?.jobs) ? payload.jobs : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function loadCandidateArtifact(fetchImpl) {
+    if (fetchImpl) return fetchCandidateArtifact(fetchImpl);
+    if (!candidateArtifactPromise) candidateArtifactPromise = fetchCandidateArtifact();
+    return candidateArtifactPromise;
   }
 
   function attachInspections(jobs, artifact) {
@@ -1098,7 +1120,7 @@
     }
 
     const poolCount = (typeof feed !== "undefined" && Array.isArray(feed?.jobs) && profile)
-      ? candidatePool(feed.jobs, profile, state).length
+      ? candidatePool(recommendationJobs, profile, state).length
       : 0;
     renderCurrentQueue(targetPanel, profile, poolCount);
   }
@@ -1143,7 +1165,7 @@
       button.addEventListener("click", () => {
         if (activeQueueView === view) return;
         activeQueueView = view;
-        renderCurrentQueue(panel, profile, candidatePool(feed.jobs, profile, state).length);
+        renderCurrentQueue(panel, profile, candidatePool(recommendationJobs, profile, state).length);
       });
       viewTabs.append(button);
     }
@@ -1163,16 +1185,10 @@
     loadMore.type = "button";
     loadMore.addEventListener("click", () => {
       queueVisibleCounts[activeQueueView] = (queueVisibleCounts[activeQueueView] || TOP_N) + TOP_N;
-      renderCurrentQueue(panel, profile, candidatePool(feed.jobs, profile, state).length);
+      renderCurrentQueue(panel, profile, candidatePool(recommendationJobs, profile, state).length);
     });
     fragment.append(loadMore);
     return fragment;
-  }
-
-  function feedReadyForRecommendations() {
-    return typeof isFeedReady === "function"
-      ? Boolean(isFeedReady())
-      : (typeof feed !== "undefined" && Array.isArray(feed.jobs));
   }
 
   async function renderQueue(panel, profile) {
@@ -1199,17 +1215,15 @@
     await YartchivesUtils.waitForBrowserPaint();
     recordTimingStage(timing, "paint_wait", stageStartedAt);
 
-    if (!feedReadyForRecommendations()) {
-      clearTimeout(slowLoadingTimer);
-      return;
-    }
-
     try {
-      if (typeof feed === "undefined" || !Array.isArray(feed.jobs)) throw new Error("Feed not available");
+      stageStartedAt = timingNow();
+      recommendationJobs = await loadCandidateArtifact();
+      recordTimingStage(timing, "candidate_artifact", stageStartedAt);
+      if (!recommendationJobs.length) throw new Error("Apply Next candidates unavailable");
 
       stageStartedAt = timingNow();
-      const pool = candidatePool(feed.jobs, profile, state);
-      lastTotalEligibleCount = eligiblePoolCount(feed.jobs, profile);
+      const pool = candidatePool(recommendationJobs, profile, state);
+      lastTotalEligibleCount = eligiblePoolCount(recommendationJobs, profile);
       counts.candidates = pool.length;
       recordTimingStage(timing, "candidate_filter", stageStartedAt);
 
@@ -1345,7 +1359,8 @@
     timingNow,
     recordTimingStage,
     publishApplyNextTiming,
-    feedReadyForRecommendations,
+    fetchCandidateArtifact,
+    loadCandidateArtifact,
     knownWrongTerm,
     candidatePool,
     authoritativeCandidatePool,
