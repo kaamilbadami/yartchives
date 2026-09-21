@@ -630,6 +630,16 @@
       .map(item => item.value);
   }
 
+  function distanceCacheKey(value, job, origin) {
+    const normalizedValue = normalize(value).toLowerCase().replace(/\s+/g, " ");
+    const states = Array.isArray(job?.states)
+      ? job.states.map(state => normalize(state).toUpperCase()).filter(Boolean).sort().join(",")
+      : "";
+    const lat = Number(origin?.lat);
+    const lon = Number(origin?.lon);
+    return `${states}|${normalizedValue}|${Number.isFinite(lat) ? lat : ""}|${Number.isFinite(lon) ? lon : ""}`;
+  }
+
   async function addBaseDistances(jobs, profile) {
     for (const job of jobs || []) {
       if (!job || typeof job !== "object") continue;
@@ -643,13 +653,19 @@
       const geo = await loadGeoIndex();
       const origins = zips.map(zip => geo.zips.get(zip)).filter(Boolean);
       if (!origins.length) return;
+      const distanceCache = new Map();
       for (const job of jobs) {
         const values = locationDisplayValues(job);
-        const perLocation = values.map(value => {
+        const perLocation = values.map(value => origins.map(origin => {
+          const cacheKey = distanceCacheKey(value, job, origin);
+          if (distanceCache.has(cacheKey)) return distanceCache.get(cacheKey);
           const pseudoJob = { ...job, location: value, _inspection: null };
           delete pseudoJob._geo;
-          return origins.map(origin => distanceForJob(pseudoJob, origin, geo));
-        });
+          delete pseudoJob._geoResolved;
+          const distance = distanceForJob(pseudoJob, origin, geo);
+          distanceCache.set(cacheKey, distance);
+          return distance;
+        }));
         const finiteDistances = perLocation.flat().filter(value => Number.isFinite(value));
         if (finiteDistances.length) {
           job._distanceMiles = Math.min(...finiteDistances);
@@ -1499,6 +1515,7 @@
     loadInspectionArtifact,
     attachInspections,
     addBaseDistances,
+    distanceCacheKey,
     isRemoteJob,
     componentLabel,
     componentExplanation,
