@@ -111,6 +111,37 @@ assert.deepEqual(
   "new profiles should default to all role families"
 );
 
+{
+  let clicks = 0;
+  const attrs = {};
+  const panel = {
+    dataset: { view: "apply-next" },
+    classList: {
+      hidden: false,
+      contains(name) { return name === "hidden" ? this.hidden : false; },
+      add(name) { if (name === "hidden") this.hidden = true; },
+    },
+  };
+  const button = {
+    click() { clicks += 1; },
+    setAttribute(name, value) { attrs[name] = value; },
+  };
+  const fakeDocument = {
+    querySelector(selector) {
+      if (selector === "#applyNextBtn") return button;
+      if (selector === "#applyNextPanel") return panel;
+      return null;
+    },
+  };
+
+  Setup.refreshApplyNextPanel(fakeDocument);
+
+  assert.equal(panel.classList.hidden, true, "save refresh should reset the open panel before reopening");
+  assert.equal(panel.dataset.view, "", "save refresh should clear the stale open-view guard");
+  assert.equal(attrs["aria-expanded"], "false");
+  assert.equal(clicks, 1, "save refresh should perform exactly one reopen click");
+}
+
 (async () => {
   const textFile = {
     name: "resume.txt",
@@ -160,6 +191,16 @@ assert.deepEqual(
   assert.match(source, /When are you graduating \(month year\)/);
   assert.match(source, /input\("targetTerm", "Summer 2027", "radio"\)/);
   assert.match(source, /profile \? "Save profile" : "Create profile"/, "New users should see a clear Create profile action");
+  assert.match(
+    source,
+    /panel\.classList\.add\("hidden"\);[\s\S]*panel\.dataset\.view = "";[\s\S]*button\.click\(\);/,
+    "Saving an edited profile should force one clean Apply Next rerender instead of re-clicking an already-open panel"
+  );
+  assert.doesNotMatch(
+    source,
+    /button\.click\(\);\s*setTimeout\(\(\) => button\.click\(\), 0\);/,
+    "Profile save refresh must not depend on the old toggle-button behavior"
+  );
   assert.doesNotMatch(source, /field\("Degree"/);
   assert.doesNotMatch(source, /Kaamil|Badami|kaamil\.badami/i);
 
