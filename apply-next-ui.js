@@ -41,6 +41,81 @@
     return duration;
   }
 
+  const TIMING_STAGE_LABELS = {
+    paint_wait: "Paint wait",
+    candidate_artifact: "Candidate download",
+    candidate_filter: "Candidate filtering",
+    inspection_artifact: "Inspection download",
+    inspection_attach: "Inspection attachment",
+    location_enrichment: "Location enrichment",
+    ranking: "Ranking",
+    render: "Render",
+  };
+
+  function timingDiagnosticText(payload) {
+    if (!payload) return "";
+    const lines = [`Apply Next total: ${Number(payload.total_ms || 0).toFixed(1)} ms`];
+    for (const [name, value] of Object.entries(payload.stages_ms || {})) {
+      lines.push(`${TIMING_STAGE_LABELS[name] || name}: ${Number(value || 0).toFixed(1)} ms`);
+    }
+    const counts = payload.counts || {};
+    lines.push(
+      `Candidates: ${Number(counts.candidates || 0)} · Rankable: ${Number(counts.rankable || 0)} · Recommendations: ${Number(counts.recommendations || 0)}`
+    );
+    lines.push(`Status: ${payload.status || "unknown"}`);
+    return lines.join("\n");
+  }
+
+  function dominantTimingStage(payload) {
+    let dominant = null;
+    for (const [name, rawValue] of Object.entries(payload?.stages_ms || {})) {
+      const value = Number(rawValue);
+      if (!Number.isFinite(value)) continue;
+      if (!dominant || value > dominant.ms) dominant = { name, ms: value };
+    }
+    return dominant;
+  }
+
+  function renderTimingDiagnostic(panel, payload) {
+    if (!panel || !payload || typeof document === "undefined") return null;
+    panel.querySelector(".apply-next-diagnostics")?.remove();
+
+    const details = element("details", "apply-next-diagnostics");
+    if (Number(payload.total_ms || 0) >= 1500) details.open = true;
+
+    const dominant = dominantTimingStage(payload);
+    const totalSeconds = Number(payload.total_ms || 0) / 1000;
+    const summaryText = dominant
+      ? `Performance: ${totalSeconds.toFixed(1)}s · slowest: ${TIMING_STAGE_LABELS[dominant.name] || dominant.name} ${(dominant.ms / 1000).toFixed(1)}s`
+      : `Performance: ${totalSeconds.toFixed(1)}s`;
+    details.append(element("summary", "", summaryText));
+
+    details.append(
+      element(
+        "p",
+        "apply-next-note",
+        "Beta diagnostics only. This contains aggregate timing and counts, not your profile, ZIP, employers, jobs, URLs, or feedback."
+      ),
+      element("pre", "apply-next-diagnostics-output", timingDiagnosticText(payload))
+    );
+
+    const copy = element("button", "ghost-btn apply-next-diagnostics-copy", "Copy diagnostics");
+    copy.type = "button";
+    copy.addEventListener("click", async () => {
+      const output = details.querySelector(".apply-next-diagnostics-output");
+      try {
+        if (!navigator?.clipboard?.writeText) throw new Error("Clipboard unavailable");
+        await navigator.clipboard.writeText(output?.textContent || "");
+        copy.textContent = "Copied";
+      } catch (_) {
+        copy.textContent = "Select text above to copy";
+      }
+    });
+    details.append(copy);
+    panel.append(details);
+    return details;
+  }
+
   function publishApplyNextTiming(timing, metadata = {}, endedAt = timingNow()) {
     if (!timing) return null;
     const payload = {
@@ -1278,7 +1353,8 @@
     } finally {
       clearTimeout(slowLoadingTimer);
       panel.setAttribute("aria-busy", "false");
-      publishApplyNextTiming(timing, { ...counts, status: timingStatus });
+      const timingPayload = publishApplyNextTiming(timing, { ...counts, status: timingStatus });
+      renderTimingDiagnostic(panel, timingPayload);
     }
   }
 
@@ -1374,6 +1450,9 @@
     timingNow,
     recordTimingStage,
     publishApplyNextTiming,
+    timingDiagnosticText,
+    dominantTimingStage,
+    renderTimingDiagnostic,
     fetchCandidateArtifact,
     loadCandidateArtifact,
     scheduleGeoWarm,
