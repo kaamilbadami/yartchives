@@ -15,6 +15,7 @@
   const FRESH_MAX_AGE_DAYS = 3;
   const FRESH_MIN_SCORE = 55;
   const LOCATION_DISTANCE_MAX_GAIN = 18;
+  const LOCATION_ENRICHMENT_YIELD_EVERY = 32;
   const FEEDBACK_ENDPOINT = "https://formspree.io/f/mqakpejw";
   let inspectionArtifactPromise = null;
   let candidateArtifactPromise = null;
@@ -33,6 +34,20 @@
   function timingNow() {
     if (typeof performance !== "undefined" && typeof performance.now === "function") return performance.now();
     return Date.now();
+  }
+
+  function yieldToBrowser() {
+    if (
+      typeof globalThis !== "undefined"
+      && globalThis.scheduler
+      && typeof globalThis.scheduler.yield === "function"
+    ) {
+      return globalThis.scheduler.yield();
+    }
+    return new Promise(resolve => {
+      if (typeof setTimeout === "function") setTimeout(resolve, 0);
+      else resolve();
+    });
   }
 
   function recordTimingStage(timing, name, startedAt, endedAt = timingNow()) {
@@ -682,7 +697,13 @@
     if (!origins.length) return stats;
 
     const distanceCache = new Map();
-    for (const job of jobs || []) {
+    const distanceJobs = jobs || [];
+    for (let jobIndex = 0; jobIndex < distanceJobs.length; jobIndex += 1) {
+      if (jobIndex > 0 && jobIndex % LOCATION_ENRICHMENT_YIELD_EVERY === 0) {
+        await yieldToBrowser();
+      }
+
+      const job = distanceJobs[jobIndex];
       if (!job || typeof job !== "object") continue;
 
       let values;
@@ -1548,6 +1569,7 @@
     loadProfile,
     saveProfile,
     timingNow,
+    yieldToBrowser,
     recordTimingStage,
     normalizeGeoErrorCode,
     publishApplyNextTiming,
