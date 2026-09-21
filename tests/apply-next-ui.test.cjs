@@ -333,6 +333,7 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /const rankablePool = authoritativeCandidatePool\(pool\);/, "Apply Next should narrow to authoritative candidates before expensive location work");
   assert.match(uiSource, /const preliminaryRanked = YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\);/, "Apply Next should cheaply pre-rank before exact distance work");
   assert.match(uiSource, /const distanceCandidates = distanceEnrichmentCandidates\(preliminaryRanked, rankingNow\);/, "Exact distance work should be bounded to candidates that can still affect visible recommendations");
+  assert.match(uiSource, /counts\.distance_candidates = distanceCandidates\.length;/, "Timing diagnostics should expose the exact-distance shortlist size");
   assert.match(uiSource, /await addBaseDistances\(distanceCandidates, profile\);/, "Location enrichment must not scan the full rankable pool");
   assert.doesNotMatch(uiSource, /await addBaseDistances\(rankablePool, profile\);/, "Full-pool exact distance enrichment would reintroduce the measured bottleneck");
   assert.match(uiSource, /YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\)/, "Final ranking should use the same timestamp as the location pre-rank");
@@ -469,14 +470,14 @@ let loggedTiming = null;
 console.info = (_label, payload) => { loggedTiming = payload; };
 const timingPayload = UI.publishApplyNextTiming(
   timing,
-  { candidates: 500, rankable: 42, recommendations: 10, status: "success" },
+  { candidates: 500, rankable: 42, distance_candidates: 12, recommendations: 10, status: "success" },
   180.04
 );
 console.info = priorInfo;
 assert.deepEqual(timingPayload, {
   total_ms: 80,
   stages_ms: { location_enrichment: 25.7 },
-  counts: { candidates: 500, rankable: 42, recommendations: 10 },
+  counts: { candidates: 500, rankable: 42, distance_candidates: 12, recommendations: 10 },
   status: "success",
 });
 assert.deepEqual(loggedTiming, timingPayload);
@@ -485,12 +486,12 @@ assert.deepEqual(globalThis.__YARTCHIVES_APPLY_NEXT_TIMING__, timingPayload);
 const diagnosticText = UI.timingDiagnosticText({
   total_ms: 10400,
   stages_ms: { candidate_artifact: 9600, ranking: 100, render: 200 },
-  counts: { candidates: 5000, rankable: 42, recommendations: 10 },
+  counts: { candidates: 5000, rankable: 42, distance_candidates: 12, recommendations: 10 },
   status: "success",
 });
 assert.match(diagnosticText, /Apply Next total: 10400\.0 ms/);
 assert.match(diagnosticText, /Candidate download: 9600\.0 ms/);
-assert.match(diagnosticText, /Candidates: 5000 · Rankable: 42 · Recommendations: 10/);
+assert.match(diagnosticText, /Candidates: 5000 · Rankable: 42 · Distance candidates: 12 · Recommendations: 10/);
 assert.doesNotMatch(diagnosticText, /profile|ZIP|company|jobId|URL/i);
 assert.deepEqual(
   UI.dominantTimingStage({ stages_ms: { candidate_artifact: 9600, ranking: 100, render: 200 } }),
@@ -511,6 +512,7 @@ globalThis.YartchivesAnalytics = {
 UI.publishApplyNextTiming(timing, { candidates: 10, rankable: 5, recommendations: 2 });
 assert.equal(trackedEvent, "apply_next_timing");
 assert.equal(trackedPayload.counts.candidates, 10);
+assert.equal(trackedPayload.counts.distance_candidates, 0);
 
 // Test non-blocking behavior when YartchivesAnalytics throws an exception
 globalThis.YartchivesAnalytics = {

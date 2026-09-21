@@ -61,7 +61,7 @@
     }
     const counts = payload.counts || {};
     lines.push(
-      `Candidates: ${Number(counts.candidates || 0)} · Rankable: ${Number(counts.rankable || 0)} · Recommendations: ${Number(counts.recommendations || 0)}`
+      `Candidates: ${Number(counts.candidates || 0)} · Rankable: ${Number(counts.rankable || 0)} · Distance candidates: ${Number(counts.distance_candidates || 0)} · Recommendations: ${Number(counts.recommendations || 0)}`
     );
     lines.push(`Status: ${payload.status || "unknown"}`);
     return lines.join("\n");
@@ -125,6 +125,7 @@
       counts: {
         candidates: Number(metadata.candidates || 0),
         rankable: Number(metadata.rankable || 0),
+        distance_candidates: Number(metadata.distance_candidates || 0),
         recommendations: Number(metadata.recommendations || 0),
       },
       status: metadata.status || "success",
@@ -1305,7 +1306,7 @@
 
   async function renderQueue(panel, profile) {
     const timing = { startedAt: timingNow(), stages: {} };
-    const counts = { candidates: 0, rankable: 0, recommendations: 0 };
+    const counts = { candidates: 0, rankable: 0, distance_candidates: 0, recommendations: 0 };
     let timingStatus = "success";
 
     setProfileSetupMode(true);
@@ -1353,6 +1354,7 @@
       const rankingNow = new Date();
       const preliminaryRanked = YartchivesApplyNext.rankJobs(rankablePool, profile, rankingNow);
       const distanceCandidates = distanceEnrichmentCandidates(preliminaryRanked, rankingNow);
+      counts.distance_candidates = distanceCandidates.length;
       await addBaseDistances(distanceCandidates, profile);
       recordTimingStage(timing, "location_enrichment", stageStartedAt);
 
