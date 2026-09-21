@@ -21,6 +21,7 @@ class ProviderFingerprintTests(unittest.TestCase):
             "https://jobs.lever.co/acme": "lever",
             "https://acme.eightfold.ai/careers": "eightfold",
             "https://acme.avature.net/careers": "avature",
+            "https://sjobs.brassring.com/TGnewUI/Search/Home/Home": "brassring",
         }
         for url, expected in cases.items():
             with self.subTest(url=url):

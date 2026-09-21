@@ -251,6 +251,38 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
         self.assertEqual(summary["attempted_employers"], 1)
         self.assertEqual(summary["requests_used"], 1)
 
+    def test_verified_brassring_tenant_fast_paths_then_completes_site(self):
+        employer = self.employer("verified-brassring")
+        employer["seed_sets"].append("state-of-ats-2026-verified-hosts")
+        employer["seed_metadata"]["state-of-ats-2026-verified-hosts"] = {
+            "ats_system": "Kenexa BrassRing",
+            "domain_hints": ["sjobs.brassring.com"],
+            "evidence_method": "Careers-portal apply host",
+            "source_url": "https://example.com/verified-brassring",
+        }
+        calls = []
+
+        def resolver(entry, **kwargs):
+            calls.append(entry["id"])
+            return self.resolved("https://sjobs.brassring.com/TGnewUI/Search/Home/Home", platform="brassring", requests=1)
+
+        updated, summary = mod.run_lifecycle(
+            self.universe([employer]),
+            now=NOW,
+            resolver=resolver,
+        )
+
+        self.assertEqual(calls, ["verified-brassring"])
+        row = updated["employers"][0]
+        self.assertEqual(row["careers_url"], "https://sjobs.brassring.com/TGnewUI/Search/Home/Home")
+        self.assertEqual(row["careers_platform"], "brassring")
+        self.assertEqual(row["provider"]["family"], "brassring")
+        self.assertEqual(row["careers_resolution"]["status"], "resolved")
+        self.assertEqual(row["careers_resolution"]["attempt_status"], "resolved")
+        self.assertEqual(summary["fast_path_provider_resolved"], 1)
+        self.assertEqual(summary["attempted_employers"], 1)
+        self.assertEqual(summary["requests_used"], 1)
+
     def test_shared_verified_provider_host_is_not_fast_pathed(self):
         employer = {
             "id": "shared-greenhouse",

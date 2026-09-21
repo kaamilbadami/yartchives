@@ -22,6 +22,7 @@ PROVIDER_PATTERNS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("eightfold", ("eightfold.ai", "eightfold")),
     ("avature", ("avature.net", "avature")),
     ("phenom", ("phenompeople.com", "phenom")),
+    ("brassring", ("brassring.com",)),
 )
 
 
