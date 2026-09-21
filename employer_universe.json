@@ -110,7 +110,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -1684,7 +1684,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -1815,8 +1815,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T18:28:47Z",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "resolved_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -2018,7 +2018,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -2623,7 +2623,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -3765,7 +3765,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -3938,7 +3938,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -4590,7 +4590,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -4852,7 +4852,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -5147,7 +5147,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -5327,7 +5327,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -5373,7 +5373,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -5572,7 +5572,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -5653,7 +5653,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -5733,7 +5733,116 @@
       },
       "domain_hints": [
         "apollo.com"
-      ]
+      ],
+      "careers_url": "https://www.apollo.com/careers",
+      "careers_platform": "company-branded",
+      "provider": {
+        "family": "unknown",
+        "status": "ambiguous",
+        "evidence": "multiple_provider_markers",
+        "candidates": [
+          "phenom",
+          "workday"
+        ],
+        "host": "www.apollo.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://apollo.com/",
+            "redirect_chain": [
+              {
+                "url": "https://apollo.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.apollo.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.apollo.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://apollo.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://apollo.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.apollo.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.apollo.com/careers",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://apollo.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://apollo.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.apollo.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.apollo.com/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://www.apollo.com/careers",
+            "linked_from": "https://www.apollo.com/",
+            "redirect_chain": [
+              {
+                "url": "https://www.apollo.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.apollo.com/careers",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          }
+        ]
+      }
     },
     {
       "id": "appian",
@@ -10192,7 +10301,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -14284,8 +14393,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T18:28:47Z",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "resolved_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -20297,8 +20406,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T18:28:47Z",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "resolved_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -24027,7 +24136,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
@@ -33612,7 +33721,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:28:47Z",
+        "last_attempt_at": "2026-09-21T18:52:48Z",
         "evidence": [
           {
             "type": "http",
