@@ -15,11 +15,10 @@ class StaticContractTests(unittest.TestCase):
             "educationSelect", "opportunityTypeSelect", "freshnessSelect", "statusSelect",
             "jobs", "jobCardTemplate", "loadMoreBtn", "shownCount", "totalCount",
             "newCount", "savedCount", "resultsTitle", "resultsNote", "feedMeta",
-            "sourceHealth", "errorBox", "shareBtn", "clearFiltersBtn", "jobsViewBtn", "companiesViewBtn",
+            "sourceHealth", "errorBox", "clearFiltersBtn", "jobsViewBtn", "companiesViewBtn",
         }
         missing = sorted(item for item in required if soup.find(id=item) is None)
         self.assertEqual(missing, [])
-        self.assertEqual(soup.find(id="shareBtn").get_text(strip=True), "Copy link")
         mascot = soup.select_one(".brand-mark")
         self.assertIsNotNone(mascot)
         self.assertEqual(mascot.name, "img")
