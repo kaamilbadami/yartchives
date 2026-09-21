@@ -71,6 +71,8 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn('PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}', quality)
         self.assertIn('quality_scope.sh "$PR_BASE_SHA" "$PR_HEAD_SHA"', quality)
         self.assertNotIn('quality_scope.sh "$PR_BASE_SHA" "$GITHUB_SHA"', quality)
+        scope = (ROOT / "scripts" / "quality_scope.sh").read_text()
+        self.assertIn('git diff --name-only "$base...$head"', scope)
         self.assertIn("bash scripts/run_quality_checks.sh health", preflight)
         self.assertIn("bash scripts/run_quality_checks.sh health", quality)
 
