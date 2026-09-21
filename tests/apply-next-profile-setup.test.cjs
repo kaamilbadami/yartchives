@@ -111,6 +111,37 @@ assert.deepEqual(
   "new profiles should default to all role families"
 );
 
+{
+  let clicks = 0;
+  const attrs = {};
+  const panel = {
+    dataset: { view: "apply-next" },
+    classList: {
+      hidden: false,
+      contains(name) { return name === "hidden" ? this.hidden : false; },
+      add(name) { if (name === "hidden") this.hidden = true; },
+    },
+  };
+  const button = {
+    click() { clicks += 1; },
+    setAttribute(name, value) { attrs[name] = value; },
+  };
+  const fakeDocument = {
+    querySelector(selector) {
+      if (selector === "#applyNextBtn") return button;
+      if (selector === "#applyNextPanel") return panel;
+      return null;
+    },
+  };
+
+  Setup.refreshApplyNextPanel(fakeDocument);
+
+  assert.equal(panel.classList.hidden, true, "save refresh should reset the open panel before reopening");
+  assert.equal(panel.dataset.view, "", "save refresh should clear the stale open-view guard");
+  assert.equal(attrs["aria-expanded"], "false");
+  assert.equal(clicks, 1, "save refresh should perform exactly one reopen click");
+}
+
 (async () => {
   const textFile = {
     name: "resume.txt",
