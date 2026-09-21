@@ -231,6 +231,11 @@ const pool = UI.candidatePool(jobs, profile, {
 assert.deepEqual(pool.map(job => job.id), ["good", "unknown-term"]);
 assert.equal(UI.knownWrongTerm(jobs[2], profile), true);
 assert.equal(UI.knownWrongTerm(jobs[1], profile), false);
+jobs[0]._inspection = { status: "inspected" };
+jobs[1]._inspection = { status: "metadata-only" };
+assert.deepEqual(UI.authoritativeCandidatePool(jobs).map(job => job.id), ["good"]);
+delete jobs[0]._inspection;
+delete jobs[1]._inspection;
 assert.match(UI.profileSummary(profile), /Summer 2027/);
 assert.match(UI.profileSummary(profile), /Wilton/);
 
@@ -326,6 +331,9 @@ assert.equal(jobs[2]._inspection, undefined);
 
   assert.doesNotMatch(uiSource, /function waitForBrowserPaint\(\)/, "Apply Next should not own a feature-specific paint helper");
   assert.match(uiSource, /await YartchivesUtils\.waitForBrowserPaint\(\)/, "Apply Next should use the shared browser-paint primitive");
+  assert.match(uiSource, /const rankablePool = authoritativeCandidatePool\(pool\);/, "Apply Next should narrow to authoritative candidates before expensive location work");
+  assert.match(uiSource, /await addBaseDistances\(rankablePool, profile\);/, "Location work should only run for rankable candidates");
+  assert.match(uiSource, /YartchivesApplyNext\.rankJobs\(rankablePool, profile, new Date\(\)\)/, "Ranking should consume the same narrowed candidate pool");
   const renderQueueSource = uiSource.match(/async function renderQueue\(panel, profile\) \{([\s\S]*?)\n  \}/);
   assert.ok(renderQueueSource, "renderQueue should be present");
   assert.ok(
