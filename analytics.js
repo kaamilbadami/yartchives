@@ -4,7 +4,9 @@
   else root.YartchivesAnalytics = api;
 })(typeof globalThis !== "undefined" ? globalThis : this, function (root) {
   const ENDPOINT = "https://formspree.io/f/mqakpejw";
-  const SCHEMA = "yartchives-usage-v1";
+  const SCHEMA = "yartchives-usage-v2";
+  const VISITOR_ID_KEY = "yartchives.analytics.visitor.v1";
+  const FIRST_SEEN_KEY = "yartchives.analytics.firstSeen.v1";
   const ALLOWED_EVENTS = new Set([
     "site_open",
     "apply_next_open",
@@ -80,14 +82,61 @@
     };
   }
 
-  function randomSessionId() {
+  function randomId(prefix) {
     try {
-      if (root.crypto?.randomUUID) return root.crypto.randomUUID();
+      if (root.crypto?.randomUUID) return `${prefix}-${root.crypto.randomUUID()}`;
     } catch (_) {}
-    return `session-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+    return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+  }
+
+  function randomSessionId() {
+    return randomId("session");
+  }
+
+  function currentDay() {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  function loadVisitorState() {
+    const fallback = {
+      visitorId: randomId("visitor"),
+      firstSeenDay: currentDay(),
+      isReturning: false,
+      persistent: false,
+    };
+
+    let storage;
+    try {
+      storage = root.localStorage;
+    } catch (_) {
+      return fallback;
+    }
+    if (!storage?.getItem || !storage?.setItem) return fallback;
+
+    try {
+      const existingId = storage.getItem(VISITOR_ID_KEY);
+      const existingFirstSeen = storage.getItem(FIRST_SEEN_KEY);
+      if (existingId) {
+        return {
+          visitorId: existingId.slice(0, 100),
+          firstSeenDay: /^\d{4}-\d{2}-\d{2}$/.test(existingFirstSeen || "")
+            ? existingFirstSeen
+            : currentDay(),
+          isReturning: true,
+          persistent: true,
+        };
+      }
+
+      storage.setItem(VISITOR_ID_KEY, fallback.visitorId);
+      storage.setItem(FIRST_SEEN_KEY, fallback.firstSeenDay);
+      return { ...fallback, persistent: true };
+    } catch (_) {
+      return fallback;
+    }
   }
 
   const sessionId = randomSessionId();
+  const visitor = loadVisitorState();
 
   function normalizedIncrement(event, properties) {
     if (event === "recommendations_shown") {
@@ -133,6 +182,9 @@
       ?.getAttribute("content") || "";
     const payload = {
       schema: SCHEMA,
+      visitorId: visitor.visitorId,
+      firstSeenDay: visitor.firstSeenDay,
+      returningVisitor: visitor.isReturning,
       sessionId,
       sequence: ++sequence,
       startedAt,
@@ -183,6 +235,10 @@
 
   function snapshot() {
     return {
+      visitorId: visitor.visitorId,
+      firstSeenDay: visitor.firstSeenDay,
+      returningVisitor: visitor.isReturning,
+      persistentVisitor: visitor.persistent,
       sessionId,
       sequence,
       events: pendingCounts(),
@@ -205,6 +261,7 @@
     SCHEMA,
     ALLOWED_EVENTS,
     sanitizeTimingPayload,
+    loadVisitorState,
     track,
     flush,
     snapshot,
