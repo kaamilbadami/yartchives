@@ -693,27 +693,29 @@
         continue;
       }
 
-      const perLocation = values.map(value => origins.map(origin => {
-        const cacheKey = distanceCacheKey(value, job, origin);
-        if (distanceCache.has(cacheKey)) {
-          stats.cache_hits += 1;
-          return distanceCache.get(cacheKey);
-        }
+      const perLocation = values.map(value => {
+        const pseudoJob = { ...job, location: value, _inspection: null };
+        delete pseudoJob._geo;
+        delete pseudoJob._geoResolved;
+        return origins.map(origin => {
+          const cacheKey = distanceCacheKey(value, job, origin);
+          if (distanceCache.has(cacheKey)) {
+            stats.cache_hits += 1;
+            return distanceCache.get(cacheKey);
+          }
 
-        let distance = null;
-        try {
-          const pseudoJob = { ...job, location: value, _inspection: null };
-          delete pseudoJob._geo;
-          delete pseudoJob._geoResolved;
-          distance = distanceForJob(pseudoJob, origin, geo);
-        } catch (_) {
-          stats.lookup_failures += 1;
-        }
+          let distance = null;
+          try {
+            distance = distanceForJob(pseudoJob, origin, geo);
+          } catch (_) {
+            stats.lookup_failures += 1;
+          }
 
-        distanceCache.set(cacheKey, distance);
-        stats.unique_lookups = distanceCache.size;
-        return distance;
-      }));
+          distanceCache.set(cacheKey, distance);
+          stats.unique_lookups = distanceCache.size;
+          return distance;
+        });
+      });
 
       const finiteDistances = perLocation.flat().filter(value => Number.isFinite(value));
       if (finiteDistances.length) {
