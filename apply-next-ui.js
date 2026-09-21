@@ -149,6 +149,10 @@
     }).length;
   }
 
+  function authoritativeCandidatePool(jobs) {
+    return (jobs || []).filter(job => job?._inspection?.status === "inspected");
+  }
+
 
   function explainProfileChange(oldProfile, newProfile, oldTopId, newTopId) {
     if (!oldProfile || !newProfile) return null;
@@ -1134,8 +1138,13 @@
 
       const artifact = await loadInspectionArtifact();
       attachInspections(pool, artifact);
-      await addBaseDistances(pool, profile);
-      const ranked = YartchivesApplyNext.rankJobs(pool, profile, new Date());
+
+      // Apply Next ranking only admits authoritative inspected postings. Restrict
+      // expensive ZIP/location work to that same rankable set instead of
+      // geocoding thousands of candidates that rankJobs will immediately drop.
+      const rankablePool = authoritativeCandidatePool(pool);
+      await addBaseDistances(rankablePool, profile);
+      const ranked = YartchivesApplyNext.rankJobs(rankablePool, profile, new Date());
 
       const explanation = explainProfileChange(lastProfile, profile, lastRankedResults?.[0]?.job?.id, ranked?.[0]?.job?.id);
 
@@ -1244,6 +1253,7 @@
     saveProfile,
     knownWrongTerm,
     candidatePool,
+    authoritativeCandidatePool,
     profileSummary,
     formatPostedDate,
     locationValueText,
