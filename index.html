@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self'; img-src 'self' data:; connect-src 'self' https://raw.githubusercontent.com; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com; worker-src 'self' blob: https://cdnjs.cloudflare.com; style-src 'self'; img-src 'self' data:; connect-src 'self' https://raw.githubusercontent.com https://formspree.io; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests" />
   <meta name="referrer" content="no-referrer" />
   <meta name="description" content="Yartchives — a multi-source platform for internships, research, fellowships, and early-career opportunities." />
   <meta name="yartchives-build" content="__YARTCHIVES_BUILD_SHA__" />
@@ -175,7 +175,7 @@
     </article>
   </template>
 
-  <script src="frontend-utils.js" defer></script>
+  <script src="analytics.js" defer></script>\n  <script src="frontend-utils.js" defer></script>
   <script src="app.js" defer></script>
   <script src="profile-config.js" defer></script>
   <script src="enhancements.js" defer></script>
