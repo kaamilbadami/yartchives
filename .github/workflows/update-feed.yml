@@ -116,10 +116,10 @@ jobs:
         env:
           USAJOBS_API_KEY: ${{ secrets.USAJOBS_API_KEY }}
           USAJOBS_EMAIL: ${{ secrets.USAJOBS_EMAIL }}
-        run: python scripts/benchmark_feed_stages.py --record \"collection\" -- python scripts/build_feed.py
+        run: python scripts/benchmark_feed_stages.py --record "collection" -- python scripts/build_feed.py
 
       - name: Discover resolved and feed-evidenced US Workday career sites
-        run: python scripts/benchmark_feed_stages.py --record \"collection\" -- python scripts/discover_workday_sources.py data/listings.json --configured direct_sources.json --universe employer_universe.json --output /tmp/yartchives-direct-sources.json
+        run: python scripts/benchmark_feed_stages.py --record "collection" -- python scripts/discover_workday_sources.py data/listings.json --configured direct_sources.json --universe employer_universe.json --output /tmp/yartchives-direct-sources.json
 
       - name: Add ATS employer coverage in parallel
         run: |
@@ -129,28 +129,28 @@ jobs:
             --universe employer_universe.json
 
       - name: Add student-level metadata
-        run: python scripts/benchmark_feed_stages.py --record \"enrichment\" -- python scripts/enrich_feed.py data/listings.json
+        run: python scripts/benchmark_feed_stages.py --record "enrichment" -- python scripts/enrich_feed.py data/listings.json
 
       - name: Repair and validate application links
-        run: python scripts/benchmark_feed_stages.py --record \"link repair\" -- python scripts/repair_links.py data/listings.json --old-feed /tmp/yartchives-old-listings.json
+        run: python scripts/benchmark_feed_stages.py --record "link repair" -- python scripts/repair_links.py data/listings.json --old-feed /tmp/yartchives-old-listings.json
 
       - name: Recover provider-specific application links
-        run: python scripts/benchmark_feed_stages.py --record \"link repair\" -- python scripts/provider_links.py data/listings.json
+        run: python scripts/benchmark_feed_stages.py --record "link repair" -- python scripts/provider_links.py data/listings.json
 
       - name: Recover Jobright employer application links
-        run: python scripts/benchmark_feed_stages.py --record \"link repair\" -- python scripts/jobright_links.py data/listings.json
+        run: python scripts/benchmark_feed_stages.py --record "link repair" -- python scripts/jobright_links.py data/listings.json
 
       - name: Recover source-only application links
-        run: python scripts/benchmark_feed_stages.py --record \"link repair\" -- python scripts/source_links.py data/listings.json
+        run: python scripts/benchmark_feed_stages.py --record "link repair" -- python scripts/source_links.py data/listings.json
 
       - name: Reconcile duplicate Workday postings
-        run: python scripts/benchmark_feed_stages.py --record \"ATS reconciliation\" -- python scripts/reconcile_workday_duplicates.py data/listings.json
+        run: python scripts/benchmark_feed_stages.py --record "ATS reconciliation" -- python scripts/reconcile_workday_duplicates.py data/listings.json
 
       - name: Stabilize published job identities
-        run: python scripts/benchmark_feed_stages.py --record \"ATS reconciliation\" -- python scripts/stabilize_job_ids.py data/listings.json --old-feed /tmp/yartchives-old-listings.json
+        run: python scripts/benchmark_feed_stages.py --record "ATS reconciliation" -- python scripts/stabilize_job_ids.py data/listings.json --old-feed /tmp/yartchives-old-listings.json
 
       - name: Validate generated feed
-        run: python scripts/benchmark_feed_stages.py --record \"validation\" -- python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8 --enforce-link-contract
+        run: python scripts/benchmark_feed_stages.py --record "validation" -- python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8 --enforce-link-contract
 
       - name: Commit fast-path opportunity feed
         run: |
@@ -198,7 +198,7 @@ jobs:
           python scripts/benchmark_feed_stages.py --record "publication" -- bash -e /tmp/publication.sh
 
       - name: Print coverage audit
-        run: python scripts/benchmark_feed_stages.py --record \"audit\" -- python scripts/audit_feed.py data/listings.json
+        run: python scripts/benchmark_feed_stages.py --record "audit" -- python scripts/audit_feed.py data/listings.json
 
       - name: Measure frozen Northeast / Mid-Atlantic benchmark
         run: |
@@ -206,7 +206,7 @@ jobs:
             --feed data/listings.json
 
       - name: Refresh generated README status
-        run: python scripts/benchmark_feed_stages.py --record \"audit\" -- python scripts/update_readme_status.py
+        run: python scripts/benchmark_feed_stages.py --record "audit" -- python scripts/update_readme_status.py
 
       - name: Commit slow-path enrichments and audits
         run: |
