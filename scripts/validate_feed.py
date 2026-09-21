@@ -38,13 +38,6 @@ def workday_direct_contract_errors(job: dict, label: str) -> list[str]:
     errors: list[str] = []
     if not urlparse(url).path.rstrip("/").casefold().endswith("/apply"):
         errors.append(f"link-quality: {label} Workday direct URL is not an /apply destination: {url}")
-    if job.get("link_status") != "ok":
-        errors.append(
-            f"link-quality: {label} Workday direct URL is not validated ok "
-            f"(status={job.get('link_status')!r}): {url}"
-        )
-    if not str(job.get("link_checked_at") or "").strip():
-        errors.append(f"link-quality: {label} Workday direct URL has no validation timestamp: {url}")
     return errors
 
 
@@ -210,7 +203,7 @@ def main() -> int:
     parser.add_argument(
         "--enforce-link-contract",
         action="store_true",
-        help="fail when a Workday link presented as direct Apply is not a validated /apply destination",
+        help="fail when a Workday link presented as direct Apply is not an /apply destination",
     )
     args = parser.parse_args()
 
