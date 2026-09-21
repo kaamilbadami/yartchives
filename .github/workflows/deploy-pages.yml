@@ -17,7 +17,6 @@ on:
   workflow_run:
     workflows:
       - Update opportunity feed
-      - Auto-merge autonomous agent PRs
     types:
       - completed
   workflow_dispatch:
@@ -45,42 +44,10 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Decide whether this run should deploy
-        id: should_deploy
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          SOURCE_WORKFLOW: ${{ github.event.workflow_run.name }}
-          SOURCE_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
-        run: |
-          set -euo pipefail
-
-          if [ "$EVENT_NAME" != "workflow_run" ] || [ "$SOURCE_WORKFLOW" != "Auto-merge autonomous agent PRs" ]; then
-            echo "deploy=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          CURRENT_SHA="$(git rev-parse HEAD)"
-          if [ -z "$SOURCE_HEAD_SHA" ] || ! git cat-file -e "${SOURCE_HEAD_SHA}^{commit}" 2>/dev/null; then
-            echo "::warning::Could not resolve auto-merge starting SHA; deploying conservatively."
-            echo "deploy=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          changed_paths="$(git diff --name-only "$SOURCE_HEAD_SHA" "$CURRENT_SHA")"
-          if printf '%s\n' "$changed_paths" | grep -Eq '^(index\.html|[^/]+\.(js|css)|assets/|data/listings\.json$|data/workday-inspections\.json$|scripts/build_apply_next_inspections\.py$|\.nojekyll$|\.github/workflows/deploy-pages\.yml$)'; then
-            echo "deploy=true" >> "$GITHUB_OUTPUT"
-            echo "Auto-merge advanced main across deploy-relevant paths."
-          else
-            echo "deploy=false" >> "$GITHUB_OUTPUT"
-            echo "Auto-merge did not change deploy-relevant paths; skipping Pages deployment."
-          fi
-
       - name: Configure Pages
-        if: steps.should_deploy.outputs.deploy == 'true'
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d
 
       - name: Build static artifact
-        if: steps.should_deploy.outputs.deploy == 'true'
         run: |
           rm -rf _site
           mkdir -p _site/data _site/assets
@@ -108,18 +75,15 @@ jobs:
           } > _site/deploy-manifest.txt
 
       - name: Upload Pages artifact
-        if: steps.should_deploy.outputs.deploy == 'true'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
         with:
           path: _site
 
       - name: Deploy to GitHub Pages
-        if: steps.should_deploy.outputs.deploy == 'true'
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346
 
       - name: Verify live deployment
-        if: steps.should_deploy.outputs.deploy == 'true'
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
