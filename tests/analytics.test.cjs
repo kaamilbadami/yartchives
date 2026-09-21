@@ -37,6 +37,7 @@ const dirtyPayload = {
   total_ms: 125.4,
   stages_ms: {
     paint_wait: 2.1,
+    candidate_artifact: 75.3,
     candidate_filter: 10.5,
     inspection_artifact: 50.2,
     disallowed_stage: 999,
@@ -57,6 +58,7 @@ const dirtyPayload = {
 const sanitized = Analytics.sanitizeTimingPayload(dirtyPayload);
 assert.equal(sanitized.total_ms, 125.4);
 assert.equal(sanitized.stages_ms.paint_wait, 2.1);
+assert.equal(sanitized.stages_ms.candidate_artifact, 75.3);
 assert.equal(sanitized.stages_ms.candidate_filter, 10.5);
 assert.equal(sanitized.stages_ms.inspection_artifact, 50.2);
 assert.equal(sanitized.stages_ms.disallowed_stage, undefined);
@@ -69,7 +71,21 @@ assert.equal(sanitized.profile, undefined);
 
 assert.equal(Analytics.track("apply_next_timing", dirtyPayload), true);
 
-const source = require("node:fs").readFileSync(require("node:path").join(__dirname, "..", "analytics.js"), "utf8");
+// Keep centralized telemetry in lockstep with every stage the Apply Next UI records.
+const fs = require("node:fs");
+const path = require("node:path");
+const uiSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-ui.js"), "utf8");
+const recordedStages = new Set(
+  [...uiSource.matchAll(/recordTimingStage\(timing,\s*"([^"]+)"/g)].map(match => match[1])
+);
+assert.ok(recordedStages.size > 0, "Apply Next should record at least one timing stage");
+assert.deepEqual(
+  [...recordedStages].sort(),
+  [...Analytics.ALLOWED_STAGES].sort(),
+  "analytics timing allowlist must stay in lockstep with Apply Next recorded stages"
+);
+
+const source = fs.readFileSync(path.join(__dirname, "..", "analytics.js"), "utf8");
 assert.doesNotMatch(source, /searchInput|locationInput|resume|profileToSave|jobId|company|title/);
 assert.match(source, /keepalive:\s*true/);
 assert.match(source, /schema:\s*SCHEMA/);
