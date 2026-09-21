@@ -444,7 +444,10 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.ok(uiSource.includes('const CANDIDATE_URL = "data/apply-next-candidates.json"'), "Apply Next should use a dedicated compact candidate artifact");
   assert.ok(uiSource.includes("recommendationJobs = await loadCandidateArtifact()"), "Apply Next should load candidates independently of the general feed");
   assert.ok(uiSource.includes("scheduleGeoWarm(savedProfile)"), "Saved Apply Next profiles should prewarm local geo data before the recommendation click path");
-  assert.match(uiSource, /requestIdleCallback\(warm, \{ timeout: 1000 \}\)/, "Geo prewarm should use browser idle time when available");
+  assert.match(uiSource, /requestAnimationFrame\(\(\) => scheduleWhenIdle\(\)\)/, "Geo prewarm should wait until after the browser has had a chance to paint");
+  assert.match(uiSource, /requestIdleCallback\(warm\)/, "Geo prewarm should use genuine browser idle time without a forced deadline");
+  assert.doesNotMatch(uiSource, /requestIdleCallback\(warm,\s*\{\s*timeout:/, "Geo prewarm must not force itself onto a busy main thread");
+  assert.match(uiSource, /setTimeout\(warm, 1500\)/, "Browsers without idle callbacks should defer geo warmup instead of starting immediately");
   assert.doesNotMatch(renderQueueSource[1], /candidatePool\(feed\.jobs/, "Apply Next ranking must not depend on the full listings feed");
   for (const stage of ["paint_wait", "candidate_artifact", "candidate_filter", "inspection_artifact", "inspection_attach", "location_enrichment", "ranking", "render"]) {
     assert.ok(uiSource.includes(`recordTimingStage(timing, "${stage}"`), `Apply Next should record ${stage} timing`);
