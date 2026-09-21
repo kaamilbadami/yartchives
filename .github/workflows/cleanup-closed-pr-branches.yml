@@ -1,7 +1,9 @@
-name: Clean up closed PR branches
+name: Clean up stale PR branches
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "17 4 * * *"
   pull_request:
     types:
       - closed
@@ -11,39 +13,85 @@ permissions:
   pull-requests: read
 
 jobs:
-  delete-closed-head:
-    if: >-
-      github.event_name == 'pull_request' &&
-      github.event.pull_request.merged == false &&
-      github.event.pull_request.head.repo.full_name == github.repository &&
-      github.event.pull_request.head.ref != github.event.repository.default_branch
+  reconcile-stale-branches:
     runs-on: ubuntu-latest
     steps:
-      - name: Delete unused closed PR branch
+      - name: Reconcile safe stale branches
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-          HEAD_OWNER: ${{ github.event.pull_request.head.repo.owner.login }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
         shell: bash
         run: |
           set -euo pipefail
 
-          open_count="$(
+          default_branch="$(gh api "repos/$REPOSITORY" --jq '.default_branch')"
+          owner="${REPOSITORY%%/*}"
+
+          mapfile -t open_heads < <(
+            gh api --paginate "repos/$REPOSITORY/pulls?state=open&per_page=100" \
+              --jq '.[] | select(.head.repo.full_name == "'"$REPOSITORY"'") | .head.ref'
+          )
+
+          is_open_head() {
+            local candidate="$1"
+            local head
+            for head in "${open_heads[@]:-}"; do
+              if [[ "$candidate" == "$head" ]]; then
+                return 0
+              fi
+            done
+            return 1
+          }
+
+          deleted=0
+          kept=0
+
+          while IFS=$'\t' read -r branch sha; do
+            [[ -z "$branch" ]] && continue
+
+            if [[ "$branch" == "$default_branch" ]]; then
+              continue
+            fi
+
+            if is_open_head "$branch"; then
+              echo "Keeping $branch: used by an open pull request."
+              kept=$((kept + 1))
+              continue
+            fi
+
+            compare_json="$(gh api "repos/$REPOSITORY/compare/$default_branch...$branch")"
+            ahead_by="$(jq -r '.ahead_by // 0' <<<"$compare_json")"
+
+            safe_reason=""
+            if [[ "$ahead_by" == "0" ]]; then
+              safe_reason="branch has no commits ahead of $default_branch"
+            else
+              latest_closed="$(
+                gh api "repos/$REPOSITORY/pulls?state=closed&head=$owner:$branch&sort=updated&direction=desc&per_page=1"
+              )"
+              closed_count="$(jq 'length' <<<"$latest_closed")"
+              closed_head_sha="$(jq -r '.[0].head.sha // empty' <<<"$latest_closed")"
+
+              if [[ "$closed_count" != "0" && "$closed_head_sha" == "$sha" ]]; then
+                safe_reason="current tip belongs to a closed pull request"
+              fi
+            fi
+
+            if [[ -z "$safe_reason" ]]; then
+              echo "Keeping $branch: not provably stale."
+              kept=$((kept + 1))
+              continue
+            fi
+
+            echo "Deleting $branch: $safe_reason."
             gh api \
+              --method DELETE \
               -H "Accept: application/vnd.github+json" \
-              "repos/$REPOSITORY/pulls?state=open&head=$HEAD_OWNER:$HEAD_REF&per_page=1" \
-              --jq 'length'
-          )"
+              "repos/$REPOSITORY/git/refs/heads/$branch"
+            deleted=$((deleted + 1))
+          done < <(
+            gh api --paginate "repos/$REPOSITORY/branches?per_page=100" \
+              --jq '.[] | [.name, .commit.sha] | @tsv'
+          )
 
-          if [[ "$open_count" != "0" ]]; then
-            echo "Keeping $HEAD_REF because it is still used by an open pull request."
-            exit 0
-          fi
-
-          if ! gh api \
-            --method DELETE \
-            -H "Accept: application/vnd.github+json" \
-            "repos/$REPOSITORY/git/refs/heads/$HEAD_REF"; then
-            echo "Branch $HEAD_REF was already deleted or could not be removed."
-          fi
+          echo "Deleted $deleted stale branches; kept $kept non-default branches."
