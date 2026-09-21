@@ -56,6 +56,17 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("scripts/build_geo_index.py /tmp/us-zips.csv _site/data/geo-index.json", workflow)
         self.assertIn("f9eb7daabdade9b2a9f3cbc80327a5c152fc82d3", workflow)
 
+    def test_apply_next_timing_snapshot_is_private_and_bounded(self):
+        workflow = (ROOT / ".github" / "workflows" / "snapshot-apply-next-timings.yml").read_text(encoding="utf-8")
+        script = (ROOT / "scripts" / "snapshot_apply_next_timings.py").read_text(encoding="utf-8")
+        self.assertIn("FORMSPREE_READ_API_KEY", workflow)
+        self.assertIn("submissions?limit=100&order=desc", workflow)
+        self.assertIn("--max-samples 20", workflow)
+        self.assertIn("data/diagnostics/apply-next-timings.json", workflow)
+        self.assertIn("visitor/session/profile/job fields omitted", script)
+        self.assertNotIn("visitorId", script)
+        self.assertNotIn("sessionId", script)
+
     def test_pages_deploy_includes_static_assets(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
         self.assertIn('- "assets/**"', workflow)
