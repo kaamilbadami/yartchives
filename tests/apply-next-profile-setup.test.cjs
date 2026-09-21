@@ -160,6 +160,16 @@ assert.deepEqual(
   assert.match(source, /When are you graduating \(month year\)/);
   assert.match(source, /input\("targetTerm", "Summer 2027", "radio"\)/);
   assert.match(source, /profile \? "Save profile" : "Create profile"/, "New users should see a clear Create profile action");
+  assert.match(
+    source,
+    /panel\.classList\.add\("hidden"\);[\s\S]*panel\.dataset\.view = "";[\s\S]*button\.click\(\);/,
+    "Saving an edited profile should force one clean Apply Next rerender instead of re-clicking an already-open panel"
+  );
+  assert.doesNotMatch(
+    source,
+    /button\.click\(\);\s*setTimeout\(\(\) => button\.click\(\), 0\);/,
+    "Profile save refresh must not depend on the old toggle-button behavior"
+  );
   assert.doesNotMatch(source, /field\("Degree"/);
   assert.doesNotMatch(source, /Kaamil|Badami|kaamil\.badami/i);
 
