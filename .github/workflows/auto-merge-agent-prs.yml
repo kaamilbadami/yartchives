@@ -65,8 +65,35 @@ jobs:
             --repo "${{ github.repository }}" \
             --exit-status
 
+      - name: Capture main before merge
+        id: main_before
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
       - name: Merge one safe autonomous pull request
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
         run: python scripts/auto_merge_agent_prs.py
+
+      - name: Deploy site if auto-merge changed frontend
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          BEFORE_SHA: ${{ steps.main_before.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          git fetch origin main
+          AFTER_SHA="$(git rev-parse origin/main)"
+          if [ "$BEFORE_SHA" = "$AFTER_SHA" ]; then
+            echo "main did not advance; no Pages deploy needed."
+            exit 0
+          fi
+
+          changed_paths="$(git diff --name-only "$BEFORE_SHA" "$AFTER_SHA")"
+          if printf '%s\n' "$changed_paths" | grep -Eq '^(index\.html|[^/]+\.(js|css)|assets/|data/listings\.json$|data/workday-inspections\.json$|scripts/build_apply_next_inspections\.py$|\.nojekyll$|\.github/workflows/deploy-pages\.yml$)'; then
+            echo "Auto-merge changed deploy-relevant files; dispatching Pages from resulting main."
+            gh workflow run deploy-pages.yml --repo "$REPOSITORY" --ref main
+          else
+            echo "Auto-merge changed only non-site files; no Pages deploy needed."
+          fi
