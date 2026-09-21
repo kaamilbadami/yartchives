@@ -448,8 +448,12 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /requestIdleCallback\(warm\)/, "Geo prewarm should use genuine browser idle time without a forced deadline");
   assert.doesNotMatch(uiSource, /requestIdleCallback\(warm,\s*\{\s*timeout:/, "Geo prewarm must not force itself onto a busy main thread");
   assert.match(uiSource, /setTimeout\(warm, 1500\)/, "Browsers without idle callbacks should defer geo warmup instead of starting immediately");
+  assert.ok(uiSource.includes('geoWarmState = "scheduled"'), "Geo prewarm diagnostics should expose scheduled state");
+  assert.ok(uiSource.includes('geoWarmState = "loading"'), "Geo prewarm diagnostics should expose loading state");
+  assert.ok(uiSource.includes('geoWarmState = "ready"'), "Geo prewarm diagnostics should expose ready state");
+  assert.ok(uiSource.includes('recordTimingStage(timing, "queue_setup", queueSetupStartedAt)'), "Apply Next should measure synchronous queue setup separately from frame callback delay");
   assert.doesNotMatch(renderQueueSource[1], /candidatePool\(feed\.jobs/, "Apply Next ranking must not depend on the full listings feed");
-  for (const stage of ["paint_wait", "candidate_artifact", "candidate_filter", "inspection_artifact", "inspection_attach", "location_enrichment", "ranking", "render"]) {
+  for (const stage of ["queue_setup", "paint_wait", "candidate_artifact", "candidate_filter", "inspection_artifact", "inspection_attach", "location_enrichment", "ranking", "render"]) {
     assert.ok(uiSource.includes(`recordTimingStage(timing, "${stage}"`), `Apply Next should record ${stage} timing`);
   }
   assert.ok(uiSource.includes("__YARTCHIVES_APPLY_NEXT_TIMING__"), "Latest Apply Next timing should be inspectable in-browser without network telemetry");
@@ -488,6 +492,8 @@ assert.deepEqual(timingPayload, {
   stages_ms: { location_enrichment: 25.7 },
   counts: { candidates: 500, rankable: 42, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, recommendations: 10 },
   geo_error: null,
+  geo_warm_state: null,
+  page_visibility: null,
   status: "success",
 });
 assert.deepEqual(loggedTiming, timingPayload);

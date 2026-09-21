@@ -21,6 +21,7 @@
   let candidateArtifactPromise = null;
   let recommendationJobs = [];
   let geoWarmScheduled = false;
+  let geoWarmState = "cold";
   let lastRankedResults = [];
   let lastProfile = null;
   let lastTotalEligibleCount = 0;
@@ -71,7 +72,8 @@
   }
 
   const TIMING_STAGE_LABELS = {
-    paint_wait: "Paint wait",
+    queue_setup: "Queue setup",
+    paint_wait: "Frame callback wait",
     candidate_artifact: "Candidate download",
     candidate_filter: "Candidate filtering",
     inspection_artifact: "Inspection download",
@@ -92,6 +94,8 @@
       `Candidates: ${Number(counts.candidates || 0)} · Rankable: ${Number(counts.rankable || 0)} · Distance candidates: ${Number(counts.distance_candidates || 0)} · Unique distance lookups: ${Number(counts.distance_unique_lookups || 0)} · Distance cache hits: ${Number(counts.distance_cache_hits || 0)} · Distance lookup failures: ${Number(counts.distance_lookup_failures || 0)} · Recommendations: ${Number(counts.recommendations || 0)}`
     );
     if (payload.geo_error) lines.push(`Geo load error: ${payload.geo_error}`);
+    if (payload.geo_warm_state) lines.push(`Geo warm state at open: ${payload.geo_warm_state}`);
+    if (payload.page_visibility) lines.push(`Page visibility at open: ${payload.page_visibility}`);
     lines.push(`Status: ${payload.status || "unknown"}`);
     return lines.join("\n");
   }
@@ -161,6 +165,8 @@
         recommendations: Number(metadata.recommendations || 0),
       },
       geo_error: normalizeGeoErrorCode(metadata.geo_error),
+      geo_warm_state: normalize(metadata.geo_warm_state) || null,
+      page_visibility: normalize(metadata.page_visibility) || null,
       status: metadata.status || "success",
     };
     if (typeof globalThis !== "undefined") globalThis.__YARTCHIVES_APPLY_NEXT_TIMING__ = payload;
@@ -452,8 +458,17 @@
     const zips = (profile?.baseZips || []).filter(value => /^\d{5}$/.test(String(value)));
     if (!zips.length || typeof loadGeoIndex !== "function") return false;
     geoWarmScheduled = true;
+    geoWarmState = "scheduled";
 
-    const warm = () => { void loadGeoIndex().catch(() => { geoWarmScheduled = false; }); };
+    const warm = () => {
+      geoWarmState = "loading";
+      void loadGeoIndex()
+        .then(() => { geoWarmState = "ready"; })
+        .catch(() => {
+          geoWarmScheduled = false;
+          geoWarmState = "failed";
+        });
+    };
     const scheduleWhenIdle = () => {
       if (typeof requestIdleCallback === "function") {
         requestIdleCallback(warm);
@@ -1409,8 +1424,11 @@
   async function renderQueue(panel, profile) {
     const timing = { startedAt: timingNow(), stages: {} };
     const counts = { candidates: 0, rankable: 0, distance_candidates: 0, distance_unique_lookups: 0, distance_cache_hits: 0, distance_lookup_failures: 0, recommendations: 0 };
+    const geoWarmStateAtOpen = geoWarmState;
+    const pageVisibilityAtOpen = typeof document !== "undefined" ? normalize(document.visibilityState) : "";
     let geoError = null;
     let timingStatus = "success";
+    const queueSetupStartedAt = timingNow();
 
     setProfileSetupMode(true);
     panel.dataset.view = "apply-next";
@@ -1427,6 +1445,7 @@
       }
     }, 1500);
 
+    recordTimingStage(timing, "queue_setup", queueSetupStartedAt);
     let stageStartedAt = timingNow();
     await YartchivesUtils.waitForBrowserPaint();
     recordTimingStage(timing, "paint_wait", stageStartedAt);
@@ -1489,7 +1508,13 @@
     } finally {
       clearTimeout(slowLoadingTimer);
       panel.setAttribute("aria-busy", "false");
-      const timingPayload = publishApplyNextTiming(timing, { ...counts, geo_error: geoError, status: timingStatus });
+      const timingPayload = publishApplyNextTiming(timing, {
+        ...counts,
+        geo_error: geoError,
+        geo_warm_state: geoWarmStateAtOpen,
+        page_visibility: pageVisibilityAtOpen,
+        status: timingStatus,
+      });
       renderTimingDiagnostic(panel, timingPayload);
     }
   }
@@ -1594,6 +1619,7 @@
     fetchCandidateArtifact,
     loadCandidateArtifact,
     scheduleGeoWarm,
+    geoWarmState: () => geoWarmState,
     knownWrongTerm,
     candidatePool,
     authoritativeCandidatePool,
