@@ -442,6 +442,11 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.ok(uiSource.includes("__YARTCHIVES_APPLY_NEXT_TIMING__"), "Latest Apply Next timing should be inspectable in-browser without network telemetry");
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
 
+  assert.match(uiSource, /renderTimingDiagnostic\(panel, timingPayload\)/, "Completed Apply Next loads should surface their timing breakdown without DevTools");
+  assert.match(uiSource, /Number\(payload\.total_ms \|\| 0\) >= 1500/, "Slow Apply Next diagnostics should expand automatically");
+  assert.match(uiSource, /Copy diagnostics/, "Timing diagnostics should be copyable without DevTools");
+  assert.match(applyNextCss, /\.apply-next-diagnostics\s*\{/, "Timing diagnostics should have dedicated styling");
+
   const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
   assert.ok(deployWorkflow.includes("scripts/build_apply_next_inspections.py data/workday-inspections.json _site/data/apply-next-inspections.json"), "Pages workflow must build the compact Apply Next inspection artifact before deploy");
   assert.ok(deployWorkflow.includes("scripts/build_apply_next_candidates.py data/listings.json _site/data/apply-next-candidates.json"), "Pages workflow must build the compact Apply Next candidate artifact before deploy");
@@ -473,6 +478,21 @@ assert.deepEqual(timingPayload, {
 });
 assert.deepEqual(loggedTiming, timingPayload);
 assert.deepEqual(globalThis.__YARTCHIVES_APPLY_NEXT_TIMING__, timingPayload);
+
+const diagnosticText = UI.timingDiagnosticText({
+  total_ms: 10400,
+  stages_ms: { candidate_artifact: 9600, ranking: 100, render: 200 },
+  counts: { candidates: 5000, rankable: 42, recommendations: 10 },
+  status: "success",
+});
+assert.match(diagnosticText, /Apply Next total: 10400\.0 ms/);
+assert.match(diagnosticText, /Candidate download: 9600\.0 ms/);
+assert.match(diagnosticText, /Candidates: 5000 · Rankable: 42 · Recommendations: 10/);
+assert.doesNotMatch(diagnosticText, /profile|ZIP|company|jobId|URL/i);
+assert.deepEqual(
+  UI.dominantTimingStage({ stages_ms: { candidate_artifact: 9600, ranking: 100, render: 200 } }),
+  { name: "candidate_artifact", ms: 9600 }
+);
 
 // Test telemetry integration and non-blocking failure behavior in publishApplyNextTiming
 let trackedEvent = null;
