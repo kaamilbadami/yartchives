@@ -110,7 +110,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -1011,68 +1011,31 @@
         }
       },
       "careers_resolution": {
-        "status": "blocked",
-        "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-17T23:48:05Z",
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-21T10:42:00Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
-            "type": "http",
-            "source": "input-hint",
-            "requested_url": "https://sjobs.brassring.com/",
-            "redirect_chain": [
-              {
-                "url": "https://sjobs.brassring.com/",
-                "status": 403
-              }
-            ],
-            "final_url": "https://sjobs.brassring.com/",
-            "status": 403,
-            "signals": [
-              "employer domain"
-            ],
-            "score": 2
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://sjobs.brassring.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://sjobs.brassring.com/careers",
-                "status": 404
-              }
-            ],
-            "final_url": "https://sjobs.brassring.com/careers",
-            "status": 404,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://sjobs.brassring.com/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://sjobs.brassring.com/jobs",
-                "status": 404
-              }
-            ],
-            "final_url": "https://sjobs.brassring.com/jobs",
-            "status": 404,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "sjobs.brassring.com",
+            "ats_system": "Kenexa BrassRing",
+            "source_url": "https://withresumeai.com/ats-checker/adm"
           }
         ]
       },
       "domain_hints": [
         "admitad.com"
-      ]
+      ],
+      "careers_platform": "brassring",
+      "provider": {
+        "family": "brassring",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "brassring.com",
+        "host": "sjobs.brassring.com"
+      }
     },
     {
       "id": "adobe",
@@ -1721,7 +1684,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -1852,8 +1815,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T04:59:35Z",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "resolved_at": "2026-09-21T10:42:00Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -2055,7 +2018,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -2660,7 +2623,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -2755,8 +2718,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T04:59:35Z",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "resolved_at": "2026-09-21T10:42:00Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -3770,7 +3733,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -3941,9 +3904,9 @@
         }
       },
       "careers_resolution": {
-        "status": "unresolved",
-        "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "status": "transient",
+        "attempt_status": "transient",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -4011,28 +3974,16 @@
               },
               {
                 "url": "https://www.amazon.com/jobs",
-                "status": 301
-              },
-              {
-                "url": "http://amazon.jobs",
-                "status": 301
-              },
-              {
-                "url": "https://amazon.jobs/",
-                "status": 302
-              },
-              {
-                "url": "https://amazon.jobs/en/",
-                "status": 200
+                "status": 503
               }
             ],
-            "final_url": "https://amazon.jobs/en/",
-            "status": 200,
+            "final_url": "https://www.amazon.com/jobs",
+            "status": 503,
             "signals": [
-              "careers page content",
+              "careers path",
               "employer domain"
             ],
-            "score": 4
+            "score": 5
           },
           {
             "type": "http",
@@ -4595,7 +4546,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -4857,7 +4808,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -5152,7 +5103,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -5332,7 +5283,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -5378,7 +5329,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -5577,7 +5528,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -5658,7 +5609,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -10197,7 +10148,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -14289,8 +14240,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T04:59:35Z",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "resolved_at": "2026-09-21T10:42:00Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -20302,8 +20253,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T04:59:35Z",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "resolved_at": "2026-09-21T10:42:00Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -22342,66 +22293,29 @@
         }
       },
       "careers_resolution": {
-        "status": "blocked",
-        "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-17T23:48:05Z",
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-21T10:42:00Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
-            "type": "http",
-            "source": "input-hint",
-            "requested_url": "https://sjobs.brassring.com/",
-            "redirect_chain": [
-              {
-                "url": "https://sjobs.brassring.com/",
-                "status": 403
-              }
-            ],
-            "final_url": "https://sjobs.brassring.com/",
-            "status": 403,
-            "signals": [
-              "employer domain"
-            ],
-            "score": 2
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://sjobs.brassring.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://sjobs.brassring.com/careers",
-                "status": 404
-              }
-            ],
-            "final_url": "https://sjobs.brassring.com/careers",
-            "status": 404,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://sjobs.brassring.com/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://sjobs.brassring.com/jobs",
-                "status": 404
-              }
-            ],
-            "final_url": "https://sjobs.brassring.com/jobs",
-            "status": 404,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "sjobs.brassring.com",
+            "ats_system": "Kenexa BrassRing",
+            "source_url": "https://withresumeai.com/ats-checker/edward-jones"
           }
         ]
       },
-      "domain_hints": []
+      "domain_hints": [],
+      "careers_platform": "brassring",
+      "provider": {
+        "family": "brassring",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "brassring.com",
+        "host": "sjobs.brassring.com"
+      }
     },
     {
       "id": "jones-lang-lasalle",
@@ -24069,7 +23983,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -24678,66 +24592,29 @@
         }
       },
       "careers_resolution": {
-        "status": "blocked",
-        "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-17T23:48:05Z",
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-21T10:42:00Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
-            "type": "http",
-            "source": "input-hint",
-            "requested_url": "https://sjobs.brassring.com/",
-            "redirect_chain": [
-              {
-                "url": "https://sjobs.brassring.com/",
-                "status": 403
-              }
-            ],
-            "final_url": "https://sjobs.brassring.com/",
-            "status": 403,
-            "signals": [
-              "employer domain"
-            ],
-            "score": 2
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://sjobs.brassring.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://sjobs.brassring.com/careers",
-                "status": 404
-              }
-            ],
-            "final_url": "https://sjobs.brassring.com/careers",
-            "status": 404,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://sjobs.brassring.com/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://sjobs.brassring.com/jobs",
-                "status": 404
-              }
-            ],
-            "final_url": "https://sjobs.brassring.com/jobs",
-            "status": 404,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "sjobs.brassring.com",
+            "ats_system": "Kenexa BrassRing",
+            "source_url": "https://withresumeai.com/ats-checker/lockheed-martin"
           }
         ]
       },
-      "domain_hints": []
+      "domain_hints": [],
+      "careers_platform": "brassring",
+      "provider": {
+        "family": "brassring",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "brassring.com",
+        "host": "sjobs.brassring.com"
+      }
     },
     {
       "id": "loews",
@@ -33691,7 +33568,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T04:59:35Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
         "evidence": [
           {
             "type": "http",
@@ -37755,7 +37632,30 @@
       },
       "domain_hints": [
         "walgreens.com"
-      ]
+      ],
+      "careers_platform": "brassring",
+      "provider": {
+        "family": "brassring",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "brassring.com",
+        "host": "sjobs.brassring.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-21T10:42:00Z",
+        "last_attempt_at": "2026-09-21T10:42:00Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "sjobs.brassring.com",
+            "ats_system": "Kenexa BrassRing",
+            "source_url": "https://withresumeai.com/ats-checker/walgreens"
+          }
+        ]
+      }
     },
     {
       "id": "wall-street-journal",
