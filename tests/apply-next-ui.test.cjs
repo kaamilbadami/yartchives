@@ -336,8 +336,8 @@ assert.equal(jobs[2]._inspection, undefined);
   const renderQueueSource = uiSource.match(/async function renderQueue\(panel, profile\) \{([\s\S]*?)\n  \}/);
   assert.ok(renderQueueSource, "renderQueue should be present");
   assert.ok(
-    renderQueueSource[1].indexOf("await YartchivesUtils.waitForBrowserPaint()") < renderQueueSource[1].indexOf("candidatePool(feed.jobs"),
-    "Apply Next should yield a paint before synchronous candidate filtering"
+    renderQueueSource[1].indexOf("await YartchivesUtils.waitForBrowserPaint()") < renderQueueSource[1].indexOf("recommendationJobs = await loadCandidateArtifact()"),
+    "Apply Next should yield a paint before candidate loading and synchronous filtering"
   );
   const applyNextCss = fs.readFileSync(path.join(__dirname, "..", "apply-next.css"), "utf8");
   assert.match(applyNextCss, /\.apply-next-open:disabled\s*\{[\s\S]*?cursor:\s*progress/, "Disabled Apply Next should have a visible loading treatment");
@@ -431,13 +431,10 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /Ranked by overall Apply Next score, not posting time\./, "Fresh should preserve recommendation quality ordering");
 
   assert.match(uiSource, /document\.createDocumentFragment\(\)/, "renderQueue should build DOM off-screen before swapping to avoid UI stalls");
-  assert.ok(uiSource.includes("if (!feedReadyForRecommendations())"), "Apply Next must keep the loading state until the listings feed is ready");
-  assert.ok(
-    renderQueueSource[1].indexOf("if (!feedReadyForRecommendations())") < renderQueueSource[1].indexOf("const pool = candidatePool(feed.jobs"),
-    "Feed readiness must be checked before candidate filtering"
-  );
-  assert.ok(uiSource.includes("return typeof isFeedReady === \"function\""), "Apply Next should use the feed boot readiness signal when available");
-  for (const stage of ["paint_wait", "candidate_filter", "inspection_artifact", "inspection_attach", "location_enrichment", "ranking", "render"]) {
+  assert.ok(uiSource.includes('const CANDIDATE_URL = "data/apply-next-candidates.json"'), "Apply Next should use a dedicated compact candidate artifact");
+  assert.ok(uiSource.includes("recommendationJobs = await loadCandidateArtifact()"), "Apply Next should load candidates independently of the general feed");
+  assert.doesNotMatch(renderQueueSource[1], /candidatePool\(feed\.jobs/, "Apply Next ranking must not depend on the full listings feed");
+  for (const stage of ["paint_wait", "candidate_artifact", "candidate_filter", "inspection_artifact", "inspection_attach", "location_enrichment", "ranking", "render"]) {
     assert.ok(uiSource.includes(`recordTimingStage(timing, "${stage}"`), `Apply Next should record ${stage} timing`);
   }
   assert.ok(uiSource.includes("__YARTCHIVES_APPLY_NEXT_TIMING__"), "Latest Apply Next timing should be inspectable in-browser without network telemetry");
@@ -445,6 +442,7 @@ assert.equal(jobs[2]._inspection, undefined);
 
   const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
   assert.ok(deployWorkflow.includes("scripts/build_apply_next_inspections.py data/workday-inspections.json _site/data/apply-next-inspections.json"), "Pages workflow must build the compact Apply Next inspection artifact before deploy");
+  assert.ok(deployWorkflow.includes("scripts/build_apply_next_candidates.py data/listings.json _site/data/apply-next-candidates.json"), "Pages workflow must build the compact Apply Next candidate artifact before deploy");
   assert.ok(deployWorkflow.includes("data/workday-inspections.json"), "Pages workflow must retain the authoritative inspection cache for deployment tooling");
 
   console.log("apply-next UI tests passed");
