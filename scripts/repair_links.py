@@ -469,6 +469,14 @@ def should_validate_direct_link(job: dict[str, Any]) -> bool:
     """Validate only links presented as final application destinations."""
     if job.get("link_kind") != "direct" or not is_direct_application_url(job.get("url")):
         return False
+
+    # Workday /apply links must always be validated to satisfy the feed's structural link-quality contract.
+    # Unverified /apply routes are either validated as ok, or downgraded to employer_job.
+    parsed = urlparse(str(job.get("url") or ""))
+    host = (parsed.hostname or "").lower()
+    if re.fullmatch(r"[^.]+\.wd\d+\.myworkdayjobs\.com", host) and parsed.path.rstrip("/").casefold().endswith("/apply"):
+        return True
+
     if job.get("link_origin") in VALIDATED_LINK_ORIGINS:
         return True
     return (
