@@ -383,6 +383,8 @@ assert.equal(jobs[2]._inspection, undefined);
   const cssSource = fs.readFileSync(path.join(__dirname, "..", "styles.css"), "utf8");
   assert.match(cssSource, /\.sr-only\s*\{/, "Global styles should include a screen-reader-only utility class");
   assert.match(cssSource, /:focus-visible\s*\{/, "Global styles should include a focus-visible outline for keyboard accessibility");
+  assert.match(cssSource, /width:\s*min\(1440px, calc\(100% - 48px\)\)/, "Desktop shell should use the wider centered page frame");
+  assert.match(cssSource, /\.site-header\s*\{[\s\S]*?align-items:\s*flex-start/, "Header copy and actions should share the same top alignment");
 
   assert.match(uiSource, /FOUNDING_BETA_TESTER_KEY = "yartchives-founding-beta-tester-v1"/, "Founding beta tester status should use a dedicated local key");
   assert.match(uiSource, /Founding beta tester/, "Apply Next should expose the founding beta tester role");
