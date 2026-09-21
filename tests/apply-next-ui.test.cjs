@@ -448,7 +448,7 @@ assert.equal(jobs[2]._inspection, undefined);
   process.exit(1);
 });
 const timing = { startedAt: 100, stages: {} };
-assert.equal(UI.recordTimingStage(timing, "location_enrichment", 120, 145.67), 25.67);
+assert.ok(Math.abs(UI.recordTimingStage(timing, "location_enrichment", 120, 145.67) - 25.67) < 1e-9);
 assert.equal(timing.stages.location_enrichment, 25.7);
 const priorInfo = console.info;
 let loggedTiming = null;
