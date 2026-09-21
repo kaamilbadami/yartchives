@@ -2,6 +2,7 @@ import hashlib
 import json
 from pathlib import Path
 import unittest
+import yaml
 from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -29,6 +30,16 @@ class StaticContractTests(unittest.TestCase):
         self.assertEqual(freshness.find("option", selected=True).get("value"), "all")
         self.assertIsNone(soup.find(id="viewedCount"))
         self.assertIsNone(soup.find("option", attrs={"value": "viewed"}))
+
+    def test_workflow_yaml_parses(self):
+        workflow_dir = ROOT / ".github" / "workflows"
+        failures = []
+        for path in sorted([*workflow_dir.glob("*.yml"), *workflow_dir.glob("*.yaml")]):
+            try:
+                yaml.safe_load(path.read_text(encoding="utf-8"))
+            except yaml.YAMLError as exc:
+                failures.append(f"{path.relative_to(ROOT)}: {exc}")
+        self.assertEqual(failures, [])
 
     def test_feed_refresh_only_invalidates_on_feed_inputs(self):
         workflow = (ROOT / ".github" / "workflows" / "update-feed.yml").read_text(encoding="utf-8")
