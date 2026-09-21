@@ -231,11 +231,34 @@ async function loadGeoIndex() {
   if (geoLoadingPromise) return geoLoadingPromise;
 
   geoLoadingPromise = (async () => {
-    const response = await fetch(GEO_DATA_URL, { cache: "no-cache" });
-    if (!response.ok) throw new Error(`ZIP data request failed (${response.status})`);
-    const payload = await response.json();
+    let response;
+    try {
+      response = await fetch(GEO_DATA_URL, { cache: "no-cache" });
+    } catch (error) {
+      const classified = new Error("ZIP data request failed");
+      classified.code = "geo_network";
+      classified.cause = error;
+      throw classified;
+    }
+    if (!response.ok) {
+      const classified = new Error(`ZIP data request failed (${response.status})`);
+      classified.code = `geo_http_${Number(response.status) || "error"}`;
+      throw classified;
+    }
+
+    let payload;
+    try {
+      payload = await response.json();
+    } catch (error) {
+      const classified = new Error("ZIP data is malformed");
+      classified.code = "geo_malformed";
+      classified.cause = error;
+      throw classified;
+    }
     if (!payload || !Array.isArray(payload.zips) || !Array.isArray(payload.cities)) {
-      throw new Error("ZIP data is malformed");
+      const classified = new Error("ZIP data is malformed");
+      classified.code = "geo_malformed";
+      throw classified;
     }
 
     const zips = new Map();
