@@ -573,6 +573,17 @@ assert.doesNotMatch(
   "Distance enrichment must not recreate pseudo jobs per origin"
 );
 
+assert.match(
+  addDistanceSource,
+  /jobIndex > 0 && jobIndex % LOCATION_ENRICHMENT_YIELD_EVERY === 0[\s\S]*?await yieldToBrowser\(\)/,
+  "Distance enrichment should yield between bounded job batches so cold computation cannot monopolize the browser main thread"
+);
+assert.match(
+  UI.yieldToBrowser.toString(),
+  /scheduler[\s\S]*?yield[\s\S]*?setTimeout/,
+  "Cooperative yielding should use scheduler.yield when available and a task fallback elsewhere"
+);
+
 const syntheticRanked = Array.from({ length: 20 }, (_, index) => ({
   total: 100 - index * 3,
   excluded: false,
