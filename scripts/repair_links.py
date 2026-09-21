@@ -380,6 +380,7 @@ def repair_document(
         "source_repaired": 0,
         "intermediary_resolved": 0,
         "known_dead_suppressed": 0,
+        "workday_upgraded": 0,
         "changed": 0,
     }
 
@@ -424,6 +425,11 @@ def repair_document(
                 job["resolved_from_url"] = listing
                 origin = "redirect-resolved"
                 stats["intermediary_resolved"] += 1
+
+        if is_direct_application_url(current) and is_workday_job_page(current):
+            current = current.rstrip("/") + "/apply"
+            job["url"] = current
+            stats["workday_upgraded"] += 1
 
         if is_direct_application_url(current):
             job["link_kind"] = "employer_job" if is_workday_job_page(current) else "direct"

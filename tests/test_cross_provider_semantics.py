@@ -122,7 +122,7 @@ class CrossProviderATSSemanticsTests(unittest.TestCase):
             (
                 "workday",
                 "https://amgen.wd1.myworkdayjobs.com/Careers/job/Remote/Intern_R-1234",
-                "employer_job",
+                "direct",
                 False,
             ),
             (
@@ -136,17 +136,21 @@ class CrossProviderATSSemanticsTests(unittest.TestCase):
         for name, url, expected_kind, is_apply in cases:
             with self.subTest(name=name):
                 job = self._feed_job(url)
-                if expected_kind == "employer_job":
-                    # We pass through repair_document
-                    doc = {"jobs": [job]}
-                    repair.repair_document(doc)
-                    repaired = doc["jobs"][0]
-                    self.assertEqual(repaired["link_kind"], expected_kind)
+                # We pass through repair_document
+                doc = {"jobs": [job]}
+                repair.repair_document(doc)
+                repaired = doc["jobs"][0]
+                self.assertEqual(repaired["link_kind"], expected_kind)
+                if not is_apply:
+                    self.assertEqual(repaired["url"], url + "/apply")
 
                 # Check is_verified_workday_apply
                 job["link_kind"] = "direct"
                 job["link_status"] = "ok"
                 job["link_checked_at"] = "2026-09-18T14:00:00Z"
+                # If we passed an unappended url, is_verified_workday_apply should return is_apply.
+                # Let's restore the original URL just for the verify check to preserve the test's intent
+                job["url"] = url
                 self.assertEqual(reconcile.is_verified_workday_apply(job), is_apply)
 
     def test_unavailable_closed_handling_matrix(self):
