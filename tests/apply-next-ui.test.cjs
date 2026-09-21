@@ -494,7 +494,16 @@ assert.equal(UI.normalizeGeoErrorCode("geo_http_404"), "geo_http_404");
 assert.equal(UI.normalizeGeoErrorCode("geo_http_503"), "geo_http_503");
 assert.equal(UI.normalizeGeoErrorCode("geo_network"), "geo_network");
 assert.equal(UI.normalizeGeoErrorCode("geo_malformed"), "geo_malformed");
+assert.equal(UI.normalizeGeoErrorCode("geo_index_zips"), "geo_index_zips");
+assert.equal(UI.normalizeGeoErrorCode("geo_index_cities"), "geo_index_cities");
+assert.equal(UI.normalizeGeoErrorCode("geo_index_sort"), "geo_index_sort");
+assert.equal(UI.normalizeGeoErrorCode("geo_internal"), "geo_internal");
 assert.equal(UI.normalizeGeoErrorCode("anything-sensitive-or-unexpected"), "geo_unknown");
+
+const appSource = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
+for (const code of ["geo_index_zips", "geo_index_cities", "geo_index_sort", "geo_internal"]) {
+  assert.ok(appSource.includes(`classified.code = "${code}"`), `app.js should classify ${code} failures`);
+}
 
 const diagnosticText = UI.timingDiagnosticText({
   total_ms: 10400,
