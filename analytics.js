@@ -14,12 +14,71 @@
     "saved",
     "hidden",
     "feedback_submitted",
+    "apply_next_timing",
+  ]);
+
+  const ALLOWED_STAGES = new Set([
+    "paint_wait",
+    "candidate_filter",
+    "inspection_artifact",
+    "inspection_attach",
+    "location_enrichment",
+    "ranking",
+    "render",
+  ]);
+
+  const ALLOWED_COUNTS = new Set([
+    "candidates",
+    "rankable",
+    "recommendations",
   ]);
 
   const counts = Object.create(null);
+  let pendingTimings = [];
   let sequence = 0;
   let startedAt = new Date().toISOString();
   let flushing = null;
+
+  function sanitizeTimingPayload(properties) {
+    if (!properties || typeof properties !== "object") return null;
+
+    const total_ms = Number(properties.total_ms);
+    if (!Number.isFinite(total_ms) || total_ms < 0) return null;
+
+    const stages_ms = {};
+    if (properties.stages_ms && typeof properties.stages_ms === "object") {
+      for (const [key, val] of Object.entries(properties.stages_ms)) {
+        if (ALLOWED_STAGES.has(key)) {
+          const num = Number(val);
+          if (Number.isFinite(num) && num >= 0) {
+            stages_ms[key] = Math.round(num * 10) / 10;
+          }
+        }
+      }
+    }
+
+    const counts = {};
+    if (properties.counts && typeof properties.counts === "object") {
+      for (const [key, val] of Object.entries(properties.counts)) {
+        if (ALLOWED_COUNTS.has(key)) {
+          const num = Number(val);
+          if (Number.isFinite(num) && num >= 0) {
+            counts[key] = Math.floor(num);
+          }
+        }
+      }
+    }
+
+    const rawStatus = String(properties.status || "success").slice(0, 20);
+    const status = /^[a-z0-9_-]+$/i.test(rawStatus) ? rawStatus : "unknown";
+
+    return {
+      total_ms: Math.round(total_ms * 10) / 10,
+      stages_ms,
+      counts,
+      status,
+    };
+  }
 
   function randomSessionId() {
     try {
@@ -40,6 +99,12 @@
 
   function track(event, properties = {}) {
     if (!ALLOWED_EVENTS.has(event)) return false;
+    if (event === "apply_next_timing") {
+      const sanitized = sanitizeTimingPayload(properties);
+      if (!sanitized) return false;
+      pendingTimings.push(sanitized);
+      if (pendingTimings.length > 20) pendingTimings.shift();
+    }
     counts[event] = (counts[event] || 0) + normalizedIncrement(event, properties);
     return true;
   }
@@ -66,7 +131,7 @@
     const build = root.document
       ?.querySelector('meta[name="yartchives-build"]')
       ?.getAttribute("content") || "";
-    return {
+    const payload = {
       schema: SCHEMA,
       sessionId,
       sequence: ++sequence,
@@ -75,6 +140,10 @@
       build: build.startsWith("__") ? "" : build.slice(0, 40),
       events: snapshot,
     };
+    if (pendingTimings.length) {
+      payload.timings = pendingTimings.slice();
+    }
+    return payload;
   }
 
   async function flush() {
@@ -83,6 +152,11 @@
     if (!Object.keys(snapshot).length) return true;
     clearCounts(snapshot);
     const payload = buildPayload(snapshot);
+
+    const timingsSnapshot = payload.timings ? payload.timings.slice() : [];
+    if (payload.timings) {
+      pendingTimings = pendingTimings.slice(payload.timings.length);
+    }
 
     flushing = (async () => {
       try {
@@ -96,6 +170,9 @@
         return true;
       } catch (_) {
         mergeCounts(snapshot);
+        if (timingsSnapshot.length) {
+          pendingTimings = [...timingsSnapshot, ...pendingTimings].slice(0, 20);
+        }
         return false;
       } finally {
         flushing = null;
@@ -127,6 +204,7 @@
     ENDPOINT,
     SCHEMA,
     ALLOWED_EVENTS,
+    sanitizeTimingPayload,
     track,
     flush,
     snapshot,

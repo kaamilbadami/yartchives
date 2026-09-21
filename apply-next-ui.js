@@ -53,6 +53,14 @@
     if (typeof console !== "undefined" && typeof console.info === "function") {
       console.info("[Yartchives Apply Next timing]", payload);
     }
+    try {
+      if (typeof YartchivesAnalytics !== "undefined" && typeof YartchivesAnalytics.track === "function") {
+        YartchivesAnalytics.track("apply_next_timing", payload);
+        if (typeof YartchivesAnalytics.flush === "function") {
+          void YartchivesAnalytics.flush();
+        }
+      }
+    } catch (_) {}
     return payload;
   }
 
@@ -263,7 +271,7 @@
     const client = fetchImpl || (typeof fetch === "function" ? fetch : null);
     if (!client) return emptyInspectionArtifact();
     try {
-      const response = await client(INSPECTION_URL, { cache: "no-store" });
+      const response = await client(INSPECTION_URL);
       if (!response || !response.ok) return emptyInspectionArtifact();
       const payload = await response.json();
       if (!payload || typeof payload !== "object") return emptyInspectionArtifact();
