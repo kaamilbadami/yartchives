@@ -39,6 +39,7 @@ assert.deepEqual(
 
 const coverageWorkflow = fs.readFileSync(".github/workflows/coverage-audit.yml", "utf8");
 const qualityWorkflow = fs.readFileSync(".github/workflows/quality.yml", "utf8");
+const qualityRunner = fs.readFileSync("scripts/run_quality_checks.sh", "utf8");
 const feedWorkflow = fs.readFileSync(".github/workflows/update-feed.yml", "utf8");
 const autonomousWorkflow = fs.readFileSync(".github/workflows/autonomous-dispatch.yml", "utf8");
 const autoMergeWorkflow = fs.readFileSync(".github/workflows/auto-merge-agent-prs.yml", "utf8");
@@ -154,15 +155,15 @@ assert.match(
 
 const primaryBenchmark = "audit/samples/northeast-midatlantic-cs-2026-09-17.json";
 const legacyBenchmark = "audit/samples/ct-ny-md-dc-cs-2026-09-17.json";
-for (const [name, content] of [["quality", qualityWorkflow], ["feed", feedWorkflow]]) {
+for (const [name, content] of [["quality", qualityRunner], ["feed", feedWorkflow]]) {
   assert.ok(
     content.includes(primaryBenchmark),
-    `${name} workflow should measure the frozen 142-role Northeast/Mid-Atlantic benchmark`
+    `${name} quality path should measure the frozen 142-role Northeast/Mid-Atlantic benchmark`
   );
   assert.equal(
     content.includes(`python scripts/coverage_audit.py ${legacyBenchmark}`),
     false,
-    `${name} workflow should not use the 106-role legacy panel as the primary automated benchmark`
+    `${name} quality path should not use the 106-role legacy panel as the primary automated benchmark`
   );
 }
 
