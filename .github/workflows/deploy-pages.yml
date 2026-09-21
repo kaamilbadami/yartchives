@@ -58,7 +58,9 @@ jobs:
           python scripts/build_apply_next_inspections.py data/workday-inspections.json _site/data/apply-next-inspections.json
           BUILD_SHA="$(git rev-parse HEAD)"
           VERSION="$(git rev-parse --short=12 HEAD)"
+          DEPLOYED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           sed -i "s|__YARTCHIVES_BUILD_SHA__|${BUILD_SHA}|g" _site/index.html
+          sed -i "s|__YARTCHIVES_DEPLOYED_AT__|${DEPLOYED_AT}|g" _site/index.html
           for asset in ./*.css ./*.js; do
             name="$(basename "$asset")"
             sed -i "s|\"${name}\"|\"${name}?v=${VERSION}\"|g" _site/index.html
