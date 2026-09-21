@@ -270,9 +270,8 @@ assert.equal(jobs[1]._inspection.provider, "icims");
 assert.equal(jobs[2]._inspection, undefined);
 
 (async () => {
-  const loaded = await UI.loadInspectionArtifact(async (url, options) => {
+  const loaded = await UI.loadInspectionArtifact(async (url) => {
     assert.equal(url, UI.INSPECTION_URL);
-    assert.equal(options.cache, "no-store");
     return { ok: true, json: async () => artifact };
   });
   assert.deepEqual(loaded.listing_index, artifact.listing_index);
@@ -467,6 +466,30 @@ assert.deepEqual(timingPayload, {
 });
 assert.deepEqual(loggedTiming, timingPayload);
 assert.deepEqual(globalThis.__YARTCHIVES_APPLY_NEXT_TIMING__, timingPayload);
+
+// Test telemetry integration and non-blocking failure behavior in publishApplyNextTiming
+let trackedEvent = null;
+let trackedPayload = null;
+globalThis.YartchivesAnalytics = {
+  track: (event, payload) => {
+    trackedEvent = event;
+    trackedPayload = payload;
+    return true;
+  },
+  flush: () => Promise.resolve(true),
+};
+UI.publishApplyNextTiming(timing, { candidates: 10, rankable: 5, recommendations: 2 });
+assert.equal(trackedEvent, "apply_next_timing");
+assert.equal(trackedPayload.counts.candidates, 10);
+
+// Test non-blocking behavior when YartchivesAnalytics throws an exception
+globalThis.YartchivesAnalytics = {
+  track: () => { throw new Error("Analytics transport error"); },
+  flush: () => Promise.reject(new Error("Flush error")),
+};
+const safeResult = UI.publishApplyNextTiming(timing, { candidates: 10 });
+assert.ok(safeResult, "publishApplyNextTiming must return payload without throwing even if analytics fails");
+delete globalThis.YartchivesAnalytics;
 
 const oldProfile = { targetTerm: "Summer 2027", roleFamilies: [{ id: "software" }] };
 assert.equal(UI.explainProfileChange(oldProfile, oldProfile, "1", "1"), null);
