@@ -325,18 +325,32 @@ class AutonomousDispatcherTests(unittest.TestCase):
         issues = [
             issue(
                 1,
-                "[workflow failure] Update opportunity feed: Validate code",
-                labels=("workflow-failure", "agent-ready", "jules"),
+                "some unrelated manually opened jules work",
+                labels=("jules", "jules-session"),
             ),
             issue(
                 2,
-                "[workflow failure] Update opportunity feed: Validate generated feed",
-                labels=("workflow-failure", "agent-ready", "jules"),
+                "some other manually opened jules work",
+                labels=("jules", "jules-session"),
             ),
             issue(3, "roadmap", body=task_body("P1", "frontend-state")),
         ]
         selected = mod.select_tasks(issues, max_active=2)
         self.assertEqual([task.number for task in selected], [3])
+
+    def test_workflow_failure_issue_parses_defaults(self):
+        candidate = issue(
+            100,
+            "failure",
+            body="<!-- workflow-failure-signature: Some wf::job::step -->",
+            labels=("workflow-failure", "agent-ready", "autonomous-backlog"),
+        )
+        task = mod.task_from_issue(candidate)
+        self.assertIsNotNone(task)
+        self.assertEqual(task.priority, "P1")
+        self.assertEqual(task.area, "automation")
+        self.assertEqual(task.resources, frozenset({"automation"}))
+        self.assertEqual(task.dependencies, frozenset())
 
     def test_active_area_blocks_overlapping_task_but_allows_other_area(self):
         issues = [

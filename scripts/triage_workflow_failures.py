@@ -59,7 +59,7 @@ def _ensure_labels(ctx: Context, gh_run: GhRun) -> None:
     labels = (
         ("workflow-failure", "D73A4A", "Created automatically from a failed GitHub Actions workflow"),
         ("agent-ready", "0E8A16", "Bounded task suitable for an automated coding agent"),
-        ("jules", "715CD7", "Dispatch this issue to Google Jules"),
+        ("autonomous-backlog", "1D76DB", "Approved backlog item eligible for autonomous dispatch"),
     )
     for name, color, description in labels:
         gh_run(
@@ -136,7 +136,7 @@ Treat the current repository as the source of truth. Diagnose the root cause bef
             number = str(issue["number"])
             labels = _label_names(issue)
             edit_args = ["issue", "edit", number, "--repo", ctx.repo]
-            for label in ("jules", "agent-ready"):
+            for label in ("jules", "jules-session", "agent-ready", "autonomous-backlog"):
                 if label in labels:
                     edit_args += ["--remove-label", label]
             if len(edit_args) > 5:
@@ -170,8 +170,8 @@ Treat the current repository as the source of truth. Diagnose the root cause bef
         ]
         if "agent-ready" not in labels:
             edit_args += ["--add-label", "agent-ready"]
-        if "jules" not in labels:
-            edit_args += ["--add-label", "jules"]
+        if "autonomous-backlog" not in labels:
+            edit_args += ["--add-label", "autonomous-backlog"]
         if len(edit_args) > 5:
             gh_run(*edit_args)
 
@@ -205,7 +205,7 @@ Treat the current repository as the source of truth. Diagnose the root cause bef
         "--label",
         "agent-ready",
         "--label",
-        "jules",
+        "autonomous-backlog",
     )
 
 
@@ -218,7 +218,7 @@ def handle_success(ctx: Context, gh_json: GhJson, gh_run: GhRun) -> None:
         number = str(issue["number"])
         labels = _label_names(issue)
         edit_args = ["issue", "edit", number, "--repo", ctx.repo]
-        for label in ("jules", "agent-ready"):
+        for label in ("jules", "jules-session", "agent-ready", "autonomous-backlog"):
             if label in labels:
                 edit_args += ["--remove-label", label]
         if len(edit_args) > 5:
@@ -235,7 +235,7 @@ def handle_success(ctx: Context, gh_json: GhJson, gh_run: GhRun) -> None:
                 f"Resolved by successful **{ctx.workflow}** run on "
                 f"`{ctx.head_sha}`: {ctx.run_url}\n\n"
                 "Closing this failure cycle. If the same failure returns later, "
-                "triage will create a fresh issue with the `jules` label so Jules starts a fresh task."
+                "triage will create a fresh issue so the dispatcher can start a fresh task."
             ),
         )
         gh_run("issue", "close", number, "--repo", ctx.repo)

@@ -158,6 +158,7 @@ def autonomous_issue_authorized(issue: dict[str, Any]) -> bool:
     return (
         AUTONOMOUS_MARKER in body
         or {"agent-ready", "autonomous-backlog"} <= labels
+        or {"agent-ready", "workflow-failure"} <= labels
     )
 
 
@@ -165,6 +166,9 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
     body = str(issue.get("body") or "")
     if not autonomous_issue_authorized(issue):
         return None
+
+    labels = label_names(issue)
+
     safe = (metadata_value(body, "autonomous") or "").casefold()
     priority = (metadata_value(body, "priority") or "").upper()
     area = (metadata_value(body, "area") or "").casefold()
@@ -175,6 +179,14 @@ def task_from_issue(issue: dict[str, Any]) -> Task | None:
         if resource.strip()
     )
     dependencies = dependency_numbers(body)
+
+    if {"agent-ready", "workflow-failure"} <= labels and AUTONOMOUS_MARKER not in body:
+        if not safe: safe = "true"
+        if not priority: priority = "P1"
+        if not area: area = "automation"
+        if not resources: resources = frozenset({"automation"})
+        if dependencies is None: dependencies = frozenset()
+
     if (
         safe != "true"
         or priority not in PRIORITY_ORDER
