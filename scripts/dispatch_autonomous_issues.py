@@ -2308,6 +2308,134 @@ def fetch_open_issues(repo: str) -> list[dict[str, Any]]:
     return [issue for issue in issues if "pull_request" not in issue]
 
 
+
+from typing import Protocol
+
+class EvidenceProvider(Protocol):
+    def generate(self, repo: str, issues: list[dict[str, Any]], occupied_locks: frozenset[str]) -> bool:
+        ...
+
+def _provider_workflow_failure(repo: str, issues: list[dict[str, Any]], occupied_locks: frozenset[str]) -> bool:
+    candidate = None
+    for issue in issues:
+        labels = {
+            label if isinstance(label, str) else label.get("name")
+            for label in issue.get("labels", [])
+        }
+        if "workflow-failure" in labels and "autonomous-backlog" not in labels:
+            candidate = issue
+            break
+
+    if not candidate:
+        return False
+
+    number = candidate["number"]
+    title = candidate.get("title", f"Workflow failure #{number}")
+
+    dedupe_id = f"<!-- evidence-backed-workflow-failure: {number} -->"
+
+    for issue in issues:
+        if dedupe_id in str(issue.get("body", "")):
+            return False
+
+    new_locks = frozenset({"resource:automation"})
+    if new_locks & occupied_locks:
+        return False
+
+    body = f"""{dedupe_id}
+<!-- autonomous-task -->
+priority: P1
+area: automation
+resources: automation
+autonomous: true
+
+## Concrete Evidence
+Workflow failure issue #{number} was discovered without an autonomous task representation.
+
+## Problem Statement
+The workflow failure requires automated triage and resolution.
+
+## Measurable Acceptance Criteria
+- A bounded fix is provided.
+- Regression tests pass.
+- The workflow succeeds on the default branch.
+"""
+    import subprocess
+    try:
+        subprocess.run(
+            [
+                "gh", "issue", "create",
+                "--repo", repo,
+                "--title", f"Automate resolution for: {title}",
+                "--body", body,
+                "--label", "agent-ready",
+                "--label", "autonomous-backlog",
+            ],
+            check=True,
+            capture_output=True,
+        )
+        return True
+    except Exception as e:
+        print(f"Workflow failure provider failed: {e}")
+        return False
+
+EVIDENCE_PROVIDERS: list[EvidenceProvider] = [
+    _provider_workflow_failure,  # type: ignore
+]
+
+def generate_evidence_backed_tasks(
+    repo: str,
+    issues: list[dict[str, Any]],
+    selected: list[Task],
+    max_active: int = MAX_ACTIVE,
+    providers: list[EvidenceProvider] | None = None,
+) -> tuple[int, str]:
+    if providers is None:
+        providers = EVIDENCE_PROVIDERS
+
+    active_tasks = [
+        task
+        for issue in issues
+        if (task := active_jules_task(issue)) is not None
+    ]
+    feedback_tasks = [
+        task
+        for issue in issues
+        if JULES_FEEDBACK_LABEL in label_names(issue)
+        and (task := task_from_issue(issue)) is not None
+    ]
+    reserved_codex = [
+        task
+        for issue in issues
+        if (task := reserved_codex_task(issue)) is not None
+    ]
+
+    occupied_locks: set[str] = set()
+    for task in [*active_tasks, *feedback_tasks, *reserved_codex, *selected]:
+        occupied_locks.update(task_lock_keys(task))
+
+    raw_slots = max(0, max_active - len(active_tasks) - len(feedback_tasks))
+    unfilled = max(0, raw_slots - len(selected))
+
+    if unfilled <= 0:
+        return 0, "no spare capacity"
+
+    generated = 0
+    for provider in providers:
+        if generated >= 1:
+            break
+        try:
+            if provider(repo, issues, frozenset(occupied_locks)): # type: ignore
+                generated += 1
+        except Exception as e:
+            print(f"Evidence provider failed: {e}")
+
+    if generated > 0:
+        return generated, ""
+    return 0, "no eligible candidates found or lock conflicts prevented generation"
+
+
+
 def dispatch_capacity_summary(
     issues: Iterable[dict[str, Any]],
     selected: Iterable[Task],
@@ -2451,7 +2579,13 @@ def run_dispatch_cycle(
     reconcile_autonomous_labels(issues, repo=repo)
 
     selected = select_tasks(issues)
-    print(dispatch_capacity_summary(issues, selected))
+    generated, skip_reason = generate_evidence_backed_tasks(repo, issues, selected)
+    summary = dispatch_capacity_summary(issues, selected)
+    if generated > 0:
+        print(f"{summary} ({generated} evidence-backed candidates generated this cycle)")
+    else:
+        print(f"{summary} (0 evidence-backed candidates generated: skipped because {skip_reason})")
+
     if selected and source_name is None:
         try:
             source_name = find_jules_source(api_key, repo)
