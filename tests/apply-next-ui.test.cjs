@@ -331,8 +331,11 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.doesNotMatch(uiSource, /function waitForBrowserPaint\(\)/, "Apply Next should not own a feature-specific paint helper");
   assert.match(uiSource, /await YartchivesUtils\.waitForBrowserPaint\(\)/, "Apply Next should use the shared browser-paint primitive");
   assert.match(uiSource, /const rankablePool = authoritativeCandidatePool\(pool\);/, "Apply Next should narrow to authoritative candidates before expensive location work");
-  assert.match(uiSource, /await addBaseDistances\(rankablePool, profile\);/, "Location work should only run for rankable candidates");
-  assert.match(uiSource, /YartchivesApplyNext\.rankJobs\(rankablePool, profile, new Date\(\)\)/, "Ranking should consume the same narrowed candidate pool");
+  assert.match(uiSource, /const preliminaryRanked = YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\);/, "Apply Next should cheaply pre-rank before exact distance work");
+  assert.match(uiSource, /const distanceCandidates = distanceEnrichmentCandidates\(preliminaryRanked, rankingNow\);/, "Exact distance work should be bounded to candidates that can still affect visible recommendations");
+  assert.match(uiSource, /await addBaseDistances\(distanceCandidates, profile\);/, "Location enrichment must not scan the full rankable pool");
+  assert.doesNotMatch(uiSource, /await addBaseDistances\(rankablePool, profile\);/, "Full-pool exact distance enrichment would reintroduce the measured bottleneck");
+  assert.match(uiSource, /YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\)/, "Final ranking should use the same timestamp as the location pre-rank");
   const renderQueueSource = uiSource.match(/async function renderQueue\(panel, profile\) \{([\s\S]*?)\n  \}/);
   assert.ok(renderQueueSource, "renderQueue should be present");
   assert.ok(
@@ -517,6 +520,22 @@ globalThis.YartchivesAnalytics = {
 const safeResult = UI.publishApplyNextTiming(timing, { candidates: 10 });
 assert.ok(safeResult, "publishApplyNextTiming must return payload without throwing even if analytics fails");
 delete globalThis.YartchivesAnalytics;
+
+const syntheticRanked = Array.from({ length: 20 }, (_, index) => ({
+  total: 100 - index * 3,
+  excluded: false,
+  job: { id: `job-${index}`, posted_at: index < 12 ? "2026-09-20T00:00:00Z" : "2026-08-01T00:00:00Z" },
+}));
+const distanceSubset = UI.distanceEnrichmentCandidates(syntheticRanked, new Date("2026-09-21T00:00:00Z"));
+assert.ok(distanceSubset.length < syntheticRanked.length, "Distance enrichment should be bounded below the full ranked pool");
+assert.ok(distanceSubset.some(job => job.id === "job-9"), "Recommended cutoff candidates must remain eligible for exact distance");
+assert.ok(
+  distanceSubset.every(job => {
+    const result = syntheticRanked.find(row => row.job === job);
+    return result.total >= 55;
+  }),
+  "Jobs too far below both visible decision cutoffs should skip exact distance work"
+);
 
 const oldProfile = { targetTerm: "Summer 2027", roleFamilies: [{ id: "software" }] };
 assert.equal(UI.explainProfileChange(oldProfile, oldProfile, "1", "1"), null);
