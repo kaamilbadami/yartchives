@@ -46,6 +46,15 @@ MAX_SEARCH_PAGES = 5
 NETWORK_WORKERS = 12
 JOB_LINK = re.compile(r"^/jobs/(\d+)(?:/[^?#]+)?/job/?$", re.I)
 SITEMAP_LOC = re.compile(r"<loc>\s*(https?://[^<]+)\s*</loc>", re.I)
+STRUCTURAL_SOURCE_STATUSES = {403, 404, 410}
+
+
+class StructuralSourceError(RuntimeError):
+    """An auto-discovered provider endpoint is structurally invalid or gone."""
+
+    def __init__(self, message: str, status_codes: list[int] | None = None):
+        super().__init__(message)
+        self.status_codes = tuple(status_codes or [])
 
 
 def now_utc() -> datetime:
@@ -157,25 +166,37 @@ def extract_sitemap_job_links(raw_xml: str, source: dict[str, Any]) -> list[str]
 
 
 def sitemap_site(client: requests.Session, source: dict[str, Any]) -> list[str]:
-    response = client.get(
-        source["sitemap_url"],
-        headers={"Accept": "application/xml,text/xml;q=0.9,*/*;q=0.1", "User-Agent": bf.USER_AGENT},
-        timeout=TIMEOUT,
-    )
-    response.raise_for_status()
-    return extract_sitemap_job_links(response.text, source)
+    try:
+        response = client.get(
+            source["sitemap_url"],
+            headers={"Accept": "application/xml,text/xml;q=0.9,*/*;q=0.1", "User-Agent": bf.USER_AGENT},
+            timeout=TIMEOUT,
+        )
+        response.raise_for_status()
+        return extract_sitemap_job_links(response.text, source)
+    except requests.RequestException as exc:
+        status = getattr(exc.response, "status_code", None)
+        if status in STRUCTURAL_SOURCE_STATUSES:
+            raise StructuralSourceError(f"sitemap structural error {status}: {exc}", [status]) from exc
+        raise
 
 
 def search_site(client: requests.Session, source: dict[str, Any]) -> list[str]:
     seen: dict[str, str] = {}
     for page in range(MAX_SEARCH_PAGES):
-        response = client.get(
-            source["search_url"],
-            params={"ss": "1", "searchKeyword": "intern", "pr": page},
-            headers={"Accept": "text/html,application/xhtml+xml", "User-Agent": bf.USER_AGENT},
-            timeout=TIMEOUT,
-        )
-        response.raise_for_status()
+        try:
+            response = client.get(
+                source["search_url"],
+                params={"ss": "1", "searchKeyword": "intern", "pr": page},
+                headers={"Accept": "text/html,application/xhtml+xml", "User-Agent": bf.USER_AGENT},
+                timeout=TIMEOUT,
+            )
+            response.raise_for_status()
+        except requests.RequestException as exc:
+            status = getattr(exc.response, "status_code", None)
+            if status in STRUCTURAL_SOURCE_STATUSES:
+                raise StructuralSourceError(f"search structural error {status}: {exc}", [status]) from exc
+            raise
         links = extract_job_links(response.text, source["search_url"])
         before = len(seen)
         for link in links:
@@ -289,17 +310,28 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Sessio
             }
             print(f"{source['name']}: {len(direct_jobs)} direct US CS-relevant listing(s)")
         else:
-            health[source["key"]] = {
-                "status": "failed",
-                "count": 0,
-                "name": source["name"],
-                "direct": True,
-                "auto_discovered": True,
-                "error": f"{type(exc).__name__}: {exc}",
-            }
-            if carry_failed_source(jobs, old_jobs, source["key"]):
-                health[source["key"]]["status"] = "degraded"
-            print(f"{source['name']}: FAILED: {exc}", file=sys.stderr)
+            if isinstance(exc, StructuralSourceError):
+                health[source["key"]] = {
+                    "status": "quarantined",
+                    "count": 0,
+                    "name": source["name"],
+                    "direct": True,
+                    "auto_discovered": True,
+                    "error": f"StructuralSourceError: {exc}",
+                }
+                print(f"{source['name']}: QUARANTINED (structural source error): {exc}", file=sys.stderr)
+            else:
+                health[source["key"]] = {
+                    "status": "failed",
+                    "count": 0,
+                    "name": source["name"],
+                    "direct": True,
+                    "auto_discovered": True,
+                    "error": f"{type(exc).__name__}: {exc}",
+                }
+                if carry_failed_source(jobs, old_jobs, source["key"]):
+                    health[source["key"]]["status"] = "degraded"
+                print(f"{source['name']}: FAILED: {exc}", file=sys.stderr)
     return doc
 
 
