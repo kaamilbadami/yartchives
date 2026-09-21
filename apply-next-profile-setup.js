@@ -332,8 +332,10 @@
     const button = document.querySelector("#applyNextBtn");
     const panel = document.querySelector("#applyNextPanel");
     if (!button || !panel || panel.classList.contains("hidden")) return;
+    panel.classList.add("hidden");
+    panel.dataset.view = "";
+    button.setAttribute("aria-expanded", "false");
     button.click();
-    setTimeout(() => button.click(), 0);
   }
 
   function renderEditor(panel, profile) {
