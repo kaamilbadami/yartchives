@@ -20,6 +20,7 @@
   ]);
 
   const ALLOWED_STAGES = new Set([
+    "queue_setup",
     "paint_wait",
     "candidate_artifact",
     "candidate_filter",
