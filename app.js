@@ -42,6 +42,7 @@ const PRIORITY_STATE = "CT";
 const GEO_DATA_URL = "https://raw.githubusercontent.com/ReadyAPIs-com/curated-us-zips/f9eb7daabdade9b2a9f3cbc80327a5c152fc82d3/data/us-zips.csv";
 
 let feed = { jobs: [], sources: {}, generated_at: null };
+let feedReady = false;
 let filtered = [];
 let visibleLimit = PAGE_SIZE;
 let filterRequestId = 0;
@@ -774,6 +775,10 @@ function setUpEvents() {
   }
 }
 
+function isFeedReady() {
+  return feedReady;
+}
+
 async function boot() {
   updateSiteMeta();
   loadSavedState();
@@ -781,14 +786,16 @@ async function boot() {
   renderProfiles();
   setUpEvents();
   try {
-    const response = await fetch(`data/listings.json?ts=${Date.now()}`, { cache: "no-store" });
+    const response = await fetch("data/listings.json", { cache: "no-cache" });
     if (!response.ok) throw new Error(`Feed request failed (${response.status})`);
     feed = await response.json();
     if (!Array.isArray(feed.jobs)) throw new Error("Feed JSON is malformed");
+    feedReady = true;
     renderHealth();
     updateFeedMeta();
     applyFilters();
   } catch (error) {
+    feedReady = false;
     els.errorBox.classList.remove("hidden");
     els.errorBox.textContent = `Yartchives couldn't load the listings feed: ${error.message}`;
     els.feedMeta.textContent = "Feed unavailable.";
