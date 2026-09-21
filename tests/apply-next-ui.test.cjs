@@ -302,7 +302,7 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.doesNotMatch(uiSource, /Application access|application-link friction/);
   assert.match(uiSource, /Posted \$\{monthDay\} · \$\{ageLabel\}/);
   assert.match(uiSource, /apply-next-posted-date/);
-  assert.match(uiSource, /data\/workday-inspections\.json/);
+  assert.match(uiSource, /data\/apply-next-inspections\.json/);
   assert.match(uiSource, /job\.link_kind === "employer_job" \? "View posting ↗" : "Apply ↗"/);
   const appliedHandler = uiSource.match(
     /applied\.addEventListener\("click",\s*\(\)\s*=>\s*\{([\s\S]*?)\n\s*\}\);/
@@ -435,7 +435,8 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.doesNotMatch(uiSource, /Kaamil|Badami|kaamil\.badami/i);
 
   const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
-  assert.ok(deployWorkflow.includes("data/workday-inspections.json"), "Pages workflow must deploy Workday inspections");
+  assert.ok(deployWorkflow.includes("scripts/build_apply_next_inspections.py data/workday-inspections.json _site/data/apply-next-inspections.json"), "Pages workflow must build the compact Apply Next inspection artifact before deploy");
+  assert.ok(deployWorkflow.includes("data/workday-inspections.json"), "Pages workflow must retain the authoritative inspection cache for deployment tooling");
 
   console.log("apply-next UI tests passed");
 })().catch(error => {
