@@ -80,6 +80,7 @@ const els = {
   resultsTitle: document.querySelector("#resultsTitle"),
   resultsNote: document.querySelector("#resultsNote"),
   feedMeta: document.querySelector("#feedMeta"),
+  siteMeta: document.querySelector("#siteMeta"),
   sourceHealth: document.querySelector("#sourceHealth"),
   errorBox: document.querySelector("#errorBox"),
   shareBtn: document.querySelector("#shareBtn"),
@@ -656,6 +657,32 @@ function updateFeedMeta() {
   els.feedMeta.textContent = `Updated ${formatEasternTimestamp(when)} · ${active} active sources`;
 }
 
+function formatSiteAge(value, nowValue = Date.now()) {
+  const deployed = new Date(value);
+  const now = Number(nowValue);
+  if (!Number.isFinite(deployed.getTime()) || !Number.isFinite(now)) return null;
+  const minutes = Math.max(0, Math.floor((now - deployed.getTime()) / 60000));
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} hr${hours === 1 ? "" : "s"} ago`;
+  const days = Math.floor(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
+}
+
+function updateSiteMeta() {
+  if (!els.siteMeta) return;
+  const deployedAt = document.querySelector('meta[name="yartchives-deployed-at"]')?.content;
+  const buildSha = document.querySelector('meta[name="yartchives-build"]')?.content;
+  const age = formatSiteAge(deployedAt);
+  if (!age || !buildSha || buildSha.startsWith("__")) {
+    els.siteMeta.textContent = "Site version unavailable.";
+    return;
+  }
+  els.siteMeta.textContent = `Site updated ${age}`;
+  els.siteMeta.title = `Deployed ${formatEasternTimestamp(deployedAt)} · build ${buildSha.slice(0, 7)}`;
+}
+
 function setUpEvents() {
   let timer;
   els.searchInput.addEventListener("input", e => {
@@ -740,6 +767,7 @@ function setUpEvents() {
 }
 
 async function boot() {
+  updateSiteMeta();
   loadSavedState();
   syncControls();
   renderProfiles();
