@@ -1,6 +1,7 @@
 import importlib.util
 import pathlib
 import unittest
+from unittest.mock import patch
 
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -19,7 +20,12 @@ class FakeGh:
 
     def json(self, *args):
         if args[:2] == ("api", "--paginate"):
-            return [issue.copy() for issue in self.issues if issue["state"] == "open"]
+            if "issues?" in args[2] and not "/comments?" in args[2]:
+                return [issue.copy() for issue in self.issues if issue["state"] == "open"]
+            if "/comments?" in args[2]:
+                number = int(args[2].split("/issues/", 1)[1].split("/comments", 1)[0])
+                issue = self._issue(number)
+                return issue.get("comments", [])
         if args[0] == "api" and "/jobs?" in args[1]:
             run_id = args[1].split("/runs/", 1)[1].split("/jobs", 1)[0]
             return {"jobs": self.jobs_by_run[run_id]}
@@ -63,6 +69,13 @@ class FakeGh:
             issue["labels"] = [{"name": label} for label in sorted(labels)]
             return
         if args[:2] == ("issue", "comment"):
+            issue = self._issue(int(args[2]))
+            if "comments" not in issue:
+                issue["comments"] = []
+            body = args[args.index("--body") + 1]
+            issue["comments"].append({"body": body})
+            return
+        if args[:2] == ("workflow", "run"):
             return
         if args[:2] == ("issue", "close"):
             self._issue(int(args[2]))["state"] = "closed"
@@ -214,6 +227,178 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
 
         # Issue 3 is from a different workflow ("Update opportunity feed"), so it stays open
         self.assertEqual(gh.issues[2]["state"], "open")
+
+
+    @patch("subprocess.run")
+    def test_trusted_jules_pr_failed_check_enters_repair_cycle(self, mock_run):
+        mock_run.return_value.stdout = "line1\nline2\nline3\n"
+        gh = FakeGh()
+        gh.jobs_by_run["1"] = failed_jobs()
+        gh.issues = [
+            {
+                "number": 123,
+                "state": "open",
+                "body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-1 -->",
+                "labels": [{"name": "jules-review-ready"}],
+                "comments": []
+            }
+        ]
+
+        mod.triage(
+            ctx(run_id="1", conclusion="failure", branch="jules-branch"),
+            gh.json,
+            gh.run,
+        )
+
+        issue = gh._issue(123)
+        labels = {label["name"] for label in issue["labels"]}
+        self.assertIn("jules-retry-ready", labels)
+        self.assertNotIn("jules-review-ready", labels)
+
+        self.assertEqual(len(issue["comments"]), 1)
+        self.assertIn("ci-repair-delivered: sha-1::tests::Python tests", issue["comments"][0]["body"])
+        self.assertIn("<!-- jules-retry-from: abc -->", issue["comments"][0]["body"])
+        self.assertIn("line1", issue["comments"][0]["body"])
+
+    @patch("subprocess.run")
+    def test_trusted_jules_pr_successful_rerun_automerges(self, mock_run):
+        gh = FakeGh()
+        gh.issues = [
+            {
+                "number": 123,
+                "state": "open",
+                "body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-2 -->",
+                "labels": [{"name": "jules-retry-ready"}],
+                "comments": []
+            }
+        ]
+
+        mod.triage(
+            ctx(run_id="2", conclusion="success", branch="jules-branch"),
+            gh.json,
+            gh.run,
+        )
+
+        issue = gh._issue(123)
+        labels = {label["name"] for label in issue["labels"]}
+        self.assertIn("jules-review-ready", labels)
+        self.assertNotIn("jules-retry-ready", labels)
+        self.assertEqual(len(issue["comments"]), 1)
+        self.assertIn("CI is green again. Proceeding toward auto-merge.", issue["comments"][0]["body"])
+        self.assertTrue(any(call[:2] == ("workflow", "run") for call in gh.calls))
+
+    @patch("subprocess.run")
+    def test_duplicate_failure_is_idempotent(self, mock_run):
+        mock_run.return_value.stdout = "log"
+        gh = FakeGh()
+        gh.jobs_by_run["1"] = failed_jobs()
+        gh.issues = [
+            {
+                "number": 123,
+                "state": "open",
+                "body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-1 -->",
+                "labels": [{"name": "jules-retry-ready"}],
+                "comments": [
+                    {"body": "<!-- ci-repair-delivered: sha-1::tests::Python tests -->"}
+                ]
+            }
+        ]
+
+        # Capture old length
+        old_calls_len = len(gh.calls)
+        mod.triage(
+            ctx(run_id="1", conclusion="failure", branch="jules-branch"),
+            gh.json,
+            gh.run,
+        )
+
+        issue = gh._issue(123)
+        self.assertEqual(len(issue["comments"]), 1) # No new comment added
+
+    @patch("subprocess.run")
+    def test_exhausted_repair_budget_parks_task(self, mock_run):
+        mock_run.return_value.stdout = "log"
+        gh = FakeGh()
+        gh.jobs_by_run["1"] = failed_jobs()
+        gh.issues = [
+            {
+                "number": 123,
+                "state": "open",
+                "body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-1 -->",
+                "labels": [{"name": "jules-retry-ready"}],
+                "comments": [
+                    {"body": "<!-- ci-repair-delivered: other-sha::tests::Python tests -->"},
+                    {"body": "<!-- ci-repair-delivered: other-sha-2::tests::Python tests -->"}
+                ]
+            }
+        ]
+
+        mod.triage(
+            ctx(run_id="1", conclusion="failure", branch="jules-branch"),
+            gh.json,
+            gh.run,
+        )
+
+        issue = gh._issue(123)
+        labels = {label["name"] for label in issue["labels"]}
+        self.assertIn("jules-failed", labels)
+        self.assertNotIn("jules-retry-ready", labels)
+
+        self.assertEqual(len(issue["comments"]), 3)
+        self.assertIn("CI repair budget exhausted", issue["comments"][-1]["body"])
+
+    def test_ordinary_pr_is_ignored(self):
+        gh = FakeGh()
+        gh.jobs_by_run["1"] = failed_jobs()
+        gh.issues = [
+            {
+                "number": 123,
+                "state": "open",
+                "body": "normal pr",
+                "labels": [],
+                "comments": []
+            }
+        ]
+
+        mod.triage(
+            ctx(run_id="1", conclusion="failure", branch="feature/pr"),
+            gh.json,
+            gh.run,
+        )
+        self.assertEqual(len(gh.issues[0]["comments"]), 0)
+        self.assertFalse(any(call[:2] == ("issue", "edit") for call in gh.calls))
+
+    def test_untrusted_pr_is_ignored(self):
+        gh = FakeGh()
+        gh.jobs_by_run["1"] = failed_jobs()
+        gh.issues = [
+            {
+                "number": 123,
+                "state": "open",
+                "body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-2 -->", # head mismatch
+                "labels": [{"name": "jules-review-ready"}],
+                "comments": []
+            }
+        ]
+
+        mod.triage(
+            ctx(run_id="1", conclusion="failure", branch="feature/pr"),
+            gh.json,
+            gh.run,
+        )
+        self.assertEqual(len(gh.issues[0]["comments"]), 0)
+
+    def test_default_branch_behavior_unchanged(self):
+        gh = FakeGh()
+        gh.jobs_by_run["1"] = failed_jobs()
+        # Head branch is "main" in this helper by default
+
+        mod.triage(ctx(run_id="1", conclusion="failure"), gh.json, gh.run)
+
+        # Should create a new issue for the default branch failure
+        self.assertEqual(len(gh.issues), 1)
+        labels = {label["name"] for label in gh.issues[0]["labels"]}
+        self.assertEqual(labels, {"workflow-failure", "agent-ready", "autonomous-backlog"})
 
 if __name__ == "__main__":
     unittest.main()
