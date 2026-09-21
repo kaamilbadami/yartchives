@@ -104,6 +104,15 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn('"Listing hidden on this browser."', text)
         self.assertIn('"Saved, applied, and hidden are stored only in this browser."', text)
 
+    def test_feed_boot_revalidates_cache_and_tracks_readiness(self):
+        app = (ROOT / "app.js").read_text(encoding="utf-8")
+        self.assertIn("let feedReady = false;", app)
+        self.assertIn("function isFeedReady()", app)
+        self.assertIn('fetch("data/listings.json", { cache: "no-cache" })', app)
+        self.assertNotIn("data/listings.json?ts=", app)
+        self.assertNotIn('cache: "no-store"', app)
+        self.assertIn("feedReady = true;", app)
+
     def test_removed_share_button_cannot_block_feed_boot(self):
         html = (ROOT / "index.html").read_text(encoding="utf-8")
         app = (ROOT / "app.js").read_text(encoding="utf-8")
