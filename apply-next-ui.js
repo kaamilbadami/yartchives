@@ -45,7 +45,13 @@
   function normalizeGeoErrorCode(value) {
     const code = normalize(value);
     if (!code) return null;
-    if (code === "geo_network" || code === "geo_malformed" || /^geo_http_(?:[1-5][0-9]{2}|error)$/.test(code)) return code;
+    if (
+      code === "geo_network"
+      || code === "geo_malformed"
+      || code === "geo_internal"
+      || /^geo_http_(?:[1-5][0-9]{2}|error)$/.test(code)
+      || /^geo_index_(?:zips|cities|sort)$/.test(code)
+    ) return code;
     return "geo_unknown";
   }
 
