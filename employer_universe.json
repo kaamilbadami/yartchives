@@ -110,7 +110,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -1684,7 +1684,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -1815,8 +1815,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T18:52:48Z",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "resolved_at": "2026-09-21T19:17:05Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -2018,7 +2018,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -2623,7 +2623,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -3765,7 +3765,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -3938,7 +3938,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -4590,7 +4590,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -4852,7 +4852,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -5147,7 +5147,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -5327,7 +5327,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -5373,7 +5373,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -5572,7 +5572,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -5653,7 +5653,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -6043,7 +6043,79 @@
       },
       "domain_hints": [
         "appliedmaterials.com"
-      ]
+      ],
+      "careers_resolution": {
+        "status": "blocked",
+        "attempt_status": "blocked",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://appliedmaterials.com/",
+            "redirect_chain": [
+              {
+                "url": "https://appliedmaterials.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.appliedmaterials.com/",
+                "status": 403
+              }
+            ],
+            "final_url": "https://www.appliedmaterials.com/",
+            "status": 403,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://appliedmaterials.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://appliedmaterials.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.appliedmaterials.com/careers",
+                "status": 403
+              }
+            ],
+            "final_url": "https://www.appliedmaterials.com/careers",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://appliedmaterials.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://appliedmaterials.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.appliedmaterials.com/jobs",
+                "status": 403
+              }
+            ],
+            "final_url": "https://www.appliedmaterials.com/jobs",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          }
+        ]
+      }
     },
     {
       "id": "aqr-capital",
@@ -10301,7 +10373,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -14393,8 +14465,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T18:52:48Z",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "resolved_at": "2026-09-21T19:17:05Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -20406,8 +20478,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-21T18:52:48Z",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "resolved_at": "2026-09-21T19:17:05Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -24136,7 +24208,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
@@ -33721,7 +33793,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-21T18:52:48Z",
+        "last_attempt_at": "2026-09-21T19:17:05Z",
         "evidence": [
           {
             "type": "http",
