@@ -19,7 +19,8 @@
   let lastProfile = null;
   let lastTotalEligibleCount = 0;
   let activeQueueView = "recommended";
-  let queueVisibleCounts = { recommended: TOP_N, fresh: TOP_N };\n  const trackedRecommendationIds = new Set();
+  let queueVisibleCounts = { recommended: TOP_N, fresh: TOP_N };
+  const trackedRecommendationIds = new Set();
 
   function normalize(value) {
     return String(value || "").trim();
