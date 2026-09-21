@@ -1169,6 +1169,12 @@
     return fragment;
   }
 
+  function feedReadyForRecommendations() {
+    return typeof isFeedReady === "function"
+      ? Boolean(isFeedReady())
+      : (typeof feed !== "undefined" && Array.isArray(feed.jobs));
+  }
+
   async function renderQueue(panel, profile) {
     const timing = { startedAt: timingNow(), stages: {} };
     const counts = { candidates: 0, rankable: 0, recommendations: 0 };
@@ -1192,6 +1198,11 @@
     let stageStartedAt = timingNow();
     await YartchivesUtils.waitForBrowserPaint();
     recordTimingStage(timing, "paint_wait", stageStartedAt);
+
+    if (!feedReadyForRecommendations()) {
+      clearTimeout(slowLoadingTimer);
+      return;
+    }
 
     try {
       if (typeof feed === "undefined" || !Array.isArray(feed.jobs)) throw new Error("Feed not available");
@@ -1334,6 +1345,7 @@
     timingNow,
     recordTimingStage,
     publishApplyNextTiming,
+    feedReadyForRecommendations,
     knownWrongTerm,
     candidatePool,
     authoritativeCandidatePool,
