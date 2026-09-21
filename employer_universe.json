@@ -110,7 +110,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -1721,7 +1721,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -1852,8 +1852,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T23:57:14Z",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "resolved_at": "2026-09-21T00:17:23Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -2055,7 +2055,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -2660,7 +2660,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -2755,8 +2755,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T23:57:14Z",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "resolved_at": "2026-09-21T00:17:23Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -2794,14 +2794,10 @@
               },
               {
                 "url": "https://careers.airbnb.com",
-                "status": 302
-              },
-              {
-                "url": "https://careers.airbnb.com/zh/",
                 "status": 200
               }
             ],
-            "final_url": "https://careers.airbnb.com/zh/",
+            "final_url": "https://careers.airbnb.com/",
             "status": 200,
             "signals": [
               "careers page content",
@@ -3774,7 +3770,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -3947,7 +3943,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -4599,7 +4595,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -4861,7 +4857,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -5156,7 +5152,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -5336,7 +5332,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -5382,7 +5378,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -5581,7 +5577,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -5662,7 +5658,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -10201,7 +10197,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -14293,8 +14289,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T23:57:14Z",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "resolved_at": "2026-09-21T00:17:23Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -14405,7 +14401,18 @@
             "type": "http",
             "source": "conventional-path",
             "requested_url": "https://job-boards.greenhouse.io/jobs",
-            "error": "ReadTimeout: HTTPSConnectionPool(host='job-boards.greenhouse.io', port=443): Read timed out. (read timeout=15)"
+            "redirect_chain": [
+              {
+                "url": "https://job-boards.greenhouse.io/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://job-boards.greenhouse.io/jobs",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
           }
         ]
       },
@@ -20295,8 +20302,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T23:57:14Z",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "resolved_at": "2026-09-21T00:17:23Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -24062,7 +24069,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
@@ -33684,7 +33691,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T23:57:14Z",
+        "last_attempt_at": "2026-09-21T00:17:23Z",
         "evidence": [
           {
             "type": "http",
