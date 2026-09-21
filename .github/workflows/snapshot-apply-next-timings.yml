@@ -1,0 +1,54 @@
+name: Snapshot Apply Next timings
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apply-next-timing-snapshot
+  cancel-in-progress: true
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+
+      - name: Fetch recent Formspree submissions
+        env:
+          FORMSPREE_READ_API_KEY: ${{ secrets.FORMSPREE_READ_API_KEY }}
+        run: |
+          if [ -z "$FORMSPREE_READ_API_KEY" ]; then
+            echo "::error::FORMSPREE_READ_API_KEY is not configured."
+            exit 1
+          fi
+          curl --fail --silent --show-error \
+            -H "Authorization: Bearer $FORMSPREE_READ_API_KEY" \
+            "https://formspree.io/api/0/forms/mqakpejw/submissions?limit=100&order=desc" \
+            -o /tmp/formspree-submissions.json
+
+      - name: Build privacy-safe snapshot
+        run: |
+          python scripts/snapshot_apply_next_timings.py \
+            /tmp/formspree-submissions.json \
+            data/diagnostics/apply-next-timings.json \
+            --max-samples 20
+
+      - name: Publish snapshot when changed
+        run: |
+          if git diff --quiet -- data/diagnostics/apply-next-timings.json; then
+            echo "No timing snapshot changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/diagnostics/apply-next-timings.json
+          git commit -m "chore: refresh Apply Next timing snapshot"
+          git push origin HEAD:main
