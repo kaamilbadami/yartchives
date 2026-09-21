@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "generated_at": null,
+  "privacy": "aggregate timing only; visitor/session/profile/job fields omitted",
+  "recent": [],
+  "summary": {
+    "samples": 0,
+    "median_total_ms": null,
+    "p90_total_ms": null,
+    "stages": {}
+  },
+  "by_build": {}
+}
