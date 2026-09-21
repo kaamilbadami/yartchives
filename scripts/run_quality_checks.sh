@@ -55,16 +55,21 @@ run_benchmark() {
     --feed data/listings.json
 }
 
+run_health() {
+  YARTCHIVES_REPO_HEALTH=1 python -m unittest tests.test_direct_link_coverage -v
+  run_feed
+  run_benchmark
+}
+
 case "$phase" in
   python) run_python ;;
   frontend) run_frontend ;;
   feed) run_feed ;;
   benchmark) run_benchmark ;;
+  health) run_health ;;
   all)
     run_python
     run_frontend
-    run_feed
-    run_benchmark
     ;;
   *)
     echo "Unknown quality phase: $phase" >&2
