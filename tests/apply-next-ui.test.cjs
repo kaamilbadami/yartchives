@@ -470,7 +470,7 @@ let loggedTiming = null;
 console.info = (_label, payload) => { loggedTiming = payload; };
 const timingPayload = UI.publishApplyNextTiming(
   timing,
-  { candidates: 500, rankable: 42, recommendations: 10, status: "success" },
+  { candidates: 500, rankable: 42, distance_candidates: 12, recommendations: 10, status: "success" },
   180.04
 );
 console.info = priorInfo;
