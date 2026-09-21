@@ -19,7 +19,7 @@
   let lastProfile = null;
   let lastTotalEligibleCount = 0;
   let activeQueueView = "recommended";
-  let queueVisibleCounts = { recommended: TOP_N, fresh: TOP_N };
+  let queueVisibleCounts = { recommended: TOP_N, fresh: TOP_N };\n  const trackedRecommendationIds = new Set();
 
   function normalize(value) {
     return String(value || "").trim();
@@ -755,7 +755,7 @@
       apply.target = "_blank";
       apply.rel = "noopener noreferrer";
       apply.addEventListener("click", () => {
-        YartchivesAnalytics?.track("apply_clicked");
+        typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("apply_clicked");
       });
       actions.append(apply);
     }
@@ -765,7 +765,7 @@
       if (state.saved.has(job.id)) state.saved.delete(job.id);
       else {
         state.saved.add(job.id);
-        YartchivesAnalytics?.track("saved");
+        typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("saved");
       }
       persist();
       saved.textContent = state.saved.has(job.id) ? "Saved" : "Save";
@@ -785,7 +785,7 @@
     hide.setAttribute("aria-label", "Hide listing");
     hide.addEventListener("click", () => {
       state.hidden.add(job.id);
-      YartchivesAnalytics?.track("hidden");
+      typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("hidden");
       persist();
       updateQueueOptimistically(document.querySelector("#applyNextPanel"), loadProfile(localStorage), job.id);
       applyFilters();
@@ -911,7 +911,7 @@
                 if (!res.ok) throw new Error("Submission failed");
 
                 state.feedback[job.id].submitted = true;
-                YartchivesAnalytics?.track("feedback_submitted");
+                typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("feedback_submitted");
                 persist();
                 renderFeedback();
               } catch (err) {
@@ -1015,8 +1015,14 @@
 
     list.innerHTML = "";
     ranked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
-    if (ranked.length) {
-      YartchivesAnalytics?.track("recommendations_shown", { count: ranked.length });
+    const newlyShown = ranked.filter(result => {
+      const id = result?.job?.id;
+      if (!id || trackedRecommendationIds.has(id)) return false;
+      trackedRecommendationIds.add(id);
+      return true;
+    }).length;
+    if (newlyShown && typeof YartchivesAnalytics !== "undefined") {
+      YartchivesAnalytics.track("recommendations_shown", { count: newlyShown });
     }
 
     if (!ranked.length) {
@@ -1209,7 +1215,7 @@
         return;
       }
       if (persist) saveEntryMode(localStorage, "apply-next");
-      YartchivesAnalytics?.track("apply_next_open");
+      typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("apply_next_open");
       panel.classList.remove("hidden");
       panel.dataset.view = "apply-next";
       button.setAttribute("aria-expanded", "true");
