@@ -433,6 +433,8 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /document\.createDocumentFragment\(\)/, "renderQueue should build DOM off-screen before swapping to avoid UI stalls");
   assert.ok(uiSource.includes('const CANDIDATE_URL = "data/apply-next-candidates.json"'), "Apply Next should use a dedicated compact candidate artifact");
   assert.ok(uiSource.includes("recommendationJobs = await loadCandidateArtifact()"), "Apply Next should load candidates independently of the general feed");
+  assert.ok(uiSource.includes("scheduleGeoWarm(savedProfile)"), "Saved Apply Next profiles should prewarm local geo data before the recommendation click path");
+  assert.match(uiSource, /requestIdleCallback\(warm, \{ timeout: 1000 \}\)/, "Geo prewarm should use browser idle time when available");
   assert.doesNotMatch(renderQueueSource[1], /candidatePool\(feed\.jobs/, "Apply Next ranking must not depend on the full listings feed");
   for (const stage of ["paint_wait", "candidate_artifact", "candidate_filter", "inspection_artifact", "inspection_attach", "location_enrichment", "ranking", "render"]) {
     assert.ok(uiSource.includes(`recordTimingStage(timing, "${stage}"`), `Apply Next should record ${stage} timing`);
@@ -443,6 +445,7 @@ assert.equal(jobs[2]._inspection, undefined);
   const deployWorkflow = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
   assert.ok(deployWorkflow.includes("scripts/build_apply_next_inspections.py data/workday-inspections.json _site/data/apply-next-inspections.json"), "Pages workflow must build the compact Apply Next inspection artifact before deploy");
   assert.ok(deployWorkflow.includes("scripts/build_apply_next_candidates.py data/listings.json _site/data/apply-next-candidates.json"), "Pages workflow must build the compact Apply Next candidate artifact before deploy");
+  assert.ok(deployWorkflow.includes("scripts/build_geo_index.py /tmp/us-zips.csv _site/data/geo-index.json"), "Pages workflow must build a local compact geo index before deploy");
   assert.ok(deployWorkflow.includes("data/workday-inspections.json"), "Pages workflow must retain the authoritative inspection cache for deployment tooling");
 
   console.log("apply-next UI tests passed");
