@@ -335,7 +335,7 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /const distanceCandidates = distanceEnrichmentCandidates\(preliminaryRanked, rankingNow\);/, "Exact distance work should be bounded to candidates that can still affect visible recommendations");
   assert.match(uiSource, /await addBaseDistances\(distanceCandidates, profile\);/, "Location enrichment must not scan the full rankable pool");
   assert.doesNotMatch(uiSource, /await addBaseDistances\(rankablePool, profile\);/, "Full-pool exact distance enrichment would reintroduce the measured bottleneck");
-  assert.match(uiSource, /YartchivesApplyNext\.rankJobs\(rankablePool, profile, new Date\(\)\)/, "Ranking should consume the same narrowed candidate pool");
+  assert.match(uiSource, /YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\)/, "Final ranking should use the same timestamp as the location pre-rank");
   const renderQueueSource = uiSource.match(/async function renderQueue\(panel, profile\) \{([\s\S]*?)\n  \}/);
   assert.ok(renderQueueSource, "renderQueue should be present");
   assert.ok(
