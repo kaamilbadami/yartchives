@@ -107,7 +107,7 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
 
         self.assertEqual(len(gh.issues), 1)
         labels = {label["name"] for label in gh.issues[0]["labels"]}
-        self.assertEqual(labels, {"workflow-failure", "agent-ready", "jules"})
+        self.assertEqual(labels, {"workflow-failure", "agent-ready", "autonomous-backlog"})
         self.assertIn("Quality checks::tests::Python tests", gh.issues[0]["body"])
 
     def test_success_closes_failure_cycle_and_next_failure_dispatches_fresh_jules_issue(self):
@@ -117,19 +117,21 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
 
         mod.triage(ctx(run_id="1", conclusion="failure"), gh.json, gh.run)
         first_issue = gh.issues[0]
-        self.assertIn("jules", {label["name"] for label in first_issue["labels"]})
+        self.assertIn("autonomous-backlog", {label["name"] for label in first_issue["labels"]})
 
         mod.triage(ctx(run_id="2", conclusion="success"), gh.json, gh.run)
         self.assertEqual(first_issue["state"], "closed")
         first_labels = {label["name"] for label in first_issue["labels"]}
-        self.assertNotIn("jules", first_labels)
+        self.assertNotIn("autonomous-backlog", first_labels)
         self.assertNotIn("agent-ready", first_labels)
+        self.assertNotIn("jules", first_labels)
+        self.assertNotIn("jules-session", first_labels)
 
         mod.triage(ctx(run_id="3", conclusion="failure"), gh.json, gh.run)
         open_issues = [issue for issue in gh.issues if issue["state"] == "open"]
         self.assertEqual(len(open_issues), 1)
         self.assertNotEqual(open_issues[0]["number"], first_issue["number"])
-        self.assertIn("jules", {label["name"] for label in open_issues[0]["labels"]})
+        self.assertIn("autonomous-backlog", {label["name"] for label in open_issues[0]["labels"]})
 
     def test_pr_failure_does_not_dispatch_jules(self):
         gh = FakeGh()
