@@ -78,6 +78,20 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
         self.assertIn('cron: "*/5 * * * *"', workflow)
 
+    def test_automerge_explicitly_dispatches_feed_after_trigger_relevant_merge(self):
+        workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
+
+        post_merge = workflow.split("- name: Dispatch post-merge workflows", 1)[1]
+        self.assertIn("gh workflow run update-feed.yml --repo \"$REPOSITORY\" --ref main", post_merge)
+        self.assertIn("scripts/", post_merge)
+        self.assertIn("tests/", post_merge)
+        self.assertIn("direct_sources\\.json$", post_merge)
+        self.assertIn("\\.github/workflows/update-feed\\.yml$", post_merge)
+        self.assertIn(
+            "Auto-merge changed feed-trigger-relevant files; dispatching feed refresh from resulting main.",
+            post_merge,
+        )
+
     def test_automerge_workflow_fetches_full_history_for_branch_merges(self):
         workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
         checkout_block = workflow.split("- name: Check out merge policy", 1)[1].split("- name: Merge one safe autonomous pull request", 1)[0]
