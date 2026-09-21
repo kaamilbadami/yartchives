@@ -55,6 +55,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
@@ -65,17 +67,27 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Decide whether repository-health checks are relevant
+        id: scope
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          if [ "$EVENT_NAME" = "schedule" ] || [ "$EVENT_NAME" = "workflow_dispatch" ] || [ "$GITHUB_REF_NAME" = "main" ]; then
+            echo "health=true" >> "$GITHUB_OUTPUT"
+          else
+            bash scripts/quality_scope.sh "$PR_BASE_SHA" "$GITHUB_SHA" | tail -n 1 >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Python tests
         run: bash scripts/run_quality_checks.sh python
 
       - name: Frontend tests
         run: bash scripts/run_quality_checks.sh frontend
 
-      - name: Validate checked-in feed
-        run: bash scripts/run_quality_checks.sh feed
-
-      - name: Measure frozen Northeast / Mid-Atlantic benchmark
-        run: bash scripts/run_quality_checks.sh benchmark
+      - name: Repository health checks
+        if: steps.scope.outputs.health == 'true'
+        run: bash scripts/run_quality_checks.sh health
 
   live-source-smoke:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
