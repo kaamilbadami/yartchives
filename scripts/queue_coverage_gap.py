@@ -30,7 +30,7 @@ def _gh_json(*args: str) -> Any:
 def _gh_run(*args: str) -> None:
     subprocess.run(["gh", *args], check=True)
 
-def find_biggest_gap(universe: dict[str, Any]) -> tuple[str, int, list[dict[str, Any]], str] | None:
+def find_all_gaps(universe: dict[str, Any]) -> list[tuple[str, int, list[dict[str, Any]], str]]:
     benchmark_employers = []
     for e in universe.get("employers", []):
         seeds = e.get("seed_sets", [])
@@ -66,7 +66,7 @@ def find_biggest_gap(universe: dict[str, Any]) -> tuple[str, int, list[dict[str,
             gaps.append((f"ATS Family integration ({f})", len(emps), emps, f"ats-{f}"))
 
     gaps.sort(key=lambda x: -x[1])
-    return gaps[0] if gaps else None
+    return gaps
 
 def get_active_and_coverage_issues(repo: str) -> tuple[list[Any], list[dict[str, Any]]]:
     issues = _gh_json(
@@ -134,8 +134,9 @@ autonomous: true
 ## Coverage Gap Identified
 
 A coverage gap was identified among benchmark employers:
-- **Type**: {gap_name}
-- **Impact**: {count} unresolved benchmark employers
+- **Measured impact**: {count} unresolved benchmark employers
+- **Affected family/cause**: {gap_name}
+- **Expected scope**: Bound the fix to this generic gap rather than manual additions.
 
 ### Examples affected:
 {employer_list}
@@ -147,6 +148,9 @@ Please investigate this gap.
 - Do not scrape LinkedIn or Handshake directly.
 - Work boundedly to resolve root causes rather than manually adding direct entries if possible.
 - Update `employer_universe.json` or source scripts to recover these.
+
+## Stop condition
+Exactly one next task may be created or refreshed. Stop if no generic improvements remain. Do not create a batch of employer-specific issues.
 """
     _gh_run(
         "issue",
@@ -169,24 +173,38 @@ def main() -> None:
         sys.exit(1)
 
     universe = json.loads(args.universe.read_text(encoding="utf-8"))
-    gap = find_biggest_gap(universe)
+    gaps = find_all_gaps(universe)
 
-    if not gap:
+    if not gaps:
         print("No actionable coverage gap found.")
         return
 
-    gap_name, count, employers, gap_id = gap
-    print(f"Largest gap: {gap_name} affecting {count} employers.")
-
     active_tasks, coverage_issues = get_active_and_coverage_issues(args.repo)
 
-    if issue_already_queued(coverage_issues, gap_id):
-        print(f"Issue for gap {gap_id} already exists or is in progress.")
+    if resources_conflict_with_active_work(active_tasks):
+        print("Active feed work or coverage tasks prevent queuing new tasks at this time.")
         return
 
-    if resources_conflict_with_active_work(active_tasks):
-        print(f"Active feed work or coverage tasks prevent queuing new tasks at this time.")
+    selected_gap = None
+    for gap in gaps:
+        gap_name, count, employers, gap_id = gap
+        if count < 2:
+            print(f"Skipping {gap_id} (count {count}): insufficient generic impact.")
+            continue
+
+        if issue_already_queued(coverage_issues, gap_id):
+            print(f"Issue for gap {gap_id} already exists or is in progress. Skipping.")
+            continue
+
+        selected_gap = gap
+        break
+
+    if not selected_gap:
+        print("No unsupported generic gaps remaining to queue.")
         return
+
+    gap_name, count, employers, gap_id = selected_gap
+    print(f"Queuing next actionable gap: {gap_name} affecting {count} employers.")
 
     create_issue(args.repo, gap_name, count, gap_id, employers)
     print(f"Queued issue for gap: {gap_id}")

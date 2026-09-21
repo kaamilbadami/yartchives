@@ -6,10 +6,10 @@ from unittest.mock import patch
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scripts.queue_coverage_gap import create_issue, find_biggest_gap, get_active_and_coverage_issues, issue_already_queued, resources_conflict_with_active_work
+from scripts.queue_coverage_gap import create_issue, find_all_gaps, get_active_and_coverage_issues, issue_already_queued, resources_conflict_with_active_work
 
 class TestQueueCoverageGap(unittest.TestCase):
-    def test_find_biggest_gap_no_hint(self):
+    def test_find_all_gaps_no_hint(self):
         universe = {
             "employers": [
                 {
@@ -26,13 +26,14 @@ class TestQueueCoverageGap(unittest.TestCase):
                 }
             ]
         }
-        gap = find_biggest_gap(universe)
-        self.assertIsNotNone(gap)
+        gaps = find_all_gaps(universe)
+        self.assertTrue(len(gaps) > 0)
+        gap = gaps[0]
         self.assertEqual(gap[0], "Discovery gap (No domain hint)")
         self.assertEqual(gap[1], 2)
         self.assertEqual(gap[3], "discovery")
 
-    def test_find_biggest_gap_ats_family(self):
+    def test_find_all_gaps_ats_family(self):
         universe = {
             "employers": [
                 {
@@ -46,9 +47,10 @@ class TestQueueCoverageGap(unittest.TestCase):
             ]
         }
         with patch('scripts.queue_coverage_gap.fingerprint_provider', return_value={"family": "workday"}):
-            gap = find_biggest_gap(universe)
+            gaps = find_all_gaps(universe)
 
-        self.assertIsNotNone(gap)
+        self.assertTrue(len(gaps) > 0)
+        gap = gaps[0]
         self.assertEqual(gap[0], "ATS Family integration (workday)")
         self.assertEqual(gap[1], 1)
         self.assertEqual(gap[3], "ats-workday")
@@ -63,8 +65,8 @@ class TestQueueCoverageGap(unittest.TestCase):
                 }
             ]
         }
-        gap = find_biggest_gap(universe)
-        self.assertIsNone(gap)
+        gaps = find_all_gaps(universe)
+        self.assertEqual(len(gaps), 0)
 
     def test_issue_already_queued(self):
         issues = [
@@ -129,6 +131,63 @@ class TestQueueCoverageGap(unittest.TestCase):
             frozenset(),
         )
         self.assertTrue(resources_conflict_with_active_work([active_task_3]))
+
+
+    @patch("scripts.queue_coverage_gap._gh_json")
+    @patch("scripts.queue_coverage_gap.issue_already_queued")
+    @patch("scripts.queue_coverage_gap.get_active_and_coverage_issues")
+    @patch("scripts.queue_coverage_gap.resources_conflict_with_active_work")
+    @patch("scripts.queue_coverage_gap.create_issue")
+    def test_select_next_unqueued_gap(self, mock_create, mock_conflict, mock_get_issues, mock_already_queued, mock_gh_json):
+        mock_conflict.return_value = False
+        mock_get_issues.return_value = ([], [])
+
+        # Simulate that the first gap is already queued, but not the second
+        def side_effect_queued(issues, gap_id):
+            return gap_id == "discovery"
+        mock_already_queued.side_effect = side_effect_queued
+
+        import sys
+        from scripts.queue_coverage_gap import main
+
+        with patch('scripts.queue_coverage_gap.find_all_gaps') as mock_find_gaps,              patch('sys.argv', ['scripts/queue_coverage_gap.py', '--repo', 'test/repo']):
+
+            mock_find_gaps.return_value = [
+                ("Discovery gap (No domain hint)", 10, [], "discovery"),
+                ("ATS Family integration (workday)", 5, [], "ats-workday")
+            ]
+
+            main()
+
+            # The second gap should be queued because the first one was already queued
+            mock_create.assert_called_once_with(
+                'test/repo', 'ATS Family integration (workday)', 5, 'ats-workday', []
+            )
+
+    @patch("scripts.queue_coverage_gap._gh_json")
+    @patch("scripts.queue_coverage_gap.issue_already_queued")
+    @patch("scripts.queue_coverage_gap.get_active_and_coverage_issues")
+    @patch("scripts.queue_coverage_gap.resources_conflict_with_active_work")
+    @patch("scripts.queue_coverage_gap.create_issue")
+    def test_stop_condition_threshold(self, mock_create, mock_conflict, mock_get_issues, mock_already_queued, mock_gh_json):
+        mock_conflict.return_value = False
+        mock_get_issues.return_value = ([], [])
+        mock_already_queued.return_value = False
+
+        import sys
+        from scripts.queue_coverage_gap import main
+
+        with patch('scripts.queue_coverage_gap.find_all_gaps') as mock_find_gaps,              patch('sys.argv', ['scripts/queue_coverage_gap.py', '--repo', 'test/repo']):
+
+            # Only 1 employer, which is below the threshold of 2
+            mock_find_gaps.return_value = [
+                ("ATS Family integration (workday)", 1, [], "ats-workday")
+            ]
+
+            main()
+
+            # create_issue should not be called because count is < 2
+            mock_create.assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()
