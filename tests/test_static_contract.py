@@ -97,6 +97,21 @@ class StaticContractTests(unittest.TestCase):
         ]:
             self.assertIn(command, runner)
 
+    def test_auto_merge_uses_repository_dispatch_for_pages(self):
+        auto_merge = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text(encoding="utf-8")
+        deploy = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
+        self.assertIn("repository_dispatch:", deploy)
+        self.assertIn("- deploy_yartchives_site", deploy)
+        self.assertIn('event_type=deploy_yartchives_site', auto_merge)
+        self.assertIn('client_payload[sha]=$AFTER_SHA', auto_merge)
+        self.assertNotIn("gh workflow run deploy-pages.yml", auto_merge)
+        for path in [
+            "scripts/build_apply_next_inspections\\.py$",
+            "scripts/build_apply_next_candidates\\.py$",
+            "scripts/build_geo_index\\.py$",
+        ]:
+            self.assertIn(path, auto_merge)
+
     def test_pages_deploy_includes_static_assets(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
         self.assertIn('- "assets/**"', workflow)
