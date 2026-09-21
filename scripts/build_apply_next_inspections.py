@@ -1,33 +1,109 @@
 #!/usr/bin/env python3
 """Build the browser-facing Apply Next inspection artifact.
 
-The authoritative inspection cache intentionally retains full posting descriptions
-for offline re-normalization and audits. The browser does not need those bodies to
-rank or explain recommendations, so publishing the full cache makes Apply Next pay
-an avoidable multi-megabyte transfer/JSON-parse cost.
-
-This projection preserves the inspection fields consumed by the frontend while
-removing heavyweight posting text.
+The durable inspection cache intentionally keeps audit/provenance metadata and
+full normalized posting data. Apply Next only needs a narrow ranking/presentation
+contract, so project that contract explicitly before publishing to the browser.
 """
 
 from __future__ import annotations
 
 import argparse
-import copy
 import json
 from pathlib import Path
 from typing import Any
+
+POSTING_FIELDS = (
+    "posted_at",
+    "application_status",
+    "title",
+    "requisition_id",
+    "locations",
+)
+
+SCHEDULE_FIELDS = (
+    "terms",
+    "duration_evidence",
+    "date_range_evidence",
+)
+
+REQUIREMENT_FIELDS = (
+    "graduation",
+    "citizenship",
+    "work_authorization",
+    "education",
+    "student_status",
+    "major_fields",
+    "skills",
+)
+
+EVIDENCE_BUCKETS = ("required", "preferred", "not_required")
+
+
+def project_fact(fact: Any) -> dict[str, Any] | None:
+    if not isinstance(fact, dict):
+        return None
+    out: dict[str, Any] = {}
+    if "statement" in fact:
+        out["statement"] = fact.get("statement")
+    technologies = fact.get("technologies")
+    if isinstance(technologies, list) and technologies:
+        out["technologies"] = technologies
+    return out or None
+
+
+def project_requirement(field: Any) -> dict[str, Any] | None:
+    if not isinstance(field, dict):
+        return None
+    out: dict[str, Any] = {}
+    for bucket in EVIDENCE_BUCKETS:
+        values = field.get(bucket)
+        if not isinstance(values, list):
+            continue
+        projected = [item for value in values if (item := project_fact(value)) is not None]
+        if projected:
+            out[bucket] = projected
+    return out or None
 
 
 def project_inspection(inspection: Any) -> Any:
     if not isinstance(inspection, dict):
         return inspection
-    out = copy.deepcopy(inspection)
-    posting = out.get("posting")
+
+    out: dict[str, Any] = {}
+    if "status" in inspection:
+        out["status"] = inspection.get("status")
+
+    posting = inspection.get("posting")
     if isinstance(posting, dict):
-        posting.pop("description", None)
-        posting.pop("description_html", None)
-        posting.pop("raw_description", None)
+        projected_posting = {
+            key: posting.get(key)
+            for key in POSTING_FIELDS
+            if key in posting and posting.get(key) is not None
+        }
+        if projected_posting:
+            out["posting"] = projected_posting
+
+    schedule = inspection.get("schedule")
+    if isinstance(schedule, dict):
+        projected_schedule = {
+            key: schedule.get(key)
+            for key in SCHEDULE_FIELDS
+            if isinstance(schedule.get(key), list) and schedule.get(key)
+        }
+        if projected_schedule:
+            out["schedule"] = projected_schedule
+
+    requirements = inspection.get("requirements")
+    if isinstance(requirements, dict):
+        projected_requirements: dict[str, Any] = {}
+        for key in REQUIREMENT_FIELDS:
+            projected = project_requirement(requirements.get(key))
+            if projected:
+                projected_requirements[key] = projected
+        if projected_requirements:
+            out["requirements"] = projected_requirements
+
     return out
 
 
