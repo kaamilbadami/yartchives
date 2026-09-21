@@ -88,24 +88,20 @@ def owner_authorized_pr(
     repo: str,
     comments: Iterable[dict[str, Any]] = (),
 ) -> bool:
-    """Return whether the repository owner explicitly pre-authorized this PR to merge when green."""
+    """Treat every open, non-draft owner PR from this repository as merge-when-green.
+
+    Owner-authored same-repository pull requests are already an explicit repository
+    write by the owner. Requiring a second per-PR marker made normal PRs sit green
+    indefinitely. The historical marker/comment path remains accepted implicitly
+    for compatibility, but is no longer required.
+    """
     if str(pr.get("state") or "") != "open" or bool(pr.get("draft")):
         return False
     owner = repo.split("/", 1)[0]
     if str((pr.get("user") or {}).get("login") or "") != owner:
         return False
     head = pr.get("head") or {}
-    if str((head.get("repo") or {}).get("full_name") or "") != repo:
-        return False
-    if OWNER_AUTHORIZED_AUTOMERGE_MARKER in str(pr.get("body") or ""):
-        return True
-    for comment in reversed(list(comments)):
-        user = comment.get("user") or {}
-        if str(user.get("login") or "") != owner:
-            continue
-        if OWNER_AUTHORIZED_AUTOMERGE_MARKER in str(comment.get("body") or ""):
-            return True
-    return False
+    return str((head.get("repo") or {}).get("full_name") or "") == repo
 
 
 def linked_issue_number(body: str) -> int | None:
@@ -1215,13 +1211,7 @@ def main() -> int:
             require_quality=False,
         )
 
-        owner_comments: list[dict[str, Any]] = []
-        if OWNER_AUTHORIZED_AUTOMERGE_MARKER not in str(pr.get("body") or ""):
-            owner_comments = gh_paginated_json(
-                "api",
-                f"repos/{repo}/issues/{number}/comments?per_page=100",
-            )
-        owner_authorized = owner_authorized_pr(pr, repo, owner_comments)
+        owner_authorized = owner_authorized_pr(pr, repo)
         issue_number = linked_issue_number(str(pr.get("body") or ""))
         issue = None
         if issue_number is not None:

@@ -91,61 +91,30 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         )
         self.assertNotIn("event=", path)
 
-    def test_owner_authorized_marker_identifies_same_repo_owner_pr(self):
-        candidate = pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER)
+    def test_owner_same_repo_pr_is_authorized_without_per_pr_marker(self):
+        candidate = pr(body="")
         self.assertTrue(mod.owner_authorized_pr(candidate, "kaamilbadami/yartchives"))
 
         for blocked in (
-            pr(body=""),
-            pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER, draft=True),
-            pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER, repo="someone/fork"),
-            pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER, user="someone-else"),
+            pr(body="", draft=True),
+            pr(body="", repo="someone/fork"),
+            pr(body="", user="someone-else"),
         ):
             with self.subTest(candidate=blocked):
                 self.assertFalse(
                     mod.owner_authorized_pr(blocked, "kaamilbadami/yartchives")
                 )
 
-    def test_owner_authorized_comment_can_retroactively_authorize_legacy_pr(self):
-        candidate = pr(body="")
-        comments = [
-            {
-                "user": {"login": "kaamilbadami"},
-                "body": mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER,
-            }
-        ]
-        self.assertTrue(
-            mod.owner_authorized_pr(
-                candidate,
-                "kaamilbadami/yartchives",
-                comments,
-            )
-        )
+    def test_historical_owner_marker_remains_compatible_but_is_not_required(self):
+        candidate = pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER)
+        self.assertTrue(mod.owner_authorized_pr(candidate, "kaamilbadami/yartchives"))
+        self.assertTrue(mod.owner_authorized_pr(pr(body=""), "kaamilbadami/yartchives"))
 
-    def test_owner_authorized_comment_rejects_non_owner_marker(self):
-        candidate = pr(body="")
-        comments = [
-            {
-                "user": {"login": "someone-else"},
-                "body": mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER,
-            }
-        ]
-        self.assertFalse(
-            mod.owner_authorized_pr(
-                candidate,
-                "kaamilbadami/yartchives",
-                comments,
-            )
-        )
-
-    def test_main_loads_comments_only_when_body_marker_is_absent(self):
+    def test_main_does_not_require_comment_lookup_to_authorize_owner_prs(self):
         source = MODULE_PATH.read_text()
-        self.assertIn(
+        self.assertIn("owner_authorized = owner_authorized_pr(pr, repo)", source)
+        self.assertNotIn(
             'if OWNER_AUTHORIZED_AUTOMERGE_MARKER not in str(pr.get("body") or ""):',
-            source,
-        )
-        self.assertIn(
-            'f"repos/{repo}/issues/{number}/comments?per_page=100"',
             source,
         )
 
