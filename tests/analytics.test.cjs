@@ -16,7 +16,11 @@ const snapshot = Analytics.snapshot();
 assert.equal(snapshot.events.saved, 1);
 assert.equal(snapshot.events.recommendations_shown, 7);
 assert.equal(snapshot.events.unknown_event, undefined);
-assert.match(snapshot.sessionId, /.+/);
+assert.match(snapshot.sessionId, /^session-/);
+assert.match(snapshot.visitorId, /^visitor-/);
+assert.equal(snapshot.returningVisitor, false);
+assert.equal(snapshot.persistentVisitor, false);
+assert.match(snapshot.firstSeenDay, /^\d{4}-\d{2}-\d{2}$/);
 
 assert.ok(Analytics.ALLOWED_EVENTS.has("site_open"));
 assert.ok(Analytics.ALLOWED_EVENTS.has("apply_next_open"));
@@ -69,3 +73,32 @@ const source = require("node:fs").readFileSync(require("node:path").join(__dirna
 assert.doesNotMatch(source, /searchInput|locationInput|resume|profileToSave|jobId|company|title/);
 assert.match(source, /keepalive:\s*true/);
 assert.match(source, /schema:\s*SCHEMA/);
+assert.match(source, /visitorId:\s*visitor\.visitorId/);
+assert.match(source, /returningVisitor:\s*visitor\.isReturning/);
+assert.match(source, /localStorage/);
+assert.doesNotMatch(source, /email|userName|fullName|ipAddress/i);
+
+// A persisted random visitor ID is reused without collecting identity fields.
+const originalStorage = globalThis.localStorage;
+const store = new Map();
+globalThis.localStorage = {
+  getItem(key) { return store.has(key) ? store.get(key) : null; },
+  setItem(key, value) { store.set(key, String(value)); },
+};
+try {
+  const firstLoad = loadFresh();
+  const first = firstLoad.snapshot();
+  assert.equal(first.returningVisitor, false);
+  assert.equal(first.persistentVisitor, true);
+
+  const secondLoad = loadFresh();
+  const second = secondLoad.snapshot();
+  assert.equal(second.visitorId, first.visitorId);
+  assert.equal(second.firstSeenDay, first.firstSeenDay);
+  assert.equal(second.returningVisitor, true);
+  assert.equal(second.persistentVisitor, true);
+  assert.notEqual(second.sessionId, first.sessionId);
+} finally {
+  if (originalStorage === undefined) delete globalThis.localStorage;
+  else globalThis.localStorage = originalStorage;
+}
