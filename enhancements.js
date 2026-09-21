@@ -165,26 +165,9 @@
     quick.insertAdjacentElement("afterend", details);
   }
 
-  // Replace the geo index with the tested helper implementation. It uses an
-  // exact listing ZIP centroid when available and a population-weighted city
-  // centroid otherwise.
-  loadGeoIndex = async function () {
-    if (geoIndex) return geoIndex;
-    if (geoLoadingPromise) return geoLoadingPromise;
-    geoLoadingPromise = (async () => {
-      const response = await fetch(GEO_DATA_URL, { cache: "force-cache", mode: "cors" });
-      if (!response.ok) throw new Error(`ZIP data request failed (${response.status})`);
-      geoIndex = U.buildGeoIndex(await response.text());
-      geoError = null;
-      return geoIndex;
-    })().catch(error => {
-      geoError = error;
-      geoLoadingPromise = null;
-      throw error;
-    });
-    return geoLoadingPromise;
-  };
-
+  // Keep app.js as the single owner of geo-index loading. The canonical loader
+  // consumes the deploy-built local JSON artifact, classifies failures, and is
+  // shared by Browse and Apply Next.
   distanceForJob = function (job, origin, geo) {
     const result = U.distanceForJob(job, origin, geo);
     job._distancePrecision = result?.precision || null;

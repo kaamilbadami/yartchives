@@ -59,6 +59,14 @@ class StaticContractTests(unittest.TestCase):
         self.assertNotIn("grep -Ev '^data/(listings|workday-inspections)", workflow)
         self.assertNotIn("Aborting this stale build; the next run will resolve from the newer main.", workflow)
 
+    def test_enhancements_do_not_override_canonical_geo_loader(self):
+        app = (ROOT / "app.js").read_text(encoding="utf-8")
+        enhancements = (ROOT / "enhancements.js").read_text(encoding="utf-8")
+        self.assertIn("async function loadGeoIndex()", app)
+        self.assertNotIn("loadGeoIndex = async function", enhancements)
+        self.assertNotIn("GEO_DATA_URL", enhancements)
+        self.assertNotIn("buildGeoIndex(await response.text())", enhancements)
+
     def test_geo_index_runtime_does_not_force_cached_failures(self):
         app = (ROOT / "app.js").read_text(encoding="utf-8")
         self.assertIn('fetch(GEO_DATA_URL, { cache: "no-cache" })', app)
