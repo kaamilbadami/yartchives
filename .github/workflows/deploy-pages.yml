@@ -64,6 +64,14 @@ jobs:
             "https://raw.githubusercontent.com/ReadyAPIs-com/curated-us-zips/f9eb7daabdade9b2a9f3cbc80327a5c152fc82d3/data/us-zips.csv" \
             -o /tmp/us-zips.csv
           python scripts/build_geo_index.py /tmp/us-zips.csv _site/data/geo-index.json
+          python - <<'PY'
+import json
+from pathlib import Path
+path = Path("_site/data/geo-index.json")
+payload = json.loads(path.read_text(encoding="utf-8"))
+if not payload.get("zips") or not payload.get("cities"):
+    raise SystemExit("geo-index.json is empty or malformed")
+PY
           BUILD_SHA="$(git rev-parse HEAD)"
           VERSION="$(git rev-parse --short=12 HEAD)"
           DEPLOYED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
