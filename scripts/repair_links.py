@@ -648,10 +648,16 @@ def validate_repaired_links(doc: dict[str, Any], old_doc: dict[str, Any]) -> dic
             job["link_status"] = prior.get("link_status", "unknown")
             job["link_checked_at"] = prior.get("link_checked_at")
             job["link_validation_version"] = LINK_VALIDATION_VERSION
+            if job["link_status"] == "unknown":
+                downgrade_unverified_workday_apply(job)
             continue
         targets.append(job)
 
     targets.sort(key=lambda job: ("applyguy" not in set(job.get("source_keys") or []), job.get("id") or ""))
+    unselected = targets[MAX_VALIDATIONS_PER_RUN:]
+    for job in unselected:
+        downgrade_unverified_workday_apply(job)
+
     targets = targets[:MAX_VALIDATIONS_PER_RUN]
     stats = {"checked": 0, "ok": 0, "dead": 0, "unknown": 0}
 
