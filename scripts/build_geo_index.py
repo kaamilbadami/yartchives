@@ -7,6 +7,7 @@ import argparse
 import csv
 import json
 import re
+import unicodedata
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
