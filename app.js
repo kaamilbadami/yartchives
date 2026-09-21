@@ -753,23 +753,25 @@ function setUpEvents() {
     renderProfiles();
     applyFilters();
   });
-  els.shareBtn.addEventListener("click", async () => {
-    const url = new URL(location.href);
-    url.search = "";
-    if (state.profile !== "all") url.searchParams.set("profile", state.profile);
-    if (state.search) url.searchParams.set("q", state.search);
-    if (state.location) url.searchParams.set("loc", state.location);
-    if (currentZip() && state.radius !== "50") url.searchParams.set("miles", state.radius);
-    if (state.freshness !== "all") url.searchParams.set("fresh", state.freshness);
-    try {
-      await navigator.clipboard.writeText(url.toString());
-      const old = els.shareBtn.textContent;
-      els.shareBtn.textContent = "Copied";
-      setTimeout(() => els.shareBtn.textContent = old, 1200);
-    } catch (_) {
-      prompt("Copy this link:", url.toString());
-    }
-  });
+  if (els.shareBtn) {
+    els.shareBtn.addEventListener("click", async () => {
+      const url = new URL(location.href);
+      url.search = "";
+      if (state.profile !== "all") url.searchParams.set("profile", state.profile);
+      if (state.search) url.searchParams.set("q", state.search);
+      if (state.location) url.searchParams.set("loc", state.location);
+      if (currentZip() && state.radius !== "50") url.searchParams.set("miles", state.radius);
+      if (state.freshness !== "all") url.searchParams.set("fresh", state.freshness);
+      try {
+        await navigator.clipboard.writeText(url.toString());
+        const old = els.shareBtn.textContent;
+        els.shareBtn.textContent = "Copied";
+        setTimeout(() => els.shareBtn.textContent = old, 1200);
+      } catch (_) {
+        prompt("Copy this link:", url.toString());
+      }
+    });
+  }
 }
 
 async function boot() {

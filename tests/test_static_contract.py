@@ -104,6 +104,13 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn('"Listing hidden on this browser."', text)
         self.assertIn('"Saved, applied, and hidden are stored only in this browser."', text)
 
+    def test_removed_share_button_cannot_block_feed_boot(self):
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        app = (ROOT / "app.js").read_text(encoding="utf-8")
+        self.assertNotIn('id="shareBtn"', html)
+        self.assertIn("if (els.shareBtn) {", app)
+        self.assertNotIn("\n  els.shareBtn.addEventListener", app)
+
     def test_share_view_preserves_public_filters_only(self):
         text = (ROOT / "share.js").read_text(encoding="utf-8")
         for parameter in ["q", "loc", "miles", "fresh", "areas", "edu", "type", "sort", "view", "company"]:
