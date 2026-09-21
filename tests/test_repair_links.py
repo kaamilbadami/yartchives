@@ -333,7 +333,7 @@ class RepairLinksTests(unittest.TestCase):
         self.assertEqual(status, "ok")
         self.assertEqual(final, live)
 
-    def test_unknown_workday_apply_is_downgraded_instead_of_blocking_publish(self):
+    def test_unknown_workday_apply_preserves_direct_semantics(self):
         url = "https://jj.wd5.myworkdayjobs.com/jj/job/Cincinnati-Ohio-United-States-of-America/Software-Engineering-Co-Op-Summer-2027_R-096743/apply"
         job = {
             "id": "jj-r-096743",
@@ -358,12 +358,9 @@ class RepairLinksTests(unittest.TestCase):
 
         self.assertEqual(stats["unknown"], 1)
         self.assertEqual(job["link_status"], "unknown")
-        self.assertEqual(job["link_kind"], "employer_job")
-        self.assertEqual(
-            job["url"],
-            "https://jj.wd5.myworkdayjobs.com/jj/job/Cincinnati-Ohio-United-States-of-America/Software-Engineering-Co-Op-Summer-2027_R-096743",
-        )
-        self.assertEqual(job["unverified_apply_url"], url)
+        self.assertEqual(job["link_kind"], "direct")
+        self.assertEqual(job["url"], url)
+        self.assertNotIn("unverified_apply_url", job)
         self.assertEqual(
             validate_mod.workday_direct_contract_errors(job, "job jj-r-096743"),
             [],
