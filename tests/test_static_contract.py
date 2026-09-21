@@ -66,12 +66,17 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("gh pr list", preflight)
         self.assertIn("Open PR already exists; pull_request Quality checks own validation now.", preflight)
         self.assertIn("bash scripts/run_quality_checks.sh all", preflight)
+        self.assertIn("scripts/quality_scope.sh", preflight)
+        self.assertIn("scripts/quality_scope.sh", quality)
+        self.assertIn("bash scripts/run_quality_checks.sh health", preflight)
+        self.assertIn("bash scripts/run_quality_checks.sh health", quality)
 
-        for phase in ["python", "frontend", "feed", "benchmark"]:
+        for phase in ["python", "frontend"]:
             self.assertIn(f"bash scripts/run_quality_checks.sh {phase}", quality)
         for command in [
             'python -m unittest discover -s tests -p "test_*.py" -v',
             "node tests/apply-next-ui.test.cjs",
+            "YARTCHIVES_REPO_HEALTH=1 python -m unittest tests.test_direct_link_coverage -v",
             "python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8",
             "python scripts/coverage_audit.py audit/samples/northeast-midatlantic-cs-2026-09-17.json",
         ]:
