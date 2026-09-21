@@ -335,6 +335,8 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /const distanceCandidates = distanceEnrichmentCandidates\(preliminaryRanked, rankingNow\);/, "Exact distance work should be bounded to candidates that can still affect visible recommendations");
   assert.match(uiSource, /counts\.distance_candidates = distanceCandidates\.length;/, "Timing diagnostics should expose the exact-distance shortlist size");
   assert.match(uiSource, /await addBaseDistances\(distanceCandidates, profile\);/, "Location enrichment must not scan the full rankable pool");
+  assert.match(uiSource, /const distanceCache = new Map\(\);/, "Location enrichment should memoize repeated location/origin distance work");
+  assert.match(uiSource, /distanceCache\.has\(cacheKey\)/, "Location enrichment should reuse cached exact-distance results");
   assert.doesNotMatch(uiSource, /await addBaseDistances\(rankablePool, profile\);/, "Full-pool exact distance enrichment would reintroduce the measured bottleneck");
   assert.match(uiSource, /YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\)/, "Final ranking should use the same timestamp as the location pre-rank");
   const renderQueueSource = uiSource.match(/async function renderQueue\(panel, profile\) \{([\s\S]*?)\n  \}/);
@@ -522,6 +524,17 @@ globalThis.YartchivesAnalytics = {
 const safeResult = UI.publishApplyNextTiming(timing, { candidates: 10 });
 assert.ok(safeResult, "publishApplyNextTiming must return payload without throwing even if analytics fails");
 delete globalThis.YartchivesAnalytics;
+
+assert.equal(
+  UI.distanceCacheKey(" College Park, MD ", { states: ["MD", "US"] }, { lat: 38.98, lon: -76.94 }),
+  UI.distanceCacheKey("college   park, md", { states: ["US", "MD"] }, { lat: 38.98, lon: -76.94 }),
+  "Distance cache keys should normalize equivalent locations and state ordering"
+);
+assert.notEqual(
+  UI.distanceCacheKey("College Park, MD", { states: ["MD"] }, { lat: 38.98, lon: -76.94 }),
+  UI.distanceCacheKey("College Park, MD", { states: ["MD"] }, { lat: 41.14, lon: -73.42 }),
+  "Distance cache keys must remain origin-specific"
+);
 
 const syntheticRanked = Array.from({ length: 20 }, (_, index) => ({
   total: 100 - index * 3,
