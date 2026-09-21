@@ -1,0 +1,104 @@
+name: Branch preflight
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - "analytics.js"
+      - "app.js"
+      - "frontend-utils.js"
+      - "enhancements.js"
+      - "ui.js"
+      - "ux.js"
+      - "location-display.js"
+      - "share.js"
+      - "apply-next.js"
+      - "apply-next-readiness.js"
+      - "apply-next-competition.js"
+      - "apply-next-location.js"
+      - "apply-next-location-preferences.js"
+      - "apply-next-location-profile-ui.js"
+      - "apply-next-presentation.js"
+      - "apply-next-ui.js"
+      - "apply-next-profile-setup.js"
+      - "apply-next-profile-setup.css"
+      - "index.html"
+      - "styles.css"
+      - "location.css"
+      - "ui.css"
+      - "ux.css"
+      - "scripts/**"
+      - "tests/**"
+      - "data/employer-seeds/**"
+      - "employer_universe.json"
+      - "data/workday-inspections.json"
+      - "sources.json"
+      - "requirements.txt"
+      - ".github/workflows/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: branch-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.open_pr.outputs.should_run }}
+    steps:
+      - name: Skip duplicate preflight once a PR exists
+        id: open_pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          open_pr_count="$(gh pr list \
+            --repo "$GITHUB_REPOSITORY" \
+            --head "$GITHUB_REF_NAME" \
+            --state open \
+            --json number \
+            --jq 'length')"
+          if [ "$open_pr_count" -gt 0 ]; then
+            echo "Open PR already exists; pull_request Quality checks own validation now."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  tests:
+    needs: gate
+    if: needs.gate.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run change validation
+        run: bash scripts/run_quality_checks.sh all
+
+      - name: Decide whether repository-health checks are relevant
+        id: scope
+        run: |
+          git fetch origin main
+          base="$(git merge-base origin/main HEAD)"
+          bash scripts/quality_scope.sh "$base" HEAD | tail -n 1 >> "$GITHUB_OUTPUT"
+
+      - name: Run relevant repository health checks
+        if: steps.scope.outputs.health == 'true'
+        run: bash scripts/run_quality_checks.sh health

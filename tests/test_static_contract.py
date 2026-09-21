@@ -56,6 +56,35 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("scripts/build_geo_index.py /tmp/us-zips.csv _site/data/geo-index.json", workflow)
         self.assertIn("f9eb7daabdade9b2a9f3cbc80327a5c152fc82d3", workflow)
 
+    def test_branch_preflight_matches_pr_quality_suite(self):
+        quality = (ROOT / ".github" / "workflows" / "quality.yml").read_text(encoding="utf-8")
+        preflight = (ROOT / ".github" / "workflows" / "branch-preflight.yml").read_text(encoding="utf-8")
+        runner = (ROOT / "scripts" / "run_quality_checks.sh").read_text(encoding="utf-8")
+
+        self.assertIn("branches-ignore:", preflight)
+        self.assertIn("- main", preflight)
+        self.assertIn("gh pr list", preflight)
+        self.assertIn("Open PR already exists; pull_request Quality checks own validation now.", preflight)
+        self.assertIn("bash scripts/run_quality_checks.sh all", preflight)
+        self.assertIn("scripts/quality_scope.sh", preflight)
+        self.assertIn("scripts/quality_scope.sh", quality)
+        self.assertIn('PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}', quality)
+        self.assertIn('quality_scope.sh "$PR_BASE_SHA" "$PR_HEAD_SHA"', quality)
+        self.assertNotIn('quality_scope.sh "$PR_BASE_SHA" "$GITHUB_SHA"', quality)
+        self.assertIn("bash scripts/run_quality_checks.sh health", preflight)
+        self.assertIn("bash scripts/run_quality_checks.sh health", quality)
+
+        for phase in ["python", "frontend"]:
+            self.assertIn(f"bash scripts/run_quality_checks.sh {phase}", quality)
+        for command in [
+            'python -m unittest discover -s tests -p "test_*.py" -v',
+            "node tests/apply-next-ui.test.cjs",
+            "YARTCHIVES_REPO_HEALTH=1 python -m unittest tests.test_direct_link_coverage -v",
+            "python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8",
+            "python scripts/coverage_audit.py audit/samples/northeast-midatlantic-cs-2026-09-17.json",
+        ]:
+            self.assertIn(command, runner)
+
     def test_pages_deploy_includes_static_assets(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
         self.assertIn('- "assets/**"', workflow)

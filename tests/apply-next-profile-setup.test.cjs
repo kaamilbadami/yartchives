@@ -209,8 +209,10 @@ assert.deepEqual(
   assert.match(setupCss, /display: none !important;/);
 
   const quality = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "quality.yml"), "utf8");
-  assert.match(quality, /node --check apply-next-profile-setup\.js/);
-  assert.match(quality, /node tests\/apply-next-profile-setup\.test\.cjs/);
+  const qualityRunner = fs.readFileSync(path.join(__dirname, "..", "scripts", "run_quality_checks.sh"), "utf8");
+  assert.match(quality, /bash scripts\/run_quality_checks\.sh frontend/);
+  assert.match(qualityRunner, /node --check apply-next-profile-setup\.js/);
+  assert.match(qualityRunner, /node tests\/apply-next-profile-setup\.test\.cjs/);
 
   console.log("apply-next resume profile setup tests passed");
 })().catch(error => {
