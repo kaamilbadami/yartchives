@@ -43,6 +43,15 @@ MAX_RESULTS_PER_SOURCE = 500
 ORACLE_REST_VERSIONS = ("latest", "11.13.18.05")
 ORACLE_REST_RESOURCES = ("recruitingCEJobRequisitions", "recruitingICEJobRequisitions")
 ORACLE_SITE_PATH = re.compile(r"/(?:hcmUI/CandidateExperience/)?[a-z]{2}/sites/([^/?#]+)", re.I)
+STRUCTURAL_SOURCE_STATUSES = {403, 404, 406, 410, 422}
+
+
+class StructuralSourceError(RuntimeError):
+    """An auto-discovered provider endpoint is structurally invalid or gone."""
+
+    def __init__(self, message: str, status_codes: list[int] | None = None):
+        super().__init__(message)
+        self.status_codes = tuple(status_codes or [])
 
 
 def now_utc() -> datetime:
@@ -211,6 +220,8 @@ def _oracle_request_variants(source: dict[str, Any], offset: int) -> list[tuple[
 
 def _fetch_oracle_page(client: requests.Session, source: dict[str, Any], offset: int) -> list[dict[str, Any]]:
     errors: list[str] = []
+    structural_statuses: list[int] = []
+
     for api_url, finder in _oracle_request_variants(source, offset):
         try:
             response = client.get(
@@ -228,8 +239,23 @@ def _fetch_oracle_page(client: requests.Session, source: dict[str, Any], offset:
             if not isinstance(containers, list):
                 raise ValueError("Oracle requisition response did not contain an items list")
             return containers
-        except (requests.RequestException, ValueError, TypeError) as exc:
+        except ValueError as exc:
+            structural_statuses.append(406)
+            errors.append(f"{api_url}: ValueError: {exc}")
+        except requests.RequestException as exc:
+            status = getattr(exc.response, "status_code", None)
+            if status in STRUCTURAL_SOURCE_STATUSES:
+                structural_statuses.append(status)
             errors.append(f"{api_url}: {type(exc).__name__}: {exc}")
+        except TypeError as exc:
+            errors.append(f"{api_url}: TypeError: {exc}")
+
+    if len(structural_statuses) == len(errors) and len(errors) > 0:
+        raise StructuralSourceError(
+            "all Oracle requisition variants failed with structural HTTP status: " + " | ".join(errors[-4:]),
+            structural_statuses,
+        )
+
     raise RuntimeError("all Oracle requisition variants failed: " + " | ".join(errors[-4:]))
 
 
@@ -294,6 +320,16 @@ def enrich(
                 "auto_discovered": True,
             }
             print(f"{source['name']}: {len(direct_jobs)} direct US CS-relevant listing(s)")
+        except StructuralSourceError as exc:
+            health[source["key"]] = {
+                "status": "quarantined",
+                "count": 0,
+                "name": source["name"],
+                "direct": True,
+                "auto_discovered": True,
+                "error": f"StructuralSourceError: {exc}",
+            }
+            print(f"{source['name']}: QUARANTINED (structural source error): {exc}", file=sys.stderr)
         except Exception as exc:
             health[source["key"]] = {
                 "status": "failed",
