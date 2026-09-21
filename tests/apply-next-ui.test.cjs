@@ -561,6 +561,18 @@ assert.notEqual(
   "Distance cache keys must remain origin-specific"
 );
 
+const addDistanceSource = UI.addBaseDistances.toString();
+assert.match(
+  addDistanceSource,
+  /values\.map\(value => \{[\s\S]*?const pseudoJob = \{ \.\.\.job, location: value, _inspection: null \};[\s\S]*?return origins\.map\(origin => \{/,
+  "Distance enrichment should create one pseudo job per location value and reuse its resolved geo coordinates across origins"
+);
+assert.doesNotMatch(
+  addDistanceSource,
+  /origins\.map\(origin => \{[\s\S]*?const pseudoJob = \{ \.\.\.job, location: value, _inspection: null \};/,
+  "Distance enrichment must not recreate pseudo jobs per origin"
+);
+
 const syntheticRanked = Array.from({ length: 20 }, (_, index) => ({
   total: 100 - index * 3,
   excluded: false,
