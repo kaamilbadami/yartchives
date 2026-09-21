@@ -14,6 +14,7 @@
   const TOP_N = 10;
   const FRESH_MAX_AGE_DAYS = 3;
   const FRESH_MIN_SCORE = 55;
+  const LOCATION_DISTANCE_MAX_GAIN = 18;
   const FEEDBACK_ENDPOINT = "https://formspree.io/f/mqakpejw";
   let inspectionArtifactPromise = null;
   let candidateArtifactPromise = null;
@@ -274,6 +275,29 @@
 
   function authoritativeCandidatePool(jobs) {
     return (jobs || []).filter(job => job?._inspection?.status === "inspected");
+  }
+
+  function distanceEnrichmentCandidates(preliminaryRanked, nowValue = new Date()) {
+    const ranked = (preliminaryRanked || []).filter(result => result && !result.excluded && result.job);
+    if (!ranked.length) return [];
+
+    const recommendedCutoff = ranked.length >= TOP_N
+      ? Number(ranked[TOP_N - 1].total || 0)
+      : 0;
+
+    const freshByAge = ranked.filter(result => {
+      const age = postedAgeDays(result.job?.posted_at, nowValue);
+      return age !== null && age <= FRESH_MAX_AGE_DAYS;
+    });
+    const freshCutoff = freshByAge.length >= TOP_N
+      ? Math.max(FRESH_MIN_SCORE, Number(freshByAge[TOP_N - 1].total || 0))
+      : FRESH_MIN_SCORE;
+
+    const decisionCutoff = Math.min(recommendedCutoff, freshCutoff);
+    const minimumCompetitiveScore = Math.max(0, decisionCutoff - LOCATION_DISTANCE_MAX_GAIN);
+    return ranked
+      .filter(result => Number(result.total || 0) >= minimumCompetitiveScore)
+      .map(result => result.job);
   }
 
 
@@ -1326,11 +1350,14 @@
       recordTimingStage(timing, "inspection_attach", stageStartedAt);
 
       stageStartedAt = timingNow();
-      await addBaseDistances(rankablePool, profile);
+      const rankingNow = new Date();
+      const preliminaryRanked = YartchivesApplyNext.rankJobs(rankablePool, profile, rankingNow);
+      const distanceCandidates = distanceEnrichmentCandidates(preliminaryRanked, rankingNow);
+      await addBaseDistances(distanceCandidates, profile);
       recordTimingStage(timing, "location_enrichment", stageStartedAt);
 
       stageStartedAt = timingNow();
-      const ranked = YartchivesApplyNext.rankJobs(rankablePool, profile, new Date());
+      const ranked = YartchivesApplyNext.rankJobs(rankablePool, profile, rankingNow);
       counts.recommendations = ranked.length;
       recordTimingStage(timing, "ranking", stageStartedAt);
 
@@ -1459,6 +1486,7 @@
     knownWrongTerm,
     candidatePool,
     authoritativeCandidatePool,
+    distanceEnrichmentCandidates,
     profileSummary,
     formatPostedDate,
     locationValueText,
