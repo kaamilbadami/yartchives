@@ -53,6 +53,12 @@ The machine-readable `coverage_contract.json` defines the standard required befo
 
 Feedback provided through the "Submit feedback" action in the Apply Next queue is sent directly to a central serverless receiver (Formspree) configured by the product owner. Responses are minimal, capturing only the recommendation ID, rating, structured reason, optional note, and submission timestamp without including browser-local profile data or application state. The product owner can review submissions via the Formspree dashboard.
 
+## Beta usage analytics
+
+Yartchives sends a privacy-minimized per-session usage summary to the same central receiver so the beta can measure whether the core product flow is actually being used. The tracked event set is intentionally small: site opens, Apply Next opens, first profile creation, recommendation impressions, apply clicks, saves, hides, and submitted recommendation feedback.
+
+Usage analytics do not send search text, profile fields, resume contents, exact location, job IDs, employer names, job titles, application URLs, saved/applied/hidden item IDs, or free-text feedback. Events are batched as counts behind a transient anonymous session ID rather than tied to a user account.
+
 ## Development approach
 
 Yartchives is product-directed and heavily AI-assisted in implementation. Product scope, prioritization, beta criteria, and tradeoffs are set by the product owner; coding agents and automated GitHub workflows handle much of the implementation, testing, review routing, and maintenance.
