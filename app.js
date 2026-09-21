@@ -262,33 +262,61 @@ async function loadGeoIndex() {
     }
 
     const zips = new Map();
-    for (const row of payload.zips) {
-      if (!Array.isArray(row) || row.length < 5) continue;
-      const [zip, lat, lon, st, city] = row;
-      if (!/^\d{5}$/.test(String(zip)) || !Number.isFinite(lat) || !Number.isFinite(lon)) continue;
-      zips.set(String(zip), { lat, lon, state: st, city, zip: String(zip), precision: "zip" });
+    try {
+      for (const row of payload.zips) {
+        if (!Array.isArray(row) || row.length < 5) continue;
+        const [zip, lat, lon, st, city] = row;
+        if (!/^\d{5}$/.test(String(zip)) || !Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+        zips.set(String(zip), { lat, lon, state: st, city, zip: String(zip), precision: "zip" });
+      }
+    } catch (error) {
+      const classified = new Error("ZIP index construction failed");
+      classified.code = "geo_index_zips";
+      classified.cause = error;
+      throw classified;
     }
 
     const cities = new Map();
     const citiesByState = new Map();
-    for (const row of payload.cities) {
-      if (!Array.isArray(row) || row.length < 4) continue;
-      const [st, city, lat, lon] = row;
-      if (!st || !city || !Number.isFinite(lat) || !Number.isFinite(lon)) continue;
-      const point = { lat, lon, state: st, city, precision: "city" };
-      cities.set(`${st}|${city}`, point);
-      if (!citiesByState.has(st)) citiesByState.set(st, []);
-      citiesByState.get(st).push([city, point]);
+    try {
+      for (const row of payload.cities) {
+        if (!Array.isArray(row) || row.length < 4) continue;
+        const [st, city, lat, lon] = row;
+        if (!st || !city || !Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+        const point = { lat, lon, state: st, city, precision: "city" };
+        cities.set(`${st}|${city}`, point);
+        if (!citiesByState.has(st)) citiesByState.set(st, []);
+        citiesByState.get(st).push([city, point]);
+      }
+    } catch (error) {
+      const classified = new Error("City index construction failed");
+      classified.code = "geo_index_cities";
+      classified.cause = error;
+      throw classified;
     }
-    for (const list of citiesByState.values()) list.sort((a, b) => b[0].length - a[0].length);
+
+    try {
+      for (const list of citiesByState.values()) list.sort((a, b) => b[0].length - a[0].length);
+    } catch (error) {
+      const classified = new Error("City index ordering failed");
+      classified.code = "geo_index_sort";
+      classified.cause = error;
+      throw classified;
+    }
 
     geoIndex = { zips, cities, citiesByState };
     geoError = null;
     return geoIndex;
   })().catch(error => {
-    geoError = error;
+    let classified = error;
+    if (!classified?.code) {
+      classified = new Error("ZIP index load failed internally");
+      classified.code = "geo_internal";
+      classified.cause = error;
+    }
+    geoError = classified;
     geoLoadingPromise = null;
-    throw error;
+    throw classified;
   });
 
   return geoLoadingPromise;
