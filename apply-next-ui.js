@@ -122,7 +122,11 @@
   function saveProfile(storage, profile) {
     const checked = validateProfile(profile);
     if (!checked.ok) throw new Error(checked.error);
+    const existed = Boolean(loadProfile(storage));
     storage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    if (!existed && typeof YartchivesAnalytics !== "undefined") {
+      YartchivesAnalytics.track("profile_created");
+    }
     return profile;
   }
 
@@ -751,6 +755,7 @@
       apply.target = "_blank";
       apply.rel = "noopener noreferrer";
       apply.addEventListener("click", () => {
+        YartchivesAnalytics?.track("apply_clicked");
       });
       actions.append(apply);
     }
@@ -758,7 +763,10 @@
     saved.type = "button";
     saved.addEventListener("click", () => {
       if (state.saved.has(job.id)) state.saved.delete(job.id);
-      else state.saved.add(job.id);
+      else {
+        state.saved.add(job.id);
+        YartchivesAnalytics?.track("saved");
+      }
       persist();
       saved.textContent = state.saved.has(job.id) ? "Saved" : "Save";
       updateStats();
@@ -777,6 +785,7 @@
     hide.setAttribute("aria-label", "Hide listing");
     hide.addEventListener("click", () => {
       state.hidden.add(job.id);
+      YartchivesAnalytics?.track("hidden");
       persist();
       updateQueueOptimistically(document.querySelector("#applyNextPanel"), loadProfile(localStorage), job.id);
       applyFilters();
@@ -902,6 +911,7 @@
                 if (!res.ok) throw new Error("Submission failed");
 
                 state.feedback[job.id].submitted = true;
+                YartchivesAnalytics?.track("feedback_submitted");
                 persist();
                 renderFeedback();
               } catch (err) {
@@ -1005,6 +1015,9 @@
 
     list.innerHTML = "";
     ranked.forEach((result, index) => list.append(recommendationCard(result, index + 1)));
+    if (ranked.length) {
+      YartchivesAnalytics?.track("recommendations_shown", { count: ranked.length });
+    }
 
     if (!ranked.length) {
       if (activeQueueView === "fresh") {
@@ -1196,6 +1209,7 @@
         return;
       }
       if (persist) saveEntryMode(localStorage, "apply-next");
+      YartchivesAnalytics?.track("apply_next_open");
       panel.classList.remove("hidden");
       panel.dataset.view = "apply-next";
       button.setAttribute("aria-expanded", "true");
