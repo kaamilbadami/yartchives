@@ -9,7 +9,7 @@
   const STORAGE_KEY = "yartchives-apply-next-profile-v1";
   const FOUNDING_BETA_TESTER_KEY = "yartchives-founding-beta-tester-v1";
   const ENTRY_MODE_KEY = "yartchives-entry-mode-v1";
-  const INSPECTION_URL = "data/workday-inspections.json";
+  const INSPECTION_URL = "data/apply-next-inspections.json";
   const TOP_N = 10;
   const FRESH_MAX_AGE_DAYS = 3;
   const FRESH_MIN_SCORE = 55;
