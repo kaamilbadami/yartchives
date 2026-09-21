@@ -328,9 +328,9 @@
     }
   }
 
-  function refreshApplyNextPanel() {
-    const button = document.querySelector("#applyNextBtn");
-    const panel = document.querySelector("#applyNextPanel");
+  function refreshApplyNextPanel(doc = document) {
+    const button = doc.querySelector("#applyNextBtn");
+    const panel = doc.querySelector("#applyNextPanel");
     if (!button || !panel || panel.classList.contains("hidden")) return;
     panel.classList.add("hidden");
     panel.dataset.view = "";
@@ -561,6 +561,7 @@
     extractResumeHints,
     readResumeFile,
     buildProfile,
+    refreshApplyNextPanel,
     init,
   };
 });
