@@ -48,6 +48,16 @@ class StaticContractTests(unittest.TestCase):
         self.assertNotIn("grep -Ev '^data/(listings|workday-inspections)", workflow)
         self.assertNotIn("Aborting this stale build; the next run will resolve from the newer main.", workflow)
 
+    def test_geo_index_runtime_does_not_force_cached_failures(self):
+        app = (ROOT / "app.js").read_text(encoding="utf-8")
+        self.assertIn('fetch(GEO_DATA_URL, { cache: "no-cache" })', app)
+        self.assertNotIn('fetch(GEO_DATA_URL, { cache: "force-cache" })', app)
+
+    def test_geo_index_deploy_validates_built_artifact(self):
+        workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
+        self.assertIn('path = Path("_site/data/geo-index.json")', workflow)
+        self.assertIn('if not payload.get("zips") or not payload.get("cities"):', workflow)
+
     def test_geo_index_is_local_and_built_at_deploy_time(self):
         app = (ROOT / "app.js").read_text(encoding="utf-8")
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
