@@ -2827,6 +2827,179 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertIsNotNone(infra_failure)
         self.assertEqual(infra_failure[0], "599487883835782685")
 
+    def test_generate_evidence_backed_tasks_with_spare_capacity(self):
+        from scripts.dispatch_autonomous_issues import generate_evidence_backed_tasks, Task
+
+        called = False
+        def fake_provider(repo: str, issues: list[dict[str, __import__('typing').Any]], occupied_locks: frozenset[str]) -> bool:
+            nonlocal called
+            called = True
+            return True
+
+        # MAX_ACTIVE is 15, no active tasks, so plenty of spare capacity
+        generated = generate_evidence_backed_tasks(
+            repo="kaamilbadami/yartchives",
+            issues=[],
+            selected=[],
+            max_active=15,
+            providers=[fake_provider]
+        )
+
+        self.assertTrue(called)
+        self.assertEqual(generated[0], 1)
+
+    def test_generate_evidence_backed_tasks_no_spare_capacity(self):
+        from scripts.dispatch_autonomous_issues import generate_evidence_backed_tasks, Task
+
+        called = False
+        def fake_provider(repo: str, issues: list[dict[str, __import__('typing').Any]], occupied_locks: frozenset[str]) -> bool:
+            nonlocal called
+            called = True
+            return True
+
+        mock_task = Task(
+            number=100,
+            title="dummy",
+            body="dummy",
+            priority="P1",
+            area="test",
+            labels=frozenset({"jules-session"}),
+            resources=frozenset({"test-resource"}),
+            dependencies=frozenset()
+        )
+
+        # 1 active task, max_active=1, so NO spare capacity
+        generated = generate_evidence_backed_tasks(
+            repo="kaamilbadami/yartchives",
+            issues=[{
+                "number": 100,
+                "title": "dummy",
+                "body": "<!-- autonomous-task -->\npriority: P1\narea: test\nautonomous: true",
+                "labels": [{"name": "jules-session"}],
+            }],
+            selected=[],
+            max_active=1,
+            providers=[fake_provider]
+        )
+
+        self.assertFalse(called)
+        self.assertEqual(generated[0], 0)
+
+    def test_generate_evidence_backed_tasks_non_blocking_failure(self):
+        from scripts.dispatch_autonomous_issues import generate_evidence_backed_tasks
+
+        called = False
+        def fake_provider(repo: str, issues: list[dict[str, __import__('typing').Any]], occupied_locks: frozenset[str]) -> bool:
+            nonlocal called
+            called = True
+            raise ValueError("Intentional crash")
+
+        # Provider crashes but generate_evidence_backed_tasks catches it
+        generated = generate_evidence_backed_tasks(
+            repo="kaamilbadami/yartchives",
+            issues=[],
+            selected=[],
+            max_active=15,
+            providers=[fake_provider]
+        )
+
+        self.assertTrue(called)
+        self.assertEqual(generated[0], 0)
+
+    def test_generate_evidence_backed_tasks_caps_per_cycle(self):
+        from scripts.dispatch_autonomous_issues import generate_evidence_backed_tasks
+
+        call_count = 0
+        def fake_provider(repo: str, issues: list[dict[str, __import__('typing').Any]], occupied_locks: frozenset[str]) -> bool:
+            nonlocal call_count
+            call_count += 1
+            return True
+
+        # Even with two providers that succeed, it should cap at 1 generated per cycle
+        generated = generate_evidence_backed_tasks(
+            repo="kaamilbadami/yartchives",
+            issues=[],
+            selected=[],
+            max_active=15,
+            providers=[fake_provider, fake_provider]
+        )
+
+        self.assertEqual(generated[0], 1)
+        self.assertEqual(call_count, 1)
+
+    def test_generate_evidence_backed_tasks_passes_occupied_locks(self):
+        from scripts.dispatch_autonomous_issues import generate_evidence_backed_tasks, Task
+
+        received_locks: frozenset[str] = frozenset()
+        def fake_provider(repo: str, issues: list[dict[str, __import__('typing').Any]], occupied_locks: frozenset[str]) -> bool:
+            nonlocal received_locks
+            received_locks = occupied_locks
+            return True
+
+        generate_evidence_backed_tasks(
+            repo="kaamilbadami/yartchives",
+            issues=[{
+                "number": 100,
+                "title": "dummy",
+                "body": "<!-- autonomous-task -->\npriority: P1\narea: test\nautonomous: true",
+                "labels": [{"name": "jules-session"}],
+            }],
+            selected=[],
+            max_active=15,
+            providers=[fake_provider]
+        )
+
+        self.assertIn("resource:area-fallback:test", received_locks)
+
+
+
+
+    def test_generate_evidence_backed_tasks_dedupe_idempotency(self):
+        from scripts.dispatch_autonomous_issues import _provider_workflow_failure
+        # Test that _provider_workflow_failure skips if already deduplicated
+        issues = [
+            {
+                "number": 1,
+                "labels": [{"name": "workflow-failure"}],
+                "title": "Failed step",
+                "body": "Failure details"
+            },
+            {
+                "number": 2,
+                "title": "Automate resolution",
+                "body": "<!-- evidence-backed-workflow-failure: 1 -->"
+            }
+        ]
+        result = _provider_workflow_failure("kaamilbadami/yartchives", issues, frozenset())
+        self.assertFalse(result)
+
+    def test_generate_evidence_backed_tasks_weak_signal_rejection(self):
+        from scripts.dispatch_autonomous_issues import _provider_workflow_failure
+        # If there are no workflow failures, it rejects
+        issues = [
+            {
+                "number": 1,
+                "labels": [{"name": "bug"}],
+                "title": "Not a workflow failure",
+                "body": "Details"
+            }
+        ]
+        result = _provider_workflow_failure("kaamilbadami/yartchives", issues, frozenset())
+        self.assertFalse(result)
+
+    def test_generate_evidence_backed_tasks_lock_conflict_prevention(self):
+        from scripts.dispatch_autonomous_issues import _provider_workflow_failure
+        # If the lock is occupied, it rejects
+        issues = [
+            {
+                "number": 1,
+                "labels": [{"name": "workflow-failure"}],
+                "title": "Failed step",
+                "body": "Failure details"
+            }
+        ]
+        result = _provider_workflow_failure("kaamilbadami/yartchives", issues, frozenset({"resource:automation"}))
+        self.assertFalse(result)
 
 if __name__ == "__main__":
     unittest.main()
