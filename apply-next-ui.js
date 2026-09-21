@@ -18,6 +18,7 @@
   let inspectionArtifactPromise = null;
   let candidateArtifactPromise = null;
   let recommendationJobs = [];
+  let geoWarmScheduled = false;
   let lastRankedResults = [];
   let lastProfile = null;
   let lastTotalEligibleCount = 0;
@@ -311,6 +312,18 @@
     if (fetchImpl) return fetchCandidateArtifact(fetchImpl);
     if (!candidateArtifactPromise) candidateArtifactPromise = fetchCandidateArtifact();
     return candidateArtifactPromise;
+  }
+
+  function scheduleGeoWarm(profile) {
+    if (geoWarmScheduled) return false;
+    const zips = (profile?.baseZips || []).filter(value => /^\d{5}$/.test(String(value)));
+    if (!zips.length || typeof loadGeoIndex !== "function") return false;
+    geoWarmScheduled = true;
+    const warm = () => { void loadGeoIndex().catch(() => { geoWarmScheduled = false; }); };
+    if (typeof requestIdleCallback === "function") requestIdleCallback(warm, { timeout: 1000 });
+    else if (typeof setTimeout === "function") setTimeout(warm, 0);
+    else warm();
+    return true;
   }
 
   function attachInspections(jobs, artifact) {
@@ -1278,6 +1291,8 @@
   function init() {
     if (typeof YartchivesApplyNext === "undefined") return;
     loadInspectionArtifact();
+    const savedProfile = loadProfile(typeof localStorage !== "undefined" ? localStorage : null);
+    if (savedProfile) scheduleGeoWarm(savedProfile);
     const headerActions = document.querySelector(".header-actions");
     const main = document.querySelector("main");
     if (!headerActions || !main || document.querySelector("#applyNextBtn")) return;
@@ -1361,6 +1376,7 @@
     publishApplyNextTiming,
     fetchCandidateArtifact,
     loadCandidateArtifact,
+    scheduleGeoWarm,
     knownWrongTerm,
     candidatePool,
     authoritativeCandidatePool,

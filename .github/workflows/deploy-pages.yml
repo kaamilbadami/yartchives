@@ -13,6 +13,7 @@ on:
       - "data/workday-inspections.json"
       - "scripts/build_apply_next_inspections.py"
       - "scripts/build_apply_next_candidates.py"
+      - "scripts/build_geo_index.py"
       - ".nojekyll"
       - ".github/workflows/deploy-pages.yml"
   workflow_run:
@@ -59,6 +60,10 @@ jobs:
           cp data/workday-inspections.json _site/data/workday-inspections.json
           python scripts/build_apply_next_inspections.py data/workday-inspections.json _site/data/apply-next-inspections.json
           python scripts/build_apply_next_candidates.py data/listings.json _site/data/apply-next-candidates.json
+          curl --fail --silent --show-error --location \
+            "https://raw.githubusercontent.com/ReadyAPIs-com/curated-us-zips/f9eb7daabdade9b2a9f3cbc80327a5c152fc82d3/data/us-zips.csv" \
+            -o /tmp/us-zips.csv
+          python scripts/build_geo_index.py /tmp/us-zips.csv _site/data/geo-index.json
           BUILD_SHA="$(git rev-parse HEAD)"
           VERSION="$(git rev-parse --short=12 HEAD)"
           DEPLOYED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
