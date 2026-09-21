@@ -75,6 +75,7 @@ def validate(
     minimum_healthy_sources: int,
     strict_sources: bool,
     enforce_link_contract: bool = False,
+    minimum_direct_percentage: float = 0.0,
 ) -> list[str]:
     fatal_errors: list[str] = []
     try:
@@ -173,6 +174,12 @@ def validate(
     if healthy < minimum_healthy_sources:
         fatal_errors.append(f"healthy source count {healthy} is below minimum {minimum_healthy_sources}")
 
+    if minimum_direct_percentage > 0.0 and len(valid_jobs) > 0:
+        direct_count = sum(1 for job in valid_jobs if job.get("link_kind") == "direct")
+        direct_percentage = (direct_count / len(valid_jobs)) * 100
+        if direct_percentage < minimum_direct_percentage:
+            fatal_errors.append(f"direct-link percentage {direct_percentage:.1f}% is below minimum {minimum_direct_percentage:.1f}%")
+
     if (quarantined > 0 or downgraded > 0) and not fatal_errors:
         doc["jobs"] = valid_jobs
         try:
@@ -208,6 +215,12 @@ def main() -> int:
     parser.add_argument("--minimum-healthy-sources", type=int, default=8)
     parser.add_argument("--strict-sources", action="store_true")
     parser.add_argument(
+        "--minimum-direct-percentage",
+        type=float,
+        default=0.0,
+        help="fail if the percentage of direct links falls below this threshold",
+    )
+    parser.add_argument(
         "--enforce-link-contract",
         action="store_true",
         help="fail when a Workday link presented as direct Apply is not a validated /apply destination",
@@ -220,6 +233,7 @@ def main() -> int:
         args.minimum_healthy_sources,
         args.strict_sources,
         args.enforce_link_contract,
+        args.minimum_direct_percentage,
     )
     if errors:
         print("Feed validation failed:", file=sys.stderr)

@@ -150,7 +150,7 @@ jobs:
         run: python scripts/benchmark_feed_stages.py --record \"ATS reconciliation\" -- python scripts/stabilize_job_ids.py data/listings.json --old-feed /tmp/yartchives-old-listings.json
 
       - name: Validate generated feed
-        run: python scripts/benchmark_feed_stages.py --record \"validation\" -- python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8 --enforce-link-contract
+        run: python scripts/benchmark_feed_stages.py --record \"validation\" -- python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8 --enforce-link-contract --minimum-direct-percentage 80.0
 
       - name: Commit fast-path opportunity feed
         run: |

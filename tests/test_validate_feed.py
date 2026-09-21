@@ -130,5 +130,16 @@ class ValidateFeedTests(unittest.TestCase):
             errors = vf.validate(Path(f.name), minimum_jobs=2, minimum_healthy_sources=1, strict_sources=False)
             self.assertTrue(any("job count 1 is below minimum 2" in e for e in errors))
 
+    def test_fatal_condition_minimum_direct_percentage(self):
+        source_job = self._valid_job({"id": "job2", "link_kind": "source"})
+        source_job.pop("url", None)
+        feed = self._create_feed([self._valid_job(), source_job])
+        with NamedTemporaryFile("w+", suffix=".json") as f:
+            json.dump(feed, f)
+            f.flush()
+            # 1 direct, 1 source -> 50% direct. Minimum is 80%.
+            errors = vf.validate(Path(f.name), minimum_jobs=1, minimum_healthy_sources=1, strict_sources=False, minimum_direct_percentage=80.0)
+            self.assertTrue(any("direct-link percentage" in e for e in errors))
+
 if __name__ == '__main__':
     unittest.main()

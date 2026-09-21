@@ -103,6 +103,31 @@ class RepairLinksTests(unittest.TestCase):
         self.assertEqual(job["link_kind"], "listing")
         self.assertEqual(job["listing_url"], listing)
 
+
+    def test_source_feed_can_repair_speedyapply_ai_record(self):
+        doc = {
+            "jobs": [{
+                "id": "5",
+                "company": "OpenAI",
+                "title": "Machine Learning Intern",
+                "location": "San Francisco, CA",
+                "source_keys": ["speedyapply-ai"],
+                "url": "https://github.com/speedyapply/2027-AI-College-Jobs",
+            }]
+        }
+        parsed = [{
+            "company": "OpenAI",
+            "title": "Machine Learning Intern",
+            "location": "San Francisco, CA",
+            "url": "https://openai.com/careers/job/456",
+        }]
+        exact, company_title = mod.source_direct_indexes(parsed)
+        stats = mod.repair_document(doc, source_exact=exact, source_company_title=company_title)
+        job = doc["jobs"][0]
+        self.assertEqual(job["link_kind"], "direct")
+        self.assertEqual(job["url"], "https://openai.com/careers/job/456")
+        self.assertEqual(job["link_origin"], "source-feed")
+
     def test_source_feed_can_repair_github_only_record(self):
         doc = {
             "jobs": [{

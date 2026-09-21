@@ -230,7 +230,7 @@ def fetch_source_direct_jobs() -> list[dict[str, Any]]:
             response = requests.get(source["url"], headers={"User-Agent": USER_AGENT}, timeout=TIMEOUT)
             response.raise_for_status()
             text = response.text
-            if source.get("key") == "speedyapply":
+            if str(source.get("key") or "").startswith("speedyapply"):
                 text = re.sub(r"\|\s*Posting\s*\|", "| Apply |", text, flags=re.I)
             parsed.extend(bf.parse_markdown(text, source, reference))
         except Exception as exc:
