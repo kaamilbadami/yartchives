@@ -133,7 +133,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -1730,7 +1730,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -2416,7 +2416,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -3581,7 +3581,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -3754,7 +3754,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -4406,7 +4406,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -4668,7 +4668,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -4963,7 +4963,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -5143,7 +5143,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -5189,7 +5189,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -5434,7 +5434,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -5515,7 +5515,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -5909,7 +5909,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -6486,7 +6486,32 @@
       },
       "domain_hints": [
         "arrow.com"
-      ]
+      ],
+      "careers_resolution": {
+        "status": "transient",
+        "attempt_status": "transient",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://arrow.com/",
+            "error": "ReadTimeout: HTTPSConnectionPool(host='www.arrow.com', port=443): Read timed out. (read timeout=15)"
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://arrow.com/careers",
+            "error": "ReadTimeout: HTTPSConnectionPool(host='www.arrow.com', port=443): Read timed out. (read timeout=15)"
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://arrow.com/jobs",
+            "error": "ReadTimeout: HTTPSConnectionPool(host='www.arrow.com', port=443): Read timed out. (read timeout=15)"
+          }
+        ]
+      }
     },
     {
       "id": "arthur-j-gallagher",
@@ -6573,7 +6598,67 @@
       },
       "domain_hints": [
         "asburyauto.com"
-      ]
+      ],
+      "careers_resolution": {
+        "status": "transient",
+        "attempt_status": "transient",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://asburyauto.com/",
+            "redirect_chain": [
+              {
+                "url": "https://asburyauto.com/",
+                "status": 429
+              }
+            ],
+            "final_url": "https://asburyauto.com/",
+            "status": 429,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://asburyauto.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://asburyauto.com/careers",
+                "status": 429
+              }
+            ],
+            "final_url": "https://asburyauto.com/careers",
+            "status": 429,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://asburyauto.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://asburyauto.com/jobs",
+                "status": 429
+              }
+            ],
+            "final_url": "https://asburyauto.com/jobs",
+            "status": 429,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          }
+        ]
+      }
     },
     {
       "id": "ascension",
@@ -10730,7 +10815,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -14941,8 +15026,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-22T05:46:09Z",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "resolved_at": "2026-09-22T06:24:20Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -14976,16 +15061,17 @@
               },
               {
                 "url": "https://www.doordash.com/careers",
+                "status": 302
+              },
+              {
+                "url": "https://careersatdoordash.com",
                 "status": 403
               }
             ],
-            "final_url": "https://www.doordash.com/careers",
+            "final_url": "https://careersatdoordash.com/",
             "status": 403,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
+            "signals": [],
+            "score": 0
           },
           {
             "type": "http",
@@ -14998,11 +15084,11 @@
               },
               {
                 "url": "https://www.doordash.com/jobs",
-                "status": 403
+                "status": 404
               }
             ],
             "final_url": "https://www.doordash.com/jobs",
-            "status": 403,
+            "status": 404,
             "signals": [
               "careers path",
               "employer domain"
@@ -21259,8 +21345,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-22T05:46:09Z",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "resolved_at": "2026-09-22T06:24:20Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -25104,7 +25190,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
@@ -35344,7 +35430,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T06:24:20Z",
         "evidence": [
           {
             "type": "http",
