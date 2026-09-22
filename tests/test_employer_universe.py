@@ -209,5 +209,63 @@ class EmployerUniverseTests(unittest.TestCase):
             mod.validate_universe(universe)
 
 
+
+    def test_merge_accumulates_root_domain_hints(self):
+        benchmark = {
+            "schema_version": 1,
+            "source": {"key": "benchmark", "kind": "catalog"},
+            "employers": [{"name": "E1", "domain_hints": ["d1.com"]}],
+        }
+        fortune = {
+            "schema_version": 1,
+            "source": {"key": "fortune", "kind": "catalog"},
+            "employers": [{"name": "E1", "domain_hints": ["d2.com"]}],
+        }
+
+        merged = mod.merge_seed(mod.merge_seed(self.empty_universe(), benchmark), fortune)
+        employer = merged["employers"][0]
+
+        self.assertEqual(employer["domain_hints"], ["d1.com", "d2.com"])
+        self.assertEqual(employer["seed_metadata"]["benchmark"]["domain_hints"], ["d1.com"])
+        self.assertEqual(employer["seed_metadata"]["fortune"]["domain_hints"], ["d2.com"])
+
 if __name__ == "__main__":
     unittest.main()
+
+    def test_merge_accumulates_root_domain_hints(self):
+        benchmark = {
+            "schema_version": 1,
+            "source": {"key": "benchmark", "kind": "catalog"},
+            "employers": [{"name": "E1", "domain_hints": ["d1.com"]}],
+        }
+        fortune = {
+            "schema_version": 1,
+            "source": {"key": "fortune", "kind": "catalog"},
+            "employers": [{"name": "E1", "domain_hints": ["d2.com"]}],
+        }
+
+        merged = mod.merge_seed(mod.merge_seed(self.empty_universe(), benchmark), fortune)
+        employer = merged["employers"][0]
+
+        self.assertEqual(employer["domain_hints"], ["d1.com", "d2.com"])
+        self.assertEqual(employer["seed_metadata"]["benchmark"]["domain_hints"], ["d1.com"])
+        self.assertEqual(employer["seed_metadata"]["fortune"]["domain_hints"], ["d2.com"])
+
+    def test_merge_accumulates_root_domain_hints(self):
+        benchmark = {
+            "schema_version": 1,
+            "source": {"key": "benchmark", "kind": "catalog"},
+            "employers": [{"name": "E1", "domain_hints": ["d1.com"]}],
+        }
+        fortune = {
+            "schema_version": 1,
+            "source": {"key": "fortune", "kind": "catalog"},
+            "employers": [{"name": "E1", "domain_hints": ["d2.com"]}],
+        }
+
+        merged = mod.merge_seed(mod.merge_seed(self.empty_universe(), benchmark), fortune)
+        employer = merged["employers"][0]
+
+        self.assertEqual(employer["domain_hints"], ["d1.com", "d2.com"])
+        self.assertEqual(employer["seed_metadata"]["benchmark"]["domain_hints"], ["d1.com"])
+        self.assertEqual(employer["seed_metadata"]["fortune"]["domain_hints"], ["d2.com"])
