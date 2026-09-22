@@ -64,11 +64,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/2u",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/2u"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -78,7 +78,30 @@
       },
       "domain_hints": [
         "2u.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/2u",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/2u"
+          }
+        ]
+      }
     },
     {
       "id": "3m",
@@ -110,7 +133,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -1370,11 +1393,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/adyen",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/adyen"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "NL",
@@ -1384,7 +1407,30 @@
       },
       "domain_hints": [
         "adyen.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/adyen",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/adyen"
+          }
+        ]
+      }
     },
     {
       "id": "aecom",
@@ -1684,7 +1730,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -1766,11 +1812,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/affirm",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/affirm"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -1780,7 +1826,30 @@
       },
       "domain_hints": [
         "affirm.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/affirm",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/affirm"
+          }
+        ]
+      }
     },
     {
       "id": "aflac",
@@ -1800,11 +1869,11 @@
           "rank": 261
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=aflac",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=aflac"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -1813,162 +1882,17 @@
         }
       },
       "careers_resolution": {
-        "status": "resolved",
-        "attempt_status": "resolved",
-        "resolved_at": "2026-09-22T04:53:18Z",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
-            "type": "http",
-            "source": "input-hint",
-            "requested_url": "https://aflac.com/",
-            "redirect_chain": [
-              {
-                "url": "https://aflac.com/",
-                "status": 301
-              },
-              {
-                "url": "https://www.aflac.com/",
-                "status": 200
-              }
-            ],
-            "final_url": "https://www.aflac.com/",
-            "status": 200,
-            "signals": [
-              "employer domain"
-            ],
-            "score": 2
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://aflac.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://aflac.com/careers",
-                "status": 301
-              },
-              {
-                "url": "https://www.aflac.com/careers",
-                "status": 301
-              },
-              {
-                "url": "https://careers.aflac.com",
-                "status": 200
-              }
-            ],
-            "final_url": "https://careers.aflac.com/",
-            "status": 200,
-            "signals": [
-              "successfactors provider fingerprint",
-              "careers page content",
-              "employer domain"
-            ],
-            "score": 9
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://aflac.com/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://aflac.com/jobs",
-                "status": 301
-              },
-              {
-                "url": "https://www.aflac.com/jobs",
-                "status": 301
-              },
-              {
-                "url": "https://www.aflac.com/agents/default.aspx",
-                "status": 301
-              },
-              {
-                "url": "https://www.aflac.com/sales-jobs/default.aspx",
-                "status": 200
-              }
-            ],
-            "final_url": "https://www.aflac.com/sales-jobs/default.aspx",
-            "status": 200,
-            "signals": [
-              "careers path",
-              "careers page content",
-              "employer domain"
-            ],
-            "score": 7
-          },
-          {
-            "type": "http",
-            "source": "input-hint",
-            "requested_url": "https://career4.successfactors.com/",
-            "redirect_chain": [
-              {
-                "url": "https://career4.successfactors.com/",
-                "status": 404
-              }
-            ],
-            "final_url": "https://career4.successfactors.com/",
-            "status": 404,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://career4.successfactors.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://career4.successfactors.com/careers",
-                "status": 200
-              }
-            ],
-            "final_url": "https://career4.successfactors.com/careers",
-            "status": 200,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://career4.successfactors.com/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://career4.successfactors.com/jobs",
-                "status": 404
-              }
-            ],
-            "final_url": "https://career4.successfactors.com/jobs",
-            "status": 404,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
-          },
-          {
-            "type": "http",
-            "source": "employer-link",
-            "requested_url": "https://www.successfactors.com/",
-            "linked_from": "https://career4.successfactors.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://www.successfactors.com/",
-                "status": 301
-              },
-              {
-                "url": "https://www.sap.com/products/hcm.html?src=sfsf",
-                "status": 403
-              }
-            ],
-            "final_url": "https://www.sap.com/products/hcm.html?src=sfsf",
-            "status": 403,
-            "signals": [
-              "linked from employer site"
-            ],
-            "score": 4
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=aflac",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/aflac"
           }
         ]
       },
@@ -1982,7 +1906,7 @@
         "status": "resolved",
         "evidence": "url_or_page_marker",
         "marker": "successfactors.com",
-        "host": "careers.aflac.com"
+        "host": "career4.successfactors.com"
       }
     },
     {
@@ -2003,11 +1927,11 @@
           "rank": 417
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=agco",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=agco"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -2016,163 +1940,31 @@
         }
       },
       "careers_resolution": {
-        "status": "blocked",
-        "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
-            "type": "http",
-            "source": "input-hint",
-            "requested_url": "https://agcocorp.com/",
-            "redirect_chain": [
-              {
-                "url": "https://agcocorp.com/",
-                "status": 301
-              },
-              {
-                "url": "https://www.agcocorp.com/",
-                "status": 301
-              },
-              {
-                "url": "https://www.agcocorp.com/us/en/",
-                "status": 302
-              },
-              {
-                "url": "https://www.agcocorp.com/us/en/home.html",
-                "status": 200
-              }
-            ],
-            "final_url": "https://www.agcocorp.com/us/en/home.html",
-            "status": 200,
-            "signals": [
-              "careers page content",
-              "employer domain"
-            ],
-            "score": 4
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://agcocorp.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://agcocorp.com/careers",
-                "status": 301
-              },
-              {
-                "url": "https://www.agcocorp.com/careers",
-                "status": 404
-              }
-            ],
-            "final_url": "https://www.agcocorp.com/careers",
-            "status": 404,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://agcocorp.com/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://agcocorp.com/jobs",
-                "status": 301
-              },
-              {
-                "url": "https://www.agcocorp.com/jobs",
-                "status": 404
-              }
-            ],
-            "final_url": "https://www.agcocorp.com/jobs",
-            "status": 404,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
-          },
-          {
-            "type": "http",
-            "source": "input-hint",
-            "requested_url": "https://career4.successfactors.com/",
-            "redirect_chain": [
-              {
-                "url": "https://career4.successfactors.com/",
-                "status": 404
-              }
-            ],
-            "final_url": "https://career4.successfactors.com/",
-            "status": 404,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://career4.successfactors.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://career4.successfactors.com/careers",
-                "status": 200
-              }
-            ],
-            "final_url": "https://career4.successfactors.com/careers",
-            "status": 200,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://career4.successfactors.com/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://career4.successfactors.com/jobs",
-                "status": 404
-              }
-            ],
-            "final_url": "https://career4.successfactors.com/jobs",
-            "status": 404,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
-          },
-          {
-            "type": "http",
-            "source": "employer-link",
-            "requested_url": "https://www.successfactors.com/",
-            "linked_from": "https://career4.successfactors.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://www.successfactors.com/",
-                "status": 301
-              },
-              {
-                "url": "https://www.sap.com/products/hcm.html?src=sfsf",
-                "status": 403
-              }
-            ],
-            "final_url": "https://www.sap.com/products/hcm.html?src=sfsf",
-            "status": 403,
-            "signals": [
-              "linked from employer site"
-            ],
-            "score": 4
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=agco",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/agco"
           }
-        ],
-        "resolved_at": "2026-09-21T21:55:34Z"
+        ]
       },
       "domain_hints": [
         "agcocorp.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career4.successfactors.com"
+      }
     },
     {
       "id": "agilent-technologies",
@@ -2624,7 +2416,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -2704,11 +2496,11 @@
           "rank": 357
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/airbnb",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/airbnb"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -3420,11 +3212,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/alixpartners",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/alixpartners"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -3434,7 +3226,30 @@
       },
       "domain_hints": [
         "alixpartners.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/alixpartners",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/alixpartners"
+          }
+        ]
+      }
     },
     {
       "id": "allegion",
@@ -3766,7 +3581,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -3939,7 +3754,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -4591,7 +4406,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -4853,7 +4668,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -5148,7 +4963,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -5328,7 +5143,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -5374,7 +5189,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -5464,11 +5279,11 @@
           ]
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "boards.greenhouse.io",
+          "apply_host": "boards.greenhouse.io/anduril",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "boards.greenhouse.io"
+            "boards.greenhouse.io/anduril"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -5478,7 +5293,30 @@
       },
       "domain_hints": [
         "anduril.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "boards.greenhouse.io/anduril",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/anduril"
+          }
+        ]
+      }
     },
     {
       "id": "anthropic",
@@ -5489,11 +5327,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/anthropic",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/anthropic"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -5503,7 +5341,30 @@
       },
       "domain_hints": [
         "anthropics.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/anthropic",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/anthropic"
+          }
+        ]
+      }
     },
     {
       "id": "aon",
@@ -5573,7 +5434,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -5654,7 +5515,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -6048,7 +5909,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -6127,11 +5988,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "boards.greenhouse.io",
+          "apply_host": "boards.greenhouse.io/aqr-capital",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "boards.greenhouse.io"
+            "boards.greenhouse.io/aqr-capital"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -6141,7 +6002,30 @@
       },
       "domain_hints": [
         "aqr.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "boards.greenhouse.io/aqr-capital",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/aqr-capital"
+          }
+        ]
+      }
     },
     {
       "id": "aramark",
@@ -6162,7 +6046,306 @@
       },
       "domain_hints": [
         "aramark.com"
-      ]
+      ],
+      "careers_url": "https://careers.aramark.com/jobs",
+      "careers_platform": "company-branded",
+      "provider": {
+        "family": "custom_unknown",
+        "status": "unresolved",
+        "evidence": "no_known_provider_marker",
+        "host": "careers.aramark.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://aramark.com/",
+            "redirect_chain": [
+              {
+                "url": "https://aramark.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.aramark.com/",
+                "status": 302
+              },
+              {
+                "url": "https://www.aramark.com/home",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.aramark.com/home",
+            "status": 200,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://aramark.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://aramark.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.aramark.com/careers",
+                "status": 302
+              },
+              {
+                "url": "https://careers.aramark.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.aramark.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://aramark.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://aramark.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.aramark.com/jobs",
+                "status": 302
+              },
+              {
+                "url": "https://www.aramark.com/careers.html",
+                "status": 301
+              },
+              {
+                "url": "https://www.aramark.com/careers",
+                "status": 302
+              },
+              {
+                "url": "https://careers.aramark.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.aramark.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers.aramark.com/jobs",
+            "linked_from": "https://careers.aramark.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.aramark.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.aramark.com/jobs",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers.aramark.com/jobs/",
+            "linked_from": "https://careers.aramark.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.aramark.com/jobs/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.aramark.com/jobs/",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers.aramark.com/jobs/?&mypage=1",
+            "linked_from": "https://careers.aramark.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.aramark.com/jobs/?&mypage=1",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.aramark.com/jobs/?&mypage=1",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers.aramark.com/jobs/?&mypage=2",
+            "linked_from": "https://careers.aramark.com/jobs/?&mypage=1",
+            "redirect_chain": [
+              {
+                "url": "https://careers.aramark.com/jobs/?&mypage=2",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.aramark.com/jobs/?&mypage=2",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers.aramark.com/jobs/?&mypage=0",
+            "linked_from": "https://careers.aramark.com/jobs/?&mypage=1",
+            "redirect_chain": [
+              {
+                "url": "https://careers.aramark.com/jobs/?&mypage=0",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.aramark.com/jobs/?&mypage=0",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers.aramark.com/jobs/?&mypage=3",
+            "linked_from": "https://careers.aramark.com/jobs/?&mypage=2",
+            "redirect_chain": [
+              {
+                "url": "https://careers.aramark.com/jobs/?&mypage=3",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.aramark.com/jobs/?&mypage=3",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers.aramark.com/jobs/?&mypage=4",
+            "linked_from": "https://careers.aramark.com/jobs/?&mypage=3",
+            "redirect_chain": [
+              {
+                "url": "https://careers.aramark.com/jobs/?&mypage=4",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.aramark.com/jobs/?&mypage=4",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers.aramark.com/jobs/?&mypage=5",
+            "linked_from": "https://careers.aramark.com/jobs/?&mypage=4",
+            "redirect_chain": [
+              {
+                "url": "https://careers.aramark.com/jobs/?&mypage=5",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.aramark.com/jobs/?&mypage=5",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers.aramark.com/jobs/?&mypage=6",
+            "linked_from": "https://careers.aramark.com/jobs/?&mypage=5",
+            "redirect_chain": [
+              {
+                "url": "https://careers.aramark.com/jobs/?&mypage=6",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.aramark.com/jobs/?&mypage=6",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          }
+        ]
+      }
     },
     {
       "id": "archer-daniels-midland",
@@ -6201,7 +6384,88 @@
       },
       "domain_hints": [
         "arista.com"
-      ]
+      ],
+      "careers_url": "https://www.arista.com/careers",
+      "careers_platform": "company-branded",
+      "provider": {
+        "family": "custom_unknown",
+        "status": "unresolved",
+        "evidence": "no_known_provider_marker",
+        "host": "www.arista.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://arista.com/",
+            "redirect_chain": [
+              {
+                "url": "https://arista.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.arista.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.arista.com/",
+            "status": 200,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://arista.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://arista.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.arista.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.arista.com/careers",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://arista.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://arista.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.arista.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.arista.com/jobs",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          }
+        ]
+      }
     },
     {
       "id": "arrow-electronics",
@@ -6251,11 +6515,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/asana",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/asana"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -6265,7 +6529,30 @@
       },
       "domain_hints": [
         "asana.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/asana",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/asana"
+          }
+        ]
+      }
     },
     {
       "id": "asbury-automotive-group",
@@ -8236,11 +8523,11 @@
           "rank": 191
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/block",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/block"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -8250,7 +8537,30 @@
       },
       "domain_hints": [
         "blockchain.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/block",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/block"
+          }
+        ]
+      }
     },
     {
       "id": "bloom-energy",
@@ -8900,11 +9210,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/brex",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/brex"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -8914,7 +9224,30 @@
       },
       "domain_hints": [
         "brex.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/brex",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/brex"
+          }
+        ]
+      }
     },
     {
       "id": "brightspring-health-services",
@@ -9656,11 +9989,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/canonical",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/canonical"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "GB",
@@ -9670,7 +10003,30 @@
       },
       "domain_hints": [
         "canonical.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/canonical",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/canonical"
+          }
+        ]
+      }
     },
     {
       "id": "capgemini",
@@ -10374,7 +10730,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -10861,11 +11217,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/chime",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/chime"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -10875,7 +11231,30 @@
       },
       "domain_hints": [
         "chime.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/chime",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/chime"
+          }
+        ]
+      }
     },
     {
       "id": "chipotle",
@@ -11337,11 +11716,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/cloudflare",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/cloudflare"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -11351,7 +11730,30 @@
       },
       "domain_hints": [
         "cloudflare.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/cloudflare",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/cloudflare"
+          }
+        ]
+      }
     },
     {
       "id": "cms-energy",
@@ -11447,11 +11849,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/coinbase",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/coinbase"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -11461,7 +11863,30 @@
       },
       "domain_hints": [
         "coinbase.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/coinbase",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/coinbase"
+          }
+        ]
+      }
     },
     {
       "id": "coldwell-banker",
@@ -11529,11 +11954,11 @@
           "rank": 219
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=colgate-palmolive",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=colgate-palmolive"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -11543,7 +11968,30 @@
       },
       "domain_hints": [
         "colgatepalmolive.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career4.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=colgate-palmolive",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/colgate-palmolive"
+          }
+        ]
+      }
     },
     {
       "id": "colliers",
@@ -12199,11 +12647,11 @@
           "rank": 286
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=corning",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=corning"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -12213,7 +12661,30 @@
       },
       "domain_hints": [
         "corning.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career4.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=corning",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/corning"
+          }
+        ]
+      }
     },
     {
       "id": "corteva",
@@ -12380,11 +12851,11 @@
           "rank": 132
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/coupang",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-10",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/coupang"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "KR",
@@ -12394,7 +12865,30 @@
       },
       "domain_hints": [
         "coupang.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/coupang",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/coupang"
+          }
+        ]
+      }
     },
     {
       "id": "coursera",
@@ -12405,11 +12899,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/coursera",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/coursera"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -12419,7 +12913,30 @@
       },
       "domain_hints": [
         "coursera.org"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/coursera",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/coursera"
+          }
+        ]
+      }
     },
     {
       "id": "cox-communications",
@@ -13147,11 +13664,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/databricks",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/databricks"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -13161,7 +13678,30 @@
       },
       "domain_hints": [
         "databricks.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/databricks",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/databricks"
+          }
+        ]
+      }
     },
     {
       "id": "datadog",
@@ -13183,11 +13723,11 @@
           ]
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/datadog",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/datadog"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -13196,128 +13736,17 @@
         }
       },
       "careers_resolution": {
-        "status": "resolved",
-        "attempt_status": "resolved",
-        "resolved_at": "2026-09-17T23:48:05Z",
-        "last_attempt_at": "2026-09-17T23:48:05Z",
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
-            "type": "http",
-            "source": "input-hint",
-            "requested_url": "https://careers.datadoghq.com/",
-            "redirect_chain": [
-              {
-                "url": "https://careers.datadoghq.com/",
-                "status": 200
-              }
-            ],
-            "final_url": "https://careers.datadoghq.com/",
-            "status": 200,
-            "signals": [
-              "careers page content",
-              "employer domain"
-            ],
-            "score": 4
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://careers.datadoghq.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://careers.datadoghq.com/careers",
-                "status": 301
-              },
-              {
-                "url": "https://careers.datadoghq.com/careers/",
-                "status": 404
-              }
-            ],
-            "final_url": "https://careers.datadoghq.com/careers/",
-            "status": 404,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://careers.datadoghq.com/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://careers.datadoghq.com/jobs",
-                "status": 301
-              },
-              {
-                "url": "https://careers.datadoghq.com/jobs/",
-                "status": 404
-              }
-            ],
-            "final_url": "https://careers.datadoghq.com/jobs/",
-            "status": 404,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
-          },
-          {
-            "type": "http",
-            "source": "input-hint",
-            "requested_url": "https://job-boards.greenhouse.io/",
-            "redirect_chain": [
-              {
-                "url": "https://job-boards.greenhouse.io/",
-                "status": 302
-              },
-              {
-                "url": "https://www.greenhouse.com",
-                "status": 200
-              }
-            ],
-            "final_url": "https://www.greenhouse.com/",
-            "status": 200,
-            "signals": [
-              "greenhouse provider fingerprint",
-              "careers page content"
-            ],
-            "score": 7
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://job-boards.greenhouse.io/careers",
-            "redirect_chain": [
-              {
-                "url": "https://job-boards.greenhouse.io/careers",
-                "status": 404
-              }
-            ],
-            "final_url": "https://job-boards.greenhouse.io/careers",
-            "status": 404,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://job-boards.greenhouse.io/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://job-boards.greenhouse.io/jobs",
-                "status": 404
-              }
-            ],
-            "final_url": "https://job-boards.greenhouse.io/jobs",
-            "status": 404,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/datadog",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/datadog"
           }
         ]
       },
@@ -13328,7 +13757,7 @@
         "status": "resolved",
         "evidence": "url_or_page_marker",
         "marker": "greenhouse.io",
-        "host": "www.greenhouse.com"
+        "host": "job-boards.greenhouse.io"
       },
       "domain_hints": [
         "datadoghq.com"
@@ -13902,11 +14331,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/discord",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/discord"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -13916,7 +14345,30 @@
       },
       "domain_hints": [
         "discord.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/discord",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/discord"
+          }
+        ]
+      }
     },
     {
       "id": "discover",
@@ -14394,11 +14846,11 @@
           "rank": 272
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career8.successfactors.com",
+          "apply_host": "career8.successfactors.com/career?company=dominion-energy",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career8.successfactors.com"
+            "career8.successfactors.com/career?company=dominion-energy"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -14408,7 +14860,30 @@
       },
       "domain_hints": [
         "dominionenergy.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career8.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career8.successfactors.com/career?company=dominion-energy",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/dominion-energy"
+          }
+        ]
+      }
     },
     {
       "id": "domino-s",
@@ -14466,8 +14941,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-22T04:53:18Z",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -14501,17 +14976,16 @@
               },
               {
                 "url": "https://www.doordash.com/careers",
-                "status": 302
-              },
-              {
-                "url": "https://careersatdoordash.com",
                 "status": 403
               }
             ],
-            "final_url": "https://careersatdoordash.com/",
+            "final_url": "https://www.doordash.com/careers",
             "status": 403,
-            "signals": [],
-            "score": 0
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
           },
           {
             "type": "http",
@@ -14524,11 +14998,11 @@
               },
               {
                 "url": "https://www.doordash.com/jobs",
-                "status": 404
+                "status": 403
               }
             ],
             "final_url": "https://www.doordash.com/jobs",
-            "status": 404,
+            "status": 403,
             "signals": [
               "careers path",
               "employer domain"
@@ -14624,11 +15098,11 @@
           "rank": 484
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career2.successfactors.eu",
+          "apply_host": "career2.successfactors.eu/career?company=dover",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career2.successfactors.eu"
+            "career2.successfactors.eu/career?company=dover"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -14638,7 +15112,30 @@
       },
       "domain_hints": [
         "doversaddlery.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.eu",
+        "host": "career2.successfactors.eu"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career2.successfactors.eu/career?company=dover",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/dover"
+          }
+        ]
+      }
     },
     {
       "id": "dow",
@@ -14850,11 +15347,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/dropbox",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/dropbox"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -14864,7 +15361,30 @@
       },
       "domain_hints": [
         "dropbox.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/dropbox",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/dropbox"
+          }
+        ]
+      }
     },
     {
       "id": "dte-energy",
@@ -14989,11 +15509,11 @@
           ]
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/duolingo",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/duolingo"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -15002,125 +15522,17 @@
         }
       },
       "careers_resolution": {
-        "status": "resolved",
-        "attempt_status": "resolved",
-        "resolved_at": "2026-09-17T23:48:05Z",
-        "last_attempt_at": "2026-09-17T23:48:05Z",
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
-            "type": "http",
-            "source": "input-hint",
-            "requested_url": "https://careers.duolingo.com/",
-            "redirect_chain": [
-              {
-                "url": "https://careers.duolingo.com/",
-                "status": 200
-              }
-            ],
-            "final_url": "https://careers.duolingo.com/",
-            "status": 200,
-            "signals": [
-              "greenhouse provider fingerprint",
-              "careers page content",
-              "employer domain"
-            ],
-            "score": 9
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://careers.duolingo.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://careers.duolingo.com/careers",
-                "status": 200
-              }
-            ],
-            "final_url": "https://careers.duolingo.com/careers",
-            "status": 200,
-            "signals": [
-              "greenhouse provider fingerprint",
-              "careers path",
-              "careers page content",
-              "employer domain"
-            ],
-            "score": 12
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://careers.duolingo.com/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://careers.duolingo.com/jobs",
-                "status": 200
-              }
-            ],
-            "final_url": "https://careers.duolingo.com/jobs",
-            "status": 200,
-            "signals": [
-              "greenhouse provider fingerprint",
-              "careers path",
-              "careers page content",
-              "employer domain"
-            ],
-            "score": 12
-          },
-          {
-            "type": "http",
-            "source": "input-hint",
-            "requested_url": "https://job-boards.greenhouse.io/",
-            "redirect_chain": [
-              {
-                "url": "https://job-boards.greenhouse.io/",
-                "status": 302
-              },
-              {
-                "url": "https://www.greenhouse.com",
-                "status": 200
-              }
-            ],
-            "final_url": "https://www.greenhouse.com/",
-            "status": 200,
-            "signals": [
-              "greenhouse provider fingerprint",
-              "careers page content"
-            ],
-            "score": 7
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://job-boards.greenhouse.io/careers",
-            "redirect_chain": [
-              {
-                "url": "https://job-boards.greenhouse.io/careers",
-                "status": 404
-              }
-            ],
-            "final_url": "https://job-boards.greenhouse.io/careers",
-            "status": 404,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://job-boards.greenhouse.io/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://job-boards.greenhouse.io/jobs",
-                "status": 404
-              }
-            ],
-            "final_url": "https://job-boards.greenhouse.io/jobs",
-            "status": 404,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/duolingo",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/duolingo"
           }
         ]
       },
@@ -15131,7 +15543,7 @@
         "status": "resolved",
         "evidence": "url_or_page_marker",
         "marker": "greenhouse.io",
-        "host": "careers.duolingo.com"
+        "host": "job-boards.greenhouse.io"
       },
       "domain_hints": [
         "duolingo.com"
@@ -15659,11 +16071,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/elastic",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/elastic"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -15673,7 +16085,30 @@
       },
       "domain_hints": [
         "elastic.co"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/elastic",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/elastic"
+          }
+        ]
+      }
     },
     {
       "id": "electronic-arts",
@@ -16089,11 +16524,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/epic-games",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/epic-games"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -16103,7 +16538,30 @@
       },
       "domain_hints": [
         "epicgames.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/epic-games",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/epic-games"
+          }
+        ]
+      }
     },
     {
       "id": "epic-systems",
@@ -16744,11 +17202,11 @@
           "rank": 9
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=exxonmobil",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=exxonmobil"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -16758,7 +17216,30 @@
       },
       "domain_hints": [
         "corporate.exxonmobil.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career4.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=exxonmobil",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/exxonmobil"
+          }
+        ]
+      }
     },
     {
       "id": "ey",
@@ -16769,11 +17250,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career5.successfactors.eu",
+          "apply_host": "career5.successfactors.eu/career?company=ey",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career5.successfactors.eu"
+            "career5.successfactors.eu/career?company=ey"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "GB",
@@ -16783,7 +17264,30 @@
       },
       "domain_hints": [
         "eyebuydirect.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.eu",
+        "host": "career5.successfactors.eu"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career5.successfactors.eu/career?company=ey",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/ey"
+          }
+        ]
+      }
     },
     {
       "id": "fanduel",
@@ -16794,11 +17298,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/fanduel",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/fanduel"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -16808,7 +17312,30 @@
       },
       "domain_hints": [
         "fanduel.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/fanduel",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/fanduel"
+          }
+        ]
+      }
     },
     {
       "id": "fannie-mae",
@@ -16879,11 +17406,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/fastly",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/fastly"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -16893,7 +17420,30 @@
       },
       "domain_hints": [
         "fastly.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/fastly",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/fastly"
+          }
+        ]
+      }
     },
     {
       "id": "fda",
@@ -17111,11 +17661,11 @@
           ]
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/figma",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/figma"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -17125,7 +17675,30 @@
       },
       "domain_hints": [
         "figma.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/figma",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/figma"
+          }
+        ]
+      }
     },
     {
       "id": "first-citizens-bancshares",
@@ -17292,11 +17865,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/fivetran",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/fivetran"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -17306,7 +17879,30 @@
       },
       "domain_hints": [
         "fivetran.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/fivetran",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/fivetran"
+          }
+        ]
+      }
     },
     {
       "id": "fluor",
@@ -18902,11 +19498,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/gitlab",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/gitlab"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -18916,7 +19512,30 @@
       },
       "domain_hints": [
         "gitlab.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/gitlab",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/gitlab"
+          }
+        ]
+      }
     },
     {
       "id": "global-partners",
@@ -19208,11 +19827,11 @@
           "rank": 207
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=halliburton",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=halliburton"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -19222,7 +19841,30 @@
       },
       "domain_hints": [
         "halliburton.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career4.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=halliburton",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/halliburton"
+          }
+        ]
+      }
     },
     {
       "id": "harley-davidson",
@@ -19233,11 +19875,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career8.successfactors.com",
+          "apply_host": "career8.successfactors.com/career?company=harley-davidson",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career8.successfactors.com"
+            "career8.successfactors.com/career?company=harley-davidson"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -19247,7 +19889,30 @@
       },
       "domain_hints": [
         "harley-davidson.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career8.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career8.successfactors.com/career?company=harley-davidson",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/harley-davidson"
+          }
+        ]
+      }
     },
     {
       "id": "hartford-financial",
@@ -19450,11 +20115,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career5.successfactors.eu",
+          "apply_host": "career5.successfactors.eu/career?company=heineken",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career5.successfactors.eu"
+            "career5.successfactors.eu/career?company=heineken"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "NL",
@@ -19464,7 +20129,30 @@
       },
       "domain_hints": [
         "heineken.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.eu",
+        "host": "career5.successfactors.eu"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career5.successfactors.eu/career?company=heineken",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/heineken"
+          }
+        ]
+      }
     },
     {
       "id": "henry-schein",
@@ -19542,11 +20230,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=hersheys",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=hersheys"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -19556,7 +20244,30 @@
       },
       "domain_hints": [
         "hersheysoftware.co.uk"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career4.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=hersheys",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/hersheys"
+          }
+        ]
+      }
     },
     {
       "id": "hertz-global-holdings",
@@ -20056,11 +20767,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=houghton-mifflin-harcourt",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=houghton-mifflin-harcourt"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -20070,7 +20781,30 @@
       },
       "domain_hints": [
         "hmhco.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career4.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=houghton-mifflin-harcourt",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/houghton-mifflin-harcourt"
+          }
+        ]
+      }
     },
     {
       "id": "howmet-aerospace",
@@ -20310,11 +21044,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/hubspot",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/hubspot"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -20324,7 +21058,30 @@
       },
       "domain_hints": [
         "hubspot.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/hubspot",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/hubspot"
+          }
+        ]
+      }
     },
     {
       "id": "hudson-river-trading",
@@ -20335,11 +21092,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "boards.greenhouse.io",
+          "apply_host": "boards.greenhouse.io/hudson-river-trading",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "boards.greenhouse.io"
+            "boards.greenhouse.io/hudson-river-trading"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -20349,7 +21106,30 @@
       },
       "domain_hints": [
         "hudsonrivertrading.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "boards.greenhouse.io/hudson-river-trading",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/hudson-river-trading"
+          }
+        ]
+      }
     },
     {
       "id": "hugging-face",
@@ -20479,8 +21259,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-22T04:53:18Z",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -21161,11 +21941,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/instacart",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/instacart"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -21175,7 +21955,30 @@
       },
       "domain_hints": [
         "instacart.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/instacart",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/instacart"
+          }
+        ]
+      }
     },
     {
       "id": "intel",
@@ -21819,11 +22622,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/jane-street",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/jane-street"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -21833,7 +22636,30 @@
       },
       "domain_hints": [
         "janestreet.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/jane-street",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/jane-street"
+          }
+        ]
+      }
     },
     {
       "id": "jcpenney",
@@ -21960,11 +22786,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career8.successfactors.com",
+          "apply_host": "career8.successfactors.com/career?company=jetblue",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career8.successfactors.com"
+            "career8.successfactors.com/career?company=jetblue"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -21974,7 +22800,30 @@
       },
       "domain_hints": [
         "jetblue.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career8.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career8.successfactors.com/career?company=jetblue",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/jetblue"
+          }
+        ]
+      }
     },
     {
       "id": "jetblue-airways",
@@ -22682,11 +23531,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/kayak",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/kayak"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -22696,7 +23545,30 @@
       },
       "domain_hints": [
         "kayak.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/kayak",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/kayak"
+          }
+        ]
+      }
     },
     {
       "id": "kb-home",
@@ -23213,11 +24085,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/khan-academy",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/khan-academy"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -23227,7 +24099,30 @@
       },
       "domain_hints": [
         "khanacademy.org"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/khan-academy",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/khan-academy"
+          }
+        ]
+      }
     },
     {
       "id": "kia",
@@ -24209,7 +25104,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -24549,11 +25444,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=lincoln-financial",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=lincoln-financial"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -24563,7 +25458,30 @@
       },
       "domain_hints": [
         "lincolnfinancial.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career4.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=lincoln-financial",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/lincoln-financial"
+          }
+        ]
+      }
     },
     {
       "id": "lincoln-national",
@@ -24642,11 +25560,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=lionsgate",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=lionsgate"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -24656,7 +25574,30 @@
       },
       "domain_hints": [
         "lionsgate.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career4.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=lionsgate",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/lionsgate"
+          }
+        ]
+      }
     },
     {
       "id": "liquidpiston",
@@ -25048,11 +25989,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/lucid-motors",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-10",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/lucid-motors"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -25062,7 +26003,30 @@
       },
       "domain_hints": [
         "lucidmotors.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/lucid-motors",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/lucid-motors"
+          }
+        ]
+      }
     },
     {
       "id": "lufthansa",
@@ -25196,11 +26160,11 @@
           ]
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/lyft",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/lyft"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -25209,121 +26173,17 @@
         }
       },
       "careers_resolution": {
-        "status": "resolved",
-        "attempt_status": "resolved",
-        "resolved_at": "2026-09-17T23:48:05Z",
-        "last_attempt_at": "2026-09-17T23:48:05Z",
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
-            "type": "http",
-            "source": "input-hint",
-            "requested_url": "https://app.careerpuck.com/",
-            "redirect_chain": [
-              {
-                "url": "https://app.careerpuck.com/",
-                "status": 302
-              },
-              {
-                "url": "https://dashboard.careerpuck.com/",
-                "status": 200
-              }
-            ],
-            "final_url": "https://dashboard.careerpuck.com/",
-            "status": 200,
-            "signals": [],
-            "score": 0
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://app.careerpuck.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://app.careerpuck.com/careers",
-                "status": 200
-              }
-            ],
-            "final_url": "https://app.careerpuck.com/careers",
-            "status": 200,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://app.careerpuck.com/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://app.careerpuck.com/jobs",
-                "status": 200
-              }
-            ],
-            "final_url": "https://app.careerpuck.com/jobs",
-            "status": 200,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
-          },
-          {
-            "type": "http",
-            "source": "input-hint",
-            "requested_url": "https://job-boards.greenhouse.io/",
-            "redirect_chain": [
-              {
-                "url": "https://job-boards.greenhouse.io/",
-                "status": 302
-              },
-              {
-                "url": "https://www.greenhouse.com",
-                "status": 200
-              }
-            ],
-            "final_url": "https://www.greenhouse.com/",
-            "status": 200,
-            "signals": [
-              "greenhouse provider fingerprint",
-              "careers page content"
-            ],
-            "score": 7
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://job-boards.greenhouse.io/careers",
-            "redirect_chain": [
-              {
-                "url": "https://job-boards.greenhouse.io/careers",
-                "status": 404
-              }
-            ],
-            "final_url": "https://job-boards.greenhouse.io/careers",
-            "status": 404,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://job-boards.greenhouse.io/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://job-boards.greenhouse.io/jobs",
-                "status": 404
-              }
-            ],
-            "final_url": "https://job-boards.greenhouse.io/jobs",
-            "status": 404,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/lyft",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/lyft"
           }
         ]
       },
@@ -25334,7 +26194,7 @@
         "status": "resolved",
         "evidence": "url_or_page_marker",
         "marker": "greenhouse.io",
-        "host": "www.greenhouse.com"
+        "host": "job-boards.greenhouse.io"
       },
       "domain_hints": [
         "lyft.com"
@@ -25349,11 +26209,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=lyondellbasell",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=lyondellbasell"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -25363,7 +26223,30 @@
       },
       "domain_hints": [
         "lyondellbasell.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career4.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=lyondellbasell",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/lyondellbasell"
+          }
+        ]
+      }
     },
     {
       "id": "m-and-t-bank",
@@ -25717,11 +26600,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/marqeta",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/marqeta"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -25731,7 +26614,30 @@
       },
       "domain_hints": [
         "marqeta.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/marqeta",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/marqeta"
+          }
+        ]
+      }
     },
     {
       "id": "marriott",
@@ -26514,11 +27420,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/medium",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/medium"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -26528,7 +27434,30 @@
       },
       "domain_hints": [
         "medium.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/medium",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/medium"
+          }
+        ]
+      }
     },
     {
       "id": "medline",
@@ -26738,11 +27667,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/mercury",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/mercury"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -26752,7 +27681,30 @@
       },
       "domain_hints": [
         "mercurynews.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/mercury",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/mercury"
+          }
+        ]
+      }
     },
     {
       "id": "meta",
@@ -27172,11 +28124,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "boards.greenhouse.io",
+          "apply_host": "boards.greenhouse.io/mlb",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "boards.greenhouse.io"
+            "boards.greenhouse.io/mlb"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -27186,7 +28138,30 @@
       },
       "domain_hints": [
         "mlb.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "boards.greenhouse.io/mlb",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/mlb"
+          }
+        ]
+      }
     },
     {
       "id": "mls",
@@ -27302,11 +28277,11 @@
           "rank": 404
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=mohawk-industries",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=mohawk-industries"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -27316,7 +28291,30 @@
       },
       "domain_hints": [
         "mohawkind.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career4.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=mohawk-industries",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/mohawk-industries"
+          }
+        ]
+      }
     },
     {
       "id": "molina-healthcare",
@@ -27494,11 +28492,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/mongodb",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/mongodb"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -27508,7 +28506,30 @@
       },
       "domain_hints": [
         "mongodb.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/mongodb",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/mongodb"
+          }
+        ]
+      }
     },
     {
       "id": "monster-beverage",
@@ -27876,11 +28897,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career2.successfactors.eu",
+          "apply_host": "career2.successfactors.eu/career?company=nestle",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career2.successfactors.eu"
+            "career2.successfactors.eu/career?company=nestle"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "CH",
@@ -27890,7 +28911,30 @@
       },
       "domain_hints": [
         "nestle.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.eu",
+        "host": "career2.successfactors.eu"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career2.successfactors.eu/career?company=nestle",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/nestle"
+          }
+        ]
+      }
     },
     {
       "id": "netapp",
@@ -28007,11 +29051,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/netlify",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/netlify"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -28021,7 +29065,30 @@
       },
       "domain_hints": [
         "netlify.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/netlify",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/netlify"
+          }
+        ]
+      }
     },
     {
       "id": "new-relic",
@@ -28032,11 +29099,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/new-relic",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/new-relic"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -28046,7 +29113,30 @@
       },
       "domain_hints": [
         "newrelic.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/new-relic",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/new-relic"
+          }
+        ]
+      }
     },
     {
       "id": "new-york-life-insurance",
@@ -28621,11 +29711,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/okta",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/okta"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -28635,7 +29725,30 @@
       },
       "domain_hints": [
         "okta.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/okta",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/okta"
+          }
+        ]
+      }
     },
     {
       "id": "old-republic-international",
@@ -29001,11 +30114,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/pagerduty",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/pagerduty"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -29015,7 +30128,30 @@
       },
       "domain_hints": [
         "pagerduty.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/pagerduty",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/pagerduty"
+          }
+        ]
+      }
     },
     {
       "id": "palantir",
@@ -29026,11 +30162,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.lever.co",
+          "apply_host": "jobs.lever.co/palantir",
           "ats_system": "Lever",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "jobs.lever.co"
+            "jobs.lever.co/palantir"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -29040,7 +30176,30 @@
       },
       "domain_hints": [
         "palantir.com"
-      ]
+      ],
+      "careers_platform": "lever",
+      "provider": {
+        "family": "lever",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "lever.co",
+        "host": "jobs.lever.co"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.lever.co/palantir",
+            "ats_system": "Lever",
+            "source_url": "https://withresumeai.com/ats-checker/palantir"
+          }
+        ]
+      }
     },
     {
       "id": "palantir-technologies",
@@ -29919,11 +31078,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/pinterest",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/pinterest"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -29933,7 +31092,30 @@
       },
       "domain_hints": [
         "pinterest.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/pinterest",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/pinterest"
+          }
+        ]
+      }
     },
     {
       "id": "plaid",
@@ -30064,11 +31246,11 @@
           ]
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/point72",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/point72"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -30078,7 +31260,30 @@
       },
       "domain_hints": [
         "point72.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/point72",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/point72"
+          }
+        ]
+      }
     },
     {
       "id": "polaris",
@@ -30550,11 +31755,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/pure-storage",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-06",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/pure-storage"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -30564,7 +31769,30 @@
       },
       "domain_hints": [
         "purestorage.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/pure-storage",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/pure-storage"
+          }
+        ]
+      }
     },
     {
       "id": "pvh",
@@ -30959,11 +32187,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/reddit",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/reddit"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -30973,7 +32201,30 @@
       },
       "domain_hints": [
         "reddit.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/reddit",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/reddit"
+          }
+        ]
+      }
     },
     {
       "id": "redfin",
@@ -31194,11 +32445,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/riot-games",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/riot-games"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -31208,7 +32459,30 @@
       },
       "domain_hints": [
         "riotgames.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/riot-games",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/riot-games"
+          }
+        ]
+      }
     },
     {
       "id": "rivian",
@@ -31267,11 +32541,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/robinhood",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/robinhood"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -31281,7 +32555,30 @@
       },
       "domain_hints": [
         "robinhood.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/robinhood",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/robinhood"
+          }
+        ]
+      }
     },
     {
       "id": "roblox",
@@ -31292,11 +32589,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/roblox",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/roblox"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -31306,7 +32603,30 @@
       },
       "domain_hints": [
         "roblox.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/roblox",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/roblox"
+          }
+        ]
+      }
     },
     {
       "id": "roche",
@@ -31470,11 +32790,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/roku",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-06",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/roku"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -31484,7 +32804,30 @@
       },
       "domain_hints": [
         "roku.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/roku",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/roku"
+          }
+        ]
+      }
     },
     {
       "id": "roland-berger",
@@ -32202,11 +33545,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/scale-ai",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/scale-ai"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -32216,7 +33559,30 @@
       },
       "domain_hints": [
         "scale.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/scale-ai",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/scale-ai"
+          }
+        ]
+      }
     },
     {
       "id": "schneider-electric",
@@ -32403,11 +33769,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/sentinelone",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/sentinelone"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -32417,7 +33783,30 @@
       },
       "domain_hints": [
         "sentinelone.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/sentinelone",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/sentinelone"
+          }
+        ]
+      }
     },
     {
       "id": "sephora",
@@ -32535,11 +33924,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/shein",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-10",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/shein"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "SG",
@@ -32549,7 +33938,30 @@
       },
       "domain_hints": [
         "shein.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/shein",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/shein"
+          }
+        ]
+      }
     },
     {
       "id": "shell",
@@ -32967,11 +34379,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/smartsheet",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/smartsheet"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -32981,7 +34393,30 @@
       },
       "domain_hints": [
         "smartsheet.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/smartsheet",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/smartsheet"
+          }
+        ]
+      }
     },
     {
       "id": "smurfit-westrock",
@@ -33093,11 +34528,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/sofi",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/sofi"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -33107,7 +34542,30 @@
       },
       "domain_hints": [
         "sofi.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/sofi",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/sofi"
+          }
+        ]
+      }
     },
     {
       "id": "solventum",
@@ -33292,11 +34750,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/sony-music",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/sony-music"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -33306,7 +34764,30 @@
       },
       "domain_hints": [
         "sonymusic.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/sony-music",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/sony-music"
+          }
+        ]
+      }
     },
     {
       "id": "sony-pictures",
@@ -33444,11 +34925,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "boards.greenhouse.io",
+          "apply_host": "boards.greenhouse.io/spacex",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "boards.greenhouse.io"
+            "boards.greenhouse.io/spacex"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -33458,7 +34939,30 @@
       },
       "domain_hints": [
         "spacex.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "boards.greenhouse.io/spacex",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/spacex"
+          }
+        ]
+      }
     },
     {
       "id": "spectrum",
@@ -33649,11 +35153,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.lever.co",
+          "apply_host": "jobs.lever.co/spotify",
           "ats_system": "Lever",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "jobs.lever.co"
+            "jobs.lever.co/spotify"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "SE",
@@ -33663,7 +35167,30 @@
       },
       "domain_hints": [
         "spotify.com"
-      ]
+      ],
+      "careers_platform": "lever",
+      "provider": {
+        "family": "lever",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "lever.co",
+        "host": "jobs.lever.co"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.lever.co/spotify",
+            "ats_system": "Lever",
+            "source_url": "https://withresumeai.com/ats-checker/spotify"
+          }
+        ]
+      }
     },
     {
       "id": "spotify-studios",
@@ -33674,11 +35201,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.lever.co",
+          "apply_host": "jobs.lever.co/spotify-studios",
           "ats_system": "Lever",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "jobs.lever.co"
+            "jobs.lever.co/spotify-studios"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "SE",
@@ -33688,7 +35215,30 @@
       },
       "domain_hints": [
         "spotify.com"
-      ]
+      ],
+      "careers_platform": "lever",
+      "provider": {
+        "family": "lever",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "lever.co",
+        "host": "jobs.lever.co"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.lever.co/spotify-studios",
+            "ats_system": "Lever",
+            "source_url": "https://withresumeai.com/ats-checker/spotify-studios"
+          }
+        ]
+      }
     },
     {
       "id": "sprouts-farmers-market",
@@ -33794,7 +35344,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T04:53:18Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
             "type": "http",
@@ -34231,11 +35781,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/stripe",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/stripe"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -34245,7 +35795,30 @@
       },
       "domain_hints": [
         "stripe.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/stripe",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/stripe"
+          }
+        ]
+      }
     },
     {
       "id": "stryker",
@@ -34669,11 +36242,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/sweetgreen",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-11",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/sweetgreen"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -34683,7 +36256,30 @@
       },
       "domain_hints": [
         "sweetgreen.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/sweetgreen",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/sweetgreen"
+          }
+        ]
+      }
     },
     {
       "id": "synchrony",
@@ -34868,11 +36464,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/take-two-interactive",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/take-two-interactive"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -34882,7 +36478,30 @@
       },
       "domain_hints": [
         "take2games.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/take-two-interactive",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/take-two-interactive"
+          }
+        ]
+      }
     },
     {
       "id": "takeda",
@@ -35106,11 +36725,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career8.successfactors.com",
+          "apply_host": "career8.successfactors.com/career?company=te-connectivity",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career8.successfactors.com"
+            "career8.successfactors.com/career?company=te-connectivity"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "IE",
@@ -35120,7 +36739,30 @@
       },
       "domain_hints": [
         "te.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career8.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career8.successfactors.com/career?company=te-connectivity",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/te-connectivity"
+          }
+        ]
+      }
     },
     {
       "id": "telefonica",
@@ -35131,11 +36773,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career5.successfactors.eu",
+          "apply_host": "career5.successfactors.eu/career?company=telefonica",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career5.successfactors.eu"
+            "career5.successfactors.eu/career?company=telefonica"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "ES",
@@ -35145,7 +36787,30 @@
       },
       "domain_hints": [
         "telefonica.com.ar"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.eu",
+        "host": "career5.successfactors.eu"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career5.successfactors.eu/career?company=telefonica",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/telefonica"
+          }
+        ]
+      }
     },
     {
       "id": "tenet-healthcare",
@@ -35474,11 +37139,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/new-york-times",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/new-york-times"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -35488,7 +37153,30 @@
       },
       "domain_hints": [
         "nytco.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/new-york-times",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/new-york-times"
+          }
+        ]
+      }
     },
     {
       "id": "the-nuclear-company",
@@ -36065,11 +37753,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/tripactions",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/tripactions"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -36077,7 +37765,30 @@
           "upstream_slug": "tripactions"
         }
       },
-      "domain_hints": []
+      "domain_hints": [],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/tripactions",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/tripactions"
+          }
+        ]
+      }
     },
     {
       "id": "tripadvisor",
@@ -36088,11 +37799,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/tripadvisor",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/tripadvisor"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -36102,7 +37813,30 @@
       },
       "domain_hints": [
         "tripadvisor.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/tripadvisor",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/tripadvisor"
+          }
+        ]
+      }
     },
     {
       "id": "truist-financial",
@@ -36231,11 +37965,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/twilio",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/twilio"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -36245,7 +37979,30 @@
       },
       "domain_hints": [
         "twilio.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/twilio",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/twilio"
+          }
+        ]
+      }
     },
     {
       "id": "twitch",
@@ -36256,11 +38013,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/twitch",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/twitch"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -36270,7 +38027,30 @@
       },
       "domain_hints": [
         "twitch.tv"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/twitch",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/twitch"
+          }
+        ]
+      }
     },
     {
       "id": "two-sigma",
@@ -36576,11 +38356,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/udemy",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/udemy"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -36590,7 +38370,30 @@
       },
       "domain_hints": [
         "udemy.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/udemy",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/udemy"
+          }
+        ]
+      }
     },
     {
       "id": "ufc",
@@ -36763,11 +38566,11 @@
           "rank": 187
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=union-pacific",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=union-pacific"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -36777,7 +38580,30 @@
       },
       "domain_hints": [
         "unionpacific.com.ar"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career4.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=union-pacific",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/union-pacific"
+          }
+        ]
+      }
     },
     {
       "id": "uniqlo",
@@ -37221,11 +39047,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.lever.co",
+          "apply_host": "jobs.lever.co/veeva-systems",
           "ats_system": "Lever",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "jobs.lever.co"
+            "jobs.lever.co/veeva-systems"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -37235,7 +39061,30 @@
       },
       "domain_hints": [
         "veeva.com"
-      ]
+      ],
+      "careers_platform": "lever",
+      "provider": {
+        "family": "lever",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "lever.co",
+        "host": "jobs.lever.co"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.lever.co/veeva-systems",
+            "ats_system": "Lever",
+            "source_url": "https://withresumeai.com/ats-checker/veeva-systems"
+          }
+        ]
+      }
     },
     {
       "id": "venture-global",
@@ -37315,11 +39164,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/vercel",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/vercel"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -37329,7 +39178,30 @@
       },
       "domain_hints": [
         "vercel.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/vercel",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/vercel"
+          }
+        ]
+      }
     },
     {
       "id": "verizon",
@@ -37643,11 +39515,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career5.successfactors.eu",
+          "apply_host": "career5.successfactors.eu/career?company=volkswagen",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career5.successfactors.eu"
+            "career5.successfactors.eu/career?company=volkswagen"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "DE",
@@ -37657,7 +39529,30 @@
       },
       "domain_hints": [
         "volkswagen.co.in"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.eu",
+        "host": "career5.successfactors.eu"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career5.successfactors.eu/career?company=volkswagen",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/volkswagen"
+          }
+        ]
+      }
     },
     {
       "id": "volvo",
@@ -37693,11 +39588,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/vox-media",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-11",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/vox-media"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -37707,7 +39602,30 @@
       },
       "domain_hints": [
         "voxmedia.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/vox-media",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/vox-media"
+          }
+        ]
+      }
     },
     {
       "id": "voya-financial",
@@ -38594,11 +40512,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=westinghouse",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=westinghouse"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -38608,7 +40526,30 @@
       },
       "domain_hints": [
         "westinghouseoutdoorpower.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career4.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=westinghouse",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/westinghouse"
+          }
+        ]
+      }
     },
     {
       "id": "westinghouse-air-brake",
@@ -39218,11 +41159,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=wyndham",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=wyndham"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -39232,7 +41173,30 @@
       },
       "domain_hints": [
         "wyndhamhotels.com"
-      ]
+      ],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career4.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=wyndham",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/wyndham"
+          }
+        ]
+      }
     },
     {
       "id": "wynn-resorts",
@@ -39268,11 +41232,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/xai",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/xai"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -39282,7 +41246,30 @@
       },
       "domain_hints": [
         "x.ai"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/xai",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/xai"
+          }
+        ]
+      }
     },
     {
       "id": "xcel-energy",
@@ -39371,11 +41358,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "career4.successfactors.com",
+          "apply_host": "career4.successfactors.com/career?company=xpo-logistics",
           "ats_system": "SuccessFactors",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "career4.successfactors.com"
+            "career4.successfactors.com/career?company=xpo-logistics"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -39383,7 +41370,30 @@
           "upstream_slug": "xpo-logistics"
         }
       },
-      "domain_hints": []
+      "domain_hints": [],
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "successfactors.com",
+        "host": "career4.successfactors.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "career4.successfactors.com/career?company=xpo-logistics",
+            "ats_system": "SuccessFactors",
+            "source_url": "https://withresumeai.com/ats-checker/xpo-logistics"
+          }
+        ]
+      }
     },
     {
       "id": "xylem",
@@ -39725,11 +41735,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "job-boards.greenhouse.io",
+          "apply_host": "job-boards.greenhouse.io/zscaler",
           "ats_system": "Greenhouse",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "job-boards.greenhouse.io"
+            "job-boards.greenhouse.io/zscaler"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -39739,7 +41749,30 @@
       },
       "domain_hints": [
         "zscaler.com"
-      ]
+      ],
+      "careers_platform": "greenhouse",
+      "provider": {
+        "family": "greenhouse",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "greenhouse.io",
+        "host": "job-boards.greenhouse.io"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-22T05:46:09Z",
+        "last_attempt_at": "2026-09-22T05:46:09Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "job-boards.greenhouse.io/zscaler",
+            "ats_system": "Greenhouse",
+            "source_url": "https://withresumeai.com/ats-checker/zscaler"
+          }
+        ]
+      }
     }
   ]
 }
