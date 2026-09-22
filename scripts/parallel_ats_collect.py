@@ -21,11 +21,12 @@ import direct_ct_workday as workday  # noqa: E402
 import direct_greenhouse as greenhouse  # noqa: E402
 import direct_icims as icims  # noqa: E402
 import direct_oracle as oracle  # noqa: E402
+import direct_smartrecruiters as smartrecruiters  # noqa: E402
 
 DEFAULT_FEED = SCRIPT_DIR.parent / "data" / "listings.json"
 DEFAULT_SOURCES = SCRIPT_DIR.parent / "direct_sources.json"
 DEFAULT_UNIVERSE = SCRIPT_DIR.parent / "employer_universe.json"
-PROVIDER_ORDER = ("workday", "icims", "greenhouse", "oracle")
+PROVIDER_ORDER = ("workday", "icims", "greenhouse", "smartrecruiters", "oracle")
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -161,11 +162,17 @@ def collect(
         oracle.enrich(doc, old_doc, universe, oracle.retry_session(), reference)
         return doc
 
+    def smartrecruiters_task() -> dict[str, Any]:
+        doc = copy.deepcopy(base_doc)
+        smartrecruiters.enrich(doc, old_doc, smartrecruiters.retry_session(), reference)
+        return doc
+
     return run_parallel(
         {
             "workday": workday_task,
             "icims": icims_task,
             "greenhouse": greenhouse_task,
+            "smartrecruiters": smartrecruiters_task,
             "oracle": oracle_task,
         }
     )
@@ -187,7 +194,7 @@ def main() -> int:
         raise ValueError("direct source file must contain a list")
 
     reference = datetime.now(timezone.utc)
-    print("ATS collection: Workday, iCIMS, Greenhouse, and Oracle running concurrently")
+    print("ATS collection: Workday, iCIMS, Greenhouse, SmartRecruiters, and Oracle running concurrently")
     provider_docs = collect(base_doc, old_doc, direct_sources, universe, reference)
     merged = merge_provider_documents(base_doc, provider_docs)
     if workday.stable_projection(merged) != workday.stable_projection(base_doc):
