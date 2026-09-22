@@ -231,10 +231,10 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
             final_url = http_url(response.url or candidate.url) or candidate.url
             record.update({"redirect_chain": redirect_chain(response, candidate.url), "final_url": final_url, "status": response.status_code})
             content_type = (response.headers.get("Content-Type", "") if hasattr(response, "headers") else "").lower()
-            html = response.text if response.status_code < 400 and ("html" in content_type or not content_type) else ""
+            html = response.text if (response.status_code < 400 or response.status_code == 406) and ("html" in content_type or not content_type) else ""
             score, signals = page_score(candidate, final_url, html, official_domains)
             record.update({"signals": signals, "score": score})
-            if response.status_code < 400 and score >= 5:
+            if (response.status_code < 400 or response.status_code == 406) and score >= 5:
                 provider = provider_for(final_url, html)
                 platform = provider["family"] if provider["status"] == "resolved" else "company-branded"
                 scored.append((score, -order, normalized_landing_url(final_url, platform), platform, provider))

@@ -131,9 +131,10 @@
         }
       },
       "careers_resolution": {
-        "status": "provider_resolved",
-        "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-22T22:28:16Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -191,8 +192,7 @@
             ],
             "score": 10
           }
-        ],
-        "resolved_at": "2026-09-17T23:38:23Z"
+        ]
       },
       "careers_platform": "workday",
       "provider": {
@@ -204,7 +204,8 @@
       },
       "domain_hints": [
         "3m.com"
-      ]
+      ],
+      "careers_url": "https://3m.wd1.myworkdayjobs.com/"
     },
     {
       "id": "abb",
@@ -1091,86 +1092,11 @@
         }
       },
       "careers_resolution": {
-        "status": "resolved",
+        "status": "provider_resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T18:37:29Z",
-        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "resolved_at": "2026-09-22T21:28:20Z",
+        "last_attempt_at": "2026-09-22T21:28:20Z",
         "evidence": [
-          {
-            "type": "http",
-            "source": "input-hint",
-            "requested_url": "https://adobe.com/",
-            "redirect_chain": [
-              {
-                "url": "https://adobe.com/",
-                "status": 301
-              },
-              {
-                "url": "https://www.adobe.com/",
-                "status": 200
-              }
-            ],
-            "final_url": "https://www.adobe.com/",
-            "status": 200,
-            "signals": [
-              "employer domain"
-            ],
-            "score": 2
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://adobe.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://adobe.com/careers",
-                "status": 301
-              },
-              {
-                "url": "https://www.adobe.com/careers",
-                "status": 301
-              },
-              {
-                "url": "https://www.adobe.com/careers.html",
-                "status": 200
-              }
-            ],
-            "final_url": "https://www.adobe.com/careers.html",
-            "status": 200,
-            "signals": [
-              "careers path",
-              "careers page content",
-              "employer domain"
-            ],
-            "score": 7
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://adobe.com/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://adobe.com/jobs",
-                "status": 301
-              },
-              {
-                "url": "https://www.adobe.com/jobs",
-                "status": 301
-              },
-              {
-                "url": "https://www.adobe.com/careers.html",
-                "status": 200
-              }
-            ],
-            "final_url": "https://www.adobe.com/careers.html",
-            "status": 200,
-            "signals": [
-              "careers path",
-              "careers page content",
-              "employer domain"
-            ],
-            "score": 7
-          },
           {
             "type": "http",
             "source": "input-hint",
@@ -1188,55 +1114,18 @@
               "employer domain"
             ],
             "score": 7
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://adobe.wd5.myworkdayjobs.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://adobe.wd5.myworkdayjobs.com/careers",
-                "status": 404
-              }
-            ],
-            "final_url": "https://adobe.wd5.myworkdayjobs.com/careers",
-            "status": 404,
-            "signals": [
-              "workday provider fingerprint",
-              "careers path",
-              "employer domain"
-            ],
-            "score": 10
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://adobe.wd5.myworkdayjobs.com/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://adobe.wd5.myworkdayjobs.com/jobs",
-                "status": 404
-              }
-            ],
-            "final_url": "https://adobe.wd5.myworkdayjobs.com/jobs",
-            "status": 404,
-            "signals": [
-              "workday provider fingerprint",
-              "careers path",
-              "employer domain"
-            ],
-            "score": 10
           }
         ]
       },
-      "careers_platform": "company-branded",
+      "careers_platform": "workday",
       "provider": {
-        "family": "custom_unknown",
-        "status": "unresolved",
-        "evidence": "no_known_provider_marker",
-        "host": "www.adobe.com"
+        "family": "workday",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "myworkdayjobs.com",
+        "host": "adobe.wd5.myworkdayjobs.com"
       },
-      "careers_url": "https://www.adobe.com/careers.html",
+      "careers_url": "https://adobe.wd5.myworkdayjobs.com/",
       "domain_hints": [
         "adobe.com"
       ]
@@ -1730,7 +1619,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -2416,7 +2305,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -3581,7 +3470,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -3754,7 +3643,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -4404,9 +4293,10 @@
         }
       },
       "careers_resolution": {
-        "status": "provider_resolved",
-        "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-22T22:28:16Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -4464,8 +4354,7 @@
             ],
             "score": 10
           }
-        ],
-        "resolved_at": "2026-09-17T23:38:23Z"
+        ]
       },
       "careers_platform": "workday",
       "provider": {
@@ -4477,7 +4366,8 @@
       },
       "domain_hints": [
         "aep.com"
-      ]
+      ],
+      "careers_url": "https://aep.wd1.myworkdayjobs.com/"
     },
     {
       "id": "american-express",
@@ -4668,7 +4558,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -4963,24 +4853,13 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
             "source": "input-hint",
             "requested_url": "https://amphenol.com/",
-            "redirect_chain": [
-              {
-                "url": "https://amphenol.com/",
-                "status": 403
-              }
-            ],
-            "final_url": "https://amphenol.com/",
-            "status": 403,
-            "signals": [
-              "employer domain"
-            ],
-            "score": 2
+            "error": "ReadTimeout: HTTPSConnectionPool(host='amphenol.com', port=443): Read timed out. (read timeout=15)"
           },
           {
             "type": "http",
@@ -5143,7 +5022,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -5189,7 +5068,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -5434,7 +5313,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -5515,7 +5394,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -5909,7 +5788,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -6490,7 +6369,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -6602,7 +6481,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -10813,9 +10692,10 @@
         }
       },
       "careers_resolution": {
-        "status": "unresolved",
-        "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "status": "provider_resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-22T21:28:20Z",
+        "last_attempt_at": "2026-09-22T21:28:20Z",
         "evidence": [
           {
             "type": "http",
@@ -10834,50 +10714,21 @@
               "employer domain"
             ],
             "score": 7
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://myhrabc.wd5.myworkdayjobs.com/careers",
-            "redirect_chain": [
-              {
-                "url": "https://myhrabc.wd5.myworkdayjobs.com/careers",
-                "status": 404
-              }
-            ],
-            "final_url": "https://myhrabc.wd5.myworkdayjobs.com/careers",
-            "status": 404,
-            "signals": [
-              "workday provider fingerprint",
-              "careers path",
-              "employer domain"
-            ],
-            "score": 10
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://myhrabc.wd5.myworkdayjobs.com/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://myhrabc.wd5.myworkdayjobs.com/jobs",
-                "status": 404
-              }
-            ],
-            "final_url": "https://myhrabc.wd5.myworkdayjobs.com/jobs",
-            "status": 404,
-            "signals": [
-              "workday provider fingerprint",
-              "careers path",
-              "employer domain"
-            ],
-            "score": 10
           }
         ]
       },
       "domain_hints": [
         "cencora.com"
-      ]
+      ],
+      "careers_url": "https://myhrabc.wd5.myworkdayjobs.com/",
+      "careers_platform": "workday",
+      "provider": {
+        "family": "workday",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "myworkdayjobs.com",
+        "host": "myhrabc.wd5.myworkdayjobs.com"
+      }
     },
     {
       "id": "cengage",
@@ -15026,8 +14877,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-22T18:53:31Z",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "resolved_at": "2026-09-22T22:28:16Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -15061,17 +14912,16 @@
               },
               {
                 "url": "https://www.doordash.com/careers",
-                "status": 302
-              },
-              {
-                "url": "https://careersatdoordash.com",
                 "status": 403
               }
             ],
-            "final_url": "https://careersatdoordash.com/",
+            "final_url": "https://www.doordash.com/careers",
             "status": 403,
-            "signals": [],
-            "score": 0
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
           },
           {
             "type": "http",
@@ -15084,11 +14934,11 @@
               },
               {
                 "url": "https://www.doordash.com/jobs",
-                "status": 404
+                "status": 403
               }
             ],
             "final_url": "https://www.doordash.com/jobs",
-            "status": 404,
+            "status": 403,
             "signals": [
               "careers path",
               "employer domain"
@@ -15121,35 +14971,13 @@
             "type": "http",
             "source": "conventional-path",
             "requested_url": "https://job-boards.greenhouse.io/careers",
-            "redirect_chain": [
-              {
-                "url": "https://job-boards.greenhouse.io/careers",
-                "status": 404
-              }
-            ],
-            "final_url": "https://job-boards.greenhouse.io/careers",
-            "status": 404,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
+            "error": "ReadTimeout: HTTPSConnectionPool(host='job-boards.greenhouse.io', port=443): Read timed out. (read timeout=15)"
           },
           {
             "type": "http",
             "source": "conventional-path",
             "requested_url": "https://job-boards.greenhouse.io/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://job-boards.greenhouse.io/jobs",
-                "status": 404
-              }
-            ],
-            "final_url": "https://job-boards.greenhouse.io/jobs",
-            "status": 404,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
+            "error": "ReadTimeout: HTTPSConnectionPool(host='job-boards.greenhouse.io', port=443): Read timed out. (read timeout=15)"
           }
         ]
       },
@@ -21345,8 +21173,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-22T18:53:31Z",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "resolved_at": "2026-09-22T22:28:16Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -25188,9 +25016,10 @@
         }
       },
       "careers_resolution": {
-        "status": "provider_resolved",
-        "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-22T22:28:16Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -25248,8 +25077,7 @@
             ],
             "score": 10
           }
-        ],
-        "resolved_at": "2026-09-17T23:38:23Z"
+        ]
       },
       "careers_platform": "workday",
       "provider": {
@@ -25261,7 +25089,8 @@
       },
       "domain_hints": [
         "leidos.com"
-      ]
+      ],
+      "careers_url": "https://leidos.wd5.myworkdayjobs.com/"
     },
     {
       "id": "lennar",
@@ -35428,9 +35257,10 @@
         }
       },
       "careers_resolution": {
-        "status": "provider_resolved",
-        "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T18:53:31Z",
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-22T22:28:16Z",
+        "last_attempt_at": "2026-09-22T22:28:16Z",
         "evidence": [
           {
             "type": "http",
@@ -35488,8 +35318,7 @@
             ],
             "score": 10
           }
-        ],
-        "resolved_at": "2026-09-17T23:38:23Z"
+        ]
       },
       "careers_platform": "workday",
       "provider": {
@@ -35501,7 +35330,8 @@
       },
       "domain_hints": [
         "stanleyblackanddecker.com"
-      ]
+      ],
+      "careers_url": "https://sbdinc.wd1.myworkdayjobs.com/"
     },
     {
       "id": "starbucks",
