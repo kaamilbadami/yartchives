@@ -333,7 +333,7 @@ class RepairLinksTests(unittest.TestCase):
         self.assertEqual(status, "ok")
         self.assertEqual(final, live)
 
-    def test_unknown_workday_apply_preserves_direct_semantics(self):
+    def test_unknown_workday_apply_downgrades_to_employer_job(self):
         url = "https://jj.wd5.myworkdayjobs.com/jj/job/Cincinnati-Ohio-United-States-of-America/Software-Engineering-Co-Op-Summer-2027_R-096743/apply"
         job = {
             "id": "jj-r-096743",
@@ -358,9 +358,9 @@ class RepairLinksTests(unittest.TestCase):
 
         self.assertEqual(stats["unknown"], 1)
         self.assertEqual(job["link_status"], "unknown")
-        self.assertEqual(job["link_kind"], "direct")
-        self.assertEqual(job["url"], url)
-        self.assertNotIn("unverified_apply_url", job)
+        self.assertEqual(job["link_kind"], "employer_job")
+        self.assertEqual(job["url"], url.replace("/apply", ""))
+        self.assertEqual(job["unverified_apply_url"], url)
         self.assertEqual(
             validate_mod.workday_direct_contract_errors(job, "job jj-r-096743"),
             [],
@@ -512,7 +512,7 @@ class WorkdayPublishContractTests(unittest.TestCase):
             [],
         )
 
-    def test_cached_unknown_workday_apply_preserves_direct_semantics(self):
+    def test_cached_unknown_workday_apply_downgrades_to_employer_job(self):
         url = "https://jj.wd5.myworkdayjobs.com/jj/job/Cincinnati-Ohio-United-States-of-America/Software-Engineering-Co-Op-Summer-2027_R-096743/apply"
         job = {
             "id": "jj-r-096743",
@@ -537,10 +537,11 @@ class WorkdayPublishContractTests(unittest.TestCase):
             mod.validate_repaired_links({"jobs": [job]}, old_doc)
 
         self.assertEqual(job["link_status"], "unknown")
-        self.assertEqual(job["link_kind"], "direct")
-        self.assertTrue(job["url"].endswith("/apply"))
+        self.assertEqual(job["link_kind"], "employer_job")
+        self.assertFalse(job["url"].endswith("/apply"))
+        self.assertEqual(job["unverified_apply_url"], url)
 
-    def test_unselected_workday_apply_preserves_direct_semantics(self):
+    def test_unselected_workday_apply_downgrades_to_employer_job(self):
         url = "https://jj.wd5.myworkdayjobs.com/jj/job/Cincinnati-Ohio-United-States-of-America/Software-Engineering-Co-Op-Summer-2027_R-096743/apply"
         doc = {
             "jobs": [
@@ -560,8 +561,9 @@ class WorkdayPublishContractTests(unittest.TestCase):
 
         unselected = [job for job in doc["jobs"] if not job.get("link_status")]
         self.assertEqual(len(unselected), 1)
-        self.assertEqual(unselected[0]["link_kind"], "direct")
-        self.assertTrue(unselected[0]["url"].endswith("/apply"))
+        self.assertEqual(unselected[0]["link_kind"], "employer_job")
+        self.assertFalse(unselected[0]["url"].endswith("/apply"))
+        self.assertEqual(unselected[0]["unverified_apply_url"], url)
 
 
 if __name__ == "__main__":

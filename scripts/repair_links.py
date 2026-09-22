@@ -679,6 +679,10 @@ def validate_repaired_links(doc: dict[str, Any], old_doc: dict[str, Any]) -> dic
             elif is_direct_application_url(final):
                 job["url"] = final
 
+    for job in jobs:
+        if job.get("link_status") != "ok":
+            downgrade_unverified_workday_apply(job)
+
     return stats
 
 
