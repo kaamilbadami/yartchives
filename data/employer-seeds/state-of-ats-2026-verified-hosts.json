@@ -20,9 +20,9 @@
       "name": "2U",
       "upstream_slug": "2u",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/2u",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/2u"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -163,9 +163,9 @@
       "name": "Adyen",
       "upstream_slug": "adyen",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/adyen",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/adyen"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -189,9 +189,9 @@
       "name": "Affirm",
       "upstream_slug": "affirm",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/affirm",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/affirm"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -202,9 +202,9 @@
       "name": "Aflac",
       "upstream_slug": "aflac",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=aflac",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=aflac"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -215,9 +215,9 @@
       "name": "AGCO",
       "upstream_slug": "agco",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=agco",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=agco"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -267,9 +267,9 @@
       "name": "Airbnb",
       "upstream_slug": "airbnb",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/airbnb",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/airbnb"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -371,9 +371,9 @@
       "name": "AlixPartners",
       "upstream_slug": "alixpartners",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/alixpartners",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/alixpartners"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -527,9 +527,9 @@
       "name": "Anduril",
       "upstream_slug": "anduril",
       "ats_system": "Greenhouse",
-      "apply_host": "boards.greenhouse.io",
+      "apply_host": "boards.greenhouse.io/anduril",
       "domain_hints": [
-        "boards.greenhouse.io"
+        "boards.greenhouse.io/anduril"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -540,9 +540,9 @@
       "name": "Anthropic",
       "upstream_slug": "anthropic",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/anthropic",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/anthropic"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -592,9 +592,9 @@
       "name": "AQR Capital",
       "upstream_slug": "aqr-capital",
       "ats_system": "Greenhouse",
-      "apply_host": "boards.greenhouse.io",
+      "apply_host": "boards.greenhouse.io/aqr-capital",
       "domain_hints": [
-        "boards.greenhouse.io"
+        "boards.greenhouse.io/aqr-capital"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -605,9 +605,9 @@
       "name": "Asana",
       "upstream_slug": "asana",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/asana",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/asana"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -891,9 +891,9 @@
       "name": "Block",
       "upstream_slug": "block",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/block",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/block"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -969,9 +969,9 @@
       "name": "Brex",
       "upstream_slug": "brex",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/brex",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/brex"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -1060,9 +1060,9 @@
       "name": "Canonical",
       "upstream_slug": "canonical",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/canonical",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/canonical"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -1203,9 +1203,9 @@
       "name": "Chime",
       "upstream_slug": "chime",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/chime",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/chime"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -1281,9 +1281,9 @@
       "name": "Cloudflare",
       "upstream_slug": "cloudflare",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/cloudflare",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/cloudflare"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -1307,9 +1307,9 @@
       "name": "Coinbase",
       "upstream_slug": "coinbase",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/coinbase",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/coinbase"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -1333,9 +1333,9 @@
       "name": "Colgate-Palmolive",
       "upstream_slug": "colgate-palmolive",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=colgate-palmolive",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=colgate-palmolive"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -1437,9 +1437,9 @@
       "name": "Corning",
       "upstream_slug": "corning",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=corning",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=corning"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -1476,9 +1476,9 @@
       "name": "Coupang",
       "upstream_slug": "coupang",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/coupang",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/coupang"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-10",
@@ -1489,9 +1489,9 @@
       "name": "Coursera",
       "upstream_slug": "coursera",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/coursera",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/coursera"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -1658,9 +1658,9 @@
       "name": "Databricks",
       "upstream_slug": "databricks",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/databricks",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/databricks"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -1671,9 +1671,9 @@
       "name": "Datadog",
       "upstream_slug": "datadog",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/datadog",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/datadog"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -1827,9 +1827,9 @@
       "name": "Discord",
       "upstream_slug": "discord",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/discord",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/discord"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -1905,9 +1905,9 @@
       "name": "Dominion Energy",
       "upstream_slug": "dominion-energy",
       "ats_system": "SuccessFactors",
-      "apply_host": "career8.successfactors.com",
+      "apply_host": "career8.successfactors.com/career?company=dominion-energy",
       "domain_hints": [
-        "career8.successfactors.com"
+        "career8.successfactors.com/career?company=dominion-energy"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -1931,9 +1931,9 @@
       "name": "Dover",
       "upstream_slug": "dover",
       "ats_system": "SuccessFactors",
-      "apply_host": "career2.successfactors.eu",
+      "apply_host": "career2.successfactors.eu/career?company=dover",
       "domain_hints": [
-        "career2.successfactors.eu"
+        "career2.successfactors.eu/career?company=dover"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -1996,9 +1996,9 @@
       "name": "Dropbox",
       "upstream_slug": "dropbox",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/dropbox",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/dropbox"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -2035,9 +2035,9 @@
       "name": "Duolingo",
       "upstream_slug": "duolingo",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/duolingo",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/duolingo"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -2152,9 +2152,9 @@
       "name": "Elastic",
       "upstream_slug": "elastic",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/elastic",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/elastic"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -2256,9 +2256,9 @@
       "name": "Epic Games",
       "upstream_slug": "epic-games",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/epic-games",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/epic-games"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -2386,9 +2386,9 @@
       "name": "ExxonMobil",
       "upstream_slug": "exxonmobil",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=exxonmobil",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=exxonmobil"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -2399,9 +2399,9 @@
       "name": "EY",
       "upstream_slug": "ey",
       "ats_system": "SuccessFactors",
-      "apply_host": "career5.successfactors.eu",
+      "apply_host": "career5.successfactors.eu/career?company=ey",
       "domain_hints": [
-        "career5.successfactors.eu"
+        "career5.successfactors.eu/career?company=ey"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -2412,9 +2412,9 @@
       "name": "FanDuel",
       "upstream_slug": "fanduel",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/fanduel",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/fanduel"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -2425,9 +2425,9 @@
       "name": "Fastly",
       "upstream_slug": "fastly",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/fastly",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/fastly"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -2477,9 +2477,9 @@
       "name": "Figma",
       "upstream_slug": "figma",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/figma",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/figma"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -2516,9 +2516,9 @@
       "name": "Fivetran",
       "upstream_slug": "fivetran",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/fivetran",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/fivetran"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -2750,9 +2750,9 @@
       "name": "GitLab",
       "upstream_slug": "gitlab",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/gitlab",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/gitlab"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -2776,9 +2776,9 @@
       "name": "Halliburton",
       "upstream_slug": "halliburton",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=halliburton",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=halliburton"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -2789,9 +2789,9 @@
       "name": "Harley-Davidson",
       "upstream_slug": "harley-davidson",
       "ats_system": "SuccessFactors",
-      "apply_host": "career8.successfactors.com",
+      "apply_host": "career8.successfactors.com/career?company=harley-davidson",
       "domain_hints": [
-        "career8.successfactors.com"
+        "career8.successfactors.com/career?company=harley-davidson"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -2854,9 +2854,9 @@
       "name": "Heineken",
       "upstream_slug": "heineken",
       "ats_system": "SuccessFactors",
-      "apply_host": "career5.successfactors.eu",
+      "apply_host": "career5.successfactors.eu/career?company=heineken",
       "domain_hints": [
-        "career5.successfactors.eu"
+        "career5.successfactors.eu/career?company=heineken"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -2880,9 +2880,9 @@
       "name": "Hershey's",
       "upstream_slug": "hersheys",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=hersheys",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=hersheys"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -2971,9 +2971,9 @@
       "name": "Houghton Mifflin Harcourt",
       "upstream_slug": "houghton-mifflin-harcourt",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=houghton-mifflin-harcourt",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=houghton-mifflin-harcourt"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -3010,9 +3010,9 @@
       "name": "HubSpot",
       "upstream_slug": "hubspot",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/hubspot",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/hubspot"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -3023,9 +3023,9 @@
       "name": "Hudson River Trading",
       "upstream_slug": "hudson-river-trading",
       "ats_system": "Greenhouse",
-      "apply_host": "boards.greenhouse.io",
+      "apply_host": "boards.greenhouse.io/hudson-river-trading",
       "domain_hints": [
-        "boards.greenhouse.io"
+        "boards.greenhouse.io/hudson-river-trading"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -3192,9 +3192,9 @@
       "name": "Instacart",
       "upstream_slug": "instacart",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/instacart",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/instacart"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -3296,9 +3296,9 @@
       "name": "Jane Street",
       "upstream_slug": "jane-street",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/jane-street",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/jane-street"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -3348,9 +3348,9 @@
       "name": "JetBlue",
       "upstream_slug": "jetblue",
       "ats_system": "SuccessFactors",
-      "apply_host": "career8.successfactors.com",
+      "apply_host": "career8.successfactors.com/career?company=jetblue",
       "domain_hints": [
-        "career8.successfactors.com"
+        "career8.successfactors.com/career?company=jetblue"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -3439,9 +3439,9 @@
       "name": "Kayak",
       "upstream_slug": "kayak",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/kayak",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/kayak"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -3530,9 +3530,9 @@
       "name": "Khan Academy",
       "upstream_slug": "khan-academy",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/khan-academy",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/khan-academy"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -3670,19 +3670,6 @@
       "hq_country_code": "CH"
     },
     {
-      "name": "L.E.K. Consulting",
-      "upstream_slug": "lek-consulting",
-      "ats_system": "Oleeo",
-      "apply_host": "lek.tal.net",
-      "domain_hints": [
-        "lek.tal.net"
-      ],
-      "evidence_method": "Careers-portal apply host",
-      "checked_at": "2026-08-13",
-      "source_url": "https://withresumeai.com/ats-checker/lek-consulting",
-      "hq_country_code": "GB"
-    },
-    {
       "name": "L'Oreal",
       "upstream_slug": "loreal",
       "ats_system": "Avature",
@@ -3694,6 +3681,19 @@
       "checked_at": "2026-08-13",
       "source_url": "https://withresumeai.com/ats-checker/loreal",
       "hq_country_code": "FR"
+    },
+    {
+      "name": "L.E.K. Consulting",
+      "upstream_slug": "lek-consulting",
+      "ats_system": "Oleeo",
+      "apply_host": "lek.tal.net",
+      "domain_hints": [
+        "lek.tal.net"
+      ],
+      "evidence_method": "Careers-portal apply host",
+      "checked_at": "2026-08-13",
+      "source_url": "https://withresumeai.com/ats-checker/lek-consulting",
+      "hq_country_code": "GB"
     },
     {
       "name": "L3Harris",
@@ -3816,9 +3816,9 @@
       "name": "Lincoln Financial",
       "upstream_slug": "lincoln-financial",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=lincoln-financial",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=lincoln-financial"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -3855,9 +3855,9 @@
       "name": "Lionsgate",
       "upstream_slug": "lionsgate",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=lionsgate",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=lionsgate"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -3933,9 +3933,9 @@
       "name": "Lucid Motors",
       "upstream_slug": "lucid-motors",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/lucid-motors",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/lucid-motors"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-10",
@@ -3972,9 +3972,9 @@
       "name": "Lyft",
       "upstream_slug": "lyft",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/lyft",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/lyft"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -3985,9 +3985,9 @@
       "name": "LyondellBasell",
       "upstream_slug": "lyondellbasell",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=lyondellbasell",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=lyondellbasell"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -4076,9 +4076,9 @@
       "name": "Marqeta",
       "upstream_slug": "marqeta",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/marqeta",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/marqeta"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -4258,9 +4258,9 @@
       "name": "Medium",
       "upstream_slug": "medium",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/medium",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/medium"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -4323,9 +4323,9 @@
       "name": "Mercury",
       "upstream_slug": "mercury",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/mercury",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/mercury"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -4414,9 +4414,9 @@
       "name": "MLB",
       "upstream_slug": "mlb",
       "ats_system": "Greenhouse",
-      "apply_host": "boards.greenhouse.io",
+      "apply_host": "boards.greenhouse.io/mlb",
       "domain_hints": [
-        "boards.greenhouse.io"
+        "boards.greenhouse.io/mlb"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -4453,9 +4453,9 @@
       "name": "Mohawk Industries",
       "upstream_slug": "mohawk-industries",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=mohawk-industries",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=mohawk-industries"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -4505,9 +4505,9 @@
       "name": "MongoDB",
       "upstream_slug": "mongodb",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/mongodb",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/mongodb"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -4583,9 +4583,9 @@
       "name": "Nestle",
       "upstream_slug": "nestle",
       "ats_system": "SuccessFactors",
-      "apply_host": "career2.successfactors.eu",
+      "apply_host": "career2.successfactors.eu/career?company=nestle",
       "domain_hints": [
-        "career2.successfactors.eu"
+        "career2.successfactors.eu/career?company=nestle"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -4622,9 +4622,9 @@
       "name": "Netlify",
       "upstream_slug": "netlify",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/netlify",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/netlify"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -4635,9 +4635,9 @@
       "name": "New Relic",
       "upstream_slug": "new-relic",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/new-relic",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/new-relic"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -4726,9 +4726,9 @@
       "name": "Okta",
       "upstream_slug": "okta",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/okta",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/okta"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -4778,9 +4778,9 @@
       "name": "PagerDuty",
       "upstream_slug": "pagerduty",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/pagerduty",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/pagerduty"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -4791,9 +4791,9 @@
       "name": "Palantir",
       "upstream_slug": "palantir",
       "ats_system": "Lever",
-      "apply_host": "jobs.lever.co",
+      "apply_host": "jobs.lever.co/palantir",
       "domain_hints": [
-        "jobs.lever.co"
+        "jobs.lever.co/palantir"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -4908,9 +4908,9 @@
       "name": "Pinterest",
       "upstream_slug": "pinterest",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/pinterest",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/pinterest"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -4947,9 +4947,9 @@
       "name": "Point72",
       "upstream_slug": "point72",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/point72",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/point72"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -5025,9 +5025,9 @@
       "name": "Pure Storage",
       "upstream_slug": "pure-storage",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/pure-storage",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/pure-storage"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-06",
@@ -5129,9 +5129,9 @@
       "name": "Reddit",
       "upstream_slug": "reddit",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/reddit",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/reddit"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -5168,9 +5168,9 @@
       "name": "Riot Games",
       "upstream_slug": "riot-games",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/riot-games",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/riot-games"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -5194,9 +5194,9 @@
       "name": "Robinhood",
       "upstream_slug": "robinhood",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/robinhood",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/robinhood"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -5207,9 +5207,9 @@
       "name": "Roblox",
       "upstream_slug": "roblox",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/roblox",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/roblox"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -5259,9 +5259,9 @@
       "name": "Roku",
       "upstream_slug": "roku",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/roku",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/roku"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-06",
@@ -5337,9 +5337,9 @@
       "name": "Scale AI",
       "upstream_slug": "scale-ai",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/scale-ai",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/scale-ai"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -5376,9 +5376,9 @@
       "name": "SentinelOne",
       "upstream_slug": "sentinelone",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/sentinelone",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/sentinelone"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -5428,9 +5428,9 @@
       "name": "Shein",
       "upstream_slug": "shein",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/shein",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/shein"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-10",
@@ -5545,9 +5545,9 @@
       "name": "Smartsheet",
       "upstream_slug": "smartsheet",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/smartsheet",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/smartsheet"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -5610,9 +5610,9 @@
       "name": "SoFi",
       "upstream_slug": "sofi",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/sofi",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/sofi"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -5649,9 +5649,9 @@
       "name": "Sony Music",
       "upstream_slug": "sony-music",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/sony-music",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/sony-music"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -5688,9 +5688,9 @@
       "name": "SpaceX",
       "upstream_slug": "spacex",
       "ats_system": "Greenhouse",
-      "apply_host": "boards.greenhouse.io",
+      "apply_host": "boards.greenhouse.io/spacex",
       "domain_hints": [
-        "boards.greenhouse.io"
+        "boards.greenhouse.io/spacex"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -5727,9 +5727,9 @@
       "name": "Spotify",
       "upstream_slug": "spotify",
       "ats_system": "Lever",
-      "apply_host": "jobs.lever.co",
+      "apply_host": "jobs.lever.co/spotify",
       "domain_hints": [
-        "jobs.lever.co"
+        "jobs.lever.co/spotify"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -5740,9 +5740,9 @@
       "name": "Spotify Studios",
       "upstream_slug": "spotify-studios",
       "ats_system": "Lever",
-      "apply_host": "jobs.lever.co",
+      "apply_host": "jobs.lever.co/spotify-studios",
       "domain_hints": [
-        "jobs.lever.co"
+        "jobs.lever.co/spotify-studios"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -5857,9 +5857,9 @@
       "name": "Stripe",
       "upstream_slug": "stripe",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/stripe",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/stripe"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -5961,9 +5961,9 @@
       "name": "Sweetgreen",
       "upstream_slug": "sweetgreen",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/sweetgreen",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/sweetgreen"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-11",
@@ -6013,9 +6013,9 @@
       "name": "Take-Two Interactive",
       "upstream_slug": "take-two-interactive",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/take-two-interactive",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/take-two-interactive"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -6065,9 +6065,9 @@
       "name": "TE Connectivity",
       "upstream_slug": "te-connectivity",
       "ats_system": "SuccessFactors",
-      "apply_host": "career8.successfactors.com",
+      "apply_host": "career8.successfactors.com/career?company=te-connectivity",
       "domain_hints": [
-        "career8.successfactors.com"
+        "career8.successfactors.com/career?company=te-connectivity"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -6078,9 +6078,9 @@
       "name": "Telefonica",
       "upstream_slug": "telefonica",
       "ats_system": "SuccessFactors",
-      "apply_host": "career5.successfactors.eu",
+      "apply_host": "career5.successfactors.eu/career?company=telefonica",
       "domain_hints": [
-        "career5.successfactors.eu"
+        "career5.successfactors.eu/career?company=telefonica"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -6130,9 +6130,9 @@
       "name": "The New York Times",
       "upstream_slug": "new-york-times",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/new-york-times",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/new-york-times"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -6260,9 +6260,9 @@
       "name": "TripActions",
       "upstream_slug": "tripactions",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/tripactions",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/tripactions"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -6273,9 +6273,9 @@
       "name": "Tripadvisor",
       "upstream_slug": "tripadvisor",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/tripadvisor",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/tripadvisor"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -6338,9 +6338,9 @@
       "name": "Twilio",
       "upstream_slug": "twilio",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/twilio",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/twilio"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -6351,9 +6351,9 @@
       "name": "Twitch",
       "upstream_slug": "twitch",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/twitch",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/twitch"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -6442,9 +6442,9 @@
       "name": "Udemy",
       "upstream_slug": "udemy",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/udemy",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/udemy"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -6494,9 +6494,9 @@
       "name": "Union Pacific",
       "upstream_slug": "union-pacific",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=union-pacific",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=union-pacific"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -6559,9 +6559,9 @@
       "name": "Veeva Systems",
       "upstream_slug": "veeva-systems",
       "ats_system": "Lever",
-      "apply_host": "jobs.lever.co",
+      "apply_host": "jobs.lever.co/veeva-systems",
       "domain_hints": [
-        "jobs.lever.co"
+        "jobs.lever.co/veeva-systems"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -6585,9 +6585,9 @@
       "name": "Vercel",
       "upstream_slug": "vercel",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/vercel",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/vercel"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -6637,9 +6637,9 @@
       "name": "Volkswagen",
       "upstream_slug": "volkswagen",
       "ats_system": "SuccessFactors",
-      "apply_host": "career5.successfactors.eu",
+      "apply_host": "career5.successfactors.eu/career?company=volkswagen",
       "domain_hints": [
-        "career5.successfactors.eu"
+        "career5.successfactors.eu/career?company=volkswagen"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -6663,9 +6663,9 @@
       "name": "Vox Media",
       "upstream_slug": "vox-media",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/vox-media",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/vox-media"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-11",
@@ -6832,9 +6832,9 @@
       "name": "Westinghouse",
       "upstream_slug": "westinghouse",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=westinghouse",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=westinghouse"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -7001,9 +7001,9 @@
       "name": "Wyndham",
       "upstream_slug": "wyndham",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=wyndham",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=wyndham"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -7027,9 +7027,9 @@
       "name": "xAI",
       "upstream_slug": "xai",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/xai",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/xai"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -7053,9 +7053,9 @@
       "name": "XPO Logistics",
       "upstream_slug": "xpo-logistics",
       "ats_system": "SuccessFactors",
-      "apply_host": "career4.successfactors.com",
+      "apply_host": "career4.successfactors.com/career?company=xpo-logistics",
       "domain_hints": [
-        "career4.successfactors.com"
+        "career4.successfactors.com/career?company=xpo-logistics"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -7131,9 +7131,9 @@
       "name": "Zscaler",
       "upstream_slug": "zscaler",
       "ats_system": "Greenhouse",
-      "apply_host": "job-boards.greenhouse.io",
+      "apply_host": "job-boards.greenhouse.io/zscaler",
       "domain_hints": [
-        "job-boards.greenhouse.io"
+        "job-boards.greenhouse.io/zscaler"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
