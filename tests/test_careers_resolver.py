@@ -139,3 +139,49 @@ class CareersResolverTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+    def test_workday_406_is_accepted_and_ats_wins_over_branded(self):
+        """HTTP 406 on a Workday domain is a valid discovery and wins over 200 branded."""
+        from scripts.employer_resolution_queue import queue_entry
+        from scripts.careers_resolver import resolve_employer
+
+        # Fake responses:
+        #  .com/careers -> 200 OK (company-branded)
+        #  .wd5.myworkdayjobs.com/ -> 406 Not Acceptable (Workday)
+        responses = {
+            "https://www.testcorp.com/careers": (200, "<html>Careers page</html>", "text/html"),
+            "https://testcorp.wd5.myworkdayjobs.com/": (406, "", "")
+        }
+
+        class FakeResponse:
+            def __init__(self, url, status, text, content_type):
+                self.url = url
+                self.status_code = status
+                self.text = text
+                self.headers = {"Content-Type": content_type}
+
+        class FakeSession:
+            def get(self, url, **kwargs):
+                if url in responses:
+                    return FakeResponse(url, *responses[url])
+                return FakeResponse(url, 404, "", "")
+
+        employer = {
+            "id": "testcorp",
+            "name": "TestCorp",
+            "aliases": [],
+            "seed_sets": ["fake"],
+            "seed_metadata": {
+                "fake": {
+                    "domain_hints": [
+                        "testcorp.com",
+                        "testcorp.wd5.myworkdayjobs.com"
+                    ]
+                }
+            }
+        }
+
+        result = resolve_employer(queue_entry(employer), session=FakeSession())
+        self.assertEqual(result["status"], "resolved")
+        self.assertEqual(result["platform"], "workday")
+        self.assertEqual(result["url"], "https://testcorp.wd5.myworkdayjobs.com/")
