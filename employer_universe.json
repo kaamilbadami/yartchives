@@ -133,7 +133,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -1730,7 +1730,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -2416,7 +2416,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -3581,7 +3581,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -3752,9 +3752,9 @@
         }
       },
       "careers_resolution": {
-        "status": "transient",
-        "attempt_status": "transient",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -3822,16 +3822,28 @@
               },
               {
                 "url": "https://www.amazon.com/jobs",
-                "status": 503
+                "status": 301
+              },
+              {
+                "url": "http://amazon.jobs",
+                "status": 301
+              },
+              {
+                "url": "https://amazon.jobs/",
+                "status": 302
+              },
+              {
+                "url": "https://amazon.jobs/en/",
+                "status": 200
               }
             ],
-            "final_url": "https://www.amazon.com/jobs",
-            "status": 503,
+            "final_url": "https://amazon.jobs/en/",
+            "status": 200,
             "signals": [
-              "careers path",
+              "careers page content",
               "employer domain"
             ],
-            "score": 5
+            "score": 4
           },
           {
             "type": "http",
@@ -4394,7 +4406,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -4656,7 +4668,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -4951,7 +4963,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -5131,7 +5143,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -5177,7 +5189,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -5422,7 +5434,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -5503,7 +5515,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -5897,7 +5909,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -6478,7 +6490,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -6590,7 +6602,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -10803,7 +10815,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -15014,8 +15026,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-22T22:07:43Z",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "resolved_at": "2026-09-23T00:31:36Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -21333,8 +21345,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-22T22:07:43Z",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "resolved_at": "2026-09-23T00:31:36Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -25178,7 +25190,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
@@ -35418,7 +35430,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-22T22:07:43Z",
+        "last_attempt_at": "2026-09-23T00:31:36Z",
         "evidence": [
           {
             "type": "http",
