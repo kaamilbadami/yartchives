@@ -133,7 +133,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -1730,7 +1730,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -2416,7 +2416,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -3579,15 +3579,30 @@
         }
       },
       "careers_resolution": {
-        "status": "transient",
-        "attempt_status": "transient",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "status": "unresolved",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
             "source": "input-hint",
             "requested_url": "https://alphabetagamer.com/",
-            "error": "ReadTimeout: HTTPSConnectionPool(host='alphabetagamer.com', port=443): Read timed out. (read timeout=15)"
+            "redirect_chain": [
+              {
+                "url": "https://alphabetagamer.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.alphabetagamer.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.alphabetagamer.com/",
+            "status": 200,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
           },
           {
             "type": "http",
@@ -3737,9 +3752,9 @@
         }
       },
       "careers_resolution": {
-        "status": "unresolved",
-        "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "status": "transient",
+        "attempt_status": "transient",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -3773,28 +3788,16 @@
               },
               {
                 "url": "https://www.amazon.com/careers",
-                "status": 301
-              },
-              {
-                "url": "http://amazon.jobs",
-                "status": 301
-              },
-              {
-                "url": "https://amazon.jobs/",
-                "status": 302
-              },
-              {
-                "url": "https://amazon.jobs/en/",
-                "status": 200
+                "status": 503
               }
             ],
-            "final_url": "https://amazon.jobs/en/",
-            "status": 200,
+            "final_url": "https://www.amazon.com/careers",
+            "status": 503,
             "signals": [
-              "careers page content",
+              "careers path",
               "employer domain"
             ],
-            "score": 4
+            "score": 5
           },
           {
             "type": "http",
@@ -4391,7 +4394,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -4653,7 +4656,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -4948,7 +4951,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -5128,7 +5131,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -5174,7 +5177,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -5419,7 +5422,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -5500,7 +5503,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -5894,7 +5897,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -6475,7 +6478,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -6587,7 +6590,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -10800,7 +10803,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -15011,8 +15014,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-23T02:14:16Z",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "resolved_at": "2026-09-23T05:57:35Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -15046,16 +15049,17 @@
               },
               {
                 "url": "https://www.doordash.com/careers",
+                "status": 302
+              },
+              {
+                "url": "https://careersatdoordash.com",
                 "status": 403
               }
             ],
-            "final_url": "https://www.doordash.com/careers",
+            "final_url": "https://careersatdoordash.com/",
             "status": 403,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
+            "signals": [],
+            "score": 0
           },
           {
             "type": "http",
@@ -15068,11 +15072,11 @@
               },
               {
                 "url": "https://www.doordash.com/jobs",
-                "status": 403
+                "status": 404
               }
             ],
             "final_url": "https://www.doordash.com/jobs",
-            "status": 403,
+            "status": 404,
             "signals": [
               "careers path",
               "employer domain"
@@ -21329,8 +21333,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-23T02:14:16Z",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "resolved_at": "2026-09-23T05:57:35Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -25174,7 +25178,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
@@ -35414,7 +35418,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-23T02:14:16Z",
+        "last_attempt_at": "2026-09-23T05:57:35Z",
         "evidence": [
           {
             "type": "http",
