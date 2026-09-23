@@ -234,7 +234,7 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
             html = response.text if response.status_code < 400 and ("html" in content_type or not content_type) else ""
             score, signals = page_score(candidate, final_url, html, official_domains)
             record.update({"signals": signals, "score": score})
-            if response.status_code < 400 and score >= 5:
+            if (response.status_code < 400 or response.status_code == 406) and score >= 5:
                 provider = provider_for(final_url, html)
                 platform = provider["family"] if provider["status"] == "resolved" else "company-branded"
                 scored.append((score, -order, normalized_landing_url(final_url, platform), platform, provider))
@@ -247,7 +247,7 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
         order += 1
     if not scored:
         return {"status": "unresolved", "url": None, "platform": None, "provider": None, "evidence": evidence}
-    _, _, url, platform, provider = max(scored, key=lambda item: (item[0], item[1]))
+    _, _, url, platform, provider = max(scored, key=lambda item: (1 if item[3] != "company-branded" else 0, item[0], item[1]))
     return {"status": "resolved", "url": url, "platform": platform, "provider": provider, "evidence": evidence}
 
 
