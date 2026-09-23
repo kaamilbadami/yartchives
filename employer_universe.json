@@ -1731,7 +1731,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -2417,7 +2417,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -3582,7 +3582,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -3753,9 +3753,9 @@
         }
       },
       "careers_resolution": {
-        "status": "unresolved",
-        "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "status": "transient",
+        "attempt_status": "transient",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -3823,28 +3823,16 @@
               },
               {
                 "url": "https://www.amazon.com/jobs",
-                "status": 301
-              },
-              {
-                "url": "http://amazon.jobs",
-                "status": 301
-              },
-              {
-                "url": "https://amazon.jobs/",
-                "status": 302
-              },
-              {
-                "url": "https://amazon.jobs/en/",
-                "status": 200
+                "status": 503
               }
             ],
-            "final_url": "https://amazon.jobs/en/",
-            "status": 200,
+            "final_url": "https://www.amazon.com/jobs",
+            "status": 503,
             "signals": [
-              "careers page content",
+              "careers path",
               "employer domain"
             ],
-            "score": 4
+            "score": 5
           },
           {
             "type": "http",
@@ -4670,7 +4658,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -4965,7 +4953,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -5145,7 +5133,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -5191,7 +5179,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -5436,7 +5424,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -5517,7 +5505,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -5911,7 +5899,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -6492,7 +6480,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -6604,7 +6592,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -6781,7 +6769,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -7635,7 +7623,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -7728,7 +7716,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -8167,7 +8155,67 @@
       },
       "domain_hints": [
         "avnet.com"
-      ]
+      ],
+      "careers_resolution": {
+        "status": "blocked",
+        "attempt_status": "blocked",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://avnet.com/",
+            "redirect_chain": [
+              {
+                "url": "https://avnet.com/",
+                "status": 403
+              }
+            ],
+            "final_url": "https://avnet.com/",
+            "status": 403,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://avnet.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://avnet.com/careers",
+                "status": 403
+              }
+            ],
+            "final_url": "https://avnet.com/careers",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://avnet.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://avnet.com/jobs",
+                "status": 403
+              }
+            ],
+            "final_url": "https://avnet.com/jobs",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          }
+        ]
+      }
     },
     {
       "id": "aws",
@@ -8500,10 +8548,86 @@
         }
       },
       "careers_resolution": {
-        "status": "provider_resolved",
-        "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-20T17:56:57Z",
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-09-23T07:22:55Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://bakerhughes.com/",
+            "redirect_chain": [
+              {
+                "url": "https://bakerhughes.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.bakerhughes.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.bakerhughes.com/",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://bakerhughes.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://bakerhughes.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.bakerhughes.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://careers.bakerhughes.com",
+                "status": 303
+              },
+              {
+                "url": "https://careers.bakerhughes.com/global/en",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.bakerhughes.com/global/en",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://bakerhughes.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://bakerhughes.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.bakerhughes.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.bakerhughes.com/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
           {
             "type": "http",
             "source": "input-hint",
@@ -8559,9 +8683,36 @@
               "employer domain"
             ],
             "score": 10
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "http://bakerhughes.wd5.myworkdayjobs.com/BakerHughes/userHome/",
+            "linked_from": "https://www.bakerhughes.com/",
+            "redirect_chain": [
+              {
+                "url": "http://bakerhughes.wd5.myworkdayjobs.com/BakerHughes/userHome/",
+                "status": 301
+              },
+              {
+                "url": "https://bakerhughes.wd5.myworkdayjobs.com/BakerHughes/userHome/",
+                "status": 303
+              },
+              {
+                "url": "https://bakerhughes.wd5.myworkdayjobs.com/BakerHughes/login?redirect=%2FBakerHughes%2FuserHome%2F",
+                "status": 200
+              }
+            ],
+            "final_url": "https://bakerhughes.wd5.myworkdayjobs.com/BakerHughes/login?redirect=%2FBakerHughes%2FuserHome%2F",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 11
           }
-        ],
-        "resolved_at": "2026-09-17T23:38:23Z"
+        ]
       },
       "careers_platform": "workday",
       "provider": {
@@ -8573,7 +8724,8 @@
       },
       "domain_hints": [
         "bakerhughes.com"
-      ]
+      ],
+      "careers_url": "https://bakerhughes.wd5.myworkdayjobs.com/BakerHughes/login"
     },
     {
       "id": "ball",
@@ -15877,8 +16029,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-23T07:12:08Z",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "resolved_at": "2026-09-23T07:22:55Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
@@ -15912,16 +16064,17 @@
               },
               {
                 "url": "https://www.doordash.com/careers",
+                "status": 302
+              },
+              {
+                "url": "https://careersatdoordash.com",
                 "status": 403
               }
             ],
-            "final_url": "https://www.doordash.com/careers",
+            "final_url": "https://careersatdoordash.com/",
             "status": 403,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
+            "signals": [],
+            "score": 0
           },
           {
             "type": "http",
@@ -15934,11 +16087,11 @@
               },
               {
                 "url": "https://www.doordash.com/jobs",
-                "status": 403
+                "status": 404
               }
             ],
             "final_url": "https://www.doordash.com/jobs",
-            "status": 403,
+            "status": 404,
             "signals": [
               "careers path",
               "employer domain"
@@ -22195,8 +22348,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-23T07:12:08Z",
-        "last_attempt_at": "2026-09-23T07:12:08Z",
+        "resolved_at": "2026-09-23T07:22:55Z",
+        "last_attempt_at": "2026-09-23T07:22:55Z",
         "evidence": [
           {
             "type": "http",
