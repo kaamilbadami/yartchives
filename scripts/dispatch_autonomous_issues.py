@@ -2416,19 +2416,14 @@ The workflow failure requires automated triage and resolution.
 - Regression tests pass.
 - The workflow succeeds on the default branch.
 """
-    import subprocess
     try:
-        subprocess.run(
-            [
-                "gh", "issue", "create",
-                "--repo", repo,
-                "--title", f"Automate resolution for: {title}",
-                "--body", body,
-                "--label", "agent-ready",
-                "--label", "autonomous-backlog",
-            ],
-            check=True,
-            capture_output=True,
+        gh_run(
+            "issue", "create",
+            "--repo", repo,
+            "--title", f"Automate resolution for: {title}",
+            "--body", body,
+            "--label", "agent-ready",
+            "--label", "autonomous-backlog",
         )
         return True
     except Exception as e:

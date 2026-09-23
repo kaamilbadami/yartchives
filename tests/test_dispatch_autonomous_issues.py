@@ -3166,5 +3166,32 @@ class AutonomousDispatcherTests(unittest.TestCase):
         result = _provider_workflow_failure("kaamilbadami/yartchives", issues, frozenset({"resource:automation"}))
         self.assertFalse(result)
 
+
+    def test_provider_workflow_failure_creates_issue_via_run_gh(self):
+        from scripts import dispatch_autonomous_issues
+
+        issues = [
+            {
+                "number": 101,
+                "labels": [{"name": "workflow-failure"}],
+                "title": "Failed CI Step",
+                "body": "CI failed on test X"
+            }
+        ]
+
+        called_args = []
+        def mock_run_gh(*args):
+            called_args.append(args)
+
+        with unittest.mock.patch.object(dispatch_autonomous_issues, "gh_run", side_effect=mock_run_gh):
+            result = dispatch_autonomous_issues._provider_workflow_failure("repo/test", issues, frozenset())
+
+        self.assertTrue(result)
+        self.assertEqual(len(called_args), 1)
+        self.assertEqual(called_args[0][0], "issue")
+        self.assertEqual(called_args[0][1], "create")
+        self.assertEqual(called_args[0][3], "repo/test")
+        self.assertTrue("--title" in called_args[0])
+
 if __name__ == "__main__":
     unittest.main()
