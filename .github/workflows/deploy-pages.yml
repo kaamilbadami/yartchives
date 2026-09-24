@@ -8,6 +8,7 @@ on:
       - "index.html"
       - "*.js"
       - "*.css"
+      - "*.webmanifest"
       - "assets/**"
       - "scripts/build_apply_next_inspections.py"
       - "scripts/build_apply_next_candidates.py"
@@ -63,7 +64,7 @@ jobs:
         run: |
           rm -rf _site
           mkdir -p _site/data _site/assets
-          cp index.html .nojekyll _site/
+          cp index.html .nojekyll manifest.webmanifest _site/
           cp ./*.js ./*.css _site/
           cp -R assets/. _site/assets/
           cp data/listings.json _site/data/listings.json
