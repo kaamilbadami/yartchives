@@ -269,8 +269,29 @@
     return 3958.7613 * 2 * Math.asin(Math.min(1, Math.sqrt(h)));
   }
 
-  function distanceForJob(job, origin, geo) {
+  const GEO_POINT_CACHE = new WeakMap();
+
+  function geoResolutionSignature(job) {
+    const states = Array.isArray(job?.states)
+      ? job.states.map(value => String(value || "")).sort().join(",")
+      : "";
+    return `${locationTextForJob(job)}|${states}`;
+  }
+
+  function resolvedCoordinatesForJob(job, geo) {
+    if (!job || typeof job !== "object" || !geo) return coordinatesForJob(job, geo);
+    const signature = geoResolutionSignature(job);
+    const cached = GEO_POINT_CACHE.get(job);
+    if (cached && cached.geo === geo && cached.signature === signature) {
+      return cached.points;
+    }
     const points = coordinatesForJob(job, geo);
+    GEO_POINT_CACHE.set(job, { geo, signature, points });
+    return points;
+  }
+
+  function distanceForJob(job, origin, geo) {
+    const points = resolvedCoordinatesForJob(job, geo);
     if (!points?.length) return null;
     let best = null;
     for (const point of points) {
@@ -368,6 +389,8 @@
     locationTextForJob,
     statesForLocation,
     coordinatesForJob,
+    resolvedCoordinatesForJob,
+    geoResolutionSignature,
     milesBetween,
     distanceForJob,
     sourceHealthDisplayName,

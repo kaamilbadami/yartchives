@@ -84,3 +84,9 @@ The existing feed validation step ensures malformed feeds fail the build early. 
 2. Because the workflow fails before reaching the artifact upload step, no new artifact is produced.
 3. Subsequent runs of `deploy-pages.yml` will continue pulling the *last known-good successful artifact* for deployment.
 4. The GitHub Pages deployment remains completely uncorrupted, continuing to serve the healthy legacy feed data without interruption.
+
+## Implementation note
+
+The migration keeps the checked-in runtime JSON files temporarily as rollback and local-development seed snapshots, but routine refreshes no longer publish by committing those files. Each producer hydrates from the newest publishable artifact first, then uploads a replacement only after its runtime data has passed the relevant validation/update boundary.
+
+For feed publication, artifact existence is the validity signal rather than the final workflow conclusion. This allows a validated feed to remain publishable even if a later audit/reporting step fails, while runs that fail before validation produce no replacement artifact and therefore leave the last known-good deployment intact. Once the artifact path has been proven operational, the fallback snapshots can be removed in a separate cleanup without changing the runtime publication contract.
