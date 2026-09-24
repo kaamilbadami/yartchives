@@ -15,7 +15,7 @@
   const FRESH_MAX_AGE_DAYS = 3;
   const FRESH_MIN_SCORE = 55;
   const LOCATION_DISTANCE_MAX_GAIN = 18;
-  const LOCATION_ENRICHMENT_YIELD_BUDGET_MS = 12;
+  const LOCATION_ENRICHMENT_YIELD_BUDGET_MS = 100;
   const FEEDBACK_ENDPOINT = "https://formspree.io/f/mqakpejw";
   let inspectionArtifactPromise = null;
   let candidateArtifactPromise = null;
