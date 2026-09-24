@@ -15,7 +15,7 @@
   const FRESH_MAX_AGE_DAYS = 3;
   const FRESH_MIN_SCORE = 55;
   const LOCATION_DISTANCE_MAX_GAIN = 18;
-  const LOCATION_ENRICHMENT_YIELD_BUDGET_MS = 12;
+  const LOCATION_ENRICHMENT_YIELD_BUDGET_MS = 100;
   const FEEDBACK_ENDPOINT = "https://formspree.io/f/mqakpejw";
   let inspectionArtifactPromise = null;
   let candidateArtifactPromise = null;
@@ -89,7 +89,7 @@
     lines.push(
       `Candidates: ${Number(counts.candidates || 0)} · Rankable: ${Number(counts.rankable || 0)} · Distance candidates: ${Number(counts.distance_candidates || 0)} · Unique distance lookups: ${Number(counts.distance_unique_lookups || 0)} · Distance cache hits: ${Number(counts.distance_cache_hits || 0)} · Distance lookup failures: ${Number(counts.distance_lookup_failures || 0)} · Recommendations: ${Number(counts.recommendations || 0)}`
     );
-    lines.push(`Location parse: ${Number(counts.location_parse_ms || 0).toFixed(1)} ms · compute: ${Number(counts.location_compute_ms || 0).toFixed(1)} ms · yields: ${Number(counts.location_yield_ms || 0).toFixed(1)} ms (${Number(counts.location_yield_count || 0)}) · ordering: ${Number(counts.location_order_ms || 0).toFixed(1)} ms`);
+    lines.push(`Location geo load: ${Number(counts.location_geo_load_ms || 0).toFixed(1)} ms · parse: ${Number(counts.location_parse_ms || 0).toFixed(1)} ms · compute: ${Number(counts.location_compute_ms || 0).toFixed(1)} ms · yields: ${Number(counts.location_yield_ms || 0).toFixed(1)} ms (${Number(counts.location_yield_count || 0)}) · ordering: ${Number(counts.location_order_ms || 0).toFixed(1)} ms`);
     if (payload.geo_error) lines.push(`Geo load error: ${payload.geo_error}`);
     if (payload.geo_warm_state) lines.push(`Geo warm state at open: ${payload.geo_warm_state}`);
     if (payload.page_visibility) lines.push(`Page visibility at open: ${payload.page_visibility}`);
@@ -159,6 +159,7 @@
         distance_unique_lookups: Number(metadata.distance_unique_lookups || 0),
         distance_cache_hits: Number(metadata.distance_cache_hits || 0),
         distance_lookup_failures: Number(metadata.distance_lookup_failures || 0),
+        location_geo_load_ms: Number(metadata.location_geo_load_ms || 0),
         location_parse_ms: Number(metadata.location_parse_ms || 0),
         location_compute_ms: Number(metadata.location_compute_ms || 0),
         location_yield_ms: Number(metadata.location_yield_ms || 0),
@@ -721,14 +722,17 @@
       delete job._distanceMilesBasis;
     }
 
-    const stats = { unique_lookups: 0, cache_hits: 0, lookup_failures: 0, geo_error: null, parse_ms: 0, compute_ms: 0, yield_ms: 0, order_ms: 0, yield_count: 0 };
+    const stats = { unique_lookups: 0, cache_hits: 0, lookup_failures: 0, geo_error: null, geo_load_ms: 0, parse_ms: 0, compute_ms: 0, yield_ms: 0, order_ms: 0, yield_count: 0 };
     const zips = (profile?.baseZips || []).filter(value => /^\d{5}$/.test(String(value)));
     if (!zips.length || typeof loadGeoIndex !== "function" || typeof distanceForJob !== "function") return stats;
 
     let geo;
+    const geoLoadStartedAt = timingNow();
     try {
       geo = await loadGeoIndex();
+      stats.geo_load_ms += timingNow() - geoLoadStartedAt;
     } catch (error) {
+      stats.geo_load_ms += timingNow() - geoLoadStartedAt;
       stats.lookup_failures += 1;
       stats.geo_error = normalizeGeoErrorCode(error?.code);
       return stats;
@@ -809,7 +813,7 @@
       stats.order_ms += timingNow() - orderStartedAt;
     }
 
-    for (const key of ["parse_ms", "compute_ms", "yield_ms", "order_ms"]) {
+    for (const key of ["geo_load_ms", "parse_ms", "compute_ms", "yield_ms", "order_ms"]) {
       stats[key] = Math.round(stats[key] * 10) / 10;
     }
     return stats;
@@ -1391,7 +1395,7 @@
       element("p", "eyebrow", "your next application queue"),
       element("h2", "", "Apply Next"),
       foundingBetaBadge(),
-      element("p", "muted", profileSummary(profile) || "Private strategy loaded")
+      element("p", "muted apply-next-production-status", "Checking production status…")
     );
     const controls = element("div", "apply-next-profile-actions");
     controls.append(browseInternshipsButton(panel, "text-btn"));
@@ -1409,6 +1413,13 @@
       setupPanel(panel);
     });
     controls.append(edit, clear);
+    const productionStatus = copy.querySelector(".apply-next-production-status");
+    if (productionStatus) {
+      productionStatus.dataset.productionStatus = "true";
+      productionStatus.setAttribute("aria-live", "polite");
+      if (typeof renderProductionStatus === "function") renderProductionStatus();
+    }
+    copy.append(element("p", "muted", profileSummary(profile) || "Private strategy loaded"));
     heading.append(copy, controls);
     fragment.append(heading);
 
@@ -1450,7 +1461,7 @@
 
   async function renderQueue(panel, profile) {
     const timing = { startedAt: timingNow(), stages: {} };
-    const counts = { candidates: 0, rankable: 0, distance_candidates: 0, distance_unique_lookups: 0, distance_cache_hits: 0, distance_lookup_failures: 0, location_parse_ms: 0, location_compute_ms: 0, location_yield_ms: 0, location_yield_count: 0, location_order_ms: 0, recommendations: 0 };
+    const counts = { candidates: 0, rankable: 0, distance_candidates: 0, distance_unique_lookups: 0, distance_cache_hits: 0, distance_lookup_failures: 0, location_geo_load_ms: 0, location_parse_ms: 0, location_compute_ms: 0, location_yield_ms: 0, location_yield_count: 0, location_order_ms: 0, recommendations: 0 };
     const geoWarmStateAtOpen = geoWarmState;
     const pageVisibilityAtOpen = typeof document !== "undefined" ? normalize(document.visibilityState) : "";
     let geoError = null;
@@ -1508,6 +1519,7 @@
       counts.distance_unique_lookups = Number(distanceStats?.unique_lookups || 0);
       counts.distance_cache_hits = Number(distanceStats?.cache_hits || 0);
       counts.distance_lookup_failures = Number(distanceStats?.lookup_failures || 0);
+      counts.location_geo_load_ms = Number(distanceStats?.geo_load_ms || 0);
       counts.location_parse_ms = Number(distanceStats?.parse_ms || 0);
       counts.location_compute_ms = Number(distanceStats?.compute_ms || 0);
       counts.location_yield_ms = Number(distanceStats?.yield_ms || 0);
