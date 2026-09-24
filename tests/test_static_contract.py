@@ -113,6 +113,14 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn('git diff --name-only "$base...$head"', scope)
         self.assertIn("bash scripts/run_quality_checks.sh health", preflight)
         self.assertIn("bash scripts/run_quality_checks.sh health", quality)
+        self.assertIn("publish-pr:", preflight)
+        self.assertIn("startsWith(github.ref_name, 'agent/')", preflight)
+        self.assertIn("startsWith(github.ref_name, 'codex/')", preflight)
+        self.assertIn("<!-- trusted-preflight-auto-pr -->", preflight)
+        self.assertIn("gh pr create", preflight)
+        self.assertIn("gh workflow run quality.yml", preflight)
+        self.assertIn("actions: write", preflight)
+        self.assertIn("pull-requests: write", preflight)
 
         for phase in ["python", "frontend"]:
             self.assertIn(f"bash scripts/run_quality_checks.sh {phase}", quality)
