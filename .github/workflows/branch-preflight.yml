@@ -53,7 +53,7 @@ jobs:
     outputs:
       should_run: ${{ steps.open_pr.outputs.should_run }}
     steps:
-      - name: Skip duplicate preflight once a PR exists
+      - name: Detect whether a PR already exists
         id: open_pr
         env:
           GH_TOKEN: ${{ github.token }}
