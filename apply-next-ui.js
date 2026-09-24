@@ -1473,6 +1473,7 @@
 
     panel.innerHTML = "";
     panel.append(buildQueueSkeleton(profile, panel, null));
+    if (typeof renderProductionStatus === "function") renderProductionStatus();
     renderCurrentQueue(panel, profile, 0, "loading");
     panel.setAttribute("aria-busy", "true");
 
@@ -1541,6 +1542,7 @@
       stageStartedAt = timingNow();
       panel.innerHTML = "";
       panel.append(buildQueueSkeleton(profile, panel, explanation));
+      if (typeof renderProductionStatus === "function") renderProductionStatus();
       renderCurrentQueue(panel, profile, pool.length);
       recordTimingStage(timing, "render", stageStartedAt);
     } catch (error) {
@@ -1548,6 +1550,7 @@
       console.error(error);
       panel.innerHTML = "";
       panel.append(buildQueueSkeleton(profile, panel, null));
+      if (typeof renderProductionStatus === "function") renderProductionStatus();
       renderCurrentQueue(panel, profile, 0, "error");
     } finally {
       clearTimeout(slowLoadingTimer);
