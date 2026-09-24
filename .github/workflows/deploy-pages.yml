@@ -192,8 +192,7 @@ jobs:
 
           echo "Verified live Pages deployment for ${BUILD_SHA}."
 
-      - name: Send interactive deploy push
-        if: github.event_name == 'push'
+      - name: Send successful deploy push
         env:
           GH_TOKEN: ${{ github.token }}
           YARTCHIVES_PUSH_SUBSCRIPTION: ${{ secrets.YARTCHIVES_PUSH_SUBSCRIPTION }}
@@ -201,13 +200,6 @@ jobs:
         run: |
           set -euo pipefail
           BUILD_SHA="$(git rev-parse HEAD)"
-          INTERACTIVE_DEPLOY="$(gh api -H "Accept: application/vnd.github+json" \
-            "repos/$GITHUB_REPOSITORY/commits/$BUILD_SHA/pulls" \
-            --jq 'map(select((.head.ref // "") | startswith("agent/interactive/"))) | length > 0')"
-          if [ "$INTERACTIVE_DEPLOY" != "true" ]; then
-            echo "Not an interactive deploy; skipping Web Push."
-            exit 0
-          fi
           if [ -z "${YARTCHIVES_PUSH_SUBSCRIPTION}" ] || [ -z "${YARTCHIVES_VAPID_PRIVATE_KEY}" ]; then
             echo "::notice::Web Push secrets are not configured; skipping deploy push."
             exit 0
