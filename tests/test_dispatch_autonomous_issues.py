@@ -840,6 +840,8 @@ class AutonomousDispatcherTests(unittest.TestCase):
         )
         self.assertIn("Fix the interaction.", captured["payload"]["prompt"])
         self.assertIn("Closes #149", captured["payload"]["prompt"])
+        self.assertIn("Branch preflight", captured["payload"]["prompt"])
+        self.assertIn("exact branch head SHA", captured["payload"]["prompt"])
 
     def test_failed_session_creation_does_not_mark_issue_active(self):
         task = mod.Task(149, "Task", task_body("P1", "frontend"), "P1", "frontend", frozenset())
@@ -2014,6 +2016,23 @@ class AutonomousDispatcherTests(unittest.TestCase):
         selected = mod.select_tasks(issues, max_active=2)
         self.assertEqual([task.number for task in selected], [3])
 
+
+    def test_session_prompt_requires_green_exact_head_preflight_before_pr(self):
+        task = mod.Task(
+            156,
+            "Prevent failing autonomous PRs",
+            task_body("P1", "automation"),
+            "P1",
+            "automation",
+            frozenset(),
+        )
+        prompt = mod.session_prompt("kaamilbadami/yartchives", task)
+        self.assertIn("smallest relevant regression tests", prompt)
+        self.assertIn("targeted 'Branch preflight'", prompt)
+        self.assertIn("exact branch head SHA", prompt)
+        self.assertIn("Branch preflight", prompt)
+        self.assertIn("repair the same branch", prompt)
+        self.assertIn("do not publish a knowingly failing PR", prompt)
 
     def test_session_prompt_does_not_pause_for_routine_execution_confirmation(self):
         task = mod.Task(

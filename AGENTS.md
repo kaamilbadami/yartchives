@@ -55,7 +55,8 @@ These instructions apply to automated coding agents working in this repository.
 ## Testing
 
 - Run the smallest relevant test set while iterating.
-- Before opening a PR for code or workflow changes, run the relevant regression tests and the full configured test suite when feasible.
+- Before opening a PR for code or workflow changes, run the smallest relevant regression tests locally when practical; the branch workflow will run the canonical targeted phase(s).
+- Every relevant non-`main` branch push triggers the existing `Branch preflight` workflow. It selects Python, frontend, and repository-health checks from the changed paths instead of duplicating full PR CI. Do not open a PR until the exact branch head SHA has a successful `Branch preflight / tests` check. If preflight fails, repair the same branch and rerun it before publishing the PR.
 - If full CI fails for a pre-existing unrelated reason, document the exact failure and do not disguise it as success.
 - Never remove or weaken a failing test without showing why the previous assertion was unstable or incorrect.
 
