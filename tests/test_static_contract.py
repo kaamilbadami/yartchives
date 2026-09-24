@@ -121,6 +121,8 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("gh workflow run quality.yml", preflight)
         self.assertIn("actions: write", preflight)
         self.assertIn("pull-requests: write", preflight)
+        self.assertIn("GitHub Actions is not permitted to create or approve pull requests", preflight)
+        self.assertIn("Allow GitHub Actions to create and approve pull requests", preflight)
 
         for phase in ["python", "frontend"]:
             self.assertIn(f"bash scripts/run_quality_checks.sh {phase}", quality)
