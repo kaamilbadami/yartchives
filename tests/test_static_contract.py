@@ -85,6 +85,12 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("scripts/build_geo_index.py /tmp/us-zips.csv _site/data/geo-index.json", workflow)
         self.assertIn("f9eb7daabdade9b2a9f3cbc80327a5c152fc82d3", workflow)
 
+    def test_branch_preflight_never_skips_validation_for_existing_pr(self):
+        workflow = (ROOT / ".github" / "workflows" / "branch-preflight.yml").read_text(encoding="utf-8")
+        self.assertIn("Open PR already exists; still validating this exact branch head before merge.", workflow)
+        self.assertNotIn("pull_request Quality checks own validation now", workflow)
+        self.assertNotIn('echo "should_run=false"', workflow)
+
     def test_branch_preflight_matches_pr_quality_suite(self):
         quality = (ROOT / ".github" / "workflows" / "quality.yml").read_text(encoding="utf-8")
         preflight = (ROOT / ".github" / "workflows" / "branch-preflight.yml").read_text(encoding="utf-8")
