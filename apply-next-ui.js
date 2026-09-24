@@ -342,16 +342,12 @@
       ? Math.max(FRESH_MIN_SCORE, Number(freshByAge[TOP_N - 1].total || 0))
       : FRESH_MIN_SCORE;
 
+    const decisionCutoff = Math.min(recommendedCutoff, freshCutoff);
     return ranked
-      .filter(result => {
-        const gain = maximumDistanceLocationGain(result);
-        if (gain <= 0) return false;
-        const potentialTotal = Number(result.total || 0) + gain;
-        const age = postedAgeDays(result.job?.posted_at, nowValue);
-        const canAffectRecommended = potentialTotal >= recommendedCutoff;
-        const canAffectFresh = age !== null && age <= FRESH_MAX_AGE_DAYS && potentialTotal >= freshCutoff;
-        return canAffectRecommended || canAffectFresh;
-      })
+      .filter(result => (
+        maximumDistanceLocationGain(result) > 0
+        && Number(result.total || 0) + maximumDistanceLocationGain(result) >= decisionCutoff
+      ))
       .map(result => result.job);
   }
 

@@ -6,168 +6,189 @@ import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
-CORPORATE_TLDS = {"com", "co", "net", "org", "io", "ai"}
-NON_CORPORATE_SUFFIXES = {"edu", "gov", "mil"}
-
-
 def normalize_company(name: str) -> str:
     name = name.lower()
-    name = re.sub(r"\(.*?\)", "", name)
-    name = re.sub(r"[^a-z0-9\s]", " ", name)
-    stop_words = {
-        "inc", "incorporated", "corp", "corporation", "co", "company",
-        "ltd", "limited", "plc", "llc", "group", "holdings", "holding",
-        "stores", "insurance", "processing",
-    }
-    return "".join(word for word in name.split() if word not in stop_words)
+    name = re.sub(r'\(.*?\)', '', name)
+    name = re.sub(r'[^a-z0-9\s]', ' ', name)
 
-
-def _domain_token(domain: str) -> str:
-    host = domain.casefold().removeprefix("www.").split(":", 1)[0]
-    labels = [label for label in host.split(".") if label]
-    if len(labels) < 2:
-        return ""
-    return normalize_company(labels[-2])
+    stop_words = [
+        'inc', 'incorporated', 'corp', 'corporation',
+        'co', 'company', 'ltd', 'limited', 'plc',
+        'llc', 'group', 'holdings', 'holding', 'stores',
+        'insurance', 'processing'
+    ]
+    words = name.split()
+    words = [w for w in words if w not in stop_words]
+    return " ".join(words)
 
 
 def _domain_is_plausible(domain: str, aliases: list[str]) -> bool:
-    host = domain.casefold().removeprefix("www.").strip(".")
-    labels = host.split(".")
-    if len(labels) < 2 or labels[-1] in NON_CORPORATE_SUFFIXES or labels[-1] not in CORPORATE_TLDS:
+    if not domain:
         return False
-    token = _domain_token(host)
-    if not token:
+    if domain.endswith(".edu") or domain.endswith(".gov") or domain.endswith(".org"):
         return False
+    domain_norm = normalize_company(domain.split('.')[0])
     for alias in aliases:
-        if not alias:
-            continue
-        if token == alias:
+        if domain_norm == alias:
             return True
-        if len(alias) >= 5 and len(token) >= 5:
-            if token.startswith(alias) and token[len(alias):] in {"co", "inc"}:
+        if len(alias) >= 4 and alias in domain_norm:
+            if len(domain_norm) <= len(alias) + 2:
                 return True
-            if alias.startswith(token) and alias[len(token):] in {"co", "inc"}:
+        if len(domain_norm) >= 4 and domain_norm in alias:
+            if len(alias) <= len(domain_norm) + 4:
                 return True
     return False
-
-def _aliases(name: str) -> list[str]:
-    target = normalize_company(name)
-    aliases = [target] if target else []
-    words = re.findall(r"[A-Za-z0-9]+", name)
-    if len(words) > 1:
-        initials = "".join(word[0].lower() for word in words)
-        if len(initials) >= 2:
-            aliases.append(initials)
-    match = re.search(r"\(([^)]+)\)", name)
-    if match:
-        aliases.append(normalize_company(match.group(1)))
-    return list(dict.fromkeys(alias for alias in aliases if alias))
-
+    domain_norm = normalize_company(domain.split('.')[0])
+    for alias in aliases:
+        if domain_norm == alias:
+            return True
+        # If it's a partial match, it must be highly similar, not "alphabetdeal" for "alphabet"
+        if len(alias) >= 4 and alias in domain_norm:
+            if len(domain_norm) <= len(alias) + 2:
+                return True
+        if len(domain_norm) >= 4 and domain_norm in alias:
+            if len(alias) <= len(domain_norm) + 4:
+                return True
+    return False
+    domain_norm = normalize_company(domain.split('.')[0])
+    for alias in aliases:
+        if domain_norm == alias:
+            return True
+        if len(alias) >= 4 and (alias in domain_norm or domain_norm in alias):
+            # Avoid obvious false positives like alphabetdeal.com for alphabet
+            if domain_norm.startswith(alias) and len(domain_norm) > len(alias) + 3:
+                continue
+            return True
+    return False
 
 def get_company_domain(name: str) -> str | None:
     overrides = {
         "gold.com": "gold.com",
-        "guidewell mutual holding": "guidewell.com",
+        "guidewell mutual holding": "guidewell.com"
     }
     if name.lower() in overrides:
         return overrides[name.lower()]
 
-    aliases = _aliases(name)
-    if not aliases:
+    query = urllib.parse.quote(f"{name}")
+    target_norm = normalize_company(name)
+
+    if not target_norm:
         return None
 
-    query = urllib.parse.quote(name)
+    aliases = [target_norm]
+    words = name.split()
+    if len(words) > 1:
+        initials = "".join([w[0].lower() for w in words if w.isalnum()])
+        if initials:
+            aliases.append(initials)
+
+    m = re.search(r'\(([^)]+)\)', name)
+    if m:
+        aliases.append(normalize_company(m.group(1)))
+
+    if "." in name:
+        aliases.append(name.split(".")[0].lower())
+
+    url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={query}&utf8=&format=json"
     max_retries = 5
     data = None
-    url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={query}&utf8=&format=json"
     for attempt in range(max_retries):
-        req = urllib.request.Request(url, headers={"User-Agent": "YartchivesEmployerDiscovery/1.0 (contact@kaamilbadami.com)"})
+        req = urllib.request.Request(url, headers={'User-Agent': 'YartchivesEmployerDiscovery/1.0 (contact@kaamilbadami.com)'})
         try:
             with urllib.request.urlopen(req, timeout=10) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
+                data = json.loads(resp.read().decode('utf-8'))
                 break
-        except Exception as exc:
-            if "429" in str(exc) and attempt < max_retries - 1:
+        except Exception as e:
+            if '429' in str(e) and attempt < max_retries - 1:
                 time.sleep(1 + attempt)
             else:
                 break
 
-    if data and data.get("query", {}).get("search"):
-        for result in data["query"]["search"][:3]:
-            title_norm = normalize_company(result["title"])
-            if not any(
-                alias == title_norm
-                or (len(alias) >= 5 and len(title_norm) >= 5 and (alias in title_norm or title_norm in alias))
-                for alias in aliases
-            ):
-                continue
-            title_encoded = urllib.parse.quote(result["title"])
-            page_url = f"https://en.wikipedia.org/w/api.php?action=parse&page={title_encoded}&prop=text&format=json"
-            for attempt in range(max_retries):
-                req = urllib.request.Request(page_url, headers={"User-Agent": "YartchivesEmployerDiscovery/1.0 (contact@kaamilbadami.com)"})
-                try:
-                    with urllib.request.urlopen(req, timeout=10) as resp:
-                        page = json.loads(resp.read().decode("utf-8"))
-                    html_text = ((page.get("parse") or {}).get("text") or {}).get("*", "")
-                    match = re.search(r'Website.*?<a[^>]*href="([^"]+)"', html_text, re.DOTALL | re.IGNORECASE)
-                    if match:
-                        domain = urllib.parse.urlparse(match.group(1)).netloc.removeprefix("www.")
-                        if _domain_is_plausible(domain, aliases):
-                            return domain
-                    break
-                except Exception as exc:
-                    if "429" in str(exc) and attempt < max_retries - 1:
-                        time.sleep(1 + attempt)
-                    else:
-                        break
+    if data and data.get('query', {}).get('search'):
+        for res in data['query']['search'][:3]:
+            title = res['title']
+            title_norm = normalize_company(title)
+
+            match_found = False
+            for alias in aliases:
+                if (alias in title_norm or title_norm in alias or
+                    (len(alias) > 5 and len(title_norm) > 5 and
+                     (alias[:5] == title_norm[:5]))):
+                     match_found = True
+                     break
+
+            if match_found:
+                title_encoded = urllib.parse.quote(title)
+                url_page = f"https://en.wikipedia.org/w/api.php?action=parse&page={title_encoded}&prop=text&format=json"
+
+                for attempt in range(max_retries):
+                    req_page = urllib.request.Request(url_page, headers={'User-Agent': 'YartchivesEmployerDiscovery/1.0 (contact@kaamilbadami.com)'})
+                    try:
+                        with urllib.request.urlopen(req_page, timeout=10) as resp_page:
+                            data_page = json.loads(resp_page.read().decode('utf-8'))
+                            if 'parse' in data_page and 'text' in data_page['parse']:
+                                html_text = data_page['parse']['text']['*']
+                                m = re.search(r'Website.*?<a[^>]*href="([^"]+)"', html_text, re.DOTALL | re.IGNORECASE)
+                                if m:
+                                    domain = urllib.parse.urlparse(m.group(1)).netloc
+                                    if domain and not "wikipedia" in domain and not "wikimedia" in domain:
+                                        domain = domain.removeprefix("www.")
+                                        if _domain_is_plausible(domain, aliases):
+                                            return domain
+                            break
+                    except Exception as e:
+                        if '429' in str(e) and attempt < max_retries - 1:
+                            time.sleep(1 + attempt)
+                        else:
+                            break
 
     query_cb = urllib.parse.quote(name)
     url = f"https://autocomplete.clearbit.com/v1/companies/suggest?query={query_cb}"
     data = None
     for attempt in range(max_retries):
-        req = urllib.request.Request(url, headers={"User-Agent": "YartchivesEmployerDiscovery/1.0 (contact@kaamilbadami.com)"})
+        req = urllib.request.Request(url, headers={'User-Agent': 'YartchivesEmployerDiscovery/1.0 (contact@kaamilbadami.com)'})
         try:
             with urllib.request.urlopen(req, timeout=10) as resp:
-                data = json.loads(resp.read().decode("utf-8"))
+                data = json.loads(resp.read().decode('utf-8'))
                 break
-        except Exception as exc:
-            if "429" in str(exc) and attempt < max_retries - 1:
+        except Exception as e:
+            if '429' in str(e) and attempt < max_retries - 1:
                 time.sleep(1 + attempt)
             else:
                 break
 
-    for item in data or []:
-        result_name = normalize_company(str(item.get("name") or ""))
-        domain = str(item.get("domain") or "").casefold()
-        if not result_name or not domain:
-            continue
-        if not any(
-            alias == result_name
-            or (len(alias) >= 5 and len(result_name) >= 5 and (alias in result_name or result_name in alias))
-            for alias in aliases
-        ):
-            continue
-        if _domain_is_plausible(domain, aliases):
-            return domain
-    return None
+    if data:
+        for item in data:
+            res_name = item.get('name', '')
+            res_norm = normalize_company(res_name)
+            if not target_norm or not res_norm:
+                continue
 
+            domain = str(item['domain']).lower()
+            domain_norm = normalize_company(domain.split('.')[0])
+
+            if _domain_is_plausible(str(item['domain']), aliases):
+                return str(item['domain'])
+
+    return None
 
 def enrich_domains(seed: dict[str, Any]) -> dict[str, Any]:
     def fetch(emp: dict[str, Any]) -> tuple[dict[str, Any], str | None]:
         if emp.get("domain_hints"):
             return emp, None
-        domain = get_company_domain(emp["name"])
-        print(f"Discovered domain for {emp['name']}: {domain}")
-        return emp, domain
+        return emp, get_company_domain(emp['name'])
 
     with ThreadPoolExecutor(max_workers=2) as pool:
         futures = {pool.submit(fetch, emp): emp for emp in seed.get("employers", [])}
         for future in as_completed(futures):
             emp, domain = future.result()
             if domain:
-                emp.setdefault("domain_hints", []).append(domain)
+                if "domain_hints" not in emp:
+                    emp["domain_hints"] = []
+                emp["domain_hints"].append(domain)
 
     for emp in seed.get("employers", []):
         if "domain_hints" in emp:
-            emp["domain_hints"] = sorted(set(emp["domain_hints"]))
+            emp["domain_hints"] = sorted(list(set(emp["domain_hints"])))
+
     return seed

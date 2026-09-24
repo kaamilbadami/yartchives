@@ -7,35 +7,185 @@
     "status": "active"
   },
   "employers": [
-    { "name": "Apple" },
-    { "name": "Microsoft" },
-    { "name": "Alphabet" },
-    { "name": "Meta Platforms" },
-    { "name": "Amazon" },
-    { "name": "Netflix" },
-    { "name": "Nvidia" },
-    { "name": "Advanced Micro Devices" },
-    { "name": "Intel" },
-    { "name": "Qualcomm" },
-    { "name": "Lockheed Martin" },
-    { "name": "Northrop Grumman" },
-    { "name": "Boeing" },
-    { "name": "RTX" },
-    { "name": "JPMorgan Chase" },
-    { "name": "Goldman Sachs Group" },
-    { "name": "Morgan Stanley" },
-    { "name": "Citadel" },
-    { "name": "Jane Street" },
-    { "name": "Two Sigma" },
-    { "name": "Palantir Technologies" },
-    { "name": "Databricks" },
-    { "name": "Snowflake" },
-    { "name": "Stripe" },
-    { "name": "Uber Technologies" },
-    { "name": "Airbnb" },
-    { "name": "Salesforce" },
-    { "name": "Atlassian" },
-    { "name": "SpaceX" },
-    { "name": "Anduril" }
+    {
+      "name": "Apple",
+      "domain_hints": [
+        "apple.com"
+      ]
+    },
+    {
+      "name": "Microsoft",
+      "domain_hints": [
+        "microsoft.com"
+      ]
+    },
+    {
+      "name": "Alphabet",
+      "domain_hints": [
+        "alphabetdeal.com"
+      ]
+    },
+    {
+      "name": "Meta Platforms",
+      "domain_hints": [
+        "meta.com"
+      ]
+    },
+    {
+      "name": "Amazon",
+      "domain_hints": [
+        "amazon.com"
+      ]
+    },
+    {
+      "name": "Netflix",
+      "domain_hints": [
+        "about.netflix.com"
+      ]
+    },
+    {
+      "name": "Nvidia",
+      "domain_hints": [
+        "nvidia.com"
+      ]
+    },
+    {
+      "name": "Advanced Micro Devices",
+      "domain_hints": [
+        "amd.com"
+      ]
+    },
+    {
+      "name": "Intel",
+      "domain_hints": [
+        "intel.com"
+      ]
+    },
+    {
+      "name": "Qualcomm",
+      "domain_hints": [
+        "qualcomm.com"
+      ]
+    },
+    {
+      "name": "Lockheed Martin",
+      "domain_hints": [
+        "f22-raptor.com"
+      ]
+    },
+    {
+      "name": "Northrop Grumman",
+      "domain_hints": [
+        "northropgrumman.com"
+      ]
+    },
+    {
+      "name": "Boeing",
+      "domain_hints": [
+        "boeing.com"
+      ]
+    },
+    {
+      "name": "RTX",
+      "domain_hints": [
+        "nvidia.com"
+      ]
+    },
+    {
+      "name": "JPMorgan Chase",
+      "domain_hints": [
+        "jpmorganchase.com"
+      ]
+    },
+    {
+      "name": "Goldman Sachs Group",
+      "domain_hints": [
+        "goldmansachs.com"
+      ]
+    },
+    {
+      "name": "Morgan Stanley",
+      "domain_hints": [
+        "morganstanley.com"
+      ]
+    },
+    {
+      "name": "Citadel",
+      "domain_hints": [
+        "citadel.edu"
+      ]
+    },
+    {
+      "name": "Jane Street",
+      "domain_hints": [
+        "janestreet.com"
+      ]
+    },
+    {
+      "name": "Two Sigma",
+      "domain_hints": [
+        "twosigma.com"
+      ]
+    },
+    {
+      "name": "Palantir Technologies",
+      "domain_hints": [
+        "palantir.com"
+      ]
+    },
+    {
+      "name": "Databricks",
+      "domain_hints": [
+        "databricks.com"
+      ]
+    },
+    {
+      "name": "Snowflake",
+      "domain_hints": [
+        "snowflake.com"
+      ]
+    },
+    {
+      "name": "Stripe",
+      "domain_hints": [
+        "stripe.com"
+      ]
+    },
+    {
+      "name": "Uber Technologies",
+      "domain_hints": [
+        "uber.com"
+      ]
+    },
+    {
+      "name": "Airbnb",
+      "domain_hints": [
+        "airbnb.com"
+      ]
+    },
+    {
+      "name": "Salesforce",
+      "domain_hints": [
+        "salesforce.com"
+      ]
+    },
+    {
+      "name": "Atlassian",
+      "domain_hints": [
+        "atlassian.com"
+      ]
+    },
+    {
+      "name": "SpaceX",
+      "domain_hints": [
+        "spacex.com"
+      ]
+    },
+    {
+      "name": "Anduril",
+      "domain_hints": [
+        "anduril.com"
+      ]
+    }
   ]
 }

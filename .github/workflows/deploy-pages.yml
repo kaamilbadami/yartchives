@@ -8,13 +8,10 @@ on:
       - "index.html"
       - "*.js"
       - "*.css"
-      - "*.webmanifest"
       - "assets/**"
       - "scripts/build_apply_next_inspections.py"
       - "scripts/build_apply_next_candidates.py"
       - "scripts/build_geo_index.py"
-      - "scripts/send_web_push.py"
-      - "requirements-push.txt"
       - ".nojekyll"
       - ".github/workflows/deploy-pages.yml"
   workflow_run:
@@ -66,7 +63,7 @@ jobs:
         run: |
           rm -rf _site
           mkdir -p _site/data _site/assets
-          cp index.html .nojekyll manifest.webmanifest _site/
+          cp index.html .nojekyll _site/
           cp ./*.js ./*.css _site/
           cp -R assets/. _site/assets/
           cp data/listings.json _site/data/listings.json
@@ -191,26 +188,3 @@ jobs:
           done < <(tail -n +2 _site/deploy-manifest.txt)
 
           echo "Verified live Pages deployment for ${BUILD_SHA}."
-
-      - name: Send interactive deploy push
-        if: github.event_name == 'push'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          YARTCHIVES_PUSH_SUBSCRIPTION: ${{ secrets.YARTCHIVES_PUSH_SUBSCRIPTION }}
-          YARTCHIVES_VAPID_PRIVATE_KEY: ${{ secrets.YARTCHIVES_VAPID_PRIVATE_KEY }}
-        run: |
-          set -euo pipefail
-          BUILD_SHA="$(git rev-parse HEAD)"
-          INTERACTIVE_DEPLOY="$(gh api -H "Accept: application/vnd.github+json" \
-            "repos/$GITHUB_REPOSITORY/commits/$BUILD_SHA/pulls" \
-            --jq 'map(select((.head.ref // "") | startswith("agent/interactive/"))) | length > 0')"
-          if [ "$INTERACTIVE_DEPLOY" != "true" ]; then
-            echo "Not an interactive deploy; skipping Web Push."
-            exit 0
-          fi
-          if [ -z "${YARTCHIVES_PUSH_SUBSCRIPTION}" ] || [ -z "${YARTCHIVES_VAPID_PRIVATE_KEY}" ]; then
-            echo "::notice::Web Push secrets are not configured; skipping deploy push."
-            exit 0
-          fi
-          python -m pip install -r requirements-push.txt
-          python scripts/send_web_push.py --build-sha "$BUILD_SHA"

@@ -17,7 +17,6 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 from employer_universe import common_name_aliases, validate_seed  # noqa: E402
-
 from domain_discovery import enrich_domains
 
 EDITION = 2026

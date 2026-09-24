@@ -13,18 +13,6 @@ assert.ok(workflow.includes('- "*.js"'), "top-level JS changes should trigger a 
 assert.ok(workflow.includes('- "*.css"'), "top-level CSS changes should trigger a Pages deploy");
 assert.ok(workflow.includes("cp ./*.js ./*.css _site/"), "Pages artifact should package top-level JS/CSS generically");
 assert.ok(fs.existsSync("service-worker.js"), "persistent deploy notifications require the service worker source");
-assert.ok(fs.existsSync("manifest.webmanifest"), "iPhone Home Screen support requires a web app manifest");
-const manifest = JSON.parse(fs.readFileSync("manifest.webmanifest", "utf8"));
-assert.equal(manifest.display, "standalone", "Home Screen installs should launch as a standalone web app");
-assert.equal(manifest.id, "./", "PWA identity should stay stable across deploys");
-assert.match(index, /<link rel="manifest" href="manifest\.webmanifest" \/>/, "index should expose the PWA manifest");
-assert.match(index, /<link rel="apple-touch-icon" href="assets\/yartchives-hedgehog\.png" \/>/, "iPhone Home Screen installs should use the Yartchives icon");
-assert.ok(workflow.includes('- "*.webmanifest"'), "manifest changes should trigger a Pages deploy");
-assert.ok(workflow.includes("cp index.html .nojekyll manifest.webmanifest _site/"), "Pages artifact should package the PWA manifest");
-const serviceWorker = fs.readFileSync("service-worker.js", "utf8");
-assert.match(serviceWorker, /addEventListener\("push"/, "service worker should receive background Web Push events");
-assert.match(serviceWorker, /registration\.showNotification/, "traditional Web Push should display a notification from the service worker");
-assert.match(serviceWorker, /payload\?\.web_push === 8030/, "declarative Web Push payloads should avoid duplicate service-worker notifications");
 
 assert.ok(workflow.includes("for asset in ./*.css ./*.js; do"), "Pages build should cache-bust packaged JS/CSS generically");
 assert.ok(workflow.includes('?v=${VERSION}'), "Pages build should append the deployment version to local assets");
@@ -36,10 +24,6 @@ assert.match(workflow, /LIVE_SHA[\s\S]*?yartchives-build[\s\S]*?BUILD_SHA/, "Pag
 assert.match(workflow, /deploy-manifest\.txt[\s\S]*?sha256sum[\s\S]*?Live asset/, "Pages verification should compare live frontend asset hashes with the built artifact");
 assert.match(workflow, /deployment-status\.json[\s\S]*?interactive/, "Pages should expose an interactive deployment readiness signal");
 assert.match(workflow, /commits\/\$BUILD_SHA\/pulls[\s\S]*?agent\/interactive\//, "Interactive deploys should be inferred from the merged PR branch");
-assert.match(workflow, /Send interactive deploy push[\s\S]*?if: github\.event_name == 'push'/, "Closed-app pushes should only originate from the merge push deployment");
-assert.match(workflow, /YARTCHIVES_PUSH_SUBSCRIPTION:[\s\S]*?secrets\.YARTCHIVES_PUSH_SUBSCRIPTION/, "Push subscription must come from Actions secrets");
-assert.match(workflow, /YARTCHIVES_VAPID_PRIVATE_KEY:[\s\S]*?secrets\.YARTCHIVES_VAPID_PRIVATE_KEY/, "VAPID private key must come from Actions secrets");
-assert.match(workflow, /Verified live Pages deployment[\s\S]*?Send interactive deploy push/, "Push delivery must happen only after live deployment verification");
 
 assert.match(workflow, /for attempt in \$\(seq 1 12\)[\s\S]*?sleep 5/, "Live verification should tolerate bounded Pages propagation delay");
 

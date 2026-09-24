@@ -44,23 +44,5 @@ def test_interactive_deploy_notification_contract():
     assert 'notificationclick' in worker
     assert 'clients.matchAll' in worker
     assert 'clients.openWindow' in worker
-    assert 'addEventListener("push"' in worker
-    assert "registration.showNotification" in worker
-    assert "web_push === 8030" in worker
-    manifest = (ROOT / "manifest.webmanifest").read_text(encoding="utf-8")
-    assert '"display": "standalone"' in manifest
-    assert '<link rel="manifest" href="manifest.webmanifest" />' in index
     assert "payload?.interactive === true" in app
-    assert "cryptoImpl.subtle.generateKey" in app
-    assert "registration.pushManager.subscribe" in app
-    assert "YARTCHIVES_PUSH_SUBSCRIPTION" in app
-    assert "YARTCHIVES_VAPID_PRIVATE_KEY" in app
-    assert 'github.href = "https://github.com/kaamilbadami/yartchives"' in app
-    assert "Settings → Secrets and variables → Actions" in app
-    assert "settings/secrets/actions" not in app
-    assert "Send interactive deploy push" in deploy
-    assert "github.event_name == 'push'" in deploy
-    assert "scripts/send_web_push.py --build-sha" in deploy
-    assert "${{ secrets.YARTCHIVES_PUSH_SUBSCRIPTION }}" in deploy
-    assert "${{ secrets.YARTCHIVES_VAPID_PRIVATE_KEY }}" in deploy
     assert 'data.productionStatus = "true"' in apply_next
