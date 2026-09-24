@@ -58,8 +58,8 @@ def test_interactive_deploy_notification_contract():
     assert 'github.href = "https://github.com/kaamilbadami/yartchives"' in app
     assert "Settings → Secrets and variables → Actions" in app
     assert "settings/secrets/actions" not in app
-    assert "Send interactive deploy push" in deploy
-    assert "github.event_name == 'push'" in deploy
+    assert "Send successful deploy push" in deploy
+    assert "github.event_name == 'push'" not in deploy
     assert "scripts/send_web_push.py --build-sha" in deploy
     assert "${{ secrets.YARTCHIVES_PUSH_SUBSCRIPTION }}" in deploy
     assert "${{ secrets.YARTCHIVES_VAPID_PRIVATE_KEY }}" in deploy
