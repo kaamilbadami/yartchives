@@ -8,17 +8,23 @@ from pathlib import Path
 
 from employer_seed_from_benchmark import build_seed as build_benchmark_seed
 from employer_universe import merge_seed, validate_universe
+from domain_discovery import enrich_domains
 
 
 def refresh_universe(
     universe: dict,
     benchmarks: list[dict] | None = None,
     seeds: list[dict] | None = None,
+    enrich_domain_hints: bool = False,
 ) -> dict:
     result = json.loads(json.dumps(universe))
     validate_universe(result)
-    inputs = [build_benchmark_seed(benchmark) for benchmark in (benchmarks or [])]
-    inputs.extend(json.loads(json.dumps(seed)) for seed in (seeds or []))
+    inputs = [build_benchmark_seed(benchmark, enrich_domain_hints=enrich_domain_hints) for benchmark in (benchmarks or [])]
+    for seed in (seeds or []):
+        s = json.loads(json.dumps(seed))
+        if enrich_domain_hints:
+            s = enrich_domains(s)
+        inputs.append(s)
     keys = [str((seed.get("source") or {}).get("key") or "") for seed in inputs]
     if len(keys) != len(set(keys)):
         raise ValueError("refresh inputs require unique seed source keys")
@@ -33,6 +39,7 @@ def main() -> int:
     parser.add_argument("universe")
     parser.add_argument("benchmark", nargs="*")
     parser.add_argument("--seed", action="append", default=[], help="Generic employer seed JSON")
+    parser.add_argument("--enrich-domain-hints", action="store_true", help="Auto-discover domain hints for benchmark employers without them")
     parser.add_argument("--output")
     args = parser.parse_args()
 
@@ -43,7 +50,7 @@ def main() -> int:
     if not benchmarks and not seeds:
         parser.error("at least one benchmark or --seed is required")
     try:
-        refreshed = refresh_universe(universe, benchmarks, seeds)
+        refreshed = refresh_universe(universe, benchmarks, seeds, enrich_domain_hints=args.enrich_domain_hints)
     except ValueError as exc:
         parser.error(str(exc))
 
