@@ -20,6 +20,9 @@ assert.ok(workflow.includes("> _site/deploy-manifest.txt"), "Pages artifact shou
 assert.match(workflow, /- name: Verify live deployment[\s\S]*?PAGE_URL:[\s\S]*?steps\.deployment\.outputs\.page_url/, "Pages should verify the URL returned by the deployment step");
 assert.match(workflow, /LIVE_SHA[\s\S]*?yartchives-build[\s\S]*?BUILD_SHA/, "Pages verification should require the live HTML build marker to match the merged commit");
 assert.match(workflow, /deploy-manifest\.txt[\s\S]*?sha256sum[\s\S]*?Live asset/, "Pages verification should compare live frontend asset hashes with the built artifact");
+assert.match(workflow, /deployment-status\.json[\s\S]*?notify_when_deployed/, "Pages artifact should expose a tiny deployment readiness signal");
+assert.match(workflow, /commits\/\$BUILD_SHA\/pulls[\s\S]*?notify-when-deployed/, "Deployment readiness should opt in only from marked interactive PRs");
+
 assert.match(workflow, /for attempt in \$\(seq 1 12\)[\s\S]*?sleep 5/, "Live verification should tolerate bounded Pages propagation delay");
 
 for (const asset of assets) {
