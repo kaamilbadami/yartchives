@@ -799,10 +799,11 @@ function appendWebPushSetupControls(target) {
 
     const github = document.createElement("a");
     github.className = "text-btn";
-    github.href = "https://github.com/kaamilbadami/yartchives/settings/secrets/actions";
+    github.href = "https://github.com/kaamilbadami/yartchives";
     github.target = "_blank";
     github.rel = "noopener noreferrer";
-    github.textContent = "Open GitHub secrets ↗";
+    github.textContent = "Open Yartchives repo ↗";
+    github.title = "Then open Settings → Secrets and variables → Actions";
     target.append(separator, subscription, document.createTextNode(" · "), key, document.createTextNode(" · "), github);
     return;
   }
