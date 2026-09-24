@@ -89,6 +89,9 @@ window.loadGeoIndex = async () => ({ zips: new Map() });
 window.distanceForJob = () => ({ miles: null, precision: "unknown" });
 
 const uiSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-ui.js"), "utf8");
+assert.match(uiSource, /function maximumDistanceLocationGain\(result\)/, "Apply Next should derive distance work from per-job location upside");
+assert.match(uiSource, /isRemoteJob\(result\.job\)\) return 0/, "Remote jobs should not consume exact-distance work");
+assert.doesNotMatch(uiSource, /decisionCutoff - LOCATION_DISTANCE_MAX_GAIN/, "The shortlist must not use one global worst-case gain for every job");
 window.eval(uiSource);
 
 async function run() {
