@@ -469,34 +469,13 @@
     const zips = (profile?.baseZips || []).filter(value => /^\d{5}$/.test(String(value)));
     if (!zips.length || typeof loadGeoIndex !== "function") return false;
     geoWarmScheduled = true;
-    geoWarmState = "scheduled";
-
-    const warm = () => {
-      geoWarmState = "loading";
-      void loadGeoIndex()
-        .then(() => { geoWarmState = "ready"; })
-        .catch(() => {
-          geoWarmScheduled = false;
-          geoWarmState = "failed";
-        });
-    };
-    const scheduleWhenIdle = () => {
-      if (typeof requestIdleCallback === "function") {
-        requestIdleCallback(warm);
-      } else if (typeof setTimeout === "function") {
-        setTimeout(warm, 1500);
-      } else {
-        warm();
-      }
-    };
-
-    if (typeof requestAnimationFrame === "function") {
-      requestAnimationFrame(() => scheduleWhenIdle());
-    } else if (typeof setTimeout === "function") {
-      setTimeout(scheduleWhenIdle, 0);
-    } else {
-      scheduleWhenIdle();
-    }
+    geoWarmState = "loading";
+    void loadGeoIndex()
+      .then(() => { geoWarmState = "ready"; })
+      .catch(() => {
+        geoWarmScheduled = false;
+        geoWarmState = "failed";
+      });
     return true;
   }
 
@@ -702,6 +681,32 @@
         || a.index - b.index
       ))
       .map(item => item.value);
+  }
+
+  function rerankAfterDistance(preliminaryRanked, distanceCandidates, profile) {
+    const affected = new Set(distanceCandidates || []);
+    const ranked = [];
+    for (const result of preliminaryRanked || []) {
+      if (!affected.has(result?.job)) {
+        ranked.push(result);
+        continue;
+      }
+      const location = YartchivesApplyNext.scoreLocation(result.job, profile || {});
+      if (location?.excluded) continue;
+      const prior = Number(result?.components?.location?.score || 0);
+      const nextLocation = { score: Number(location?.score || 0), detail: location?.detail || "" };
+      const components = { ...result.components, location: nextLocation };
+      const total = Math.max(0, Math.min(100, Number(result.total || 0) - prior + nextLocation.score));
+      const reasons = Array.isArray(result.reasons)
+        ? result.reasons.map(reason => String(reason).startsWith("location:")
+          ? `location: ${nextLocation.detail}`
+          : reason)
+        : [];
+      ranked.push({ ...result, total, components, reasons, locationDecision: location });
+    }
+    return ranked.sort((a, b) => b.total - a.total
+      || ((new Date(b.job?.posted_at || 0)).getTime() || 0) - ((new Date(a.job?.posted_at || 0)).getTime() || 0)
+      || String(a.job?.company || "").localeCompare(String(b.job?.company || "")));
   }
 
   function distanceCacheKey(value, job, origin) {
@@ -1484,7 +1489,9 @@
     recordTimingStage(timing, "paint_wait", stageStartedAt, stageStartedAt);
 
     try {
-      recommendationJobs = await loadCandidateArtifact();
+      const candidateArtifactPromise = loadCandidateArtifact();
+      const inspectionArtifactPromise = loadInspectionArtifact();
+      recommendationJobs = await candidateArtifactPromise;
       recordTimingStage(timing, "candidate_artifact", stageStartedAt);
       if (!recommendationJobs.length) throw new Error("Apply Next candidates unavailable");
 
@@ -1495,7 +1502,7 @@
       recordTimingStage(timing, "candidate_filter", stageStartedAt);
 
       stageStartedAt = timingNow();
-      const artifact = await loadInspectionArtifact();
+      const artifact = await inspectionArtifactPromise;
       recordTimingStage(timing, "inspection_artifact", stageStartedAt);
 
       stageStartedAt = timingNow();
@@ -1522,7 +1529,7 @@
       recordTimingStage(timing, "location_enrichment", stageStartedAt);
 
       stageStartedAt = timingNow();
-      const ranked = YartchivesApplyNext.rankJobs(rankablePool, profile, rankingNow);
+      const ranked = rerankAfterDistance(preliminaryRanked, distanceCandidates, profile);
       counts.recommendations = ranked.length;
       recordTimingStage(timing, "ranking", stageStartedAt);
 
@@ -1567,6 +1574,7 @@
   function init() {
     if (typeof YartchivesApplyNext === "undefined") return;
     loadInspectionArtifact();
+    loadCandidateArtifact();
     const savedProfile = loadProfile(typeof localStorage !== "undefined" ? localStorage : null);
     if (savedProfile) scheduleGeoWarm(savedProfile);
     const headerActions = document.querySelector(".header-actions");
