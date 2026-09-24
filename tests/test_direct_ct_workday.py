@@ -89,6 +89,10 @@ class DirectWorkdayTests(unittest.TestCase):
             "Summer 2027 IT Intern",
             "Cybersecurity Internship (Summer 2027)",
             "Data Science Intern",
+            "Client Platforms Engineer Intern",
+            "Technology Developer Intern",
+            "Technology Internship Program",
+            "Intern - Security & GRC",
         ]
         rejected = [
             "Mechanical Design Engineering Intern",
@@ -96,6 +100,8 @@ class DirectWorkdayTests(unittest.TestCase):
             "Safety and Reliability Intern",
             "Industrial Engineering Intern",
             "Materials & Processes Engineering Intern",
+            "Corporate Security Guard",
+            "Food Technology Intern",
         ]
         for title in accepted:
             with self.subTest(title=title):
