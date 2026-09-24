@@ -18,6 +18,7 @@
   const LOCATION_ENRICHMENT_YIELD_BUDGET_MS = 100;
   const FEEDBACK_ENDPOINT = "https://formspree.io/f/mqakpejw";
   let inspectionArtifactPromise = null;
+  let inspectionArtifactTiming = null;
   let candidateArtifactPromise = null;
   let recommendationJobs = [];
   let geoWarmScheduled = false;
@@ -428,10 +429,18 @@
   async function fetchInspectionArtifact(fetchImpl) {
     const client = fetchImpl || (typeof fetch === "function" ? fetch : null);
     if (!client) return emptyInspectionArtifact();
+    const requestStartedAt = timingNow();
+    inspectionArtifactTiming = { request_started_at: requestStartedAt };
     try {
       const response = await client(INSPECTION_URL);
+      const headersAt = timingNow();
+      inspectionArtifactTiming.headers_ms = headersAt - requestStartedAt;
       if (!response || !response.ok) return emptyInspectionArtifact();
       const payload = await response.json();
+      const parsedAt = timingNow();
+      inspectionArtifactTiming.body_parse_ms = parsedAt - headersAt;
+      inspectionArtifactTiming.total_ms = parsedAt - requestStartedAt;
+      inspectionArtifactTiming.completed_at = parsedAt;
       if (!payload || typeof payload !== "object") return emptyInspectionArtifact();
       return {
         version: payload.version || 1,
@@ -1460,7 +1469,7 @@
 
   async function renderQueue(panel, profile) {
     const timing = { startedAt: timingNow(), stages: {} };
-    const counts = { candidates: 0, rankable: 0, distance_candidates: 0, distance_unique_lookups: 0, distance_cache_hits: 0, distance_lookup_failures: 0, location_parse_ms: 0, location_compute_ms: 0, location_yield_ms: 0, location_yield_count: 0, location_order_ms: 0, recommendations: 0 };
+    const counts = { candidates: 0, rankable: 0, inspection_request_ms: 0, inspection_headers_ms: 0, inspection_body_parse_ms: 0, inspection_preload_age_ms: 0, preliminary_ranking_ms: 0, distance_selection_ms: 0, geo_enrichment_ms: 0, distance_candidates: 0, distance_unique_lookups: 0, distance_cache_hits: 0, distance_lookup_failures: 0, location_parse_ms: 0, location_compute_ms: 0, location_yield_ms: 0, location_yield_count: 0, location_order_ms: 0, recommendations: 0 };
     const geoWarmStateAtOpen = geoWarmState;
     const pageVisibilityAtOpen = typeof document !== "undefined" ? normalize(document.visibilityState) : "";
     let geoError = null;
@@ -1501,6 +1510,12 @@
       stageStartedAt = timingNow();
       const artifact = await loadInspectionArtifact();
       recordTimingStage(timing, "inspection_artifact", stageStartedAt);
+      if (inspectionArtifactTiming) {
+        counts.inspection_request_ms = Number(inspectionArtifactTiming.total_ms || 0);
+        counts.inspection_headers_ms = Number(inspectionArtifactTiming.headers_ms || 0);
+        counts.inspection_body_parse_ms = Number(inspectionArtifactTiming.body_parse_ms || 0);
+        counts.inspection_preload_age_ms = Number(inspectionArtifactTiming.completed_at ? Math.max(0, stageStartedAt - inspectionArtifactTiming.completed_at) : 0);
+      }
 
       stageStartedAt = timingNow();
       attachInspections(pool, artifact);
@@ -1510,10 +1525,16 @@
 
       stageStartedAt = timingNow();
       const rankingNow = new Date();
+      const preliminaryRankingStartedAt = timingNow();
       const preliminaryRanked = YartchivesApplyNext.rankJobs(rankablePool, profile, rankingNow);
+      counts.preliminary_ranking_ms = timingNow() - preliminaryRankingStartedAt;
+      const distanceSelectionStartedAt = timingNow();
       const distanceCandidates = distanceEnrichmentCandidates(preliminaryRanked, rankingNow);
+      counts.distance_selection_ms = timingNow() - distanceSelectionStartedAt;
       counts.distance_candidates = distanceCandidates.length;
+      const geoEnrichmentStartedAt = timingNow();
       const distanceStats = await addBaseDistances(distanceCandidates, profile);
+      counts.geo_enrichment_ms = timingNow() - geoEnrichmentStartedAt;
       counts.distance_unique_lookups = Number(distanceStats?.unique_lookups || 0);
       counts.distance_cache_hits = Number(distanceStats?.cache_hits || 0);
       counts.distance_lookup_failures = Number(distanceStats?.lookup_failures || 0);
