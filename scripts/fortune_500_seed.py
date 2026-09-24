@@ -34,16 +34,51 @@ def enrich_domains(seed: dict[str, Any]) -> dict[str, Any]:
 
     def normalize_company(name: str) -> str:
         name = name.lower()
-        for suffix in [" inc", " corp", " corporation", " company", " co", " llc", " group", " holdings", " platforms", " technologies", " laboratories", " devices", " brands", " systems", " enterprises", " groups", " international", " network"]:
-            if name.endswith(suffix):
-                name = name[:-len(suffix)]
-                break
-        name = re.sub(r'[^a-z0-9]', '', name)
-        return name
+        name = re.sub(r'\(.*?\)', '', name)
+        name = re.sub(r'[^a-z0-9\s]', ' ', name)
+
+        stop_words = [
+            "inc", "corp", "corporation", "company", "co", "llc", "group", "holdings",
+            "platforms", "technologies", "laboratories", "devices", "brands", "systems",
+            "enterprises", "groups", "international", "network", "the", "of", "and",
+            "ltd", "limited", "plc", "bancorp", "stores", "ins", "insurance", "financial",
+            "services", "bancshares", "bank", "mutual", "holding", "processing", "america",
+            "global"
+        ]
+
+        words = name.split()
+        words = [w for w in words if w not in stop_words]
+
+        return "".join(words)
 
     def get_company_domain(name: str) -> str | None:
-        query = urllib.parse.quote(f"{name} company")
+        # Check manual overrides first for difficult cases
+        overrides = {
+            "gold.com": "gold.com",
+            "guidewell mutual holding": "guidewell.com"
+        }
+        if name.lower() in overrides:
+            return overrides[name.lower()]
+
+        query = urllib.parse.quote(f"{name}")
         target_norm = normalize_company(name)
+
+        if not target_norm:
+            return None
+
+        aliases = [target_norm]
+        words = name.split()
+        if len(words) > 1:
+            initials = "".join([w[0].lower() for w in words if w.isalnum()])
+        if initials:
+            aliases.append(initials)
+
+        m = re.search(r'\(([^)]+)\)', name)
+        if m:
+            aliases.append(normalize_company(m.group(1)))
+
+        if "." in name:
+            aliases.append(name.split(".")[0].lower())
 
         # Try Wikipedia first, it's highly curated and much less prone to data poisoning
         url = f"https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch={query}&utf8=&format=json"
@@ -63,31 +98,40 @@ def enrich_domains(seed: dict[str, Any]) -> dict[str, Any]:
                     break
 
         if data and data.get('query', {}).get('search'):
-            title = data['query']['search'][0]['title']
+            for res in data['query']['search'][:3]:
+                title = res['title']
+                title_norm = normalize_company(title)
 
-            title_norm = normalize_company(title)
-            if target_norm in title_norm or title_norm in target_norm:
-                title_encoded = urllib.parse.quote(title)
-                url_page = f"https://en.wikipedia.org/w/api.php?action=parse&page={title_encoded}&prop=text&format=json"
+                match_found = False
+                for alias in aliases:
+                    if (alias in title_norm or title_norm in alias or
+                        (len(alias) > 5 and len(title_norm) > 5 and
+                         (alias[:5] == title_norm[:5]))):
+                         match_found = True
+                         break
 
-                for attempt in range(max_retries):
-                    req_page = urllib.request.Request(url_page, headers={'User-Agent': 'Mozilla/5.0'})
-                    try:
-                        with urllib.request.urlopen(req_page, timeout=10) as resp_page:
-                            data_page = json.loads(resp_page.read().decode('utf-8'))
-                            if 'parse' in data_page and 'text' in data_page['parse']:
-                                html_text = data_page['parse']['text']['*']
-                                m = re.search(r'Website.*?<a[^>]*href="([^"]+)"', html_text, re.DOTALL | re.IGNORECASE)
-                                if m:
-                                    domain = urllib.parse.urlparse(m.group(1)).netloc
-                                    if domain and not "wikipedia" in domain and not "wikimedia" in domain:
-                                        return domain.removeprefix("www.")
-                            break
-                    except Exception as e:
-                        if '429' in str(e) and attempt < max_retries - 1:
-                            time.sleep(1 + attempt)
-                        else:
-                            break
+                if match_found:
+                    title_encoded = urllib.parse.quote(title)
+                    url_page = f"https://en.wikipedia.org/w/api.php?action=parse&page={title_encoded}&prop=text&format=json"
+
+                    for attempt in range(max_retries):
+                        req_page = urllib.request.Request(url_page, headers={'User-Agent': 'Mozilla/5.0'})
+                        try:
+                            with urllib.request.urlopen(req_page, timeout=10) as resp_page:
+                                data_page = json.loads(resp_page.read().decode('utf-8'))
+                                if 'parse' in data_page and 'text' in data_page['parse']:
+                                    html_text = data_page['parse']['text']['*']
+                                    m = re.search(r'Website.*?<a[^>]*href="([^"]+)"', html_text, re.DOTALL | re.IGNORECASE)
+                                    if m:
+                                        domain = urllib.parse.urlparse(m.group(1)).netloc
+                                        if domain and not "wikipedia" in domain and not "wikimedia" in domain:
+                                            return domain.removeprefix("www.")
+                                break
+                        except Exception as e:
+                            if '429' in str(e) and attempt < max_retries - 1:
+                                time.sleep(1 + attempt)
+                            else:
+                                break
 
         # If Wikipedia fails, try Clearbit, but with strict matching
         query_cb = urllib.parse.quote(name)
@@ -112,10 +156,15 @@ def enrich_domains(seed: dict[str, Any]) -> dict[str, Any]:
                 if not target_norm or not res_norm:
                     continue
 
-                if target_norm == res_norm or target_norm in res_norm or res_norm in target_norm:
-                    domain = str(item['domain']).lower()
-                    domain_norm = re.sub(r'[^a-z0-9]', '', domain.split('.')[0])
-                    if domain_norm in target_norm or target_norm in domain_norm:
+                domain = str(item['domain']).lower()
+                domain_norm = normalize_company(domain.split('.')[0])
+
+                for alias in aliases:
+                    if alias == res_norm or alias in res_norm or res_norm in alias:
+                        if domain_norm in alias or alias in domain_norm:
+                            return str(item['domain'])
+
+                    if domain_norm == alias:
                         return str(item['domain'])
 
         return None
