@@ -36,10 +36,11 @@ assert.match(workflow, /LIVE_SHA[\s\S]*?yartchives-build[\s\S]*?BUILD_SHA/, "Pag
 assert.match(workflow, /deploy-manifest\.txt[\s\S]*?sha256sum[\s\S]*?Live asset/, "Pages verification should compare live frontend asset hashes with the built artifact");
 assert.match(workflow, /deployment-status\.json[\s\S]*?interactive/, "Pages should expose an interactive deployment readiness signal");
 assert.match(workflow, /commits\/\$BUILD_SHA\/pulls[\s\S]*?agent\/interactive\//, "Interactive deploys should be inferred from the merged PR branch");
-assert.match(workflow, /Send interactive deploy push[\s\S]*?if: github\.event_name == 'push'/, "Closed-app pushes should only originate from the merge push deployment");
+assert.match(workflow, /Send successful deploy push/, "Closed-app pushes should be sent after every verified deployment");
+assert.equal(workflow.includes("if: github.event_name == 'push'"), false, "Deploy push delivery should not depend on the workflow trigger type");
 assert.match(workflow, /YARTCHIVES_PUSH_SUBSCRIPTION:[\s\S]*?secrets\.YARTCHIVES_PUSH_SUBSCRIPTION/, "Push subscription must come from Actions secrets");
 assert.match(workflow, /YARTCHIVES_VAPID_PRIVATE_KEY:[\s\S]*?secrets\.YARTCHIVES_VAPID_PRIVATE_KEY/, "VAPID private key must come from Actions secrets");
-assert.match(workflow, /Verified live Pages deployment[\s\S]*?Send interactive deploy push/, "Push delivery must happen only after live deployment verification");
+assert.match(workflow, /Verified live Pages deployment[\s\S]*?Send successful deploy push/, "Push delivery must happen only after live deployment verification");
 
 assert.match(workflow, /for attempt in \$\(seq 1 12\)[\s\S]*?sleep 5/, "Live verification should tolerate bounded Pages propagation delay");
 
