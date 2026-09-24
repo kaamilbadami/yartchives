@@ -1574,9 +1574,11 @@
   function init() {
     if (typeof YartchivesApplyNext === "undefined") return;
     loadInspectionArtifact();
-    loadCandidateArtifact();
     const savedProfile = loadProfile(typeof localStorage !== "undefined" ? localStorage : null);
-    if (savedProfile) scheduleGeoWarm(savedProfile);
+    if (savedProfile) {
+      loadCandidateArtifact();
+      scheduleGeoWarm(savedProfile);
+    }
     const headerActions = document.querySelector(".header-actions");
     const main = document.querySelector("main");
     if (!headerActions || !main || document.querySelector("#applyNextBtn")) return;
@@ -1679,6 +1681,7 @@
     locationDisplayValues,
     cardLocationText,
     orderLocationValues,
+    rerankAfterDistance,
     emptyInspectionArtifact,
     loadInspectionArtifact,
     attachInspections,
