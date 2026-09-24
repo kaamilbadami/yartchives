@@ -36,6 +36,13 @@ def task_body(priority, area, autonomous=True, resources=None, depends_on=None):
 
 
 class AutonomousDispatcherTests(unittest.TestCase):
+    def test_session_prompt_requires_reconciling_superseded_regression_contracts(self):
+        task = mod.Task(10, "Change behavior", "priority: P1\narea: quality\nautonomous: true", "P1", "quality", frozenset())
+        prompt = mod.session_prompt("kaamilbadami/yartchives", task)
+        self.assertIn("update or replace the old regression assertions in the same change", prompt)
+        self.assertIn("stale tests that encode superseded behavior", prompt)
+
+
     def setUp(self):
         self.original_reconcile_labels = mod.reconcile_autonomous_labels
         mod.reconcile_autonomous_labels = lambda *args, **kwargs: None
