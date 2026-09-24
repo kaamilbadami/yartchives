@@ -721,6 +721,8 @@ function formatSiteAge(value, nowValue = Date.now()) {
 }
 
 const DEPLOY_STATUS_URL = "https://api.github.com/repos/kaamilbadami/yartchives/actions/workflows/deploy-pages.yml/runs?per_page=1";
+const DEPLOY_NOTIFICATION_POLL_MS = 30 * 1000;
+const DEPLOY_NOTIFICATION_SEEN_KEY = "yartchives-last-seen-deploy-v1";
 
 function localDeploymentInfo() {
   const deployedAt = document.querySelector('meta[name="yartchives-deployed-at"]')?.content || "";
@@ -728,11 +730,37 @@ function localDeploymentInfo() {
   return { deployedAt, buildSha, age: formatSiteAge(deployedAt) };
 }
 
+function productionStatusTargets() {
+  if (typeof document === "undefined") return els.siteMeta ? [els.siteMeta] : [];
+  const targets = [...document.querySelectorAll("[data-production-status]")];
+  if (els.siteMeta && !targets.includes(els.siteMeta)) targets.unshift(els.siteMeta);
+  return targets;
+}
+
+function appendDeployAlertControl(target) {
+  if (!target || typeof Notification === "undefined" || Notification.permission !== "default") return;
+  const separator = document.createTextNode(" · ");
+  const enable = document.createElement("button");
+  enable.type = "button";
+  enable.className = "text-btn";
+  enable.textContent = "Enable deploy alerts";
+  enable.addEventListener("click", async () => {
+    const permission = await Notification.requestPermission();
+    if (permission === "granted") {
+      try { localStorage.setItem(DEPLOY_NOTIFICATION_SEEN_KEY, BUILD_SHA); } catch (_) {}
+      void checkDeploymentNotification();
+    }
+    renderProductionStatus();
+  });
+  target.append(separator, enable);
+}
+
 function renderProductionStatus(run = null) {
-  if (!els.siteMeta) return;
+  const targets = productionStatusTargets();
+  if (!targets.length) return;
   const { deployedAt, buildSha, age } = localDeploymentInfo();
   if (!age || !buildSha || buildSha.startsWith("__")) {
-    els.siteMeta.textContent = "Production status unavailable.";
+    for (const target of targets) target.textContent = "Production status unavailable.";
     return;
   }
 
@@ -742,16 +770,22 @@ function renderProductionStatus(run = null) {
   const runSha = String(run?.head_sha || "");
   const newerRun = Boolean(runSha && runSha !== buildSha);
 
+  let text;
   if (status === "queued" || status === "in_progress" || status === "waiting" || status === "pending") {
-    els.siteMeta.textContent = newerRun
+    text = newerRun
       ? `Deploying update… · current production ${shortSha}`
       : `Deploying… · current production ${shortSha}`;
   } else if (status === "completed" && conclusion && conclusion !== "success" && newerRun) {
-    els.siteMeta.textContent = `Deployment blocked · production still ${shortSha}`;
+    text = `Deployment blocked · production still ${shortSha}`;
   } else {
-    els.siteMeta.textContent = `Ready to test · production ${shortSha} · deployed ${age}`;
+    text = `Ready to test · production ${shortSha} · deployed ${age}`;
   }
-  els.siteMeta.title = `Deployed ${formatEasternTimestamp(deployedAt)} · build ${buildSha}${run?.html_url ? ` · latest deploy: ${run.html_url}` : ""}`;
+  const title = `Deployed ${formatEasternTimestamp(deployedAt)} · build ${buildSha}${run?.html_url ? ` · latest deploy: ${run.html_url}` : ""}`;
+  for (const target of targets) {
+    target.textContent = text;
+    target.title = title;
+    appendDeployAlertControl(target);
+  }
 }
 
 function updateSiteMeta() {
@@ -791,16 +825,18 @@ function liveBuildShaFromHtml(html) {
 }
 
 function showUpdateReady(locationObj = typeof location !== "undefined" ? location : null) {
-  if (!els.siteMeta || !locationObj) return;
-  els.siteMeta.textContent = "";
-  const label = document.createElement("span");
-  label.textContent = "Update ready · ";
-  const reload = document.createElement("button");
-  reload.type = "button";
-  reload.className = "text-btn";
-  reload.textContent = "Reload";
-  reload.addEventListener("click", () => locationObj.reload());
-  els.siteMeta.append(label, reload);
+  if (!locationObj) return;
+  for (const target of productionStatusTargets()) {
+    target.textContent = "";
+    const label = document.createElement("span");
+    label.textContent = "Update ready · ";
+    const reload = document.createElement("button");
+    reload.type = "button";
+    reload.className = "text-btn";
+    reload.textContent = "Reload";
+    reload.addEventListener("click", () => locationObj.reload());
+    target.append(label, reload);
+  }
 }
 
 async function checkForNewDeployment({
@@ -830,16 +866,55 @@ async function checkForNewDeployment({
   return deploymentCheckPromise;
 }
 
+let deploymentNotificationPromise = null;
+
+async function checkDeploymentNotification({
+  fetchImpl = typeof fetch === "function" ? fetch : null,
+  notificationImpl = typeof Notification !== "undefined" ? Notification : null,
+  storage = typeof localStorage !== "undefined" ? localStorage : null,
+  locationObj = typeof location !== "undefined" ? location : null,
+  now = Date.now,
+} = {}) {
+  if (!fetchImpl || !notificationImpl || notificationImpl.permission !== "granted") return null;
+  if (deploymentNotificationPromise) return deploymentNotificationPromise;
+
+  deploymentNotificationPromise = (async () => {
+    const nonce = Number(typeof now === "function" ? now() : Date.now());
+    const response = await fetchImpl(`./deployment-status.json?watch=${nonce}`, { cache: "no-cache" });
+    if (!response.ok) return null;
+    const payload = await response.json();
+    const liveSha = String(payload?.build_sha || "");
+    if (!liveSha) return null;
+    let seenSha = BUILD_SHA;
+    try { seenSha = storage?.getItem(DEPLOY_NOTIFICATION_SEEN_KEY) || BUILD_SHA; } catch (_) {}
+    if (liveSha === seenSha) return payload;
+    try { storage?.setItem(DEPLOY_NOTIFICATION_SEEN_KEY, liveSha); } catch (_) {}
+    if (liveSha !== BUILD_SHA) showUpdateReady(locationObj);
+    if (payload?.interactive === true) {
+      new notificationImpl("Yartchives update is live", {
+        body: "Your interactive change is deployed and ready to test.",
+        tag: `yartchives-deploy-${liveSha}`,
+      });
+    }
+    return payload;
+  })().catch(() => null).finally(() => { deploymentNotificationPromise = null; });
+  return deploymentNotificationPromise;
+}
+
 function setUpDeploymentFreshnessChecks() {
   if (typeof window !== "undefined") {
     window.addEventListener("focus", () => {
       void checkForNewDeployment();
       void refreshProductionStatus();
+      void checkDeploymentNotification();
     });
     window.setInterval(() => {
       void checkForNewDeployment();
       void refreshProductionStatus();
     }, 5 * 60 * 1000);
+    window.setInterval(() => {
+      void checkDeploymentNotification();
+    }, DEPLOY_NOTIFICATION_POLL_MS);
   }
   if (typeof document !== "undefined") {
     document.addEventListener("visibilitychange", () => {
@@ -943,6 +1018,7 @@ function isFeedReady() {
 async function boot() {
   updateSiteMeta();
   void refreshProductionStatus();
+  void checkDeploymentNotification();
   setUpDeploymentFreshnessChecks();
   loadSavedState();
   syncControls();
