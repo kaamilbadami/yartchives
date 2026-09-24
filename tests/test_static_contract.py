@@ -99,7 +99,7 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("branches-ignore:", preflight)
         self.assertIn("- main", preflight)
         self.assertIn("gh pr list", preflight)
-        self.assertIn("Open PR already exists; pull_request Quality checks own validation now.", preflight)
+        self.assertIn("Open PR already exists; still validating this exact branch head before merge.", preflight)
         self.assertNotIn("bash scripts/run_quality_checks.sh all", preflight)
         self.assertIn("bash scripts/run_quality_checks.sh python", preflight)
         self.assertIn("bash scripts/run_quality_checks.sh frontend", preflight)
