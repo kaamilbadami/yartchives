@@ -733,6 +733,58 @@ function updateSiteMeta() {
   els.siteMeta.title = `Deployed ${formatEasternTimestamp(deployedAt)} · build ${buildSha.slice(0, 7)}`;
 }
 
+let deploymentCheckPromise = null;
+
+function liveBuildShaFromHtml(html) {
+  const match = String(html || "").match(
+    /<meta\s+name=["']yartchives-build["']\s+content=["']([^"']+)["']/i
+  );
+  return match?.[1] || "";
+}
+
+async function checkForNewDeployment({
+  fetchImpl = typeof fetch === "function" ? fetch : null,
+  locationObj = typeof location !== "undefined" ? location : null,
+  now = Date.now,
+} = {}) {
+  if (!fetchImpl || !locationObj || !BUILD_SHA || BUILD_SHA.startsWith("__")) return false;
+  if (deploymentCheckPromise) return deploymentCheckPromise;
+
+  deploymentCheckPromise = (async () => {
+    const nonce = Number(typeof now === "function" ? now() : Date.now());
+    const response = await fetchImpl(`./?build-check=${encodeURIComponent(BUILD_SHA)}-${nonce}`, {
+      cache: "no-cache",
+    });
+    if (!response.ok) return false;
+    const liveSha = liveBuildShaFromHtml(await response.text());
+    if (!liveSha || liveSha === BUILD_SHA) return false;
+    locationObj.reload();
+    return true;
+  })()
+    .catch(() => false)
+    .finally(() => {
+      deploymentCheckPromise = null;
+    });
+
+  return deploymentCheckPromise;
+}
+
+function setUpDeploymentFreshnessChecks() {
+  if (typeof window !== "undefined") {
+    window.addEventListener("focus", () => {
+      void checkForNewDeployment();
+    });
+    window.setInterval(() => {
+      void checkForNewDeployment();
+    }, 5 * 60 * 1000);
+  }
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") void checkForNewDeployment();
+    });
+  }
+}
+
 function setUpEvents() {
   let timer;
   els.searchInput.addEventListener("input", e => {
@@ -824,6 +876,7 @@ function isFeedReady() {
 
 async function boot() {
   updateSiteMeta();
+  setUpDeploymentFreshnessChecks();
   loadSavedState();
   syncControls();
   renderProfiles();
