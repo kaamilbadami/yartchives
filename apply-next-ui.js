@@ -38,17 +38,10 @@
   }
 
   function yieldToBrowser() {
-    if (
-      typeof globalThis !== "undefined"
-      && globalThis.scheduler
-      && typeof globalThis.scheduler.yield === "function"
-    ) {
-      return globalThis.scheduler.yield();
+    if (typeof YartchivesUtils?.yieldToBrowser === "function") {
+      return YartchivesUtils.yieldToBrowser();
     }
-    return new Promise(resolve => {
-      if (typeof setTimeout === "function") setTimeout(resolve, 0);
-      else resolve();
-    });
+    return Promise.resolve();
   }
 
   function recordTimingStage(timing, name, startedAt, endedAt = timingNow()) {
