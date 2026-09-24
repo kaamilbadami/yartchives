@@ -595,8 +595,8 @@ assert.doesNotMatch(
 
 assert.match(
   addDistanceSource,
-  /jobIndex > 0 && jobIndex % LOCATION_ENRICHMENT_YIELD_EVERY === 0[\s\S]*?await yieldToBrowser\(\)/,
-  "Distance enrichment should yield between bounded job batches so cold computation cannot monopolize the browser main thread"
+  /timingNow\(\) - lastYieldAt >= LOCATION_ENRICHMENT_YIELD_BUDGET_MS[\s\S]*?await yieldToBrowser\(\)/,
+  "Distance enrichment should yield after a bounded amount of main-thread work so cold computation cannot monopolize the browser"
 );
 assert.match(
   UI.yieldToBrowser.toString(),
