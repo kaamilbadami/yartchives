@@ -204,13 +204,17 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn('"Listing hidden on this browser."', text)
         self.assertIn('"Saved, applied, and hidden are stored only in this browser."', text)
 
-    def test_stale_tabs_self_heal_after_frontend_deploys(self):
+    def test_stale_tabs_offer_reload_after_frontend_deploys(self):
         app = (ROOT / "app.js").read_text(encoding="utf-8")
         self.assertIn("function liveBuildShaFromHtml(html)", app)
         self.assertIn("async function checkForNewDeployment", app)
         self.assertIn('cache: "no-cache"', app)
         self.assertIn("liveSha === BUILD_SHA", app)
+        self.assertIn("function showUpdateReady", app)
+        self.assertIn('reload.textContent = "Reload"', app)
+        self.assertIn("reload.addEventListener", app)
         self.assertIn("locationObj.reload()", app)
+        self.assertIn("showUpdateReady(locationObj)", app)
         self.assertIn('window.addEventListener("focus"', app)
         self.assertIn('document.addEventListener("visibilitychange"', app)
         self.assertIn("5 * 60 * 1000", app)
