@@ -16,7 +16,7 @@ PROVIDER_PATTERNS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("icims", ("icims.com",)),
     ("ashby", ("ashbyhq.com", "jobs.ashbyhq.com")),
     ("oracle", ("oraclecloud.com", "taleo.net", "eeho.fa.")),
-    ("successfactors", ("successfactors.com", "successfactors.eu", "career5.successfactors")),
+    ("successfactors", ("successfactors.com", "successfactors.eu", "career5.successfactors", "sapsf.com", "sapsf.eu")),
     ("smartrecruiters", ("smartrecruiters.com", "jobs.smartrecruiters.com")),
     ("lever", ("lever.co", "jobs.lever.co")),
     ("eightfold", ("eightfold.ai", "eightfold")),
