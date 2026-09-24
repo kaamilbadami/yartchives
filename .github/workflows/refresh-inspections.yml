@@ -7,8 +7,8 @@ on:
     - cron: "45 * * * *"
 
 permissions:
-  contents: write
-  actions: write
+  contents: read
+  actions: read
 
 concurrency:
   group: refresh-inspections-${{ github.ref }}
