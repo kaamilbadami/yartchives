@@ -93,6 +93,7 @@
     lines.push(
       `Candidates: ${Number(counts.candidates || 0)} · Rankable: ${Number(counts.rankable || 0)} · Distance candidates: ${Number(counts.distance_candidates || 0)} · Unique distance lookups: ${Number(counts.distance_unique_lookups || 0)} · Distance cache hits: ${Number(counts.distance_cache_hits || 0)} · Distance lookup failures: ${Number(counts.distance_lookup_failures || 0)} · Recommendations: ${Number(counts.recommendations || 0)}`
     );
+    lines.push(`Location parse: ${Number(counts.location_parse_ms || 0).toFixed(1)} ms · compute: ${Number(counts.location_compute_ms || 0).toFixed(1)} ms · yields: ${Number(counts.location_yield_ms || 0).toFixed(1)} ms (${Number(counts.location_yield_count || 0)}) · ordering: ${Number(counts.location_order_ms || 0).toFixed(1)} ms`);
     if (payload.geo_error) lines.push(`Geo load error: ${payload.geo_error}`);
     if (payload.geo_warm_state) lines.push(`Geo warm state at open: ${payload.geo_warm_state}`);
     if (payload.page_visibility) lines.push(`Page visibility at open: ${payload.page_visibility}`);
@@ -162,6 +163,11 @@
         distance_unique_lookups: Number(metadata.distance_unique_lookups || 0),
         distance_cache_hits: Number(metadata.distance_cache_hits || 0),
         distance_lookup_failures: Number(metadata.distance_lookup_failures || 0),
+        location_parse_ms: Number(metadata.location_parse_ms || 0),
+        location_compute_ms: Number(metadata.location_compute_ms || 0),
+        location_yield_ms: Number(metadata.location_yield_ms || 0),
+        location_yield_count: Number(metadata.location_yield_count || 0),
+        location_order_ms: Number(metadata.location_order_ms || 0),
         recommendations: Number(metadata.recommendations || 0),
       },
       geo_error: normalizeGeoErrorCode(metadata.geo_error),
@@ -719,7 +725,7 @@
       delete job._distanceMilesBasis;
     }
 
-    const stats = { unique_lookups: 0, cache_hits: 0, lookup_failures: 0, geo_error: null };
+    const stats = { unique_lookups: 0, cache_hits: 0, lookup_failures: 0, geo_error: null, parse_ms: 0, compute_ms: 0, yield_ms: 0, order_ms: 0, yield_count: 0 };
     const zips = (profile?.baseZips || []).filter(value => /^\d{5}$/.test(String(value)));
     if (!zips.length || typeof loadGeoIndex !== "function" || typeof distanceForJob !== "function") return stats;
 
@@ -740,7 +746,10 @@
     let lastYieldAt = timingNow();
     for (let jobIndex = 0; jobIndex < distanceJobs.length; jobIndex += 1) {
       if (jobIndex > 0 && timingNow() - lastYieldAt >= LOCATION_ENRICHMENT_YIELD_BUDGET_MS) {
+        const yieldStartedAt = timingNow();
         await yieldToBrowser();
+        stats.yield_ms += timingNow() - yieldStartedAt;
+        stats.yield_count += 1;
         lastYieldAt = timingNow();
       }
 
@@ -748,9 +757,12 @@
       if (!job || typeof job !== "object") continue;
 
       let values;
+      const parseStartedAt = timingNow();
       try {
         values = locationDisplayValues(job);
+        stats.parse_ms += timingNow() - parseStartedAt;
       } catch (_) {
+        stats.parse_ms += timingNow() - parseStartedAt;
         stats.lookup_failures += 1;
         continue;
       }
@@ -767,10 +779,13 @@
           }
 
           let distance = null;
+          const computeStartedAt = timingNow();
           try {
             distance = distanceForJob(pseudoJob, origin, geo);
           } catch (_) {
             stats.lookup_failures += 1;
+          } finally {
+            stats.compute_ms += timingNow() - computeStartedAt;
           }
 
           distanceCache.set(cacheKey, distance);
@@ -779,6 +794,7 @@
         });
       });
 
+      const orderStartedAt = timingNow();
       const finiteDistances = perLocation.flat().filter(value => Number.isFinite(value));
       if (finiteDistances.length) {
         job._distanceMiles = Math.min(...finiteDistances);
@@ -794,8 +810,12 @@
       } else {
         delete job._displayLocation;
       }
+      stats.order_ms += timingNow() - orderStartedAt;
     }
 
+    for (const key of ["parse_ms", "compute_ms", "yield_ms", "order_ms"]) {
+      stats[key] = Math.round(stats[key] * 10) / 10;
+    }
     return stats;
   }
 
@@ -1434,7 +1454,7 @@
 
   async function renderQueue(panel, profile) {
     const timing = { startedAt: timingNow(), stages: {} };
-    const counts = { candidates: 0, rankable: 0, distance_candidates: 0, distance_unique_lookups: 0, distance_cache_hits: 0, distance_lookup_failures: 0, recommendations: 0 };
+    const counts = { candidates: 0, rankable: 0, distance_candidates: 0, distance_unique_lookups: 0, distance_cache_hits: 0, distance_lookup_failures: 0, location_parse_ms: 0, location_compute_ms: 0, location_yield_ms: 0, location_yield_count: 0, location_order_ms: 0, recommendations: 0 };
     const geoWarmStateAtOpen = geoWarmState;
     const pageVisibilityAtOpen = typeof document !== "undefined" ? normalize(document.visibilityState) : "";
     let geoError = null;
@@ -1492,6 +1512,11 @@
       counts.distance_unique_lookups = Number(distanceStats?.unique_lookups || 0);
       counts.distance_cache_hits = Number(distanceStats?.cache_hits || 0);
       counts.distance_lookup_failures = Number(distanceStats?.lookup_failures || 0);
+      counts.location_parse_ms = Number(distanceStats?.parse_ms || 0);
+      counts.location_compute_ms = Number(distanceStats?.compute_ms || 0);
+      counts.location_yield_ms = Number(distanceStats?.yield_ms || 0);
+      counts.location_yield_count = Number(distanceStats?.yield_count || 0);
+      counts.location_order_ms = Number(distanceStats?.order_ms || 0);
       geoError = distanceStats?.geo_error || null;
       recordTimingStage(timing, "location_enrichment", stageStartedAt);
 

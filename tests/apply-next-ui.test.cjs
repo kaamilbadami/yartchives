@@ -350,6 +350,8 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /counts\.distance_unique_lookups = Number\(distanceStats\?\.unique_lookups \|\| 0\);/, "Timing diagnostics should expose unique exact-distance lookup count");
   assert.match(uiSource, /counts\.distance_cache_hits = Number\(distanceStats\?\.cache_hits \|\| 0\);/, "Timing diagnostics should expose exact-distance cache hits");
   assert.match(uiSource, /counts\.distance_lookup_failures = Number\(distanceStats\?\.lookup_failures \|\| 0\);/, "Timing diagnostics should expose exact-distance lookup failures");
+  assert.match(uiSource, /counts\.location_compute_ms = Number\(distanceStats\?\.compute_ms \|\| 0\);/, "Timing diagnostics should expose exact distance compute time");
+  assert.match(uiSource, /counts\.location_yield_ms = Number\(distanceStats\?\.yield_ms \|\| 0\);/, "Timing diagnostics should expose scheduler yield time");
   assert.match(uiSource, /stats\.lookup_failures \+= 1;/, "Individual distance lookup failures should be counted instead of aborting the batch");
   assert.match(uiSource, /await addBaseDistances\(distanceCandidates, profile\);/, "Location enrichment must not scan the full rankable pool");
   assert.match(uiSource, /const distanceCache = new Map\(\);/, "Location enrichment should memoize repeated location/origin distance work");
@@ -496,14 +498,14 @@ let loggedTiming = null;
 console.info = (_label, payload) => { loggedTiming = payload; };
 const timingPayload = UI.publishApplyNextTiming(
   timing,
-  { candidates: 500, rankable: 42, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, recommendations: 10, status: "success" },
+  { candidates: 500, rankable: 42, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10, status: "success" },
   180.04
 );
 console.info = priorInfo;
 assert.deepEqual(timingPayload, {
   total_ms: 80,
   stages_ms: { location_enrichment: 25.7 },
-  counts: { candidates: 500, rankable: 42, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, recommendations: 10 },
+  counts: { candidates: 500, rankable: 42, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10 },
   geo_error: null,
   geo_warm_state: null,
   page_visibility: null,
@@ -530,7 +532,7 @@ for (const code of ["geo_index_zips", "geo_index_cities", "geo_index_sort", "geo
 const diagnosticText = UI.timingDiagnosticText({
   total_ms: 10400,
   stages_ms: { candidate_artifact: 9600, ranking: 100, render: 200 },
-  counts: { candidates: 5000, rankable: 42, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, recommendations: 10 },
+  counts: { candidates: 5000, rankable: 42, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10 },
   geo_error: "geo_http_404",
   status: "success",
 });
@@ -538,6 +540,7 @@ assert.match(diagnosticText, /Apply Next total: 10400\.0 ms/);
 assert.match(diagnosticText, /Geo load error: geo_http_404/);
 assert.match(diagnosticText, /Candidate download: 9600\.0 ms/);
 assert.match(diagnosticText, /Candidates: 5000 · Rankable: 42 · Distance candidates: 12 · Unique distance lookups: 7 · Distance cache hits: 5 · Distance lookup failures: 2 · Recommendations: 10/);
+assert.match(diagnosticText, /Location parse: 1\.2 ms · compute: 12\.3 ms · yields: 8\.4 ms \(3\) · ordering: 0\.7 ms/);
 assert.doesNotMatch(diagnosticText, /profile|ZIP|company|jobId|URL/i);
 assert.deepEqual(
   UI.dominantTimingStage({ stages_ms: { candidate_artifact: 9600, ranking: 100, render: 200 } }),
@@ -562,6 +565,11 @@ assert.equal(trackedPayload.counts.distance_candidates, 0);
 assert.equal(trackedPayload.counts.distance_unique_lookups, 0);
 assert.equal(trackedPayload.counts.distance_cache_hits, 0);
 assert.equal(trackedPayload.counts.distance_lookup_failures, 0);
+assert.equal(trackedPayload.counts.location_parse_ms, 0);
+assert.equal(trackedPayload.counts.location_compute_ms, 0);
+assert.equal(trackedPayload.counts.location_yield_ms, 0);
+assert.equal(trackedPayload.counts.location_yield_count, 0);
+assert.equal(trackedPayload.counts.location_order_ms, 0);
 
 // Test non-blocking behavior when YartchivesAnalytics throws an exception
 globalThis.YartchivesAnalytics = {
@@ -584,6 +592,10 @@ assert.notEqual(
 );
 
 const addDistanceSource = UI.addBaseDistances.toString();
+assert.match(addDistanceSource, /stats\.parse_ms \+= timingNow\(\) - parseStartedAt/, "Location parsing time should be measured separately");
+assert.match(addDistanceSource, /stats\.compute_ms \+= timingNow\(\) - computeStartedAt/, "Exact distance compute time should be measured separately");
+assert.match(addDistanceSource, /stats\.yield_ms \+= timingNow\(\) - yieldStartedAt/, "Cooperative scheduler wait should be measured separately");
+assert.match(addDistanceSource, /stats\.order_ms \+= timingNow\(\) - orderStartedAt/, "Location ordering time should be measured separately");
 assert.match(
   addDistanceSource,
   /values\.map\(value => \{[\s\S]*?const pseudoJob = \{ \.\.\.job, location: value, _inspection: null \};[\s\S]*?return origins\.map\(origin => \{/,
