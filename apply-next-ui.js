@@ -158,6 +158,13 @@
       counts: {
         candidates: Number(metadata.candidates || 0),
         rankable: Number(metadata.rankable || 0),
+        inspection_request_ms: Number(metadata.inspection_request_ms || 0),
+        inspection_headers_ms: Number(metadata.inspection_headers_ms || 0),
+        inspection_body_parse_ms: Number(metadata.inspection_body_parse_ms || 0),
+        inspection_preload_age_ms: Number(metadata.inspection_preload_age_ms || 0),
+        preliminary_ranking_ms: Number(metadata.preliminary_ranking_ms || 0),
+        distance_selection_ms: Number(metadata.distance_selection_ms || 0),
+        geo_enrichment_ms: Number(metadata.geo_enrichment_ms || 0),
         distance_candidates: Number(metadata.distance_candidates || 0),
         distance_unique_lookups: Number(metadata.distance_unique_lookups || 0),
         distance_cache_hits: Number(metadata.distance_cache_hits || 0),
