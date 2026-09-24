@@ -28,6 +28,7 @@ on:
 permissions:
   contents: read
   actions: read
+  pull-requests: read
   pages: write
   id-token: write
 
@@ -57,6 +58,8 @@ jobs:
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d
 
       - name: Build static artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           rm -rf _site
           mkdir -p _site/data _site/assets
@@ -82,6 +85,12 @@ jobs:
           BUILD_SHA="$(git rev-parse HEAD)"
           VERSION="$(git rev-parse --short=12 HEAD)"
           DEPLOYED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          INTERACTIVE_DEPLOY="$(gh api -H "Accept: application/vnd.github+json" \
+            "repos/$GITHUB_REPOSITORY/commits/$BUILD_SHA/pulls" \
+            --jq 'map(select((.head.ref // "") | startswith("agent/interactive/"))) | length > 0')"
+          printf '{"build_sha":"%s","deployed_at":"%s","interactive":%s}\n' \
+            "$BUILD_SHA" "$DEPLOYED_AT" "$INTERACTIVE_DEPLOY" \
+            > _site/deployment-status.json
           sed -i "s|__YARTCHIVES_BUILD_SHA__|${BUILD_SHA}|g" _site/index.html
           sed -i "s|__YARTCHIVES_DEPLOYED_AT__|${DEPLOYED_AT}|g" _site/index.html
           for asset in ./*.css ./*.js; do
@@ -139,6 +148,20 @@ jobs:
             "${BASE_URL}/deploy-manifest.txt?verify=${BUILD_SHA}" \
             -o /tmp/live-deploy-manifest.txt
           grep -Fx "build_sha=${BUILD_SHA}" /tmp/live-deploy-manifest.txt
+
+          curl --fail --silent --show-error \
+            -H 'Cache-Control: no-cache' \
+            "${BASE_URL}/deployment-status.json?verify=${BUILD_SHA}" \
+            -o /tmp/live-deployment-status.json
+          python - "${BUILD_SHA}" <<'PY'
+          import json
+          import sys
+          payload = json.load(open("/tmp/live-deployment-status.json", encoding="utf-8"))
+          if payload.get("build_sha") != sys.argv[1]:
+              raise SystemExit("deployment-status.json build SHA does not match live build")
+          if not isinstance(payload.get("interactive"), bool):
+              raise SystemExit("deployment-status.json interactive flag is not boolean")
+          PY
 
           while read -r expected path; do
             [ -n "$expected" ] || continue
