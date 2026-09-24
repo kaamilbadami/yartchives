@@ -37,5 +37,12 @@ def test_interactive_deploy_notification_contract():
     assert "Notification.requestPermission()" in app
     assert '"Yartchives update is live"' in app
     assert "requireInteraction: true" in app
+    assert 'navigator.serviceWorker.register("./service-worker.js", { scope: "./" })' in app
+    assert 'registration.showNotification("Yartchives update is live", options)' in app
+    assert 'new notificationImpl("Yartchives update is live", options)' in app
+    worker = (ROOT / "service-worker.js").read_text(encoding="utf-8")
+    assert 'notificationclick' in worker
+    assert 'clients.matchAll' in worker
+    assert 'clients.openWindow' in worker
     assert "payload?.interactive === true" in app
     assert 'data.productionStatus = "true"' in apply_next

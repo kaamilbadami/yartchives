@@ -12,6 +12,8 @@ assert.ok(assets.length > 0, "index.html should reference local JS/CSS assets");
 assert.ok(workflow.includes('- "*.js"'), "top-level JS changes should trigger a Pages deploy");
 assert.ok(workflow.includes('- "*.css"'), "top-level CSS changes should trigger a Pages deploy");
 assert.ok(workflow.includes("cp ./*.js ./*.css _site/"), "Pages artifact should package top-level JS/CSS generically");
+assert.ok(fs.existsSync("service-worker.js"), "persistent deploy notifications require the service worker source");
+
 assert.ok(workflow.includes("for asset in ./*.css ./*.js; do"), "Pages build should cache-bust packaged JS/CSS generically");
 assert.ok(workflow.includes('?v=${VERSION}'), "Pages build should append the deployment version to local assets");
 assert.match(index, /<meta name="yartchives-build" content="__YARTCHIVES_BUILD_SHA__" \/>/, "index should carry a build marker placeholder");
