@@ -44,5 +44,11 @@ def test_interactive_deploy_notification_contract():
     assert 'notificationclick' in worker
     assert 'clients.matchAll' in worker
     assert 'clients.openWindow' in worker
+    assert 'addEventListener("push"' in worker
+    assert "registration.showNotification" in worker
+    assert "web_push === 8030" in worker
+    manifest = (ROOT / "manifest.webmanifest").read_text(encoding="utf-8")
+    assert '"display": "standalone"' in manifest
+    assert '<link rel="manifest" href="manifest.webmanifest" />' in index
     assert "payload?.interactive === true" in app
     assert 'data.productionStatus = "true"' in apply_next
