@@ -1771,7 +1771,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -2465,7 +2465,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -3641,7 +3641,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -3815,7 +3815,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -4738,7 +4738,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -5034,7 +5034,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -5215,7 +5215,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -5261,7 +5261,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -5510,7 +5510,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -5591,7 +5591,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -5988,7 +5988,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -6570,7 +6570,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -6683,7 +6683,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -6862,7 +6862,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -7724,7 +7724,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -7817,7 +7817,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -8260,7 +8260,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -9254,7 +9254,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -16371,8 +16371,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-24T16:47:03Z",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "resolved_at": "2026-09-24T17:15:01Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
@@ -16466,18 +16466,7 @@
             "type": "http",
             "source": "conventional-path",
             "requested_url": "https://job-boards.greenhouse.io/careers",
-            "redirect_chain": [
-              {
-                "url": "https://job-boards.greenhouse.io/careers",
-                "status": 404
-              }
-            ],
-            "final_url": "https://job-boards.greenhouse.io/careers",
-            "status": 404,
-            "signals": [
-              "shared provider host lacks employer tenant identity"
-            ],
-            "score": -50
+            "error": "ReadTimeout: HTTPSConnectionPool(host='job-boards.greenhouse.io', port=443): Read timed out. (read timeout=15)"
           },
           {
             "type": "http",
@@ -22843,8 +22832,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-24T16:47:03Z",
-        "last_attempt_at": "2026-09-24T16:47:03Z",
+        "resolved_at": "2026-09-24T17:15:01Z",
+        "last_attempt_at": "2026-09-24T17:15:01Z",
         "evidence": [
           {
             "type": "http",
