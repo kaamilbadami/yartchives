@@ -841,7 +841,30 @@
         "accor.com",
         "jobs.smartrecruiters.com",
         "jobs.smartrecruiters.com/accor"
-      ]
+      ],
+      "careers_platform": "smartrecruiters",
+      "provider": {
+        "family": "smartrecruiters",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "smartrecruiters.com",
+        "host": "jobs.smartrecruiters.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-24T07:05:28Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.smartrecruiters.com/accor",
+            "ats_system": "SmartRecruiters",
+            "source_url": "https://withresumeai.com/ats-checker/accor"
+          }
+        ]
+      }
     },
     {
       "id": "ace-hardware",
@@ -1748,7 +1771,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -2442,7 +2465,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -3618,7 +3641,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -3792,7 +3815,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -4715,7 +4738,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -5011,7 +5034,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -5192,7 +5215,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -5238,7 +5261,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -5487,7 +5510,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -5568,7 +5591,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -5965,7 +5988,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -6547,7 +6570,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -6660,7 +6683,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -6839,7 +6862,7 @@
       "careers_resolution": {
         "status": "unresolved",
         "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -7701,7 +7724,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -7794,7 +7817,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -8237,7 +8260,7 @@
       "careers_resolution": {
         "status": "blocked",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -9231,7 +9254,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -16292,7 +16315,30 @@
         "dominos.com",
         "jobs.smartrecruiters.com",
         "jobs.smartrecruiters.com/dominos"
-      ]
+      ],
+      "careers_platform": "smartrecruiters",
+      "provider": {
+        "family": "smartrecruiters",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "smartrecruiters.com",
+        "host": "jobs.smartrecruiters.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-24T07:05:28Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.smartrecruiters.com/dominos",
+            "ats_system": "SmartRecruiters",
+            "source_url": "https://withresumeai.com/ats-checker/dominos"
+          }
+        ]
+      }
     },
     {
       "id": "doordash",
@@ -16325,8 +16371,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-24T05:05:50Z",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "resolved_at": "2026-09-24T07:05:28Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -18589,7 +18635,30 @@
         "expeditors.com",
         "jobs.smartrecruiters.com",
         "jobs.smartrecruiters.com/expeditors"
-      ]
+      ],
+      "careers_platform": "smartrecruiters",
+      "provider": {
+        "family": "smartrecruiters",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "smartrecruiters.com",
+        "host": "jobs.smartrecruiters.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-24T07:05:28Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.smartrecruiters.com/expeditors",
+            "ats_system": "SmartRecruiters",
+            "source_url": "https://withresumeai.com/ats-checker/expeditors"
+          }
+        ]
+      }
     },
     {
       "id": "expeditors-intl-of-washington",
@@ -19814,7 +19883,30 @@
         "freshworks.com",
         "jobs.smartrecruiters.com",
         "jobs.smartrecruiters.com/freshworks"
-      ]
+      ],
+      "careers_platform": "smartrecruiters",
+      "provider": {
+        "family": "smartrecruiters",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "smartrecruiters.com",
+        "host": "jobs.smartrecruiters.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-24T07:05:28Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.smartrecruiters.com/freshworks",
+            "ats_system": "SmartRecruiters",
+            "source_url": "https://withresumeai.com/ats-checker/freshworks"
+          }
+        ]
+      }
     },
     {
       "id": "fujitsu",
@@ -22751,8 +22843,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-24T05:05:50Z",
-        "last_attempt_at": "2026-09-24T05:05:50Z",
+        "resolved_at": "2026-09-24T07:05:28Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
         "evidence": [
           {
             "type": "http",
@@ -23907,7 +23999,30 @@
         "intuitive.com",
         "jobs.smartrecruiters.com",
         "jobs.smartrecruiters.com/intuitive-surgical"
-      ]
+      ],
+      "careers_platform": "smartrecruiters",
+      "provider": {
+        "family": "smartrecruiters",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "smartrecruiters.com",
+        "host": "jobs.smartrecruiters.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-24T07:05:28Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.smartrecruiters.com/intuitive-surgical",
+            "ats_system": "SmartRecruiters",
+            "source_url": "https://withresumeai.com/ats-checker/intuitive-surgical"
+          }
+        ]
+      }
     },
     {
       "id": "iqvia-holdings",
@@ -28909,7 +29024,30 @@
         "jobs.smartrecruiters.com",
         "jobs.smartrecruiters.com/mcdonalds",
         "mcdonalds.com"
-      ]
+      ],
+      "careers_platform": "smartrecruiters",
+      "provider": {
+        "family": "smartrecruiters",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "smartrecruiters.com",
+        "host": "jobs.smartrecruiters.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-24T07:05:28Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.smartrecruiters.com/mcdonalds",
+            "ats_system": "SmartRecruiters",
+            "source_url": "https://withresumeai.com/ats-checker/mcdonalds"
+          }
+        ]
+      }
     },
     {
       "id": "mcgraw-hill",
@@ -30519,7 +30657,30 @@
         "jobs.smartrecruiters.com",
         "jobs.smartrecruiters.com/nbcuniversal",
         "nbcuniversal.com"
-      ]
+      ],
+      "careers_platform": "smartrecruiters",
+      "provider": {
+        "family": "smartrecruiters",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "smartrecruiters.com",
+        "host": "jobs.smartrecruiters.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-24T07:05:28Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.smartrecruiters.com/nbcuniversal",
+            "ats_system": "SmartRecruiters",
+            "source_url": "https://withresumeai.com/ats-checker/nbcuniversal"
+          }
+        ]
+      }
     },
     {
       "id": "nestle",
@@ -34551,7 +34712,30 @@
         "jobs.smartrecruiters.com",
         "jobs.smartrecruiters.com/roland-berger",
         "rolandberger.com"
-      ]
+      ],
+      "careers_platform": "smartrecruiters",
+      "provider": {
+        "family": "smartrecruiters",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "smartrecruiters.com",
+        "host": "jobs.smartrecruiters.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-24T07:05:28Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.smartrecruiters.com/roland-berger",
+            "ats_system": "SmartRecruiters",
+            "source_url": "https://withresumeai.com/ats-checker/roland-berger"
+          }
+        ]
+      }
     },
     {
       "id": "roper-technologies",
@@ -35579,7 +35763,30 @@
         "jobs.smartrecruiters.com",
         "jobs.smartrecruiters.com/servicenow",
         "servicenow.com"
-      ]
+      ],
+      "careers_platform": "smartrecruiters",
+      "provider": {
+        "family": "smartrecruiters",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "smartrecruiters.com",
+        "host": "jobs.smartrecruiters.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-24T07:05:28Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.smartrecruiters.com/servicenow",
+            "ats_system": "SmartRecruiters",
+            "source_url": "https://withresumeai.com/ats-checker/servicenow"
+          }
+        ]
+      }
     },
     {
       "id": "shake-shack",
@@ -42341,7 +42548,30 @@
         "jobs.smartrecruiters.com",
         "jobs.smartrecruiters.com/western-digital",
         "westerndigital.com"
-      ]
+      ],
+      "careers_platform": "smartrecruiters",
+      "provider": {
+        "family": "smartrecruiters",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "smartrecruiters.com",
+        "host": "jobs.smartrecruiters.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-24T07:05:28Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.smartrecruiters.com/western-digital",
+            "ats_system": "SmartRecruiters",
+            "source_url": "https://withresumeai.com/ats-checker/western-digital"
+          }
+        ]
+      }
     },
     {
       "id": "westinghouse",
@@ -42777,7 +43007,30 @@
         "jobs.smartrecruiters.com",
         "jobs.smartrecruiters.com/wise",
         "wise.com"
-      ]
+      ],
+      "careers_platform": "smartrecruiters",
+      "provider": {
+        "family": "smartrecruiters",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "smartrecruiters.com",
+        "host": "jobs.smartrecruiters.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-24T07:05:28Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.smartrecruiters.com/wise",
+            "ats_system": "SmartRecruiters",
+            "source_url": "https://withresumeai.com/ats-checker/wise"
+          }
+        ]
+      }
     },
     {
       "id": "wme-group",
@@ -42829,7 +43082,30 @@
         "careers.smartrecruiters.com",
         "careers.smartrecruiters.com/wns",
         "wns.com"
-      ]
+      ],
+      "careers_platform": "smartrecruiters",
+      "provider": {
+        "family": "smartrecruiters",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "smartrecruiters.com",
+        "host": "careers.smartrecruiters.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-24T07:05:28Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "careers.smartrecruiters.com/wns",
+            "ats_system": "SmartRecruiters",
+            "source_url": "https://withresumeai.com/ats-checker/wns"
+          }
+        ]
+      }
     },
     {
       "id": "workday",
@@ -43079,7 +43355,30 @@
         "jobs.smartrecruiters.com",
         "jobs.smartrecruiters.com/wynn-resorts",
         "wynnresorts.com"
-      ]
+      ],
+      "careers_platform": "smartrecruiters",
+      "provider": {
+        "family": "smartrecruiters",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "smartrecruiters.com",
+        "host": "jobs.smartrecruiters.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-09-24T07:05:28Z",
+        "last_attempt_at": "2026-09-24T07:05:28Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.smartrecruiters.com/wynn-resorts",
+            "ats_system": "SmartRecruiters",
+            "source_url": "https://withresumeai.com/ats-checker/wynn-resorts"
+          }
+        ]
+      }
     },
     {
       "id": "xai",
