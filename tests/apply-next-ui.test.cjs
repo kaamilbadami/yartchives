@@ -344,6 +344,8 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /const rankablePool = authoritativeCandidatePool\(pool\);/, "Apply Next should narrow to authoritative candidates before expensive location work");
   assert.match(uiSource, /const preliminaryRanked = YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\);/, "Apply Next should cheaply pre-rank before exact distance work");
   assert.match(uiSource, /const distanceCandidates = distanceEnrichmentCandidates\(preliminaryRanked, rankingNow\);/, "Exact distance work should be bounded to candidates that can still affect visible recommendations");
+  assert.match(uiSource, /maximumDistanceLocationGain\(result\) > 0/, "Distance shortlist should skip jobs whose location score cannot improve");
+  assert.match(uiSource, /Number\(result\.total \|\| 0\) \+ maximumDistanceLocationGain\(result\) >= decisionCutoff/, "Distance shortlist should use each job's safe maximum location upside");
   assert.match(uiSource, /counts\.distance_candidates = distanceCandidates\.length;/, "Timing diagnostics should expose the exact-distance shortlist size");
   assert.match(uiSource, /counts\.distance_unique_lookups = Number\(distanceStats\?\.unique_lookups \|\| 0\);/, "Timing diagnostics should expose unique exact-distance lookup count");
   assert.match(uiSource, /counts\.distance_cache_hits = Number\(distanceStats\?\.cache_hits \|\| 0\);/, "Timing diagnostics should expose exact-distance cache hits");
@@ -607,17 +609,31 @@ assert.match(
 const syntheticRanked = Array.from({ length: 20 }, (_, index) => ({
   total: 100 - index * 3,
   excluded: false,
+  components: { location: { score: 10 } },
   job: { id: `job-${index}`, posted_at: index < 12 ? "2026-09-20T00:00:00Z" : "2026-08-01T00:00:00Z" },
 }));
+syntheticRanked[0].components.location.score = 20;
+syntheticRanked[0].job.states = ["Remote"];
+syntheticRanked[0].job.location = "Remote";
+
+assert.equal(UI.maximumDistanceLocationGain(syntheticRanked[0]), 0, "Remote jobs should never need exact distance work");
+assert.equal(UI.maximumDistanceLocationGain(syntheticRanked[1]), 10, "Unknown non-remote location score can improve from 10/20 to at most 20/20");
+assert.equal(
+  UI.maximumDistanceLocationGain({ job: { id: "maxed" }, components: { location: { score: 20 } } }),
+  0,
+  "Jobs already at the location maximum should skip exact distance work"
+);
+
 const distanceSubset = UI.distanceEnrichmentCandidates(syntheticRanked, new Date("2026-09-21T00:00:00Z"));
 assert.ok(distanceSubset.length < syntheticRanked.length, "Distance enrichment should be bounded below the full ranked pool");
-assert.ok(distanceSubset.some(job => job.id === "job-9"), "Recommended cutoff candidates must remain eligible for exact distance");
+assert.ok(distanceSubset.some(job => job.id === "job-9"), "A candidate that can still cross the visible cutoff must remain eligible for exact distance");
+assert.ok(!distanceSubset.some(job => job.id === "job-0"), "Remote candidates with distance-independent scores should skip exact distance work");
 assert.ok(
   distanceSubset.every(job => {
     const result = syntheticRanked.find(row => row.job === job);
-    return result.total >= 55;
+    return result.total + UI.maximumDistanceLocationGain(result) >= 55;
   }),
-  "Jobs too far below both visible decision cutoffs should skip exact distance work"
+  "Every enriched job must still be capable of crossing a visible decision cutoff after its maximum possible location gain"
 );
 
 const oldProfile = { targetTerm: "Summer 2027", roleFamilies: [{ id: "software" }] };
