@@ -89,15 +89,36 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run change validation
-        run: bash scripts/run_quality_checks.sh all
-
-      - name: Decide whether repository-health checks are relevant
+      - name: Select targeted preflight phases
         id: scope
         run: |
           git fetch origin main
           base="$(git merge-base origin/main HEAD)"
+          changed="$(git diff --name-only "$base...HEAD")"
+          printf '%s\n' "$changed"
+
+          python=false
+          frontend=false
+
+          if printf '%s\n' "$changed" | grep -Eq '^(scripts/|tests/test_.*\.py$|requirements\.txt$|data/employer-seeds/|employer_universe\.json$|sources\.json$|direct_sources\.json$|data/workday-inspections\.json$|\.github/workflows/)'; then
+            python=true
+          fi
+
+          if printf '%s\n' "$changed" | grep -Eq '^(.*\.js$|.*\.cjs$|.*\.css$|index\.html$|tests/.*\.cjs$|\.github/workflows/)'; then
+            frontend=true
+          fi
+
+          echo "python=$python" >> "$GITHUB_OUTPUT"
+          echo "frontend=$frontend" >> "$GITHUB_OUTPUT"
           bash scripts/quality_scope.sh "$base" HEAD | tail -n 1 >> "$GITHUB_OUTPUT"
+
+      - name: Run targeted Python validation
+        if: steps.scope.outputs.python == 'true'
+        run: bash scripts/run_quality_checks.sh python
+
+      - name: Run targeted frontend validation
+        if: steps.scope.outputs.frontend == 'true'
+        run: bash scripts/run_quality_checks.sh frontend
 
       - name: Run relevant repository health checks
         if: steps.scope.outputs.health == 'true'
