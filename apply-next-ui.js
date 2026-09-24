@@ -317,6 +317,13 @@
     return (jobs || []).filter(job => job?._inspection?.status === "inspected");
   }
 
+  function maximumDistanceLocationGain(result) {
+    if (!result?.job || isRemoteJob(result.job)) return 0;
+    const currentLocationScore = Number(result?.components?.location?.score);
+    if (!Number.isFinite(currentLocationScore)) return LOCATION_DISTANCE_MAX_GAIN;
+    return Math.max(0, componentMax("location") - currentLocationScore);
+  }
+
   function distanceEnrichmentCandidates(preliminaryRanked, nowValue = new Date()) {
     const ranked = (preliminaryRanked || []).filter(result => result && !result.excluded && result.job);
     if (!ranked.length) return [];
@@ -334,9 +341,11 @@
       : FRESH_MIN_SCORE;
 
     const decisionCutoff = Math.min(recommendedCutoff, freshCutoff);
-    const minimumCompetitiveScore = Math.max(0, decisionCutoff - LOCATION_DISTANCE_MAX_GAIN);
     return ranked
-      .filter(result => Number(result.total || 0) >= minimumCompetitiveScore)
+      .filter(result => (
+        maximumDistanceLocationGain(result) > 0
+        && Number(result.total || 0) + maximumDistanceLocationGain(result) >= decisionCutoff
+      ))
       .map(result => result.job);
   }
 
@@ -1626,6 +1635,7 @@
     knownWrongTerm,
     candidatePool,
     authoritativeCandidatePool,
+    maximumDistanceLocationGain,
     distanceEnrichmentCandidates,
     profileSummary,
     formatPostedDate,
