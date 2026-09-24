@@ -720,17 +720,65 @@ function formatSiteAge(value, nowValue = Date.now()) {
   return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
-function updateSiteMeta() {
+const DEPLOY_STATUS_URL = "https://api.github.com/repos/kaamilbadami/yartchives/actions/workflows/deploy-pages.yml/runs?per_page=1";
+
+function localDeploymentInfo() {
+  const deployedAt = document.querySelector('meta[name="yartchives-deployed-at"]')?.content || "";
+  const buildSha = document.querySelector('meta[name="yartchives-build"]')?.content || "";
+  return { deployedAt, buildSha, age: formatSiteAge(deployedAt) };
+}
+
+function renderProductionStatus(run = null) {
   if (!els.siteMeta) return;
-  const deployedAt = document.querySelector('meta[name="yartchives-deployed-at"]')?.content;
-  const buildSha = document.querySelector('meta[name="yartchives-build"]')?.content;
-  const age = formatSiteAge(deployedAt);
+  const { deployedAt, buildSha, age } = localDeploymentInfo();
   if (!age || !buildSha || buildSha.startsWith("__")) {
-    els.siteMeta.textContent = "Site version unavailable.";
+    els.siteMeta.textContent = "Production status unavailable.";
     return;
   }
-  els.siteMeta.textContent = `Site updated ${age}`;
-  els.siteMeta.title = `Deployed ${formatEasternTimestamp(deployedAt)} · build ${buildSha.slice(0, 7)}`;
+
+  const shortSha = buildSha.slice(0, 7);
+  const status = String(run?.status || "");
+  const conclusion = String(run?.conclusion || "");
+  const runSha = String(run?.head_sha || "");
+  const newerRun = Boolean(runSha && runSha !== buildSha);
+
+  if (status === "queued" || status === "in_progress" || status === "waiting" || status === "pending") {
+    els.siteMeta.textContent = newerRun
+      ? `Deploying update… · current production ${shortSha}`
+      : `Deploying… · current production ${shortSha}`;
+  } else if (status === "completed" && conclusion && conclusion !== "success" && newerRun) {
+    els.siteMeta.textContent = `Deployment blocked · production still ${shortSha}`;
+  } else {
+    els.siteMeta.textContent = `Ready to test · production ${shortSha} · deployed ${age}`;
+  }
+  els.siteMeta.title = `Deployed ${formatEasternTimestamp(deployedAt)} · build ${buildSha}${run?.html_url ? ` · latest deploy: ${run.html_url}` : ""}`;
+}
+
+function updateSiteMeta() {
+  renderProductionStatus();
+}
+
+let productionStatusPromise = null;
+
+async function refreshProductionStatus(fetchImpl = typeof fetch === "function" ? fetch : null) {
+  if (!fetchImpl || !els.siteMeta) return null;
+  if (productionStatusPromise) return productionStatusPromise;
+  productionStatusPromise = (async () => {
+    const response = await fetchImpl(DEPLOY_STATUS_URL, {
+      cache: "no-cache",
+      headers: { Accept: "application/vnd.github+json" },
+    });
+    if (!response.ok) return null;
+    const payload = await response.json();
+    const run = Array.isArray(payload?.workflow_runs) ? payload.workflow_runs[0] : null;
+    renderProductionStatus(run);
+    return run;
+  })()
+    .catch(() => null)
+    .finally(() => {
+      productionStatusPromise = null;
+    });
+  return productionStatusPromise;
 }
 
 let deploymentCheckPromise = null;
@@ -773,14 +821,19 @@ function setUpDeploymentFreshnessChecks() {
   if (typeof window !== "undefined") {
     window.addEventListener("focus", () => {
       void checkForNewDeployment();
+      void refreshProductionStatus();
     });
     window.setInterval(() => {
       void checkForNewDeployment();
+      void refreshProductionStatus();
     }, 5 * 60 * 1000);
   }
   if (typeof document !== "undefined") {
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") void checkForNewDeployment();
+      if (document.visibilityState === "visible") {
+        void checkForNewDeployment();
+        void refreshProductionStatus();
+      }
     });
   }
 }
@@ -876,6 +929,7 @@ function isFeedReady() {
 
 async function boot() {
   updateSiteMeta();
+  void refreshProductionStatus();
   setUpDeploymentFreshnessChecks();
   loadSavedState();
   syncControls();
