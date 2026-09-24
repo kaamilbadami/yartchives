@@ -56,7 +56,7 @@ These instructions apply to automated coding agents working in this repository.
 
 - Run the smallest relevant test set while iterating.
 - Before opening a PR for code or workflow changes, run the relevant regression tests and `bash scripts/run_quality_checks.sh all`.
-- Every non-`main` branch push triggers the `Agent preflight` workflow. Do not open a PR until the exact branch head SHA has a successful `Agent preflight / preflight` check.
+- Every relevant non-`main` branch push triggers the existing `Branch preflight` workflow. Do not open a PR until the exact branch head SHA has a successful `Branch preflight / tests` check. If preflight fails, repair the same branch and rerun it before publishing the PR.
 - If full CI fails for a pre-existing unrelated reason, document the exact failure and do not disguise it as success.
 - Never remove or weaken a failing test without showing why the previous assertion was unstable or incorrect.
 
