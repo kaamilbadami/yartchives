@@ -36,5 +36,6 @@ def test_interactive_deploy_notification_contract():
     assert '"Enable deploy alerts"' in app
     assert "Notification.requestPermission()" in app
     assert '"Yartchives update is live"' in app
+    assert "requireInteraction: true" in app
     assert "payload?.interactive === true" in app
     assert 'data.productionStatus = "true"' in apply_next
