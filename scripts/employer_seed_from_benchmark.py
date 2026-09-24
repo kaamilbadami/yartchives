@@ -10,6 +10,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from employer_universe import normalize_name
+from domain_discovery import enrich_domains
 
 
 EXCLUDED_DISCOVERY_HOSTS = {
@@ -32,7 +33,7 @@ def _host(url: str) -> str | None:
     return host.removeprefix("www.")
 
 
-def build_seed(benchmark: dict[str, Any], source_key: str | None = None) -> dict[str, Any]:
+def build_seed(benchmark: dict[str, Any], source_key: str | None = None, enrich_domain_hints: bool = False) -> dict[str, Any]:
     discoveries = benchmark.get("discoveries")
     if not isinstance(discoveries, list):
         raise ValueError("benchmark discoveries must be a list")
@@ -86,7 +87,7 @@ def build_seed(benchmark: dict[str, Any], source_key: str | None = None) -> dict
             employer["domain_hints"] = sorted(item["domain_hints"])
         employers.append(employer)
 
-    return {
+    seed = {
         "schema_version": 1,
         "source": {
             "key": key,
@@ -97,6 +98,9 @@ def build_seed(benchmark: dict[str, Any], source_key: str | None = None) -> dict
         },
         "employers": employers,
     }
+    if enrich_domain_hints:
+        seed = enrich_domains(seed)
+    return seed
 
 
 def main() -> int:
@@ -104,10 +108,11 @@ def main() -> int:
     parser.add_argument("benchmark")
     parser.add_argument("--output")
     parser.add_argument("--source-key")
+    parser.add_argument("--enrich-domain-hints", action="store_true")
     args = parser.parse_args()
 
     benchmark = json.loads(Path(args.benchmark).read_text(encoding="utf-8"))
-    seed = build_seed(benchmark, source_key=args.source_key)
+    seed = build_seed(benchmark, source_key=args.source_key, enrich_domain_hints=args.enrich_domain_hints)
     output = json.dumps(seed, indent=2) + "\n"
     if args.output:
         Path(args.output).write_text(output, encoding="utf-8")
