@@ -157,16 +157,16 @@ jobs:
           fi
 
           title="$(git log -1 --pretty=%s)"
-          notify_marker=""
+          interactive_notify_marker=""
           if [[ "$GITHUB_REF_NAME" == agent/interactive/* ]]; then
-            notify_marker="<!-- notify-when-deployed -->"
+            interactive_notify_marker="<!-- notify-when-deployed -->"
           fi
           body="<!-- trusted-preflight-auto-pr -->
           Auto-created after targeted Branch preflight passed for \`$GITHUB_SHA\`.
 
           Full Quality checks are dispatched explicitly because PRs created by GITHUB_TOKEN do not recursively trigger pull_request workflows."
-          if [ -n "$notify_marker" ]; then
-            body="$body"
+          if [ -n "$interactive_notify_marker" ]; then
+            body="${body}"
           gh pr create \
             --repo "$GITHUB_REPOSITORY" \
             --base main \
@@ -178,7 +178,7 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --ref "$GITHUB_REF_NAME"
 
-\n\n'"$notify_marker"
+\n\n'"${interactive_notify_marker}"
           fi
 
           gh pr create \
