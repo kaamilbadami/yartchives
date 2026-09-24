@@ -37,7 +37,7 @@ assert.equal(UI.totalScoreBandClass(65), "apply-next-score-medium");
 assert.equal(UI.totalScoreBandClass(85), "apply-next-score-high");
 assert.equal(UI.FRESH_MAX_AGE_DAYS, 3);
 assert.equal(UI.FRESH_MIN_SCORE, 55);
-assert.equal(UI.LOCATION_ENRICHMENT_YIELD_BUDGET_MS, 12);
+assert.equal(UI.LOCATION_ENRICHMENT_YIELD_BUDGET_MS, 100);
 
 const freshNow = new Date("2026-09-19T12:00:00Z");
 const freshRanked = [
