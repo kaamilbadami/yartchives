@@ -2027,7 +2027,8 @@ class AutonomousDispatcherTests(unittest.TestCase):
             frozenset(),
         )
         prompt = mod.session_prompt("kaamilbadami/yartchives", task)
-        self.assertIn("bash scripts/run_quality_checks.sh all", prompt)
+        self.assertIn("smallest relevant regression tests", prompt)
+        self.assertIn("targeted 'Branch preflight'", prompt)
         self.assertIn("exact branch head SHA", prompt)
         self.assertIn("Branch preflight", prompt)
         self.assertIn("repair the same branch", prompt)
