@@ -894,6 +894,7 @@ async function checkDeploymentNotification({
       new notificationImpl("Yartchives update is live", {
         body: "Your interactive change is deployed and ready to test.",
         tag: `yartchives-deploy-${liveSha}`,
+        requireInteraction: true,
       });
     }
     return payload;
