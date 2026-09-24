@@ -20,20 +20,28 @@
     Object.entries(STATE_NAMES).map(([code, name]) => [name.toLowerCase(), code.toLowerCase()])
   );
 
+  const MAX_PAINT_WAIT_MS = 50;
+
   function waitForBrowserPaint(options = {}) {
     return new Promise(resolve => {
       const raf = options.requestAnimationFrame
         || (typeof requestAnimationFrame === "function" ? requestAnimationFrame : null);
       const timer = options.setTimeout
         || (typeof setTimeout === "function" ? setTimeout : null);
+      const maxWaitMs = Number.isFinite(Number(options.maxWaitMs))
+        ? Math.max(0, Number(options.maxWaitMs))
+        : MAX_PAINT_WAIT_MS;
+      let settled = false;
 
-      if (raf) {
-        raf(() => resolve());
-      } else if (timer) {
-        timer(resolve, 0);
-      } else {
+      const finish = () => {
+        if (settled) return;
+        settled = true;
         resolve();
-      }
+      };
+
+      if (raf) raf(finish);
+      if (timer) timer(finish, raf ? maxWaitMs : 0);
+      if (!raf && !timer) finish();
     });
   }
 
@@ -379,6 +387,7 @@
 
   return {
     STATE_NAMES,
+    MAX_PAINT_WAIT_MS,
     waitForBrowserPaint,
     runWithPendingUi,
     normalizePlace,
