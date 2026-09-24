@@ -13,6 +13,18 @@ assert.ok(workflow.includes('- "*.js"'), "top-level JS changes should trigger a 
 assert.ok(workflow.includes('- "*.css"'), "top-level CSS changes should trigger a Pages deploy");
 assert.ok(workflow.includes("cp ./*.js ./*.css _site/"), "Pages artifact should package top-level JS/CSS generically");
 assert.ok(fs.existsSync("service-worker.js"), "persistent deploy notifications require the service worker source");
+assert.ok(fs.existsSync("manifest.webmanifest"), "iPhone Home Screen support requires a web app manifest");
+const manifest = JSON.parse(fs.readFileSync("manifest.webmanifest", "utf8"));
+assert.equal(manifest.display, "standalone", "Home Screen installs should launch as a standalone web app");
+assert.equal(manifest.id, "./", "PWA identity should stay stable across deploys");
+assert.match(index, /<link rel="manifest" href="manifest\.webmanifest" \/>/, "index should expose the PWA manifest");
+assert.match(index, /<link rel="apple-touch-icon" href="assets\/yartchives-hedgehog\.png" \/>/, "iPhone Home Screen installs should use the Yartchives icon");
+assert.ok(workflow.includes('- "*.webmanifest"'), "manifest changes should trigger a Pages deploy");
+assert.ok(workflow.includes("cp index.html .nojekyll manifest.webmanifest _site/"), "Pages artifact should package the PWA manifest");
+const serviceWorker = fs.readFileSync("service-worker.js", "utf8");
+assert.match(serviceWorker, /addEventListener\("push"/, "service worker should receive background Web Push events");
+assert.match(serviceWorker, /registration\.showNotification/, "traditional Web Push should display a notification from the service worker");
+assert.match(serviceWorker, /payload\?\.web_push === 8030/, "declarative Web Push payloads should avoid duplicate service-worker notifications");
 
 assert.ok(workflow.includes("for asset in ./*.css ./*.js; do"), "Pages build should cache-bust packaged JS/CSS generically");
 assert.ok(workflow.includes('?v=${VERSION}'), "Pages build should append the deployment version to local assets");
