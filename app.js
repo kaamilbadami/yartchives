@@ -724,6 +724,107 @@ const DEPLOY_STATUS_URL = "https://api.github.com/repos/kaamilbadami/yartchives/
 const DEPLOY_NOTIFICATION_POLL_MS = 30 * 1000;
 const DEPLOY_NOTIFICATION_SEEN_KEY = "yartchives-last-seen-deploy-v1";
 
+let pendingWebPushSetup = null;
+
+function bytesToBase64Url(bytes) {
+  let binary = "";
+  for (const byte of bytes || []) binary += String.fromCharCode(byte);
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function isStandaloneWebApp() {
+  return Boolean(
+    (typeof window !== "undefined" && window.matchMedia?.("(display-mode: standalone)")?.matches)
+    || (typeof navigator !== "undefined" && navigator.standalone === true)
+  );
+}
+
+async function createWebPushSetup({
+  cryptoImpl = typeof crypto !== "undefined" ? crypto : null,
+  navigatorImpl = typeof navigator !== "undefined" ? navigator : null,
+} = {}) {
+  if (!cryptoImpl?.subtle || !navigatorImpl?.serviceWorker) {
+    throw new Error("Web Push setup is unavailable in this browser.");
+  }
+  const registration = await navigatorImpl.serviceWorker.ready;
+  if (!registration?.pushManager) throw new Error("Push notifications are unavailable in this web app.");
+
+  const keyPair = await cryptoImpl.subtle.generateKey(
+    { name: "ECDSA", namedCurve: "P-256" },
+    true,
+    ["sign", "verify"]
+  );
+  const publicKey = new Uint8Array(await cryptoImpl.subtle.exportKey("raw", keyPair.publicKey));
+  const privateKey = new Uint8Array(await cryptoImpl.subtle.exportKey("pkcs8", keyPair.privateKey));
+
+  const existing = await registration.pushManager.getSubscription();
+  if (existing) await existing.unsubscribe();
+  const subscription = await registration.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: publicKey,
+  });
+  return {
+    subscription: JSON.stringify(subscription.toJSON()),
+    privateKey: bytesToBase64Url(privateKey),
+  };
+}
+
+async function copyPushSetupValue(button, value) {
+  if (!value || typeof navigator === "undefined" || !navigator.clipboard?.writeText) return false;
+  await navigator.clipboard.writeText(value);
+  const prior = button.textContent;
+  button.textContent = "Copied";
+  if (typeof setTimeout === "function") setTimeout(() => { button.textContent = prior; }, 1200);
+  return true;
+}
+
+function appendWebPushSetupControls(target) {
+  if (!target || typeof Notification === "undefined" || Notification.permission !== "granted") return;
+
+  if (pendingWebPushSetup) {
+    const separator = document.createTextNode(" · ");
+    const subscription = document.createElement("button");
+    subscription.type = "button";
+    subscription.className = "text-btn";
+    subscription.textContent = "Copy subscription secret";
+    subscription.title = "GitHub secret: YARTCHIVES_PUSH_SUBSCRIPTION";
+    subscription.addEventListener("click", () => void copyPushSetupValue(subscription, pendingWebPushSetup.subscription));
+
+    const key = document.createElement("button");
+    key.type = "button";
+    key.className = "text-btn";
+    key.textContent = "Copy VAPID key";
+    key.title = "GitHub secret: YARTCHIVES_VAPID_PRIVATE_KEY";
+    key.addEventListener("click", () => void copyPushSetupValue(key, pendingWebPushSetup.privateKey));
+
+    const github = document.createElement("a");
+    github.className = "text-btn";
+    github.href = "https://github.com/kaamilbadami/yartchives/settings/secrets/actions";
+    github.target = "_blank";
+    github.rel = "noopener noreferrer";
+    github.textContent = "Open GitHub secrets ↗";
+    target.append(separator, subscription, document.createTextNode(" · "), key, document.createTextNode(" · "), github);
+    return;
+  }
+
+  if (!isStandaloneWebApp() || typeof navigator === "undefined" || !navigator.serviceWorker) return;
+  const separator = document.createTextNode(" · ");
+  const setup = document.createElement("button");
+  setup.type = "button";
+  setup.className = "text-btn";
+  setup.textContent = "Set up iPhone push";
+  setup.addEventListener("click", async () => {
+    try {
+      pendingWebPushSetup = await createWebPushSetup();
+      renderProductionStatus();
+    } catch (error) {
+      console.error(error);
+      setup.textContent = "Push setup failed";
+    }
+  });
+  target.append(separator, setup);
+}
+
 function localDeploymentInfo() {
   const deployedAt = document.querySelector('meta[name="yartchives-deployed-at"]')?.content || "";
   const buildSha = document.querySelector('meta[name="yartchives-build"]')?.content || "";
@@ -738,7 +839,13 @@ function productionStatusTargets() {
 }
 
 function appendDeployAlertControl(target) {
-  if (!target || typeof Notification === "undefined" || Notification.permission !== "default") return;
+  if (!target || typeof Notification === "undefined") return;
+  if (Notification.permission === "granted") {
+    appendWebPushSetupControls(target);
+    return;
+  }
+  if (Notification.permission !== "default") return;
+
   const separator = document.createTextNode(" · ");
   const enable = document.createElement("button");
   enable.type = "button";
@@ -748,6 +855,9 @@ function appendDeployAlertControl(target) {
     const permission = await Notification.requestPermission();
     if (permission === "granted") {
       try { localStorage.setItem(DEPLOY_NOTIFICATION_SEEN_KEY, BUILD_SHA); } catch (_) {}
+      if (isStandaloneWebApp()) {
+        try { pendingWebPushSetup = await createWebPushSetup(); } catch (error) { console.error(error); }
+      }
       void checkDeploymentNotification();
     }
     renderProductionStatus();
