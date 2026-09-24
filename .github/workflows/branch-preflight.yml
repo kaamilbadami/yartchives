@@ -39,8 +39,9 @@ on:
       - ".github/workflows/**"
 
 permissions:
+  actions: write
   contents: read
-  pull-requests: read
+  pull-requests: write
 
 concurrency:
   group: branch-preflight-${{ github.ref }}
@@ -123,3 +124,52 @@ jobs:
       - name: Run relevant repository health checks
         if: steps.scope.outputs.health == 'true'
         run: bash scripts/run_quality_checks.sh health
+
+  publish-pr:
+    needs:
+      - gate
+      - tests
+    if: >-
+      needs.gate.outputs.should_run == 'true' &&
+      needs.tests.result == 'success' &&
+      (startsWith(github.ref_name, 'agent/') || startsWith(github.ref_name, 'codex/'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out validated head
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - name: Create trusted agent PR and dispatch authoritative CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          existing="$(gh pr list \
+            --repo "$GITHUB_REPOSITORY" \
+            --head "$GITHUB_REF_NAME" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')"
+          if [ -n "$existing" ]; then
+            echo "PR #$existing already exists; leaving it unchanged."
+            exit 0
+          fi
+
+          title="$(git log -1 --pretty=%s)"
+          body="<!-- trusted-preflight-auto-pr -->
+          Auto-created after targeted Branch preflight passed for \`$GITHUB_SHA\`.
+
+          Full Quality checks are dispatched explicitly because PRs created by GITHUB_TOKEN do not recursively trigger pull_request workflows."
+
+          gh pr create \
+            --repo "$GITHUB_REPOSITORY" \
+            --base main \
+            --head "$GITHUB_REF_NAME" \
+            --title "$title" \
+            --body "$body"
+
+          gh workflow run quality.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref "$GITHUB_REF_NAME"
+
