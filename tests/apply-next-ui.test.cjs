@@ -422,9 +422,10 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\)/, "Final ranking should use the same timestamp as the location pre-rank");
   const renderQueueSource = uiSource.match(/async function renderQueue\(panel, profile\) \{([\s\S]*?)\n  \}/);
   assert.ok(renderQueueSource, "renderQueue should be present");
-  assert.ok(
-    renderQueueSource[1].indexOf("await YartchivesUtils.waitForBrowserPaint()") < renderQueueSource[1].indexOf("recommendationJobs = await loadCandidateArtifact()"),
-    "Apply Next should yield a paint before candidate loading and synchronous filtering"
+  assert.doesNotMatch(
+    renderQueueSource[1],
+    /await YartchivesUtils\.waitForBrowserPaint\(\)/,
+    "Apply Next startup should not block on browser paint scheduling"
   );
   const applyNextCss = fs.readFileSync(path.join(__dirname, "..", "apply-next.css"), "utf8");
   assert.match(applyNextCss, /\.apply-next-open:disabled\s*\{[\s\S]*?cursor:\s*progress/, "Disabled Apply Next should have a visible loading treatment");
