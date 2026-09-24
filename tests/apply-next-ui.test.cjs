@@ -347,8 +347,8 @@ assert.equal(jobs[2]._inspection, undefined);
   );
   assert.match(
     uiSource,
-    /timing\.stages\.paint_wait = 0;/,
-    "Apply Next diagnostics should report no blocking paint wait"
+    /recordTimingStage\(timing, "paint_wait", stageStartedAt, stageStartedAt\);/,
+    "Apply Next diagnostics should retain a zero-duration paint-wait stage without awaiting a frame"
   );
   assert.match(uiSource, /const rankablePool = authoritativeCandidatePool\(pool\);/, "Apply Next should narrow to authoritative candidates before expensive location work");
   assert.match(uiSource, /const preliminaryRanked = YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\);/, "Apply Next should cheaply pre-rank before exact distance work");
