@@ -182,14 +182,25 @@ assert.match(
   /workflow_run:[\s\S]*?workflows:[\s\S]*?- Update opportunity feed[\s\S]*?types:[\s\S]*?- completed/,
   "Pages should wake after the feed workflow completes because GITHUB_TOKEN feed commits do not trigger downstream push workflows"
 );
+assert.equal(
+  workflow.includes("github.event.workflow_run.conclusion == 'success'"),
+  false,
+  "Pages must inspect publishable artifacts even when a later non-publication step fails"
+);
+assert.equal(
+  workflow.includes('- "data/listings.json"') || workflow.includes('- "data/workday-inspections.json"'),
+  false,
+  "Runtime data publication should not depend on generated-data pushes to main"
+);
 assert.match(
   workflow,
-  /if:\s*github\.event_name != 'workflow_run' \|\| github\.event\.workflow_run\.conclusion == 'success'/,
-  "Pages should deploy feed workflow completions only when the upstream refresh succeeded"
+  /Hydrate latest runtime artifacts[\s\S]*?scripts\/download_latest_feed\.py/,
+  "Pages should hydrate the latest successful runtime artifacts before building"
 );
-assert.ok(
-  workflow.includes('- "data/listings.json"') && workflow.includes('- "data/workday-inspections.json"'),
-  "Successful feed commits must directly trigger Pages deployment"
+assert.match(
+  workflow,
+  /workflows:[\s\S]*?- Update opportunity feed[\s\S]*?- Refresh bounded inspections/,
+  "Pages should redeploy after either runtime artifact producer succeeds"
 );
 assert.match(
   workflow,

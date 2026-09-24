@@ -7,8 +7,8 @@ on:
     - cron: "45 * * * *"
 
 permissions:
-  contents: write
-  actions: write
+  contents: read
+  actions: read
 
 concurrency:
   group: refresh-inspections-${{ github.ref }}
@@ -32,42 +32,21 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Hydrate latest runtime artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/download_latest_feed.py --repo "${{ github.repository }}"
+
       - name: Migrate cached requirement semantics
         run: python scripts/migrate_cached_requirements.py data/workday-inspections.json
 
       - name: Refresh bounded posting inspections
         run: python scripts/update_workday_inspections.py data/listings.json --cache data/workday-inspections.json --max-workday-requests 25 --max-icims-requests 10 --max-greenhouse-requests 10 --ttl-days 7
 
-      - name: Commit inspections
-        run: |
-          GENERATED_PATHS="data/workday-inspections.json"
-          if git diff --quiet -- $GENERATED_PATHS; then
-            echo "No inspection changes."
-          else
-            cp data/workday-inspections.json /tmp/yartchives-generated-workday-inspections.json
-            START_SHA="$(git rev-parse HEAD)"
-            git fetch origin main
-            REMOTE_SHA="$(git rev-parse origin/main)"
-
-            SHOULD_COMMIT="true"
-            if [ "$START_SHA" != "$REMOTE_SHA" ]; then
-              echo "main advanced while this refresh was running."
-              CHANGED="$(git diff --name-only "$START_SHA".."$REMOTE_SHA")"
-              echo "$CHANGED"
-              echo "Rebasing generated inspections onto current main."
-              git reset --hard origin/main
-              cp /tmp/yartchives-generated-workday-inspections.json data/workday-inspections.json
-            fi
-
-            if [ "$SHOULD_COMMIT" = "true" ]; then
-              if git diff --quiet -- $GENERATED_PATHS; then
-                echo "No generated changes after synchronizing with main."
-              else
-                git config user.name "yartchives-bot"
-                git config user.email "actions@users.noreply.github.com"
-                git add $GENERATED_PATHS
-                git commit -m "chore: refresh bounded inspections"
-                git push origin main
-              fi
-            fi
-          fi
+      - name: Publish bounded inspections artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: yartchives-inspections
+          path: data/workday-inspections.json
+          if-no-files-found: error
+          retention-days: 30

@@ -40,6 +40,10 @@ const STORAGE_KEY = "yartchives-state-v1";
 const PAGE_SIZE = 40;
 const PRIORITY_STATE = "CT";
 const GEO_DATA_URL = "data/geo-index.json";
+const BUILD_SHA = document.querySelector('meta[name="yartchives-build"]')?.content || "";
+const FEED_DATA_URL = BUILD_SHA && !BUILD_SHA.startsWith("__")
+  ? `data/listings.json?v=${encodeURIComponent(BUILD_SHA)}`
+  : "data/listings.json";
 
 let feed = { jobs: [], sources: {}, generated_at: null };
 let feedReady = false;
@@ -825,7 +829,7 @@ async function boot() {
   renderProfiles();
   setUpEvents();
   try {
-    const response = await fetch("data/listings.json", { cache: "no-cache" });
+    const response = await fetch(FEED_DATA_URL, { cache: "no-cache" });
     if (!response.ok) throw new Error(`Feed request failed (${response.status})`);
     feed = await response.json();
     if (!Array.isArray(feed.jobs)) throw new Error("Feed JSON is malformed");

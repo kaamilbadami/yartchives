@@ -1,5 +1,4 @@
 from pathlib import Path
-import subprocess
 import unittest
 
 
@@ -8,124 +7,51 @@ WORKFLOW = ROOT / ".github" / "workflows" / "update-feed.yml"
 
 
 class UpdateFeedWorkflowTests(unittest.TestCase):
-    def test_employer_universe_is_persisted_immediately_after_resolution(self):
+    def test_employer_universe_is_still_persisted_before_long_feed_build(self):
         text = WORKFLOW.read_text(encoding="utf-8")
-
         resolver = text.index("- name: Refresh bounded employer careers resolutions")
         persist = text.index("- name: Persist employer universe before long feed build")
         snapshot = text.index("- name: Snapshot existing final feed")
-
         self.assertLess(resolver, persist)
         self.assertLess(persist, snapshot)
-        self.assertIn('git add employer_universe.json', text[persist:snapshot])
-        self.assertIn('git push origin HEAD:main', text[persist:snapshot])
+        self.assertIn("git add employer_universe.json", text[persist:snapshot])
 
-    def test_final_generated_commit_does_not_rebundle_employer_universe(self):
+    def test_runtime_state_is_hydrated_before_feed_snapshot(self):
         text = WORKFLOW.read_text(encoding="utf-8")
+        hydrate = text.index("- name: Hydrate latest runtime artifacts")
+        snapshot = text.index("- name: Snapshot existing final feed")
+        self.assertLess(hydrate, snapshot)
+        self.assertIn("scripts/download_latest_feed.py", text[hydrate:snapshot])
 
-        fast_commit = text.index("- name: Commit fast-path opportunity feed")
-        slow_commit = text.index("- name: Commit slow-path enrichments and audits")
-
-        fast_tail = text[fast_commit:slow_commit]
-        slow_tail = text[slow_commit:]
-
-        self.assertIn(
-            'GENERATED_PATHS="data/listings.json"',
-            fast_tail,
-        )
-        self.assertIn(
-            'GENERATED_PATHS="README.md"',
-            slow_tail,
-        )
-        self.assertNotIn(
-            'employer_universe.json"',
-            fast_tail,
-        )
-        self.assertNotIn(
-            'employer_universe.json"',
-            slow_tail,
-        )
-        self.assertNotIn("yartchives-generated-employer-universe", fast_tail)
-        self.assertNotIn("yartchives-generated-employer-universe", slow_tail)
-
-
-    def test_final_generated_commit_shell_is_syntax_valid(self):
+    def test_validated_feed_is_published_as_artifact_before_slow_audits(self):
         text = WORKFLOW.read_text(encoding="utf-8")
+        validate = text.index("- name: Validate generated feed")
+        publish = text.index("- name: Publish validated feed artifact")
+        audit = text.index("- name: Print coverage audit")
+        self.assertLess(validate, publish)
+        self.assertLess(publish, audit)
+        block = text[publish:audit]
+        self.assertIn("actions/upload-artifact@", block)
+        self.assertIn("name: yartchives-listings", block)
+        self.assertIn("path: data/listings.json", block)
+        self.assertIn("if-no-files-found: error", block)
 
-        for commit_name in ["- name: Commit fast-path opportunity feed", "- name: Commit slow-path enrichments and audits"]:
-            final_commit = text.index(commit_name)
-
-            # Find the end of this step. Either the next step, or the end of the file.
-            next_step_idx = text.find("- name:", final_commit + 10)
-            if next_step_idx == -1:
-                step = text[final_commit:]
-            else:
-                step = text[final_commit:next_step_idx]
-
-            run_marker = "        run: |\n"
-            script_start = step.index(run_marker) + len(run_marker)
-            script_lines = []
-            for line in step[script_start:].splitlines():
-                if line and not line.startswith("          ") and not line.strip() == "":
-                    break
-                script_lines.append(line[10:] if line.startswith("          ") else line)
-            script = "\n".join(script_lines) + "\n"
-
-            result = subprocess.run(
-                ["bash", "-n"],
-                input=script,
-                text=True,
-                capture_output=True,
-                check=False,
-            )
-            self.assertEqual(result.returncode, 0, f"{commit_name} syntax error:\n{result.stderr}\nScript was:\n{script}")
+    def test_runtime_feed_no_longer_uses_git_as_publication_transport(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+        self.assertNotIn("- name: Commit fast-path opportunity feed", text)
+        self.assertNotIn('git add data/listings.json', text)
+        self.assertNotIn('git commit -m "chore: refresh opportunity feed"', text)
 
     def test_workflow_does_not_run_full_test_suite(self):
         text = WORKFLOW.read_text(encoding="utf-8")
-
         self.assertNotIn("python -m unittest discover", text)
         self.assertNotIn(".test.cjs", text)
         self.assertIn("node --check apply-next", text)
         self.assertIn("python -m py_compile", text)
-
-    def test_final_main_advance_guard_only_invalidates_feed_input_changes(self):
-        text = WORKFLOW.read_text(encoding="utf-8")
-        for commit_name in ["- name: Commit fast-path opportunity feed", "- name: Commit slow-path enrichments and audits"]:
-            final_commit = text.index(commit_name)
-            # Find the end of this run block. We can just take the slice up to the next step, or to the end of the file
-            next_step_idx = text.find("- name: ", final_commit + 10)
-            if next_step_idx == -1:
-                tail = text[final_commit:]
-            else:
-                tail = text[final_commit:next_step_idx]
-
-            self.assertIn('FEED_INPUT_CHANGES="$(echo "$CHANGED" | grep -E ', tail)
-            self.assertIn("scripts/", tail)
-            self.assertIn("direct_sources\\.json$", tail)
-            self.assertIn("Feed-producing inputs changed on main; leaving this generated result unpublished.", tail)
-            self.assertIn("Only unrelated or generated files changed; publishing this completed feed onto current main.", tail)
-            self.assertEqual(tail.count("git reset --hard origin/main"), 1)
-
-
-
-    def test_stale_feed_publication_explicitly_queues_replacement_refresh(self):
-        text = WORKFLOW.read_text(encoding="utf-8")
-
-        self.assertIn("actions: write", text)
-        fast_commit = text.index("- name: Commit fast-path opportunity feed")
-        next_step = text.index("- name: Print coverage audit")
-        fast_tail = text[fast_commit:next_step]
-
-        self.assertIn(
-            "Feed-producing inputs changed on main; leaving this generated result unpublished.",
-            fast_tail,
-        )
-        self.assertIn("Queueing a replacement refresh from current main.", fast_tail)
-        self.assertIn("gh workflow run update-feed.yml --ref main", fast_tail)
+        self.assertIn("scripts/download_latest_feed.py", text)
 
     def test_metric_stage_names_with_spaces_are_shell_quoted(self):
         text = WORKFLOW.read_text(encoding="utf-8")
-
         self.assertNotIn('--record \\"', text)
         self.assertIn('--record "link repair" -- python scripts/repair_links.py', text)
         self.assertIn('--record "ATS reconciliation" -- python scripts/reconcile_workday_duplicates.py', text)
