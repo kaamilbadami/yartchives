@@ -1182,6 +1182,108 @@ def cleanup_merged_jules_sessions(
         )
 
 
+def cleanup_closed_terminal_jules_sessions(
+    repo: str,
+    api_key: str,
+    *,
+    load_closed: Callable[[], list[dict[str, Any]]] | None = None,
+    load_comments: Callable[[int], list[dict[str, Any]]] | None = None,
+    get_session: Callable[[str, str], dict[str, Any]] | None = None,
+    delete_session: Callable[[str], None] | None = None,
+    run_gh: Callable[..., None] | None = None,
+) -> None:
+    """Delete terminal Jules sessions left behind after their GitHub issue is resolved."""
+    lifecycle_labels = {
+        JULES_ACTIVE_LABEL,
+        JULES_REVIEW_READY_LABEL,
+        JULES_FAILED_LABEL,
+        JULES_FEEDBACK_LABEL,
+        JULES_RETRY_LABEL,
+        "jules",
+    }
+    if load_closed is None:
+        def load_closed() -> list[dict[str, Any]]:
+            by_number: dict[int, dict[str, Any]] = {}
+            for label in sorted(lifecycle_labels):
+                issues = gh_paginated_json(
+                    "api",
+                    f"repos/{repo}/issues?state=closed&labels={parse.quote(label)}&per_page=100",
+                )
+                for issue in issues:
+                    if "pull_request" not in issue:
+                        by_number[int(issue["number"])] = issue
+            return list(by_number.values())
+    if load_comments is None:
+        load_comments = lambda number: gh_paginated_json(
+            "api",
+            f"repos/{repo}/issues/{number}/comments?per_page=100",
+        )
+    if get_session is None:
+        get_session = lambda key, path: jules_json(key, path)
+    if delete_session is None:
+        delete_session = lambda session_id: delete_jules_session(api_key, session_id)
+    if run_gh is None:
+        run_gh = gh_run
+
+    for issue in load_closed():
+        if "pull_request" in issue:
+            continue
+        labels = label_names(issue)
+        if not labels & lifecycle_labels:
+            continue
+        number = int(issue["number"])
+        session_ids = jules_session_ids_from_comments(load_comments(number))
+        if not session_ids:
+            continue
+
+        all_terminal_clean = True
+        for session_id in session_ids:
+            try:
+                session = get_session(api_key, f"/sessions/{session_id}")
+            except Exception as exc:
+                if getattr(exc, "code", None) == 404:
+                    continue
+                all_terminal_clean = False
+                print(
+                    f"Could not inspect closed Jules session {session_id} for "
+                    f"issue #{number}; will retry later: {exc}"
+                )
+                continue
+
+            state = str(session.get("state") or "STATE_UNSPECIFIED")
+            if state not in JULES_TERMINAL_STATES:
+                all_terminal_clean = False
+                print(
+                    f"Keeping Jules session {session_id} for closed issue #{number}: "
+                    f"session is still {state}."
+                )
+                continue
+
+            try:
+                delete_session(session_id)
+                print(
+                    f"Deleted terminal Jules session {session_id} for resolved "
+                    f"issue #{number}."
+                )
+            except Exception as exc:
+                if getattr(exc, "code", None) != 404:
+                    all_terminal_clean = False
+                    print(
+                        f"Could not delete terminal Jules session {session_id} for "
+                        f"issue #{number}; will retry later: {exc}"
+                    )
+
+        if not all_terminal_clean:
+            continue
+
+        remove_labels = sorted(labels & lifecycle_labels)
+        if remove_labels:
+            args = ["issue", "edit", str(number), "--repo", repo]
+            for label in remove_labels:
+                args.extend(["--remove-label", label])
+            run_gh(*args)
+
+
 def pull_request_url(session: dict[str, Any]) -> str | None:
     for output in session.get("outputs", []):
         if not isinstance(output, dict):
@@ -2745,6 +2847,7 @@ def main() -> int:
     ensure_labels(repo)
     cleanup_merged_jules_sessions(repo, api_key)
     cleanup_reworked_jules_sessions(repo, api_key)
+    cleanup_closed_terminal_jules_sessions(repo, api_key)
     reconcile_historical_merged_jules_issues(repo)
     migrate_historical_no_pr_review_ready(repo)
 

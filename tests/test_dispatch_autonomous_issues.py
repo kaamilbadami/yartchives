@@ -2870,6 +2870,90 @@ class AutonomousDispatcherTests(unittest.TestCase):
         historical_index = source.index("reconcile_historical_merged_jules_issues(repo)")
         self.assertLess(cleanup_index, historical_index)
 
+    def test_closed_terminal_session_cleanup_deletes_failed_session_and_clears_labels(self):
+        deleted = []
+        gh_calls = []
+        issue = {
+            "number": 548,
+            "labels": [
+                {"name": "workflow-failure"},
+                {"name": "jules-review-ready"},
+            ],
+        }
+
+        mod.cleanup_closed_terminal_jules_sessions(
+            "kaamilbadami/yartchives",
+            "secret",
+            load_closed=lambda: [issue],
+            load_comments=lambda number: [
+                {"body": "<!-- jules-session-id: failed548 -->"}
+            ],
+            get_session=lambda key, path: {"state": "FAILED"},
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(deleted, ["failed548"])
+        self.assertEqual(len(gh_calls), 1)
+        joined = " ".join(gh_calls[0])
+        self.assertIn("--remove-label jules-review-ready", joined)
+        self.assertNotIn("--remove-label workflow-failure", joined)
+
+    def test_closed_session_cleanup_keeps_nonterminal_session_and_labels(self):
+        deleted = []
+        gh_calls = []
+
+        mod.cleanup_closed_terminal_jules_sessions(
+            "kaamilbadami/yartchives",
+            "secret",
+            load_closed=lambda: [{
+                "number": 600,
+                "labels": [{"name": "jules-session"}],
+            }],
+            load_comments=lambda number: [
+                {"body": "<!-- jules-session-id: active600 -->"}
+            ],
+            get_session=lambda key, path: {"state": "IN_PROGRESS"},
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(deleted, [])
+        self.assertEqual(gh_calls, [])
+
+    def test_closed_session_cleanup_treats_missing_terminal_session_as_already_clean(self):
+        class Gone(Exception):
+            code = 404
+
+        gh_calls = []
+        mod.cleanup_closed_terminal_jules_sessions(
+            "kaamilbadami/yartchives",
+            "secret",
+            load_closed=lambda: [{
+                "number": 601,
+                "labels": [{"name": "jules-failed"}],
+            }],
+            load_comments=lambda number: [
+                {"body": "<!-- jules-session-id: gone601 -->"}
+            ],
+            get_session=lambda key, path: (_ for _ in ()).throw(Gone()),
+            delete_session=lambda session_id: self.fail("already-missing session must not be deleted"),
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(len(gh_calls), 1)
+        self.assertIn("--remove-label jules-failed", " ".join(gh_calls[0]))
+
+    def test_closed_terminal_cleanup_is_wired_into_dispatch_startup(self):
+        source = MODULE_PATH.read_text()
+        merged_index = source.index("cleanup_merged_jules_sessions(repo, api_key)")
+        reworked_index = source.index("cleanup_reworked_jules_sessions(repo, api_key)")
+        closed_index = source.index("cleanup_closed_terminal_jules_sessions(repo, api_key)")
+        historical_index = source.index("reconcile_historical_merged_jules_issues(repo)")
+        self.assertLess(merged_index, reworked_index)
+        self.assertLess(reworked_index, closed_index)
+        self.assertLess(closed_index, historical_index)
+
     def test_cleanup_deletes_completed_session_only_after_exact_pr_is_merged(self):
         deleted = []
         gh_calls = []
