@@ -59,7 +59,7 @@ jobs:
 
       - name: Validate code
         run: |
-          python -m py_compile scripts/build_feed.py scripts/careers_resolver.py scripts/employer_resolution_lifecycle.py scripts/employer_resolution_queue.py scripts/direct_ct_workday.py scripts/direct_icims.py scripts/direct_greenhouse.py scripts/direct_oracle.py scripts/parallel_ats_collect.py scripts/discover_workday_sources.py scripts/posting_requirements.py scripts/workday_inspector.py scripts/icims_inspector.py scripts/greenhouse_inspector.py scripts/migrate_cached_requirements.py scripts/update_workday_inspections.py scripts/reconcile_workday_duplicates.py scripts/stabilize_job_ids.py scripts/enrich_feed.py scripts/repair_links.py scripts/provider_links.py scripts/jobright_links.py scripts/source_links.py scripts/validate_feed.py scripts/audit_feed.py scripts/coverage_audit.py scripts/coverage_contract.py scripts/source_contribution_audit.py scripts/employer_universe.py scripts/employer_seed_from_benchmark.py scripts/fortune_500_seed.py scripts/state_of_ats_seed.py scripts/refresh_employer_universe.py scripts/provider_fingerprint.py scripts/update_readme_status.py
+          python -m py_compile scripts/build_feed.py scripts/careers_resolver.py scripts/employer_resolution_lifecycle.py scripts/employer_resolution_queue.py scripts/direct_ct_workday.py scripts/direct_icims.py scripts/direct_greenhouse.py scripts/direct_oracle.py scripts/parallel_ats_collect.py scripts/discover_workday_sources.py scripts/posting_requirements.py scripts/workday_inspector.py scripts/icims_inspector.py scripts/greenhouse_inspector.py scripts/migrate_cached_requirements.py scripts/update_workday_inspections.py scripts/reconcile_workday_duplicates.py scripts/stabilize_job_ids.py scripts/enrich_feed.py scripts/repair_links.py scripts/provider_links.py scripts/jobright_links.py scripts/source_links.py scripts/validate_feed.py scripts/audit_feed.py scripts/coverage_audit.py scripts/coverage_contract.py scripts/source_contribution_audit.py scripts/employer_universe.py scripts/employer_seed_from_benchmark.py scripts/fortune_500_seed.py scripts/state_of_ats_seed.py scripts/refresh_employer_universe.py scripts/provider_fingerprint.py scripts/update_readme_status.py scripts/download_latest_feed.py
           node --check frontend-utils.js
           node --check app.js
           node --check enhancements.js
@@ -71,6 +71,11 @@ jobs:
           node --check apply-next-competition.js
           node --check apply-next-ui.js
           node --check apply-next-profile-setup.js
+
+      - name: Hydrate latest runtime artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/download_latest_feed.py --repo "${{ github.repository }}"
 
       - name: Refresh employer universe from deterministic seed catalogs
         run: python scripts/refresh_employer_universe.py employer_universe.json audit/samples/northeast-midatlantic-cs-2026-09-17.json --seed data/employer-seeds/fortune-500-2026.json --seed data/employer-seeds/state-of-ats-2026-verified-hosts.json
@@ -153,53 +158,13 @@ jobs:
       - name: Validate generated feed
         run: python scripts/benchmark_feed_stages.py --record "validation" -- python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8 --enforce-link-contract
 
-      - name: Commit fast-path opportunity feed
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          cat << 'INNER_EOF' > /tmp/publication.sh
-          GENERATED_PATHS="data/listings.json"
-          if git diff --quiet -- $GENERATED_PATHS; then
-            echo "No feed changes."
-          else
-            cp data/listings.json /tmp/yartchives-generated-listings.json
-            START_SHA="$(git rev-parse HEAD)"
-            git fetch origin main
-            REMOTE_SHA="$(git rev-parse origin/main)"
-
-            SHOULD_COMMIT="true"
-            if [ "$START_SHA" != "$REMOTE_SHA" ]; then
-              echo "main advanced while this refresh was running."
-              CHANGED="$(git diff --name-only "$START_SHA".."$REMOTE_SHA")"
-              echo "$CHANGED"
-
-              FEED_INPUT_CHANGES="$(echo "$CHANGED" | grep -E '^(scripts/|audit/samples/|data/employer-seeds/|sources\.json$|direct_sources\.json$|requirements\.txt$|\.github/workflows/update-feed\.yml$)' || true)"
-              if [ -n "$FEED_INPUT_CHANGES" ]; then
-                echo "Feed-producing inputs changed on main; leaving this generated result unpublished."
-                echo "Queueing a replacement refresh from current main."
-                gh workflow run update-feed.yml --ref main
-                SHOULD_COMMIT="false"
-              else
-                echo "Only unrelated or generated files changed; publishing this completed feed onto current main."
-                git reset --hard origin/main
-                cp /tmp/yartchives-generated-listings.json data/listings.json
-              fi
-            fi
-
-            if [ "$SHOULD_COMMIT" = "true" ]; then
-              if git diff --quiet -- $GENERATED_PATHS; then
-                echo "No generated changes after synchronizing with main."
-              else
-                git config user.name "yartchives-bot"
-                git config user.email "actions@users.noreply.github.com"
-                git add $GENERATED_PATHS
-                git commit -m "chore: refresh opportunity feed"
-                git push origin main
-              fi
-            fi
-          fi
-          INNER_EOF
-          python scripts/benchmark_feed_stages.py --record "publication" -- bash -e /tmp/publication.sh
+      - name: Publish validated feed artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: yartchives-listings
+          path: data/listings.json
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Print coverage audit
         run: python scripts/benchmark_feed_stages.py --record "audit" -- python scripts/audit_feed.py data/listings.json
