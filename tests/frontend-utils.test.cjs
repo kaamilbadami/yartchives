@@ -179,6 +179,33 @@ async function testPendingUiHelper() {
     },
   });
   assert.deepEqual(boundedEvents, ["raf-scheduled", "timer:50"]);
+
+
+  assert.equal(U.MAX_BROWSER_YIELD_WAIT_MS, 50);
+
+  const fastYieldEvents = [];
+  await U.yieldToBrowser({
+    schedulerYield: async () => {
+      fastYieldEvents.push("scheduler");
+    },
+    setTimeout: (_callback, ms) => {
+      fastYieldEvents.push(`timer:${ms}`);
+    },
+  });
+  assert.deepEqual(fastYieldEvents, ["timer:50", "scheduler"]);
+
+  const stalledYieldEvents = [];
+  await U.yieldToBrowser({
+    schedulerYield: () => {
+      stalledYieldEvents.push("scheduler-stalled");
+      return new Promise(() => {});
+    },
+    setTimeout: (callback, ms) => {
+      stalledYieldEvents.push(`timer:${ms}`);
+      callback();
+    },
+  });
+  assert.deepEqual(stalledYieldEvents, ["timer:50", "scheduler-stalled"]);
 }
 
 testPendingUiHelper().catch(error => {
