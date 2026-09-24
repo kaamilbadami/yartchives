@@ -343,11 +343,11 @@
           "rank": 77
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.smartrecruiters.com",
+          "apply_host": "jobs.smartrecruiters.com/abbvie",
           "ats_system": "SmartRecruiters",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "jobs.smartrecruiters.com"
+            "jobs.smartrecruiters.com/abbvie"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -508,7 +508,8 @@
       },
       "domain_hints": [
         "abbvie.com",
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com",
+        "jobs.smartrecruiters.com/abbvie"
       ]
     },
     {
@@ -824,11 +825,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.smartrecruiters.com",
+          "apply_host": "jobs.smartrecruiters.com/accor",
           "ats_system": "SmartRecruiters",
           "checked_at": "2026-08-11",
           "domain_hints": [
-            "jobs.smartrecruiters.com"
+            "jobs.smartrecruiters.com/accor"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "FR",
@@ -838,7 +839,8 @@
       },
       "domain_hints": [
         "accor.com",
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com",
+        "jobs.smartrecruiters.com/accor"
       ]
     },
     {
@@ -1463,11 +1465,11 @@
           "rank": 276
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "careers.smartrecruiters.com",
+          "apply_host": "careers.smartrecruiters.com/aecom",
           "ats_system": "SmartRecruiters",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "careers.smartrecruiters.com"
+            "careers.smartrecruiters.com/aecom"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -1678,7 +1680,8 @@
       },
       "domain_hints": [
         "aecom.com",
-        "careers.smartrecruiters.com"
+        "careers.smartrecruiters.com",
+        "careers.smartrecruiters.com/aecom"
       ]
     },
     {
@@ -16273,11 +16276,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.smartrecruiters.com",
+          "apply_host": "jobs.smartrecruiters.com/dominos",
           "ats_system": "SmartRecruiters",
           "checked_at": "2026-08-11",
           "domain_hints": [
-            "jobs.smartrecruiters.com"
+            "jobs.smartrecruiters.com/dominos"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -16287,7 +16290,8 @@
       },
       "domain_hints": [
         "dominos.com",
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com",
+        "jobs.smartrecruiters.com/dominos"
       ]
     },
     {
@@ -18569,11 +18573,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.smartrecruiters.com",
+          "apply_host": "jobs.smartrecruiters.com/expeditors",
           "ats_system": "SmartRecruiters",
           "checked_at": "2026-08-11",
           "domain_hints": [
-            "jobs.smartrecruiters.com"
+            "jobs.smartrecruiters.com/expeditors"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -18583,7 +18587,8 @@
       },
       "domain_hints": [
         "expeditors.com",
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com",
+        "jobs.smartrecruiters.com/expeditors"
       ]
     },
     {
@@ -19793,11 +19798,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.smartrecruiters.com",
+          "apply_host": "jobs.smartrecruiters.com/freshworks",
           "ats_system": "SmartRecruiters",
           "checked_at": "2026-08-12",
           "domain_hints": [
-            "jobs.smartrecruiters.com"
+            "jobs.smartrecruiters.com/freshworks"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -19807,7 +19812,8 @@
       },
       "domain_hints": [
         "freshworks.com",
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com",
+        "jobs.smartrecruiters.com/freshworks"
       ]
     },
     {
@@ -23885,11 +23891,11 @@
           "rank": 418
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.smartrecruiters.com",
+          "apply_host": "jobs.smartrecruiters.com/intuitive-surgical",
           "ats_system": "SmartRecruiters",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "jobs.smartrecruiters.com"
+            "jobs.smartrecruiters.com/intuitive-surgical"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -23899,7 +23905,8 @@
       },
       "domain_hints": [
         "intuitive.com",
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com",
+        "jobs.smartrecruiters.com/intuitive-surgical"
       ]
     },
     {
@@ -28886,11 +28893,11 @@
           "rank": 170
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.smartrecruiters.com",
+          "apply_host": "jobs.smartrecruiters.com/mcdonalds",
           "ats_system": "SmartRecruiters",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "jobs.smartrecruiters.com"
+            "jobs.smartrecruiters.com/mcdonalds"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -28900,6 +28907,7 @@
       },
       "domain_hints": [
         "jobs.smartrecruiters.com",
+        "jobs.smartrecruiters.com/mcdonalds",
         "mcdonalds.com"
       ]
     },
@@ -30495,11 +30503,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.smartrecruiters.com",
+          "apply_host": "jobs.smartrecruiters.com/nbcuniversal",
           "ats_system": "SmartRecruiters",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "jobs.smartrecruiters.com"
+            "jobs.smartrecruiters.com/nbcuniversal"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "US",
@@ -30509,6 +30517,7 @@
       },
       "domain_hints": [
         "jobs.smartrecruiters.com",
+        "jobs.smartrecruiters.com/nbcuniversal",
         "nbcuniversal.com"
       ]
     },
@@ -34526,11 +34535,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.smartrecruiters.com",
+          "apply_host": "jobs.smartrecruiters.com/roland-berger",
           "ats_system": "SmartRecruiters",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "jobs.smartrecruiters.com"
+            "jobs.smartrecruiters.com/roland-berger"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "DE",
@@ -34540,6 +34549,7 @@
       },
       "domain_hints": [
         "jobs.smartrecruiters.com",
+        "jobs.smartrecruiters.com/roland-berger",
         "rolandberger.com"
       ]
     },
@@ -35553,11 +35563,11 @@
           "rank": 333
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.smartrecruiters.com",
+          "apply_host": "jobs.smartrecruiters.com/servicenow",
           "ats_system": "SmartRecruiters",
           "checked_at": "2026-08-08",
           "domain_hints": [
-            "jobs.smartrecruiters.com"
+            "jobs.smartrecruiters.com/servicenow"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -35567,6 +35577,7 @@
       },
       "domain_hints": [
         "jobs.smartrecruiters.com",
+        "jobs.smartrecruiters.com/servicenow",
         "servicenow.com"
       ]
     },
@@ -42314,11 +42325,11 @@
           "rank": 432
         },
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.smartrecruiters.com",
+          "apply_host": "jobs.smartrecruiters.com/western-digital",
           "ats_system": "SmartRecruiters",
           "checked_at": "2026-08-06",
           "domain_hints": [
-            "jobs.smartrecruiters.com"
+            "jobs.smartrecruiters.com/western-digital"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -42328,6 +42339,7 @@
       },
       "domain_hints": [
         "jobs.smartrecruiters.com",
+        "jobs.smartrecruiters.com/western-digital",
         "westerndigital.com"
       ]
     },
@@ -42749,11 +42761,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.smartrecruiters.com",
+          "apply_host": "jobs.smartrecruiters.com/wise",
           "ats_system": "SmartRecruiters",
           "checked_at": "2026-08-09",
           "domain_hints": [
-            "jobs.smartrecruiters.com"
+            "jobs.smartrecruiters.com/wise"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "GB",
@@ -42763,6 +42775,7 @@
       },
       "domain_hints": [
         "jobs.smartrecruiters.com",
+        "jobs.smartrecruiters.com/wise",
         "wise.com"
       ]
     },
@@ -42800,11 +42813,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "careers.smartrecruiters.com",
+          "apply_host": "careers.smartrecruiters.com/wns",
           "ats_system": "SmartRecruiters",
           "checked_at": "2026-08-13",
           "domain_hints": [
-            "careers.smartrecruiters.com"
+            "careers.smartrecruiters.com/wns"
           ],
           "evidence_method": "Careers-portal apply host",
           "hq_country_code": "IN",
@@ -42814,6 +42827,7 @@
       },
       "domain_hints": [
         "careers.smartrecruiters.com",
+        "careers.smartrecruiters.com/wns",
         "wns.com"
       ]
     },
@@ -43049,11 +43063,11 @@
       ],
       "seed_metadata": {
         "state-of-ats-2026-verified-hosts": {
-          "apply_host": "jobs.smartrecruiters.com",
+          "apply_host": "jobs.smartrecruiters.com/wynn-resorts",
           "ats_system": "SmartRecruiters",
           "checked_at": "2026-08-11",
           "domain_hints": [
-            "jobs.smartrecruiters.com"
+            "jobs.smartrecruiters.com/wynn-resorts"
           ],
           "evidence_method": "vendor board API",
           "hq_country_code": "US",
@@ -43063,6 +43077,7 @@
       },
       "domain_hints": [
         "jobs.smartrecruiters.com",
+        "jobs.smartrecruiters.com/wynn-resorts",
         "wynnresorts.com"
       ]
     },

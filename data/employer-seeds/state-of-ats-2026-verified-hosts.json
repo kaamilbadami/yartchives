@@ -72,9 +72,9 @@
       "name": "AbbVie",
       "upstream_slug": "abbvie",
       "ats_system": "SmartRecruiters",
-      "apply_host": "jobs.smartrecruiters.com",
+      "apply_host": "jobs.smartrecruiters.com/abbvie",
       "domain_hints": [
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com/abbvie"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -98,9 +98,9 @@
       "name": "Accor",
       "upstream_slug": "accor",
       "ats_system": "SmartRecruiters",
-      "apply_host": "jobs.smartrecruiters.com",
+      "apply_host": "jobs.smartrecruiters.com/accor",
       "domain_hints": [
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com/accor"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-11",
@@ -176,9 +176,9 @@
       "name": "AECOM",
       "upstream_slug": "aecom",
       "ats_system": "SmartRecruiters",
-      "apply_host": "careers.smartrecruiters.com",
+      "apply_host": "careers.smartrecruiters.com/aecom",
       "domain_hints": [
-        "careers.smartrecruiters.com"
+        "careers.smartrecruiters.com/aecom"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -1918,9 +1918,9 @@
       "name": "Domino's",
       "upstream_slug": "dominos",
       "ats_system": "SmartRecruiters",
-      "apply_host": "jobs.smartrecruiters.com",
+      "apply_host": "jobs.smartrecruiters.com/dominos",
       "domain_hints": [
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com/dominos"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-11",
@@ -2373,9 +2373,9 @@
       "name": "Expeditors",
       "upstream_slug": "expeditors",
       "ats_system": "SmartRecruiters",
-      "apply_host": "jobs.smartrecruiters.com",
+      "apply_host": "jobs.smartrecruiters.com/expeditors",
       "domain_hints": [
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com/expeditors"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-11",
@@ -2594,9 +2594,9 @@
       "name": "Freshworks",
       "upstream_slug": "freshworks",
       "ats_system": "SmartRecruiters",
-      "apply_host": "jobs.smartrecruiters.com",
+      "apply_host": "jobs.smartrecruiters.com/freshworks",
       "domain_hints": [
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com/freshworks"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-12",
@@ -3244,9 +3244,9 @@
       "name": "Intuitive Surgical",
       "upstream_slug": "intuitive-surgical",
       "ats_system": "SmartRecruiters",
-      "apply_host": "jobs.smartrecruiters.com",
+      "apply_host": "jobs.smartrecruiters.com/intuitive-surgical",
       "domain_hints": [
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com/intuitive-surgical"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -4219,9 +4219,9 @@
       "name": "McDonald's",
       "upstream_slug": "mcdonalds",
       "ats_system": "SmartRecruiters",
-      "apply_host": "jobs.smartrecruiters.com",
+      "apply_host": "jobs.smartrecruiters.com/mcdonalds",
       "domain_hints": [
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com/mcdonalds"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -4570,9 +4570,9 @@
       "name": "NBCUniversal",
       "upstream_slug": "nbcuniversal",
       "ats_system": "SmartRecruiters",
-      "apply_host": "jobs.smartrecruiters.com",
+      "apply_host": "jobs.smartrecruiters.com/nbcuniversal",
       "domain_hints": [
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com/nbcuniversal"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -5272,9 +5272,9 @@
       "name": "Roland Berger",
       "upstream_slug": "roland-berger",
       "ats_system": "SmartRecruiters",
-      "apply_host": "jobs.smartrecruiters.com",
+      "apply_host": "jobs.smartrecruiters.com/roland-berger",
       "domain_hints": [
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com/roland-berger"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -5402,9 +5402,9 @@
       "name": "ServiceNow",
       "upstream_slug": "servicenow",
       "ats_system": "SmartRecruiters",
-      "apply_host": "jobs.smartrecruiters.com",
+      "apply_host": "jobs.smartrecruiters.com/servicenow",
       "domain_hints": [
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com/servicenow"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-08",
@@ -6819,9 +6819,9 @@
       "name": "Western Digital",
       "upstream_slug": "western-digital",
       "ats_system": "SmartRecruiters",
-      "apply_host": "jobs.smartrecruiters.com",
+      "apply_host": "jobs.smartrecruiters.com/western-digital",
       "domain_hints": [
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com/western-digital"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-06",
@@ -6923,9 +6923,9 @@
       "name": "Wise",
       "upstream_slug": "wise",
       "ats_system": "SmartRecruiters",
-      "apply_host": "jobs.smartrecruiters.com",
+      "apply_host": "jobs.smartrecruiters.com/wise",
       "domain_hints": [
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com/wise"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-09",
@@ -6949,9 +6949,9 @@
       "name": "WNS",
       "upstream_slug": "wns",
       "ats_system": "SmartRecruiters",
-      "apply_host": "careers.smartrecruiters.com",
+      "apply_host": "careers.smartrecruiters.com/wns",
       "domain_hints": [
-        "careers.smartrecruiters.com"
+        "careers.smartrecruiters.com/wns"
       ],
       "evidence_method": "Careers-portal apply host",
       "checked_at": "2026-08-13",
@@ -7014,9 +7014,9 @@
       "name": "Wynn Resorts",
       "upstream_slug": "wynn-resorts",
       "ats_system": "SmartRecruiters",
-      "apply_host": "jobs.smartrecruiters.com",
+      "apply_host": "jobs.smartrecruiters.com/wynn-resorts",
       "domain_hints": [
-        "jobs.smartrecruiters.com"
+        "jobs.smartrecruiters.com/wynn-resorts"
       ],
       "evidence_method": "vendor board API",
       "checked_at": "2026-08-11",
