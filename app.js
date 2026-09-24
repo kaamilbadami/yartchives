@@ -728,11 +728,22 @@ function localDeploymentInfo() {
   return { deployedAt, buildSha, age: formatSiteAge(deployedAt) };
 }
 
-function renderProductionStatus(run = null) {
-  if (!els.siteMeta) return;
+let lastProductionStatusRun = null;
+
+function productionStatusTargets() {
+  if (typeof document === "undefined") return els.siteMeta ? [els.siteMeta] : [];
+  const targets = [...document.querySelectorAll("[data-production-status]")];
+  if (els.siteMeta && !targets.includes(els.siteMeta)) targets.unshift(els.siteMeta);
+  return targets;
+}
+
+function renderProductionStatus(run = lastProductionStatusRun) {
+  lastProductionStatusRun = run || lastProductionStatusRun;
+  const targets = productionStatusTargets();
+  if (!targets.length) return;
   const { deployedAt, buildSha, age } = localDeploymentInfo();
   if (!age || !buildSha || buildSha.startsWith("__")) {
-    els.siteMeta.textContent = "Production status unavailable.";
+    for (const target of targets) target.textContent = "Production status unavailable.";
     return;
   }
 
@@ -742,16 +753,21 @@ function renderProductionStatus(run = null) {
   const runSha = String(run?.head_sha || "");
   const newerRun = Boolean(runSha && runSha !== buildSha);
 
+  let text;
   if (status === "queued" || status === "in_progress" || status === "waiting" || status === "pending") {
-    els.siteMeta.textContent = newerRun
+    text = newerRun
       ? `Deploying update… · current production ${shortSha}`
       : `Deploying… · current production ${shortSha}`;
   } else if (status === "completed" && conclusion && conclusion !== "success" && newerRun) {
-    els.siteMeta.textContent = `Deployment blocked · production still ${shortSha}`;
+    text = `Deployment blocked · production still ${shortSha}`;
   } else {
-    els.siteMeta.textContent = `Ready to test · production ${shortSha} · deployed ${age}`;
+    text = `Ready to test · production ${shortSha} · deployed ${age}`;
   }
-  els.siteMeta.title = `Deployed ${formatEasternTimestamp(deployedAt)} · build ${buildSha}${run?.html_url ? ` · latest deploy: ${run.html_url}` : ""}`;
+  const title = `Deployed ${formatEasternTimestamp(deployedAt)} · build ${buildSha}${run?.html_url ? ` · latest deploy: ${run.html_url}` : ""}`;
+  for (const target of targets) {
+    target.textContent = text;
+    target.title = title;
+  }
 }
 
 function updateSiteMeta() {
@@ -791,16 +807,18 @@ function liveBuildShaFromHtml(html) {
 }
 
 function showUpdateReady(locationObj = typeof location !== "undefined" ? location : null) {
-  if (!els.siteMeta || !locationObj) return;
-  els.siteMeta.textContent = "";
-  const label = document.createElement("span");
-  label.textContent = "Update ready · ";
-  const reload = document.createElement("button");
-  reload.type = "button";
-  reload.className = "text-btn";
-  reload.textContent = "Reload";
-  reload.addEventListener("click", () => locationObj.reload());
-  els.siteMeta.append(label, reload);
+  if (!locationObj) return;
+  for (const target of productionStatusTargets()) {
+    target.textContent = "";
+    const label = document.createElement("span");
+    label.textContent = "Update ready · ";
+    const reload = document.createElement("button");
+    reload.type = "button";
+    reload.className = "text-btn";
+    reload.textContent = "Reload";
+    reload.addEventListener("click", () => locationObj.reload());
+    target.append(label, reload);
+  }
 }
 
 async function checkForNewDeployment({
