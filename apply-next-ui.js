@@ -90,6 +90,8 @@
     lines.push(
       `Candidates: ${Number(counts.candidates || 0)} · Rankable: ${Number(counts.rankable || 0)} · Distance candidates: ${Number(counts.distance_candidates || 0)} · Unique distance lookups: ${Number(counts.distance_unique_lookups || 0)} · Distance cache hits: ${Number(counts.distance_cache_hits || 0)} · Distance lookup failures: ${Number(counts.distance_lookup_failures || 0)} · Recommendations: ${Number(counts.recommendations || 0)}`
     );
+    lines.push(`Inspection request: ${Number(counts.inspection_request_ms || 0).toFixed(1)} ms · headers: ${Number(counts.inspection_headers_ms || 0).toFixed(1)} ms · body/JSON: ${Number(counts.inspection_body_parse_ms || 0).toFixed(1)} ms · preload age: ${Number(counts.inspection_preload_age_ms || 0).toFixed(1)} ms`);
+    lines.push(`Preliminary ranking: ${Number(counts.preliminary_ranking_ms || 0).toFixed(1)} ms · distance selection: ${Number(counts.distance_selection_ms || 0).toFixed(1)} ms · geo enrichment wall: ${Number(counts.geo_enrichment_ms || 0).toFixed(1)} ms`);
     lines.push(`Location parse: ${Number(counts.location_parse_ms || 0).toFixed(1)} ms · compute: ${Number(counts.location_compute_ms || 0).toFixed(1)} ms · yields: ${Number(counts.location_yield_ms || 0).toFixed(1)} ms (${Number(counts.location_yield_count || 0)}) · ordering: ${Number(counts.location_order_ms || 0).toFixed(1)} ms`);
     if (payload.geo_error) lines.push(`Geo load error: ${payload.geo_error}`);
     if (payload.geo_warm_state) lines.push(`Geo warm state at open: ${payload.geo_warm_state}`);
