@@ -111,6 +111,7 @@ jobs:
           USAJOBS_API_KEY: ${{ secrets.USAJOBS_API_KEY }}
           USAJOBS_EMAIL: ${{ secrets.USAJOBS_EMAIL }}
         run: |
+          cp data/listings.json /tmp/yartchives-old-listings.json
           python scripts/build_feed.py
           python scripts/enrich_feed.py data/listings.json
           python scripts/repair_links.py data/listings.json
@@ -118,6 +119,7 @@ jobs:
           python scripts/jobright_links.py data/listings.json
           python scripts/source_links.py data/listings.json
           python scripts/reconcile_workday_duplicates.py data/listings.json
+          python scripts/stabilize_job_ids.py data/listings.json --old-feed /tmp/yartchives-old-listings.json
           python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8 --strict-sources
           python scripts/audit_feed.py data/listings.json
 
