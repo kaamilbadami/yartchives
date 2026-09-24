@@ -4,7 +4,13 @@ on:
   push:
     branches:
       - main
+    # Deploy every main change. The build hydrates runtime artifacts itself, and
+    # path filters previously let production-serving changes merge without a deploy.
     paths:
+      - "**"
+      - "!tests/**"
+      - "!docs/**"
+      - "!README.md"
       - "index.html"
       - "*.js"
       - "*.css"

@@ -517,7 +517,7 @@ console.info = priorInfo;
 assert.deepEqual(timingPayload, {
   total_ms: 80,
   stages_ms: { location_enrichment: 25.7 },
-  counts: { candidates: 500, rankable: 42, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10 },
+  counts: { candidates: 500, rankable: 42, inspection_request_ms: 0, inspection_headers_ms: 0, inspection_body_parse_ms: 0, inspection_preload_age_ms: 0, preliminary_ranking_ms: 0, distance_selection_ms: 0, geo_enrichment_ms: 0, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10 },
   geo_error: null,
   geo_warm_state: null,
   page_visibility: null,
