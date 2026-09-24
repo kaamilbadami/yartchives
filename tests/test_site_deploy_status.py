@@ -18,6 +18,8 @@ def test_site_deploy_status_contract():
     assert 'Deployment blocked · production still ${shortSha}' in app
     assert 'actions/workflows/deploy-pages.yml/runs?per_page=1' in app
     assert 'void refreshProductionStatus();' in app
+    assert 'document.querySelectorAll("[data-production-status]")' in app
+    assert 'for (const target of productionStatusTargets())' in app
     assert 'meta[name="yartchives-deployed-at"]' in app
     assert 'DEPLOYED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"' in deploy
     assert '__YARTCHIVES_DEPLOYED_AT__' in deploy
