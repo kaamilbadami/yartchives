@@ -742,6 +742,19 @@ function liveBuildShaFromHtml(html) {
   return match?.[1] || "";
 }
 
+function showUpdateReady(locationObj = typeof location !== "undefined" ? location : null) {
+  if (!els.siteMeta || !locationObj) return;
+  els.siteMeta.textContent = "";
+  const label = document.createElement("span");
+  label.textContent = "Update ready · ";
+  const reload = document.createElement("button");
+  reload.type = "button";
+  reload.className = "text-btn";
+  reload.textContent = "Reload";
+  reload.addEventListener("click", () => locationObj.reload());
+  els.siteMeta.append(label, reload);
+}
+
 async function checkForNewDeployment({
   fetchImpl = typeof fetch === "function" ? fetch : null,
   locationObj = typeof location !== "undefined" ? location : null,
@@ -758,7 +771,7 @@ async function checkForNewDeployment({
     if (!response.ok) return false;
     const liveSha = liveBuildShaFromHtml(await response.text());
     if (!liveSha || liveSha === BUILD_SHA) return false;
-    locationObj.reload();
+    showUpdateReady(locationObj);
     return true;
   })()
     .catch(() => false)
