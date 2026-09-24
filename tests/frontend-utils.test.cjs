@@ -56,6 +56,23 @@ const cityResult = U.distanceForJob(cityJob, geo.zips.get("06897"), geo);
 assert.equal(cityResult.precision, "city");
 assert.ok(cityResult.miles < 20);
 
+const cacheJob = { location: "Danbury, CT", states: ["CT"] };
+const cacheFirst = U.distanceForJob(cacheJob, geo.zips.get("06897"), geo);
+assert.ok(cacheFirst.miles < 20);
+const savedCities = geo.cities;
+const savedCitiesByState = geo.citiesByState;
+geo.cities = new Map();
+geo.citiesByState = new Map();
+const cacheSecond = U.distanceForJob(cacheJob, geo.zips.get("20740"), geo);
+assert.ok(Number.isFinite(cacheSecond.miles), "second origin should reuse cached resolved points instead of rescanning geo indexes");
+geo.cities = savedCities;
+geo.citiesByState = savedCitiesByState;
+
+cacheJob.location = "Denver, CO";
+cacheJob.states = ["CO"];
+const cacheInvalidated = U.distanceForJob(cacheJob, geo.zips.get("20740"), geo);
+assert.equal(cacheInvalidated.point.state, "CO", "changing location/state must invalidate the cached resolved points");
+
 const authoritativeMultiLocation = {
   location: "Denver, CO, US",
   states: ["CO"],
