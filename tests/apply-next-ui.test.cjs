@@ -37,6 +37,7 @@ assert.equal(UI.totalScoreBandClass(65), "apply-next-score-medium");
 assert.equal(UI.totalScoreBandClass(85), "apply-next-score-high");
 assert.equal(UI.FRESH_MAX_AGE_DAYS, 3);
 assert.equal(UI.FRESH_MIN_SCORE, 55);
+assert.equal(UI.LOCATION_ENRICHMENT_YIELD_BUDGET_MS, 12);
 
 const freshNow = new Date("2026-09-19T12:00:00Z");
 const freshRanked = [
@@ -290,6 +291,16 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.ok(index.indexOf('src="apply-next-dimensions.js"') < index.indexOf('src="apply-next-ui.js"'));
 
   const uiSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-ui.js"), "utf8");
+  assert.match(
+    uiSource,
+    /timingNow\(\) - lastYieldAt >= LOCATION_ENRICHMENT_YIELD_BUDGET_MS/,
+    "Location enrichment should yield by elapsed main-thread budget rather than candidate count"
+  );
+  assert.doesNotMatch(
+    uiSource,
+    /jobIndex\s*%\s*LOCATION_ENRICHMENT_YIELD_EVERY/,
+    "Apply Next must not reintroduce fixed every-N-job yielding"
+  );
   assert.match(uiSource, /local storage/i);
   assert.match(uiSource, /Authoritative posting evidence/);
   assert.match(uiSource, /metadata is used as a fallback/);
@@ -584,8 +595,8 @@ assert.doesNotMatch(
 
 assert.match(
   addDistanceSource,
-  /jobIndex > 0 && jobIndex % LOCATION_ENRICHMENT_YIELD_EVERY === 0[\s\S]*?await yieldToBrowser\(\)/,
-  "Distance enrichment should yield between bounded job batches so cold computation cannot monopolize the browser main thread"
+  /timingNow\(\) - lastYieldAt >= LOCATION_ENRICHMENT_YIELD_BUDGET_MS[\s\S]*?await yieldToBrowser\(\)/,
+  "Distance enrichment should yield after a bounded amount of main-thread work so cold computation cannot monopolize the browser"
 );
 assert.match(
   UI.yieldToBrowser.toString(),
