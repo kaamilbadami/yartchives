@@ -33,7 +33,7 @@ def _domain_token(domain: str) -> str:
 def _domain_is_plausible(domain: str, aliases: list[str]) -> bool:
     host = domain.casefold().removeprefix("www.").strip(".")
     labels = host.split(".")
-    if len(labels) < 2 or labels[-1] not in CORPORATE_TLDS:
+    if len(labels) < 2 or labels[-1] in NON_CORPORATE_SUFFIXES or labels[-1] not in CORPORATE_TLDS:
         return False
     token = _domain_token(host)
     if not token:
@@ -43,10 +43,12 @@ def _domain_is_plausible(domain: str, aliases: list[str]) -> bool:
             continue
         if token == alias:
             return True
-        if len(alias) >= 5 and len(token) >= 5 and (token in alias or alias in token):
-            return True
+        if len(alias) >= 5 and len(token) >= 5:
+            if token.startswith(alias) and token[len(alias):] in {"co", "inc"}:
+                return True
+            if alias.startswith(token) and alias[len(token):] in {"co", "inc"}:
+                return True
     return False
-
 
 def _aliases(name: str) -> list[str]:
     target = normalize_company(name)
