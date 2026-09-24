@@ -340,7 +340,16 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(hideHandler[1], /applyFilters\(\);/);
 
   assert.doesNotMatch(uiSource, /function waitForBrowserPaint\(\)/, "Apply Next should not own a feature-specific paint helper");
-  assert.match(uiSource, /await YartchivesUtils\.waitForBrowserPaint\(\)/, "Apply Next should use the shared browser-paint primitive");
+  assert.doesNotMatch(
+    uiSource,
+    /await YartchivesUtils\.waitForBrowserPaint\(\)/,
+    "Apply Next startup must not block on browser paint scheduling"
+  );
+  assert.match(
+    uiSource,
+    /recordTimingStage\(timing, "paint_wait", stageStartedAt, stageStartedAt\);/,
+    "Apply Next diagnostics should retain a zero-duration paint-wait stage without awaiting a frame"
+  );
   assert.match(uiSource, /const rankablePool = authoritativeCandidatePool\(pool\);/, "Apply Next should narrow to authoritative candidates before expensive location work");
   assert.match(uiSource, /const preliminaryRanked = YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\);/, "Apply Next should cheaply pre-rank before exact distance work");
   assert.match(uiSource, /const distanceCandidates = distanceEnrichmentCandidates\(preliminaryRanked, rankingNow\);/, "Exact distance work should be bounded to candidates that can still affect visible recommendations");

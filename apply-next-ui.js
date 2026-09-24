@@ -1481,11 +1481,9 @@
 
     recordTimingStage(timing, "queue_setup", queueSetupStartedAt);
     let stageStartedAt = timingNow();
-    await YartchivesUtils.waitForBrowserPaint();
-    recordTimingStage(timing, "paint_wait", stageStartedAt);
+    recordTimingStage(timing, "paint_wait", stageStartedAt, stageStartedAt);
 
     try {
-      stageStartedAt = timingNow();
       recommendationJobs = await loadCandidateArtifact();
       recordTimingStage(timing, "candidate_artifact", stageStartedAt);
       if (!recommendationJobs.length) throw new Error("Apply Next candidates unavailable");
