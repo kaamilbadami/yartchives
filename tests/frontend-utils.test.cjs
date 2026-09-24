@@ -154,17 +154,31 @@ async function testPendingUiHelper() {
   restoredAfterFailure = control.disabled === false && control.textContent === "Apply Next";
   assert.equal(restoredAfterFailure, true, "pending UI must restore in finally after failures");
 
+  assert.equal(U.MAX_PAINT_WAIT_MS, 50);
+
   const paintEvents = [];
   await U.waitForBrowserPaint({
     requestAnimationFrame: callback => {
       paintEvents.push("raf");
       callback();
     },
-    setTimeout: () => {
-      throw new Error("RAF path should win");
+    setTimeout: (callback, ms) => {
+      paintEvents.push(`timer:${ms}`);
     },
   });
-  assert.deepEqual(paintEvents, ["raf"]);
+  assert.deepEqual(paintEvents, ["raf", "timer:50"]);
+
+  const boundedEvents = [];
+  await U.waitForBrowserPaint({
+    requestAnimationFrame: callback => {
+      boundedEvents.push("raf-scheduled");
+    },
+    setTimeout: (callback, ms) => {
+      boundedEvents.push(`timer:${ms}`);
+      callback();
+    },
+  });
+  assert.deepEqual(boundedEvents, ["raf-scheduled", "timer:50"]);
 }
 
 testPendingUiHelper().catch(error => {
