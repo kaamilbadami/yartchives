@@ -32,11 +32,12 @@ class ParallelAtsCollectTests(unittest.TestCase):
             "workday": task("workday"),
             "icims": task("icims"),
             "greenhouse": task("greenhouse"),
+            "smartrecruiters": task("smartrecruiters"),
             "oracle": task("oracle"),
         })
 
         self.assertGreater(max_active, 1)
-        self.assertEqual(set(result), {"workday", "icims", "greenhouse", "oracle"})
+        self.assertEqual(set(result), {"workday", "icims", "greenhouse", "smartrecruiters", "oracle"})
 
     def test_merge_is_provider_ordered_and_preserves_authoritative_branding(self):
         base = {
@@ -81,6 +82,7 @@ class ParallelAtsCollectTests(unittest.TestCase):
                 "greenhouse": greenhouse,
                 "icims": {"jobs": list(base["jobs"]), "sources": dict(base["sources"])},
                 "oracle": {"jobs": list(base["jobs"]), "sources": dict(base["sources"])},
+                "smartrecruiters": {"jobs": list(base["jobs"]), "sources": dict(base["sources"])},
             },
         )
 
