@@ -162,12 +162,23 @@ jobs:
 
           Full Quality checks are dispatched explicitly because PRs created by GITHUB_TOKEN do not recursively trigger pull_request workflows."
 
-          gh pr create \
+          set +e
+          create_output="$(gh pr create \
             --repo "$GITHUB_REPOSITORY" \
             --base main \
             --head "$GITHUB_REF_NAME" \
             --title "$title" \
-            --body "$body"
+            --body "$body" 2>&1)"
+          create_status=$?
+          set -e
+
+          if [ "$create_status" -ne 0 ]; then
+            if printf '%s' "$create_output" | grep -Fq "GitHub Actions is not permitted to create or approve pull requests"; then
+              echo "::error title=Repository setting blocks auto-PR::Enable Settings → Actions → General → Workflow permissions → Allow GitHub Actions to create and approve pull requests."
+            fi
+            printf '%s\n' "$create_output" >&2
+            exit "$create_status"
+          fi
 
           gh workflow run quality.yml \
             --repo "$GITHUB_REPOSITORY" \
