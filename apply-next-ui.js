@@ -15,7 +15,7 @@
   const FRESH_MAX_AGE_DAYS = 3;
   const FRESH_MIN_SCORE = 55;
   const LOCATION_DISTANCE_MAX_GAIN = 18;
-  const LOCATION_ENRICHMENT_YIELD_EVERY = 32;
+  const LOCATION_ENRICHMENT_YIELD_BUDGET_MS = 12;
   const FEEDBACK_ENDPOINT = "https://formspree.io/f/mqakpejw";
   let inspectionArtifactPromise = null;
   let candidateArtifactPromise = null;
@@ -728,9 +728,11 @@
 
     const distanceCache = new Map();
     const distanceJobs = jobs || [];
+    let lastYieldAt = timingNow();
     for (let jobIndex = 0; jobIndex < distanceJobs.length; jobIndex += 1) {
-      if (jobIndex > 0 && jobIndex % LOCATION_ENRICHMENT_YIELD_EVERY === 0) {
+      if (jobIndex > 0 && timingNow() - lastYieldAt >= LOCATION_ENRICHMENT_YIELD_BUDGET_MS) {
         await yieldToBrowser();
+        lastYieldAt = timingNow();
       }
 
       const job = distanceJobs[jobIndex];
@@ -1601,6 +1603,7 @@
     TOP_N,
     FRESH_MAX_AGE_DAYS,
     FRESH_MIN_SCORE,
+    LOCATION_ENRICHMENT_YIELD_BUDGET_MS,
     postedAgeDays,
     freshRankedResults,
     queueResults,
