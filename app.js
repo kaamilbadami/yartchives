@@ -891,15 +891,34 @@ async function checkDeploymentNotification({
     try { storage?.setItem(DEPLOY_NOTIFICATION_SEEN_KEY, liveSha); } catch (_) {}
     if (liveSha !== BUILD_SHA) showUpdateReady(locationObj);
     if (payload?.interactive === true) {
-      new notificationImpl("Yartchives update is live", {
+      const options = {
         body: "Your interactive change is deployed and ready to test.",
         tag: `yartchives-deploy-${liveSha}`,
         requireInteraction: true,
-      });
+        data: { url: "./" },
+      };
+      let shown = false;
+      try {
+        if (typeof navigator !== "undefined" && navigator.serviceWorker) {
+          const registration = await navigator.serviceWorker.ready;
+          await registration.showNotification("Yartchives update is live", options);
+          shown = true;
+        }
+      } catch (_) {}
+      if (!shown) new notificationImpl("Yartchives update is live", options);
     }
     return payload;
   })().catch(() => null).finally(() => { deploymentNotificationPromise = null; });
   return deploymentNotificationPromise;
+}
+
+async function registerDeployNotificationWorker() {
+  if (typeof navigator === "undefined" || !navigator.serviceWorker) return null;
+  try {
+    return await navigator.serviceWorker.register("./service-worker.js", { scope: "./" });
+  } catch (_) {
+    return null;
+  }
 }
 
 function setUpDeploymentFreshnessChecks() {
@@ -1017,6 +1036,7 @@ function isFeedReady() {
 }
 
 async function boot() {
+  void registerDeployNotificationWorker();
   updateSiteMeta();
   void refreshProductionStatus();
   void checkDeploymentNotification();
