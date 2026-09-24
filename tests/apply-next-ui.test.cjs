@@ -37,7 +37,7 @@ assert.equal(UI.totalScoreBandClass(65), "apply-next-score-medium");
 assert.equal(UI.totalScoreBandClass(85), "apply-next-score-high");
 assert.equal(UI.FRESH_MAX_AGE_DAYS, 3);
 assert.equal(UI.FRESH_MIN_SCORE, 55);
-assert.equal(UI.LOCATION_ENRICHMENT_YIELD_BUDGET_MS, 12);
+assert.equal(UI.LOCATION_ENRICHMENT_YIELD_BUDGET_MS, 100);
 
 const freshNow = new Date("2026-09-19T12:00:00Z");
 const freshRanked = [
@@ -350,7 +350,10 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /counts\.distance_unique_lookups = Number\(distanceStats\?\.unique_lookups \|\| 0\);/, "Timing diagnostics should expose unique exact-distance lookup count");
   assert.match(uiSource, /counts\.distance_cache_hits = Number\(distanceStats\?\.cache_hits \|\| 0\);/, "Timing diagnostics should expose exact-distance cache hits");
   assert.match(uiSource, /counts\.distance_lookup_failures = Number\(distanceStats\?\.lookup_failures \|\| 0\);/, "Timing diagnostics should expose exact-distance lookup failures");
+  assert.match(uiSource, /counts\.location_geo_load_ms = Number\(distanceStats\?\.geo_load_ms \|\| 0\);/, "Timing diagnostics should expose geo index load time");
   assert.match(uiSource, /counts\.location_compute_ms = Number\(distanceStats\?\.compute_ms \|\| 0\);/, "Timing diagnostics should expose exact distance compute time");
+  assert.match(uiSource, /data\.productionStatus = "true"/, "Apply Next should render the shared production readiness status near its heading");
+  assert.match(uiSource, /renderProductionStatus\(\)/, "Apply Next should initialize production readiness from the shared site status");
   assert.match(uiSource, /counts\.location_yield_ms = Number\(distanceStats\?\.yield_ms \|\| 0\);/, "Timing diagnostics should expose scheduler yield time");
   assert.match(uiSource, /stats\.lookup_failures \+= 1;/, "Individual distance lookup failures should be counted instead of aborting the batch");
   assert.match(uiSource, /await addBaseDistances\(distanceCandidates, profile\);/, "Location enrichment must not scan the full rankable pool");
