@@ -1480,8 +1480,8 @@
     }, 1500);
 
     recordTimingStage(timing, "queue_setup", queueSetupStartedAt);
-    timing.stages.paint_wait = 0;
     let stageStartedAt = timingNow();
+    recordTimingStage(timing, "paint_wait", stageStartedAt, stageStartedAt);
 
     try {
       recommendationJobs = await loadCandidateArtifact();
