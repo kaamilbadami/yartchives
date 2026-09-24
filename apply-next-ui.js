@@ -39,16 +39,12 @@
 
   function yieldToBrowser() {
     if (
-      typeof globalThis !== "undefined"
-      && globalThis.scheduler
-      && typeof globalThis.scheduler.yield === "function"
+      typeof YartchivesUtils !== "undefined"
+      && typeof YartchivesUtils.yieldToBrowser === "function"
     ) {
-      return globalThis.scheduler.yield();
+      return YartchivesUtils.yieldToBrowser();
     }
-    return new Promise(resolve => {
-      if (typeof setTimeout === "function") setTimeout(resolve, 0);
-      else resolve();
-    });
+    return Promise.resolve();
   }
 
   function recordTimingStage(timing, name, startedAt, endedAt = timingNow()) {

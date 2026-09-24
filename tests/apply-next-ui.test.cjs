@@ -614,8 +614,8 @@ assert.match(
 );
 assert.match(
   UI.yieldToBrowser.toString(),
-  /scheduler[\s\S]*?yield[\s\S]*?setTimeout/,
-  "Cooperative yielding should use scheduler.yield when available and a task fallback elsewhere"
+  /YartchivesUtils[\s\S]*?yieldToBrowser/,
+  "Apply Next should delegate cooperative yielding to the shared bounded browser-yield primitive"
 );
 
 const syntheticRanked = Array.from({ length: 20 }, (_, index) => ({
