@@ -70,6 +70,7 @@ These instructions apply to automated coding agents working in this repository.
 ## Git and pull requests
 
 - Work from current `main` on a dedicated branch.
+- Direct autonomous-agent branches that should auto-publish after preflight must use the `agent/` or `codex/` prefix. Other branches remain manual and will never be auto-PR'd merely because preflight passes.
 - Keep commits and PRs focused on the assigned task.
 - Do not push directly to `main`.
 - Open a PR with:
