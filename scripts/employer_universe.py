@@ -165,6 +165,11 @@ def merge_seed(universe: dict[str, Any], seed: dict[str, Any]) -> dict[str, Any]
         match["aliases"] = sorted(merged_aliases, key=lambda alias: (alias.casefold(), alias))
         match["seed_sets"] = sorted({*(match.get("seed_sets") or []), source_key})
 
+        merged_domain_hints = set(match.get("domain_hints") or [])
+        merged_domain_hints.update(incoming.get("domain_hints") or [])
+        if merged_domain_hints:
+            match["domain_hints"] = sorted(merged_domain_hints)
+
         metadata = _seed_metadata(incoming)
         seed_metadata = dict(match.get("seed_metadata") or {})
         if metadata:

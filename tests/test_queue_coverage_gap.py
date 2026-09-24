@@ -33,6 +33,25 @@ class TestQueueCoverageGap(unittest.TestCase):
         self.assertEqual(gap[1], 2)
         self.assertEqual(gap[3], "discovery")
 
+    def test_find_all_gaps_uses_root_domain_hints(self):
+        universe = {
+            "employers": [
+                {
+                    "name": "Employer 1",
+                    "seed_sets": ["cs-benchmark"],
+                    "provider": {"status": "unresolved"},
+                    "domain_hints": ["jobs.smartrecruiters.com"],
+                    "seed_metadata": {},
+                }
+            ]
+        }
+        with patch("scripts.queue_coverage_gap.fingerprint_provider", return_value={"family": "smartrecruiters"}):
+            gaps = find_all_gaps(universe)
+
+        self.assertEqual(len(gaps), 1)
+        self.assertEqual(gaps[0][0], "ATS Family integration (smartrecruiters)")
+        self.assertEqual(gaps[0][3], "ats-smartrecruiters")
+
     def test_find_all_gaps_ats_family(self):
         universe = {
             "employers": [
