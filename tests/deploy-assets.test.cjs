@@ -182,10 +182,10 @@ assert.match(
   /workflow_run:[\s\S]*?workflows:[\s\S]*?- Update opportunity feed[\s\S]*?types:[\s\S]*?- completed/,
   "Pages should wake after the feed workflow completes because GITHUB_TOKEN feed commits do not trigger downstream push workflows"
 );
-assert.match(
-  workflow,
-  /if:\s*github\.event_name != 'workflow_run' \|\| github\.event\.workflow_run\.conclusion == 'success'/,
-  "Pages should deploy feed workflow completions only when the upstream refresh succeeded"
+assert.equal(
+  workflow.includes("github.event.workflow_run.conclusion == 'success'"),
+  false,
+  "Pages must inspect publishable artifacts even when a later non-publication step fails"
 );
 assert.equal(
   workflow.includes('- "data/listings.json"') || workflow.includes('- "data/workday-inspections.json"'),
