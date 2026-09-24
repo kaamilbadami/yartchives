@@ -20,6 +20,21 @@ def zip_bytes(name: str, content: bytes) -> bytes:
 
 
 class DownloadLatestFeedTests(unittest.TestCase):
+    def test_latest_artifact_accepts_validated_artifact_from_later_failed_run(self):
+        responses = [
+            {"workflow_runs": [{"id": 9, "conclusion": "failure"}]},
+            {"artifacts": [{"id": 99, "name": "yartchives-listings", "expired": False}]},
+        ]
+        with patch.object(mod, "_request_json", side_effect=responses) as request_json:
+            artifact = mod.latest_artifact(
+                "owner/repo",
+                "update-feed.yml",
+                "yartchives-listings",
+                "token",
+            )
+        self.assertEqual(artifact["id"], 99)
+        self.assertNotIn("status=success", request_json.call_args_list[0].args[0])
+
     def test_existing_file_is_last_known_good_fallback_without_remote_source(self):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "listings.json"
