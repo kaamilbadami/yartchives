@@ -782,8 +782,6 @@
           } finally {
             stats.compute_ms += timingNow() - computeStartedAt;
           }
-            stats.lookup_failures += 1;
-          }
 
           distanceCache.set(cacheKey, distance);
           stats.unique_lookups = distanceCache.size;
