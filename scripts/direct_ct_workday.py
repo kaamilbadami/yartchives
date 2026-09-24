@@ -66,8 +66,11 @@ CS_TITLE_PATTERNS = (
     r"\b(?:database|sql)\b",
     r"\b(?:network|networking)\b",
     r"\b(?:cloud|devops|site reliability)\b",
-    r"\b(?:application|web)\s+develop(?:er|ment)\b",
+    r"\b(?:application|web|technology)\s+develop(?:er|ment)\b",
     r"\bprogrammer\b",
+    r"\b(?:platform|platforms|systems?|infrastructure)\s+engineer(?:ing)?\b",
+    r"(?<!food\s)\b(?:technology|security)\s+(?:intern(?:ship)?|co[- ]?op|analyst|specialist|program)\b",
+    r"\b(?:intern(?:ship)?|co[- ]?op)\s+(?:-|in|for)?\s*(?:technology|security)\b",
 )
 
 
