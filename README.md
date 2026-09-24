@@ -78,7 +78,7 @@ The repository is intentionally structured so agent work remains bounded: issues
 
 ```bash
 python -m pip install -r requirements.txt
-python scripts/build_feed.py
+python scripts/download_latest_feed.py --pages-base https://kaamilbadami.github.io/yartchives
 python -m http.server 8000
 ```
 
@@ -86,4 +86,4 @@ Then open `http://localhost:8000`.
 
 ## Automatic refreshes
 
-`.github/workflows/update-feed.yml` runs hourly and can also be triggered manually. It rebuilds and validates the feed, refreshes bounded authoritative evidence, updates the generated README status block, and commits generated artifacts when they change.
+`.github/workflows/update-feed.yml` runs hourly and can also be triggered manually. It rebuilds and validates the feed, then publishes `data/listings.json` as a versioned GitHub Actions artifact. Bounded inspection refreshes publish their cache separately. Pages deployments hydrate the latest successful artifacts before building, while the checked-in JSON files remain rollback/local-development fallbacks rather than the routine publication transport.
