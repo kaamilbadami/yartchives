@@ -21,6 +21,7 @@
   );
 
   const MAX_PAINT_WAIT_MS = 50;
+  const MAX_BROWSER_YIELD_WAIT_MS = 50;
 
   function waitForBrowserPaint(options = {}) {
     return new Promise(resolve => {
@@ -42,6 +43,37 @@
       if (raf) raf(finish);
       if (timer) timer(finish, raf ? maxWaitMs : 0);
       if (!raf && !timer) finish();
+    });
+  }
+
+  function yieldToBrowser(options = {}) {
+    return new Promise(resolve => {
+      const schedulerYield = options.schedulerYield
+        || (typeof globalThis !== "undefined"
+          && globalThis.scheduler
+          && typeof globalThis.scheduler.yield === "function"
+          ? globalThis.scheduler.yield.bind(globalThis.scheduler)
+          : null);
+      const timer = options.setTimeout
+        || (typeof setTimeout === "function" ? setTimeout : null);
+      const maxWaitMs = Number.isFinite(Number(options.maxWaitMs))
+        ? Math.max(0, Number(options.maxWaitMs))
+        : MAX_BROWSER_YIELD_WAIT_MS;
+      let settled = false;
+
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+
+      if (schedulerYield) {
+        Promise.resolve()
+          .then(() => schedulerYield())
+          .then(finish, finish);
+      }
+      if (timer) timer(finish, schedulerYield ? maxWaitMs : 0);
+      if (!schedulerYield && !timer) finish();
     });
   }
 
@@ -388,7 +420,9 @@
   return {
     STATE_NAMES,
     MAX_PAINT_WAIT_MS,
+    MAX_BROWSER_YIELD_WAIT_MS,
     waitForBrowserPaint,
+    yieldToBrowser,
     runWithPendingUi,
     normalizePlace,
     matchesTextLocation,
