@@ -17,6 +17,8 @@ class ProviderFingerprintTests(unittest.TestCase):
             "https://jobs.ashbyhq.com/acme": "ashby",
             "https://efds.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX": "oracle",
             "https://career5.successfactors.eu/career?company=acme": "successfactors",
+            "https://career55.sapsf.eu/career?company=acme": "successfactors",
+            "https://career50.sapsf.com/career?company=acme": "successfactors",
             "https://jobs.smartrecruiters.com/Acme": "smartrecruiters",
             "https://jobs.lever.co/acme": "lever",
             "https://acme.eightfold.ai/careers": "eightfold",
@@ -60,6 +62,10 @@ class ProviderFingerprintTests(unittest.TestCase):
         result = mod.fingerprint_provider("https://careers.example.com/jobs")
         self.assertEqual(result["family"], "custom_unknown")
         self.assertEqual(result["status"], "unresolved")
+
+        result_non_matching = mod.fingerprint_provider("https://example.com/not-sapsf-just-random")
+        self.assertEqual(result_non_matching["family"], "custom_unknown")
+        self.assertEqual(result_non_matching["status"], "unresolved")
 
     def test_multiple_provider_markers_are_ambiguous(self):
         result = mod.fingerprint_provider(
