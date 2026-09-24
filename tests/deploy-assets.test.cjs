@@ -39,6 +39,12 @@ assert.deepEqual(
 
 const coverageWorkflow = fs.readFileSync(".github/workflows/coverage-audit.yml", "utf8");
 const qualityWorkflow = fs.readFileSync(".github/workflows/quality.yml", "utf8");
+assert.match(
+  qualityWorkflow,
+  /cp data\/listings\.json \/tmp\/yartchives-old-listings\.json[\s\S]*?reconcile_workday_duplicates\.py data\/listings\.json[\s\S]*?stabilize_job_ids\.py data\/listings\.json --old-feed \/tmp\/yartchives-old-listings\.json[\s\S]*?validate_feed\.py data\/listings\.json/,
+  "Live-source smoke should validate the same post-reconciliation stabilized ID state that production publishes"
+);
+
 const qualityRunner = fs.readFileSync("scripts/run_quality_checks.sh", "utf8");
 const feedWorkflow = fs.readFileSync(".github/workflows/update-feed.yml", "utf8");
 const autonomousWorkflow = fs.readFileSync(".github/workflows/autonomous-dispatch.yml", "utf8");
