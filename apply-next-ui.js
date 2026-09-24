@@ -1391,6 +1391,7 @@
       element("p", "eyebrow", "your next application queue"),
       element("h2", "", "Apply Next"),
       foundingBetaBadge(),
+      element("p", "muted apply-next-production-status", "Checking production status…"),
       element("p", "muted", profileSummary(profile) || "Private strategy loaded")
     );
     const controls = element("div", "apply-next-profile-actions");
@@ -1409,6 +1410,11 @@
       setupPanel(panel);
     });
     controls.append(edit, clear);
+    const productionStatus = copy.querySelector(".apply-next-production-status");
+    if (productionStatus) {
+      productionStatus.dataset.productionStatus = "true";
+      productionStatus.setAttribute("aria-live", "polite");
+    }
     heading.append(copy, controls);
     fragment.append(heading);
 
@@ -1462,6 +1468,7 @@
 
     panel.innerHTML = "";
     panel.append(buildQueueSkeleton(profile, panel, null));
+    if (typeof renderProductionStatus === "function") renderProductionStatus();
     renderCurrentQueue(panel, profile, 0, "loading");
     panel.setAttribute("aria-busy", "true");
 
@@ -1529,6 +1536,7 @@
       stageStartedAt = timingNow();
       panel.innerHTML = "";
       panel.append(buildQueueSkeleton(profile, panel, explanation));
+      if (typeof renderProductionStatus === "function") renderProductionStatus();
       renderCurrentQueue(panel, profile, pool.length);
       recordTimingStage(timing, "render", stageStartedAt);
     } catch (error) {
@@ -1536,6 +1544,7 @@
       console.error(error);
       panel.innerHTML = "";
       panel.append(buildQueueSkeleton(profile, panel, null));
+      if (typeof renderProductionStatus === "function") renderProductionStatus();
       renderCurrentQueue(panel, profile, 0, "error");
     } finally {
       clearTimeout(slowLoadingTimer);
