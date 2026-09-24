@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
 CORPORATE_TLDS = {"com", "co", "net", "org", "io", "ai"}
+NON_CORPORATE_SUFFIXES = {"edu", "gov", "mil"}
 
 
 def normalize_company(name: str) -> str:
