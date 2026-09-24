@@ -201,8 +201,9 @@ jobs:
           set -euo pipefail
           BUILD_SHA="$(git rev-parse HEAD)"
           if [ -z "${YARTCHIVES_PUSH_SUBSCRIPTION}" ] || [ -z "${YARTCHIVES_VAPID_PRIVATE_KEY}" ]; then
-            echo "::notice::Web Push secrets are not configured; skipping deploy push."
-            exit 0
+            echo "::error::Web Push secrets are not configured; a verified production deploy must not silently skip its notification."
+            exit 1
           fi
           python -m pip install -r requirements-push.txt
           python scripts/send_web_push.py --build-sha "$BUILD_SHA"
+          echo "Verified deploy notification sent for ${BUILD_SHA}."
