@@ -38,7 +38,10 @@
   }
 
   function yieldToBrowser() {
-    if (typeof YartchivesUtils?.yieldToBrowser === "function") {
+    if (
+      typeof YartchivesUtils !== "undefined"
+      && typeof YartchivesUtils.yieldToBrowser === "function"
+    ) {
       return YartchivesUtils.yieldToBrowser();
     }
     return Promise.resolve();
