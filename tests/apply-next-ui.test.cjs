@@ -39,6 +39,40 @@ assert.equal(UI.FRESH_MAX_AGE_DAYS, 3);
 assert.equal(UI.FRESH_MIN_SCORE, 55);
 assert.equal(UI.LOCATION_ENRICHMENT_YIELD_BUDGET_MS, 100);
 
+const originalApplyNextGlobal = global.YartchivesApplyNext;
+global.YartchivesApplyNext = {
+  scoreLocation(job) {
+    return { score: job.id === "distance-updated" ? 20 : 10, detail: "updated location" };
+  },
+};
+const unaffectedResult = {
+  job: { id: "unaffected", company: "A", posted_at: "2026-09-20" },
+  total: 75,
+  components: { location: { score: 10, detail: "old location" } },
+  reasons: ["location: old location"],
+};
+const affectedResult = {
+  job: { id: "distance-updated", company: "B", posted_at: "2026-09-20" },
+  total: 70,
+  components: { location: { score: 10, detail: "old location" } },
+  reasons: ["location: old location"],
+};
+const rerankedDistanceResults = UI.rerankAfterDistance(
+  [unaffectedResult, affectedResult],
+  [affectedResult.job],
+  profile
+);
+assert.equal(rerankedDistanceResults[0].job.id, "distance-updated");
+assert.equal(rerankedDistanceResults[0].total, 80);
+assert.equal(rerankedDistanceResults[0].components.location.score, 20);
+assert.match(rerankedDistanceResults[0].reasons[0], /updated location/);
+assert.strictEqual(
+  rerankedDistanceResults.find(result => result.job.id === "unaffected"),
+  unaffectedResult,
+  "Jobs outside the exact-distance shortlist should reuse their preliminary score object"
+);
+global.YartchivesApplyNext = originalApplyNextGlobal;
+
 const freshNow = new Date("2026-09-19T12:00:00Z");
 const freshRanked = [
   { total: 88, job: { id: "fresh-best", posted_at: "2026-09-19" } },
@@ -349,6 +383,25 @@ assert.equal(jobs[2]._inspection, undefined);
     uiSource,
     /recordTimingStage\(timing, "paint_wait", stageStartedAt, stageStartedAt\);/,
     "Apply Next diagnostics should retain a zero-duration paint-wait stage without awaiting a frame"
+  );
+  assert.match(
+    uiSource,
+    /const candidateArtifactPromise = loadCandidateArtifact\(\);[\s\S]*?const inspectionArtifactPromise = loadInspectionArtifact\(\);[\s\S]*?await candidateArtifactPromise[\s\S]*?await inspectionArtifactPromise/,
+    "Candidate and inspection artifacts should start concurrently before either is awaited"
+  );
+  const geoWarmSource = uiSource.match(/function scheduleGeoWarm\(profile\) \{([\s\S]*?)\n  \}/);
+  assert.ok(geoWarmSource, "Geo warm helper should be present");
+  assert.match(geoWarmSource[1], /geoWarmState = "loading";[\s\S]*?loadGeoIndex\(\)/, "Saved-profile geo warm should start immediately");
+  assert.doesNotMatch(geoWarmSource[1], /requestAnimationFrame|requestIdleCallback|setTimeout/, "Geo warm should not be deferred behind browser scheduling");
+  assert.equal(
+    (uiSource.match(/YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\)/g) || []).length,
+    1,
+    "Apply Next should perform only one full ranking pass per queue render"
+  );
+  assert.match(
+    uiSource,
+    /const ranked = rerankAfterDistance\(preliminaryRanked, distanceCandidates, profile\);/,
+    "Final ordering should selectively update location scores instead of fully rescoring the pool"
   );
   assert.match(uiSource, /const rankablePool = authoritativeCandidatePool\(pool\);/, "Apply Next should narrow to authoritative candidates before expensive location work");
   assert.match(uiSource, /const preliminaryRanked = YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\);/, "Apply Next should cheaply pre-rank before exact distance work");
