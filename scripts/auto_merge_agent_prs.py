@@ -36,6 +36,8 @@ CLOSING_ISSUE_RE = re.compile(
 JULES_REVIEW_READY_LABEL = "jules-review-ready"
 GITHUB_ACTIONS_BOT = "github-actions[bot]"
 OWNER_AUTHORIZED_AUTOMERGE_MARKER = "<!-- owner-authorized-automerge -->"
+TRUSTED_PREFLIGHT_AUTO_PR_MARKER = "<!-- trusted-preflight-auto-pr -->"
+TRUSTED_PREFLIGHT_BRANCH_PREFIXES = ("agent/", "codex/")
 SAFE_MERGEABLE_STATES = {"clean", "has_hooks", "unstable", "behind"}
 MAINTENANCE_TEST_BY_PATH = {
     "scripts/dispatch_autonomous_issues.py": "tests/test_dispatch_autonomous_issues.py",
@@ -103,6 +105,26 @@ def owner_authorized_pr(
     head = pr.get("head") or {}
     return str((head.get("repo") or {}).get("full_name") or "") == repo
 
+
+
+def trusted_preflight_auto_pr(pr: dict[str, Any], repo: str) -> bool:
+    """Authorize bot-created PRs only when green branch preflight created them.
+
+    The workflow marker, trusted branch prefix, same-repository head, and bot author
+    form the durable provenance contract. Exact-head Quality checks remain mandatory
+    later in the merge policy.
+    """
+    if str(pr.get("state") or "") != "open" or bool(pr.get("draft")):
+        return False
+    if str((pr.get("user") or {}).get("login") or "") != GITHUB_ACTIONS_BOT:
+        return False
+    head = pr.get("head") or {}
+    if str((head.get("repo") or {}).get("full_name") or "") != repo:
+        return False
+    head_ref = str(head.get("ref") or "")
+    if not any(head_ref.startswith(prefix) for prefix in TRUSTED_PREFLIGHT_BRANCH_PREFIXES):
+        return False
+    return TRUSTED_PREFLIGHT_AUTO_PR_MARKER in str(pr.get("body") or "")
 
 def linked_issue_number(body: str) -> int | None:
     match = CLOSING_ISSUE_RE.search(body or "")
@@ -1211,7 +1233,7 @@ def main() -> int:
             require_quality=False,
         )
 
-        owner_authorized = owner_authorized_pr(pr, repo)
+        owner_authorized = owner_authorized_pr(pr, repo) or trusted_preflight_auto_pr(pr, repo)
         issue_number = linked_issue_number(str(pr.get("body") or ""))
         issue = None
         if issue_number is not None:

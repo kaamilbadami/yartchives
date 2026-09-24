@@ -12,14 +12,14 @@ assert SPEC.loader
 SPEC.loader.exec_module(mod)
 
 
-def pr(*, body="Closes #10", files=(), head_sha="abc", draft=False, repo="kaamilbadami/yartchives", user="kaamilbadami"):
+def pr(*, body="Closes #10", files=(), head_sha="abc", head_ref="feature/test", draft=False, repo="kaamilbadami/yartchives", user="kaamilbadami"):
     return {
         "number": 20,
         "state": "open",
         "draft": draft,
         "body": body,
         "user": {"login": user},
-        "head": {"sha": head_sha, "repo": {"full_name": repo}},
+        "head": {"sha": head_sha, "ref": head_ref, "repo": {"full_name": repo}},
         "base": {"ref": "main"},
         "_files": list(files),
     }
@@ -118,6 +118,35 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                 self.assertFalse(
                     mod.owner_authorized_pr(blocked, "kaamilbadami/yartchives")
                 )
+
+    def test_trusted_preflight_bot_pr_requires_marker_prefix_and_same_repo(self):
+        candidate = pr(
+            body=mod.TRUSTED_PREFLIGHT_AUTO_PR_MARKER,
+            head_ref="agent/fix-latency",
+            user="github-actions[bot]",
+        )
+        self.assertTrue(
+            mod.trusted_preflight_auto_pr(candidate, "kaamilbadami/yartchives")
+        )
+
+        blocked = (
+            pr(body="", head_ref="agent/fix-latency", user="github-actions[bot]"),
+            pr(body=mod.TRUSTED_PREFLIGHT_AUTO_PR_MARKER, head_ref="feature/manual", user="github-actions[bot]"),
+            pr(body=mod.TRUSTED_PREFLIGHT_AUTO_PR_MARKER, head_ref="agent/fix-latency", user="someone-else"),
+            pr(body=mod.TRUSTED_PREFLIGHT_AUTO_PR_MARKER, head_ref="agent/fix-latency", user="github-actions[bot]", repo="someone/fork"),
+        )
+        for candidate in blocked:
+            with self.subTest(candidate=candidate):
+                self.assertFalse(
+                    mod.trusted_preflight_auto_pr(candidate, "kaamilbadami/yartchives")
+                )
+
+    def test_main_accepts_trusted_preflight_bot_pr_as_direct_authorized_lane(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            "owner_authorized = owner_authorized_pr(pr, repo) or trusted_preflight_auto_pr(pr, repo)",
+            source,
+        )
 
     def test_historical_owner_marker_remains_compatible_but_is_not_required(self):
         candidate = pr(body=mod.OWNER_AUTHORIZED_AUTOMERGE_MARKER)
