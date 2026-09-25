@@ -544,12 +544,15 @@ for (const code of ["geo_index_zips", "geo_index_cities", "geo_index_sort", "geo
 const diagnosticText = UI.timingDiagnosticText({
   total_ms: 10400,
   stages_ms: { candidate_artifact: 9600, ranking: 100, render: 200 },
-  counts: { candidates: 5000, rankable: 42, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10 },
+  counts: { candidates: 5000, rankable: 42, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10, inspection_promise_state_at_await: "fetching", inspection_await_ms: 8500.1, inspection_normalization_ms: 45.2, geo_await_ms: 9200.3, geo_warm_state_at_await: "ready", geo_enrichment_ms: 9300.5 },
   geo_error: "geo_http_404",
   status: "success",
 });
 assert.match(diagnosticText, /Apply Next total: 10400\.0 ms/);
 assert.match(diagnosticText, /Geo load error: geo_http_404/);
+assert.match(diagnosticText, /Inspection wait: 8500\.1 ms · state at await: fetching/);
+assert.match(diagnosticText, /normalization: 45\.2 ms/);
+assert.match(diagnosticText, /Geo wall: 9300\.5 ms · await: 9200\.3 ms · state at await: ready/);
 assert.match(diagnosticText, /Candidate download: 9600\.0 ms/);
 assert.match(diagnosticText, /Candidates: 5000 · Rankable: 42 · Distance candidates: 12 · Unique distance lookups: 7 · Distance cache hits: 5 · Distance lookup failures: 2 · Recommendations: 10/);
 assert.match(diagnosticText, /Location parse: 1\.2 ms · compute: 12\.3 ms · yields: 8\.4 ms \(3\) · ordering: 0\.7 ms/);
