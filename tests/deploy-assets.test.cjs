@@ -242,6 +242,6 @@ assert.match(
 
 const pushSender = fs.readFileSync(path.join(__dirname, "..", "scripts", "send_web_push.py"), "utf8");
 assert.match(pushSender, /VAPID_SUBJECT\s*=\s*"mailto:[^"]+"/, "Web Push VAPID subject must be a mailto contact accepted by push providers");
-assert.match(pushSender, /::error::Web Push delivery failed:[\\s\\S]*?return 1/, "Web Push delivery errors must fail instead of producing a false-green deploy notification");
+assert.match(pushSender, /::error::Web Push delivery failed:[\s\S]*?return 1/, "Web Push delivery errors must fail instead of producing a false-green deploy notification");
 
 console.log("deploy asset and workflow health contract tests passed");
