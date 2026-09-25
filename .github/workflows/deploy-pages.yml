@@ -1,28 +1,12 @@
 name: Deploy Yartchives site
 
 on:
+  # Every main advance gets a deploy attempt. The build already checks out main
+  # and hydrates runtime artifacts, so path filtering here can only create stale
+  # production (and previously missed notification-only changes).
   push:
     branches:
       - main
-    # Deploy every main change. The build hydrates runtime artifacts itself, and
-    # path filters previously let production-serving changes merge without a deploy.
-    paths:
-      - "**"
-      - "!tests/**"
-      - "!docs/**"
-      - "!README.md"
-      - "index.html"
-      - "*.js"
-      - "*.css"
-      - "*.webmanifest"
-      - "assets/**"
-      - "scripts/build_apply_next_inspections.py"
-      - "scripts/build_apply_next_candidates.py"
-      - "scripts/build_geo_index.py"
-      - "scripts/send_web_push.py"
-      - "requirements-push.txt"
-      - ".nojekyll"
-      - ".github/workflows/deploy-pages.yml"
   workflow_run:
     workflows:
       - Update opportunity feed
