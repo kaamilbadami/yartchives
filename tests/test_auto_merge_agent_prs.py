@@ -244,6 +244,37 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             )
         )
 
+    def test_trusted_repair_lineage_can_reach_ci_before_green(self):
+        commits = [
+            {
+                "sha": "recorded",
+                "author": {"login": "google-labs-jules[bot]"},
+                "committer": {"login": "google-labs-jules[bot]"},
+            },
+            {
+                "sha": "current",
+                "author": {"login": "github-actions[bot]"},
+                "committer": {"login": "github-actions[bot]"},
+            },
+        ]
+        self.assertTrue(
+            mod.trusted_repair_lineage_allowed(
+                commits,
+                recorded_head="recorded",
+                current_head="current",
+                repo="kaamilbadami/yartchives",
+            )
+        )
+        self.assertFalse(
+            mod.trusted_repair_head_allowed(
+                commits,
+                recorded_head="recorded",
+                current_head="current",
+                repo="kaamilbadami/yartchives",
+                quality_runs=[],
+            )
+        )
+
     def test_trusted_repair_head_rejects_untrusted_or_red_suffix(self):
         untrusted = [
             {
@@ -283,6 +314,12 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                 quality_runs=runs(sha="current", conclusion="failure"),
             )
         )
+
+    def test_main_allows_trusted_repair_lineage_to_reach_ci_dispatch(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn("trusted_repair_lineage_allowed(", source)
+        self.assertIn("waiting for or dispatching exact-head Quality", source)
+        self.assertIn("should_redispatch =", source)
 
     def test_exact_head_quality_presence_detects_missing_run(self):
         self.assertTrue(mod.exact_head_quality_present(runs(), "abc"))
