@@ -154,6 +154,12 @@ class StaticContractTests(unittest.TestCase):
         ]:
             self.assertIn(path, auto_merge)
 
+    def test_branch_preflight_runs_full_pr_suite_before_publish(self):
+        workflow = (ROOT / ".github" / "workflows" / "branch-preflight.yml").read_text(encoding="utf-8")
+        self.assertIn("bash scripts/run_quality_checks.sh all", workflow)
+        self.assertNotIn("Select targeted preflight phases", workflow)
+        self.assertIn("needs.tests.result == 'success'", workflow)
+
     def test_pages_deploy_includes_static_assets(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
         self.assertIn("push:\n    branches:\n      - main", workflow)
