@@ -1,5 +1,6 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const path = require("node:path");
 
 const index = fs.readFileSync("index.html", "utf8");
 const workflow = fs.readFileSync(".github/workflows/deploy-pages.yml", "utf8");
