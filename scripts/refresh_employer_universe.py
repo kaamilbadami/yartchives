@@ -19,7 +19,12 @@ def refresh_universe(
 ) -> dict:
     result = json.loads(json.dumps(universe))
     validate_universe(result)
-    inputs = [build_benchmark_seed(benchmark, enrich_domain_hints=enrich_domain_hints) for benchmark in (benchmarks or [])]
+    inputs = []
+    for benchmark in (benchmarks or []):
+        if benchmark.get("schema_version") == 1:
+            inputs.append(benchmark)
+        else:
+            inputs.append(build_benchmark_seed(benchmark, enrich_domain_hints=enrich_domain_hints))
     for seed in (seeds or []):
         s = json.loads(json.dumps(seed))
         if enrich_domain_hints:
