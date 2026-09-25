@@ -1458,10 +1458,10 @@ def reconcile_autonomous_labels(
 
         task = task_from_issue(issue)
         labels = label_names(issue)
-        claims_autonomous = bool(
-            {"agent-ready", "autonomous-backlog"} & labels
-            or AUTONOMOUS_MARKER in str(issue.get("body") or "")
-        )
+        # Quarantine only issues that are actually admitted to the dispatch
+        # backlog. A marker or agent-ready label alone may describe intentionally
+        # non-autonomous/draft work and must not be mutated.
+        claims_autonomous = "autonomous-backlog" in labels
         if not task:
             if claims_autonomous and INVALID_AUTONOMOUS_LABEL not in labels:
                 run_gh(
