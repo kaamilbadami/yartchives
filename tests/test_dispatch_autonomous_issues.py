@@ -3303,5 +3303,40 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertEqual(called_args[0][3], "repo/test")
         self.assertTrue("--title" in called_args[0])
 
+    def test_reconcile_quarantines_malformed_visible_autonomous_issue(self):
+        issue = {
+            "number": 645,
+            "state": "open",
+            "title": "Malformed",
+            "body": "Missing autonomous metadata",
+            "labels": [{"name": "agent-ready"}, {"name": "autonomous-backlog"}],
+        }
+        calls = []
+        mod.reconcile_autonomous_labels(
+            [issue], repo="owner/repo", run_gh=lambda *args: calls.append(args)
+        )
+        self.assertIn("invalid-autonomous-task", mod.label_names(issue))
+        self.assertNotIn("autonomous-backlog", mod.label_names(issue))
+        self.assertEqual(len(calls), 1)
+        self.assertIn("--remove-label", calls[0])
+        self.assertIn("autonomous-backlog", calls[0])
+
+    def test_reconcile_restores_fixed_quarantined_autonomous_issue(self):
+        issue = {
+            "number": 645,
+            "state": "open",
+            "title": "Fixed",
+            "body": "<!-- autonomous-task -->\npriority: P1\narea: performance\nresources: frontend-state\nautonomous: true",
+            "labels": [{"name": "agent-ready"}, {"name": "invalid-autonomous-task"}],
+        }
+        calls = []
+        mod.reconcile_autonomous_labels(
+            [issue], repo="owner/repo", run_gh=lambda *args: calls.append(args)
+        )
+        labels = mod.label_names(issue)
+        self.assertNotIn("invalid-autonomous-task", labels)
+        self.assertIn("autonomous-backlog", labels)
+        self.assertEqual(len(calls), 2)
+
 if __name__ == "__main__":
     unittest.main()
