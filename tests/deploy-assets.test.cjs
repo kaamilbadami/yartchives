@@ -1,5 +1,6 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const path = require("node:path");
 
 const index = fs.readFileSync("index.html", "utf8");
 const workflow = fs.readFileSync(".github/workflows/deploy-pages.yml", "utf8");
@@ -237,5 +238,10 @@ assert.match(
   /group:\s*github-pages[\s\S]*?cancel-in-progress:\s*true/,
   "Pages deployments are replaceable and should keep only the latest commit"
 );
+
+
+const pushSender = fs.readFileSync(path.join(__dirname, "..", "scripts", "send_web_push.py"), "utf8");
+assert.match(pushSender, /VAPID_SUBJECT\s*=\s*"mailto:[^"]+"/, "Web Push VAPID subject must be a mailto contact accepted by push providers");
+assert.match(pushSender, /::error::Web Push delivery failed:[\s\S]*?return 1/, "Web Push delivery errors must fail instead of producing a false-green deploy notification");
 
 console.log("deploy asset and workflow health contract tests passed");
