@@ -905,17 +905,16 @@ def branch_refresh_required(
     pr_changed_paths: Iterable[str],
     base_changed_paths: Iterable[str],
 ) -> bool:
-    """Refresh only when stale-base changes overlap the PR's changed paths.
+    """Refresh every PR that is behind its base before attempting merge.
 
-    A green, mergeable PR that is merely behind main because unrelated files
-    changed does not need another branch-update/CI cycle. If the base changed a
-    file the PR also changes, retain the conservative refresh-and-retest path.
+    Repository rules require the latest required status checks against current
+    main. Even when the base changed only unrelated files, GitHub can reject a
+    guarded merge with "Required status check \"tests\" is expected." Treat
+    any behind_by > 0 as requiring a branch refresh and fresh exact-head CI.
+    The path arguments remain part of the public test contract for compatibility.
     """
-    if int(comparison.get("behind_by") or 0) <= 0:
-        return False
-    pr_paths = {str(path) for path in pr_changed_paths if str(path)}
-    base_paths = {str(path) for path in base_changed_paths if str(path)}
-    return bool(pr_paths & base_paths)
+    del pr_changed_paths, base_changed_paths
+    return int(comparison.get("behind_by") or 0) > 0
 
 
 def gh_json(*args: str) -> Any:

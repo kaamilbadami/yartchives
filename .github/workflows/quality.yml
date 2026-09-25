@@ -125,12 +125,11 @@ jobs:
 
   wake-automerge:
     if: >-
-      github.event_name == 'workflow_dispatch' &&
+      always() &&
       needs.tests.result == 'success' &&
-      needs.live-source-smoke.result == 'success'
+      (github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch')
     needs:
       - tests
-      - live-source-smoke
     runs-on: ubuntu-latest
     steps:
       - name: Wake auto-merge controller

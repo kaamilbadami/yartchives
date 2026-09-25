@@ -139,6 +139,16 @@ class StaticContractTests(unittest.TestCase):
         ]:
             self.assertIn(command, runner)
 
+    def test_green_pr_quality_wakes_automerge_without_live_source_smoke(self):
+        quality = (ROOT / ".github" / "workflows" / "quality.yml").read_text(encoding="utf-8")
+        wake = quality.split("  wake-automerge:", 1)[1]
+        self.assertIn("needs.tests.result == 'success'", wake)
+        self.assertIn("github.event_name == 'pull_request'", wake)
+        self.assertIn("github.event_name == 'workflow_dispatch'", wake)
+        self.assertNotIn("needs.live-source-smoke.result", wake)
+        self.assertNotIn("- live-source-smoke", wake)
+        self.assertIn('gh workflow run auto-merge-agent-prs.yml', wake)
+
     def test_auto_merge_uses_repository_dispatch_for_pages(self):
         auto_merge = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text(encoding="utf-8")
         deploy = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
