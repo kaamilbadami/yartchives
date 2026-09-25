@@ -156,7 +156,8 @@ class StaticContractTests(unittest.TestCase):
 
     def test_pages_deploy_includes_static_assets(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
-        self.assertIn('- "assets/**"', workflow)
+        self.assertIn("push:\n    branches:\n      - main", workflow)
+        self.assertNotIn("paths:", workflow.split("workflow_run:")[0])
         self.assertIn("mkdir -p _site/data _site/assets", workflow)
         self.assertIn("cp -R assets/. _site/assets/", workflow)
 
