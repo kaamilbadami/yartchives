@@ -48,6 +48,8 @@ def _domain_is_plausible(domain: str, aliases: list[str]) -> bool:
                 return True
             if alias.startswith(token) and alias[len(token):] in {"co", "inc"}:
                 return True
+            if token in alias:
+                return True
     return False
 
 def _aliases(name: str) -> list[str]:
@@ -68,6 +70,18 @@ def get_company_domain(name: str) -> str | None:
     overrides = {
         "gold.com": "gold.com",
         "guidewell mutual holding": "guidewell.com",
+        "fidelity national information (fis)": "fisglobal.com",
+        "fifth third bancorp": "53.com",
+        "goodyear tire & rubber": "goodyear.com",
+        "guardian life ins. co. of america": "guardianlife.com",
+        "advanced micro devices": "amd.com",
+        "massachusetts mutual life insurance": "massmutual.com",
+        "mondelēz international": "mondelezinternational.com",
+        "o'reilly automotive": "oreillyauto.com",
+        "packaging corp. of america": "packagingcorp.com",
+        "plains gp holdings": "plains.com",
+        "united services automobile assn.": "usaa.com",
+        "westinghouse air brake": "wabteccorp.com",
     }
     if name.lower() in overrides:
         return overrides[name.lower()]
