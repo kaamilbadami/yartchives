@@ -3312,7 +3312,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
             "labels": [{"name": "agent-ready"}, {"name": "autonomous-backlog"}],
         }
         calls = []
-        mod.reconcile_autonomous_labels(
+        self.original_reconcile_labels(
             [issue], repo="owner/repo", run_gh=lambda *args: calls.append(args)
         )
         self.assertIn("invalid-autonomous-task", mod.label_names(issue))
@@ -3330,7 +3330,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
             "labels": [{"name": "agent-ready"}, {"name": "invalid-autonomous-task"}],
         }
         calls = []
-        mod.reconcile_autonomous_labels(
+        self.original_reconcile_labels(
             [issue], repo="owner/repo", run_gh=lambda *args: calls.append(args)
         )
         labels = mod.label_names(issue)
