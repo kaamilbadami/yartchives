@@ -472,15 +472,14 @@ def exact_head_quality_passed(runs: Iterable[dict[str, Any]], head_sha: str) -> 
     )
 
 
-def trusted_repair_head_allowed(
+def trusted_repair_lineage_allowed(
     commits: Iterable[dict[str, Any]],
     *,
     recorded_head: str,
     current_head: str,
     repo: str,
-    quality_runs: Iterable[dict[str, Any]],
 ) -> bool:
-    """Allow a durable Jules head to advance only through trusted, green repairs."""
+    """Allow trusted repair lineage to reach CI even before the new head is green."""
     rows = list(commits)
     shas = [str(row.get("sha") or "") for row in rows]
     if (
@@ -490,7 +489,6 @@ def trusted_repair_head_allowed(
         or current_head not in shas
         or shas[-1] != current_head
         or shas.index(recorded_head) >= shas.index(current_head)
-        or not exact_head_quality_passed(quality_runs, current_head)
     ):
         return False
 
@@ -505,6 +503,23 @@ def trusted_repair_head_allowed(
         if author not in trusted or committer not in trusted:
             return False
     return True
+
+
+def trusted_repair_head_allowed(
+    commits: Iterable[dict[str, Any]],
+    *,
+    recorded_head: str,
+    current_head: str,
+    repo: str,
+    quality_runs: Iterable[dict[str, Any]],
+) -> bool:
+    """Advance durable Jules identity only after trusted lineage is exact-head green."""
+    return trusted_repair_lineage_allowed(
+        commits,
+        recorded_head=recorded_head,
+        current_head=current_head,
+        repo=repo,
+    ) and exact_head_quality_passed(quality_runs, current_head)
 
 
 def exact_head_quality_present(runs: Iterable[dict[str, Any]], head_sha: str) -> bool:
@@ -1320,37 +1335,43 @@ def main() -> int:
                     "api",
                     f"repos/{repo}/pulls/{number}/commits?per_page=100",
                 )
-                if not trusted_repair_head_allowed(
+                if not trusted_repair_lineage_allowed(
                     commits,
                     recorded_head=recorded_head,
                     current_head=head_sha,
                     repo=repo,
-                    quality_runs=runs,
                 ):
                     print(
                         f"BLOCKED_REQUIRES_DECISION PR #{number}: durable Jules output head "
-                        f"{recorded_head} does not match current head {head_sha}."
+                        f"{recorded_head} does not match trusted repair lineage at {head_sha}."
                     )
                     continue
-                marker = (
-                    f"<!-- jules-output: issue={issue_number} "
-                    f"session={output_meta['session']} pr={number} head={head_sha} -->"
-                )
-                gh_run(
-                    "issue", "comment", str(issue_number), "--repo", repo,
-                    "--body",
-                    (
-                        f"{marker}\nAdvanced durable Jules output identity after trusted "
-                        "repair commits passed exact-head Quality checks."
-                    ),
-                )
-                output_meta["head"] = head_sha
-                output_meta["durable"] = True
-                print(
-                    f"Advanced Jules output identity for issue #{issue_number}, PR #{number}, "
-                    f"to trusted green repair head {head_sha}."
-                )
-                recorded_head = head_sha
+                if exact_head_quality_passed(runs, head_sha):
+                    marker = (
+                        f"<!-- jules-output: issue={issue_number} "
+                        f"session={output_meta['session']} pr={number} head={head_sha} -->"
+                    )
+                    gh_run(
+                        "issue", "comment", str(issue_number), "--repo", repo,
+                        "--body",
+                        (
+                            f"{marker}\nAdvanced durable Jules output identity after trusted "
+                            "repair commits passed exact-head Quality checks."
+                        ),
+                    )
+                    output_meta["head"] = head_sha
+                    output_meta["durable"] = True
+                    print(
+                        f"Advanced Jules output identity for issue #{issue_number}, PR #{number}, "
+                        f"to trusted green repair head {head_sha}."
+                    )
+                    recorded_head = head_sha
+                else:
+                    print(
+                        f"Trusted repair lineage for PR #{number} reached {head_sha}; "
+                        "waiting for or dispatching exact-head Quality before advancing "
+                        "durable Jules output identity."
+                    )
             if not recorded_head:
                 marker = (
                     f"<!-- jules-output: issue={issue_number} "
