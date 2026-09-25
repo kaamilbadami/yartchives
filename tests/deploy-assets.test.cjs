@@ -10,8 +10,9 @@ const assets = [...index.matchAll(/(?:src|href)="([^"]+\.(?:js|css))"/g)]
   .filter(asset => !/^https?:\/\//i.test(asset));
 
 assert.ok(assets.length > 0, "index.html should reference local JS/CSS assets");
-assert.ok(workflow.includes('- "*.js"'), "top-level JS changes should trigger a Pages deploy");
-assert.ok(workflow.includes('- "*.css"'), "top-level CSS changes should trigger a Pages deploy");
+assert.match(workflow, /push:\s*[\s\S]*?branches:\s*[\s\S]*?- main/, "Every main advance should trigger a Pages deploy");
+assert.equal(/push:\s*[\s\S]*?paths:\s*/.test(workflow.split("workflow_run:")[0]), false, "Main deploy triggering must not use path filters that can leave production stale");
+assert.ok(workflow.includes("cp ./*.js ./*.css _site/"), "Pages artifact should package top-level CSS generically");
 assert.ok(workflow.includes("cp ./*.js ./*.css _site/"), "Pages artifact should package top-level JS/CSS generically");
 assert.ok(fs.existsSync("service-worker.js"), "persistent deploy notifications require the service worker source");
 assert.ok(fs.existsSync("manifest.webmanifest"), "iPhone Home Screen support requires a web app manifest");
@@ -20,7 +21,7 @@ assert.equal(manifest.display, "standalone", "Home Screen installs should launch
 assert.equal(manifest.id, "./", "PWA identity should stay stable across deploys");
 assert.match(index, /<link rel="manifest" href="manifest\.webmanifest" \/>/, "index should expose the PWA manifest");
 assert.match(index, /<link rel="apple-touch-icon" href="assets\/yartchives-hedgehog\.png" \/>/, "iPhone Home Screen installs should use the Yartchives icon");
-assert.ok(workflow.includes('- "*.webmanifest"'), "manifest changes should trigger a Pages deploy");
+assert.ok(workflow.includes("cp index.html .nojekyll manifest.webmanifest _site/"), "Pages artifact should package the web app manifest");
 assert.ok(workflow.includes("cp index.html .nojekyll manifest.webmanifest _site/"), "Pages artifact should package the PWA manifest");
 const serviceWorker = fs.readFileSync("service-worker.js", "utf8");
 assert.match(serviceWorker, /addEventListener\("push"/, "service worker should receive background Web Push events");
