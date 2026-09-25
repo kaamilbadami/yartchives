@@ -427,9 +427,9 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             )
         )
 
-    def test_stale_green_pr_skips_refresh_when_main_changed_unrelated_paths(self):
+    def test_stale_green_pr_refreshes_even_when_main_changed_unrelated_paths(self):
         comparison = {"behind_by": 3}
-        self.assertFalse(
+        self.assertTrue(
             mod.branch_refresh_required(
                 comparison=comparison,
                 pr_changed_paths=["apply-next-ui.js", "tests/apply-next-ui.test.cjs"],
