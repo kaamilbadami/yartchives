@@ -61,6 +61,7 @@ JULES_RETRY_MARKER = "<!-- jules-retry-from: {session_id} -->"
 JULES_INFRA_RETRY_MARKER = "<!-- jules-infra-retry-from: {session_id} -->"
 JULES_REWORK_MARKER = "<!-- jules-rework-from: {issue_number} -->"
 JULES_REWORKED_LABEL = "jules-reworked"
+INVALID_AUTONOMOUS_LABEL = "invalid-autonomous-task"
 JULES_REWORK_SESSION_CLEANUP_MARKER = "<!-- jules-rework-sessions-cleaned -->"
 JULES_FEEDBACK_MARKER = "<!-- jules-feedback: {session_id} -->"
 JULES_FEEDBACK_SENT_MARKER = "<!-- jules-feedback-sent: {comment_id} -->"
@@ -1456,10 +1457,39 @@ def reconcile_autonomous_labels(
             continue
 
         task = task_from_issue(issue)
+        labels = label_names(issue)
+        claims_autonomous = bool(
+            {"agent-ready", "autonomous-backlog"} & labels
+            or AUTONOMOUS_MARKER in str(issue.get("body") or "")
+        )
         if not task:
+            if claims_autonomous and INVALID_AUTONOMOUS_LABEL not in labels:
+                run_gh(
+                    "issue", "edit", str(issue["number"]),
+                    "--repo", repo,
+                    "--add-label", INVALID_AUTONOMOUS_LABEL,
+                    "--remove-label", "autonomous-backlog",
+                )
+                replace_issue_labels_in_memory(
+                    issue,
+                    remove={"autonomous-backlog"},
+                    add={INVALID_AUTONOMOUS_LABEL},
+                )
+                print(
+                    f"Quarantined malformed autonomous issue #{issue['number']}; "
+                    "fix priority/area/autonomous/dependency metadata before dispatch."
+                )
             continue
 
-        missing = {"agent-ready", "autonomous-backlog"} - task.labels
+        if INVALID_AUTONOMOUS_LABEL in labels:
+            run_gh(
+                "issue", "edit", str(task.number),
+                "--repo", repo,
+                "--remove-label", INVALID_AUTONOMOUS_LABEL,
+            )
+            replace_issue_labels_in_memory(issue, remove={INVALID_AUTONOMOUS_LABEL})
+
+        missing = {"agent-ready", "autonomous-backlog"} - label_names(issue)
         if missing:
             add_args = []
             for label in sorted(missing):
@@ -2435,6 +2465,7 @@ def ensure_labels(repo: str) -> None:
         (JULES_FEEDBACK_LABEL, "FBCA04", "Jules is waiting for user feedback; does not consume productive WIP"),
         (JULES_RETRY_LABEL, "BFD4F2", "One automatic retry is pending after a retryable Jules/platform failure"),
         (JULES_REWORKED_LABEL, "6F42C1", "Superseded after bounded Jules retries were exhausted"),
+        (INVALID_AUTONOMOUS_LABEL, "B60205", "Autonomous metadata is malformed; not dispatchable"),
         (CODEX_RESERVED_LABEL, "0969DA", "Reserved for a scheduled Codex worker"),
         ("codex-worker-1", "1F6FEB", "Reserved for Codex scheduled worker 1"),
         ("codex-worker-2", "54AEFF", "Reserved for Codex scheduled worker 2"),
