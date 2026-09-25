@@ -7,7 +7,7 @@ import sys
 
 TITLE = "Yartchives update is live"
 BODY = "Your interactive change is deployed and ready to test."
-VAPID_SUBJECT = "https://kaamilbadami.github.io/yartchives/"
+VAPID_SUBJECT = "mailto:kaamil.badami@gmail.com"
 
 
 def push_payload(build_sha: str) -> str:
@@ -66,8 +66,8 @@ def main(argv=None) -> int:
     try:
         sent = send_push(subscription, private_key, args.build_sha)
     except Exception as exc:
-        print(f"::warning::Web Push delivery failed: {exc}", file=sys.stderr)
-        return 0
+        print(f"::error::Web Push delivery failed: {exc}", file=sys.stderr)
+        return 1
 
     if sent:
         print(f"Sent Yartchives deploy push for {args.build_sha or 'current build'}.")
