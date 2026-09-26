@@ -24,6 +24,7 @@ USER_AGENT = "yartchives-runtime-artifact-loader/1.0"
 ARTIFACT_SPECS = {
     "feed": ("update-feed.yml", "yartchives-listings", "listings.json"),
     "inspections": ("refresh-inspections.yml", "yartchives-inspections", "workday-inspections.json"),
+    "employer_universe": ("update-feed.yml", "yartchives-employer-universe", "employer_universe.json"),
 }
 
 
@@ -115,6 +116,7 @@ def main() -> int:
     parser.add_argument("--repo", default=DEFAULT_REPO)
     parser.add_argument("--feed", type=Path, default=Path("data/listings.json"))
     parser.add_argument("--inspections", type=Path, default=Path("data/workday-inspections.json"))
+    parser.add_argument("--employer-universe", type=Path, default=Path("employer_universe.json"))
     parser.add_argument("--token", default=os.environ.get("GH_TOKEN") or os.environ.get("GITHUB_TOKEN"))
     parser.add_argument(
         "--pages-base",
@@ -137,8 +139,16 @@ def main() -> int:
         token=args.token,
         pages_base=args.pages_base,
     )
+    employer_universe_source = hydrate_one(
+        repo=args.repo,
+        kind="employer_universe",
+        output=args.employer_universe,
+        token=args.token,
+        pages_base=None,
+    )
     print(f"Hydrated feed from {feed_source}")
     print(f"Hydrated inspections from {inspection_source}")
+    print(f"Hydrated employer universe from {employer_universe_source}")
     return 0
 
 
