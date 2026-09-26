@@ -1,6 +1,6 @@
 import unittest
 
-from scripts.domain_discovery import _domain_is_plausible, normalize_company
+from scripts.domain_discovery import _domain_is_plausible, normalize_company, _aliases
 
 
 class DomainDiscoveryTests(unittest.TestCase):
@@ -17,6 +17,15 @@ class DomainDiscoveryTests(unittest.TestCase):
         self.assertTrue(_domain_is_plausible("citadel.com", ["citadel"]))
         self.assertTrue(_domain_is_plausible("amd.com", ["advancedmicrodevices", "amd"]))
 
+
+
+    def test_aliases_extracts_substantial_first_word(self):
+        aliases = _aliases("Cigna Group")
+        self.assertIn("cigna", aliases)
+        self.assertIn("cg", aliases)
+
+        aliases_stop = _aliases("American Airlines")
+        self.assertNotIn("american", aliases_stop)
 
 if __name__ == "__main__":
     unittest.main()
