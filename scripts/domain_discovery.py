@@ -9,6 +9,8 @@ from typing import Any
 CORPORATE_TLDS = {"com", "co", "net", "org", "io", "ai"}
 NON_CORPORATE_SUFFIXES = {"edu", "gov", "mil"}
 
+STOP_PREFIXES = {"general", "american", "national", "international", "first", "united", "advanced", "common", "consolidated", "mutual", "standard", "performance"}
+
 
 def normalize_company(name: str) -> str:
     name = name.lower()
@@ -60,6 +62,11 @@ def _aliases(name: str) -> list[str]:
         initials = "".join(word[0].lower() for word in words)
         if len(initials) >= 2:
             aliases.append(initials)
+
+        first_word = words[0].lower()
+        if len(first_word) >= 5 and first_word not in STOP_PREFIXES:
+            aliases.append(normalize_company(first_word))
+
     match = re.search(r"\(([^)]+)\)", name)
     if match:
         aliases.append(normalize_company(match.group(1)))
@@ -163,6 +170,42 @@ def get_company_domain(name: str) -> str | None:
             continue
         if _domain_is_plausible(domain, aliases):
             return domain
+
+    # Fallback: Use Clearbit on substantial first word if full name did not yield a plausible domain.
+    words = re.findall(r"[A-Za-z0-9]+", name)
+    if len(words) > 1:
+        first_word = words[0].lower()
+        if len(first_word) >= 5 and first_word not in STOP_PREFIXES:
+            query_cb_fallback = urllib.parse.quote(first_word)
+            url_fallback = f"https://autocomplete.clearbit.com/v1/companies/suggest?query={query_cb_fallback}"
+            data_fb = None
+            for attempt in range(max_retries):
+                req = urllib.request.Request(url_fallback, headers={"User-Agent": "YartchivesEmployerDiscovery/1.0 (contact@kaamilbadami.com)"})
+                try:
+                    with urllib.request.urlopen(req, timeout=10) as resp:
+                        data_fb = json.loads(resp.read().decode("utf-8"))
+                        break
+                except Exception as exc:
+                    if "429" in str(exc) and attempt < max_retries - 1:
+                        time.sleep(1 + attempt)
+                    else:
+                        break
+
+            for item in data_fb or []:
+                result_name = normalize_company(str(item.get("name") or ""))
+                domain_fb = str(item.get("domain") or "").casefold()
+                if not result_name or not domain_fb:
+                    continue
+                # Ensure the result matches our original aliases (not just the first word alias)
+                if not any(
+                    alias == result_name
+                    or (len(alias) >= 5 and len(result_name) >= 5 and (alias in result_name or result_name in alias))
+                    for alias in aliases
+                ):
+                    continue
+                if _domain_is_plausible(domain_fb, aliases):
+                    return domain_fb
+
     return None
 
 
