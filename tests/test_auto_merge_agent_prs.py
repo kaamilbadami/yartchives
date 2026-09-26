@@ -62,6 +62,16 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         source = MODULE_PATH.read_text()
         self.assertGreaterEqual(source.count('"pr_recovery=true"'), 3)
 
+    def test_recovery_publishes_required_tests_status_before_waking_automerge(self):
+        workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text()
+        self.assertIn("statuses: write", workflow)
+        self.assertIn("publish-recovery-required-status:", workflow)
+        self.assertIn('statuses/$GITHUB_SHA', workflow)
+        self.assertIn("-f context=tests", workflow)
+        self.assertIn("needs.publish-recovery-required-status.result == 'success'", workflow)
+        wake = workflow.split("  wake-automerge:", 1)[1]
+        self.assertIn("- publish-recovery-required-status", wake)
+
     def test_automerge_waits_for_dispatched_quality_run_before_scan(self):
         workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
         self.assertIn("wait_for_quality_run_id:", workflow)
