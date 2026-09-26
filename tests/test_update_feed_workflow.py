@@ -7,14 +7,17 @@ WORKFLOW = ROOT / ".github" / "workflows" / "update-feed.yml"
 
 
 class UpdateFeedWorkflowTests(unittest.TestCase):
-    def test_employer_universe_is_still_persisted_before_long_feed_build(self):
+    def test_employer_universe_is_published_before_long_feed_build(self):
         text = WORKFLOW.read_text(encoding="utf-8")
         resolver = text.index("- name: Refresh bounded employer careers resolutions")
-        persist = text.index("- name: Persist employer universe before long feed build")
+        publish = text.index("- name: Publish employer universe runtime artifact")
         snapshot = text.index("- name: Snapshot existing final feed")
-        self.assertLess(resolver, persist)
-        self.assertLess(persist, snapshot)
-        self.assertIn("git add employer_universe.json", text[persist:snapshot])
+        self.assertLess(resolver, publish)
+        self.assertLess(publish, snapshot)
+        block = text[publish:snapshot]
+        self.assertIn("actions/upload-artifact@", block)
+        self.assertIn("name: yartchives-employer-universe", block)
+        self.assertIn("path: employer_universe.json", block)
 
     def test_runtime_state_is_hydrated_before_feed_snapshot(self):
         text = WORKFLOW.read_text(encoding="utf-8")
@@ -41,6 +44,7 @@ class UpdateFeedWorkflowTests(unittest.TestCase):
         self.assertNotIn("- name: Commit fast-path opportunity feed", text)
         self.assertNotIn('git add data/listings.json', text)
         self.assertNotIn('git commit -m "chore: refresh opportunity feed"', text)
+        self.assertNotIn("git push origin main", text)
 
     def test_workflow_does_not_run_full_test_suite(self):
         text = WORKFLOW.read_text(encoding="utf-8")
