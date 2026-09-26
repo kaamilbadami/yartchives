@@ -1412,6 +1412,7 @@ def main() -> int:
                 "workflow", "run", "quality.yml",
                 "--repo", repo,
                 "--ref", head_ref,
+                "-f", "pr_recovery=true",
             )
             print(
                 f"Repaired PR #{number} by removing generated artifacts and dispatched fresh Quality checks."
@@ -1491,6 +1492,7 @@ def main() -> int:
                     "workflow", "run", "quality.yml",
                     "--repo", repo,
                     "--ref", head_ref,
+                    "-f", "pr_recovery=true",
                 )
                 print(
                     f"Updated PR #{number} onto current {base_ref} and dispatched fresh "
@@ -1541,6 +1543,7 @@ def main() -> int:
                     "workflow", "run", "quality.yml",
                     "--repo", repo,
                     "--ref", head_ref,
+                    "-f", "pr_recovery=true",
                 )
                 print(
                     f"Dispatched Quality checks manually for PR #{number} because the "
