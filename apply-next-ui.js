@@ -17,6 +17,7 @@
   const LOCATION_DISTANCE_MAX_GAIN = 18;
   const LOCATION_ENRICHMENT_YIELD_BUDGET_MS = 100;
   const FEEDBACK_ENDPOINT = "https://formspree.io/f/mqakpejw";
+  let inspectionPromiseState = "none";
   let inspectionArtifactPromise = null;
   let inspectionArtifactTiming = null;
   let candidateArtifactPromise = null;
@@ -90,8 +91,10 @@
     lines.push(
       `Candidates: ${Number(counts.candidates || 0)} · Rankable: ${Number(counts.rankable || 0)} · Distance candidates: ${Number(counts.distance_candidates || 0)} · Unique distance lookups: ${Number(counts.distance_unique_lookups || 0)} · Distance cache hits: ${Number(counts.distance_cache_hits || 0)} · Distance lookup failures: ${Number(counts.distance_lookup_failures || 0)} · Recommendations: ${Number(counts.recommendations || 0)}`
     );
-    lines.push(`Inspection request: ${Number(counts.inspection_request_ms || 0).toFixed(1)} ms · headers: ${Number(counts.inspection_headers_ms || 0).toFixed(1)} ms · body/JSON: ${Number(counts.inspection_body_parse_ms || 0).toFixed(1)} ms · preload age: ${Number(counts.inspection_preload_age_ms || 0).toFixed(1)} ms`);
-    lines.push(`Preliminary ranking: ${Number(counts.preliminary_ranking_ms || 0).toFixed(1)} ms · distance selection: ${Number(counts.distance_selection_ms || 0).toFixed(1)} ms · geo enrichment wall: ${Number(counts.geo_enrichment_ms || 0).toFixed(1)} ms`);
+    lines.push(`Inspection request: ${Number(counts.inspection_request_ms || 0).toFixed(1)} ms · headers: ${Number(counts.inspection_headers_ms || 0).toFixed(1)} ms · body/JSON: ${Number(counts.inspection_body_parse_ms || 0).toFixed(1)} ms · normalization: ${Number(counts.inspection_normalization_ms || 0).toFixed(1)} ms · preload age: ${Number(counts.inspection_preload_age_ms || 0).toFixed(1)} ms`);
+    lines.push(`Inspection wait: ${Number(counts.inspection_await_ms || 0).toFixed(1)} ms · state at await: ${counts.inspection_promise_state_at_await || "unknown"}`);
+    lines.push(`Preliminary ranking: ${Number(counts.preliminary_ranking_ms || 0).toFixed(1)} ms · distance selection: ${Number(counts.distance_selection_ms || 0).toFixed(1)} ms`);
+    lines.push(`Geo wall: ${Number(counts.geo_enrichment_ms || 0).toFixed(1)} ms · await: ${Number(counts.geo_await_ms || 0).toFixed(1)} ms · state at await: ${counts.geo_warm_state_at_await || "unknown"}`);
     lines.push(`Location parse: ${Number(counts.location_parse_ms || 0).toFixed(1)} ms · compute: ${Number(counts.location_compute_ms || 0).toFixed(1)} ms · yields: ${Number(counts.location_yield_ms || 0).toFixed(1)} ms (${Number(counts.location_yield_count || 0)}) · ordering: ${Number(counts.location_order_ms || 0).toFixed(1)} ms`);
     if (payload.geo_error) lines.push(`Geo load error: ${payload.geo_error}`);
     if (payload.geo_warm_state) lines.push(`Geo warm state at open: ${payload.geo_warm_state}`);
@@ -436,27 +439,42 @@
   }
 
   async function fetchInspectionArtifact(fetchImpl) {
+    inspectionPromiseState = "fetching";
     const client = fetchImpl || (typeof fetch === "function" ? fetch : null);
-    if (!client) return emptyInspectionArtifact();
+    if (!client) {
+      inspectionPromiseState = "ready";
+      return emptyInspectionArtifact();
+    }
     const requestStartedAt = timingNow();
     inspectionArtifactTiming = { request_started_at: requestStartedAt };
     try {
       const response = await client(INSPECTION_URL);
       const headersAt = timingNow();
       inspectionArtifactTiming.headers_ms = headersAt - requestStartedAt;
-      if (!response || !response.ok) return emptyInspectionArtifact();
+      if (!response || !response.ok) {
+        inspectionPromiseState = "ready";
+        return emptyInspectionArtifact();
+      }
       const payload = await response.json();
       const parsedAt = timingNow();
       inspectionArtifactTiming.body_parse_ms = parsedAt - headersAt;
-      inspectionArtifactTiming.total_ms = parsedAt - requestStartedAt;
-      inspectionArtifactTiming.completed_at = parsedAt;
-      if (!payload || typeof payload !== "object") return emptyInspectionArtifact();
-      return {
+      if (!payload || typeof payload !== "object") {
+        inspectionPromiseState = "ready";
+        return emptyInspectionArtifact();
+      }
+      const artifact = {
         version: payload.version || 1,
         entries: payload.entries && typeof payload.entries === "object" ? payload.entries : {},
         listing_index: payload.listing_index && typeof payload.listing_index === "object" ? payload.listing_index : {},
       };
+      const normalizedAt = timingNow();
+      inspectionArtifactTiming.normalization_ms = normalizedAt - parsedAt;
+      inspectionArtifactTiming.total_ms = normalizedAt - requestStartedAt;
+      inspectionArtifactTiming.completed_at = normalizedAt;
+      inspectionPromiseState = "ready";
+      return artifact;
     } catch (_) {
+      inspectionPromiseState = "failed";
       return emptyInspectionArtifact();
     }
   }
@@ -749,7 +767,10 @@
 
     let geo;
     try {
+      stats.geo_warm_state_at_await = geoWarmState;
+      const geoAwaitStart = timingNow();
       geo = await loadGeoIndex();
+      stats.geo_await_ms = timingNow() - geoAwaitStart;
     } catch (error) {
       stats.lookup_failures += 1;
       stats.geo_error = normalizeGeoErrorCode(error?.code);
@@ -1517,12 +1538,16 @@
       recordTimingStage(timing, "candidate_filter", stageStartedAt);
 
       stageStartedAt = timingNow();
+      counts.inspection_promise_state_at_await = inspectionPromiseState;
+      const inspectionAwaitStart = timingNow();
       const artifact = await loadInspectionArtifact();
+      counts.inspection_await_ms = timingNow() - inspectionAwaitStart;
       recordTimingStage(timing, "inspection_artifact", stageStartedAt);
       if (inspectionArtifactTiming) {
         counts.inspection_request_ms = Number(inspectionArtifactTiming.total_ms || 0);
         counts.inspection_headers_ms = Number(inspectionArtifactTiming.headers_ms || 0);
         counts.inspection_body_parse_ms = Number(inspectionArtifactTiming.body_parse_ms || 0);
+        counts.inspection_normalization_ms = Number(inspectionArtifactTiming.normalization_ms || 0);
         counts.inspection_preload_age_ms = Number(inspectionArtifactTiming.completed_at ? Math.max(0, stageStartedAt - inspectionArtifactTiming.completed_at) : 0);
       }
 
@@ -1544,6 +1569,8 @@
       const geoEnrichmentStartedAt = timingNow();
       const distanceStats = await addBaseDistances(distanceCandidates, profile);
       counts.geo_enrichment_ms = timingNow() - geoEnrichmentStartedAt;
+      counts.geo_await_ms = Number(distanceStats?.geo_await_ms || 0);
+      counts.geo_warm_state_at_await = distanceStats?.geo_warm_state_at_await;
       counts.distance_unique_lookups = Number(distanceStats?.unique_lookups || 0);
       counts.distance_cache_hits = Number(distanceStats?.cache_hits || 0);
       counts.distance_lookup_failures = Number(distanceStats?.lookup_failures || 0);
