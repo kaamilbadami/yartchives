@@ -1355,6 +1355,21 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
 
+    def test_blocked_mergeability_falls_back_to_guarded_merge_after_green_ci(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn(
+            'elif mergeable is True and mergeable_state == "blocked":',
+            source,
+        )
+        self.assertIn(
+            "merge fallback despite stale/opaque GitHub blocked state.",
+            source,
+        )
+        self.assertIn(
+            "the guarded merge endpoint rejected the merge.",
+            source,
+        )
+
     def test_main_drains_all_eligible_prs_instead_of_returning_after_first_merge(self):
         source = MODULE_PATH.read_text()
         merge_log = 'print(f"Squash-merged eligible autonomous PR #{number}.")'
