@@ -971,6 +971,28 @@ def delete_jules_session(api_key: str, session_id: str) -> None:
     )
 
 
+def session_subsequently_progressed(
+    issue: dict[str, Any],
+    comments: Iterable[dict[str, Any]],
+    session_id: str,
+) -> bool:
+    """Return whether durable evidence proves a session progressed past clarification."""
+    if str(issue.get("state") or "open") == "closed":
+        return True
+
+    output_marker = re.compile(
+        rf"<!--\s*jules-output:\s*issue=\d+\s+session={re.escape(session_id)}\b"
+    )
+    completed_text = f"Jules completed session `{session_id}`"
+
+    for comment in comments:
+        body = str(comment.get("body") or "")
+        if output_marker.search(body) or completed_text in body:
+            return True
+
+    return False
+
+
 def completed_session_pr_from_comments(
     comments: Iterable[dict[str, Any]],
     repo: str,
@@ -1233,7 +1255,8 @@ def cleanup_closed_terminal_jules_sessions(
         if not labels & lifecycle_labels:
             continue
         number = int(issue["number"])
-        session_ids = jules_session_ids_from_comments(load_comments(number))
+        issue_comments = load_comments(number)
+        session_ids = jules_session_ids_from_comments(issue_comments)
         if not session_ids:
             continue
 
@@ -1252,7 +1275,7 @@ def cleanup_closed_terminal_jules_sessions(
                 continue
 
             state = str(session.get("state") or "STATE_UNSPECIFIED")
-            if state not in JULES_TERMINAL_STATES:
+            if state not in JULES_TERMINAL_STATES and not session_subsequently_progressed(issue, issue_comments, session_id):
                 all_terminal_clean = False
                 print(
                     f"Keeping Jules session {session_id} for closed issue #{number}: "
@@ -1722,6 +1745,29 @@ def reconcile_jules_sessions(
                     continue
 
         if state == "AWAITING_USER_FEEDBACK":
+            if session_subsequently_progressed(issue, comments, session_id):
+                try:
+                    delete_session(session_id)
+                except Exception as exc:
+                    print(
+                        f"Could not delete stale progressed Jules session {session_id} "
+                        f"for #{number}; proceeding to clear labels: {exc}"
+                    )
+                run_gh(
+                    "issue", "edit", str(number), "--repo", repo,
+                    "--remove-label", JULES_ACTIVE_LABEL,
+                    "--remove-label", JULES_FEEDBACK_LABEL,
+                )
+                replace_issue_labels_in_memory(
+                    issue,
+                    remove=(JULES_ACTIVE_LABEL, JULES_FEEDBACK_LABEL),
+                )
+                print(
+                    f"Released Jules slot for #{number}: clarification is stale/resolved "
+                    f"because session {session_id} subsequently progressed."
+                )
+                continue
+
             activities = (
                 load_activities(session_id)
                 if load_activities is not None
