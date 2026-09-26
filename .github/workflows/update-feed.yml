@@ -93,33 +93,53 @@ jobs:
           fi
 
           cp employer_universe.json /tmp/yartchives-generated-employer-universe.json
-          START_SHA="$(git rev-parse HEAD)"
-          git fetch origin main
-          REMOTE_SHA="$(git rev-parse FETCH_HEAD)"
-          if [ "$START_SHA" != "$REMOTE_SHA" ]; then
-            echo "main advanced before employer resolutions could be persisted."
-            CHANGED="$(git diff --name-only "$START_SHA".."$REMOTE_SHA")"
-            echo "$CHANGED"
-            FEED_INPUT_CHANGES="$(echo "$CHANGED" | grep -E '^(scripts/|audit/samples/|data/employer-seeds/|sources\.json$|direct_sources\.json$|requirements\.txt$|\.github/workflows/update-feed\.yml$)' || true)"
-            if [ -n "$FEED_INPUT_CHANGES" ]; then
-              echo "Feed-producing inputs changed; leaving this build unpublished so the queued refresh can rebuild from current main."
-              exit 0
-            fi
-
-            echo "Only unrelated files changed; rebasing employer-universe output onto current main."
-            git reset --hard "$REMOTE_SHA"
-            cp /tmp/yartchives-generated-employer-universe.json employer_universe.json
-          fi
 
           git config user.name "yartchives-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add employer_universe.json
-          if git diff --staged --quiet; then
-            echo "No employer-universe changes to persist after synchronizing with main."
-          else
-            git commit -m "chore: persist employer resolutions"
-            git push origin HEAD:main
-          fi
+
+          MAX_RETRIES=3
+          for i in $(seq 1 $MAX_RETRIES); do
+            START_SHA="$(git rev-parse HEAD)"
+            git fetch origin main
+            REMOTE_SHA="$(git rev-parse FETCH_HEAD)"
+            if [ "$START_SHA" != "$REMOTE_SHA" ]; then
+              echo "main advanced before employer resolutions could be persisted."
+              CHANGED="$(git diff --name-only "$START_SHA".."$REMOTE_SHA")"
+              echo "$CHANGED"
+              FEED_INPUT_CHANGES="$(echo "$CHANGED" | grep -E '^(scripts/|audit/samples/|data/employer-seeds/|sources\.json$|direct_sources\.json$|requirements\.txt$|\.github/workflows/update-feed\.yml$)' || true)"
+              if [ -n "$FEED_INPUT_CHANGES" ]; then
+                echo "Feed-producing inputs changed; leaving this build unpublished so the queued refresh can rebuild from current main."
+                exit 0
+              fi
+
+              echo "Only unrelated files changed; rebasing employer-universe output onto current main."
+              git reset --hard "$REMOTE_SHA"
+              cp /tmp/yartchives-generated-employer-universe.json employer_universe.json
+            fi
+
+            git add employer_universe.json
+            if git diff --staged --quiet; then
+              echo "No employer-universe changes to persist after synchronizing with main."
+              break
+            else
+              git commit -m "chore: persist employer resolutions"
+              if git push origin HEAD:main; then
+                echo "Successfully pushed employer resolutions."
+                break
+              else
+                echo "Push failed. Attempt $i of $MAX_RETRIES."
+                # On the last attempt, fail the step.
+                if [ "$i" -eq "$MAX_RETRIES" ]; then
+                  exit 1
+                fi
+                # Otherwise, reset local branch back to where we started the loop, restoring our uncommitted file,
+                # then continue the loop to fetch and rebase.
+                git reset --soft HEAD~1 || true
+                git reset HEAD employer_universe.json
+                cp /tmp/yartchives-generated-employer-universe.json employer_universe.json
+              fi
+            fi
+          done
 
       - name: Snapshot existing final feed
         run: cp data/listings.json /tmp/yartchives-old-listings.json
