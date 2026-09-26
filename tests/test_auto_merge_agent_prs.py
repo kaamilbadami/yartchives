@@ -52,6 +52,16 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertIn("gh workflow run auto-merge-agent-prs.yml", workflow)
         self.assertIn('-f wait_for_quality_run_id="$GITHUB_RUN_ID"', workflow)
 
+    def test_pr_recovery_quality_mode_matches_pr_scope_without_live_smoke(self):
+        workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text()
+        self.assertIn("pr_recovery:", workflow)
+        self.assertIn('PR_RECOVERY: ${{ inputs.pr_recovery }}', workflow)
+        self.assertIn('quality_scope.sh "origin/main" "$GITHUB_SHA"', workflow)
+        self.assertIn("inputs.pr_recovery != true", workflow)
+
+        source = MODULE_PATH.read_text()
+        self.assertGreaterEqual(source.count('"pr_recovery=true"'), 3)
+
     def test_automerge_waits_for_dispatched_quality_run_before_scan(self):
         workflow = (ROOT / ".github" / "workflows" / "auto-merge-agent-prs.yml").read_text()
         self.assertIn("wait_for_quality_run_id:", workflow)
