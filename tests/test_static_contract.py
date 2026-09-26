@@ -100,15 +100,14 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("- main", preflight)
         self.assertIn("gh pr list", preflight)
         self.assertIn("Open PR already exists; still validating this exact branch head before merge.", preflight)
-        self.assertNotIn("bash scripts/run_quality_checks.sh all", preflight)
-        self.assertIn("bash scripts/run_quality_checks.sh python", preflight)
-        self.assertIn("bash scripts/run_quality_checks.sh frontend", preflight)
-        self.assertIn("steps.scope.outputs.python == 'true'", preflight)
-        self.assertIn("steps.scope.outputs.frontend == 'true'", preflight)
+        self.assertIn("bash scripts/run_quality_checks.sh all", preflight)
+        self.assertNotIn("bash scripts/run_quality_checks.sh python", preflight)
+        self.assertNotIn("bash scripts/run_quality_checks.sh frontend", preflight)
+        self.assertNotIn("steps.scope.outputs.python == 'true'", preflight)
+        self.assertNotIn("steps.scope.outputs.frontend == 'true'", preflight)
         agents = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
         self.assertIn("exact branch head SHA", agents)
         self.assertIn("Branch preflight / tests", agents)
-        self.assertIn("targeted", agents)
         self.assertIn("repair the same branch", agents)
         self.assertIn("scripts/quality_scope.sh", preflight)
         self.assertIn("scripts/quality_scope.sh", quality)
@@ -163,6 +162,12 @@ class StaticContractTests(unittest.TestCase):
             "scripts/build_geo_index\\.py$",
         ]:
             self.assertIn(path, auto_merge)
+
+    def test_branch_preflight_runs_full_pr_suite_before_publish(self):
+        workflow = (ROOT / ".github" / "workflows" / "branch-preflight.yml").read_text(encoding="utf-8")
+        self.assertIn("bash scripts/run_quality_checks.sh all", workflow)
+        self.assertNotIn("Select targeted preflight phases", workflow)
+        self.assertIn("needs.tests.result == 'success'", workflow)
 
     def test_pages_deploy_includes_static_assets(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
