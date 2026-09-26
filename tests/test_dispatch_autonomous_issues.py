@@ -553,6 +553,116 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
         self.assertEqual([task.number for task in selected], [2])
 
+    def test_clarification_progressed_to_pr_releases_stale_session(self):
+        candidate = issue(
+            448,
+            "observability",
+            body=task_body("P2", "feed-observability"),
+            labels=("jules", "jules-session", "jules-needs-feedback"),
+        )
+        question = "Which existing instrumentation should I extend?"
+        key = mod.clarification_key(question)
+        comments = [
+            {"body": "<!-- jules-session-id: session-1 -->"},
+            {
+                "body": (
+                    f"<!-- jules-auto-feedback: session-1:{key} -->\n"
+                    f"<!-- jules-clarification-handled: session-1:{key} -->"
+                ),
+            },
+            {
+                "body": "<!-- jules-output: issue=448 session=session-1 pr=999 head=abcde -->"
+            }
+        ]
+        session = {"state": "AWAITING_USER_FEEDBACK"}
+        activities = [
+            {
+                "createTime": "2026-09-20T18:00:00Z",
+                "agentMessaged": {"agentMessage": question},
+            }
+        ]
+        deleted = []
+        gh_calls = []
+        mod.reconcile_jules_sessions(
+            [candidate],
+            repo="kaamilbadami/yartchives",
+            api_key="test",
+            load_comments=lambda number: comments,
+            get_session=lambda *args: session,
+            load_activities=lambda session_id: activities,
+            send_feedback=lambda *args: None,
+            delete_session=deleted.append,
+            run_gh=lambda *args: gh_calls.append(args),
+            now_fn=lambda: datetime(2026, 9, 20, 18, 31, tzinfo=timezone.utc),
+        )
+        self.assertEqual(deleted, ["session-1"])
+        self.assertNotIn(mod.JULES_ACTIVE_LABEL, mod.label_names(candidate))
+        self.assertNotIn(mod.JULES_FEEDBACK_LABEL, mod.label_names(candidate))
+
+    def test_clarification_progressed_but_issue_closed_is_cleaned_up(self):
+        closed_issue = issue(
+            448,
+            "observability",
+            body=task_body("P2", "feed-observability"),
+            labels=("jules", "jules-review-ready"),
+            state="closed"
+        )
+        comments = [
+            {"body": "<!-- jules-session-id: session-1 -->"},
+            {
+                "body": "Jules completed session `session-1` and released this automation slot."
+            }
+        ]
+        session = {"state": "AWAITING_USER_FEEDBACK"}
+        deleted = []
+        gh_calls = []
+        mod.cleanup_closed_terminal_jules_sessions(
+            repo="kaamilbadami/yartchives",
+            api_key="test",
+            load_closed=lambda: [closed_issue],
+            load_comments=lambda number: comments,
+            get_session=lambda *args: session,
+            delete_session=deleted.append,
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+        self.assertEqual(deleted, ["session-1"])
+        self.assertIn("jules-review-ready", str(gh_calls))
+
+    def test_clarification_waiting_without_progress_remains_active(self):
+        candidate = issue(
+            448,
+            "observability",
+            body=task_body("P2", "feed-observability"),
+            labels=("jules", "jules-session"),
+        )
+        question = "What should the default behavior be for existing instrumentation?"
+        comments = [
+            {"body": "<!-- jules-session-id: session-1 -->"},
+        ]
+        session = {"state": "AWAITING_USER_FEEDBACK"}
+        activities = [
+            {
+                "createTime": "2026-09-20T18:00:00Z",
+                "agentMessaged": {"agentMessage": question},
+            }
+        ]
+        deleted = []
+        gh_calls = []
+        mod.reconcile_jules_sessions(
+            [candidate],
+            repo="kaamilbadami/yartchives",
+            api_key="test",
+            load_comments=lambda number: comments,
+            get_session=lambda *args: session,
+            load_activities=lambda session_id: activities,
+            send_feedback=lambda *args: None,
+            delete_session=deleted.append,
+            run_gh=lambda *args: gh_calls.append(args),
+            now_fn=lambda: datetime(2026, 9, 20, 18, 31, tzinfo=timezone.utc),
+        )
+        self.assertEqual(deleted, [])
+        self.assertIn(mod.JULES_FEEDBACK_LABEL, mod.label_names(candidate))
+
     def test_feedback_stuck_session_is_released_into_one_retry(self):
         candidate = issue(
             448,
