@@ -2,6 +2,12 @@ name: Quality checks
 
 on:
   workflow_dispatch:
+    inputs:
+      pr_recovery:
+        description: Run PR-equivalent checks after an automated branch refresh
+        required: false
+        default: false
+        type: boolean
   pull_request:
   push:
     branches:
@@ -73,8 +79,11 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_RECOVERY: ${{ inputs.pr_recovery }}
         run: |
-          if [ "$EVENT_NAME" = "schedule" ] || [ "$EVENT_NAME" = "workflow_dispatch" ] || [ "$GITHUB_REF_NAME" = "main" ]; then
+          if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$PR_RECOVERY" = "true" ]; then
+            bash scripts/quality_scope.sh "origin/main" "$GITHUB_SHA" | tail -n 1 >> "$GITHUB_OUTPUT"
+          elif [ "$EVENT_NAME" = "schedule" ] || [ "$EVENT_NAME" = "workflow_dispatch" ] || [ "$GITHUB_REF_NAME" = "main" ]; then
             echo "health=true" >> "$GITHUB_OUTPUT"
           else
             bash scripts/quality_scope.sh "$PR_BASE_SHA" "$PR_HEAD_SHA" | tail -n 1 >> "$GITHUB_OUTPUT"
@@ -91,7 +100,9 @@ jobs:
         run: bash scripts/run_quality_checks.sh health
 
   live-source-smoke:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: >-
+      github.event_name == 'schedule' ||
+      (github.event_name == 'workflow_dispatch' && inputs.pr_recovery != true)
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
