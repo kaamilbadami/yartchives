@@ -1612,6 +1612,26 @@ def main() -> int:
                     print(
                         f"REPAIR_AND_RETRY PR #{number}: GitHub mergeability is still being recomputed."
                     )
+            elif mergeable is True and mergeable_state == "blocked":
+                merged, detail = try_guarded_squash_merge(
+                    repo,
+                    number,
+                    head_sha,
+                )
+                if merged:
+                    print(
+                        f"Squash-merged eligible autonomous PR #{number} through guarded "
+                        "merge fallback despite stale/opaque GitHub blocked state."
+                    )
+                    close_linked_issue_after_merge(repo, issue_number)
+                    merged_count += 1
+                    continue
+                print(
+                    f"REPAIR_AND_RETRY PR #{number}: exact-head Quality passed but GitHub "
+                    "still reports blocked and the guarded merge endpoint rejected the merge."
+                )
+                if detail:
+                    print(detail)
             else:
                 print(
                     f"BLOCKED_REQUIRES_DECISION PR #{number}: GitHub reports mergeable={mergeable} "
