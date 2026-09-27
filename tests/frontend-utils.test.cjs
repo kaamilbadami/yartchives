@@ -36,6 +36,7 @@ const csv = [
   "20166,Sterling,VA,38.9440,-77.4558,30000",
   "80202,Denver,CO,39.7525,-104.9995,12000",
   "94105,San Francisco,CA,37.7898,-122.3942,34000",
+  "78701,Austin,TX,30.2711,-97.7437,18000",
 ].join("\n");
 const geo = U.buildGeoIndex(csv);
 assert.equal(geo.zips.get("06897").city, "Wilton");
@@ -93,6 +94,14 @@ assert.equal(authoritativeDistance.point.state, "VA");
 assert.equal(authoritativeDistance.point.city, "sterling");
 assert.ok(authoritativeDistance.miles < 40, `unexpected Sterling distance ${authoritativeDistance.miles}`);
 
+const broadStateMetadata = {
+  location: "Austin, Texas, United States",
+  states: ["US"],
+};
+const broadStateDistance = U.distanceForJob(broadStateMetadata, geo.zips.get("20740"), geo);
+assert.equal(broadStateDistance.point.state, "TX", "location text should recover a concrete state even when feed metadata only says US");
+assert.equal(broadStateDistance.point.city, "austin");
+
 require("./results-language.test.cjs");
 require("./apply-next.test.cjs");
 require("./apply-next-ui.test.cjs");
@@ -104,6 +113,11 @@ assert.match(appSource, /job\.link_kind === "employer_job"/);
 assert.match(appSource, /View posting ↗/);
 assert.match(appSource, /src\.errors\.join/);
 assert.doesNotMatch(appSource, /trackView|state\\.viewed|viewedCount/);
+assert.match(
+  appSource,
+  /YartchivesUtils\.distanceForJob\(job, origin, geo\)/,
+  "Browse and Apply Next should share the canonical location resolver instead of drifting on state/city parsing"
+);
 
 
 async function testPendingUiHelper() {

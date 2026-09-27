@@ -397,6 +397,11 @@ function milesBetween(a, b) {
 }
 
 function distanceForJob(job, origin, geo) {
+  if (typeof YartchivesUtils !== "undefined" && typeof YartchivesUtils.distanceForJob === "function") {
+    const resolved = YartchivesUtils.distanceForJob(job, origin, geo);
+    if (Number.isFinite(resolved)) return resolved;
+    if (Number.isFinite(resolved?.miles)) return resolved.miles;
+  }
   const points = coordinatesForJob(job, geo);
   if (!points?.length) return null;
   return Math.min(...points.map(point => milesBetween(origin, point)));
