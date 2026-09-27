@@ -32,12 +32,14 @@ from workday_inspector import derive_cxs_endpoint, inspect_workday_url  # noqa: 
 ROOT = SCRIPT_DIR.parent
 DEFAULT_FEED = ROOT / "data" / "listings.json"
 DEFAULT_CACHE = ROOT / "data" / "workday-inspections.json"
-DEFAULT_MAX_REQUESTS = 25
-DEFAULT_MAX_ICIMS_REQUESTS = 10
-DEFAULT_MAX_GREENHOUSE_REQUESTS = 10
-DEFAULT_MAX_ASHBY_REQUESTS = 10
-DEFAULT_MAX_ORACLE_HCM_REQUESTS = 10
+DEFAULT_MAX_REQUESTS = 60
+DEFAULT_MAX_ICIMS_REQUESTS = 25
+DEFAULT_MAX_GREENHOUSE_REQUESTS = 25
+DEFAULT_MAX_ASHBY_REQUESTS = 20
+DEFAULT_MAX_ORACLE_HCM_REQUESTS = 20
 DEFAULT_TTL_DAYS = 7
+FRESH_PRIORITY_DAYS = 3
+FRESH_INSPECTION_TARGET_PERCENT = 90.0
 FAILED_RETRY_HOURS = 6
 CACHE_VERSION = 6
 REUSABLE_STATUSES = {"inspected", "unavailable"}
@@ -79,6 +81,7 @@ def empty_cache() -> dict[str, Any]:
         "entries": {},
         "listing_index": {},
         "queue": {},
+        "fresh_coverage": {},
     }
 
 
@@ -105,6 +108,7 @@ def load_cache(path: Path) -> dict[str, Any]:
         "entries": entries if isinstance(entries, dict) else {},
         "listing_index": listing_index if isinstance(listing_index, dict) else {},
         "queue": queue if isinstance(queue, dict) else {},
+        "fresh_coverage": raw.get("fresh_coverage") if isinstance(raw.get("fresh_coverage"), dict) else {},
     }
 
 
@@ -444,6 +448,90 @@ def inspection_priority(jobs: list[dict[str, Any]], job_scores: dict[int, tuple[
     return score, reasons
 
 
+def inspection_order_key(
+    jobs: list[dict[str, Any]],
+    job_scores: dict[int, tuple[int, list[str]]],
+    reference: datetime,
+) -> tuple[int, int, int, int, float]:
+    """Freshness is the primary inspection-queue contract.
+
+    Explicit non-target terms are deprioritized before freshness so a brand-new
+    wrong-season posting cannot consume scarce inspection budget. Among target
+    and unknown-term postings, freshness is primary; exact upcoming-summer term
+    then generic Apply Next decision value break ties.
+    """
+    ages = [age_days(job, reference) for job in jobs]
+    known_ages = [age for age in ages if age is not None]
+    youngest = min(known_ages) if known_ages else None
+    if youngest is not None and youngest <= FRESH_PRIORITY_DAYS:
+        freshness_band = 0
+    elif youngest is not None and youngest <= 7:
+        freshness_band = 1
+    elif youngest is not None and youngest <= 14:
+        freshness_band = 2
+    elif youngest is not None:
+        freshness_band = 3
+    else:
+        freshness_band = 4
+
+    target = normalize(upcoming_summer_term(reference))
+    normalized_terms = [normalize(job.get("term")) for job in jobs]
+    if target in normalized_terms:
+        term_gate = 0
+        term_band = 0
+    elif any(not term for term in normalized_terms):
+        term_gate = 0
+        term_band = 1
+    else:
+        term_gate = 1
+        term_band = 2
+
+    score, _ = inspection_priority(jobs, job_scores)
+    return term_gate, freshness_band, term_band, -score, -latest_posted_at(jobs)
+
+
+def is_fresh_posting_group(jobs: list[dict[str, Any]], reference: datetime) -> bool:
+    return any(
+        (age := age_days(job, reference)) is not None and age <= FRESH_PRIORITY_DAYS
+        for job in jobs
+    )
+
+
+def fresh_inspection_coverage(
+    by_url: dict[str, list[dict[str, Any]]],
+    entries: dict[str, Any],
+    reference: datetime,
+) -> dict[str, Any]:
+    fresh_urls = [
+        canonical
+        for canonical, jobs in by_url.items()
+        if supported_identity(canonical) and is_fresh_posting_group(jobs, reference)
+    ]
+    inspected = 0
+    unavailable = 0
+    for canonical in fresh_urls:
+        inspection = entries.get(canonical, {}).get("inspection") if isinstance(entries.get(canonical), dict) else None
+        status = inspection.get("status") if isinstance(inspection, dict) else None
+        if status == "inspected":
+            inspected += 1
+        elif status == "unavailable":
+            unavailable += 1
+    inspectable = len(fresh_urls)
+    resolved = inspected + unavailable
+    coverage = round((resolved / inspectable) * 100, 1) if inspectable else 100.0
+    return {
+        "window_days": FRESH_PRIORITY_DAYS,
+        "target_percent": FRESH_INSPECTION_TARGET_PERCENT,
+        "inspectable": inspectable,
+        "inspected": inspected,
+        "unavailable": unavailable,
+        "resolved": resolved,
+        "pending": max(0, inspectable - resolved),
+        "coverage_percent": coverage,
+        "sla_met": coverage >= FRESH_INSPECTION_TARGET_PERCENT,
+    }
+
+
 def reusable(entry: dict[str, Any] | None, now: datetime, ttl_days: int) -> bool:
     if not isinstance(entry, dict):
         return False
@@ -491,20 +579,19 @@ def candidate_urls(
         if retry_in_cooldown(entry, now):
             continue
 
-        priority, _ = inspection_priority(jobs, job_scores)
-        posted = latest_posted_at(jobs)
+        order_key = inspection_order_key(jobs, job_scores, now)
         last_success = parse_time(entry.get("last_success_at")) if isinstance(entry, dict) else None
 
         if not last_success:
             retry_penalty = 1 if isinstance(entry, dict) and entry.get("last_error") else 0
-            pending.append((-priority, retry_penalty, -posted, canonical))
+            pending.append((*order_key, retry_penalty, canonical))
             continue
 
-        stale.append((-priority, last_success, -posted, canonical))
+        stale.append((*order_key, last_success, canonical))
 
     pending.sort()
     stale.sort()
-    return [canonical for _, _, _, canonical in pending] + [canonical for _, _, _, canonical in stale]
+    return [item[-1] for item in pending] + [item[-1] for item in stale]
 
 
 def build_queue_metadata(
@@ -727,6 +814,7 @@ def refresh_cache(
     materialize_queue_entries(entries, queue)
     out["entries"] = dict(sorted(entries.items()))
     out["queue"] = queue
+    out["fresh_coverage"] = fresh_inspection_coverage(by_url, entries, reference)
     stats = {
         "workday_listings": sum(1 for canonical in listing_index.values() if provider_for_url(canonical) == "workday"),
         "workday_postings": sum(1 for canonical in by_url if provider_for_url(canonical) == "workday"),
@@ -746,6 +834,7 @@ def refresh_cache(
         "provider_requests": requested_by_provider,
         "provider_successes": succeeded_by_provider,
         "provider_caps": provider_caps,
+        "fresh_coverage": out["fresh_coverage"],
     }
     return out, stats
 
