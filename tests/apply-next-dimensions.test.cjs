@@ -88,7 +88,7 @@ assert.equal(D.scaleScore, undefined);
 const metadataOnly = D.scoreJob(job({ _inspection: undefined }), profile, now);
 assert.equal(metadataOnly.components.fit.score, 19);
 assert.equal(metadataOnly.components.role, undefined);
-assert.equal(metadataOnly.components.roi.score, 18);
+assert.equal(metadataOnly.components.roi.score, 16);
 assert.equal(metadataOnly.applicationValue.role.score, 15);
 assert.equal(metadataOnly.applicationValue.market.score, 3);
 assert.equal(metadataOnly.components.location.score, 20);
@@ -307,5 +307,17 @@ for (const result of [metadataOnly, supported, unsupported, adjacent, learnable,
   assert.equal(result.components.role, undefined);
   assert.deepEqual(result.scoringContract, D.SCORING_CONTRACT);
 }
+
+
+const weakFitHighValue = D.scoreJob(job({
+  url: "https://example.com/weak-high-value",
+  _inspection: inspection([
+    ["Kubernetes required", ["Kubernetes"]],
+    ["Docker required", ["Docker"]],
+  ]),
+}), profile, now);
+assert.ok(weakFitHighValue.applicationValue.rawScore >= weakFitHighValue.components.roi.score);
+assert.ok(weakFitHighValue.components.roi.score <= weakFitHighValue.applicationValue.fitCap);
+assert.match(weakFitHighValue.components.roi.detail, /constrained .* qualification fit/i);
 
 console.log("apply-next evidence-based dimension tests passed");
