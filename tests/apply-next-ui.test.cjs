@@ -485,7 +485,7 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /"ghost-btn apply-next-entry-demo", "View sample ranking"/, "First-use entry should expose a one-click sample ranking");
   assert.match(uiSource, /"assets\/yartchives-hedgehog\.png"/, "First-use entry should visibly carry the hedgehog brand");
   assert.match(uiSource, /function returnToEntryChoice\(\)/, "Apply Next should expose a return-to-landing path");
-  assert.match(uiSource, /localStorage\?\.removeItem\(ENTRY_MODE_KEY\)/, "Returning to landing should clear the persisted Apply Next entry choice");
+  assert.match(uiSource, /storage\?\.removeItem\(ENTRY_MODE_KEY\)/, "Returning to landing should clear the persisted Apply Next entry choice");
   assert.match(uiSource, /Current internships/, "First-use entry should explain that recommendations use current listings");
   assert.match(uiSource, /Transparent ranking/, "First-use entry should explain the ranking value");
   assert.match(uiSource, /Profile stays in your browser/, "First-use entry should surface the privacy model");
