@@ -855,6 +855,24 @@
     return split.length > 1 ? split : [raw];
   }
 
+  function deadlineDisplay(result) {
+    const inspection = result?.job?._inspection || result?.job?.inspection;
+    if (inspection?.status !== "inspected") return null;
+
+    const explicit = String(inspection?.posting?.application_deadline || "").trim();
+    if (explicit) {
+      const parsed = new Date(explicit);
+      if (Number.isFinite(parsed.getTime())) {
+        return `Deadline ${parsed.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
+      }
+      return `Deadline ${explicit}`;
+    }
+
+    const evidence = Array.isArray(inspection?.schedule?.application_deadline_evidence)
+      ? inspection.schedule.application_deadline_evidence.find(value => String(value || "").trim())
+      : null;
+    return evidence ? `Deadline: ${String(evidence).trim()}` : null;
+  }
   function cardLocationText(job) {
     return locationValueText(job?._displayLocation)
       || locationValueText(job?.location)
@@ -1197,6 +1215,8 @@
     const isAuthoritative = result.inspection?.state === "inspected";
     const postedDate = formatPostedDate(job.posted_at, isAuthoritative);
     if (postedDate) titleWrap.append(element("p", "muted apply-next-posted-date", postedDate));
+    const deadline = deadlineDisplay(result);
+    if (deadline) titleWrap.append(element("p", "muted apply-next-deadline", deadline));
     const inspectionState = result.inspection?.state || "metadata-only";
     const evidenceStatus = element(
       "span",
@@ -1968,6 +1988,7 @@
     distanceEnrichmentCandidates,
     profileSummary,
     formatPostedDate,
+    deadlineDisplay,
     locationValueText,
     locationDisplayValues,
     cardLocationText,
