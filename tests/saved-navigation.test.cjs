@@ -349,9 +349,11 @@ async function runTests() {
     context.setInterval = () => 0;
     context.clearInterval = () => {};
 
+    const frontendUtilsCode = fs.readFileSync(path.join(__dirname, "..", "frontend-utils.js"), "utf8");
     const appCode = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
     const uxCode = fs.readFileSync(path.join(__dirname, "..", "ux.js"), "utf8");
 
+    vm.runInNewContext(frontendUtilsCode, context);
     vm.runInNewContext(appCode, context);
     vm.runInNewContext("globalThis.state = state; globalThis.applyFilters = applyFilters; globalThis.feed = feed;", context);
     vm.runInNewContext(uxCode, context);
@@ -455,9 +457,11 @@ async function runTests() {
     context.setInterval = () => 0;
     context.clearInterval = () => {};
 
+    const frontendUtilsCode = fs.readFileSync(path.join(__dirname, "..", "frontend-utils.js"), "utf8");
     const appCode = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
     const uxCode = fs.readFileSync(path.join(__dirname, "..", "ux.js"), "utf8");
 
+    vm.runInNewContext(frontendUtilsCode, context);
     vm.runInNewContext(appCode, context);
     vm.runInNewContext("globalThis.state = state; globalThis.applyFilters = applyFilters; globalThis.feed = feed;", context);
     vm.runInNewContext(uxCode, context);
@@ -542,9 +546,11 @@ async function runTests() {
     context.clearInterval = () => {};
 
     // Load necessary scripts
+    const frontendUtilsCode = fs.readFileSync(path.join(__dirname, "..", "frontend-utils.js"), "utf8");
     const appCode = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
     const uxCode = fs.readFileSync(path.join(__dirname, "..", "ux.js"), "utf8");
 
+    vm.runInNewContext(frontendUtilsCode, context);
     vm.runInNewContext(appCode, context);
     vm.runInNewContext("globalThis.state = state; globalThis.applyFilters = applyFilters;", context);
     vm.runInNewContext(uxCode, context);
