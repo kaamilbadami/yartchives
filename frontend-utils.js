@@ -20,6 +20,11 @@
     Object.entries(STATE_NAMES).map(([code, name]) => [name.toLowerCase(), code.toLowerCase()])
   );
 
+  const NAMED_PLACE_ALIASES = new Map([
+    ["NC|rtp", { lat: 35.9042, lon: -78.8642, state: "NC", city: "Research Triangle Park", precision: "named-place" }],
+    ["NC|research triangle park", { lat: 35.9042, lon: -78.8642, state: "NC", city: "Research Triangle Park", precision: "named-place" }],
+  ]);
+
   const MAX_PAINT_WAIT_MS = 50;
   const MAX_BROWSER_YIELD_WAIT_MS = 50;
 
@@ -279,6 +284,13 @@
       let stateFound = false;
       const cities = geo.citiesByState.get(st) || [];
       for (const candidate of candidates) {
+        const namedPlace = NAMED_PLACE_ALIASES.get(`${st}|${candidate}`);
+        if (namedPlace) {
+          found.push(namedPlace);
+          stateFound = true;
+          continue;
+        }
+
         const direct = geo.cities.get(`${st}|${candidate}`);
         if (direct) {
           found.push(direct);
