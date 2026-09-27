@@ -431,6 +431,7 @@
     hasAuthoritativeInspection,
     scoreLocation,
     scoreJob,
+    buildCompetitionContext: base.buildCompetitionContext,
     rankingPool,
     sortRanked,
     rankJobs,

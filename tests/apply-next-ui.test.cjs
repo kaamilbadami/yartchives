@@ -411,7 +411,16 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /const distanceCache = new Map\(\);/, "Location enrichment should memoize repeated location/origin distance work");
   assert.match(uiSource, /distanceCache\.has\(cacheKey\)/, "Location enrichment should reuse cached exact-distance results");
   assert.doesNotMatch(uiSource, /await addBaseDistances\(rankablePool, profile\);/, "Full-pool exact distance enrichment would reintroduce the measured bottleneck");
-  assert.match(uiSource, /YartchivesApplyNext\.rankJobsAsync\(rankablePool, profile, rankingNow, \{ yieldFn: yieldToBrowser, chunkSize: 32 \}\)/, "Final ranking should use the yielding async path with the same timestamp as the location pre-rank");
+  assert.match(
+    uiSource,
+    /YartchivesApplyNext\.rerankChangedJobsAsync\([\s\S]*?preliminaryRanked,[\s\S]*?rankablePool,[\s\S]*?distanceCandidates,[\s\S]*?profile,[\s\S]*?rankingNow/,
+    "Final ranking should incrementally rescore only the distance-changed frontier using the same timestamp"
+  );
+  assert.match(
+    uiSource,
+    /counts\.incremental_rescore_count = useIncrementalRerank \? distanceCandidates\.length : rankablePool\.length;/,
+    "Timing diagnostics should expose how many jobs were rescored in the final ranking stage"
+  );
   const renderQueueSource = uiSource.match(/async function renderQueue\(panel, profile\) \{([\s\S]*?)\n  \}/);
   assert.ok(renderQueueSource, "renderQueue should be present");
 
@@ -563,14 +572,14 @@ let loggedTiming = null;
 console.info = (_label, payload) => { loggedTiming = payload; };
 const timingPayload = UI.publishApplyNextTiming(
   timing,
-  { candidates: 500, rankable: 42, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10, status: "success" },
+  { candidates: 500, rankable: 42, distance_candidates: 12, incremental_rescore_count: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10, status: "success" },
   180.04
 );
 console.info = priorInfo;
 assert.deepEqual(timingPayload, {
   total_ms: 80,
   stages_ms: { location_enrichment: 25.7 },
-  counts: { candidates: 500, rankable: 42, inspection_request_ms: 0, inspection_headers_ms: 0, inspection_body_parse_ms: 0, inspection_preload_age_ms: 0, preliminary_ranking_ms: 0, distance_selection_ms: 0, geo_enrichment_ms: 0, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10, inspection_await_ms: 0, inspection_promise_state_at_await: null, inspection_normalization_ms: 0, geo_await_ms: 0, geo_warm_state_at_await: null },
+  counts: { candidates: 500, rankable: 42, inspection_request_ms: 0, inspection_headers_ms: 0, inspection_body_parse_ms: 0, inspection_preload_age_ms: 0, preliminary_ranking_ms: 0, distance_selection_ms: 0, geo_enrichment_ms: 0, distance_candidates: 12, incremental_rescore_count: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10, inspection_await_ms: 0, inspection_promise_state_at_await: null, inspection_normalization_ms: 0, geo_await_ms: 0, geo_warm_state_at_await: null },
   geo_error: null,
   geo_warm_state: null,
   page_visibility: null,
@@ -597,7 +606,7 @@ for (const code of ["geo_index_zips", "geo_index_cities", "geo_index_sort", "geo
 const diagnosticText = UI.timingDiagnosticText({
   total_ms: 10400,
   stages_ms: { candidate_artifact: 9600, ranking: 100, render: 200 },
-  counts: { candidates: 5000, rankable: 42, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10, inspection_promise_state_at_await: "fetching", inspection_await_ms: 8500.1, inspection_normalization_ms: 45.2, geo_await_ms: 9200.3, geo_warm_state_at_await: "ready", geo_enrichment_ms: 9300.5 },
+  counts: { candidates: 5000, rankable: 42, distance_candidates: 12, incremental_rescore_count: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10, inspection_promise_state_at_await: "fetching", inspection_await_ms: 8500.1, inspection_normalization_ms: 45.2, geo_await_ms: 9200.3, geo_warm_state_at_await: "ready", geo_enrichment_ms: 9300.5 },
   geo_error: "geo_http_404",
   status: "success",
 });
@@ -607,7 +616,7 @@ assert.match(diagnosticText, /Inspection wait: 8500\.1 ms · state at await: fet
 assert.match(diagnosticText, /normalization: 45\.2 ms/);
 assert.match(diagnosticText, /Geo wall: 9300\.5 ms · await: 9200\.3 ms · state at await: ready/);
 assert.match(diagnosticText, /Candidate download: 9600\.0 ms/);
-assert.match(diagnosticText, /Candidates: 5000 · Rankable: 42 · Distance candidates: 12 · Unique distance lookups: 7 · Distance cache hits: 5 · Distance lookup failures: 2 · Recommendations: 10/);
+assert.match(diagnosticText, /Candidates: 5000 · Rankable: 42 · Distance candidates: 12 · Incremental rescores: 12 · Unique distance lookups: 7 · Distance cache hits: 5 · Distance lookup failures: 2 · Recommendations: 10/);
 assert.match(diagnosticText, /Location parse: 1\.2 ms · compute: 12\.3 ms · yields: 8\.4 ms \(3\) · ordering: 0\.7 ms/);
 assert.doesNotMatch(diagnosticText, /profile|ZIP|company|jobId|URL/i);
 assert.deepEqual(
@@ -632,6 +641,7 @@ assert.equal(trackedPayload.counts.inspection_promise_state_at_await, "ready");
 assert.equal(trackedPayload.counts.inspection_await_ms, 10);
 assert.equal(trackedPayload.counts.candidates, 10);
 assert.equal(trackedPayload.counts.distance_candidates, 0);
+assert.equal(trackedPayload.counts.incremental_rescore_count, 0);
 assert.equal(trackedPayload.counts.distance_unique_lookups, 0);
 assert.equal(trackedPayload.counts.distance_cache_hits, 0);
 assert.equal(trackedPayload.counts.distance_lookup_failures, 0);
