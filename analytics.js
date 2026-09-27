@@ -26,15 +26,41 @@
     "candidate_filter",
     "inspection_artifact",
     "inspection_attach",
+    "preliminary_ranking",
     "location_enrichment",
     "ranking",
     "render",
+    "post_render_paint_wait",
   ]);
 
   const ALLOWED_COUNTS = new Set([
     "candidates",
     "rankable",
     "recommendations",
+    "inspection_await_ms",
+    "inspection_normalization_ms",
+    "geo_await_ms",
+    "inspection_request_ms",
+    "inspection_headers_ms",
+    "inspection_body_parse_ms",
+    "inspection_preload_age_ms",
+    "preliminary_ranking_ms",
+    "distance_selection_ms",
+    "geo_enrichment_ms",
+    "distance_candidates",
+    "distance_unique_lookups",
+    "distance_cache_hits",
+    "distance_lookup_failures",
+    "location_parse_ms",
+    "location_compute_ms",
+    "location_yield_ms",
+    "location_yield_count",
+    "location_order_ms",
+  ]);
+
+  const ALLOWED_STATES = new Set([
+    "inspection_promise_state_at_await",
+    "geo_warm_state_at_await",
   ]);
 
   const counts = Object.create(null);
@@ -69,6 +95,9 @@
           if (Number.isFinite(num) && num >= 0) {
             counts[key] = Math.floor(num);
           }
+        } else if (ALLOWED_STATES.has(key)) {
+          const rawState = String(val).slice(0, 20);
+          counts[key] = /^[a-z0-9_-]+$/i.test(rawState) ? rawState : "unknown";
         }
       }
     }
