@@ -31,10 +31,14 @@ assert.match(serviceWorker, /payload\?\.web_push === 8030/, "declarative Web Pus
 assert.ok(workflow.includes("for asset in ./*.css ./*.js; do"), "Pages build should cache-bust packaged JS/CSS generically");
 assert.ok(workflow.includes('?v=${VERSION}'), "Pages build should append the deployment version to local assets");
 assert.match(index, /<meta name="yartchives-build" content="__YARTCHIVES_BUILD_SHA__" \/>/, "index should carry a build marker placeholder");
+assert.match(index, /<meta name="yartchives-deployment-id" content="__YARTCHIVES_DEPLOYMENT_ID__" \/>/, "index should carry a unique deployment marker placeholder");
 assert.ok(workflow.includes('sed -i "s|__YARTCHIVES_BUILD_SHA__|${BUILD_SHA}|g" _site/index.html'), "Pages build should stamp the exact commit SHA into HTML");
 assert.ok(workflow.includes("> _site/deploy-manifest.txt"), "Pages artifact should include a deployment manifest");
 assert.match(workflow, /- name: Verify live deployment[\s\S]*?PAGE_URL:[\s\S]*?steps\.deployment\.outputs\.page_url/, "Pages should verify the URL returned by the deployment step");
 assert.match(workflow, /LIVE_SHA[\s\S]*?yartchives-build[\s\S]*?BUILD_SHA/, "Pages verification should require the live HTML build marker to match the merged commit");
+assert.match(workflow, /DEPLOYMENT_ID="\$\{GITHUB_RUN_ID\}-\$\{GITHUB_RUN_ATTEMPT\}"/, "Pages should assign a unique identity to each deployment attempt");
+assert.match(workflow, /LIVE_DEPLOYMENT_ID[\s\S]*?yartchives-deployment-id[\s\S]*?DEPLOYMENT_ID/, "Pages verification should wait for the exact deployment, not merely the same commit SHA");
+assert.match(workflow, /deployment_id=\$\{DEPLOYMENT_ID\}|deployment_id=%s/, "Pages manifest/status should persist the unique deployment identity");
 assert.match(workflow, /deploy-manifest\.txt[\s\S]*?sha256sum[\s\S]*?Live asset/, "Pages verification should compare live frontend asset hashes with the built artifact");
 assert.match(workflow, /deployment-status\.json[\s\S]*?interactive/, "Pages should expose an interactive deployment readiness signal");
 assert.match(workflow, /commits\/\$BUILD_SHA\/pulls[\s\S]*?agent\/interactive\//, "Interactive deploys should be inferred from the merged PR branch");
