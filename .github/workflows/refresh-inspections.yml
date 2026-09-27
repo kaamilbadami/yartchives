@@ -40,7 +40,7 @@ jobs:
       - name: Migrate cached requirement semantics
         run: python scripts/migrate_cached_requirements.py data/workday-inspections.json
 
-      - name: Refresh Fresh-first posting inspections
+      - name: Refresh bounded posting inspections
         run: >-
           python scripts/update_workday_inspections.py data/listings.json
           --cache data/workday-inspections.json
