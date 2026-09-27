@@ -386,7 +386,7 @@
       };
       const status = sourceHealthStatus(src);
       current.count += Number(src.count || 0);
-      if (status !== "quarantined") current.configuredCount += 1;
+      if (src.configured !== false) current.configuredCount += 1;
       if (status === "healthy" || status === "degraded") current.successCount += 1;
       if (status === "degraded") current.degradedCount += 1;
       if (status === "failed") current.failureCount += 1;
@@ -394,7 +394,7 @@
       if (status === "unknown") current.unknownCount += 1;
       if (
         src.error
-        && (status === "failed" || status === "degraded")
+        && (status === "failed" || status === "degraded" || status === "quarantined")
         && !current.errors.includes(String(src.error))
       ) current.errors.push(String(src.error));
       groups.set(groupKey, current);

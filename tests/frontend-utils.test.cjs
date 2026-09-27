@@ -34,8 +34,9 @@ assert.equal(explicitStatusSources.find(source => source.name.startsWith("Adobe"
 assert.equal(explicitStatusSources.find(source => source.name.startsWith("Cisco")).successCount, 1);
 assert.equal(explicitStatusSources.find(source => source.name === "Example degraded").degradedCount, 1);
 assert.deepEqual(explicitStatusSources.find(source => source.name === "Example degraded").errors, ["partial response"]);
-assert.equal(explicitStatusSources.find(source => source.name === "Example quarantined").configuredCount, 0);
-assert.deepEqual(explicitStatusSources.find(source => source.name === "Example quarantined").errors, []);
+assert.equal(explicitStatusSources.find(source => source.name === "Example quarantined").configuredCount, 1);
+assert.equal(explicitStatusSources.find(source => source.name === "Example quarantined").quarantinedCount, 1);
+assert.deepEqual(explicitStatusSources.find(source => source.name === "Example quarantined").errors, ["old error"]);
 
 const groupedSources = U.groupSourceHealth({
   first: { name: "🔥 DraftKings (auto-discovered Workday, US)", ok: true, configured: true, count: 3 },
@@ -180,6 +181,7 @@ assert.match(appSource, /src\.errors\.join/);
 assert.match(appSource, /Healthy ·/);
 assert.match(appSource, /Degraded ·/);
 assert.match(appSource, /Failed/);
+assert.match(appSource, /Quarantined/);
 assert.doesNotMatch(appSource, /trackView|state\\.viewed|viewedCount/);
 assert.match(
   appSource,
