@@ -40,7 +40,7 @@ assert.equal(L.scoreLocation({ location: "Boston, MA", states: ["MA"], ...truste
 assert.equal(L.scoreLocation({ location: "Raleigh, NC", states: ["NC"], ...trustedDistance(330) }, profile).score, 10);
 assert.equal(L.scoreLocation({ location: "Austin, TX", states: ["TX"], ...trustedDistance(1200) }, profile).score, 6);
 assert.equal(L.scoreLocation({ location: "United States", states: ["US"] }, profile).score, 8);
-assert.equal(L.scoreLocation({ location: "Denver, CO", states: ["CO"] }, profile).score, 8);
+assert.equal(L.scoreLocation({ location: "Denver, CO", states: ["CO"] }, profile).score, 5);
 
 const noRemote = { ...profile, remoteRelevant: false };
 assert.equal(L.scoreLocation({ location: "Remote", states: ["Remote"] }, noRemote).score, 4);
@@ -53,7 +53,7 @@ const stateCollege = L.scoreLocation({
   states: ["CT", "PA"],
   _distanceMiles: 22,
 }, profile);
-assert.equal(stateCollege.score, 8);
+assert.equal(stateCollege.score, 5);
 assert.doesNotMatch(stateCollege.detail, /Preferred state: CT|Within 50 miles/);
 
 const rtp = L.scoreLocation({
@@ -61,7 +61,7 @@ const rtp = L.scoreLocation({
   states: ["CT", "NC"],
   _distanceMiles: 12,
 }, profile);
-assert.equal(rtp.score, 8);
+assert.equal(rtp.score, 5);
 assert.doesNotMatch(rtp.detail, /Preferred state: CT|Within 50 miles/);
 
 const pittsburghStale = L.scoreLocation({
@@ -69,7 +69,7 @@ const pittsburghStale = L.scoreLocation({
   states: ["PA"],
   _distanceMiles: 18,
 }, profile);
-assert.equal(pittsburghStale.score, 8);
+assert.equal(pittsburghStale.score, 5);
 assert.doesNotMatch(pittsburghStale.detail, /Within 50 miles/);
 const pittsburghTrusted = L.scoreLocation({
   location: "Pittsburgh",
@@ -229,5 +229,39 @@ assert.deepEqual(wexView.states, ["Remote"]);
 assert.match(wexView.url, /Fullstack-Software-Engineer-Intern-Undergraduate_R22593$/);
 assert.doesNotMatch(wexView.url, /Backend-Software-Engineer/);
 assert.equal(L.scoreJob(wex, profile, now).components.location.detail, "Remote opportunity");
+
+
+const raytheonMaA = {
+  ...job,
+  id: "ray-ma-a",
+  company: "RTX",
+  title: "Internship – Raytheon Systems Security Engineer -Onsite",
+  states: ["MA"],
+  location: "Andover, MA",
+  url: "https://globalhr.wd5.myworkdayjobs.com/REC_RTX_Ext_Gateway/job/Andover-MA/Internship-Raytheon-Systems-Security-Engineer_RTX10001",
+  _inspection: inspected({ requisition_id: "RTX10001" }),
+};
+const raytheonMaB = {
+  ...raytheonMaA,
+  id: "ray-ma-b",
+  company: "RTX (Raytheon)",
+  title: "Internship – Raytheon Systems Security Engineer- Onsite",
+  url: "https://globalhr.wd5.myworkdayjobs.com/REC_RTX_Ext_Gateway/job/Andover-MA/Internship-Raytheon-Systems-Security-Engineer_RTX10002",
+  _inspection: inspected({ requisition_id: "RTX10002" }),
+};
+const raytheonRi = {
+  ...raytheonMaA,
+  id: "ray-ri",
+  states: ["RI"],
+  location: "Portsmouth, RI",
+  url: "https://globalhr.wd5.myworkdayjobs.com/REC_RTX_Ext_Gateway/job/Portsmouth-RI/Internship-Raytheon-Systems-Security-Engineer_RTX10003",
+  _inspection: inspected({ requisition_id: "RTX10003" }),
+};
+assert.equal(L.semanticEmployerKey(raytheonMaA), L.semanticEmployerKey(raytheonMaB));
+assert.equal(L.semanticTitleKey(raytheonMaA), L.semanticTitleKey(raytheonMaB));
+const raytheonDeduped = L.dedupeCanonicalJobs([raytheonMaA, raytheonMaB, raytheonRi]);
+assert.equal(raytheonDeduped.length, 2);
+assert.ok(raytheonDeduped.some(x => x.states.includes("MA")));
+assert.ok(raytheonDeduped.some(x => x.states.includes("RI")));
 
 console.log("apply-next authoritative-only, location, and canonical dedupe tests passed");

@@ -270,4 +270,49 @@ assert.equal(direct.total, totalFromParts);
 assert.equal(Object.values(A.DEFAULT_WEIGHTS).reduce((sum, value) => sum + value, 0), 100);
 assert.equal(direct.total <= 100, true);
 
+
+const immediateStart = A.scoreEligibility({
+  ...freshDirect,
+  title: "Robotics Engineering Intern: Systems & Applications - IMMEDIATE START",
+  term: null,
+  _inspection: {
+    status: "inspected",
+    posting: { application_status: "available", title: "Robotics Engineering Intern: Systems & Applications - IMMEDIATE START" },
+    requirements: {},
+  },
+}, profile, new Date("2026-09-26T12:00:00Z"));
+assert.equal(immediateStart.excluded, true);
+assert.match(immediateStart.detail, /immediate start.*conflicts with Summer 2027/i);
+
+const explicitWrongSeason = A.scoreEligibility({
+  ...freshDirect,
+  title: "Software Engineering Intern - Spring 2027",
+  term: null,
+  _inspection: {
+    status: "inspected",
+    posting: { application_status: "available", title: "Software Engineering Intern - Spring 2027" },
+    requirements: {},
+  },
+}, profile, new Date("2026-09-26T12:00:00Z"));
+assert.equal(explicitWrongSeason.excluded, true);
+assert.match(explicitWrongSeason.detail, /Spring 2027.*not Summer 2027/i);
+
+const softwareAlias = A.scoreRole({
+  ...freshDirect,
+  title: "Intern - Software Development Engineer",
+}, {
+  ...profile,
+  roleFamilies: [{ id: "software", label: "Software engineering", priority: 1, keywords: ["software engineer"] }],
+});
+assert.equal(softwareAlias.score, 15);
+
+const mlAlias = A.scoreRole({
+  ...freshDirect,
+  title: "Machine Learning Engineer Internship - Summer 2027",
+}, {
+  ...profile,
+  roleFamilies: [{ id: "machine-learning", label: "Machine learning", priority: 1, keywords: ["ml engineer"] }],
+});
+assert.equal(mlAlias.score, 15);
+
 console.log("apply-next tests passed");

@@ -221,6 +221,50 @@
       .join("|");
   }
 
+  function semanticEmployerKey(job) {
+    const raw = String(job?.url || "").trim();
+    try {
+      const parsed = new URL(raw);
+      const host = parsed.hostname.toLowerCase().replace(/^www\./, "");
+      const parts = parsed.pathname.split("/").filter(Boolean).map(part => decodeURIComponent(part).toLowerCase());
+      if (/myworkdayjobs\.com$/i.test(host)) return `workday:${host}:${parts[0] || ""}`;
+      if (host === "jobs.ashbyhq.com") return `ashby:${parts[0] || ""}`;
+      if (/greenhouse\.io$/i.test(host)) return `greenhouse:${host}:${parts[0] || ""}`;
+      if (/icims\.com$/i.test(host)) return `icims:${host}`;
+      if (host) return `host:${host}`;
+    } catch (_) {
+      // Fall back to display company identity below.
+    }
+    return `company:${String(job?.company || "").toLowerCase().replace(/\([^)]*\)/g, " ").replace(/[^a-z0-9]+/g, " ").trim()}`;
+  }
+
+  function semanticTitleKey(job) {
+    return String(job?.title || "")
+      .toLowerCase()
+      .replace(/\b(on[ -]?site|hybrid|remote)\b/g, " ")
+      .replace(/[^a-z0-9]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function semanticLocationScope(job) {
+    const rawStates = new Set(job?.states || []);
+    if (rawStates.has("Remote") || /\bremote\b/i.test(String(job?.location || ""))) return "remote";
+    const states = reliableStates(job);
+    if (states.size) return [...states].sort().join(",");
+    return String(job?.location || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  }
+
+  function semanticOpportunityKey(job) {
+    const title = semanticTitleKey(job);
+    if (!title) return null;
+    const employer = semanticEmployerKey(job);
+    const scope = semanticLocationScope(job);
+    const functionKey = String(job?.function_primary || job?.section || "")
+      .toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    return [employer, title, scope, functionKey].join("|");
+  }
+
   function inspectionRank(job) {
     const status = job?._inspection?.status || job?.inspection?.status;
     if (status === "inspected") return 3;
@@ -248,7 +292,18 @@
       if (!byKey.has(key)) byKey.set(key, job);
       else byKey.set(key, preferDuplicate(byKey.get(key), job));
     }
-    return [...byKey.values()];
+
+    const byOpportunity = new Map();
+    for (const job of byKey.values()) {
+      const key = semanticOpportunityKey(job);
+      if (!key) {
+        byOpportunity.set(`canonical:${canonicalPostingKey(job)}`, job);
+        continue;
+      }
+      if (!byOpportunity.has(key)) byOpportunity.set(key, job);
+      else byOpportunity.set(key, preferDuplicate(byOpportunity.get(key), job));
+    }
+    return [...byOpportunity.values()];
   }
 
   function scoreLocation(job, profile) {
@@ -281,7 +336,7 @@
     }
 
     if (profile?.relocationAllowed) {
-      if (!hasTrustedDistance) return { score: 8, detail: "Relocation is acceptable; profile-base distance is unknown" };
+      if (!hasTrustedDistance) return { score: 5, detail: "Relocation is acceptable, but profile-base distance is unresolved" };
       const rounded = Math.round(distance);
       if (distance <= near * 4) return { score: 14, detail: `Relocation about ${rounded} miles from active base` };
       if (distance <= near * 8) return { score: 10, detail: `Relocation about ${rounded} miles from active base` };
@@ -335,6 +390,10 @@
     authoritativeWorkdayUrl,
     authoritativePostingView,
     canonicalPostingKey,
+    semanticEmployerKey,
+    semanticTitleKey,
+    semanticLocationScope,
+    semanticOpportunityKey,
     dedupeCanonicalJobs,
     hasAuthoritativeInspection,
     scoreLocation,
