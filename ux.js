@@ -6,11 +6,13 @@
 
   const CAREER_AREAS = [
     ["cs", "Computer Science"],
+    ["engineering", "Engineering"],
   ];
   // Maintain the full set of valid areas so legacy state/URLs remain valid
   // even though we hide them from the primary beta UI selection.
   const ALL_KNOWN_AREAS = [
     ["cs", "Computer Science"],
+    ["engineering", "Engineering"],
     ["product-analytics", "Product / Analytics"],
     ["it-consulting", "IT / Tech Consulting"],
     ["finance-econ", "Finance / Econ"],
@@ -126,7 +128,7 @@
     const label = document.querySelector(".profile-block .control-label-row label");
     const helper = document.querySelector(".profile-block .control-label-row .muted");
     if (label) label.textContent = "Career area";
-    if (helper) helper.textContent = "More career areas coming soon.";
+    if (helper) helper.textContent = "Choose one or more career areas.";
 
     const hint = document.querySelector(".focus-hint div");
     if (hint) {
