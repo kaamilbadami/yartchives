@@ -21,6 +21,7 @@ run_frontend() {
   node --check apply-next-readiness.js
   node --check apply-next-competition.js
   node --check apply-next-location.js
+  node --check apply-next-dimensions.js
   node --check apply-next-location-preferences.js
   node --check apply-next-location-profile-ui.js
   node --check apply-next-presentation.js
@@ -36,6 +37,7 @@ run_frontend() {
   node tests/apply-next-location.test.cjs
   node tests/apply-next-location-preferences.test.cjs
   node tests/apply-next-location-profile-ui.test.cjs
+  node tests/apply-next-dimensions.test.cjs
   node tests/apply-next-presentation.test.cjs
   node tests/apply-next-presentation-browser.test.cjs
   node tests/apply-next-ui.test.cjs
