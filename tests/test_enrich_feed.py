@@ -213,7 +213,7 @@ class EnrichFeedTests(unittest.TestCase):
         self.assertEqual(job["company"], "Intel")
         self.assertEqual(job["title"], "Silicon Hardware Engineering Intern - Graduate")
         self.assertEqual(job["education_level"], "graduate-only")
-        self.assertEqual(job["profiles"], ["electrical"])
+        self.assertEqual(job["profiles"], ["electrical", "engineering"])
         self.assertEqual(job["source_markers"], ["advanced_degree", "source_featured"])
 
 
