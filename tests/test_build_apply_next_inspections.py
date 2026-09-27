@@ -106,7 +106,7 @@ class ApplyNextInspectionArtifactTests(unittest.TestCase):
         posting = inspection["posting"]
         self.assertEqual(
             set(posting),
-            {"posted_at", "application_status", "title", "requisition_id", "locations"},
+            {"posted_at", "application_status", "application_deadline", "title", "requisition_id", "locations"},
         )
         self.assertEqual(posting["posted_at"], "2026-09-20")
         self.assertEqual(posting["locations"]["values"], ["College Park, MD"])
@@ -117,6 +117,7 @@ class ApplyNextInspectionArtifactTests(unittest.TestCase):
                 "terms": ["Summer 2027"],
                 "duration_evidence": ["12 weeks"],
                 "date_range_evidence": ["May-August 2027"],
+                "application_deadline_evidence": ["Applications close October 15, 2026"],
             },
         )
 
