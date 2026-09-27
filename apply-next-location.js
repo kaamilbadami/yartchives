@@ -12,6 +12,7 @@
       target.scoreLocation = api.scoreLocation;
       target.scoreJob = api.scoreJob;
       target.rankJobs = api.rankJobs;
+      target.rankJobsAsync = api.rankJobsAsync;
     }
   }
 })(typeof globalThis !== "undefined" ? globalThis : this, function (base) {
@@ -324,7 +325,10 @@
     const near = Math.max(5, Number(profile?.nearbyMiles || 50));
     if (hasTrustedDistance) {
       if (distance <= near) return { score: 20, detail: `Within ${near} miles of active base` };
-      if (distance <= near * 2) return { score: 16, detail: `Within ${near * 2} miles of active base` };
+      if (!profile?.relocationAllowed && distance <= near * 2) {
+        const score = Math.max(12, Math.round(20 - 4 * Math.log2(Math.max(1, distance / near))));
+        return { score, detail: `About ${Math.round(distance)} miles from active base` };
+      }
     }
 
     if (!states.size && (!rawStates.size || rawStates.has("US"))) {
@@ -338,9 +342,8 @@
     if (profile?.relocationAllowed) {
       if (!hasTrustedDistance) return { score: 5, detail: "Relocation is acceptable, but profile-base distance is unresolved" };
       const rounded = Math.round(distance);
-      if (distance <= near * 4) return { score: 14, detail: `Relocation about ${rounded} miles from active base` };
-      if (distance <= near * 8) return { score: 10, detail: `Relocation about ${rounded} miles from active base` };
-      return { score: 6, detail: `Long-distance relocation about ${rounded} miles from active base` };
+      const score = Math.max(4, Math.min(19, Math.round(20 - 4 * Math.log2(Math.max(1, distance / near)))));
+      return { score, detail: `Relocation about ${rounded} miles from active base` };
     }
 
     return { score: 2, detail: "Outside preferred locations" };
@@ -364,22 +367,47 @@
     return { ...result, job: effectiveJob, total, components, reasons };
   }
 
+  function sortRanked(results) {
+    return results.sort((a, b) => {
+      if (b.total !== a.total) return b.total - a.total;
+      const bPosted = b.job?.posted_at ? new Date(b.job.posted_at).getTime() : 0;
+      const aPosted = a.job?.posted_at ? new Date(a.job.posted_at).getTime() : 0;
+      if (bPosted !== aPosted) return bPosted - aPosted;
+      return String(a.job?.company || "").localeCompare(String(b.job?.company || ""))
+        || String(a.job?.title || "").localeCompare(String(b.job?.title || ""));
+    });
+  }
+
+  function rankingPool(jobs) {
+    return dedupeCanonicalJobs(jobs || []).filter(hasAuthoritativeInspection);
+  }
+
   function rankJobs(jobs, profile, now = new Date()) {
-    const pool = dedupeCanonicalJobs(jobs || []).filter(hasAuthoritativeInspection);
+    const pool = rankingPool(jobs);
     const context = typeof base.buildCompetitionContext === "function"
       ? base.buildCompetitionContext(pool)
       : {};
-    return pool
+    return sortRanked(pool
       .map(job => scoreJob(job, profile, now, context))
-      .filter(result => !result.excluded)
-      .sort((a, b) => {
-        if (b.total !== a.total) return b.total - a.total;
-        const bPosted = b.job?.posted_at ? new Date(b.job.posted_at).getTime() : 0;
-        const aPosted = a.job?.posted_at ? new Date(a.job.posted_at).getTime() : 0;
-        if (bPosted !== aPosted) return bPosted - aPosted;
-        return String(a.job?.company || "").localeCompare(String(b.job?.company || ""))
-          || String(a.job?.title || "").localeCompare(String(b.job?.title || ""));
-      });
+      .filter(result => !result.excluded));
+  }
+
+  async function rankJobsAsync(jobs, profile, now = new Date(), options = {}) {
+    const pool = rankingPool(jobs);
+    const context = typeof base.buildCompetitionContext === "function"
+      ? base.buildCompetitionContext(pool)
+      : {};
+    const chunkSize = Math.max(10, Number(options.chunkSize || 40));
+    const yieldFn = typeof options.yieldFn === "function" ? options.yieldFn : null;
+    const ranked = [];
+    for (let index = 0; index < pool.length; index += 1) {
+      const result = scoreJob(pool[index], profile, now, context);
+      if (result && !result.excluded) ranked.push(result);
+      if (yieldFn && index + 1 < pool.length && (index + 1) % chunkSize === 0) {
+        await yieldFn();
+      }
+    }
+    return sortRanked(ranked);
   }
 
   return {
@@ -398,6 +426,9 @@
     hasAuthoritativeInspection,
     scoreLocation,
     scoreJob,
+    rankingPool,
+    sortRanked,
     rankJobs,
+    rankJobsAsync,
   };
 });

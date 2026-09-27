@@ -37,16 +37,18 @@ assert.equal(UI.totalScoreBandClass(65), "apply-next-score-medium");
 assert.equal(UI.totalScoreBandClass(85), "apply-next-score-high");
 assert.equal(UI.FRESH_MAX_AGE_DAYS, 3);
 assert.equal(UI.FRESH_MIN_SCORE, 55);
+assert.equal(UI.FRESH_MIN_FIT_SCORE, 25);
 assert.equal(UI.LOCATION_ENRICHMENT_YIELD_BUDGET_MS, 100);
 
 const freshNow = new Date("2026-09-19T12:00:00Z");
 const freshRanked = [
-  { total: 88, job: { id: "fresh-best", posted_at: "2026-09-19" } },
-  { total: 86, job: { id: "fresh-three-day", posted_at: "2026-09-16" } },
-  { total: 84, job: { id: "too-old", posted_at: "2026-09-15" } },
-  { total: 54, job: { id: "fresh-low", posted_at: "2026-09-19" } },
-  { total: 72, job: { id: "fresh-good", posted_at: "2026-09-17" } },
-  { total: 70, job: { id: "unknown-date", posted_at: null } },
+  { total: 88, components: { fit: { score: 35 } }, job: { id: "fresh-best", posted_at: "2026-09-19" } },
+  { total: 86, components: { fit: { score: 30 } }, job: { id: "fresh-three-day", posted_at: "2026-09-16" } },
+  { total: 84, components: { fit: { score: 35 } }, job: { id: "too-old", posted_at: "2026-09-15" } },
+  { total: 54, components: { fit: { score: 35 } }, job: { id: "fresh-low", posted_at: "2026-09-19" } },
+  { total: 72, components: { fit: { score: 25 } }, job: { id: "fresh-good", posted_at: "2026-09-17" } },
+  { total: 70, components: { fit: { score: 35 } }, job: { id: "unknown-date", posted_at: null } },
+  { total: 75, components: { fit: { score: 24 } }, job: { id: "fresh-weak-fit", posted_at: "2026-09-19" } },
 ];
 assert.equal(UI.postedAgeDays("2026-09-16", freshNow), 3);
 assert.equal(UI.postedAgeDays("not-a-date", freshNow), null);
@@ -54,6 +56,11 @@ assert.deepEqual(
   UI.freshRankedResults(freshRanked, freshNow).map(result => result.job.id),
   ["fresh-best", "fresh-three-day", "fresh-good"]
 );
+assert.deepEqual(UI.freshFunnelStats(freshRanked, freshNow), {
+  recent: 5,
+  scoreQualified: 4,
+  fitQualified: 3,
+});
 assert.deepEqual(
   UI.visibleQueueResults(freshRanked, "recommended", freshNow).map(result => result.job.id),
   freshRanked.map(result => result.job.id)
@@ -61,6 +68,7 @@ assert.deepEqual(
 
 const pagedRanked = Array.from({ length: 24 }, (_, index) => ({
   total: 100 - index,
+  components: { fit: { score: 35 } },
   job: { id: `rank-${index + 1}`, posted_at: "2026-09-19" },
 }));
 assert.equal(UI.visibleQueueResults(pagedRanked, "recommended", freshNow).length, 10);
@@ -346,8 +354,8 @@ assert.equal(jobs[2]._inspection, undefined);
     "Apply Next diagnostics should retain a zero-duration paint-wait stage without awaiting a frame"
   );
   assert.match(uiSource, /const rankablePool = authoritativeCandidatePool\(pool\);/, "Apply Next should narrow to authoritative candidates before expensive location work");
-  assert.match(uiSource, /const preliminaryRanked = YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\);/, "Apply Next should cheaply pre-rank before exact distance work");
-  assert.match(uiSource, /const distanceCandidates = distanceEnrichmentCandidates\(preliminaryRanked, rankingNow\);/, "Exact distance work should be bounded to candidates that can still affect visible recommendations");
+  assert.match(uiSource, /const preliminaryRanked = typeof YartchivesApplyNext\.rankJobsAsync === "function"/, "Apply Next should use the yielding async pre-rank path before exact distance work");
+  assert.match(uiSource, /const distanceCandidates = distanceEnrichmentCandidates\(preliminaryRanked, rankingNow, rankablePool\);/, "Exact distance work should be bounded to candidates that can still affect visible recommendations and mutate source jobs");
   assert.match(uiSource, /const gain = maximumDistanceLocationGain\(result\);/, "Distance shortlist should compute each job's safe maximum location upside once");
   assert.match(uiSource, /if \(gain <= 0\) return false;/, "Distance shortlist should skip jobs whose location score cannot improve");
   assert.match(uiSource, /const canAffectRecommended = potentialTotal >= recommendedCutoff;/, "Recommended distance work should only include jobs that can still reach the visible cutoff");
@@ -364,7 +372,7 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /const distanceCache = new Map\(\);/, "Location enrichment should memoize repeated location/origin distance work");
   assert.match(uiSource, /distanceCache\.has\(cacheKey\)/, "Location enrichment should reuse cached exact-distance results");
   assert.doesNotMatch(uiSource, /await addBaseDistances\(rankablePool, profile\);/, "Full-pool exact distance enrichment would reintroduce the measured bottleneck");
-  assert.match(uiSource, /YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\)/, "Final ranking should use the same timestamp as the location pre-rank");
+  assert.match(uiSource, /YartchivesApplyNext\.rankJobsAsync\(rankablePool, profile, rankingNow, \{ yieldFn: yieldToBrowser, chunkSize: 32 \}\)/, "Final ranking should use the yielding async path with the same timestamp as the location pre-rank");
   const renderQueueSource = uiSource.match(/async function renderQueue\(panel, profile\) \{([\s\S]*?)\n  \}/);
   assert.ok(renderQueueSource, "renderQueue should be present");
 
@@ -659,14 +667,16 @@ assert.equal(
   "Jobs already at the location maximum should skip exact distance work"
 );
 
-const distanceSubset = UI.distanceEnrichmentCandidates(syntheticRanked, new Date("2026-09-21T00:00:00Z"));
+const sourceSyntheticJobs = syntheticRanked.map(result => ({ ...result.job, sourceMarker: true }));
+const distanceSubset = UI.distanceEnrichmentCandidates(syntheticRanked, new Date("2026-09-21T00:00:00Z"), sourceSyntheticJobs);
+assert.ok(distanceSubset.every(job => job.sourceMarker === true), "Distance enrichment must mutate source-pool jobs so final ranking sees computed distance");
 assert.ok(distanceSubset.length < syntheticRanked.length, "Distance enrichment should be bounded below the full ranked pool");
 assert.ok(distanceSubset.some(job => job.id === "job-9"), "A candidate that can still cross the visible cutoff must remain eligible for exact distance");
 assert.ok(!distanceSubset.some(job => job.id === "job-0"), "Remote candidates with distance-independent scores should skip exact distance work");
 assert.ok(
   distanceSubset.every(job => {
-    const result = syntheticRanked.find(row => row.job === job);
-    return result.total + UI.maximumDistanceLocationGain(result) >= 55;
+    const result = syntheticRanked.find(row => row.job?.id === job.id);
+    return result && result.total + UI.maximumDistanceLocationGain(result) >= 55;
   }),
   "Every enriched job must still be capable of crossing a visible decision cutoff after its maximum possible location gain"
 );

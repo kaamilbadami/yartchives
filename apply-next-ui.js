@@ -14,6 +14,7 @@
   const TOP_N = 10;
   const FRESH_MAX_AGE_DAYS = 3;
   const FRESH_MIN_SCORE = 55;
+  const FRESH_MIN_FIT_SCORE = 25;
   const LOCATION_DISTANCE_MAX_GAIN = 18;
   const LOCATION_ENRICHMENT_YIELD_BUDGET_MS = 100;
   const FEEDBACK_ENDPOINT = "https://formspree.io/f/mqakpejw";
@@ -259,9 +260,25 @@
     return isAuthoritative ? `Posted ${monthDay} · ${ageLabel}` : ageLabel;
   }
 
+  function freshFunnelStats(ranked, nowValue = new Date()) {
+    const recent = (ranked || []).filter(result => {
+      if (!result || result.excluded) return false;
+      const age = postedAgeDays(result.job?.posted_at, nowValue);
+      return age !== null && age <= FRESH_MAX_AGE_DAYS;
+    });
+    const scoreQualified = recent.filter(result => Number(result.total || 0) >= FRESH_MIN_SCORE);
+    const fitQualified = scoreQualified.filter(result => Number(result?.components?.fit?.score || 0) >= FRESH_MIN_FIT_SCORE);
+    return {
+      recent: recent.length,
+      scoreQualified: scoreQualified.length,
+      fitQualified: fitQualified.length,
+    };
+  }
+
   function freshRankedResults(ranked, nowValue = new Date()) {
     return (ranked || []).filter(result => {
       if (!result || result.excluded || Number(result.total || 0) < FRESH_MIN_SCORE) return false;
+      if (Number(result?.components?.fit?.score || 0) < FRESH_MIN_FIT_SCORE) return false;
       const age = postedAgeDays(result.job?.posted_at, nowValue);
       return age !== null && age <= FRESH_MAX_AGE_DAYS;
     });
@@ -346,8 +363,11 @@
     return Math.max(0, componentMax("location") - currentLocationScore);
   }
 
-  function distanceEnrichmentCandidates(preliminaryRanked, nowValue = new Date()) {
+  function distanceEnrichmentCandidates(preliminaryRanked, nowValue = new Date(), sourceJobs = []) {
     const ranked = (preliminaryRanked || []).filter(result => result && !result.excluded && result.job);
+    const sourceById = new Map((sourceJobs || [])
+      .filter(job => job?.id)
+      .map(job => [job.id, job]));
     if (!ranked.length) return [];
 
     const recommendedCutoff = ranked.length >= TOP_N
@@ -372,7 +392,7 @@
         const canAffectFresh = age !== null && age <= FRESH_MAX_AGE_DAYS && potentialTotal >= freshCutoff;
         return canAffectRecommended || canAffectFresh;
       })
-      .map(result => result.job);
+      .map(result => sourceById.get(result.job?.id) || result.job);
   }
 
 
@@ -1377,7 +1397,8 @@
     });
 
     if (activeQueueView === "fresh") {
-      note.textContent = `Showing ${ranked.length} of ${allForView.length} strong matches posted within the last ${FRESH_MAX_AGE_DAYS} days. Ranked by overall Apply Next score, not posting time. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback.`;
+      const funnel = freshFunnelStats(lastRankedResults, now);
+      note.textContent = `Showing ${ranked.length} of ${allForView.length} good-or-better matches posted within the last ${FRESH_MAX_AGE_DAYS} days. ${funnel.recent} recent eligible recommendations were considered; ${funnel.scoreQualified} cleared the overall-score floor and ${funnel.fitQualified} also cleared the qualification-fit floor. Ranked by overall Apply Next score, not posting time. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence.`;
     } else {
       note.textContent = `Showing ${ranked.length} of ${allForView.length} recommended options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`;
     }
@@ -1567,13 +1588,15 @@
       stageStartedAt = timingNow();
       const rankingNow = new Date();
       const preliminaryRankingStartedAt = timingNow();
-      const preliminaryRanked = YartchivesApplyNext.rankJobs(rankablePool, profile, rankingNow);
+      const preliminaryRanked = typeof YartchivesApplyNext.rankJobsAsync === "function"
+        ? await YartchivesApplyNext.rankJobsAsync(rankablePool, profile, rankingNow, { yieldFn: yieldToBrowser, chunkSize: 32 })
+        : YartchivesApplyNext.rankJobs(rankablePool, profile, rankingNow);
       counts.preliminary_ranking_ms = timingNow() - preliminaryRankingStartedAt;
       recordTimingStage(timing, "preliminary_ranking", stageStartedAt);
 
       stageStartedAt = timingNow();
       const distanceSelectionStartedAt = timingNow();
-      const distanceCandidates = distanceEnrichmentCandidates(preliminaryRanked, rankingNow);
+      const distanceCandidates = distanceEnrichmentCandidates(preliminaryRanked, rankingNow, rankablePool);
       counts.distance_selection_ms = timingNow() - distanceSelectionStartedAt;
       counts.distance_candidates = distanceCandidates.length;
       const geoEnrichmentStartedAt = timingNow();
@@ -1593,7 +1616,9 @@
       recordTimingStage(timing, "location_enrichment", stageStartedAt);
 
       stageStartedAt = timingNow();
-      const ranked = YartchivesApplyNext.rankJobs(rankablePool, profile, rankingNow);
+      const ranked = typeof YartchivesApplyNext.rankJobsAsync === "function"
+        ? await YartchivesApplyNext.rankJobsAsync(rankablePool, profile, rankingNow, { yieldFn: yieldToBrowser, chunkSize: 32 })
+        : YartchivesApplyNext.rankJobs(rankablePool, profile, rankingNow);
       counts.recommendations = ranked.length;
       recordTimingStage(timing, "ranking", stageStartedAt);
 
@@ -1720,8 +1745,10 @@
     TOP_N,
     FRESH_MAX_AGE_DAYS,
     FRESH_MIN_SCORE,
+    FRESH_MIN_FIT_SCORE,
     LOCATION_ENRICHMENT_YIELD_BUDGET_MS,
     postedAgeDays,
+    freshFunnelStats,
     freshRankedResults,
     queueResults,
     visibleQueueResults,
