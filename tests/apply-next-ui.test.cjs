@@ -365,7 +365,12 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.doesNotMatch(
     appliedHandler[1],
     /renderPanel\(/,
-    "Mark applied should rely on optimistic update and applyFilters/renderJobs panel refresh instead of triggering a second expensive render"
+    "Mark applied should rely on optimistic queue update instead of triggering a second expensive render"
+  );
+  assert.doesNotMatch(
+    uiSource,
+    /renderJobs\s*=\s*function\s*\(/,
+    "Normal feed renders must never monkey-patch into a full Apply Next recomputation"
   );
 
   assert.match(uiSource, /apply-next-gap-hard/);
