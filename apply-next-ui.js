@@ -76,9 +76,11 @@
     candidate_filter: "Candidate filtering",
     inspection_artifact: "Inspection download",
     inspection_attach: "Inspection attachment",
+    preliminary_ranking: "Preliminary ranking",
     location_enrichment: "Location enrichment",
     ranking: "Ranking",
     render: "Render",
+    post_render_paint_wait: "Post-render frame callback wait",
   };
 
   function timingDiagnosticText(payload) {
@@ -178,6 +180,11 @@
         location_yield_count: Number(metadata.location_yield_count || 0),
         location_order_ms: Number(metadata.location_order_ms || 0),
         recommendations: Number(metadata.recommendations || 0),
+        inspection_await_ms: Number(metadata.inspection_await_ms || 0),
+        inspection_promise_state_at_await: metadata.inspection_promise_state_at_await || null,
+        inspection_normalization_ms: Number(metadata.inspection_normalization_ms || 0),
+        geo_await_ms: Number(metadata.geo_await_ms || 0),
+        geo_warm_state_at_await: metadata.geo_warm_state_at_await || null,
       },
       geo_error: normalizeGeoErrorCode(metadata.geo_error),
       geo_warm_state: normalize(metadata.geo_warm_state) || null,
@@ -1562,6 +1569,9 @@
       const preliminaryRankingStartedAt = timingNow();
       const preliminaryRanked = YartchivesApplyNext.rankJobs(rankablePool, profile, rankingNow);
       counts.preliminary_ranking_ms = timingNow() - preliminaryRankingStartedAt;
+      recordTimingStage(timing, "preliminary_ranking", stageStartedAt);
+
+      stageStartedAt = timingNow();
       const distanceSelectionStartedAt = timingNow();
       const distanceCandidates = distanceEnrichmentCandidates(preliminaryRanked, rankingNow);
       counts.distance_selection_ms = timingNow() - distanceSelectionStartedAt;
@@ -1597,7 +1607,16 @@
       panel.append(buildQueueSkeleton(profile, panel, explanation));
       if (typeof renderProductionStatus === "function") renderProductionStatus();
       renderCurrentQueue(panel, profile, pool.length);
-      recordTimingStage(timing, "render", stageStartedAt);
+      const syncRenderEndedAt = timingNow();
+      recordTimingStage(timing, "render", stageStartedAt, syncRenderEndedAt);
+      stageStartedAt = syncRenderEndedAt;
+
+      if (typeof YartchivesUtils !== "undefined" && typeof YartchivesUtils.waitForBrowserPaint === "function") {
+        await YartchivesUtils.waitForBrowserPaint();
+      } else {
+        await yieldToBrowser();
+      }
+      recordTimingStage(timing, "post_render_paint_wait", stageStartedAt);
     } catch (error) {
       timingStatus = "error";
       console.error(error);

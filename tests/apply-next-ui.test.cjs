@@ -340,11 +340,6 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(hideHandler[1], /applyFilters\(\);/);
 
   assert.doesNotMatch(uiSource, /function waitForBrowserPaint\(\)/, "Apply Next should not own a feature-specific paint helper");
-  assert.doesNotMatch(
-    uiSource,
-    /await YartchivesUtils\.waitForBrowserPaint\(\)/,
-    "Apply Next startup must not block on browser paint scheduling"
-  );
   assert.match(
     uiSource,
     /recordTimingStage\(timing, "paint_wait", stageStartedAt, stageStartedAt\);/,
@@ -372,9 +367,20 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\)/, "Final ranking should use the same timestamp as the location pre-rank");
   const renderQueueSource = uiSource.match(/async function renderQueue\(panel, profile\) \{([\s\S]*?)\n  \}/);
   assert.ok(renderQueueSource, "renderQueue should be present");
+
   assert.ok(
-    renderQueueSource[1].indexOf("await YartchivesUtils.waitForBrowserPaint()") < renderQueueSource[1].indexOf("recommendationJobs = await loadCandidateArtifact()"),
-    "Apply Next should yield a paint before candidate loading and synchronous filtering"
+    renderQueueSource[1].indexOf('recordTimingStage(timing, "preliminary_ranking"') > 0,
+    "preliminary_ranking timing stage should be recorded"
+  );
+
+  assert.ok(
+    renderQueueSource[1].indexOf('recordTimingStage(timing, "preliminary_ranking"') < renderQueueSource[1].indexOf('distanceEnrichmentCandidates('),
+    "preliminary_ranking must complete before distance enrichment begins"
+  );
+
+  assert.ok(
+    renderQueueSource[1].indexOf("await YartchivesUtils.waitForBrowserPaint()") > renderQueueSource[1].indexOf("renderCurrentQueue("),
+    "Apply Next should wait for a browser frame to paint before computing completion timing"
   );
   const applyNextCss = fs.readFileSync(path.join(__dirname, "..", "apply-next.css"), "utf8");
   assert.match(applyNextCss, /\.apply-next-open:disabled\s*\{[\s\S]*?cursor:\s*progress/, "Disabled Apply Next should have a visible loading treatment");
@@ -517,7 +523,7 @@ console.info = priorInfo;
 assert.deepEqual(timingPayload, {
   total_ms: 80,
   stages_ms: { location_enrichment: 25.7 },
-  counts: { candidates: 500, rankable: 42, inspection_request_ms: 0, inspection_headers_ms: 0, inspection_body_parse_ms: 0, inspection_preload_age_ms: 0, preliminary_ranking_ms: 0, distance_selection_ms: 0, geo_enrichment_ms: 0, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10 },
+  counts: { candidates: 500, rankable: 42, inspection_request_ms: 0, inspection_headers_ms: 0, inspection_body_parse_ms: 0, inspection_preload_age_ms: 0, preliminary_ranking_ms: 0, distance_selection_ms: 0, geo_enrichment_ms: 0, distance_candidates: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10, inspection_await_ms: 0, inspection_promise_state_at_await: null, inspection_normalization_ms: 0, geo_await_ms: 0, geo_warm_state_at_await: null },
   geo_error: null,
   geo_warm_state: null,
   page_visibility: null,
@@ -573,8 +579,10 @@ globalThis.YartchivesAnalytics = {
   },
   flush: () => Promise.resolve(true),
 };
-UI.publishApplyNextTiming(timing, { candidates: 10, rankable: 5, recommendations: 2 });
+UI.publishApplyNextTiming(timing, { candidates: 10, rankable: 5, recommendations: 2, inspection_await_ms: 10, inspection_promise_state_at_await: "ready" });
 assert.equal(trackedEvent, "apply_next_timing");
+assert.equal(trackedPayload.counts.inspection_promise_state_at_await, "ready");
+assert.equal(trackedPayload.counts.inspection_await_ms, 10);
 assert.equal(trackedPayload.counts.candidates, 10);
 assert.equal(trackedPayload.counts.distance_candidates, 0);
 assert.equal(trackedPayload.counts.distance_unique_lookups, 0);

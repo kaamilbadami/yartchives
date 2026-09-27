@@ -47,6 +47,11 @@ const dirtyPayload = {
     rankable: 50,
     recommendations: 10,
     disallowed_count: 500,
+    inspection_await_ms: 100,
+    inspection_normalization_ms: 50,
+    geo_await_ms: 200,
+    inspection_promise_state_at_await: "fetching",
+    geo_warm_state_at_await: "ready",
   },
   status: "success",
   jobId: "12345",
@@ -64,6 +69,11 @@ assert.equal(sanitized.stages_ms.inspection_artifact, 50.2);
 assert.equal(sanitized.stages_ms.disallowed_stage, undefined);
 assert.equal(sanitized.counts.candidates, 100);
 assert.equal(sanitized.counts.disallowed_count, undefined);
+assert.equal(sanitized.counts.inspection_await_ms, 100);
+assert.equal(sanitized.counts.inspection_normalization_ms, 50);
+assert.equal(sanitized.counts.geo_await_ms, 200);
+assert.equal(sanitized.counts.inspection_promise_state_at_await, "fetching");
+assert.equal(sanitized.counts.geo_warm_state_at_await, "ready");
 assert.equal(sanitized.jobId, undefined);
 assert.equal(sanitized.company, undefined);
 assert.equal(sanitized.title, undefined);
