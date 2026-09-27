@@ -264,4 +264,41 @@ assert.equal(raytheonDeduped.length, 2);
 assert.ok(raytheonDeduped.some(x => x.states.includes("MA")));
 assert.ok(raytheonDeduped.some(x => x.states.includes("RI")));
 
+const radianceA = {
+  ...job,
+  id: "radiance-a",
+  company: "Radiance Technologies",
+  title: "Software Engineer Intern Spring/Summer 2027",
+  states: [],
+  location: "Dayton",
+  url: "https://radiancetech.wd12.myworkdayjobs.com/Radiance_External/job/Dayton-Office/Software-Engineer-Intern-Spring-Summer-2027_HR102446/apply",
+  _inspection: inspected({
+    title: "Software Engineer Intern Spring/Summer 2027",
+    requisition_id: "HR102446",
+    locations: { status: "authoritative", values: ["Dayton Office"] },
+  }),
+};
+const radianceB = {
+  ...radianceA,
+  id: "radiance-b",
+  states: ["OH"],
+  location: "Dayton, OH",
+  url: "https://radiancetech.wd12.myworkdayjobs.com/radiance_external/job/Dayton-Office/Software-Engineer-Intern-Spring-Summer-2027_HR102442/apply",
+  _inspection: inspected({
+    title: "Software Engineer Intern Spring/Summer 2027",
+    requisition_id: "HR102442",
+    locations: { status: "authoritative", values: ["Dayton Office"] },
+  }),
+};
+assert.equal(
+  L.semanticLocationScope(radianceA),
+  L.semanticLocationScope(radianceB),
+  "Authoritative location evidence should override inconsistent aggregator state metadata"
+);
+assert.equal(
+  L.dedupeCanonicalJobs([radianceA, radianceB]).length,
+  1,
+  "Duplicate requisitions for the same employer/title/authoritative location should collapse"
+);
+
 console.log("apply-next authoritative-only, location, and canonical dedupe tests passed");

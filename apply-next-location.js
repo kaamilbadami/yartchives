@@ -249,11 +249,16 @@
   }
 
   function semanticLocationScope(job) {
-    const rawStates = new Set(job?.states || []);
-    if (rawStates.has("Remote") || /\bremote\b/i.test(String(job?.location || ""))) return "remote";
-    const states = reliableStates(job);
+    const effectiveJob = authoritativePostingView(job);
+    const rawStates = new Set(effectiveJob?.states || []);
+    if (rawStates.has("Remote") || /\bremote\b/i.test(String(effectiveJob?.location || ""))) return "remote";
+    const states = reliableStates(effectiveJob);
     if (states.size) return [...states].sort().join(",");
-    return String(job?.location || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    return String(effectiveJob?.location || "").toLowerCase()
+      .replace(/\b(?:office|campus|building|bldg)\b/g, " ")
+      .replace(/[^a-z0-9]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
   function semanticOpportunityKey(job) {

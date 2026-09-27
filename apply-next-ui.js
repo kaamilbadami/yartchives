@@ -1756,13 +1756,6 @@
       void openApplyNext({ persist: false, scroll: false });
     }
 
-    if (typeof renderJobs === "function") {
-      const priorRenderJobs = renderJobs;
-      renderJobs = function () {
-        priorRenderJobs();
-        if (!panel.classList.contains("hidden") && loadProfile(localStorage)) renderPanel(panel);
-      };
-    }
   }
 
   return {
