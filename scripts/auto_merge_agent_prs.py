@@ -542,6 +542,11 @@ def exact_head_quality_action_required(
     )
 
 
+def missing_required_tests_status(detail: str | None) -> bool:
+    text = str(detail or "").lower()
+    return "required status check" in text and '"tests"' in text
+
+
 def exact_head_quality_in_flight(
     runs: Iterable[dict[str, Any]], head_sha: str
 ) -> bool:
@@ -1632,6 +1637,22 @@ def main() -> int:
                 )
                 if detail:
                     print(detail)
+                if missing_required_tests_status(detail) and head_ref:
+                    if exact_head_quality_in_flight(runs, head_sha):
+                        print(
+                            f"PR #{number} already has exact-head recovery Quality checks in flight."
+                        )
+                    else:
+                        gh_run(
+                            "workflow", "run", "quality.yml",
+                            "--repo", repo,
+                            "--ref", head_ref,
+                            "-f", "pr_recovery=true",
+                        )
+                        print(
+                            f"Dispatched PR recovery Quality for #{number} so the required "
+                            "tests status can be published after green exact-head CI."
+                        )
             else:
                 print(
                     f"BLOCKED_REQUIRES_DECISION PR #{number}: GitHub reports mergeable={mergeable} "
