@@ -147,7 +147,7 @@ assert.equal(
   UI.rankingSummary({
     components: { fit: { score: 35 }, freshness: { score: 8 }, roi: { score: 18 }, location: { score: 10, unresolved: true } }
   }),
-  "Why this is here: strongest drivers: timing and profile match.",
+  "Why this is here: strongest drivers: timing, profile match and role value.",
   "Unresolved location should not be described as either a ranking strength or weakness"
 );
 
