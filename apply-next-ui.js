@@ -260,6 +260,32 @@
     return isAuthoritative ? `Posted ${monthDay} · ${ageLabel}` : ageLabel;
   }
 
+  function freshQualificationStatus(result) {
+    if (!result || result.excluded) return { qualified: false, evidenceLimited: false };
+    const fitScore = Number(result?.components?.fit?.score || 0);
+    if (fitScore >= FRESH_MIN_FIT_SCORE) {
+      return { qualified: true, evidenceLimited: false };
+    }
+
+    const roleScore = Number(result?.applicationValue?.role?.score || 0);
+    const readiness = result?.readiness || {};
+    const evidence = readiness?.evidence || {};
+    const hardGapCount = Array.isArray(evidence.hardGaps) ? evidence.hardGaps.length : 0;
+    const cautiousGapCount = Array.isArray(evidence.cautiousRequired) ? evidence.cautiousRequired.length : 0;
+    const exactRequiredCount = Array.isArray(evidence.exactRequired) ? evidence.exactRequired.length : 0;
+    const adjacentRequiredCount = Array.isArray(evidence.adjacentRequired) ? evidence.adjacentRequired.length : 0;
+    const exactPreferredCount = Array.isArray(evidence.exactPreferred) ? evidence.exactPreferred.length : 0;
+    const adjacentPreferredCount = Array.isArray(evidence.adjacentPreferred) ? evidence.adjacentPreferred.length : 0;
+    const specificSkillEvidenceCount = exactRequiredCount + adjacentRequiredCount + exactPreferredCount + adjacentPreferredCount;
+    const evidenceLimited = hardGapCount === 0
+      && cautiousGapCount === 0
+      && specificSkillEvidenceCount === 0
+      && roleScore >= 12
+      && /^Ready on known requirements$/i.test(String(readiness.label || ""));
+
+    return { qualified: evidenceLimited, evidenceLimited };
+  }
+
   function freshFunnelStats(ranked, nowValue = new Date()) {
     const recent = (ranked || []).filter(result => {
       if (!result || result.excluded) return false;
@@ -268,17 +294,23 @@
     });
     const scoreQualified = recent.filter(result => Number(result.total || 0) >= FRESH_MIN_SCORE);
     const fitQualified = scoreQualified.filter(result => Number(result?.components?.fit?.score || 0) >= FRESH_MIN_FIT_SCORE);
+    const evidenceLimitedQualified = scoreQualified.filter(result => {
+      const status = freshQualificationStatus(result);
+      return status.qualified && status.evidenceLimited;
+    });
     return {
       recent: recent.length,
       scoreQualified: scoreQualified.length,
       fitQualified: fitQualified.length,
+      evidenceLimitedQualified: evidenceLimitedQualified.length,
+      displayed: fitQualified.length + evidenceLimitedQualified.length,
     };
   }
 
   function freshRankedResults(ranked, nowValue = new Date()) {
     return (ranked || []).filter(result => {
       if (!result || result.excluded || Number(result.total || 0) < FRESH_MIN_SCORE) return false;
-      if (Number(result?.components?.fit?.score || 0) < FRESH_MIN_FIT_SCORE) return false;
+      if (!freshQualificationStatus(result).qualified) return false;
       const age = postedAgeDays(result.job?.posted_at, nowValue);
       return age !== null && age <= FRESH_MAX_AGE_DAYS;
     });
@@ -1398,7 +1430,7 @@
 
     if (activeQueueView === "fresh") {
       const funnel = freshFunnelStats(lastRankedResults, now);
-      note.textContent = `Showing ${ranked.length} of ${allForView.length} good-or-better matches posted within the last ${FRESH_MAX_AGE_DAYS} days. ${funnel.recent} recent eligible recommendations were considered; ${funnel.scoreQualified} cleared the overall-score floor and ${funnel.fitQualified} also cleared the qualification-fit floor. Ranked by overall Apply Next score, not posting time. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence.`;
+      note.textContent = `Showing ${ranked.length} of ${allForView.length} strong recent options posted within the last ${FRESH_MAX_AGE_DAYS} days. ${funnel.recent} recent eligible recommendations were considered; ${funnel.scoreQualified} cleared the overall-score floor, ${funnel.fitQualified} cleared the qualification-fit floor, and ${funnel.evidenceLimitedQualified} additional role-aligned postings had no known requirement conflicts but limited qualification evidence. Ranked by overall Apply Next score, not posting time. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence.`;
     } else {
       note.textContent = `Showing ${ranked.length} of ${allForView.length} recommended options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`;
     }
@@ -1748,6 +1780,7 @@
     FRESH_MIN_FIT_SCORE,
     LOCATION_ENRICHMENT_YIELD_BUDGET_MS,
     postedAgeDays,
+    freshQualificationStatus,
     freshFunnelStats,
     freshRankedResults,
     queueResults,
