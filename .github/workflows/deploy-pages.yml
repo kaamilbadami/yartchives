@@ -47,6 +47,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: python scripts/download_latest_feed.py --repo "${{ github.repository }}" --require-feed-artifact --max-feed-age-hours 3
 
+      - name: Apply current deterministic feed semantics
+        run: python scripts/enrich_feed.py data/listings.json
+
       - name: Configure Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d
 

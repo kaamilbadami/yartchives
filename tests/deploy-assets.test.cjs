@@ -241,6 +241,11 @@ assert.match(
 );
 assert.match(
   workflow,
+  /Hydrate latest runtime artifacts[\s\S]*?Apply current deterministic feed semantics[\s\S]*?python scripts\/enrich_feed\.py data\/listings\.json[\s\S]*?Configure Pages/,
+  "Pages deploys should reapply current deterministic feed semantics after hydrating runtime data so UI/filter changes cannot race an older feed artifact"
+);
+assert.match(
+  workflow,
   /workflows:[\s\S]*?- Update opportunity feed[\s\S]*?- Refresh bounded inspections/,
   "Pages should redeploy after either runtime artifact producer succeeds"
 );
