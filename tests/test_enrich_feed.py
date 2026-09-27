@@ -77,6 +77,32 @@ class EnrichFeedTests(unittest.TestCase):
         self.assertIn("cs", profiles)
         self.assertNotIn("mechanical", profiles)
 
+    def test_common_technical_titles_do_not_fall_into_general(self):
+        cases = {
+            "AI Research Intern": {"cs"},
+            "Data & AI Intern": {"cs"},
+            "Information Security Intern": {"cs"},
+            "SW Developer Intern / Enterprise Platform-as-a-Service": {"cs"},
+            "IT Infrastructure Engineer Intern": {"cs"},
+            "Infrastructure Automation Engineer Intern": {"cs"},
+            "Test Automation Intern - Summer 2027": {"cs"},
+            "Quantitative Developer Intern": {"cs", "finance-econ"},
+        }
+        for title, expected in cases.items():
+            with self.subTest(title=title):
+                profiles = set(mod.classify_profiles({"title": title}))
+                self.assertTrue(expected.issubset(profiles))
+                self.assertNotIn("general", profiles)
+
+    def test_new_technical_patterns_remain_conservative(self):
+        for title in (
+            "AI Policy Intern",
+            "Civil Infrastructure Design Intern",
+            "Hardcoats Application Development Intern",
+        ):
+            with self.subTest(title=title):
+                self.assertNotIn("cs", mod.classify_profiles({"title": title}))
+
     def test_mechanical_test_role_is_mechanical(self):
         profiles = mod.classify_profiles({"title": "Mechanical Test Engineering Intern"})
         self.assertIn("mechanical", profiles)
