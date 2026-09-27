@@ -14,6 +14,7 @@ import os
 import sys
 import urllib.error
 import urllib.request
+from urllib.parse import urlsplit
 import zipfile
 from pathlib import Path
 
@@ -38,13 +39,27 @@ def _request_json(url: str, token: str | None) -> dict:
         return json.load(response)
 
 
+class _SafeArtifactRedirectHandler(urllib.request.HTTPRedirectHandler):
+    """Do not forward GitHub credentials to the artifact storage redirect host."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        redirected = super().redirect_request(req, fp, code, msg, headers, newurl)
+        if redirected is None:
+            return None
+        if urlsplit(req.full_url).netloc != urlsplit(newurl).netloc:
+            redirected.remove_header("Authorization")
+            redirected.remove_header("X-GitHub-Api-Version")
+        return redirected
+
+
 def _request_bytes(url: str, token: str | None) -> bytes:
     headers = {"Accept": "application/vnd.github+json", "User-Agent": USER_AGENT}
     if token:
         headers["Authorization"] = f"Bearer {token}"
         headers["X-GitHub-Api-Version"] = "2022-11-28"
     request = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(request, timeout=60) as response:
+    opener = urllib.request.build_opener(_SafeArtifactRedirectHandler())
+    with opener.open(request, timeout=60) as response:
         return response.read()
 
 
