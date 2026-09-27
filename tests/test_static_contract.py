@@ -116,6 +116,7 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("<!-- trusted-preflight-auto-pr -->", preflight)
         self.assertIn("gh pr create", preflight)
         self.assertIn("gh workflow run quality.yml", preflight)
+        self.assertIn("-f pr_recovery=true", preflight)
         self.assertIn("actions: write", preflight)
         self.assertIn("pull-requests: write", preflight)
 
