@@ -92,7 +92,7 @@
     }
     const counts = payload.counts || {};
     lines.push(
-      `Candidates: ${Number(counts.candidates || 0)} · Rankable: ${Number(counts.rankable || 0)} · Distance candidates: ${Number(counts.distance_candidates || 0)} · Unique distance lookups: ${Number(counts.distance_unique_lookups || 0)} · Distance cache hits: ${Number(counts.distance_cache_hits || 0)} · Distance lookup failures: ${Number(counts.distance_lookup_failures || 0)} · Recommendations: ${Number(counts.recommendations || 0)}`
+      `Candidates: ${Number(counts.candidates || 0)} · Rankable: ${Number(counts.rankable || 0)} · Distance candidates: ${Number(counts.distance_candidates || 0)} · Incremental rescores: ${Number(counts.incremental_rescore_count || 0)} · Unique distance lookups: ${Number(counts.distance_unique_lookups || 0)} · Distance cache hits: ${Number(counts.distance_cache_hits || 0)} · Distance lookup failures: ${Number(counts.distance_lookup_failures || 0)} · Recommendations: ${Number(counts.recommendations || 0)}`
     );
     lines.push(`Inspection request: ${Number(counts.inspection_request_ms || 0).toFixed(1)} ms · headers: ${Number(counts.inspection_headers_ms || 0).toFixed(1)} ms · body/JSON: ${Number(counts.inspection_body_parse_ms || 0).toFixed(1)} ms · normalization: ${Number(counts.inspection_normalization_ms || 0).toFixed(1)} ms · preload age: ${Number(counts.inspection_preload_age_ms || 0).toFixed(1)} ms`);
     lines.push(`Inspection wait: ${Number(counts.inspection_await_ms || 0).toFixed(1)} ms · state at await: ${counts.inspection_promise_state_at_await || "unknown"}`);
@@ -172,6 +172,7 @@
         distance_selection_ms: Number(metadata.distance_selection_ms || 0),
         geo_enrichment_ms: Number(metadata.geo_enrichment_ms || 0),
         distance_candidates: Number(metadata.distance_candidates || 0),
+        incremental_rescore_count: Number(metadata.incremental_rescore_count || 0),
         distance_unique_lookups: Number(metadata.distance_unique_lookups || 0),
         distance_cache_hits: Number(metadata.distance_cache_hits || 0),
         distance_lookup_failures: Number(metadata.distance_lookup_failures || 0),
