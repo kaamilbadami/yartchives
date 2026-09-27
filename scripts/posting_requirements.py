@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 # way that should invalidate cached requirement facts. The cache updater can
 # re-run this extractor from a stored posting description without another ATS
 # request; entries without a reprocessable description are refreshed normally.
-EXTRACTOR_VERSION = 5
+EXTRACTOR_VERSION = 6
 
 # This vocabulary only annotates exact technology mentions in an already
 # identified qualification statement. It never creates a requirement by itself,
@@ -28,6 +28,7 @@ TECHNOLOGIES: tuple[tuple[str, str], ...] = (
     ("C#", r"(?<![A-Za-z0-9])C#(?![A-Za-z0-9#])"),
     ("C", r"(?<![A-Za-z0-9+#])C(?![A-Za-z0-9+#])"),
     ("Python", r"\bPython\b"),
+    ("Go", r"\b(?:Go|Golang)\b"),
     ("JavaScript", r"\bJavaScript\b"),
     ("TypeScript", r"\bTypeScript\b"),
     ("React", r"\bReact(?:\.js|JS)?\b"),
@@ -74,7 +75,7 @@ REQUIREMENT_FIELDS = (
 )
 
 REQUIRED_HEADING = re.compile(
-    r"\b(?:qualifications? (?:you )?must have|required qualifications?|"
+    r"\b(?:qualifications? (?:you )?must have|required qualifications?|required skills?(?: and experience)?|"
     r"minimum qualifications?|basic qualifications?|what (?:is )?a must have|"
     r"requirements?|what (?:we(?:'re| are)|we) (?:are )?looking for|"
     r"who (?:we(?:'re| are)|we) (?:are )?looking for|"

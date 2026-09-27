@@ -394,8 +394,27 @@
 
   function knownWrongTerm(job, profile) {
     const target = normalize(profile?.targetTerm).toLowerCase();
+    if (!target) return false;
+
     const term = normalize(job?.term).toLowerCase();
-    return Boolean(target && term && target !== term);
+    if (term && term !== target) return true;
+
+    const targetSeason = (target.match(/\b(spring|summer|fall|winter)\b/) || [])[1];
+    if (!targetSeason) return false;
+
+    const explicitSeasons = new Set();
+    const collectSeasons = value => {
+      const text = normalize(value).toLowerCase();
+      for (const match of text.matchAll(/\b(spring|summer|fall|autumn|winter)\b/g)) {
+        explicitSeasons.add(match[1] === "autumn" ? "fall" : match[1]);
+      }
+    };
+
+    collectSeasons(job?.title);
+    collectSeasons(job?.term);
+    for (const value of (job?._inspection?.schedule?.terms || [])) collectSeasons(value);
+
+    return explicitSeasons.size > 0 && !explicitSeasons.has(targetSeason);
   }
 
   function candidatePool(jobs, profile, localState) {

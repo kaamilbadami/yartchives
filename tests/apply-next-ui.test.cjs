@@ -302,19 +302,23 @@ values.set(UI.ENTRY_MODE_KEY, "stale-value");
 assert.equal(UI.loadEntryMode(storage), null);
 
 const jobs = [
-  { id: "good", term: "Summer 2027" },
-  { id: "unknown-term", term: null },
-  { id: "wrong-term", term: "Summer 2026" },
-  { id: "applied", term: "Summer 2027" },
-  { id: "hidden", term: "Summer 2027" },
+  { id: "good", term: "Summer 2027", title: "Software Intern" },
+  { id: "unknown-term", term: null, title: "Software Intern" },
+  { id: "wrong-term", term: "Summer 2026", title: "Software Intern" },
+  { id: "explicit-fall", term: null, title: "Data Engineering Fall Intern (Part Time)" },
+  { id: "multi-season", term: null, title: "Spring & Summer 2027 Intern - Security & GRC" },
+  { id: "applied", term: "Summer 2027", title: "Software Intern" },
+  { id: "hidden", term: "Summer 2027", title: "Software Intern" },
 ];
 const pool = UI.candidatePool(jobs, profile, {
   applied: new Set(["applied"]),
   hidden: new Set(["hidden"]),
 });
-assert.deepEqual(pool.map(job => job.id), ["good", "unknown-term"]);
+assert.deepEqual(pool.map(job => job.id), ["good", "unknown-term", "multi-season"]);
 assert.equal(UI.knownWrongTerm(jobs[2], profile), true);
 assert.equal(UI.knownWrongTerm(jobs[1], profile), false);
+assert.equal(UI.knownWrongTerm(jobs[3], profile), true, "explicit Fall-only title must be excluded from a Summer queue even when normalized term is missing");
+assert.equal(UI.knownWrongTerm(jobs[4], profile), false, "multi-season titles remain eligible when they explicitly include the target season");
 jobs[0]._inspection = { status: "inspected" };
 jobs[1]._inspection = { status: "metadata-only" };
 assert.deepEqual(UI.authoritativeCandidatePool(jobs).map(job => job.id), ["good"]);

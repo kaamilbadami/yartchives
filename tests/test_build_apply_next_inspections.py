@@ -25,6 +25,7 @@ class ApplyNextInspectionArtifactTests(unittest.TestCase):
                         "posting": {
                             "posted_at": "2026-09-20",
                             "application_status": "available",
+                            "application_deadline": "2026-10-15T23:59:59Z",
                             "title": "Software Intern",
                             "requisition_id": "REQ-1",
                             "locations": {"status": "authoritative", "values": ["College Park, MD"]},
@@ -38,6 +39,7 @@ class ApplyNextInspectionArtifactTests(unittest.TestCase):
                             "terms": ["Summer 2027"],
                             "duration_evidence": ["12 weeks"],
                             "date_range_evidence": ["May-August 2027"],
+                            "application_deadline_evidence": ["Applications close October 15, 2026"],
                             "ignored": "value",
                         },
                         "requirements": {
@@ -90,6 +92,11 @@ class ApplyNextInspectionArtifactTests(unittest.TestCase):
         self.assertNotIn("last_attempted_at", entry)
 
         self.assertEqual(inspection["status"], "inspected")
+        self.assertEqual(inspection["posting"]["application_deadline"], "2026-10-15T23:59:59Z")
+        self.assertEqual(
+            inspection["schedule"]["application_deadline_evidence"],
+            ["Applications close October 15, 2026"],
+        )
         self.assertNotIn("provider", inspection)
         self.assertNotIn("retrieval_confidence", inspection)
         self.assertNotIn("provenance", inspection)
@@ -99,7 +106,7 @@ class ApplyNextInspectionArtifactTests(unittest.TestCase):
         posting = inspection["posting"]
         self.assertEqual(
             set(posting),
-            {"posted_at", "application_status", "title", "requisition_id", "locations"},
+            {"posted_at", "application_status", "application_deadline", "title", "requisition_id", "locations"},
         )
         self.assertEqual(posting["posted_at"], "2026-09-20")
         self.assertEqual(posting["locations"]["values"], ["College Park, MD"])
@@ -110,6 +117,7 @@ class ApplyNextInspectionArtifactTests(unittest.TestCase):
                 "terms": ["Summer 2027"],
                 "duration_evidence": ["12 weeks"],
                 "date_range_evidence": ["May-August 2027"],
+                "application_deadline_evidence": ["Applications close October 15, 2026"],
             },
         )
 
