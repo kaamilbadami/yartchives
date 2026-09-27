@@ -1360,7 +1360,7 @@
     const p = element("p", "apply-next-note");
 
     if (type === "loading") {
-      p.textContent = "Finding your best matches…";
+      p.textContent = "Finding your best matches… This usually takes a few seconds.";
       p.setAttribute("role", "status");
       p.setAttribute("aria-live", "polite");
       empty.append(p);
@@ -1579,7 +1579,7 @@
     const slowLoadingTimer = setTimeout(() => {
       const loadingMessage = panel.querySelector(".apply-next-empty .apply-next-note");
       if (loadingMessage && panel.getAttribute("aria-busy") === "true") {
-        loadingMessage.textContent = "Still finding your best matches…";
+        loadingMessage.textContent = "Still finding your best matches… This usually takes a few seconds.";
       }
     }, 1500);
 
