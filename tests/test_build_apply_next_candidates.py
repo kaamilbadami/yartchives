@@ -14,7 +14,8 @@ class ApplyNextCandidateArtifactTests(unittest.TestCase):
                 "company": "Example",
                 "title": "Software Intern",
                 "location": "College Park, MD",
-                "url": "https://example.test/job-1",
+                "url": "https://example.test/job-1/apply",
+                "posting_url": "https://example.test/job-1",
                 "posted_at": "2026-09-21",
                 "term": "Summer 2027",
                 "profiles": ["cs"],
@@ -38,6 +39,7 @@ class ApplyNextCandidateArtifactTests(unittest.TestCase):
         self.assertEqual(len(artifact["jobs"]), 1)
         job = artifact["jobs"][0]
         self.assertEqual(job["id"], "job-1")
+        self.assertEqual(job["posting_url"], "https://example.test/job-1")
         self.assertEqual(set(job), set(JOB_FIELDS))
         self.assertNotIn("posted_date_observations", job)
         self.assertNotIn("source_urls", job)
