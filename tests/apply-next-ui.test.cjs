@@ -381,13 +381,16 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /How recent it is/);
   assert.match(uiSource, /Location fit/);
   assert.match(uiSource, /Distance not verified/);
-  assert.match(uiSource, /carries the plausible location range through the ranking instead of assigning a fake exact score/);
-assert.match(uiSource, /hasScoreRange \? `\$\{totalMin\}–\$\{totalMax\}`/);
+  assert.match(uiSource, /displayed score uses the conservative location value; verified location fit can raise it/);
+  assert.match(uiSource, /Location could raise score to \$\{totalMax\}\/100/);
+  assert.doesNotMatch(uiSource, /\$\{totalMin\}–\$\{totalMax\}/);
   assert.doesNotMatch(uiSource, /Application access|application-link friction/);
   assert.match(uiSource, /Posted \$\{monthDay\} · \$\{ageLabel\}/);
   assert.match(uiSource, /apply-next-posted-date/);
   assert.match(uiSource, /data\/apply-next-inspections\.json/);
-  assert.match(uiSource, /job\.link_kind === "employer_job" \? "View posting ↗" : "Apply ↗"/);
+  assert.match(uiSource, /"View job ↗"/);
+  assert.match(uiSource, /job_opened/);
+  assert.doesNotMatch(uiSource, /"Apply ↗"/);
   const appliedHandler = uiSource.match(
     /applied\.addEventListener\("click",\s*\(\)\s*=>\s*\{([\s\S]*?)\n\s*\}\);/
   );
