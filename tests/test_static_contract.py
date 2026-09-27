@@ -161,6 +161,14 @@ class StaticContractTests(unittest.TestCase):
         self.assertNotIn("Select targeted preflight phases", workflow)
         self.assertIn("needs.tests.result == 'success'", workflow)
 
+
+    def test_pages_deploy_requires_and_verifies_fresh_runtime_feed(self):
+        workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
+        self.assertIn("--require-feed-artifact --max-feed-age-hours 3", workflow)
+        self.assertIn("sha256sum _site/data/listings.json", workflow)
+        self.assertIn("/data/listings.json?verify=", workflow)
+        self.assertIn("sha256sum /tmp/live-listings.json", workflow)
+
     def test_pages_deploy_includes_static_assets(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
         self.assertIn("push:\n    branches:\n      - main", workflow)
