@@ -123,6 +123,50 @@ const broadStateDistance = U.distanceForJob(broadStateMetadata, geo.zips.get("20
 assert.equal(broadStateDistance.point.state, "TX", "location text should recover a concrete state even when feed metadata only says US");
 assert.equal(broadStateDistance.point.city, "austin");
 
+const productionStyleGeo = {
+  zips: geo.zips,
+  cities: new Map([
+    ["CA|Milpitas", { lat: 37.4323, lon: -121.8996, state: "CA", city: "Milpitas", precision: "city" }],
+    ["CA|South San Francisco", { lat: 37.6547, lon: -122.4077, state: "CA", city: "South San Francisco", precision: "city" }],
+    ["CT|Cheshire", { lat: 41.4989, lon: -72.9007, state: "CT", city: "Cheshire", precision: "city" }],
+    ["UT|West Valley City", { lat: 40.6916, lon: -112.0011, state: "UT", city: "West Valley City", precision: "city" }],
+  ]),
+  citiesByState: new Map([
+    ["CA", [
+      ["South San Francisco", { lat: 37.6547, lon: -122.4077, state: "CA", city: "South San Francisco", precision: "city" }],
+      ["Milpitas", { lat: 37.4323, lon: -121.8996, state: "CA", city: "Milpitas", precision: "city" }],
+    ]],
+    ["CT", [["Cheshire", { lat: 41.4989, lon: -72.9007, state: "CT", city: "Cheshire", precision: "city" }]]],
+    ["UT", [["West Valley City", { lat: 40.6916, lon: -112.0011, state: "UT", city: "West Valley City", precision: "city" }]]],
+  ]),
+};
+
+const workdayStyle = {
+  location: "United States - California - Milpitas",
+  states: ["CA"],
+};
+const workdayStyleDistance = U.distanceForJob(workdayStyle, geo.zips.get("06897"), productionStyleGeo);
+assert.equal(workdayStyleDistance.point.city, "Milpitas", "display-case production city indexes should resolve Workday-style locations");
+
+const multiWorkdayStyle = {
+  location: "United States - California - Milpitas · United States - California - South San Francisco",
+  states: ["CA"],
+};
+const multiWorkdayDistance = U.distanceForJob(multiWorkdayStyle, geo.zips.get("06897"), productionStyleGeo);
+assert.ok(["Milpitas", "South San Francisco"].includes(multiWorkdayDistance.point.city));
+
+const commaFullState = {
+  location: "Cheshire, Connecticut, United States",
+  states: ["CT"],
+};
+assert.equal(U.distanceForJob(commaFullState, geo.zips.get("06897"), productionStyleGeo).point.city, "Cheshire");
+
+const uglyWorkdayCode = {
+  location: "USA-UT-West Valley City-UT190",
+  states: ["UT"],
+};
+assert.equal(U.distanceForJob(uglyWorkdayCode, geo.zips.get("06897"), productionStyleGeo).point.city, "West Valley City");
+
 require("./results-language.test.cjs");
 require("./apply-next.test.cjs");
 require("./apply-next-ui.test.cjs");
