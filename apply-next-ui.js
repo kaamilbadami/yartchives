@@ -1251,7 +1251,7 @@
       const band = unresolvedLocation ? "Distance not verified" : scoreBand(key, component.score, max, job);
       if (band) metric.append(element("p", "apply-next-metric-band", band));
       const explanation = unresolvedLocation
-        ? "Location is unresolved, so Yartchives carries the plausible location range through the ranking instead of assigning a fake exact score."
+        ? "Location is not verified yet. The displayed score uses the conservative location value; verified location fit can raise it."
         : componentExplanation(key);
       if (explanation) metric.append(element("p", "apply-next-metric-explanation", explanation));
       breakdown.append(metric);
