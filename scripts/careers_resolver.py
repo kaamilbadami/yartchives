@@ -175,8 +175,11 @@ def page_score(candidate: Candidate, final_url: str, html: str, official_domains
     signals: list[str] = []
     score = 0
     direct_provider = provider_for(final_url)
-    if direct_provider["status"] == "resolved" and not has_provider_collection_identity(final_url):
-        return -50, ["provider URL lacks collectable employer board identity"]
+    if direct_provider["status"] == "resolved":
+        if not has_provider_tenant_identity(final_url):
+            return -50, ["shared provider host lacks employer tenant identity"]
+        if not has_provider_collection_identity(final_url):
+            return -50, ["provider URL lacks collectable employer board identity"]
     if platform != "company-branded":
         score += 5
         signals.append(f"{platform} provider fingerprint")
