@@ -1384,7 +1384,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         source = MODULE_PATH.read_text()
         self.assertIn("def missing_required_tests_status", source)
         self.assertIn('"required status check" in text', source)
-        self.assertIn('"tests" in text', source)
+        self.assertIn("'\\\"tests\\\"' in text", source)
         self.assertIn(
             'Dispatched PR recovery Quality for #{number} so the required ',
             source,
