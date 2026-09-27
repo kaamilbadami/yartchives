@@ -483,12 +483,18 @@
     function renderRoleFamilies() {
       roleWrap.innerHTML = "";
       const activeAreas = new Set([...form.querySelectorAll('[name="careerArea"]:checked')].map(node => node.value));
+      const renderedFamilies = new Set();
       for (const area of CAREER_AREAS) {
         if (!activeAreas.has(area.id)) continue;
+        const families = ROLE_FAMILIES.filter(item =>
+          (item.careerAreas || []).includes(area.id) && !renderedFamilies.has(item.id)
+        );
+        if (!families.length) continue;
         const group = element("div", "apply-next-profile-role-group");
         group.append(element("p", "apply-next-profile-subhead", area.label));
         const checks = element("div", "apply-next-profile-checks");
-        for (const family of ROLE_FAMILIES.filter(item => (item.careerAreas || []).includes(area.id))) {
+        for (const family of families) {
+          renderedFamilies.add(family.id);
           const label = element("label", "apply-next-profile-check");
           const checkbox = input("roleFamily", family.id, "checkbox");
           checkbox.value = family.id;
@@ -500,6 +506,13 @@
         roleWrap.append(group);
       }
     }
+
+    roleWrap.addEventListener("change", event => {
+      const target = event?.target;
+      if (!target || target.name !== "roleFamily") return;
+      if (target.checked) selectedRoles.add(target.value);
+      else selectedRoles.delete(target.value);
+    });
 
     careerWrap.addEventListener("change", event => {
       const target = event?.target;
