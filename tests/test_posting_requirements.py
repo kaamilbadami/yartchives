@@ -142,6 +142,20 @@ class PostingRequirementTests(unittest.TestCase):
         self.assertEqual(result["skills"]["classification"], "unknown")
         self.assertEqual(result["skills"]["unspecified"], [])
 
+    def test_required_skills_and_experience_heading_is_required_and_extracts_go(self):
+        result = shared.extract_requirements([
+            "Required Skills and Experience",
+            "Strong programming skills with JavaScript, Golang or TypeScript",
+        ])
+        skills = result["skills"]
+        self.assertEqual(skills["classification"], "explicit")
+        self.assertEqual(len(skills["required"]), 1)
+        self.assertEqual(
+            skills["required"][0]["technologies"],
+            ["Go", "JavaScript", "TypeScript"],
+        )
+
+
     def test_extracts_authoritative_term_duration_and_date_range(self):
         schedule = shared.extract_posting_schedule([
             "Our site is seeking a Portfolio Analytics Analyst Co-Op for the Spring 2027 season.",
