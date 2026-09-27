@@ -757,7 +757,8 @@
     const panel = document.querySelector("#applyNextPanel");
     if (!panel) return false;
     try {
-      localStorage?.removeItem(ENTRY_MODE_KEY);
+      const storage = typeof localStorage !== "undefined" ? localStorage : null;
+      storage?.removeItem(ENTRY_MODE_KEY);
     } catch (_) {}
     const button = document.querySelector("#applyNextBtn");
     if (button) button.setAttribute("aria-expanded", "false");
