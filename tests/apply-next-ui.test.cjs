@@ -441,8 +441,8 @@ assert.equal(jobs[2]._inspection, undefined);
   const applyNextCss = fs.readFileSync(path.join(__dirname, "..", "apply-next.css"), "utf8");
   assert.match(applyNextCss, /\.apply-next-open:disabled\s*\{[\s\S]*?cursor:\s*progress/, "Disabled Apply Next should have a visible loading treatment");
 
-  assert.match(uiSource, /Finding your best matches…/, "Apply Next should show an immediate loading message");
-  assert.match(uiSource, /Still finding your best matches…/, "Apply Next should escalate the loading message if ranking takes longer");
+  assert.match(uiSource, /Finding your best matches… This usually takes a few seconds\./, "Apply Next should show an immediate loading message with a realistic wait expectation");
+  assert.match(uiSource, /Still finding your best matches… This usually takes a few seconds\./, "Apply Next should preserve the wait expectation when ranking takes longer");
   assert.match(uiSource, /setTimeout\(\(\) => \{[\s\S]*?\}, 1500\)/, "Apply Next should delay the long-loading message rather than showing it immediately");
   assert.match(uiSource, /panel\.setAttribute\("aria-busy", "true"\)/, "Apply Next should expose loading state to assistive technology");
   const openApplyNextSource = uiSource.match(
