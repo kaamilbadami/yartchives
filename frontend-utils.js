@@ -365,6 +365,24 @@
     return best;
   }
 
+  function jobViewUrl(job) {
+    const explicit = String(job?.posting_url || "").trim();
+    if (/^https?:\/\//i.test(explicit)) return explicit;
+
+    const raw = String(job?.url || "").trim();
+    if (!/^https?:\/\//i.test(raw)) return raw;
+    try {
+      const parsed = new URL(raw);
+      if (/\/apply\/?$/i.test(parsed.pathname)) {
+        parsed.pathname = parsed.pathname.replace(/\/apply\/?$/i, "");
+        parsed.search = "";
+        parsed.hash = "";
+        return parsed.toString().replace(/\/$/, "");
+      }
+    } catch (_) {}
+    return raw;
+  }
+
   function sourceHealthDisplayName(value) {
     return String(value || "").replace(/^\s*🔥\s*/u, "").trim();
   }
@@ -481,6 +499,7 @@
     geoResolutionSignature,
     milesBetween,
     distanceForJob,
+    jobViewUrl,
     sourceHealthDisplayName,
     sourceHealthStatus,
     groupSourceHealth,
