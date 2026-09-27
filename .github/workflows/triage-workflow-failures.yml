@@ -5,6 +5,8 @@ on:
     workflows:
       - Quality checks
       - Update opportunity feed
+      - Feed freshness watchdog
+      - Deploy Yartchives site
       - Dispatch autonomous backlog
       - Auto-merge autonomous agent PRs
     types:

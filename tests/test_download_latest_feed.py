@@ -4,6 +4,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from urllib.request import Request
 from unittest.mock import patch
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "download_latest_feed.py"
@@ -34,6 +35,43 @@ class DownloadLatestFeedTests(unittest.TestCase):
             )
         self.assertEqual(artifact["id"], 99)
         self.assertNotIn("status=success", request_json.call_args_list[0].args[0])
+
+
+    def test_artifact_redirect_drops_github_auth_on_cross_host(self):
+        handler = mod._SafeArtifactRedirectHandler()
+        request = Request(
+            "https://api.github.com/repos/owner/repo/actions/artifacts/123/zip",
+            headers={
+                "Authorization": "Bearer secret",
+                "X-GitHub-Api-Version": "2022-11-28",
+            },
+        )
+        redirected = handler.redirect_request(
+            request,
+            None,
+            302,
+            "Found",
+            {},
+            "https://pipelines.actions.githubusercontent.com/example/archive.zip",
+        )
+        self.assertIsNotNone(redirected)
+        self.assertIsNone(redirected.get_header("Authorization"))
+        self.assertIsNone(redirected.get_header("X-GitHub-Api-Version"))
+
+
+    def test_required_artifact_never_falls_back_to_checked_in_feed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "listings.json"
+            output.write_text('{"generated_at":"2026-09-23T23:43:36Z","jobs":[]}', encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "required feed artifact"):
+                mod.hydrate_one(
+                    repo="owner/repo",
+                    kind="feed",
+                    output=output,
+                    token=None,
+                    pages_base=None,
+                    require_artifact=True,
+                )
 
     def test_existing_file_is_last_known_good_fallback_without_remote_source(self):
         with tempfile.TemporaryDirectory() as tmp:

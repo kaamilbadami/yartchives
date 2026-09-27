@@ -130,6 +130,14 @@ class StaticContractTests(unittest.TestCase):
         ]:
             self.assertIn(command, runner)
 
+
+    def test_feed_and_deploy_failures_are_escalated(self):
+        workflow = (ROOT / ".github" / "workflows" / "triage-workflow-failures.yml").read_text(encoding="utf-8")
+        self.assertIn("- Update opportunity feed", workflow)
+        self.assertIn("- Feed freshness watchdog", workflow)
+        self.assertIn("- Deploy Yartchives site", workflow)
+        self.assertIn("issues: write", workflow)
+
     def test_green_pr_quality_wakes_automerge_without_live_source_smoke(self):
         quality = (ROOT / ".github" / "workflows" / "quality.yml").read_text(encoding="utf-8")
         wake = quality.split("  wake-automerge:", 1)[1]
@@ -160,6 +168,14 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("bash scripts/run_quality_checks.sh all", workflow)
         self.assertNotIn("Select targeted preflight phases", workflow)
         self.assertIn("needs.tests.result == 'success'", workflow)
+
+
+    def test_pages_deploy_requires_and_verifies_fresh_runtime_feed(self):
+        workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
+        self.assertIn("--require-feed-artifact --max-feed-age-hours 3", workflow)
+        self.assertIn("sha256sum _site/data/listings.json", workflow)
+        self.assertIn("/data/listings.json?verify=", workflow)
+        self.assertIn("sha256sum /tmp/live-listings.json", workflow)
 
     def test_pages_deploy_includes_static_assets(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
