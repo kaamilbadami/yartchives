@@ -26,6 +26,7 @@ DEFAULT_DIRECT = ROOT / "direct_sources.json"
 SOURCE_METADATA: dict[str, dict[str, str]] = {
     "dreamwork-tech": {"class": "broad aggregator", "scope": "2027 technology internships in Dreamwork's public JSON feed", "confidence": "high"},
     "dreamwork-business": {"class": "broad aggregator", "scope": "2027 business internships in Dreamwork's public JSON feed", "confidence": "high"},
+    "automated-tech": {"class": "broad aggregator", "scope": "2026/2027 tech internships in zshah101's public structured feed", "confidence": "high"},
     "zapply": {"class": "broad aggregator", "scope": "2027 internships published in Zapply's GitHub README", "confidence": "high"},
     "simplify": {"class": "curated GitHub/list", "scope": "2027 internships published in SimplifyJobs/Summer2027-Internships", "confidence": "high"},
     "vansh-cscareers": {"class": "curated GitHub/list", "scope": "2027 internships published in vanshb03/Summer2027-Internships", "confidence": "high"},
