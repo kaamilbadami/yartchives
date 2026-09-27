@@ -14,6 +14,16 @@
     "homepage": "https://github.com/dreamworkhq/Open-Tech-Internships-2027"
   },
   {
+    "key": "automated-tech",
+    "name": "Automated Tech Internships",
+    "kind": "tech_jobs_json",
+    "profile_hint": [
+      "cs"
+    ],
+    "url": "https://raw.githubusercontent.com/zshah101/Automated-List-Of-Summer-2027-and-Fall-2026-Tech-Internships/main/docs/api/jobs.json",
+    "homepage": "https://github.com/zshah101/Automated-List-Of-Summer-2027-and-Fall-2026-Tech-Internships"
+  },
+  {
     "key": "zapply",
     "name": "Zapply",
     "kind": "markdown",
