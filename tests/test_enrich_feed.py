@@ -106,6 +106,53 @@ class EnrichFeedTests(unittest.TestCase):
     def test_mechanical_test_role_is_mechanical(self):
         profiles = mod.classify_profiles({"title": "Mechanical Test Engineering Intern"})
         self.assertIn("mechanical", profiles)
+        self.assertIn("engineering", profiles)
+
+    def test_specialized_engineering_profiles_roll_up_to_engineering(self):
+        cases = (
+            ("Electrical Engineering Intern", "electrical"),
+            ("Mechanical Engineering Intern", "mechanical"),
+            ("Aerospace Engineering Intern", "aero"),
+        )
+        for title, discipline in cases:
+            with self.subTest(title=title):
+                profiles = mod.classify_profiles({"title": title})
+                self.assertIn(discipline, profiles)
+                self.assertIn("engineering", profiles)
+
+    def test_high_confidence_generic_engineering_roles_leave_general(self):
+        for title in (
+            "Systems Engineering Intern",
+            "Design Engineer Intern",
+            "Test Engineering Intern Summer 2027",
+            "Quality Engineering Intern",
+            "Product Engineering Co-op",
+            "Process Engineer Intern",
+            "Civil Engineering Internship - Site Design",
+            "Automation & Controls Engineering Co-Op",
+            "Robotics Engineering Intern",
+            "Systems Integration Engineering Intern",
+        ):
+            with self.subTest(title=title):
+                profiles = mod.classify_profiles({"title": title})
+                self.assertIn("engineering", profiles)
+                self.assertNotIn("general", profiles)
+
+    def test_engineering_fallback_does_not_swallow_adjacent_non_engineering_roles(self):
+        cases = {
+            "Software Engineering Intern": "cs",
+            "AI Engineering Intern": "cs",
+            "Solutions Engineering Intern": "tech-business",
+            "Sales Engineer Intern": "tech-business",
+            "Application Support Engineering Intern": None,
+            "Product Marketing Engineer Intern": None,
+        }
+        for title, expected in cases.items():
+            with self.subTest(title=title):
+                profiles = mod.classify_profiles({"title": title})
+                self.assertNotIn("engineering", profiles)
+                if expected:
+                    self.assertIn(expected, profiles)
 
     def test_public_sector_source_does_not_force_policy(self):
         profiles = mod.classify_profiles({
