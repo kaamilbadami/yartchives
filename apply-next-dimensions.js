@@ -504,22 +504,52 @@
   }
 
   function rankJobs(jobs, profile, now = new Date()) {
-    return sortRanked(base.rankJobs(jobs || [], profile || {}, now)
-      .map(result => transform(result, profile || {}))
-      .filter(x => !x.excluded));
+    if (
+      typeof base.rankingPool !== "function"
+      || typeof base.buildCompetitionContext !== "function"
+    ) {
+      return sortRanked(base.rankJobs(jobs || [], profile || {}, now)
+        .map(result => transform(result, profile || {}))
+        .filter(x => !x.excluded));
+    }
+
+    const pool = base.rankingPool(jobs || []);
+    const context = base.buildCompetitionContext(pool);
+    return sortRanked(pool
+      .map(job => scoreJob(job, profile || {}, now, context))
+      .filter(result => result && !result.excluded));
   }
 
   async function rankJobsAsync(jobs, profile, now = new Date(), options = {}) {
-    const baseResults = typeof base.rankJobsAsync === "function"
-      ? await base.rankJobsAsync(jobs || [], profile || {}, now, options)
-      : base.rankJobs(jobs || [], profile || {}, now);
+    if (
+      typeof base.rankingPool !== "function"
+      || typeof base.buildCompetitionContext !== "function"
+    ) {
+      const baseResults = typeof base.rankJobsAsync === "function"
+        ? await base.rankJobsAsync(jobs || [], profile || {}, now, options)
+        : base.rankJobs(jobs || [], profile || {}, now);
+      const chunkSize = Math.max(10, Number(options.chunkSize || 40));
+      const yieldFn = typeof options.yieldFn === "function" ? options.yieldFn : null;
+      const ranked = [];
+      for (let index = 0; index < baseResults.length; index += 1) {
+        const result = transform(baseResults[index], profile || {});
+        if (result && !result.excluded) ranked.push(result);
+        if (yieldFn && index + 1 < baseResults.length && (index + 1) % chunkSize === 0) {
+          await yieldFn();
+        }
+      }
+      return sortRanked(ranked);
+    }
+
+    const pool = base.rankingPool(jobs || []);
+    const context = base.buildCompetitionContext(pool);
     const chunkSize = Math.max(10, Number(options.chunkSize || 40));
     const yieldFn = typeof options.yieldFn === "function" ? options.yieldFn : null;
     const ranked = [];
-    for (let index = 0; index < baseResults.length; index += 1) {
-      const result = transform(baseResults[index], profile || {});
+    for (let index = 0; index < pool.length; index += 1) {
+      const result = scoreJob(pool[index], profile || {}, now, context);
       if (result && !result.excluded) ranked.push(result);
-      if (yieldFn && index + 1 < baseResults.length && (index + 1) % chunkSize === 0) {
+      if (yieldFn && index + 1 < pool.length && (index + 1) % chunkSize === 0) {
         await yieldFn();
       }
     }
