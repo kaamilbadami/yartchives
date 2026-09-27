@@ -1559,7 +1559,7 @@
 
   async function renderQueue(panel, profile) {
     const timing = { startedAt: timingNow(), stages: {} };
-    const counts = { candidates: 0, rankable: 0, inspection_request_ms: 0, inspection_headers_ms: 0, inspection_body_parse_ms: 0, inspection_preload_age_ms: 0, preliminary_ranking_ms: 0, distance_selection_ms: 0, geo_enrichment_ms: 0, distance_candidates: 0, distance_unique_lookups: 0, distance_cache_hits: 0, distance_lookup_failures: 0, location_parse_ms: 0, location_compute_ms: 0, location_yield_ms: 0, location_yield_count: 0, location_order_ms: 0, recommendations: 0 };
+    const counts = { candidates: 0, rankable: 0, inspection_request_ms: 0, inspection_headers_ms: 0, inspection_body_parse_ms: 0, inspection_preload_age_ms: 0, preliminary_ranking_ms: 0, distance_selection_ms: 0, geo_enrichment_ms: 0, distance_candidates: 0, incremental_rescore_count: 0, distance_unique_lookups: 0, distance_cache_hits: 0, distance_lookup_failures: 0, location_parse_ms: 0, location_compute_ms: 0, location_yield_ms: 0, location_yield_count: 0, location_order_ms: 0, recommendations: 0 };
     const geoWarmStateAtOpen = geoWarmState;
     const pageVisibilityAtOpen = typeof document !== "undefined" ? normalize(document.visibilityState) : "";
     let geoError = null;
@@ -1648,9 +1648,20 @@
       recordTimingStage(timing, "location_enrichment", stageStartedAt);
 
       stageStartedAt = timingNow();
-      const ranked = typeof YartchivesApplyNext.rankJobsAsync === "function"
-        ? await YartchivesApplyNext.rankJobsAsync(rankablePool, profile, rankingNow, { yieldFn: yieldToBrowser, chunkSize: 32 })
-        : YartchivesApplyNext.rankJobs(rankablePool, profile, rankingNow);
+      const useIncrementalRerank = typeof YartchivesApplyNext.rerankChangedJobsAsync === "function";
+      const ranked = useIncrementalRerank
+        ? await YartchivesApplyNext.rerankChangedJobsAsync(
+          preliminaryRanked,
+          rankablePool,
+          distanceCandidates,
+          profile,
+          rankingNow,
+          { yieldFn: yieldToBrowser, chunkSize: 32 }
+        )
+        : (typeof YartchivesApplyNext.rankJobsAsync === "function"
+          ? await YartchivesApplyNext.rankJobsAsync(rankablePool, profile, rankingNow, { yieldFn: yieldToBrowser, chunkSize: 32 })
+          : YartchivesApplyNext.rankJobs(rankablePool, profile, rankingNow));
+      counts.incremental_rescore_count = useIncrementalRerank ? distanceCandidates.length : rankablePool.length;
       counts.recommendations = ranked.length;
       recordTimingStage(timing, "ranking", stageStartedAt);
 
