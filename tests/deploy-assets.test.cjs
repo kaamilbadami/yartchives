@@ -52,6 +52,12 @@ assert.match(workflow, /Verified live Pages deployment[\s\S]*?Send successful de
 
 assert.match(workflow, /for attempt in \$\(seq 1 12\)[\s\S]*?sleep 5/, "Live verification should tolerate bounded Pages propagation delay");
 
+assert.match(workflow, /fetch_live\(\)[\s\S]*?--retry 5[\s\S]*?--retry-delay 2[\s\S]*?--retry-max-time 20[\s\S]*?--retry-all-errors/, "Post-deploy verification should retry transient Pages/CDN failures with a bounded helper");
+assert.match(workflow, /fetch_live[\s\S]*?deploy-manifest\.txt/, "Deploy manifest verification should use the retry helper");
+assert.match(workflow, /fetch_live[\s\S]*?deployment-status\.json/, "Deployment status verification should use the retry helper");
+assert.match(workflow, /\*\.js\|\*\.css\)[\s\S]*?fetch_live/, "JS/CSS verification should use the retry helper");
+assert.match(workflow, /listings\.json\?verify=\$\{DEPLOYMENT_ID\}[\s\S]*?\/tmp\/live-listings\.json/, "Listings verification should remain explicit and bounded");
+
 for (const asset of assets) {
   assert.ok(fs.existsSync(asset), `${asset} is referenced by index.html but does not exist`);
   assert.equal(asset.includes("/"), false, `${asset} is nested; update the generic Pages asset packaging contract`);

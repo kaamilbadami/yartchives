@@ -121,6 +121,19 @@ jobs:
           DEPLOYMENT_ID="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           BASE_URL="${PAGE_URL%/}"
 
+          fetch_live() {
+            local url="$1"
+            local output="$2"
+            curl --fail --silent --show-error \
+              --retry 5 \
+              --retry-delay 2 \
+              --retry-max-time 20 \
+              --retry-all-errors \
+              -H 'Cache-Control: no-cache' \
+              "$url" \
+              -o "$output"
+          }
+
           verified=false
           for attempt in $(seq 1 12); do
             if curl --fail --silent --show-error \
@@ -142,17 +155,15 @@ jobs:
             exit 1
           fi
 
-          curl --fail --silent --show-error \
-            -H 'Cache-Control: no-cache' \
+          fetch_live \
             "${BASE_URL}/deploy-manifest.txt?verify=${DEPLOYMENT_ID}" \
-            -o /tmp/live-deploy-manifest.txt
+            /tmp/live-deploy-manifest.txt
           grep -Fx "build_sha=${BUILD_SHA}" /tmp/live-deploy-manifest.txt
           grep -Fx "deployment_id=${DEPLOYMENT_ID}" /tmp/live-deploy-manifest.txt
 
-          curl --fail --silent --show-error \
-            -H 'Cache-Control: no-cache' \
+          fetch_live \
             "${BASE_URL}/deployment-status.json?verify=${DEPLOYMENT_ID}" \
-            -o /tmp/live-deployment-status.json
+            /tmp/live-deployment-status.json
           python - "${BUILD_SHA}" "${DEPLOYMENT_ID}" <<'PY'
           import json
           import sys
@@ -173,17 +184,15 @@ jobs:
                 actual="$(sha256sum /tmp/live-index.html | awk '{print $1}')"
                 ;;
               *.js|*.css)
-                curl --fail --silent --show-error \
-                  -H 'Cache-Control: no-cache' \
+                fetch_live \
                   "${BASE_URL}/${name}?v=${VERSION}" \
-                  -o "/tmp/live-${name}"
+                  "/tmp/live-${name}"
                 actual="$(sha256sum "/tmp/live-${name}" | awk '{print $1}')"
                 ;;
               listings.json)
-                curl --fail --silent --show-error \
-                  -H 'Cache-Control: no-cache' \
+                fetch_live \
                   "${BASE_URL}/data/listings.json?verify=${DEPLOYMENT_ID}" \
-                  -o /tmp/live-listings.json
+                  /tmp/live-listings.json
                 actual="$(sha256sum /tmp/live-listings.json | awk '{print $1}')"
                 ;;
               *)
