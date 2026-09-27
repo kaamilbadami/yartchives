@@ -397,7 +397,7 @@ def parse_tech_jobs_json(payload: dict[str, Any], source: dict[str, Any], refere
         if not job:
             continue
 
-        if season and normalize(season) not in {"not stated", "unknown", "n/a", "na"}:
+        if season and clean_text(season).lower() not in {"not stated", "unknown", "n/a", "na"}:
             job["term"] = season
         if item.get("remote") is True:
             job["remote_type"] = "remote"
