@@ -11,17 +11,20 @@ class UpdateReadmeStatusTests(unittest.TestCase):
         payload = {"listings": [{"id": "a"}, {"id": "b"}]}
         self.assertEqual(len(mod.listing_rows(payload)), 2)
 
-    def test_render_status_counts_rows_and_distinct_sources(self):
+    def test_render_status_counts_rows_without_unreliable_source_metric(self):
         rows = [
-            {"source": "Simplify"},
             {"source": "Simplify"},
             {"source_name": "USAJOBS"},
             {"provenance": {"provider": "Workday"}},
             {},
         ]
         status = mod.render_status(rows)
-        self.assertIn("**Published listings:** 5", status)
-        self.assertIn("**Distinct source labels:** 3", status)
+        self.assertIn("**Published listings:** 4", status)
+        self.assertNotIn("Distinct source labels", status)
+        self.assertIn(
+            "**Coverage:** Beta; not intended as a complete internship-market index",
+            status,
+        )
 
     def test_replace_status_preserves_product_owned_text(self):
         original = (
