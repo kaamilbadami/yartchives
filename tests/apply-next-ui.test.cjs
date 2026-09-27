@@ -143,6 +143,14 @@ assert.equal(
   "Why this is here: strongest drivers: profile match; limited by: timing and location convenience."
 );
 
+assert.equal(
+  UI.rankingSummary({
+    components: { fit: { score: 35 }, freshness: { score: 8 }, roi: { score: 18 }, location: { score: 10, unresolved: true } }
+  }),
+  "Why this is here: strongest drivers: timing and profile match.",
+  "Unresolved location should not be described as either a ranking strength or weakness"
+);
+
 // decisionHighlights tests
 assert.deepEqual(
   UI.decisionHighlights({
@@ -159,6 +167,16 @@ assert.deepEqual(
     inspection: { state: "inspected" }
   }),
   ["Strong match", "High value", "Very recent", "Remote"]
+);
+
+assert.deepEqual(
+  UI.decisionHighlights({
+    job: { states: ["US"], location: "United States" },
+    components: { fit: { score: 35 }, freshness: { score: 9 }, roi: { score: 20 }, location: { score: 10, unresolved: true } },
+    inspection: { state: "inspected" }
+  }),
+  ["Strong match", "High value", "Very recent", "Location not yet verified"],
+  "Unknown location must not be mislabeled as less convenient"
 );
 
 assert.deepEqual(
@@ -362,6 +380,8 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /How well you match/);
   assert.match(uiSource, /How recent it is/);
   assert.match(uiSource, /Location fit/);
+  assert.match(uiSource, /Distance not verified/);
+  assert.match(uiSource, /neutral internal placeholder until a commute or relocation distance can be verified/);
   assert.doesNotMatch(uiSource, /Application access|application-link friction/);
   assert.match(uiSource, /Posted \$\{monthDay\} · \$\{ageLabel\}/);
   assert.match(uiSource, /apply-next-posted-date/);
@@ -413,6 +433,8 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /return canAffectRecommended \|\| canAffectFresh;/, "Distance shortlist should preserve contenders for either visible queue");
   assert.match(uiSource, /counts\.distance_candidates = distanceCandidates\.length;/, "Timing diagnostics should expose the exact-distance shortlist size");
   assert.match(uiSource, /counts\.distance_unique_lookups = Number\(distanceStats\?\.unique_lookups \|\| 0\);/, "Timing diagnostics should expose unique exact-distance lookup count");
+  assert.match(uiSource, /counts\.distance_resolved_jobs = Number\(distanceStats\?\.resolved_jobs \|\| 0\);/, "Timing diagnostics should expose resolved exact-distance candidate count");
+  assert.match(uiSource, /counts\.distance_unresolved_jobs = Number\(distanceStats\?\.unresolved_jobs \|\| 0\);/, "Timing diagnostics should expose unresolved exact-distance candidate count");
   assert.match(uiSource, /counts\.distance_cache_hits = Number\(distanceStats\?\.cache_hits \|\| 0\);/, "Timing diagnostics should expose exact-distance cache hits");
   assert.match(uiSource, /counts\.distance_lookup_failures = Number\(distanceStats\?\.lookup_failures \|\| 0\);/, "Timing diagnostics should expose exact-distance lookup failures");
   assert.match(uiSource, /counts\.location_compute_ms = Number\(distanceStats\?\.compute_ms \|\| 0\);/, "Timing diagnostics should expose exact distance compute time");
@@ -608,14 +630,14 @@ let loggedTiming = null;
 console.info = (_label, payload) => { loggedTiming = payload; };
 const timingPayload = UI.publishApplyNextTiming(
   timing,
-  { candidates: 500, rankable: 42, distance_candidates: 12, incremental_rescore_count: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10, status: "success" },
+  { candidates: 500, rankable: 42, distance_candidates: 12, distance_resolved_jobs: 9, distance_unresolved_jobs: 3, incremental_rescore_count: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10, status: "success" },
   180.04
 );
 console.info = priorInfo;
 assert.deepEqual(timingPayload, {
   total_ms: 80,
   stages_ms: { location_enrichment: 25.7 },
-  counts: { candidates: 500, rankable: 42, inspection_request_ms: 0, inspection_headers_ms: 0, inspection_body_parse_ms: 0, inspection_preload_age_ms: 0, preliminary_ranking_ms: 0, distance_selection_ms: 0, geo_enrichment_ms: 0, distance_candidates: 12, incremental_rescore_count: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10, inspection_await_ms: 0, inspection_promise_state_at_await: null, inspection_normalization_ms: 0, geo_await_ms: 0, geo_warm_state_at_await: null },
+  counts: { candidates: 500, rankable: 42, inspection_request_ms: 0, inspection_headers_ms: 0, inspection_body_parse_ms: 0, inspection_preload_age_ms: 0, preliminary_ranking_ms: 0, distance_selection_ms: 0, geo_enrichment_ms: 0, distance_candidates: 12, distance_resolved_jobs: 9, distance_unresolved_jobs: 3, incremental_rescore_count: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10, inspection_await_ms: 0, inspection_promise_state_at_await: null, inspection_normalization_ms: 0, geo_await_ms: 0, geo_warm_state_at_await: null },
   geo_error: null,
   geo_warm_state: null,
   page_visibility: null,
@@ -642,7 +664,7 @@ for (const code of ["geo_index_zips", "geo_index_cities", "geo_index_sort", "geo
 const diagnosticText = UI.timingDiagnosticText({
   total_ms: 10400,
   stages_ms: { candidate_artifact: 9600, ranking: 100, render: 200 },
-  counts: { candidates: 5000, rankable: 42, distance_candidates: 12, incremental_rescore_count: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10, inspection_promise_state_at_await: "fetching", inspection_await_ms: 8500.1, inspection_normalization_ms: 45.2, geo_await_ms: 9200.3, geo_warm_state_at_await: "ready", geo_enrichment_ms: 9300.5 },
+  counts: { candidates: 5000, rankable: 42, distance_candidates: 12, distance_resolved_jobs: 9, distance_unresolved_jobs: 3, incremental_rescore_count: 12, distance_unique_lookups: 7, distance_cache_hits: 5, distance_lookup_failures: 2, location_parse_ms: 1.2, location_compute_ms: 12.3, location_yield_ms: 8.4, location_yield_count: 3, location_order_ms: 0.7, recommendations: 10, inspection_promise_state_at_await: "fetching", inspection_await_ms: 8500.1, inspection_normalization_ms: 45.2, geo_await_ms: 9200.3, geo_warm_state_at_await: "ready", geo_enrichment_ms: 9300.5 },
   geo_error: "geo_http_404",
   status: "success",
 });
@@ -652,7 +674,7 @@ assert.match(diagnosticText, /Inspection wait: 8500\.1 ms · state at await: fet
 assert.match(diagnosticText, /normalization: 45\.2 ms/);
 assert.match(diagnosticText, /Geo wall: 9300\.5 ms · await: 9200\.3 ms · state at await: ready/);
 assert.match(diagnosticText, /Candidate download: 9600\.0 ms/);
-assert.match(diagnosticText, /Candidates: 5000 · Rankable: 42 · Distance candidates: 12 · Incremental rescores: 12 · Unique distance lookups: 7 · Distance cache hits: 5 · Distance lookup failures: 2 · Recommendations: 10/);
+assert.match(diagnosticText, /Candidates: 5000 · Rankable: 42 · Distance candidates: 12 · Distance resolved: 9 · Distance unresolved: 3 · Incremental rescores: 12 · Unique distance lookups: 7 · Distance cache hits: 5 · Distance lookup failures: 2 · Recommendations: 10/);
 assert.match(diagnosticText, /Location parse: 1\.2 ms · compute: 12\.3 ms · yields: 8\.4 ms \(3\) · ordering: 0\.7 ms/);
 assert.doesNotMatch(diagnosticText, /profile|ZIP|company|jobId|URL/i);
 assert.deepEqual(
@@ -677,6 +699,8 @@ assert.equal(trackedPayload.counts.inspection_promise_state_at_await, "ready");
 assert.equal(trackedPayload.counts.inspection_await_ms, 10);
 assert.equal(trackedPayload.counts.candidates, 10);
 assert.equal(trackedPayload.counts.distance_candidates, 0);
+assert.equal(trackedPayload.counts.distance_resolved_jobs, 0);
+assert.equal(trackedPayload.counts.distance_unresolved_jobs, 0);
 assert.equal(trackedPayload.counts.incremental_rescore_count, 0);
 assert.equal(trackedPayload.counts.distance_unique_lookups, 0);
 assert.equal(trackedPayload.counts.distance_cache_hits, 0);
@@ -712,6 +736,8 @@ assert.match(addDistanceSource, /stats\.parse_ms \+= timingNow\(\) - parseStarte
 assert.match(addDistanceSource, /stats\.compute_ms \+= timingNow\(\) - computeStartedAt/, "Exact distance compute time should be measured separately");
 assert.match(addDistanceSource, /stats\.yield_ms \+= timingNow\(\) - yieldStartedAt/, "Cooperative scheduler wait should be measured separately");
 assert.match(addDistanceSource, /stats\.order_ms \+= timingNow\(\) - orderStartedAt/, "Location ordering time should be measured separately");
+assert.match(addDistanceSource, /stats\.resolved_jobs \+= 1/, "Resolved distance candidates should be counted explicitly");
+assert.match(addDistanceSource, /stats\.unresolved_jobs \+= 1/, "Selected candidates that still cannot resolve a distance should be visible in diagnostics");
 assert.match(
   addDistanceSource,
   /values\.map\(value => \{[\s\S]*?const pseudoJob = \{ \.\.\.job, location: value, _inspection: null \};[\s\S]*?return origins\.map\(origin => \{/,
