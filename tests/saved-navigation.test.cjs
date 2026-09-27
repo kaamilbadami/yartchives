@@ -335,6 +335,7 @@ async function runTests() {
           jobs: [
             { id: "job-1", title: "Software Intern", company: "Company A", profiles: ["cs"], posted_at: "2026-09-01T00:00:00Z" },
             { id: "job-2", title: "Product Intern", company: "Company B", profiles: ["tech-business"], posted_at: "2026-09-02T00:00:00Z" },
+            { id: "job-3", title: "Systems Engineering Intern", company: "Company C", profiles: ["engineering"], posted_at: "2026-09-03T00:00:00Z" },
           ],
           sources: {},
           generated_at: "2026-09-01T00:00:00Z",
@@ -354,13 +355,18 @@ async function runTests() {
     // Wait microtask tick for boot fetch
     await new Promise(r => setTimeout(r, 10));
 
-    // The CS-only beta should stay scoped to CS even if the sole career chip is clicked.
+    // The beta defaults to CS, while Engineering is available as a second area.
     assert.equal(document.querySelector("#shownCount").textContent, "1", "CS-first default should show only CS jobs");
     const careerButtons = document.querySelector("#profileChips").children;
-    assert.equal(careerButtons.length, 1, "Only the Computer Science career chip should be rendered");
+    assert.equal(careerButtons.length, 2, "Computer Science and Engineering should be rendered");
+    assert.equal(careerButtons[0].textContent, "Computer Science");
+    assert.equal(careerButtons[1].textContent, "Engineering");
+    careerButtons[1].click();
+    await new Promise(r => setTimeout(r, 10));
+    assert.equal(document.querySelector("#shownCount").textContent, "2", "Selecting Engineering alongside CS should include both career areas");
     careerButtons[0].click();
     await new Promise(r => setTimeout(r, 10));
-    assert.equal(document.querySelector("#shownCount").textContent, "1", "Clicking the sole CS chip should keep CS selected");
+    assert.equal(document.querySelector("#shownCount").textContent, "1", "Deselecting CS should leave Engineering results selected");
 
     // Check stat navigation setup
     const savedTile = document.querySelector("#newCount").closest(".stat");
@@ -501,7 +507,7 @@ async function runTests() {
     assert.ok(indexHtml.includes('src="ux.js"'));
   }
 
-  // 4. Test CS-first beta default and hidden non-CS choices
+  // 4. Test CS-first default with Engineering exposed as the second career area
   {
     const { document, localStorage } = createDOMEnvironment();
     const context = {
@@ -535,13 +541,14 @@ async function runTests() {
     const profileChips = document.querySelector("#profileChips");
     assert.ok(profileChips, "Profile chips container should exist");
 
-    // The beta currently exposes only Computer Science.
     const chipButtons = profileChips.children;
-    assert.equal(chipButtons.length, 1, "Only 'Computer Science' should be rendered in the beta UI");
+    assert.equal(chipButtons.length, 2, "Computer Science and Engineering should be rendered in the beta UI");
     assert.equal(chipButtons[0].textContent, "Computer Science");
-    assert.equal(chipButtons[0].classList.contains("active"), true, "Computer Science should remain selected");
+    assert.equal(chipButtons[1].textContent, "Engineering");
+    assert.equal(chipButtons[0].classList.contains("active"), true, "Computer Science should remain the default");
+    assert.equal(chipButtons[1].classList.contains("active"), false, "Engineering should be opt-in for new visitors");
 
-    assert.ok(uxCode.includes('More career areas coming soon.'), "Career-area helper should match the CS-only beta UI");
+    assert.ok(uxCode.includes('Choose one or more career areas.'), "Career-area helper should explain multi-select behavior");
 
     // Check that 'cs' is defaulted
     const stateObj = JSON.parse(localStorage.getItem("yartchives-ux-v1") || "{}");
