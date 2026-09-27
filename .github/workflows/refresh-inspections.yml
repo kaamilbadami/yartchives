@@ -41,7 +41,15 @@ jobs:
         run: python scripts/migrate_cached_requirements.py data/workday-inspections.json
 
       - name: Refresh bounded posting inspections
-        run: python scripts/update_workday_inspections.py data/listings.json --cache data/workday-inspections.json --max-workday-requests 25 --max-icims-requests 10 --max-greenhouse-requests 10 --ttl-days 7
+        run: >-
+          python scripts/update_workday_inspections.py data/listings.json
+          --cache data/workday-inspections.json
+          --max-workday-requests 60
+          --max-icims-requests 25
+          --max-greenhouse-requests 25
+          --max-ashby-requests 20
+          --max-oracle-hcm-requests 20
+          --ttl-days 7
 
       - name: Publish bounded inspections artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -50,3 +58,25 @@ jobs:
           path: data/workday-inspections.json
           if-no-files-found: error
           retention-days: 30
+
+      - name: Enforce Fresh inspection coverage SLA
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          cache = json.loads(Path("data/workday-inspections.json").read_text(encoding="utf-8"))
+          coverage = cache.get("fresh_coverage") or {}
+          actual = float(coverage.get("coverage_percent", 0))
+          target = float(coverage.get("target_percent", 90))
+          print(
+              "Fresh inspection coverage: "
+              f"{actual:.1f}% "
+              f"({coverage.get('resolved', 0)}/{coverage.get('inspectable', 0)} resolved; "
+              f"{coverage.get('pending', 0)} pending), target {target:.1f}%"
+          )
+          if actual < target:
+              raise SystemExit(
+                  f"Fresh inspection SLA missed: {actual:.1f}% < {target:.1f}%"
+              )
+          PY

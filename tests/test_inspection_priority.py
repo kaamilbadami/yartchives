@@ -109,5 +109,107 @@ class InspectionPriorityTests(unittest.TestCase):
         self.assertIn("Graduate-only opportunity", reasons)
 
 
+    def test_three_day_freshness_outranks_older_higher_generic_score(self):
+        fresh = job(
+            "fresh",
+            "REQ-FRESH",
+            title="Software Engineer Intern",
+            term="Summer 2027",
+            education_level="undergrad",
+            posted_at="2026-09-16T12:00:00Z",
+            profiles=["cs"],
+        )
+        older = job(
+            "older",
+            "REQ-OLDER",
+            title="Software Engineer Intern",
+            term="Summer 2027",
+            education_level="undergrad",
+            posted_at="2026-09-08T12:00:00Z",
+            profiles=["cs"],
+        )
+        scores = {
+            id(fresh): (20, ["fresh"]),
+            id(older): (99, ["older"]),
+        }
+        by_url = {
+            mod.workday_identity(fresh)["canonical_url"]: [fresh],
+            mod.workday_identity(older)["canonical_url"]: [older],
+        }
+        ordered = mod.candidate_urls(by_url, {}, scores, NOW, ttl_days=7, provider="workday")
+        self.assertIn("REQ-FRESH", ordered[0])
+
+    def test_upcoming_summer_term_wins_within_same_freshness_band(self):
+        target = job(
+            "target",
+            "REQ-TARGET",
+            title="Software Engineer Intern",
+            term="Summer 2027",
+            education_level="undergrad",
+            posted_at="2026-09-16T12:00:00Z",
+            profiles=["cs"],
+        )
+        unknown = job(
+            "unknown",
+            "REQ-UNKNOWN",
+            title="Software Engineer Intern",
+            term="",
+            education_level="undergrad",
+            posted_at="2026-09-16T13:00:00Z",
+            profiles=["cs"],
+        )
+        scores = {
+            id(target): (10, ["target"]),
+            id(unknown): (100, ["unknown"]),
+        }
+        by_url = {
+            mod.workday_identity(target)["canonical_url"]: [target],
+            mod.workday_identity(unknown)["canonical_url"]: [unknown],
+        }
+        ordered = mod.candidate_urls(by_url, {}, scores, NOW, ttl_days=7, provider="workday")
+        self.assertIn("REQ-TARGET", ordered[0])
+
+    def test_fresh_coverage_counts_inspected_and_unavailable_as_resolved(self):
+        inspected_job = job(
+            "inspected",
+            "REQ-I",
+            title="Software Engineer Intern",
+            term="Summer 2027",
+            education_level="undergrad",
+            posted_at="2026-09-16T12:00:00Z",
+            profiles=["cs"],
+        )
+        unavailable_job = job(
+            "unavailable",
+            "REQ-U",
+            title="Data Science Intern",
+            term="Summer 2027",
+            education_level="undergrad",
+            posted_at="2026-09-15T12:00:00Z",
+            profiles=["cs"],
+        )
+        pending_job = job(
+            "pending",
+            "REQ-P",
+            title="Systems Intern",
+            term="Summer 2027",
+            education_level="undergrad",
+            posted_at="2026-09-14T18:00:00Z",
+            profiles=["cs"],
+        )
+        _, by_url = mod.build_listing_index([inspected_job, unavailable_job, pending_job])
+        entries = {}
+        inspected_url = mod.workday_identity(inspected_job)["canonical_url"]
+        unavailable_url = mod.workday_identity(unavailable_job)["canonical_url"]
+        entries[inspected_url] = {"inspection": {"status": "inspected"}}
+        entries[unavailable_url] = {"inspection": {"status": "unavailable"}}
+        coverage = mod.fresh_inspection_coverage(by_url, entries, NOW)
+        self.assertEqual(coverage["inspectable"], 3)
+        self.assertEqual(coverage["resolved"], 2)
+        self.assertEqual(coverage["pending"], 1)
+        self.assertEqual(coverage["coverage_percent"], 66.7)
+        self.assertFalse(coverage["sla_met"])
+
+
 if __name__ == "__main__":
     unittest.main()
