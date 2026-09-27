@@ -38,6 +38,22 @@ assert.equal(UI.totalScoreBandClass(85), "apply-next-score-high");
 assert.equal(UI.FRESH_MAX_AGE_DAYS, 3);
 assert.equal(UI.FRESH_MIN_SCORE, 55);
 assert.equal(UI.FRESH_MIN_FIT_SCORE, 25);
+
+assert.match(
+  UI.deadlineDisplay({ job: { _inspection: { status: "inspected", posting: { application_deadline: "2026-10-15T23:59:59Z" } } } }),
+  /^Deadline Oct 15, 2026$/,
+  "structured authoritative deadlines should render compactly"
+);
+assert.equal(
+  UI.deadlineDisplay({ job: { _inspection: { status: "inspected", posting: {}, schedule: { application_deadline_evidence: ["Applications close October 20, 2026 at 5 PM ET"] } } } }),
+  "Deadline: Applications close October 20, 2026 at 5 PM ET",
+  "employer-stated deadline evidence should render when no structured date is available"
+);
+assert.equal(
+  UI.deadlineDisplay({ job: { _inspection: { status: "inspected", posting: {}, schedule: { application_deadline_evidence: [] } } } }),
+  null,
+  "jobs without authoritative deadline evidence should not invent one"
+);
 assert.equal(UI.LOCATION_ENRICHMENT_YIELD_BUDGET_MS, 100);
 
 const demoProfile = UI.sampleDemoProfile();
@@ -387,6 +403,8 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.doesNotMatch(uiSource, /Application access|application-link friction/);
   assert.match(uiSource, /Posted \$\{monthDay\} · \$\{ageLabel\}/);
   assert.match(uiSource, /apply-next-posted-date/);
+  assert.match(uiSource, /apply-next-deadline/);
+  assert.match(uiSource, /deadlineDisplay\(result\)/);
   assert.match(uiSource, /data\/apply-next-inspections\.json/);
   assert.match(uiSource, /"View job ↗"/);
   assert.match(uiSource, /job_opened/);
