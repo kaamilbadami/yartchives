@@ -15,7 +15,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
-from careers_resolver import MAX_PAGES, has_provider_tenant_identity, resolve_employer  # noqa: E402
+from careers_resolver import MAX_PAGES, has_provider_collection_identity, has_provider_tenant_identity, resolve_employer  # noqa: E402
 from employer_resolution_queue import queue_entry  # noqa: E402
 from employer_universe import validate_universe  # noqa: E402
 from provider_fingerprint import fingerprint_provider  # noqa: E402
@@ -66,7 +66,7 @@ def _valid_existing_resolution(employer: dict[str, Any]) -> bool:
     if not url:
         return False
     provider = employer.get("provider") or {}
-    if provider.get("status") == "resolved" and not has_provider_tenant_identity(url, provider.get("family")):
+    if provider.get("status") == "resolved" and not has_provider_collection_identity(url, provider.get("family")):
         return False
     return True
 
