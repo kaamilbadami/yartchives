@@ -1295,7 +1295,9 @@
     const actions = element("div", "apply-next-actions");
     if (job.url) {
       const view = element("a", "primary-btn link-btn", "View job ↗");
-      view.href = job.url;
+      view.href = (typeof YartchivesUtils !== "undefined" && typeof YartchivesUtils.jobViewUrl === "function")
+        ? YartchivesUtils.jobViewUrl(job)
+        : job.url;
       view.target = "_blank";
       view.rel = "noopener noreferrer";
       view.addEventListener("click", () => {
