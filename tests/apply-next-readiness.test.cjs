@@ -51,6 +51,17 @@ assert.deepEqual(analysis.unsupported, ["c++"]);
 assert.equal(analysis.supported.includes("c++"), false, "C must not satisfy C++");
 assert.equal(R.scoreReadiness(cPlusPlus, profile).delta, -10);
 assert.match(R.scoreReadiness(cPlusPlus, profile).details.join(" "), /Required gap: c\+\+/i);
+const preparedCPlusPlus = R.analyzeRequiredSkills(cPlusPlus, profile);
+assert.deepEqual(
+  R.scoreFit(cPlusPlus, profile, preparedCPlusPlus),
+  R.scoreFit(cPlusPlus, profile),
+  "Prepared required-skill analysis must preserve fit scoring semantics"
+);
+assert.deepEqual(
+  R.scoreReadiness(cPlusPlus, profile, preparedCPlusPlus),
+  R.scoreReadiness(cPlusPlus, profile),
+  "Prepared required-skill analysis must preserve readiness semantics"
+);
 
 const cautiousPython = inspectedJob({ required: [
   { statement: "Python experience required", technologies: ["Python"] },

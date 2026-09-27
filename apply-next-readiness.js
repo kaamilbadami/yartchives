@@ -172,7 +172,7 @@
     };
   }
 
-  function scoreFit(job, profile) {
+  function scoreFit(job, profile, preparedSkills = null) {
     const text = jobText(job);
     const preferredProfiles = profile?.preferredProfiles || [];
     const jobProfiles = new Set(job?.profiles || []);
@@ -190,7 +190,7 @@
     const cautiousMatches = metadataCautious.filter(keyword => exactContains(text, keyword));
     if (cautiousMatches.length) reasons.push(`Not credited as strengths: ${cautiousMatches.join(", ")}`);
 
-    const skillAnalysis = analyzeRequiredSkills(job, profile);
+    const skillAnalysis = preparedSkills || analyzeRequiredSkills(job, profile);
     if (skillAnalysis.supported.length) {
       score += Math.min(6, skillAnalysis.supported.length * 2);
       reasons.push(`Required posting skills supported: ${skillAnalysis.supported.slice(0, 4).join(", ")}`);
@@ -302,13 +302,13 @@
     return { excluded: false, penalty: 5, details: ["Unverified requirement: active security clearance"] };
   }
 
-  function scoreReadiness(job, profile) {
+  function scoreReadiness(job, profile, preparedSkills = null) {
     const inspection = inspectionForJob(job);
     if (!inspection || inspection.status !== "inspected") {
       return { delta: 0, excluded: false, label: "Metadata only", details: [] };
     }
 
-    const skills = analyzeRequiredSkills(job, profile);
+    const skills = preparedSkills || analyzeRequiredSkills(job, profile);
     let skillPenalty = 0;
     const details = [];
     skills.unsupported.forEach((skill, index) => {
@@ -363,9 +363,10 @@
     const baseResult = originalScoreJob(job, profile, now);
     if (baseResult.excluded) return { ...baseResult, readiness: { delta: 0, excluded: false, label: "Excluded", details: [] } };
 
-    const correctedFit = scoreFit(job, profile || {});
+    const preparedSkills = analyzeRequiredSkills(job, profile || {});
+    const correctedFit = scoreFit(job, profile || {}, preparedSkills);
     const components = { ...baseResult.components, fit: correctedFit };
-    const readiness = scoreReadiness(job, profile || {});
+    const readiness = scoreReadiness(job, profile || {}, preparedSkills);
     const inspection = decorateInspection(baseResult.inspection, readiness);
     if (readiness.excluded) {
       return {
