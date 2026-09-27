@@ -83,6 +83,31 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
         self.assertEqual(row["careers_resolution"]["status"], "unresolved")
         self.assertEqual(summary["outcomes"], {"unresolved": 1})
 
+    def test_bare_workday_tenant_is_not_treated_as_fresh_success(self):
+        employer = self.employer(
+            "workday-root",
+            careers_url="https://workday-root.wd1.myworkdayjobs.com/",
+            careers_platform="workday",
+            provider={"status": "resolved", "family": "workday"},
+            careers_resolution={
+                "status": "resolved",
+                "resolved_at": "2026-09-17T19:00:00Z",
+                "last_attempt_at": "2026-09-17T19:00:00Z",
+            },
+        )
+        calls = []
+
+        def resolver(entry, **kwargs):
+            calls.append(entry["id"])
+            return self.resolved("https://workday-root.wd1.myworkdayjobs.com/External", requests=1)
+
+        updated, summary = mod.run_lifecycle(self.universe([employer]), now=NOW, resolver=resolver)
+        self.assertEqual(calls, ["workday-root"])
+        row = updated["employers"][0]
+        self.assertEqual(row["careers_url"], "https://workday-root.wd1.myworkdayjobs.com/External")
+        self.assertEqual(row["careers_resolution"]["status"], "resolved")
+        self.assertEqual(summary["attempted_employers"], 1)
+
     def test_default_lifecycle_budgets_are_scaled_but_bounded(self):
         self.assertEqual(mod.DEFAULT_EMPLOYER_BUDGET, 20)
         self.assertEqual(mod.DEFAULT_REQUEST_BUDGET, 120)
