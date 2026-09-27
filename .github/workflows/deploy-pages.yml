@@ -45,7 +45,7 @@ jobs:
       - name: Hydrate latest runtime artifacts
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python scripts/download_latest_feed.py --repo "${{ github.repository }}"
+        run: python scripts/download_latest_feed.py --repo "${{ github.repository }}" --require-feed-artifact --max-feed-age-hours 3
 
       - name: Configure Pages
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d
@@ -96,6 +96,7 @@ jobs:
             for asset in _site/*.css _site/*.js; do
               sha256sum "$asset"
             done
+            sha256sum _site/data/listings.json
           } > _site/deploy-manifest.txt
 
       - name: Upload Pages artifact
@@ -169,6 +170,13 @@ jobs:
                   "${BASE_URL}/${name}?v=${VERSION}" \
                   -o "/tmp/live-${name}"
                 actual="$(sha256sum "/tmp/live-${name}" | awk '{print $1}')"
+                ;;
+              listings.json)
+                curl --fail --silent --show-error \
+                  -H 'Cache-Control: no-cache' \
+                  "${BASE_URL}/data/listings.json?verify=${BUILD_SHA}" \
+                  -o /tmp/live-listings.json
+                actual="$(sha256sum /tmp/live-listings.json | awk '{print $1}')"
                 ;;
               *)
                 continue

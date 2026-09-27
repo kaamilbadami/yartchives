@@ -58,6 +58,21 @@ class DownloadLatestFeedTests(unittest.TestCase):
         self.assertIsNone(redirected.get_header("Authorization"))
         self.assertIsNone(redirected.get_header("X-GitHub-Api-Version"))
 
+
+    def test_required_artifact_never_falls_back_to_checked_in_feed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "listings.json"
+            output.write_text('{"generated_at":"2026-09-23T23:43:36Z","jobs":[]}', encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "required feed artifact"):
+                mod.hydrate_one(
+                    repo="owner/repo",
+                    kind="feed",
+                    output=output,
+                    token=None,
+                    pages_base=None,
+                    require_artifact=True,
+                )
+
     def test_existing_file_is_last_known_good_fallback_without_remote_source(self):
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "listings.json"
