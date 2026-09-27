@@ -892,6 +892,7 @@
       if (!job || typeof job !== "object") continue;
       job._distanceMiles = null;
       delete job._distanceMilesBasis;
+      delete job._locationAnchorDistances;
     }
 
     const stats = {
@@ -922,7 +923,10 @@
       return stats;
     }
 
-    const origins = zips.map(zip => geo.zips.get(zip)).filter(Boolean);
+    const originEntries = zips
+      .map(zip => ({ zip: String(zip), origin: geo.zips.get(String(zip)) }))
+      .filter(entry => entry.origin);
+    const origins = originEntries.map(entry => entry.origin);
     if (!origins.length) return stats;
 
     const distanceCache = new Map();
@@ -979,7 +983,17 @@
       });
 
       const orderStartedAt = timingNow();
-      const finiteDistances = perLocation.flat().filter(value => Number.isFinite(value));
+      const anchorDistances = originEntries.map((entry, originIndex) => {
+        const finite = perLocation
+          .map(distances => distances[originIndex])
+          .filter(value => Number.isFinite(value));
+        return finite.length
+          ? { zip: entry.zip, distanceMiles: Math.min(...finite) }
+          : null;
+      }).filter(Boolean);
+      job._locationAnchorDistances = anchorDistances;
+
+      const finiteDistances = anchorDistances.map(item => item.distanceMiles);
       if (finiteDistances.length) {
         job._distanceMiles = Math.min(...finiteDistances);
         job._distanceMilesBasis = "apply-next-profile";

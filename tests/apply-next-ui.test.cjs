@@ -739,6 +739,22 @@ assert.match(addDistanceSource, /stats\.yield_ms \+= timingNow\(\) - yieldStarte
 assert.match(addDistanceSource, /stats\.order_ms \+= timingNow\(\) - orderStartedAt/, "Location ordering time should be measured separately");
 assert.match(addDistanceSource, /stats\.resolved_jobs \+= 1/, "Resolved distance candidates should be counted explicitly");
 assert.match(addDistanceSource, /stats\.unresolved_jobs \+= 1/, "Selected candidates that still cannot resolve a distance should be visible in diagnostics");
+
+assert.match(
+  addDistanceSource,
+  /job\._locationAnchorDistances = anchorDistances/,
+  "Distance enrichment must persist per-base distances on the real source job so the location-preference scorer can consume them during reranking"
+);
+assert.match(
+  addDistanceSource,
+  /\{ zip: entry\.zip, distanceMiles: Math\.min\(\.\.\.finite\) \}/,
+  "Per-base distance propagation should keep the nearest resolvable posting location for each configured base"
+);
+assert.match(
+  addDistanceSource,
+  /delete job\._locationAnchorDistances/,
+  "Distance enrichment must clear stale per-base distances before recomputing a candidate"
+);
 assert.match(
   addDistanceSource,
   /values\.map\(value => \{[\s\S]*?const pseudoJob = \{ \.\.\.job, location: value, _inspection: null \};[\s\S]*?return origins\.map\(origin => \{/,
