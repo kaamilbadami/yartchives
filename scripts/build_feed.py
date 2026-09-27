@@ -364,6 +364,58 @@ def parse_dreamwork(payload: dict[str, Any], source: dict[str, Any], reference: 
     return out
 
 
+def parse_tech_jobs_json(payload: dict[str, Any], source: dict[str, Any], reference: datetime) -> list[dict[str, Any]]:
+    """Normalize structured tech-internship feeds with direct job URLs.
+
+    The adapter intentionally accepts a narrow, reusable contract instead of a
+    source-specific scraper: payload.jobs[] with company/title/location/url and
+    optional posted_at, season, category, remote, skills, and program fields.
+    """
+    out: list[dict[str, Any]] = []
+    items = payload.get("jobs", []) if isinstance(payload, dict) else []
+    if not isinstance(items, list):
+        return out
+
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        posted_raw = item.get("posted_at") or item.get("postedAt")
+        posted = parse_relative_date(posted_raw, reference)
+        category = clean_text(item.get("category"))
+        season = clean_text(item.get("season"))
+        job = base_job(
+            company=item.get("company") or "Company not listed",
+            title=item.get("title") or "",
+            location=item.get("location") or ("Remote" if item.get("remote") else "Location not listed"),
+            url=item.get("url"),
+            posted_raw=posted_raw,
+            source=source,
+            section=category or season,
+            function_primary=category,
+            posted_at=posted,
+        )
+        if not job:
+            continue
+
+        if season and normalize(season) not in {"not stated", "unknown", "n/a", "na"}:
+            job["term"] = season
+        if item.get("remote") is True:
+            job["remote_type"] = "remote"
+        elif item.get("remote") is False:
+            job["remote_type"] = "onsite_or_hybrid"
+
+        skills = item.get("skills")
+        if isinstance(skills, list):
+            job["source_skills"] = [clean_text(skill) for skill in skills if clean_text(skill)]
+
+        if item.get("program"):
+            job["source_program"] = clean_text(item.get("program"))
+        if item.get("first_seen_at"):
+            job["source_first_seen_at"] = clean_text(item.get("first_seen_at"))
+        out.append(job)
+    return out
+
+
 def split_markdown_row(line: str) -> list[str]:
     line = line.strip().strip("|")
     return [part.replace("\\|", "|").strip() for part in re.split(r"(?<!\\)\|", line)]
@@ -500,6 +552,8 @@ def fetch_source(s: requests.Session, source: dict[str, Any], reference: datetim
     text = fetch_text(s, source["url"])
     if source["kind"] == "dreamwork_json":
         return parse_dreamwork(json.loads(text), source, reference)
+    if source["kind"] == "tech_jobs_json":
+        return parse_tech_jobs_json(json.loads(text), source, reference)
     if source["kind"] == "markdown":
         return parse_markdown(text, source, reference)
     raise ValueError(f"Unsupported source kind: {source['kind']}")
