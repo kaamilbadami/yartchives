@@ -320,4 +320,71 @@ assert.ok(weakFitHighValue.applicationValue.rawScore >= weakFitHighValue.compone
 assert.ok(weakFitHighValue.components.roi.score <= weakFitHighValue.applicationValue.fitCap);
 assert.match(weakFitHighValue.components.roi.detail, /constrained .* qualification fit/i);
 
-console.log("apply-next evidence-based dimension tests passed");
+const incrementalPool = [
+  job({
+    id: "inc-a",
+    company: "IncrementalCo",
+    states: ["MA"],
+    location: "Boston, MA",
+    url: "https://example.com/inc-a",
+    _inspection: inspection([["Java required", ["Java"]]]),
+  }),
+  job({
+    id: "inc-b",
+    company: "IncrementalCo",
+    states: ["NY"],
+    location: "New York, NY",
+    url: "https://example.com/inc-b",
+    _inspection: inspection([["Java required", ["Java"]]]),
+  }),
+  job({
+    id: "inc-c",
+    company: "IncrementalCo",
+    states: ["CA"],
+    location: "San Diego, CA",
+    url: "https://example.com/inc-c",
+    _inspection: inspection([["Java required", ["Java"]]]),
+  }),
+];
+const incrementalPreliminary = D.rankJobs(incrementalPool, profile, now);
+incrementalPool[0]._distanceMiles = 75;
+incrementalPool[0]._distanceMilesBasis = "apply-next-profile";
+incrementalPool[1]._distanceMiles = 1200;
+incrementalPool[1]._distanceMilesBasis = "apply-next-profile";
+
+function rankingProjection(results) {
+  return results.map(result => ({
+    id: result.job.id,
+    total: result.total,
+    fit: result.components.fit.score,
+    freshness: result.components.freshness.score,
+    roi: result.components.roi.score,
+    location: result.components.location.score,
+  }));
+}
+
+D.rerankChangedJobsAsync(
+  incrementalPreliminary,
+  incrementalPool,
+  [incrementalPool[0], incrementalPool[1]],
+  profile,
+  now
+).then(incrementalFinal => {
+  const exhaustiveFinal = D.rankJobs(incrementalPool, profile, now);
+  assert.deepEqual(
+    rankingProjection(incrementalFinal),
+    rankingProjection(exhaustiveFinal),
+    "Incremental distance reranking must be exactly equivalent to a full second ranking pass"
+  );
+  const unchangedBefore = incrementalPreliminary.find(result => result.job.id === "inc-c");
+  const unchangedAfter = incrementalFinal.find(result => result.job.id === "inc-c");
+  assert.equal(
+    unchangedAfter,
+    unchangedBefore,
+    "Jobs outside the distance frontier should reuse their preliminary ranked result without rescoring"
+  );
+  console.log("apply-next evidence-based dimension tests passed");
+}).catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+});

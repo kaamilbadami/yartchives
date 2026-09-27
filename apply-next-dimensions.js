@@ -13,6 +13,7 @@
       target.scoreJob = api.scoreJob;
       target.rankJobs = api.rankJobs;
       target.rankJobsAsync = api.rankJobsAsync;
+      target.rerankChangedJobsAsync = api.rerankChangedJobsAsync;
     }
   }
 })(typeof globalThis !== "undefined" ? globalThis : this, function (base) {
@@ -525,6 +526,57 @@
     return sortRanked(ranked);
   }
 
+
+  function rankingIdentity(job) {
+    if (job?.id) return `id:${job.id}`;
+    if (typeof base.canonicalPostingKey === "function") {
+      const canonical = base.canonicalPostingKey(job);
+      if (canonical) return `canonical:${canonical}`;
+    }
+    return `url:${String(job?.url || "")}`;
+  }
+
+  async function rerankChangedJobsAsync(
+    preliminaryRanked,
+    sourceJobs,
+    changedJobs,
+    profile,
+    now = new Date(),
+    options = {}
+  ) {
+    const pool = typeof base.rankingPool === "function"
+      ? base.rankingPool(sourceJobs || [])
+      : (sourceJobs || []);
+    const context = typeof base.buildCompetitionContext === "function"
+      ? base.buildCompetitionContext(pool)
+      : {};
+    const poolByIdentity = new Map(pool.map(job => [rankingIdentity(job), job]));
+    const rankedByIdentity = new Map(
+      (preliminaryRanked || [])
+        .filter(result => result && !result.excluded && result.job)
+        .map(result => [rankingIdentity(result.job), result])
+    );
+    const changedIdentities = [...new Set(
+      (changedJobs || []).map(job => rankingIdentity(job)).filter(Boolean)
+    )];
+    const chunkSize = Math.max(10, Number(options.chunkSize || 40));
+    const yieldFn = typeof options.yieldFn === "function" ? options.yieldFn : null;
+
+    for (let index = 0; index < changedIdentities.length; index += 1) {
+      const identity = changedIdentities[index];
+      const job = poolByIdentity.get(identity);
+      if (!job) continue;
+      const result = scoreJob(job, profile || {}, now, context);
+      if (result && !result.excluded) rankedByIdentity.set(identity, result);
+      else rankedByIdentity.delete(identity);
+      if (yieldFn && index + 1 < changedIdentities.length && (index + 1) % chunkSize === 0) {
+        await yieldFn();
+      }
+    }
+
+    return sortRanked([...rankedByIdentity.values()]);
+  }
+
   return {
     SCORING_CONTRACT,
     RANKING_COMPONENTS,
@@ -545,5 +597,6 @@
     sortRanked,
     rankJobs,
     rankJobsAsync,
+    rerankChangedJobsAsync,
   };
 });
