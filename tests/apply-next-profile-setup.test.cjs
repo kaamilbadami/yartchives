@@ -191,6 +191,8 @@ assert.deepEqual(
   assert.match(source, /When are you graduating \(month year\)/);
   assert.match(source, /input\("targetTerm", "Summer 2027", "radio"\)/);
   assert.match(source, /profile \? "Save profile" : "Create profile"/, "New users should see a clear Create profile action");
+  assert.match(source, /"← Back to Yartchives"/, "Profile setup should expose a clear route back to the landing choices");
+  assert.match(source, /ui\.returnToEntryChoice\(\)/, "Back navigation should return through the shared Apply Next landing helper");
   assert.match(
     source,
     /panel\.classList\.add\("hidden"\);[\s\S]*panel\.dataset\.view = "";[\s\S]*button\.click\(\);/,

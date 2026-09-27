@@ -351,7 +351,12 @@
       element("h2", "", "Set up Apply Next"),
       element("p", "muted", "Upload a resume to prefill what it actually says, then confirm the few eligibility and strategy facts resumes often leave out. The raw resume is never saved or uploaded; only the profile you confirm is stored in this browser.")
     );
-    header.append(copy);
+    const back = element("button", "ghost-btn apply-next-back", "← Back to Yartchives");
+    back.type = "button";
+    back.addEventListener("click", () => {
+      if (typeof ui.returnToEntryChoice === "function") ui.returnToEntryChoice();
+    });
+    header.append(copy, back);
     panel.append(header);
 
     const form = element("form", "apply-next-profile-wizard");

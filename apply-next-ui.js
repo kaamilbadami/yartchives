@@ -727,6 +727,12 @@
     copy.append(benefits);
 
     const actions = element("div", "apply-next-entry-actions");
+    const mascot = element("img", "apply-next-entry-mascot");
+    mascot.src = "assets/yartchives-hedgehog.png";
+    mascot.alt = "";
+    mascot.setAttribute("aria-hidden", "true");
+    actions.append(mascot);
+
     const ranked = element("button", "primary-btn apply-next-entry-primary", "Get internships ranked for you");
     ranked.type = "button";
     ranked.addEventListener("click", () => document.querySelector("#applyNextBtn")?.click());
@@ -744,6 +750,23 @@
     actions.append(ranked, demo, browse);
     entry.append(copy, actions);
     panel.append(entry);
+  }
+
+  function returnToEntryChoice() {
+    if (typeof document === "undefined") return false;
+    const panel = document.querySelector("#applyNextPanel");
+    if (!panel) return false;
+    try {
+      const storage = typeof localStorage !== "undefined" ? localStorage : null;
+      storage?.removeItem(ENTRY_MODE_KEY);
+    } catch (_) {}
+    const button = document.querySelector("#applyNextBtn");
+    if (button) button.setAttribute("aria-expanded", "false");
+    lastProfile = null;
+    lastRankedResults = [];
+    renderEntryChoice(panel, panel._openSampleDemo);
+    panel.scrollIntoView({ behavior: "smooth", block: "start" });
+    return true;
   }
 
   function setupPanel(panel) {
@@ -1831,6 +1854,8 @@
       await renderQueue(panel, sampleDemoProfile());
     }
 
+    panel._openSampleDemo = openSampleDemo;
+
     const rememberedMode = loadEntryMode(localStorage);
     if (!rememberedMode) {
       renderEntryChoice(panel, openSampleDemo);
@@ -1846,6 +1871,7 @@
     ENTRY_MODE_KEY,
     loadEntryMode,
     saveEntryMode,
+    returnToEntryChoice,
     hasFoundingBetaTester,
     awardFoundingBetaTester,
     INSPECTION_URL,
