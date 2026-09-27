@@ -689,6 +689,11 @@ function renderHealth() {
       const stateLabel = src.successCount ? "Degraded" : "Failed";
       const detail = src.errors.length ? ` · ${src.errors.join(" · ")}` : "";
       status.textContent = `${stateLabel} · ${listingCount} listings${detail}`;
+    } else if (src.quarantinedCount) {
+      status.className = "fail";
+      const stateLabel = src.successCount ? "Degraded" : "Quarantined";
+      const detail = src.errors.length ? ` · ${src.errors.join(" · ")}` : "";
+      status.textContent = `${stateLabel} · ${listingCount} listings${detail}`;
     } else if (src.degradedCount) {
       status.className = "skip";
       const detail = src.errors.length ? ` · ${src.errors.join(" · ")}` : "";
