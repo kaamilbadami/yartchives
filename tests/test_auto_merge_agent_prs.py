@@ -1380,6 +1380,24 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
 
+    def test_blocked_green_pr_recovers_missing_required_tests_status(self):
+        source = MODULE_PATH.read_text()
+        self.assertTrue(
+            mod.missing_required_tests_status(
+                'Repository rule violations found: Required status check "tests" is expected.'
+            )
+        )
+        self.assertFalse(
+            mod.missing_required_tests_status(
+                'Repository rule violations found: Required status check "lint" is expected.'
+            )
+        )
+        self.assertIn(
+            'Dispatched PR recovery Quality for #{number} so the required ',
+            source,
+        )
+        self.assertIn('"pr_recovery=true"', source)
+
     def test_main_drains_all_eligible_prs_instead_of_returning_after_first_merge(self):
         source = MODULE_PATH.read_text()
         merge_log = 'print(f"Squash-merged eligible autonomous PR #{number}.")'
