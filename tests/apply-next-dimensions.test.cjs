@@ -244,7 +244,7 @@ assert.match(exactTerm.components.eligibility.detail, /gate, not a ranking advan
 
 const demandPool = [
   job({ id: "a", _inspection: inspection([["Java required", ["Java"]]]) }),
-  job({ id: "b", url: "https://example.com/b", location: "Stamford, CT", _inspection: inspection([["Java required", ["Java"]]]) }),
+  job({ id: "b", url: "https://example.com/b", states: ["NY"], location: "New York, NY", _inspection: inspection([["Java required", ["Java"]]]) }),
 ];
 const demandRanked = D.rankJobs(demandPool, profile, now);
 assert.equal(demandRanked.length, 2);
