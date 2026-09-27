@@ -452,12 +452,13 @@ def inspection_order_key(
     jobs: list[dict[str, Any]],
     job_scores: dict[int, tuple[int, list[str]]],
     reference: datetime,
-) -> tuple[int, int, int, float]:
+) -> tuple[int, int, int, int, float]:
     """Freshness is the primary inspection-queue contract.
 
-    Within the same freshness band, prefer the upcoming summer term and then
-    the existing generic Apply Next decision-value score. Posting timestamp is
-    the final deterministic tiebreaker.
+    Explicit non-target terms are deprioritized before freshness so a brand-new
+    wrong-season posting cannot consume scarce inspection budget. Among target
+    and unknown-term postings, freshness is primary; exact upcoming-summer term
+    then generic Apply Next decision value break ties.
     """
     ages = [age_days(job, reference) for job in jobs]
     known_ages = [age for age in ages if age is not None]
@@ -476,14 +477,17 @@ def inspection_order_key(
     target = normalize(upcoming_summer_term(reference))
     normalized_terms = [normalize(job.get("term")) for job in jobs]
     if target in normalized_terms:
+        term_gate = 0
         term_band = 0
     elif any(not term for term in normalized_terms):
+        term_gate = 0
         term_band = 1
     else:
+        term_gate = 1
         term_band = 2
 
     score, _ = inspection_priority(jobs, job_scores)
-    return freshness_band, term_band, -score, -latest_posted_at(jobs)
+    return term_gate, freshness_band, term_band, -score, -latest_posted_at(jobs)
 
 
 def is_fresh_posting_group(jobs: list[dict[str, Any]], reference: datetime) -> bool:
