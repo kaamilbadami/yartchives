@@ -16,6 +16,7 @@ from typing import Any
 POSTING_FIELDS = (
     "posted_at",
     "application_status",
+    "application_deadline",
     "title",
     "requisition_id",
     "locations",
@@ -25,6 +26,7 @@ SCHEDULE_FIELDS = (
     "terms",
     "duration_evidence",
     "date_range_evidence",
+    "application_deadline_evidence",
 )
 
 REQUIREMENT_FIELDS = (
