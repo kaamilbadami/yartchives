@@ -102,6 +102,22 @@ assert.match(metadataOnly.components.roi.detail, /Role value 15\/15/i);
 assert.match(metadataOnly.components.roi.detail, /Market opportunity 3\/10/i);
 assert.deepEqual(metadataOnly.scoreMaxima, D.SCORE_MAXIMA);
 
+const boundedLocationBase = L.scoreJob(job({
+  url: "https://example.com/bounded-location",
+  _inspection: inspection(),
+}), profile, now);
+boundedLocationBase.components.location = {
+  score: 8,
+  max_score: 20,
+  unresolved: true,
+  detail: "Commute distance is not yet verified",
+};
+const boundedLocation = D.transform(boundedLocationBase, profile);
+assert.equal(boundedLocation.totalRange.min, boundedLocation.total, "conservative rank score should be the guaranteed lower bound");
+assert.equal(boundedLocation.totalRange.max - boundedLocation.totalRange.min, 12, "location uncertainty should carry through as total-score upside");
+assert.equal(boundedLocation.components.location.unresolved, true);
+assert.equal(boundedLocation.components.location.max_score, 20);
+
 const supported = D.scoreJob(job({
   _inspection: inspection([["Java required", ["Java"]]]),
 }), profile, now);

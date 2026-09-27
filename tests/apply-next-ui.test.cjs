@@ -381,7 +381,8 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /How recent it is/);
   assert.match(uiSource, /Location fit/);
   assert.match(uiSource, /Distance not verified/);
-  assert.match(uiSource, /neutral internal placeholder until a commute or relocation distance can be verified/);
+  assert.match(uiSource, /carries the plausible location range through the ranking instead of assigning a fake exact score/);
+assert.match(uiSource, /hasScoreRange \? `\$\{totalMin\}–\$\{totalMax\}`/);
   assert.doesNotMatch(uiSource, /Application access|application-link friction/);
   assert.match(uiSource, /Posted \$\{monthDay\} · \$\{ageLabel\}/);
   assert.match(uiSource, /apply-next-posted-date/);
@@ -771,7 +772,12 @@ syntheticRanked[0].job.states = ["Remote"];
 syntheticRanked[0].job.location = "Remote";
 
 assert.equal(UI.maximumDistanceLocationGain(syntheticRanked[0]), 0, "Remote jobs should never need exact distance work");
-assert.equal(UI.maximumDistanceLocationGain(syntheticRanked[1]), 10, "Unknown non-remote location score can improve from 10/20 to at most 20/20");
+assert.equal(UI.maximumDistanceLocationGain(syntheticRanked[1]), 10, "Legacy unresolved scores without an explicit bound still use the 20-point component maximum");
+assert.equal(
+  UI.maximumDistanceLocationGain({ job: { id: "bounded" }, components: { location: { score: 8, max_score: 20, unresolved: true } } }),
+  12,
+  "Bounded unresolved location should use its explicit score range for shortlist safety"
+);
 assert.equal(
   UI.maximumDistanceLocationGain({ job: { id: "maxed" }, components: { location: { score: 20 } } }),
   0,

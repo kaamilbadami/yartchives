@@ -421,9 +421,13 @@
 
   function maximumDistanceLocationGain(result) {
     if (!result?.job || isRemoteJob(result.job)) return 0;
-    const currentLocationScore = Number(result?.components?.location?.score);
+    const location = result?.components?.location || {};
+    const currentLocationScore = Number(location.score);
     if (!Number.isFinite(currentLocationScore)) return LOCATION_DISTANCE_MAX_GAIN;
-    return Math.max(0, componentMax("location") - currentLocationScore);
+    const maximumLocationScore = Number.isFinite(Number(location.max_score))
+      ? Number(location.max_score)
+      : componentMax("location");
+    return Math.max(0, maximumLocationScore - currentLocationScore);
   }
 
   function distanceEnrichmentCandidates(preliminaryRanked, nowValue = new Date(), sourceJobs = []) {
@@ -1192,9 +1196,18 @@
     evidenceStatus.append(element("span", "sr-only", " " + statusExplanation));
     titleWrap.append(evidenceStatus);
 
-    const scoreClass = `apply-next-score ${totalScoreBandClass(result.total)}`;
+    const totalMin = Number(result?.totalRange?.min ?? result.total);
+    const totalMax = Number(result?.totalRange?.max ?? result.total);
+    const hasScoreRange = Number.isFinite(totalMin) && Number.isFinite(totalMax) && totalMax > totalMin;
+    const scoreClass = `apply-next-score ${totalScoreBandClass(totalMin)}`;
     const score = element("div", scoreClass);
-    score.append(element("strong", "", String(result.total)), element("span", "", "/100"));
+    score.append(
+      element("strong", "", hasScoreRange ? `${totalMin}–${totalMax}` : String(result.total)),
+      element("span", "", "/100")
+    );
+    if (hasScoreRange) {
+      score.title = "Location is unresolved, so the final score is shown as a range.";
+    }
     top.append(titleWrap, score);
     card.append(top);
 
@@ -1219,7 +1232,7 @@
       const band = unresolvedLocation ? "Distance not verified" : scoreBand(key, component.score, max, job);
       if (band) metric.append(element("p", "apply-next-metric-band", band));
       const explanation = unresolvedLocation
-        ? "Location is unresolved, so Yartchives uses a neutral internal placeholder until a commute or relocation distance can be verified."
+        ? "Location is unresolved, so Yartchives carries the plausible location range through the ranking instead of assigning a fake exact score."
         : componentExplanation(key);
       if (explanation) metric.append(element("p", "apply-next-metric-explanation", explanation));
       breakdown.append(metric);

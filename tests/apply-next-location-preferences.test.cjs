@@ -76,7 +76,8 @@ const unknown = inspectedJob({
   _locationAnchorDistances: [],
 });
 const unknownDecision = L.scoreLocation(unknown, defaultProfile);
-assert.equal(unknownDecision.score, 10, "missing distance keeps a neutral internal prior instead of a relocation penalty");
+assert.equal(unknownDecision.score, 8, "missing distance should rank from the conservative relocation floor, not a fake midpoint");
+assert.equal(unknownDecision.max_score, 20, "missing distance should preserve the full plausible upside to a perfect commute");
 assert.equal(unknownDecision.unresolved, true, "unknown commute distance must be explicitly marked unresolved");
 const unknownScored = L.scoreJob(unknown, defaultProfile, new Date("2026-09-16T16:00:00Z"));
 assert.equal(unknownScored.components.location.unresolved, true, "unresolved location state must survive into the scored component");
@@ -188,7 +189,8 @@ const unresolvedCustom = inspectedJob({
   ],
 });
 const unresolvedCustomDecision = L.scoreLocation(unresolvedCustom, customProfile);
-assert.equal(unresolvedCustomDecision.score, 10, "custom unknown distance remains neutral internal uncertainty");
+assert.equal(unresolvedCustomDecision.score, 4, "custom unknown distance should use the lowest configured relocation score as its conservative floor");
+assert.equal(unresolvedCustomDecision.max_score, 20, "custom unknown distance should preserve the best configured commute upside");
 assert.equal(unresolvedCustomDecision.unresolved, true);
 
 const legacyCustom = {

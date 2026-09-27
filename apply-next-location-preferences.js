@@ -231,17 +231,48 @@
     return Math.round(FINAL_LOCATION_MAX - ((FINAL_LOCATION_MAX - DEFAULT_MIN_COMMUTE_SCORE) * ratio));
   }
 
+  function unresolvedLocationRange(profile, anchors = orderedAnchors(profile)) {
+    if (customLocationMode(profile)) {
+      const maxScore = anchors.length
+        ? Math.max(...anchors.map(anchor => clampFinalScore(anchor.locationScore, FINAL_LOCATION_MAX)))
+        : FINAL_LOCATION_MAX;
+      if (profile?.excludeRelocation === true) {
+        return { min: 0, max: maxScore };
+      }
+      const configuredRelocation = [
+        clampFinalScore(profile?.relocationScore, DEFAULT_RELOCATION_SCORE),
+        ...Object.values(profile?.relocationRegionScores || {}).map(score => clampFinalScore(score, DEFAULT_RELOCATION_SCORE)),
+      ];
+      return {
+        min: Math.min(...configuredRelocation),
+        max: maxScore,
+      };
+    }
+    if (!anchors.length) return { min: 0, max: FINAL_LOCATION_MAX };
+    return { min: DEFAULT_RELOCATION_SCORE, max: FINAL_LOCATION_MAX };
+  }
+
+  function unresolvedLocationDecision(profile, detail, anchors = orderedAnchors(profile)) {
+    const range = unresolvedLocationRange(profile, anchors);
+    return {
+      score: range.min,
+      max_score: range.max,
+      detail,
+      unresolved: true,
+    };
+  }
+
   function scoreDefaultLocation(job, profile) {
     if (isRemote(job)) return { score: DEFAULT_REMOTE_SCORE, detail: "Remote opportunity" };
 
     const anchors = orderedAnchors(profile);
     const home = anchors[0];
-    if (!home) return { score: DEFAULT_UNKNOWN_SCORE, detail: "Home commute base is not configured", unresolved: true };
+    if (!home) return unresolvedLocationDecision(profile, "Home commute base is not configured", anchors);
 
     const distances = anchorDistances(job, { ...profile, baseZips: [home.zip], baseLabels: [home.label || home.zip], locationAnchors: [] });
     const distance = distances[0]?.distanceMiles;
     if (!Number.isFinite(distance)) {
-      return { score: DEFAULT_UNKNOWN_SCORE, detail: "Commute distance is not yet verified", unresolved: true };
+      return unresolvedLocationDecision(profile, "Commute distance is not yet verified", anchors);
     }
 
     if (distance <= home.commuteMiles) {
@@ -273,7 +304,7 @@
     }
 
     const anchors = orderedAnchors(profile);
-    if (!anchors.length) return { score: DEFAULT_UNKNOWN_SCORE, detail: "No custom commute bases are configured", unresolved: true };
+    if (!anchors.length) return unresolvedLocationDecision(profile, "No custom commute bases are configured", anchors);
     const distances = anchorDistances(job, profile);
 
     if (distances.length === anchors.length) {
@@ -310,7 +341,7 @@
       };
     }
 
-    return { score: DEFAULT_UNKNOWN_SCORE, detail: "Location is known, but commute distance to custom bases is not yet verified", unresolved: true };
+    return unresolvedLocationDecision(profile, "Location is known, but commute distance to custom bases is not yet verified", anchors);
   }
 
   function scoreLocation(job, profile) {
@@ -329,6 +360,7 @@
       ...result.components,
       location: {
         score: location.score,
+        max_score: Number.isFinite(Number(location.max_score)) ? Number(location.max_score) : Number(location.score),
         detail: location.detail,
         unresolved: location.unresolved === true,
       },
@@ -387,6 +419,8 @@
     anchorDistances,
     regionForState,
     defaultCommuteScore,
+    unresolvedLocationRange,
+    unresolvedLocationDecision,
     scoreDefaultLocation,
     scoreCustomLocation,
     scoreLocation,
