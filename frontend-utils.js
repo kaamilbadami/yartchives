@@ -345,6 +345,16 @@
     return String(value || "").replace(/^\s*🔥\s*/u, "").trim();
   }
 
+  function sourceHealthStatus(source) {
+    const src = source || {};
+    const explicit = typeof src.status === "string" ? src.status.trim().toLowerCase() : "";
+    if (["healthy", "degraded", "failed", "quarantined"].includes(explicit)) return explicit;
+    if (src.configured === false) return "quarantined";
+    if (src.ok === true) return "healthy";
+    if (src.ok === false) return "failed";
+    return "unknown";
+  }
+
   function groupSourceHealth(sources) {
     const groups = new Map();
     for (const [key, raw] of Object.entries(sources || {})) {
@@ -356,14 +366,25 @@
         count: 0,
         configuredCount: 0,
         successCount: 0,
+        degradedCount: 0,
         failureCount: 0,
+        quarantinedCount: 0,
+        unknownCount: 0,
         errors: [],
       };
+      const status = sourceHealthStatus(src);
       current.count += Number(src.count || 0);
-      if (src.configured !== false) current.configuredCount += 1;
-      if (src.ok) current.successCount += 1;
-      else if (src.configured !== false) current.failureCount += 1;
-      if (src.error && !current.errors.includes(String(src.error))) current.errors.push(String(src.error));
+      if (status !== "quarantined") current.configuredCount += 1;
+      if (status === "healthy" || status === "degraded") current.successCount += 1;
+      if (status === "degraded") current.degradedCount += 1;
+      if (status === "failed") current.failureCount += 1;
+      if (status === "quarantined") current.quarantinedCount += 1;
+      if (status === "unknown") current.unknownCount += 1;
+      if (
+        src.error
+        && (status === "failed" || status === "degraded")
+        && !current.errors.includes(String(src.error))
+      ) current.errors.push(String(src.error));
       groups.set(groupKey, current);
     }
     return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name));
@@ -437,6 +458,7 @@
     milesBetween,
     distanceForJob,
     sourceHealthDisplayName,
+    sourceHealthStatus,
     groupSourceHealth,
     classifyEducationFromTitle,
     classifyOpportunityTypeFromTitle,

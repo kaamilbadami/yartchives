@@ -680,17 +680,25 @@ function renderHealth() {
     const name = document.createElement("span");
     name.textContent = src.name;
     const status = document.createElement("span");
+    const listingCount = Number(src.count || 0).toLocaleString();
     if (!src.configuredCount) {
       status.className = "skip";
-      status.textContent = "not configured";
-    } else if (!src.failureCount) {
-      status.className = "ok";
-      status.textContent = `${Number(src.count || 0).toLocaleString()} ✓`;
-    } else {
+      status.textContent = "Not configured";
+    } else if (src.failureCount) {
       status.className = "fail";
-      const healthy = src.successCount ? `${Number(src.count || 0).toLocaleString()} ✓ · ` : "";
+      const stateLabel = src.successCount ? "Degraded" : "Failed";
       const detail = src.errors.length ? ` · ${src.errors.join(" · ")}` : "";
-      status.textContent = `${healthy}${src.failureCount} failed${detail}`;
+      status.textContent = `${stateLabel} · ${listingCount} listings${detail}`;
+    } else if (src.degradedCount) {
+      status.className = "skip";
+      const detail = src.errors.length ? ` · ${src.errors.join(" · ")}` : "";
+      status.textContent = `Degraded · ${listingCount} listings${detail}`;
+    } else if (src.successCount) {
+      status.className = "ok";
+      status.textContent = `Healthy · ${listingCount} listings`;
+    } else {
+      status.className = "skip";
+      status.textContent = `Status unavailable · ${listingCount} listings`;
     }
     row.append(name, status);
     els.sourceHealth.appendChild(row);
