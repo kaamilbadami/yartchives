@@ -35,10 +35,10 @@ assert.deepEqual(L.scoreLocation({ location: "Baltimore, MD", states: ["MD"], ..
 });
 assert.equal(L.scoreLocation({ location: "Remote", states: ["Remote"] }, profile).score, 18);
 assert.equal(L.scoreLocation({ location: "York, PA", states: ["PA"], ...trustedDistance(35) }, profile).score, 20);
-assert.equal(L.scoreLocation({ location: "York, PA", states: ["PA"], ...trustedDistance(90) }, profile).score, 16);
-assert.equal(L.scoreLocation({ location: "Boston, MA", states: ["MA"], ...trustedDistance(160) }, profile).score, 14);
-assert.equal(L.scoreLocation({ location: "Raleigh, NC", states: ["NC"], ...trustedDistance(330) }, profile).score, 10);
-assert.equal(L.scoreLocation({ location: "Austin, TX", states: ["TX"], ...trustedDistance(1200) }, profile).score, 6);
+assert.equal(L.scoreLocation({ location: "York, PA", states: ["PA"], ...trustedDistance(90) }, profile).score, 17);
+assert.equal(L.scoreLocation({ location: "Boston, MA", states: ["MA"], ...trustedDistance(160) }, profile).score, 13);
+assert.equal(L.scoreLocation({ location: "Raleigh, NC", states: ["NC"], ...trustedDistance(330) }, profile).score, 9);
+assert.equal(L.scoreLocation({ location: "Austin, TX", states: ["TX"], ...trustedDistance(1200) }, profile).score, 4);
 assert.equal(L.scoreLocation({ location: "United States", states: ["US"] }, profile).score, 8);
 assert.equal(L.scoreLocation({ location: "Denver, CO", states: ["CO"] }, profile).score, 5);
 
@@ -95,9 +95,9 @@ const now = new Date("2026-09-16T16:00:00Z");
 const before = base.scoreJob(job, profile, now);
 const after = L.scoreJob(job, profile, now);
 assert.equal(before.components.location.score, 12);
-assert.equal(after.components.location.score, 6);
-assert.equal(after.total, before.total - 6);
-assert.match(after.components.location.detail, /Long-distance relocation/);
+assert.equal(after.components.location.score, 4);
+assert.equal(after.total, before.total - 8);
+assert.match(after.components.location.detail, /Relocation about 1200 miles/);
 
 const nearJob = {
   ...job,
