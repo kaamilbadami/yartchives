@@ -2,24 +2,88 @@
 
 **A CS-first internship product focused on one question: what should I apply to next?**
 
-Yartchives combines public internship sources into one normalized feed, then uses **Apply Next** to turn that feed into a decision queue instead of another job board to browse. The first beta is intentionally focused on Computer Science students.
+Yartchives combines public internship sources into one normalized feed, then uses **Apply Next** to turn that feed into a ranked decision queue instead of another job board to browse.
 
-## What the beta is trying to solve
+[**Live Demo**](https://kaamilbadami.github.io/yartchives) · [**How Apply Next works**](#apply-next)
 
-Internship search is fragmented across employer sites, aggregators, spreadsheets, and student-maintained lists. Finding roles is only part of the problem; students still have to decide which opportunities are worth their time.
+## Why I built it
 
-Yartchives is built around that second problem. Apply Next prioritizes known opportunities using profile fit, location preferences, posting evidence, freshness, and other existing ranking signals, while keeping the underlying evidence visible enough to understand the recommendation.
+Internship search is fragmented across employer sites, aggregators, spreadsheets, and student-maintained lists. Finding roles is only part of the problem; students still have to decide which opportunities are actually worth their time.
 
-## Current product
+Yartchives is built around that second problem: collect known opportunities centrally, preserve the evidence behind them, and rank them against a student's preferences so the product can answer **what should I apply to next?**
 
-- **CS-first beta:** non-CS career areas are being hidden from the initial beta experience while the underlying architecture remains extensible.
-- **Apply Next:** a ranked recommendation queue designed to answer why a role is worth applying to and what the biggest concern is.
-- **Local application state:** Saved, Applied, and Hidden state stays in the browser; no account is required.
-- **Multi-source feed:** public opportunity feeds are normalized, reconciled, deduplicated, and refreshed centrally.
-- **Evidence-aware recommendations:** authoritative posting evidence is preferred when available, with uncertainty preserved when it is not.
-- **Coverage is measured, not assumed:** Yartchives does not claim to replace every discovery source until its explicit coverage contract is satisfied.
+## What it does
 
-## Live repository status
+### Apply Next
+
+Apply Next turns the feed into a recommendation queue rather than a search result list. It uses the user's browser-local profile and preferences together with posting freshness, location fit, authoritative posting evidence, and other ranking signals to prioritize opportunities.
+
+Recommendations are designed to surface both **why a role is worth considering** and the **largest concern or uncertainty** instead of presenting an unexplained score.
+
+### Unified internship feed
+
+Yartchives collects public opportunity data ahead of time instead of scraping sources in each visitor's browser. The pipeline normalizes role, employer, location, dates, provenance, and application destinations across multiple source families.
+
+### Evidence-aware recommendations
+
+When available, Yartchives enriches discovered listings with evidence from authoritative employer or ATS postings. Uncertainty is preserved when authoritative evidence is unavailable rather than silently treated as verified.
+
+### Local application tracking
+
+Saved, Applied, and Hidden state stays in the browser. No account is required for the core beta experience.
+
+## How it works
+
+```text
+Public feeds · ATS platforms · USAJOBS
+                  ↓
+               Ingestion
+                  ↓
+       Normalize + reconcile + dedupe
+                  ↓
+       Authoritative posting inspection
+                  ↓
+          Validation / quality gates
+                  ↓
+          Versioned static feed
+                  ↓
+          Apply Next ranking
+                  ↓
+        GitHub Pages frontend
+```
+
+The data pipeline normalizes heterogeneous listings, reconciles duplicates, enriches selected roles with authoritative posting evidence, validates the result, and publishes a static dataset for the frontend.
+
+The frontend then applies browser-local profile and preference data to that validated feed and ranks opportunities without requiring a user account or sending profile data through the ingestion pipeline.
+
+## Technical highlights
+
+- **Multi-source ingestion:** broad public aggregators provide the discovery backbone, while employer and ATS sources are used as targeted gap-fillers.
+- **Normalization and reconciliation:** heterogeneous source records are mapped into a shared schema, reconciled across sources, and deduplicated before publication.
+- **Authoritative-source enrichment:** selected listings can be inspected against employer or ATS postings to improve confidence in role details and application destinations.
+- **Recommendation ranking:** Apply Next combines profile fit, location preferences, freshness, posting evidence, and other ranking dimensions into a prioritized queue.
+- **Scheduled data pipeline:** GitHub Actions refreshes and validates feed artifacts on a recurring schedule instead of rebuilding the dataset in each client.
+- **Quality gates and CI:** feed validation, tests, workflow checks, and exact-PR-head validation protect generated data and application behavior before changes land.
+- **Privacy-conscious analytics:** beta usage and recommendation feedback are collected as minimal aggregate/session-level signals without sending profile fields, resumes, searches, exact locations, or local application history.
+- **Browser-local state:** user preferences and Saved / Applied / Hidden state remain local to the client for the core experience.
+
+## Architecture / repository map
+
+- `apply-next*.js` and related CSS — recommendation ranking, presentation, profile, location, and Apply Next interaction logic
+- `scripts/build_feed.py` and reconciliation scripts — feed generation, normalization, and source reconciliation
+- provider inspection scripts such as `scripts/update_workday_inspections.py` — bounded authoritative posting enrichment
+- `data/listings.json` — generated normalized feed used as a local/rollback fallback
+- `coverage_contract.json` and `audit/` — explicit coverage requirements and benchmark evidence
+- `.github/workflows/` — feed refreshes, validation, deployment, autonomous task dispatch, and merge automation
+- `app.js`, `ui.js`, `ux.js`, and related styles — static frontend application shell and interactions
+
+## Engineering & reliability
+
+Yartchives treats feed generation as a data pipeline rather than a collection of client-side scrapers. Generated artifacts are validated before publication, and deployments hydrate the latest validated feed artifact while checked-in data remains available as a fallback for rollback and local development.
+
+The repository also uses bounded automation for maintenance and implementation work: issues define acceptance criteria, CI validates the exact code being merged, resource locks reduce conflicting concurrent work, and merge automation is separated from implementation.
+
+### Live repository status
 
 <!-- yartchives-status:start -->
 - **Beta scope:** CS-first
@@ -29,50 +93,25 @@ Yartchives is built around that second problem. Apply Next prioritizes known opp
 - **Coverage claim:** not yet certified as a complete single discovery source
 <!-- yartchives-status:end -->
 
-The status block above is generated from repository data by the feed workflow. Automation is only allowed to replace text between those markers; the rest of this README is product-owned.
-
-## How the product works
-
-Yartchives collects public opportunity data ahead of time instead of scraping sources in every visitor's browser. The pipeline normalizes role, employer, location, date, provenance, and application destinations; reconciles duplicates; enriches selected listings with authoritative posting evidence; validates the resulting feed; and publishes a static dataset for the frontend.
-
-The frontend then applies the user's browser-local profile and preferences to the known feed. Apply Next ranks those opportunities without claiming that the feed represents the entire internship market.
+This block is generated from repository data by the feed workflow. Automation is restricted to replacing the text between the markers above.
 
 ## Sources and coverage
 
-The project uses broad public aggregators as the discovery backbone and employer/ATS sources as targeted gap-fillers. Current source families include public internship trackers, employer ATS endpoints such as Workday/Greenhouse/iCIMS where supported, and the official USAJOBS Search API.
+The first beta is intentionally focused on Computer Science students, while the underlying ingestion and ranking architecture is designed to remain extensible.
+
+Broad public aggregators are the discovery backbone. Employer and ATS sources such as Workday, Greenhouse, and iCIMS are targeted gap-fillers where supported, and federal opportunity data comes from the official USAJOBS Search API.
 
 LinkedIn and Handshake are used as **discovery and audit surfaces**, not production scraping sources.
 
-Federal opportunity data comes from **USAJOBS.gov**. Yartchives stores normalized discovery metadata and directs users to the employer, USAJOBS, or another validated application destination.
+Yartchives does not claim to represent the entire internship market. The machine-readable `coverage_contract.json` defines the evidence required before the product can make stronger coverage claims; until those gates pass on an independent benchmark, Apply Next should be understood as ranking the opportunities Yartchives currently knows about.
 
-> Yartchives does not own employer application content. Listings are discovery metadata and links to the original or validated application destination.
+> Yartchives does not own employer application content. Listings are discovery metadata and links to the original or another validated application destination.
 
-The machine-readable `coverage_contract.json` defines the standard required before Yartchives can claim that a US undergraduate CS student can use it as their only discovery queue. Until those gates pass on a fresh independent benchmark, the product should be described as ranking the opportunities it knows about rather than providing complete market coverage.
+## Development workflow
 
-## Beta feedback
+Yartchives uses AI-assisted development alongside automated GitHub workflows. I define product scope, architecture, acceptance criteria, prioritization, and engineering tradeoffs; coding agents assist with bounded implementation and maintenance tasks, while CI and repository automation validate and coordinate changes.
 
-Feedback provided through the "Submit feedback" action in the Apply Next queue is sent directly to a central serverless receiver (Formspree) configured by the product owner. Responses are minimal, capturing only the recommendation ID, rating, structured reason, optional note, and submission timestamp without including browser-local profile data or application state. The product owner can review submissions via the Formspree dashboard.
-
-## Beta usage analytics
-
-Yartchives sends a privacy-minimized per-session usage summary to the same central receiver so the beta can measure whether the core product flow is actually being used. The tracked event set is intentionally small: site opens, Apply Next opens, first profile creation, recommendation impressions, apply clicks, saves, hides, and submitted recommendation feedback.
-
-Usage analytics do not send search text, profile fields, resume contents, exact location, job IDs, employer names, job titles, application URLs, saved/applied/hidden item IDs, or free-text feedback. Events are batched as counts behind a transient anonymous session ID rather than tied to a user account.
-
-## Development approach
-
-Yartchives is product-directed and heavily AI-assisted in implementation. Product scope, prioritization, beta criteria, and tradeoffs are set by the product owner; coding agents and automated GitHub workflows handle much of the implementation, testing, review routing, and maintenance.
-
-The repository is intentionally structured so agent work remains bounded: issues define acceptance criteria, CI validates exact PR heads, resource locks reduce conflicting concurrent work, and separate automation controls merging.
-
-## Repository map
-
-- `apply-next*.js` / related CSS — Apply Next recommendation and profile experience
-- `scripts/build_feed.py` and reconciliation scripts — feed generation and normalization
-- `scripts/update_workday_inspections.py` and provider inspectors — bounded authoritative posting inspection
-- `coverage_contract.json` and `audit/` — coverage definitions and benchmark evidence
-- `data/listings.json` — generated normalized feed
-- `.github/workflows/` — feed refresh, quality checks, autonomous dispatch, and merge automation
+This workflow is designed to keep automated work reviewable: tasks are scoped through issues, concurrent changes are constrained with resource locks, tests run against exact PR heads, and merging is controlled separately from implementation.
 
 ## Local development
 
