@@ -75,7 +75,11 @@ const unknown = inspectedJob({
   url: "https://example.com/unknown",
   _locationAnchorDistances: [],
 });
-assert.equal(L.scoreLocation(unknown, defaultProfile).score, 10, "missing distance is uncertainty, not a relocation penalty");
+const unknownDecision = L.scoreLocation(unknown, defaultProfile);
+assert.equal(unknownDecision.score, 10, "missing distance keeps a neutral internal prior instead of a relocation penalty");
+assert.equal(unknownDecision.unresolved, true, "unknown commute distance must be explicitly marked unresolved");
+const unknownScored = L.scoreJob(unknown, defaultProfile, new Date("2026-09-16T16:00:00Z"));
+assert.equal(unknownScored.components.location.unresolved, true, "unresolved location state must survive into the scored component");
 
 const customProfile = {
   ...defaultProfile,
@@ -183,7 +187,9 @@ const unresolvedCustom = inspectedJob({
     { zip: "20740", distanceMiles: null },
   ],
 });
-assert.equal(L.scoreLocation(unresolvedCustom, customProfile).score, 10, "custom unknown distance remains neutral uncertainty");
+const unresolvedCustomDecision = L.scoreLocation(unresolvedCustom, customProfile);
+assert.equal(unresolvedCustomDecision.score, 10, "custom unknown distance remains neutral internal uncertainty");
+assert.equal(unresolvedCustomDecision.unresolved, true);
 
 const legacyCustom = {
   ...defaultProfile,
