@@ -605,7 +605,7 @@ function renderJobs() {
 
     const applyBtn = card.querySelector(".apply-btn");
     if (job.url) {
-      applyBtn.href = job.url;
+      applyBtn.href = YartchivesUtils.jobViewUrl(job);
       applyBtn.textContent = "View job ↗";
       applyBtn.addEventListener("click", () => {
         typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("job_opened");
