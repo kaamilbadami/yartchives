@@ -663,7 +663,10 @@
     panel?.classList.add("hidden");
     delete panel?.dataset?.view;
     const button = typeof document !== "undefined" ? document.querySelector("#applyNextBtn") : null;
-    if (button) button.setAttribute("aria-expanded", "false");
+    if (button) {
+      button.classList.remove("hidden");
+      button.setAttribute("aria-expanded", "false");
+    }
     setProfileSetupMode(false);
   }
 
@@ -677,6 +680,7 @@
   function renderEntryChoice(panel) {
     panel.dataset.view = "entry";
     panel.classList.remove("hidden");
+    document.querySelector("#applyNextBtn")?.classList.add("hidden");
     setProfileSetupMode(true);
     panel.innerHTML = "";
 
@@ -685,7 +689,7 @@
     copy.append(
       element("p", "eyebrow", "Start here"),
       element("h2", "", "Find the internships worth applying to"),
-      element("p", "apply-next-entry-lede", "Apply Next ranks current internships around your profile so you can spend your time on the strongest opportunities first.")
+      element("p", "apply-next-entry-lede", "Tell Yartchives what you're looking for. We'll rank current internships around your profile so you know where to spend your time first.")
     );
 
     const actions = element("div", "apply-next-entry-actions");
@@ -693,7 +697,7 @@
     ranked.type = "button";
     ranked.addEventListener("click", () => document.querySelector("#applyNextBtn")?.click());
 
-    const browse = element("button", "ghost-btn apply-next-entry-secondary", "Browse all internships");
+    const browse = element("button", "text-btn apply-next-entry-secondary", "Browse all internships");
     browse.type = "button";
     browse.addEventListener("click", () => switchToBrowse(panel));
 
@@ -1740,6 +1744,7 @@
         return;
       }
       if (persist) saveEntryMode(localStorage, "apply-next");
+      button.classList.remove("hidden");
       typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("apply_next_open");
       panel.classList.remove("hidden");
       panel.dataset.view = "apply-next";
