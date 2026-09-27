@@ -12,6 +12,7 @@
       target.SCORE_MAXIMA = api.SCORE_MAXIMA;
       target.scoreJob = api.scoreJob;
       target.rankJobs = api.rankJobs;
+      target.rankJobsAsync = api.rankJobsAsync;
     }
   }
 })(typeof globalThis !== "undefined" ? globalThis : this, function (base) {
@@ -495,13 +496,33 @@
     return transform(base.scoreJob(job, profile, now, context), profile || {});
   }
 
+  function sortRanked(results) {
+    return results.sort((a, b) => b.total - a.total
+      || ((new Date(b.job?.posted_at || 0)).getTime() || 0) - ((new Date(a.job?.posted_at || 0)).getTime() || 0)
+      || String(a.job?.company || "").localeCompare(String(b.job?.company || "")));
+  }
+
   function rankJobs(jobs, profile, now = new Date()) {
-    return base.rankJobs(jobs || [], profile || {}, now)
+    return sortRanked(base.rankJobs(jobs || [], profile || {}, now)
       .map(result => transform(result, profile || {}))
-      .filter(x => !x.excluded)
-      .sort((a, b) => b.total - a.total
-        || ((new Date(b.job?.posted_at || 0)).getTime() || 0) - ((new Date(a.job?.posted_at || 0)).getTime() || 0)
-        || String(a.job?.company || "").localeCompare(String(b.job?.company || "")));
+      .filter(x => !x.excluded));
+  }
+
+  async function rankJobsAsync(jobs, profile, now = new Date(), options = {}) {
+    const baseResults = typeof base.rankJobsAsync === "function"
+      ? await base.rankJobsAsync(jobs || [], profile || {}, now, options)
+      : base.rankJobs(jobs || [], profile || {}, now);
+    const chunkSize = Math.max(10, Number(options.chunkSize || 40));
+    const yieldFn = typeof options.yieldFn === "function" ? options.yieldFn : null;
+    const ranked = [];
+    for (let index = 0; index < baseResults.length; index += 1) {
+      const result = transform(baseResults[index], profile || {});
+      if (result && !result.excluded) ranked.push(result);
+      if (yieldFn && index + 1 < baseResults.length && (index + 1) % chunkSize === 0) {
+        await yieldFn();
+      }
+    }
+    return sortRanked(ranked);
   }
 
   return {
@@ -521,6 +542,8 @@
     sumRankingComponents,
     transform,
     scoreJob,
+    sortRanked,
     rankJobs,
+    rankJobsAsync,
   };
 });
