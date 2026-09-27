@@ -168,6 +168,15 @@ const uglyWorkdayCode = {
 };
 assert.equal(U.distanceForJob(uglyWorkdayCode, geo.zips.get("06897"), productionStyleGeo).point.city, "West Valley City");
 
+const namedRegion = {
+  location: "RTP, North Carolina",
+  states: ["NC"],
+};
+const namedRegionDistance = U.distanceForJob(namedRegion, geo.zips.get("20740"), productionStyleGeo);
+assert.equal(namedRegionDistance.point.city, "Research Triangle Park");
+assert.equal(namedRegionDistance.precision, "named-place");
+assert.ok(Number.isFinite(namedRegionDistance.miles));
+
 require("./results-language.test.cjs");
 require("./apply-next.test.cjs");
 require("./apply-next-ui.test.cjs");
@@ -175,8 +184,9 @@ console.log("frontend-utils tests passed");
 
 
 const appSource = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
-assert.match(appSource, /job\.link_kind === "employer_job"/);
-assert.match(appSource, /View posting ↗/);
+assert.doesNotMatch(appSource, /job\.link_kind === "employer_job"/);
+assert.match(appSource, /View job ↗/);
+assert.match(appSource, /job_opened/);
 assert.match(appSource, /src\.errors\.join/);
 assert.match(appSource, /Healthy ·/);
 assert.match(appSource, /Degraded ·/);
