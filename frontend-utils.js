@@ -277,19 +277,31 @@
       if (afterState) addCandidate(candidates, afterState[1].replace(/-\d.*$/, ""));
 
       let stateFound = false;
+      const cities = geo.citiesByState.get(st) || [];
       for (const candidate of candidates) {
         const direct = geo.cities.get(`${st}|${candidate}`);
         if (direct) {
           found.push(direct);
           stateFound = true;
+          continue;
+        }
+
+        // Production geo artifacts may preserve display casing while the
+        // resolver works in normalized place names. Keep the shared resolver
+        // tolerant of either representation instead of requiring every loader
+        // to reproduce buildGeoIndex()'s normalization contract exactly.
+        const alias = cities.find(([cityName]) => normalizePlace(cityName) === candidate)?.[1];
+        if (alias) {
+          found.push(alias);
+          stateFound = true;
         }
       }
 
       if (!stateFound) {
-        const cities = geo.citiesByState.get(st) || [];
         for (const [cityName, point] of cities) {
-          if (cityName.length < 4) continue;
-          if (normalizedLocation.includes(` ${cityName} `)) {
+          const normalizedCity = normalizePlace(cityName);
+          if (normalizedCity.length < 4) continue;
+          if (normalizedLocation.includes(` ${normalizedCity} `)) {
             found.push(point);
             break;
           }
