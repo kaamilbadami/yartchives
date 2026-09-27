@@ -240,6 +240,23 @@ _MECHANICAL_CONTEXT = re.compile(
 )
 _TEST_QUALITY = re.compile(r"\b(?:test|quality)(?: engineer(?:ing)?)?\b", flags=re.I)
 
+_ENGINEERING_DISCIPLINES = {"mechanical", "aero", "electrical"}
+_GENERIC_ENGINEERING_ROLE = re.compile(
+    r"\b(?:systems?|design|test|testing|validation|verification|reliability|quality|"
+    r"product|process|development|application|applications|device|manufacturing|industrial|"
+    r"civil|structural|transportation|roadway|construction|controls?|automation|robotics?|"
+    r"mechatronics?|autonomy|integration|simulation|optical|analog|digital|silicon|"
+    r"semiconductor|power|signal|rf|packaging)\s+engineer(?:ing)?\b"
+    r"|\bengineering\s+(?:intern|internship|co[- ]?op|student|trainee)\b"
+    r"|\b(?:engineer|engineering)\s+(?:intern|internship|co[- ]?op)\b",
+    flags=re.I,
+)
+_NON_ENGINEERING_ENGINEER_CONTEXT = re.compile(
+    r"\b(?:solutions?\s+engineering|sales\s+engineer(?:ing)?|support\s+engineer(?:ing)?|"
+    r"product\s+marketing\s+engineer(?:ing)?|consulting\s+engineer(?:ing)?)\b",
+    flags=re.I,
+)
+
 
 def extract_source_markers(*values: str | None) -> list[str]:
     found: set[str] = set()
@@ -331,6 +348,20 @@ def classify_profiles(job: dict[str, Any]) -> list[str]:
     # them as mechanical when the same role has mechanical/manufacturing context.
     if _TEST_QUALITY.search(role_text) and _MECHANICAL_CONTEXT.search(role_text):
         tags.add("mechanical")
+
+    # Engineering is a broad public career area, but keep the fallback strict:
+    # specialized engineering profiles roll up automatically; otherwise only
+    # previously-untagged roles with explicit engineering language qualify.
+    # This avoids turning software, AI, sales, consulting, or support roles into
+    # Engineering merely because their titles contain the word "engineer".
+    if tags & _ENGINEERING_DISCIPLINES:
+        tags.add("engineering")
+    elif (
+        not tags
+        and _GENERIC_ENGINEERING_ROLE.search(role_text)
+        and not _NON_ENGINEERING_ENGINEER_CONTEXT.search(role_text)
+    ):
+        tags.add("engineering")
 
     # Only map a few narrow upstream section names whose meaning is unambiguous.
     # In particular, "Hardware Engineering" is intentionally NOT a section-level
