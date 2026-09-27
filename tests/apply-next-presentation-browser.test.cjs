@@ -48,8 +48,9 @@ const authoritativeDistance = authoritativeScope.distanceForJob(
   { lat: 41.2, lon: -73.4, state: "CT", city: "wilton" },
   geo
 );
-assert.equal(authoritativeDistance, null, "authoritative RTP-only posting must not inherit stale Stamford distance");
-assert.equal(staleMetadataJob._applyNextAnchorDistanceSamples[0].distanceMiles, null);
+assert.ok(Number.isFinite(authoritativeDistance), "authoritative RTP-only posting should resolve through the named-place alias rather than stale Stamford metadata");
+assert.ok(authoritativeDistance > 400 && authoritativeDistance < 550, `unexpected RTP distance ${authoritativeDistance}`);
+assert.equal(staleMetadataJob._applyNextAnchorDistanceSamples[0].distanceMiles, authoritativeDistance);
 
 const browserScript = fs.readFileSync(path.join(__dirname, "..", "apply-next-presentation.js"), "utf8");
 let browserScoreCalls = 0;
