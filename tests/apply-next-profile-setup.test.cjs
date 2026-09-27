@@ -67,6 +67,7 @@ const profile = Setup.buildProfile({
   securityClearance: "Unknown / not provided",
   supportedSkills: hints.supportedSkills,
   cautiousSkills: "Python, Bash",
+  careerAreaIds: ["cs"],
   roleFamilyIds: ["software", "testing-systems"],
   opportunityTypes: ["internship", "co-op"],
   baseZips: "20740, 06897",
@@ -93,6 +94,7 @@ const citizenProfile = Setup.buildProfile({
   citizenship: "U.S. citizen",
   workAuthorization: "Unknown / not provided",
   securityClearance: "Unknown / not provided",
+  careerAreaIds: ["cs"],
   roleFamilyIds: ["software"],
   opportunityTypes: ["internship"],
 }, {});
@@ -105,11 +107,59 @@ const defaultRoleProfile = Setup.buildProfile({
   securityClearance: "Unknown / not provided",
   opportunityTypes: ["internship"],
 }, {});
+assert.deepEqual(defaultRoleProfile.careerAreas, ["cs"], "new profiles should remain CS-first by default");
 assert.deepEqual(
   defaultRoleProfile.roleFamilies.map(family => family.id),
-  Setup.ROLE_FAMILIES.map(family => family.id),
-  "new profiles should default to all role families"
+  Setup.defaultRoleFamilyIdsForAreas(["cs"]),
+  "new profiles should default only to role families compatible with the CS-first career area"
 );
+
+const engineeringHints = Setup.extractResumeHints(`
+Bachelor of Science in Mechanical Engineering — Expected May 2028
+Skills: SolidWorks, MATLAB, Simulink, CAD, ANSYS
+`);
+assert.equal(engineeringHints.major, "Mechanical Engineering");
+for (const skill of ["SolidWorks", "MATLAB", "Simulink", "CAD", "ANSYS"]) {
+  assert.ok(engineeringHints.supportedSkills.includes(skill), `engineering resume parser should recognize ${skill}`);
+}
+
+const engineeringProfile = Setup.buildProfile({
+  targetTerm: "Summer 2027",
+  graduation: "May 2028",
+  degree: "Bachelor of Science",
+  major: "Mechanical Engineering",
+  citizenship: "Unknown / not provided",
+  workAuthorization: "Unknown / not provided",
+  securityClearance: "Unknown / not provided",
+  supportedSkills: engineeringHints.supportedSkills,
+  cautiousSkills: "",
+  careerAreaIds: ["engineering"],
+  roleFamilyIds: ["mechanical-manufacturing", "robotics-controls"],
+  opportunityTypes: ["internship", "co-op"],
+  baseZips: "20740",
+  nearbyMiles: 50,
+  remoteRelevant: true,
+  relocationAllowed: true,
+}, {});
+assert.deepEqual(engineeringProfile.careerAreas, ["engineering"]);
+assert.ok(engineeringProfile.preferredProfiles.includes("engineering"));
+assert.ok(!engineeringProfile.preferredProfiles.includes("cs"));
+assert.deepEqual(engineeringProfile.roleFamilies.map(family => family.id), ["mechanical-manufacturing", "robotics-controls"]);
+assert.ok(engineeringProfile.supportedKeywords.includes("mechanical engineer"));
+assert.ok(engineeringProfile.supportedKeywords.includes("SolidWorks"));
+
+const combinedProfile = Setup.buildProfile({
+  targetTerm: "Summer 2027",
+  citizenship: "Unknown / not provided",
+  workAuthorization: "Unknown / not provided",
+  securityClearance: "Unknown / not provided",
+  careerAreaIds: ["cs", "engineering"],
+  roleFamilyIds: ["software", "electrical-hardware", "hpc"],
+  opportunityTypes: ["internship"],
+}, {});
+assert.deepEqual(combinedProfile.careerAreas, ["cs", "engineering"]);
+assert.ok(combinedProfile.preferredProfiles.includes("cs"));
+assert.ok(combinedProfile.preferredProfiles.includes("engineering"));
 
 {
   let clicks = 0;
@@ -188,6 +238,11 @@ assert.deepEqual(
   const source = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.js"), "utf8");
   assert.match(source, /raw resume is never saved or uploaded/i);
   assert.match(source, /When are you looking\?/);
+  assert.match(source, /Choose Computer Science, Engineering, or both/);
+  assert.match(source, /careerArea/);
+  assert.match(source, /Mechanical \/ manufacturing/);
+  assert.match(source, /Electrical \/ electronics \/ hardware/);
+  assert.match(source, /Robotics \/ controls \/ automation/);
   assert.match(source, /When are you graduating \(month year\)/);
   assert.match(source, /input\("targetTerm", "Summer 2027", "radio"\)/);
   assert.match(source, /profile \? "Save profile" : "Create profile"/, "New users should see a clear Create profile action");
