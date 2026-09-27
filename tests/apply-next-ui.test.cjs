@@ -331,6 +331,8 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.ok(index.includes('src="apply-next-ui.js"'));
   assert.ok(index.indexOf('src="apply-next.js"') < index.indexOf('src="apply-next-dimensions.js"'));
   assert.ok(index.indexOf('src="apply-next-dimensions.js"') < index.indexOf('src="apply-next-ui.js"'));
+  assert.match(index, /<p class="subtitle">Internships ranked around you\.<\/p>/, "Homepage subtitle should reinforce personalized ranking");
+  assert.doesNotMatch(index, /<\/script>\\n\s*<script/, "Homepage must not render a literal \\n between script tags");
 
   const uiSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-ui.js"), "utf8");
   assert.match(
@@ -463,6 +465,10 @@ assert.equal(jobs[2]._inspection, undefined);
 
   assert.match(uiSource, /ENTRY_MODE_KEY = "yartchives-entry-mode-v1"/, "Entry preference should use a dedicated local key");
   assert.match(uiSource, /Get internships ranked for you/, "First-use entry should emphasize ranked recommendations");
+  assert.match(uiSource, /Tell Yartchives what you're looking for\. We'll rank current internships around your profile/, "First-use copy should explain the ranked value proposition");
+  assert.match(uiSource, /"text-btn apply-next-entry-secondary", "Browse all internships"/, "Browse should be visually secondary to ranked recommendations");
+  assert.match(uiSource, /document\.querySelector\("#applyNextBtn"\)\?\.classList\.add\("hidden"\)/, "First-use entry should hide the redundant header Apply Next control");
+  assert.match(uiSource, /button\.classList\.remove\("hidden"\)/, "Choosing a mode should restore the reusable header Apply Next control");
   assert.match(uiSource, /Browse all internships/, "First-use entry should preserve a direct browse choice");
   assert.match(uiSource, /Browse internships/, "Focused Apply Next should expose an explicit browse exit");
   assert.match(uiSource, /if \(!rememberedMode\) \{\s*renderEntryChoice\(panel\)/, "First visit should show the entry decision");
