@@ -78,13 +78,15 @@ jobs:
           BUILD_SHA="$(git rev-parse HEAD)"
           VERSION="$(git rev-parse --short=12 HEAD)"
           DEPLOYED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          DEPLOYMENT_ID="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           INTERACTIVE_DEPLOY="$(gh api -H "Accept: application/vnd.github+json" \
             "repos/$GITHUB_REPOSITORY/commits/$BUILD_SHA/pulls" \
             --jq 'map(select((.head.ref // "") | startswith("agent/interactive/"))) | length > 0')"
-          printf '{"build_sha":"%s","deployed_at":"%s","interactive":%s}\n' \
-            "$BUILD_SHA" "$DEPLOYED_AT" "$INTERACTIVE_DEPLOY" \
+          printf '{"build_sha":"%s","deployment_id":"%s","deployed_at":"%s","interactive":%s}\n' \
+            "$BUILD_SHA" "$DEPLOYMENT_ID" "$DEPLOYED_AT" "$INTERACTIVE_DEPLOY" \
             > _site/deployment-status.json
           sed -i "s|__YARTCHIVES_BUILD_SHA__|${BUILD_SHA}|g" _site/index.html
+          sed -i "s|__YARTCHIVES_DEPLOYMENT_ID__|${DEPLOYMENT_ID}|g" _site/index.html
           sed -i "s|__YARTCHIVES_DEPLOYED_AT__|${DEPLOYED_AT}|g" _site/index.html
           for asset in ./*.css ./*.js; do
             name="$(basename "$asset")"
@@ -92,6 +94,7 @@ jobs:
           done
           {
             printf 'build_sha=%s\n' "$BUILD_SHA"
+            printf 'deployment_id=%s\n' "$DEPLOYMENT_ID"
             sha256sum _site/index.html
             for asset in _site/*.css _site/*.js; do
               sha256sum "$asset"
@@ -115,16 +118,18 @@ jobs:
           set -euo pipefail
           BUILD_SHA="$(git rev-parse HEAD)"
           VERSION="$(git rev-parse --short=12 HEAD)"
+          DEPLOYMENT_ID="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
           BASE_URL="${PAGE_URL%/}"
 
           verified=false
           for attempt in $(seq 1 12); do
             if curl --fail --silent --show-error \
               -H 'Cache-Control: no-cache' \
-              "${BASE_URL}/?verify=${BUILD_SHA}" \
+              "${BASE_URL}/?verify=${DEPLOYMENT_ID}" \
               -o /tmp/live-index.html; then
               LIVE_SHA="$(sed -n 's/.*<meta name="yartchives-build" content="\([^"]*\)".*/\1/p' /tmp/live-index.html | head -n1)"
-              if [ "$LIVE_SHA" = "$BUILD_SHA" ]; then
+              LIVE_DEPLOYMENT_ID="$(sed -n 's/.*<meta name="yartchives-deployment-id" content="\([^"]*\)".*/\1/p' /tmp/live-index.html | head -n1)"
+              if [ "$LIVE_SHA" = "$BUILD_SHA" ] && [ "$LIVE_DEPLOYMENT_ID" = "$DEPLOYMENT_ID" ]; then
                 verified=true
                 break
               fi
@@ -133,26 +138,29 @@ jobs:
           done
 
           if [ "$verified" != true ]; then
-            echo "::error::Live Pages site did not expose build SHA $BUILD_SHA after deployment."
+            echo "::error::Live Pages site did not expose deployment $DEPLOYMENT_ID for build $BUILD_SHA."
             exit 1
           fi
 
           curl --fail --silent --show-error \
             -H 'Cache-Control: no-cache' \
-            "${BASE_URL}/deploy-manifest.txt?verify=${BUILD_SHA}" \
+            "${BASE_URL}/deploy-manifest.txt?verify=${DEPLOYMENT_ID}" \
             -o /tmp/live-deploy-manifest.txt
           grep -Fx "build_sha=${BUILD_SHA}" /tmp/live-deploy-manifest.txt
+          grep -Fx "deployment_id=${DEPLOYMENT_ID}" /tmp/live-deploy-manifest.txt
 
           curl --fail --silent --show-error \
             -H 'Cache-Control: no-cache' \
-            "${BASE_URL}/deployment-status.json?verify=${BUILD_SHA}" \
+            "${BASE_URL}/deployment-status.json?verify=${DEPLOYMENT_ID}" \
             -o /tmp/live-deployment-status.json
-          python - "${BUILD_SHA}" <<'PY'
+          python - "${BUILD_SHA}" "${DEPLOYMENT_ID}" <<'PY'
           import json
           import sys
           payload = json.load(open("/tmp/live-deployment-status.json", encoding="utf-8"))
           if payload.get("build_sha") != sys.argv[1]:
               raise SystemExit("deployment-status.json build SHA does not match live build")
+          if payload.get("deployment_id") != sys.argv[2]:
+              raise SystemExit("deployment-status.json deployment ID does not match live deployment")
           if not isinstance(payload.get("interactive"), bool):
               raise SystemExit("deployment-status.json interactive flag is not boolean")
           PY
@@ -174,7 +182,7 @@ jobs:
               listings.json)
                 curl --fail --silent --show-error \
                   -H 'Cache-Control: no-cache' \
-                  "${BASE_URL}/data/listings.json?verify=${BUILD_SHA}" \
+                  "${BASE_URL}/data/listings.json?verify=${DEPLOYMENT_ID}" \
                   -o /tmp/live-listings.json
                 actual="$(sha256sum /tmp/live-listings.json | awk '{print $1}')"
                 ;;
