@@ -100,6 +100,21 @@ jobs:
         if: steps.scope.outputs.health == 'true'
         run: bash scripts/run_quality_checks.sh health
 
+      - name: Publish required tests status for PR recovery
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_RECOVERY: ${{ inputs.pr_recovery }}
+        run: |
+          if [ "$PR_RECOVERY" != "true" ]; then
+            echo "Not a PR-recovery dispatch; no required status publication needed."
+            exit 0
+          fi
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -f state=success \
+            -f context=tests \
+            -f description="PR recovery Quality checks passed"
+
   live-source-smoke:
     if: >-
       github.event_name == 'schedule' ||
@@ -135,45 +150,27 @@ jobs:
           python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8 --strict-sources
           python scripts/audit_feed.py data/listings.json
 
-  publish-recovery-required-status:
-    if: >-
-      github.event_name == 'workflow_dispatch' &&
-      inputs.pr_recovery == true &&
-      needs.tests.result == 'success'
-    needs:
-      - tests
-    runs-on: ubuntu-latest
-    steps:
-      - name: Publish required tests status
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
-            -f state=success \
-            -f context=tests \
-            -f description="PR recovery Quality checks passed"
-
   wake-automerge:
     if: >-
       always() &&
       needs.tests.result == 'success' &&
       (
         github.event_name == 'pull_request' ||
-        (
-          github.event_name == 'workflow_dispatch' &&
-          inputs.pr_recovery == true &&
-          needs.publish-recovery-required-status.result == 'success'
-        )
+        github.event_name == 'workflow_dispatch'
       )
     needs:
       - tests
-      - publish-recovery-required-status
     runs-on: ubuntu-latest
     steps:
       - name: Wake auto-merge controller
         env:
           GH_TOKEN: ${{ github.token }}
+          PR_RECOVERY: ${{ inputs.pr_recovery }}
         run: |
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] && [ "$PR_RECOVERY" != "true" ]; then
+            echo "Not a PR-recovery dispatch; auto-merge wake not needed."
+            exit 0
+          fi
           gh workflow run auto-merge-agent-prs.yml \
             --repo "$GITHUB_REPOSITORY" \
             --ref main \
