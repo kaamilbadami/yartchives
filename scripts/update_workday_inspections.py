@@ -491,6 +491,14 @@ def inspection_order_key(
 
 
 def is_fresh_posting_group(jobs: list[dict[str, Any]], reference: datetime) -> bool:
+    target = normalize(upcoming_summer_term(reference))
+    normalized_terms = [normalize(job.get("term")) for job in jobs]
+
+    # Mirror inspection priority: if it's explicitly wrong season, it shouldn't count as fresh
+    # since these are intentionally deprioritized by term_gate=1 and starved of inspection budget
+    if all(term for term in normalized_terms) and target not in normalized_terms:
+        return False
+
     return any(
         (age := age_days(job, reference)) is not None and age <= FRESH_PRIORITY_DAYS
         for job in jobs

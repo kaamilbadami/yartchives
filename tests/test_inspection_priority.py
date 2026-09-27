@@ -211,5 +211,38 @@ class InspectionPriorityTests(unittest.TestCase):
         self.assertFalse(coverage["sla_met"])
 
 
+    def test_explicit_wrong_season_postings_are_excluded_from_fresh_denominator(self):
+        inspected_job = job(
+            "inspected",
+            "REQ-I",
+            title="Software Engineer Intern",
+            term="Summer 2027",
+            education_level="undergrad",
+            posted_at="2026-09-16T12:00:00Z",
+            profiles=["cs"],
+        )
+        wrong_season_job = job(
+            "wrong_season",
+            "REQ-W",
+            title="Winter Co-op",
+            term="Winter 2027",
+            education_level="undergrad",
+            posted_at="2026-09-15T12:00:00Z",
+            profiles=["cs"],
+        )
+        _, by_url = mod.build_listing_index([inspected_job, wrong_season_job])
+        entries = {}
+        inspected_url = mod.workday_identity(inspected_job)["canonical_url"]
+        wrong_season_url = mod.workday_identity(wrong_season_job)["canonical_url"]
+        entries[inspected_url] = {"inspection": {"status": "inspected"}}
+        coverage = mod.fresh_inspection_coverage(by_url, entries, NOW)
+
+        # Wrong season postings should be excluded entirely from inspectable fresh postings
+        self.assertEqual(coverage["inspectable"], 1)
+        self.assertEqual(coverage["resolved"], 1)
+        self.assertEqual(coverage["pending"], 0)
+        self.assertEqual(coverage["coverage_percent"], 100.0)
+
+
 if __name__ == "__main__":
     unittest.main()
