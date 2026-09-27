@@ -720,6 +720,12 @@
       element("p", "apply-next-entry-lede", "Tell Yartchives what you're looking for. We'll rank current internships around your profile so you know where to spend your time first.")
     );
 
+    const benefits = element("div", "apply-next-entry-benefits");
+    for (const label of ["Current internships", "Transparent ranking", "Profile stays in your browser"]) {
+      benefits.append(element("span", "apply-next-entry-benefit", label));
+    }
+    copy.append(benefits);
+
     const actions = element("div", "apply-next-entry-actions");
     const ranked = element("button", "primary-btn apply-next-entry-primary", "Get internships ranked for you");
     ranked.type = "button";
