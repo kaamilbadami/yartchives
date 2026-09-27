@@ -513,14 +513,16 @@ def fresh_inspection_coverage(
         elif status == "unavailable":
             unavailable += 1
     inspectable = len(fresh_urls)
-    coverage = round((inspected / inspectable) * 100, 1) if inspectable else 100.0
+    resolved = inspected + unavailable
+    coverage = round((resolved / inspectable) * 100, 1) if inspectable else 100.0
     return {
         "window_days": FRESH_PRIORITY_DAYS,
         "target_percent": FRESH_INSPECTION_TARGET_PERCENT,
         "inspectable": inspectable,
         "inspected": inspected,
         "unavailable": unavailable,
-        "pending": max(0, inspectable - inspected - unavailable),
+        "resolved": resolved,
+        "pending": max(0, inspectable - resolved),
         "coverage_percent": coverage,
         "sla_met": coverage >= FRESH_INSPECTION_TARGET_PERCENT,
     }
