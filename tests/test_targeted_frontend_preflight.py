@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 
 from scripts.targeted_frontend_preflight import (
     ALL_FRONTEND_TESTS,
@@ -52,6 +53,20 @@ class TargetedFrontendPreflightTests(unittest.TestCase):
             plan["tests"].count("tests/apply-next-ui.test.cjs"),
             1,
         )
+
+    def test_quality_workflow_gates_full_tests_on_targeted_preflight(self):
+        root = Path(__file__).resolve().parents[1]
+        workflow = (root / ".github" / "workflows" / "quality.yml").read_text(encoding="utf-8")
+        self.assertIn("targeted-frontend-preflight:", workflow)
+        self.assertIn("python scripts/targeted_frontend_preflight.py", workflow)
+        self.assertIn("needs:\n      - targeted-frontend-preflight", workflow)
+        self.assertIn("needs.targeted-frontend-preflight.result == 'success'", workflow)
+
+    def test_full_frontend_suite_covers_dimensions_module(self):
+        root = Path(__file__).resolve().parents[1]
+        quality = (root / "scripts" / "run_quality_checks.sh").read_text(encoding="utf-8")
+        self.assertIn("node --check apply-next-dimensions.js", quality)
+        self.assertIn("node tests/apply-next-dimensions.test.cjs", quality)
 
 
 if __name__ == "__main__":
