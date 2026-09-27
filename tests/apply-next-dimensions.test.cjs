@@ -1,4 +1,5 @@
 const assert = require("node:assert/strict");
+const L = require("../apply-next-location.js");
 const D = require("../apply-next-dimensions.js");
 
 const now = new Date("2026-09-16T16:00:00Z");
@@ -246,7 +247,31 @@ const demandPool = [
   job({ id: "a", _inspection: inspection([["Java required", ["Java"]]]) }),
   job({ id: "b", url: "https://example.com/b", location: "Stamford, CT", _inspection: inspection([["Java required", ["Java"]]]) }),
 ];
+const legacyLayeredDemandRanked = D.sortRanked(
+  L.rankJobs(demandPool, profile, now)
+    .map(result => D.transform(result, profile))
+    .filter(result => result && !result.excluded)
+);
 const demandRanked = D.rankJobs(demandPool, profile, now);
+assert.deepEqual(
+  demandRanked.map(result => ({
+    id: result.job.id,
+    total: result.total,
+    fit: result.components.fit.score,
+    freshness: result.components.freshness.score,
+    roi: result.components.roi.score,
+    location: result.components.location.score,
+  })),
+  legacyLayeredDemandRanked.map(result => ({
+    id: result.job.id,
+    total: result.total,
+    fit: result.components.fit.score,
+    freshness: result.components.freshness.score,
+    roi: result.components.roi.score,
+    location: result.components.location.score,
+  })),
+  "Single-pass dimensions ranking must be exactly equivalent to the previous layered rank/transform/sort path"
+);
 assert.equal(demandRanked.length, 2);
 assert.equal(demandRanked[0].components.role, undefined);
 assert.match(demandRanked[0].components.roi.detail, /Role value 15\/15/i);
