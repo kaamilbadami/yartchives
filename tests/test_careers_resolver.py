@@ -45,6 +45,28 @@ class CareersResolverTests(unittest.TestCase):
         self.assertEqual(result["provider"]["family"], "workday")
         self.assertNotIn(job, session.requested)
 
+    def test_bare_workday_tenant_is_not_resolved_without_site_identity(self):
+        tenant = "https://acme.wd5.myworkdayjobs.com/"
+        session = FakeSession({tenant: FakeResponse(tenant, "Find jobs")})
+        result = mod.resolve_employer({"name": "Acme", "url_hint": tenant}, session)
+        self.assertEqual(result["status"], "unresolved")
+        attempt = next(item for item in result["evidence"] if item["requested_url"] == tenant)
+        self.assertLess(attempt["score"], 0)
+        self.assertIn("collectable employer board identity", attempt["signals"][0])
+
+    def test_bare_workday_tenant_can_discover_site_link(self):
+        tenant = "https://acme.wd5.myworkdayjobs.com/"
+        board = "https://acme.wd5.myworkdayjobs.com/en-US/External"
+        html = f'<a href="{board}">View jobs</a>'
+        session = FakeSession({
+            tenant: FakeResponse(tenant, html),
+            board: FakeResponse(board, "Careers at Acme"),
+        })
+        result = mod.resolve_employer({"name": "Acme", "url_hint": tenant}, session)
+        self.assertEqual(result["status"], "resolved")
+        self.assertEqual(result["url"], board)
+        self.assertEqual(result["platform"], "workday")
+
     def test_oracle_redirect_and_evidence_are_preserved(self):
         careers = "https://acme.example/careers"
         oracle = "https://acme.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1"
