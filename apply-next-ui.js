@@ -327,6 +327,34 @@
     return queueResults(ranked, view, nowValue).slice(0, Math.max(TOP_N, Number(visibleCount || TOP_N)));
   }
 
+  function sampleDemoProfile() {
+    return {
+      _demoProfile: true,
+      targetTerm: "Summer 2027",
+      opportunityTypes: ["internship", "co-op"],
+      excludeGraduateOnly: true,
+      preferredProfiles: ["cs"],
+      supportedKeywords: ["software", "java", "python", "git", "linux", "sql"],
+      cautiousKeywords: ["c++", "c#"],
+      facts: {
+        degree: "Bachelor of Science",
+        major: "Computer Science",
+        supportedSkills: ["Java", "Python", "Git", "Linux", "SQL"],
+        cautiousSkills: ["C++", "C#"],
+        graduation: "May 2028",
+      },
+      roleFamilies: [
+        { id: "software", label: "Software engineering", priority: 1, keywords: ["software engineer"] },
+      ],
+      preferredStates: ["NY", "MA", "CA", "WA"],
+      relocationAllowed: true,
+      locationMode: "normal",
+      baseZips: [],
+      baseLabels: [],
+      nearbyMiles: 50,
+    };
+  }
+
   function validateProfile(profile) {
     if (!profile || typeof profile !== "object" || Array.isArray(profile)) {
       return { ok: false, error: "Profile must be a JSON object." };
@@ -677,7 +705,7 @@
     return browse;
   }
 
-  function renderEntryChoice(panel) {
+  function renderEntryChoice(panel, onDemo) {
     panel.dataset.view = "entry";
     panel.classList.remove("hidden");
     document.querySelector("#applyNextBtn")?.classList.add("hidden");
@@ -697,11 +725,17 @@
     ranked.type = "button";
     ranked.addEventListener("click", () => document.querySelector("#applyNextBtn")?.click());
 
+    const demo = element("button", "ghost-btn apply-next-entry-demo", "View sample ranking");
+    demo.type = "button";
+    demo.addEventListener("click", () => {
+      if (typeof onDemo === "function") void onDemo();
+    });
+
     const browse = element("button", "text-btn apply-next-entry-secondary", "Browse all internships");
     browse.type = "button";
     browse.addEventListener("click", () => switchToBrowse(panel));
 
-    actions.append(ranked, browse);
+    actions.append(ranked, demo, browse);
     entry.append(copy, actions);
     panel.append(entry);
   }
@@ -1492,32 +1526,46 @@
 
   function buildQueueSkeleton(profile, panel, explanation) {
     const fragment = document.createDocumentFragment();
+    const isDemo = Boolean(profile?._demoProfile);
 
     const heading = element("div", "apply-next-heading");
     const copy = element("div");
     copy.append(
-      element("p", "eyebrow", "your next application queue"),
-      element("h2", "", "Apply Next"),
-      foundingBetaBadge(),
+      element("p", "eyebrow", isDemo ? "sample recommendation queue" : "your next application queue"),
+      element("h2", "", isDemo ? "Apply Next demo" : "Apply Next")
+    );
+    if (!isDemo) copy.append(foundingBetaBadge());
+    copy.append(
       element("p", "muted apply-next-production-status", "Checking production status…"),
-      element("p", "muted", profileSummary(profile) || "Private strategy loaded")
+      element("p", "muted", profileSummary(profile) || (isDemo ? "Sample CS profile" : "Private strategy loaded"))
     );
     const controls = element("div", "apply-next-profile-actions");
     controls.append(browseInternshipsButton(panel, "text-btn"));
-    const edit = element("button", "ghost-btn", "Edit profile");
-    edit.type = "button";
-    edit.addEventListener("click", () => {
-      setupPanel(panel);
-      const input = document.querySelector("#applyNextProfileInput");
-      if (input) input.value = JSON.stringify(profile, null, 2);
-    });
-    const clear = element("button", "text-btn", "Clear private profile");
-    clear.type = "button";
-    clear.addEventListener("click", () => {
-      localStorage.removeItem(STORAGE_KEY);
-      setupPanel(panel);
-    });
-    controls.append(edit, clear);
+    if (isDemo) {
+      const personalize = element("button", "ghost-btn", "Use your own profile");
+      personalize.type = "button";
+      personalize.addEventListener("click", () => {
+        lastProfile = null;
+        lastRankedResults = [];
+        setupPanel(panel);
+      });
+      controls.append(personalize);
+    } else {
+      const edit = element("button", "ghost-btn", "Edit profile");
+      edit.type = "button";
+      edit.addEventListener("click", () => {
+        setupPanel(panel);
+        const input = document.querySelector("#applyNextProfileInput");
+        if (input) input.value = JSON.stringify(profile, null, 2);
+      });
+      const clear = element("button", "text-btn", "Clear private profile");
+      clear.type = "button";
+      clear.addEventListener("click", () => {
+        localStorage.removeItem(STORAGE_KEY);
+        setupPanel(panel);
+      });
+      controls.append(edit, clear);
+    }
     const productionStatus = copy.querySelector(".apply-next-production-status");
     if (productionStatus) {
       productionStatus.dataset.productionStatus = "true";
@@ -1766,9 +1814,20 @@
       await openApplyNext();
     });
 
+    async function openSampleDemo() {
+      typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("apply_next_demo_open");
+      panel.classList.remove("hidden");
+      panel.dataset.view = "apply-next";
+      activeQueueView = "recommended";
+      queueVisibleCounts = { recommended: TOP_N, fresh: TOP_N };
+      setProfileSetupMode(true);
+      panel.scrollIntoView({ behavior: "smooth", block: "start" });
+      await renderQueue(panel, sampleDemoProfile());
+    }
+
     const rememberedMode = loadEntryMode(localStorage);
     if (!rememberedMode) {
-      renderEntryChoice(panel);
+      renderEntryChoice(panel, openSampleDemo);
     } else if (rememberedMode === "apply-next") {
       void openApplyNext({ persist: false, scroll: false });
     }
@@ -1796,6 +1855,7 @@
     queueResults,
     visibleQueueResults,
     validateProfile,
+    sampleDemoProfile,
     loadProfile,
     saveProfile,
     timingNow,
