@@ -97,6 +97,32 @@ h1 {
   color: #897a6d;
 }
 
+.stat.stat-nav:hover {
+  border-color: #d2b18f;
+  background: #fff4e7;
+  box-shadow: 0 9px 24px rgba(106, 67, 42, .07);
+}
+
+.stat.stat-nav.is-active {
+  border-color: #cf9e70;
+  background: linear-gradient(180deg, #f5dfca, #efd1b4);
+  box-shadow:
+    inset 0 0 0 1px rgba(166, 95, 61, .10),
+    0 8px 20px rgba(111, 69, 42, .10);
+}
+
+.stat.stat-nav.is-active span {
+  color: #6f3d29;
+}
+
+.stat.stat-nav.is-active small {
+  color: #8d6148;
+}
+
+.stat.stat-nav.is-active::before {
+  display: none;
+}
+
 .controls {
   box-shadow: 0 14px 38px rgba(36, 45, 75, .06);
 }
