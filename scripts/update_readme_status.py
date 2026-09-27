@@ -23,30 +23,14 @@ def listing_rows(payload: Any) -> list[dict[str, Any]]:
     raise ValueError("feed must be a list or contain a listings/jobs/opportunities list")
 
 
-def source_label(row: dict[str, Any]) -> str | None:
-    for key in ("source", "source_name", "sourceName", "provider"):
-        value = row.get(key)
-        if isinstance(value, str) and value.strip():
-            return value.strip()
-    provenance = row.get("provenance")
-    if isinstance(provenance, dict):
-        for key in ("source", "source_name", "provider"):
-            value = provenance.get(key)
-            if isinstance(value, str) and value.strip():
-                return value.strip()
-    return None
-
-
 def render_status(rows: list[dict[str, Any]]) -> str:
-    sources = sorted({label for row in rows if (label := source_label(row))})
     return "\n".join(
         [
             START,
             "- **Beta scope:** CS-first",
             "- **Feed refresh:** hourly GitHub Actions pipeline",
             f"- **Published listings:** {len(rows):,}",
-            f"- **Distinct source labels:** {len(sources):,}",
-            "- **Coverage claim:** not yet certified as a complete single discovery source",
+            "- **Coverage:** Beta; not intended as a complete internship-market index",
             END,
         ]
     )
