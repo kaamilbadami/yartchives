@@ -214,6 +214,11 @@
     return /\b(?:familiarity|familiar|interest|exposure|foundational|basic understanding|working knowledge|coursework|academic|project experience|school project|willingness to learn|eager to learn)\b/.test(text);
   }
 
+  function strongRequirement(statement) {
+    const text = normalize(statement);
+    return /\b(?:strong|proficient|proficiency|advanced|expert|expertise|deep understanding|firm grasp|solid grasp|demonstrated|hands on|professional|production)\b/.test(text);
+  }
+
   function alternativeRequirement(statement, technologies) {
     const text = normalize(statement);
     return technologies.length > 1 && /\b(?:or|either)\b/.test(text);
@@ -247,14 +252,15 @@
           cautiousRequired.add(cautiousMatch);
           return;
         }
+        const group = technologies.join(" / ");
         for (const technology of technologies) {
           const adjacent = adjacentEvidence(technology, supportedSkills);
           if (adjacent) {
             adjacentRequired.set(technology, adjacent);
+            if (strongRequirement(statement)) hardGaps.add(group);
             return;
           }
         }
-        const group = technologies.join(" / ");
         if (learnableRequirement(statement)) learnableGaps.add(group);
         else hardGaps.add(group);
         return;
