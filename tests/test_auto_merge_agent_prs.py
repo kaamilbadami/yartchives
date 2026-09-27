@@ -1382,9 +1382,16 @@ class AutoMergeAgentPrTests(unittest.TestCase):
 
     def test_blocked_green_pr_recovers_missing_required_tests_status(self):
         source = MODULE_PATH.read_text()
-        self.assertIn("def missing_required_tests_status", source)
-        self.assertIn('"required status check" in text', source)
-        self.assertIn("'\\\"tests\\\"' in text", source)
+        self.assertTrue(
+            mod.missing_required_tests_status(
+                'Repository rule violations found: Required status check "tests" is expected.'
+            )
+        )
+        self.assertFalse(
+            mod.missing_required_tests_status(
+                'Repository rule violations found: Required status check "lint" is expected.'
+            )
+        )
         self.assertIn(
             'Dispatched PR recovery Quality for #{number} so the required ',
             source,
