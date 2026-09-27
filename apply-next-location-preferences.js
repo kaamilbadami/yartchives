@@ -236,12 +236,12 @@
 
     const anchors = orderedAnchors(profile);
     const home = anchors[0];
-    if (!home) return { score: DEFAULT_UNKNOWN_SCORE, detail: "Home commute base is not configured" };
+    if (!home) return { score: DEFAULT_UNKNOWN_SCORE, detail: "Home commute base is not configured", unresolved: true };
 
     const distances = anchorDistances(job, { ...profile, baseZips: [home.zip], baseLabels: [home.label || home.zip], locationAnchors: [] });
     const distance = distances[0]?.distanceMiles;
     if (!Number.isFinite(distance)) {
-      return { score: DEFAULT_UNKNOWN_SCORE, detail: "Commute distance is not yet verified" };
+      return { score: DEFAULT_UNKNOWN_SCORE, detail: "Commute distance is not yet verified", unresolved: true };
     }
 
     if (distance <= home.commuteMiles) {
@@ -273,7 +273,7 @@
     }
 
     const anchors = orderedAnchors(profile);
-    if (!anchors.length) return { score: DEFAULT_UNKNOWN_SCORE, detail: "No custom commute bases are configured" };
+    if (!anchors.length) return { score: DEFAULT_UNKNOWN_SCORE, detail: "No custom commute bases are configured", unresolved: true };
     const distances = anchorDistances(job, profile);
 
     if (distances.length === anchors.length) {
@@ -310,7 +310,7 @@
       };
     }
 
-    return { score: DEFAULT_UNKNOWN_SCORE, detail: "Location is known, but commute distance to custom bases is not yet verified" };
+    return { score: DEFAULT_UNKNOWN_SCORE, detail: "Location is known, but commute distance to custom bases is not yet verified", unresolved: true };
   }
 
   function scoreLocation(job, profile) {
@@ -325,7 +325,14 @@
     const effectiveJob = result.job || job;
     const location = scoreLocation(effectiveJob, profile || {});
     const prior = Number(result.components?.location?.score || 0);
-    const components = { ...result.components, location: { score: location.score, detail: location.detail } };
+    const components = {
+      ...result.components,
+      location: {
+        score: location.score,
+        detail: location.detail,
+        unresolved: location.unresolved === true,
+      },
+    };
     if (location.excluded) {
       return {
         ...result,
