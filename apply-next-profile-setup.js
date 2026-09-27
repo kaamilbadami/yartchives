@@ -9,25 +9,42 @@
   const PDFJS_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs";
   const PDFJS_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
 
+  const CAREER_AREAS = [
+    { id: "cs", label: "Computer Science" },
+    { id: "engineering", label: "Engineering" },
+  ];
+
   const ROLE_FAMILIES = [
-    { id: "software", label: "Software engineering", priority: 1, keywords: ["software engineer", "software developer"] },
-    { id: "testing-systems", label: "Testing / systems", priority: 1, keywords: ["test engineer", "quality assurance", "qa", "systems", "systems engineer"] },
-    { id: "analytics", label: "Data / analytics", priority: 0.85, keywords: ["data analyst", "business analyst", "analytics"] },
-    { id: "infrastructure", label: "Infrastructure / technical ops", priority: 0.8, keywords: ["infrastructure", "technical ops", "IT"] },
-    { id: "hpc", label: "HPC / scientific computing", priority: 0.75, keywords: ["HPC", "scientific computing"] },
+    { id: "software", label: "Software engineering", careerAreas: ["cs"], priority: 1, keywords: ["software engineer", "software developer"] },
+    { id: "testing-systems", label: "Software testing / systems", careerAreas: ["cs"], priority: 1, keywords: ["software test", "quality assurance", "qa", "systems software"] },
+    { id: "analytics", label: "Data / analytics", careerAreas: ["cs"], priority: 0.85, keywords: ["data analyst", "data engineer", "analytics"] },
+    { id: "infrastructure", label: "Infrastructure / technical ops", careerAreas: ["cs"], priority: 0.8, keywords: ["infrastructure", "technical ops", "IT", "cloud engineer", "devops"] },
+    { id: "ai-ml", label: "AI / machine learning", careerAreas: ["cs"], priority: 0.9, keywords: ["machine learning", "artificial intelligence", "AI/ML", "AI engineer"] },
+    { id: "cybersecurity", label: "Cybersecurity", careerAreas: ["cs"], priority: 0.9, keywords: ["cybersecurity", "information security", "security engineer"] },
+    { id: "hpc", label: "HPC / scientific computing", careerAreas: ["cs", "engineering"], priority: 0.75, keywords: ["HPC", "scientific computing"] },
+    { id: "mechanical-manufacturing", label: "Mechanical / manufacturing", careerAreas: ["engineering"], priority: 1, keywords: ["mechanical engineer", "manufacturing engineer", "mechanical design", "industrial engineer", "materials engineer"] },
+    { id: "electrical-hardware", label: "Electrical / electronics / hardware", careerAreas: ["engineering"], priority: 1, keywords: ["electrical engineer", "electronics engineer", "hardware engineer", "computer engineer", "embedded systems", "firmware", "FPGA", "RF engineer"] },
+    { id: "aerospace", label: "Aerospace / flight / space systems", careerAreas: ["engineering"], priority: 0.95, keywords: ["aerospace", "aeronautical", "propulsion", "flight test", "space systems", "spacecraft", "avionics"] },
+    { id: "engineering-systems", label: "Systems / integration / validation", careerAreas: ["engineering"], priority: 0.95, keywords: ["systems engineer", "systems integration", "validation engineer", "verification engineer", "reliability engineer"] },
+    { id: "robotics-controls", label: "Robotics / controls / automation", careerAreas: ["engineering"], priority: 0.95, keywords: ["robotics", "controls engineer", "automation engineer", "mechatronics", "autonomy"] },
+    { id: "civil-structural", label: "Civil / structural / transportation", careerAreas: ["engineering"], priority: 0.9, keywords: ["civil engineer", "structural engineer", "transportation engineer", "roadway", "construction engineer"] },
+    { id: "product-design-test", label: "Product / design / test engineering", careerAreas: ["engineering"], priority: 0.9, keywords: ["product engineer", "design engineer", "test engineer", "quality engineer", "process engineer", "development engineer"] },
   ];
 
   const SKILL_VOCABULARY = [
     "Java", "C++", "C", "C#", "Python", "Bash", "JavaScript", "TypeScript", "React", "Node.js",
     "Git", "GitHub", "GitLab CI", "Linux", "Unix", "Slurm", "SQL", "PostgreSQL", "MySQL", "Docker",
-    "Kubernetes", "AWS", "Azure", "GCP", "CMake", "gdb", "GoogleTest", "Jenkins", "Jira", "MATLAB", "R",
-    "Excel", "PowerPoint", "Tableau", "Power BI", "ReFrame", "PMIx", "PRRTE", "HPC"
+    "Kubernetes", "AWS", "Azure", "GCP", "CMake", "gdb", "GoogleTest", "Jenkins", "Jira", "MATLAB", "Simulink",
+    "SolidWorks", "AutoCAD", "CAD", "LabVIEW", "Verilog", "VHDL", "FPGA", "PCB", "Altium", "ANSYS", "Creo", "CATIA",
+    "GD&T", "PLC", "ROS", "R", "Excel", "PowerPoint", "Tableau", "Power BI", "ReFrame", "PMIx", "PRRTE", "HPC"
   ];
 
   const MAJORS = [
     "Computer Science", "Computer Engineering", "Electrical Engineering", "Data Science", "Information Systems",
     "Information Technology", "Statistics", "Mathematics", "Business Analytics", "Finance", "Economics",
-    "Mechanical Engineering", "Software Engineering"
+    "Mechanical Engineering", "Software Engineering", "Aerospace Engineering", "Civil Engineering",
+    "Chemical Engineering", "Biomedical Engineering", "Industrial Engineering", "Materials Engineering",
+    "Mechatronics Engineering", "Robotics Engineering"
   ];
 
   function normalize(value) {
@@ -169,14 +186,34 @@
     throw new Error("Use a PDF, TXT, or Markdown resume for local parsing.");
   }
 
-  function selectedRoleFamilies(ids) {
+  function selectedCareerAreas(ids) {
     const wanted = new Set(ids || []);
-    return ROLE_FAMILIES.filter(family => wanted.has(family.id)).map(family => ({ ...family }));
+    return CAREER_AREAS.filter(area => wanted.has(area.id)).map(area => area.id);
+  }
+
+  function defaultRoleFamilyIdsForAreas(areaIds) {
+    const wanted = new Set(areaIds || []);
+    return ROLE_FAMILIES
+      .filter(family => (family.careerAreas || []).some(area => wanted.has(area)))
+      .map(family => family.id);
+  }
+
+  function selectedRoleFamilies(ids, areaIds) {
+    const wanted = new Set(ids || []);
+    const areas = new Set(areaIds || []);
+    return ROLE_FAMILIES
+      .filter(family => wanted.has(family.id) && (family.careerAreas || []).some(area => areas.has(area)))
+      .map(family => ({ ...family }));
   }
 
   function buildProfile(values, existing) {
     const base = existing && typeof existing === "object" ? existing : {};
-    const roleFamilies = selectedRoleFamilies(values.roleFamilyIds?.length ? values.roleFamilyIds : ROLE_FAMILIES.map(family => family.id));
+    const careerAreas = selectedCareerAreas(values.careerAreaIds?.length ? values.careerAreaIds : ["cs"]);
+    const effectiveCareerAreas = careerAreas.length ? careerAreas : ["cs"];
+    const requestedRoleIds = values.roleFamilyIds?.length
+      ? values.roleFamilyIds
+      : defaultRoleFamilyIdsForAreas(effectiveCareerAreas);
+    const roleFamilies = selectedRoleFamilies(requestedRoleIds, effectiveCareerAreas);
     const supportedSkills = splitList(values.supportedSkills);
     const cautiousSkills = splitList(values.cautiousSkills);
     const roleKeywords = roleFamilies.flatMap(family => family.keywords || []);
@@ -188,12 +225,13 @@
       workAuthorization = "Authorized to work in the U.S. without sponsorship";
     }
     const preferredProfiles = unique([
-      ...roleFamilies.map(family => family.id === "analytics" ? "tech-business" : "cs"),
-      ...(roleFamilies.some(family => ["software", "testing-systems", "infrastructure", "hpc"].includes(family.id)) ? ["cs"] : []),
+      ...effectiveCareerAreas,
+      ...(roleFamilies.some(family => family.id === "analytics") ? ["tech-business"] : []),
     ]);
     return {
       ...base,
       version: 1,
+      careerAreas: effectiveCareerAreas,
       targetTerm: normalize(values.targetTerm) || "Summer 2027",
       opportunityTypes: values.opportunityTypes?.length ? unique(values.opportunityTypes) : ["internship", "co-op"],
       excludeGraduateOnly: values.excludeGraduateOnly !== false,
@@ -278,6 +316,12 @@
       securityClearance: facts.securityClearance || "Unknown / not provided",
       supportedSkills: (facts.supportedSkills || []).join(", "),
       cautiousSkills: (facts.cautiousSkills || []).join(", "),
+      careerAreaIds: (() => {
+        const explicit = selectedCareerAreas(profile?.careerAreas || []);
+        if (explicit.length) return explicit;
+        const inferred = selectedCareerAreas(profile?.preferredProfiles || []);
+        return inferred.length ? inferred : ["cs"];
+      })(),
       roleFamilyIds: (profile?.roleFamilies || []).map(family => family.id),
       baseZips: (profile?.baseZips || []).join(", "),
       preferredStates: (profile?.preferredStates || []).join(", "),
@@ -306,6 +350,7 @@
       remoteRelevant: Boolean(get("remoteRelevant")?.checked),
       relocationAllowed: Boolean(get("relocationAllowed")?.checked),
       excludeGraduateOnly: true,
+      careerAreaIds: [...form.querySelectorAll('[name="careerArea"]:checked')].map(node => node.value),
       roleFamilyIds: [...form.querySelectorAll('[name="roleFamily"]:checked')].map(node => node.value),
       opportunityTypes: [...form.querySelectorAll('[name="opportunityType"]:checked')].map(node => node.value),
     };
@@ -418,16 +463,58 @@
 
     const strategy = element("section", "apply-next-profile-section");
     strategy.append(element("h3", "", "5. What are you looking for?"));
-    const roleWrap = element("div", "apply-next-profile-checks");
-    const selectedRoles = new Set(values.roleFamilyIds.length ? values.roleFamilyIds : ROLE_FAMILIES.map(family => family.id));
-    for (const family of ROLE_FAMILIES) {
+    strategy.append(element("p", "muted", "Choose Computer Science, Engineering, or both. Role families below are scoped to the career areas you select."));
+
+    const careerWrap = element("div", "apply-next-profile-checks");
+    const selectedAreas = new Set(values.careerAreaIds?.length ? values.careerAreaIds : ["cs"]);
+    for (const area of CAREER_AREAS) {
       const label = element("label", "apply-next-profile-check");
-      const checkbox = input("roleFamily", family.id, "checkbox");
-      checkbox.value = family.id;
-      checkbox.checked = selectedRoles.has(family.id);
-      label.append(checkbox, document.createTextNode(family.label));
-      roleWrap.append(label);
+      const checkbox = input("careerArea", area.id, "checkbox");
+      checkbox.value = area.id;
+      checkbox.checked = selectedAreas.has(area.id);
+      label.append(checkbox, document.createTextNode(area.label));
+      careerWrap.append(label);
     }
+
+    const roleWrap = element("div", "apply-next-profile-role-groups");
+    const defaultRoleIds = defaultRoleFamilyIdsForAreas([...selectedAreas]);
+    const selectedRoles = new Set(values.roleFamilyIds.length ? values.roleFamilyIds : defaultRoleIds);
+
+    function renderRoleFamilies() {
+      roleWrap.innerHTML = "";
+      const activeAreas = new Set([...form.querySelectorAll('[name="careerArea"]:checked')].map(node => node.value));
+      for (const area of CAREER_AREAS) {
+        if (!activeAreas.has(area.id)) continue;
+        const group = element("div", "apply-next-profile-role-group");
+        group.append(element("p", "apply-next-profile-subhead", area.label));
+        const checks = element("div", "apply-next-profile-checks");
+        for (const family of ROLE_FAMILIES.filter(item => (item.careerAreas || []).includes(area.id))) {
+          const label = element("label", "apply-next-profile-check");
+          const checkbox = input("roleFamily", family.id, "checkbox");
+          checkbox.value = family.id;
+          checkbox.checked = selectedRoles.has(family.id);
+          label.append(checkbox, document.createTextNode(family.label));
+          checks.append(label);
+        }
+        group.append(checks);
+        roleWrap.append(group);
+      }
+    }
+
+    careerWrap.addEventListener("change", event => {
+      const target = event?.target;
+      if (!target || target.name !== "careerArea") return;
+      const checkedAreas = [...careerWrap.querySelectorAll('[name="careerArea"]:checked')].map(node => node.value);
+      if (!checkedAreas.length) {
+        target.checked = true;
+        return;
+      }
+      if (target.checked) {
+        for (const id of defaultRoleFamilyIdsForAreas([target.value])) selectedRoles.add(id);
+      }
+      renderRoleFamilies();
+    });
+    renderRoleFamilies();
     const typeWrap = element("div", "apply-next-profile-checks");
     const selectedTypes = new Set(values.opportunityTypes);
     for (const type of ["internship", "co-op"]) {
@@ -438,7 +525,7 @@
       label.append(checkbox, document.createTextNode(type === "co-op" ? "Co-op" : "Internship"));
       typeWrap.append(label);
     }
-    strategy.append(element("p", "apply-next-profile-subhead", "Role families"), roleWrap, element("p", "apply-next-profile-subhead", "Opportunity types"), typeWrap);
+    strategy.append(element("p", "apply-next-profile-subhead", "Career areas"), careerWrap, roleWrap, element("p", "apply-next-profile-subhead", "Opportunity types"), typeWrap);
     form.append(strategy);
 
     const location = element("section", "apply-next-profile-section");
@@ -559,8 +646,10 @@
   return {
     PDFJS_URL,
     PDFJS_WORKER_URL,
+    CAREER_AREAS,
     ROLE_FAMILIES,
     SKILL_VOCABULARY,
+    defaultRoleFamilyIdsForAreas,
     splitList,
     containsSkill,
     extractResumeHints,
