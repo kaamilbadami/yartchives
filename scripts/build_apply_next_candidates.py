@@ -19,6 +19,7 @@ JOB_FIELDS = (
     "title",
     "location",
     "url",
+    "posting_url",
     "posted_at",
     "term",
     "profiles",
