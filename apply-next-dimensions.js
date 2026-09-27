@@ -463,20 +463,33 @@
       score: clamp(result.components.freshness?.score, 0, SCORE_MAXIMA.freshness),
     };
     const roi = scoreApplicationValue(result, fit);
+    const locationBase = result.components.location || { detail: "Location evidence unavailable" };
     const location = {
-      ...(result.components.location || { detail: "Location evidence unavailable" }),
-      score: clamp(result.components.location?.score, 0, SCORE_MAXIMA.location),
+      ...locationBase,
+      score: clamp(locationBase.score, 0, SCORE_MAXIMA.location),
+      max_score: clamp(
+        Number.isFinite(Number(locationBase.max_score)) ? Number(locationBase.max_score) : locationBase.score,
+        0,
+        SCORE_MAXIMA.location
+      ),
     };
+    if (location.max_score < location.score) location.max_score = location.score;
     const link = {
       score: 0,
       detail: `${result.components.link?.detail || "Link provenance unavailable"}; provenance only, not a ranking signal`,
     };
     const components = { fit, eligibility, freshness, roi, location, link };
     const total = sumRankingComponents(components);
+    const locationUncertainty = Math.max(0, Number(location.max_score || 0) - Number(location.score || 0));
+    const totalRange = {
+      min: total,
+      max: Math.min(SCORE_TOTAL, total + locationUncertainty),
+    };
     const inspection = alignInspection(result.inspection, readiness);
     return {
       ...result,
       total,
+      totalRange,
       components,
       inspection,
       readiness,
@@ -506,9 +519,16 @@
   }
 
   function sortRanked(results) {
-    return results.sort((a, b) => b.total - a.total
-      || ((new Date(b.job?.posted_at || 0)).getTime() || 0) - ((new Date(a.job?.posted_at || 0)).getTime() || 0)
-      || String(a.job?.company || "").localeCompare(String(b.job?.company || "")));
+    return results.sort((a, b) => {
+      const aMin = Number(a?.totalRange?.min ?? a?.total ?? 0);
+      const bMin = Number(b?.totalRange?.min ?? b?.total ?? 0);
+      if (bMin !== aMin) return bMin - aMin;
+      const aMax = Number(a?.totalRange?.max ?? aMin);
+      const bMax = Number(b?.totalRange?.max ?? bMin);
+      if (bMax !== aMax) return bMax - aMax;
+      return ((new Date(b.job?.posted_at || 0)).getTime() || 0) - ((new Date(a.job?.posted_at || 0)).getTime() || 0)
+        || String(a.job?.company || "").localeCompare(String(b.job?.company || ""));
+    });
   }
 
   function rankJobs(jobs, profile, now = new Date()) {
