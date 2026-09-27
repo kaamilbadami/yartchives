@@ -48,18 +48,52 @@ const freshRanked = [
   { total: 54, components: { fit: { score: 35 } }, job: { id: "fresh-low", posted_at: "2026-09-19" } },
   { total: 72, components: { fit: { score: 25 } }, job: { id: "fresh-good", posted_at: "2026-09-17" } },
   { total: 70, components: { fit: { score: 35 } }, job: { id: "unknown-date", posted_at: null } },
-  { total: 75, components: { fit: { score: 24 } }, job: { id: "fresh-weak-fit", posted_at: "2026-09-19" } },
+  {
+    total: 75,
+    components: { fit: { score: 20 } },
+    applicationValue: { role: { score: 15 } },
+    readiness: {
+      label: "Ready on known requirements",
+      evidence: { exactRequired: [], adjacentRequired: [], exactPreferred: [], adjacentPreferred: [], hardGaps: [], cautiousRequired: [] },
+    },
+    job: { id: "fresh-evidence-limited", posted_at: "2026-09-19" },
+  },
+  {
+    total: 74,
+    components: { fit: { score: 14 } },
+    applicationValue: { role: { score: 15 } },
+    readiness: {
+      label: "Major required gaps",
+      evidence: { exactRequired: ["python"], adjacentRequired: [], exactPreferred: [], adjacentPreferred: [], hardGaps: ["typescript", "react"], cautiousRequired: [] },
+    },
+    job: { id: "fresh-hard-gap", posted_at: "2026-09-19" },
+  },
+  {
+    total: 73,
+    components: { fit: { score: 20 } },
+    applicationValue: { role: { score: 6 } },
+    readiness: {
+      label: "Ready on known requirements",
+      evidence: { exactRequired: [], adjacentRequired: [], exactPreferred: [], adjacentPreferred: [], hardGaps: [], cautiousRequired: [] },
+    },
+    job: { id: "fresh-off-role", posted_at: "2026-09-19" },
+  },
 ];
 assert.equal(UI.postedAgeDays("2026-09-16", freshNow), 3);
 assert.equal(UI.postedAgeDays("not-a-date", freshNow), null);
 assert.deepEqual(
   UI.freshRankedResults(freshRanked, freshNow).map(result => result.job.id),
-  ["fresh-best", "fresh-three-day", "fresh-good"]
+  ["fresh-best", "fresh-three-day", "fresh-good", "fresh-evidence-limited"]
 );
+assert.deepEqual(UI.freshQualificationStatus(freshRanked[6]), { qualified: true, evidenceLimited: true });
+assert.deepEqual(UI.freshQualificationStatus(freshRanked[7]), { qualified: false, evidenceLimited: false });
+assert.deepEqual(UI.freshQualificationStatus(freshRanked[8]), { qualified: false, evidenceLimited: false });
 assert.deepEqual(UI.freshFunnelStats(freshRanked, freshNow), {
-  recent: 5,
-  scoreQualified: 4,
+  recent: 7,
+  scoreQualified: 6,
   fitQualified: 3,
+  evidenceLimitedQualified: 1,
+  displayed: 4,
 });
 assert.deepEqual(
   UI.visibleQueueResults(freshRanked, "recommended", freshNow).map(result => result.job.id),
