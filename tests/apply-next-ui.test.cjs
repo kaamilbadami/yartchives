@@ -481,7 +481,7 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /button\.classList\.remove\("hidden"\)/, "Choosing a mode should restore the reusable header Apply Next control");
   assert.match(uiSource, /Browse all internships/, "First-use entry should preserve a direct browse choice");
   assert.match(uiSource, /Browse internships/, "Focused Apply Next should expose an explicit browse exit");
-  assert.match(uiSource, /if \(!rememberedMode\) \{\s*renderEntryChoice\(panel\)/, "First visit should show the entry decision");
+  assert.match(uiSource, /if \(!rememberedMode\) \{\s*renderEntryChoice\(panel, openSampleDemo\)/, "First visit should show the entry decision with the sample-demo path");
   assert.match(uiSource, /rememberedMode === "apply-next"/, "Returning Apply Next users should resume their chosen mode");
   const demoOpenSource = uiSource.match(/async function openSampleDemo\(\) \{([\s\S]*?)\n    \}/);
   assert.ok(demoOpenSource, "Sample demo opener should be present");
