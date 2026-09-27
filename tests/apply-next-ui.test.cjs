@@ -40,6 +40,13 @@ assert.equal(UI.FRESH_MIN_SCORE, 55);
 assert.equal(UI.FRESH_MIN_FIT_SCORE, 25);
 assert.equal(UI.LOCATION_ENRICHMENT_YIELD_BUDGET_MS, 100);
 
+const demoProfile = UI.sampleDemoProfile();
+assert.equal(UI.validateProfile(demoProfile).ok, true);
+assert.equal(demoProfile._demoProfile, true);
+assert.equal(demoProfile.targetTerm, "Summer 2027");
+assert.equal(demoProfile.facts.major, "Computer Science");
+assert.deepEqual(demoProfile.roleFamilies.map(family => family.id), ["software"]);
+
 const freshNow = new Date("2026-09-19T12:00:00Z");
 const freshRanked = [
   { total: 88, components: { fit: { score: 35 } }, job: { id: "fresh-best", posted_at: "2026-09-19" } },
@@ -467,12 +474,19 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /Get internships ranked for you/, "First-use entry should emphasize ranked recommendations");
   assert.match(uiSource, /Tell Yartchives what you're looking for\. We'll rank current internships around your profile/, "First-use copy should explain the ranked value proposition");
   assert.match(uiSource, /"text-btn apply-next-entry-secondary", "Browse all internships"/, "Browse should be visually secondary to ranked recommendations");
+  assert.match(uiSource, /"ghost-btn apply-next-entry-demo", "View sample ranking"/, "First-use entry should expose a one-click sample ranking");
+  assert.match(uiSource, /isDemo \? "Apply Next demo" : "Apply Next"/, "Sample ranking should be clearly labeled as a demo");
+  assert.match(uiSource, /"Use your own profile"/, "Demo should provide a direct path into real profile setup");
   assert.match(uiSource, /document\.querySelector\("#applyNextBtn"\)\?\.classList\.add\("hidden"\)/, "First-use entry should hide the redundant header Apply Next control");
   assert.match(uiSource, /button\.classList\.remove\("hidden"\)/, "Choosing a mode should restore the reusable header Apply Next control");
   assert.match(uiSource, /Browse all internships/, "First-use entry should preserve a direct browse choice");
   assert.match(uiSource, /Browse internships/, "Focused Apply Next should expose an explicit browse exit");
   assert.match(uiSource, /if \(!rememberedMode\) \{\s*renderEntryChoice\(panel\)/, "First visit should show the entry decision");
   assert.match(uiSource, /rememberedMode === "apply-next"/, "Returning Apply Next users should resume their chosen mode");
+  const demoOpenSource = uiSource.match(/async function openSampleDemo\(\) \{([\s\S]*?)\n    \}/);
+  assert.ok(demoOpenSource, "Sample demo opener should be present");
+  assert.match(demoOpenSource[1], /renderQueue\(panel, sampleDemoProfile\(\)\)/, "Demo should rank the sample profile directly");
+  assert.doesNotMatch(demoOpenSource[1], /saveProfile|saveEntryMode|localStorage\.setItem/, "Opening the demo must not overwrite profile or entry preferences");
   assert.match(uiSource, /saveEntryMode\([^\n]+, "browse"\)/, "Browse exit should remember browse mode");
 
   assert.match(uiSource, /setProfileSetupMode\(true\)/, "Apply Next should enter focused mode");
