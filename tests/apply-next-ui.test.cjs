@@ -455,6 +455,8 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(betaThemeCss, /--accent:\s*#a65f3d/, "Beta theme should use the warm hedgehog accent");
   assert.match(betaThemeCss, /\.apply-next-entry\s*\{[\s\S]*?border-radius:\s*30px/, "First-use hero should use the friendly landing treatment");
   assert.match(betaThemeCss, /\.apply-next-entry-mascot\s*\{/, "First-use hero should give the hedgehog mascot a visible treatment");
+  assert.match(betaThemeCss, /\.stat\.stat-nav\.is-active\s*\{[\s\S]*?background:\s*linear-gradient\(180deg, #f5dfca, #efd1b4\)/, "Active stats should stay inside the warm hedgehog palette");
+  assert.doesNotMatch(betaThemeCss, /\.stat\.stat-nav\.is-active\s*\{[\s\S]*?#152236/, "Active stats must not regress to the legacy navy treatment");
   assert.match(betaThemeCss, /\.apply-next-card\s*\{[\s\S]*?background:\s*#fffaf2/, "Apply Next cards should use a warm light surface");
   assert.match(applyNextCss, /\.apply-next-open:disabled\s*\{[\s\S]*?cursor:\s*progress/, "Disabled Apply Next should have a visible loading treatment");
 
