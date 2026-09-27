@@ -605,19 +605,11 @@ function renderJobs() {
 
     const applyBtn = card.querySelector(".apply-btn");
     if (job.url) {
-      applyBtn.href = job.url;
-      if (job.link_kind === "employer_job") {
-        applyBtn.textContent = "View posting ↗";
-        applyBtn.addEventListener("click", () => {
-          typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("apply_clicked");
-        });
-      } else {
-        applyBtn.addEventListener("click", () => {
-          typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("apply_clicked");
-          state.applied.add(job.id);
-          persist();
-        });
-      }
+      applyBtn.href = YartchivesUtils.jobViewUrl(job);
+      applyBtn.textContent = "View job ↗";
+      applyBtn.addEventListener("click", () => {
+        typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("job_opened");
+      });
     } else {
       applyBtn.textContent = "Source";
       applyBtn.href = (job.source_urls || ["https://github.com/kaamilbadami/yartchives"])[0];

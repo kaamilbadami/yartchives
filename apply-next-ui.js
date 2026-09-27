@@ -855,6 +855,24 @@
     return split.length > 1 ? split : [raw];
   }
 
+  function deadlineDisplay(result) {
+    const inspection = result?.job?._inspection || result?.job?.inspection;
+    if (inspection?.status !== "inspected") return null;
+
+    const explicit = String(inspection?.posting?.application_deadline || "").trim();
+    if (explicit) {
+      const parsed = new Date(explicit);
+      if (Number.isFinite(parsed.getTime())) {
+        return `Deadline ${parsed.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}`;
+      }
+      return `Deadline ${explicit}`;
+    }
+
+    const evidence = Array.isArray(inspection?.schedule?.application_deadline_evidence)
+      ? inspection.schedule.application_deadline_evidence.find(value => String(value || "").trim())
+      : null;
+    return evidence ? `Deadline: ${String(evidence).trim()}` : null;
+  }
   function cardLocationText(job) {
     return locationValueText(job?._displayLocation)
       || locationValueText(job?.location)
@@ -1088,7 +1106,12 @@
     const locationComponent = result?.components?.location || {};
     const locRatio = (locationComponent.score || 0) / (componentMax("location") || 1);
     if (locationComponent.unresolved === true) {
-      highlights.push("Location not yet verified");
+      const totalMax = Number(result?.totalRange?.max);
+      if (Number.isFinite(totalMax) && totalMax > Number(result?.total || 0)) {
+        highlights.push(`Location could raise score to ${totalMax}/100`);
+      } else {
+        highlights.push("Location not yet verified");
+      }
     } else if (isRemoteJob(result?.job)) {
       if (locRatio >= 0.55) highlights.push("Remote");
       else concerns.push("remote preference mismatch");
@@ -1192,6 +1215,8 @@
     const isAuthoritative = result.inspection?.state === "inspected";
     const postedDate = formatPostedDate(job.posted_at, isAuthoritative);
     if (postedDate) titleWrap.append(element("p", "muted apply-next-posted-date", postedDate));
+    const deadline = deadlineDisplay(result);
+    if (deadline) titleWrap.append(element("p", "muted apply-next-deadline", deadline));
     const inspectionState = result.inspection?.state || "metadata-only";
     const evidenceStatus = element(
       "span",
@@ -1216,11 +1241,11 @@
     const scoreClass = `apply-next-score ${totalScoreBandClass(totalMin)}`;
     const score = element("div", scoreClass);
     score.append(
-      element("strong", "", hasScoreRange ? `${totalMin}–${totalMax}` : String(result.total)),
+      element("strong", "", String(totalMin)),
       element("span", "", "/100")
     );
     if (hasScoreRange) {
-      score.title = "Location is unresolved, so the final score is shown as a range.";
+      score.title = `Current score uses the conservative location value. If the location fits your preferences, it could rise to ${totalMax}/100.`;
     }
     top.append(titleWrap, score);
     card.append(top);
@@ -1246,7 +1271,7 @@
       const band = unresolvedLocation ? "Distance not verified" : scoreBand(key, component.score, max, job);
       if (band) metric.append(element("p", "apply-next-metric-band", band));
       const explanation = unresolvedLocation
-        ? "Location is unresolved, so Yartchives carries the plausible location range through the ranking instead of assigning a fake exact score."
+        ? "Location is not verified yet. The displayed score uses the conservative location value; verified location fit can raise it."
         : componentExplanation(key);
       if (explanation) metric.append(element("p", "apply-next-metric-explanation", explanation));
       breakdown.append(metric);
@@ -1289,15 +1314,16 @@
 
     const actions = element("div", "apply-next-actions");
     if (job.url) {
-      const actionLabel = job.link_kind === "employer_job" ? "View posting ↗" : "Apply ↗";
-      const apply = element("a", "primary-btn link-btn", actionLabel);
-      apply.href = job.url;
-      apply.target = "_blank";
-      apply.rel = "noopener noreferrer";
-      apply.addEventListener("click", () => {
-        typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("apply_clicked");
+      const view = element("a", "primary-btn link-btn", "View job ↗");
+      view.href = (typeof YartchivesUtils !== "undefined" && typeof YartchivesUtils.jobViewUrl === "function")
+        ? YartchivesUtils.jobViewUrl(job)
+        : job.url;
+      view.target = "_blank";
+      view.rel = "noopener noreferrer";
+      view.addEventListener("click", () => {
+        typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("job_opened");
       });
-      actions.append(apply);
+      actions.append(view);
     }
     const saved = element("button", "secondary-btn", state.saved.has(job.id) ? "Saved" : "Save");
     saved.type = "button";
@@ -1962,6 +1988,7 @@
     distanceEnrichmentCandidates,
     profileSummary,
     formatPostedDate,
+    deadlineDisplay,
     locationValueText,
     locationDisplayValues,
     cardLocationText,

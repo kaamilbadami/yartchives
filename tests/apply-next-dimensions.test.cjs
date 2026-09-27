@@ -157,6 +157,15 @@ assert.ok(adjacent.components.fit.score < supported.components.fit.score);
 assert.match(adjacent.components.fit.detail, /Transferable capability: java supports c#/i);
 assert.match(adjacent.inspection.label, /Ready on known requirements/i);
 
+const strongAlternative = D.scoreJob(job({
+  url: "https://example.com/strong-alternative",
+  _inspection: inspection([["Strong programming skills with JavaScript, Golang or TypeScript", ["JavaScript", "Golang", "TypeScript"]]]),
+}), profile, now);
+assert.match(strongAlternative.components.fit.detail, /Transferable capability: java supports go/i);
+assert.match(strongAlternative.components.fit.detail, /Unsupported hard required skills: javascript \/ go \/ typescript/i);
+assert.match(strongAlternative.inspection.label, /Some required gaps/i);
+assert.ok(strongAlternative.components.fit.score < adjacent.components.fit.score, "strong required alternatives should not be satisfied by adjacent-language evidence alone");
+
 const learnable = D.scoreJob(job({
   url: "https://example.com/learnable",
   _inspection: inspection([["Familiarity or interest in React is expected", ["React"]]]),
