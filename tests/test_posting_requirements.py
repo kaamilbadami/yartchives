@@ -148,7 +148,7 @@ class PostingRequirementTests(unittest.TestCase):
             "Strong programming skills with JavaScript, Golang or TypeScript",
         ])
         skills = result["skills"]
-        self.assertEqual(skills["classification"], "explicit")
+        self.assertEqual(skills["classification"], "required")
         self.assertEqual(len(skills["required"]), 1)
         self.assertEqual(
             skills["required"][0]["technologies"],
