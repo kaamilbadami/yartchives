@@ -344,5 +344,79 @@ class BuildFeedTests(unittest.TestCase):
         self.assertEqual(job_b.get("posted_raw"), "2026-09-02T00:00:00Z")
         self.assertEqual(job_b.get("posted_at"), "2026-09-02T00:00:00Z")
 
+
+    def test_parse_tech_jobs_json_preserves_fresh_structured_metadata(self):
+        ref = datetime(2026, 9, 27, 2, 0, tzinfo=timezone.utc)
+        source = {
+            "key": "automated-tech",
+            "name": "Automated Tech Internships",
+            "kind": "tech_jobs_json",
+            "url": "https://example.com/jobs.json",
+            "homepage": "https://example.com",
+            "profile_hint": ["cs"],
+        }
+        payload = {
+            "jobs": [
+                {
+                    "company": "Example Systems",
+                    "title": "Software Engineering Intern",
+                    "season": "Summer 2027",
+                    "category": "Software Engineering",
+                    "location": "College Park, MD",
+                    "url": "https://example.wd5.myworkdayjobs.com/jobs/job/Software-Engineering-Intern_REQ1",
+                    "posted_at": "2026-09-26T00:00:00Z",
+                    "first_seen_at": "2026-09-26T01:00:00Z",
+                    "skills": ["Java", "Python"],
+                    "program": "Internship",
+                    "remote": False,
+                }
+            ]
+        }
+        jobs = mod.parse_tech_jobs_json(payload, source, ref)
+        self.assertEqual(len(jobs), 1)
+        job = jobs[0]
+        self.assertEqual(job["term"], "Summer 2027")
+        self.assertEqual(job["posted_at"], "2026-09-26T00:00:00Z")
+        self.assertEqual(job["function_primary"], "Software Engineering")
+        self.assertIn("cs", job["profiles"])
+        self.assertEqual(job["source_skills"], ["Java", "Python"])
+        self.assertEqual(job["source_program"], "Internship")
+        self.assertEqual(job["remote_type"], "onsite_or_hybrid")
+        self.assertEqual(
+            job["url"],
+            "https://example.wd5.myworkdayjobs.com/jobs/job/Software-Engineering-Intern_REQ1",
+        )
+
+    def test_parse_tech_jobs_json_uses_remote_when_location_missing(self):
+        ref = datetime(2026, 9, 27, 2, 0, tzinfo=timezone.utc)
+        source = {
+            "key": "automated-tech",
+            "name": "Automated Tech Internships",
+            "kind": "tech_jobs_json",
+            "url": "https://example.com/jobs.json",
+            "profile_hint": ["cs"],
+        }
+        jobs = mod.parse_tech_jobs_json(
+            {
+                "jobs": [
+                    {
+                        "company": "Remote Co",
+                        "title": "Data Science Intern",
+                        "season": "Not stated",
+                        "category": "Data & ML/AI",
+                        "location": "",
+                        "url": "https://boards.greenhouse.io/remoteco/jobs/123",
+                        "posted_at": "2026-09-27T00:00:00Z",
+                        "remote": True,
+                    }
+                ]
+            },
+            source,
+            ref,
+        )
+        self.assertEqual(jobs[0]["location"], "Remote")
+        self.assertEqual(jobs[0]["remote_type"], "remote")
+        self.assertNotEqual(jobs[0].get("term"), "Not stated")
+
 if __name__ == "__main__":
     unittest.main()
