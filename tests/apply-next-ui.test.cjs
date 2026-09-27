@@ -354,7 +354,7 @@ assert.equal(jobs[2]._inspection, undefined);
     "Apply Next diagnostics should retain a zero-duration paint-wait stage without awaiting a frame"
   );
   assert.match(uiSource, /const rankablePool = authoritativeCandidatePool\(pool\);/, "Apply Next should narrow to authoritative candidates before expensive location work");
-  assert.match(uiSource, /const preliminaryRanked = YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\);/, "Apply Next should cheaply pre-rank before exact distance work");
+  assert.match(uiSource, /const preliminaryRanked = typeof YartchivesApplyNext\.rankJobsAsync === "function"/, "Apply Next should use the yielding async pre-rank path before exact distance work");
   assert.match(uiSource, /const distanceCandidates = distanceEnrichmentCandidates\(preliminaryRanked, rankingNow, rankablePool\);/, "Exact distance work should be bounded to candidates that can still affect visible recommendations and mutate source jobs");
   assert.match(uiSource, /const gain = maximumDistanceLocationGain\(result\);/, "Distance shortlist should compute each job's safe maximum location upside once");
   assert.match(uiSource, /if \(gain <= 0\) return false;/, "Distance shortlist should skip jobs whose location score cannot improve");
@@ -372,7 +372,7 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /const distanceCache = new Map\(\);/, "Location enrichment should memoize repeated location/origin distance work");
   assert.match(uiSource, /distanceCache\.has\(cacheKey\)/, "Location enrichment should reuse cached exact-distance results");
   assert.doesNotMatch(uiSource, /await addBaseDistances\(rankablePool, profile\);/, "Full-pool exact distance enrichment would reintroduce the measured bottleneck");
-  assert.match(uiSource, /YartchivesApplyNext\.rankJobs\(rankablePool, profile, rankingNow\)/, "Final ranking should use the same timestamp as the location pre-rank");
+  assert.match(uiSource, /YartchivesApplyNext\.rankJobsAsync\(rankablePool, profile, rankingNow, \{ yieldFn: yieldToBrowser, chunkSize: 32 \}\)/, "Final ranking should use the yielding async path with the same timestamp as the location pre-rank");
   const renderQueueSource = uiSource.match(/async function renderQueue\(panel, profile\) \{([\s\S]*?)\n  \}/);
   assert.ok(renderQueueSource, "renderQueue should be present");
 
