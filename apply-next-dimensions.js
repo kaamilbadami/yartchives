@@ -477,6 +477,8 @@
       applicationValue: {
         role: { score: roi.roleScore, max: APPLICATION_VALUE_PARTS.role },
         market: { score: roi.marketScore, max: APPLICATION_VALUE_PARTS.market },
+        rawScore: roi.rawScore,
+        fitCap: roi.fitCap,
       },
       scoringSemantics: {
         fit: "qualification evidence: exact screening evidence plus transferable capability",
