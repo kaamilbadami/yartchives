@@ -346,6 +346,8 @@ async function runTests() {
     context.window = context;
     context.addEventListener = () => {};
     context.removeEventListener = () => {};
+    context.setInterval = () => 0;
+    context.clearInterval = () => {};
 
     const appCode = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
     const uxCode = fs.readFileSync(path.join(__dirname, "..", "ux.js"), "utf8");
@@ -450,6 +452,8 @@ async function runTests() {
     context.window = context;
     context.addEventListener = () => {};
     context.removeEventListener = () => {};
+    context.setInterval = () => 0;
+    context.clearInterval = () => {};
 
     const appCode = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
     const uxCode = fs.readFileSync(path.join(__dirname, "..", "ux.js"), "utf8");
@@ -534,6 +538,8 @@ async function runTests() {
     context.window = context;
     context.addEventListener = () => {};
     context.removeEventListener = () => {};
+    context.setInterval = () => 0;
+    context.clearInterval = () => {};
 
     // Load necessary scripts
     const appCode = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
