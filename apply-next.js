@@ -235,7 +235,50 @@
     return { terms, durationEvidence, dateRangeEvidence };
   }
 
-  function scoreEligibility(job, profile) {
+  function targetTermWindow(targetTerm) {
+    const text = normalize(targetTerm);
+    const year = Number((text.match(/\b20\d{2}\b/) || [])[0]) || null;
+    const season = (text.match(/\b(spring|summer|fall|autumn|winter)\b/) || [])[1] || null;
+    if (!year || !season) return null;
+    const monthBySeason = { spring: 0, summer: 4, fall: 7, autumn: 7, winter: 11 };
+    const month = monthBySeason[season];
+    return {
+      year,
+      season: season === "autumn" ? "fall" : season,
+      start: new Date(Date.UTC(year, month, 1)),
+    };
+  }
+
+  function explicitScheduleConflict(job, profile, inspection, now = new Date()) {
+    const target = targetTermWindow(profile?.targetTerm);
+    if (!target) return null;
+
+    const authoritative = inspection?.status === "inspected" ? authoritativeSchedule(inspection) : null;
+    const evidence = normalize([
+      job?.title,
+      job?.term,
+      inspection?.posting?.title,
+      ...(authoritative?.durationEvidence || []),
+      ...(authoritative?.dateRangeEvidence || []),
+    ].filter(Boolean).join(" "));
+
+    const explicitTerms = [...new Set((evidence.match(/\b(?:spring|summer|fall|autumn|winter)\s+20\d{2}\b/g) || [])
+      .map(value => value.replace(/^autumn\b/, "fall")))];
+    if (explicitTerms.length && !explicitTerms.includes(`${target.season} ${target.year}`)) {
+      return `Posting explicitly targets ${explicitTerms.join(", ")}, not ${profile.targetTerm}`;
+    }
+
+    const nowMs = new Date(now).getTime();
+    const targetMs = target.start.getTime();
+    const immediate = /\b(?:immediate start|start immediately|available immediately|as soon as possible|asap)\b/.test(evidence);
+    if (immediate && Number.isFinite(nowMs) && targetMs - nowMs > 45 * 86400000) {
+      return `Posting explicitly requires an immediate start, which conflicts with ${profile.targetTerm}`;
+    }
+
+    return null;
+  }
+
+  function scoreEligibility(job, profile, now = new Date()) {
     const inspection = inspectionForJob(job);
     const availability = inspectionAvailability(inspection);
     if (availability === "unavailable") {
@@ -267,6 +310,10 @@
     const targetTerm = normalize(profile?.targetTerm);
     const jobTerm = normalize(job?.term);
     const authoritative = inspection?.status === "inspected" ? authoritativeSchedule(inspection) : null;
+    const scheduleConflict = explicitScheduleConflict(job, profile, inspection, now);
+    if (scheduleConflict) {
+      return { score: 0, excluded: true, detail: scheduleConflict };
+    }
     if (!targetTerm) {
       score += 7;
       parts.push("No target term configured");
@@ -289,7 +336,11 @@
       score += 4;
       parts.push("Term unknown");
     } else {
-      parts.push(`Known term is ${job.term}, not ${profile.targetTerm}`);
+      return {
+        score: 0,
+        excluded: true,
+        detail: `Known term is ${job.term}, not ${profile.targetTerm}`,
+      };
     }
 
     if (authoritative?.durationEvidence?.length || authoritative?.dateRangeEvidence?.length) {
@@ -401,12 +452,34 @@
     return { score: Math.max(0, Math.min(25, score)), detail: reasons.join("; ") };
   }
 
+  const ROLE_FAMILY_ALIASES = Object.freeze({
+    software: ["software engineer", "software engineering", "software developer", "software development", "application engineer", "application developer", "full stack", "fullstack", "backend", "front end", "frontend", "platform engineer"],
+    "machine learning": ["machine learning", "ml engineer", "ai engineer", "artificial intelligence", "data scientist", "data science"],
+    data: ["data engineer", "data engineering", "data analyst", "analytics engineer", "data scientist", "data science"],
+    infrastructure: ["infrastructure", "devops", "site reliability", "sre", "cloud engineer", "platform engineer"],
+    systems: ["systems engineer", "systems engineering", "test engineer", "testing", "verification", "validation", "quality engineer"],
+    security: ["security engineer", "cybersecurity", "cyber security", "information security"],
+  });
+
+  function roleFamilyKeywords(family) {
+    const id = normalize(family?.id);
+    const label = normalize(family?.label);
+    const own = Array.isArray(family?.keywords) ? family.keywords : [];
+    const aliases = [];
+    for (const [key, values] of Object.entries(ROLE_FAMILY_ALIASES)) {
+      if (id.includes(key) || label.includes(key)) aliases.push(...values);
+    }
+    if ((id.includes("ml") || label.includes("ml")) && !aliases.length) aliases.push(...ROLE_FAMILY_ALIASES["machine learning"]);
+    if ((id.includes("swe") || label.includes("software")) && !aliases.length) aliases.push(...ROLE_FAMILY_ALIASES.software);
+    return [...new Set([...own, ...aliases].map(normalize).filter(Boolean))];
+  }
+
   function scoreRole(job, profile) {
     const text = jobText(job);
     const families = profile?.roleFamilies || [];
     let best = null;
     for (const family of families) {
-      const keywords = family?.keywords || [];
+      const keywords = roleFamilyKeywords(family);
       if (!keywords.some(keyword => includesKeyword(text, keyword))) continue;
       const priority = Math.max(0, Math.min(1, Number(family.priority ?? 1)));
       const legacyTenPointScore = Math.round(10 * priority);
@@ -507,7 +580,7 @@
   }
 
   function scoreJob(job, profile, now = new Date()) {
-    const eligibility = scoreEligibility(job, profile || {});
+    const eligibility = scoreEligibility(job, profile || {}, now);
     const inspection = summarizeInspection(job);
     if (eligibility.excluded) {
       return {
@@ -573,8 +646,12 @@
     ageDays,
     scoreFreshness,
     authoritativeSchedule,
+    targetTermWindow,
+    explicitScheduleConflict,
     scoreEligibility,
     scoreFit,
+    ROLE_FAMILY_ALIASES,
+    roleFamilyKeywords,
     scoreRole,
     scoreLocation,
     linkKind,
