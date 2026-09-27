@@ -116,6 +116,22 @@ assert.ok(supported.components.fit.score <= D.SCORE_MAXIMA.fit);
 assert.match(supported.inspection.label, /Ready on known requirements/i);
 assert.match(unsupported.inspection.label, /Some required gaps/i);
 
+const preparedBase = L.scoreJob(supported.job, profile, now);
+const preparedQualification = {
+  academic: D.authoritativeAcademicSupport(preparedBase, profile),
+  evidence: D.analyzeQualificationEvidence(preparedBase, profile),
+};
+assert.deepEqual(
+  D.scoreQualificationFit(preparedBase, profile, preparedQualification),
+  D.scoreQualificationFit(preparedBase, profile),
+  "Prepared qualification evidence must preserve final fit scoring semantics"
+);
+assert.deepEqual(
+  D.alignedReadiness(preparedBase, profile, preparedQualification.evidence),
+  D.alignedReadiness(preparedBase, profile),
+  "Prepared qualification evidence must preserve readiness-label semantics"
+);
+
 const adjacent = D.scoreJob(job({
   url: "https://example.com/adjacent",
   _inspection: inspection([["Experience with C# required", ["C#"]]]),

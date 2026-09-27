@@ -325,14 +325,14 @@
     return { bonus, detail };
   }
 
-  function scoreQualificationFit(result, profile) {
+  function scoreQualificationFit(result, profile, prepared = null) {
     const inspected = result?.inspection?.state === "inspected";
     if (!inspected) {
       return { score: 19, detail: "Qualification evidence not yet authoritative; neutral qualification-fit score" };
     }
 
-    const academic = authoritativeAcademicSupport(result, profile || {});
-    const evidence = analyzeQualificationEvidence(result, profile || {});
+    const academic = prepared?.academic || authoritativeAcademicSupport(result, profile || {});
+    const evidence = prepared?.evidence || analyzeQualificationEvidence(result, profile || {});
     const coverage = requiredCoverageBonus(result, evidence, academic);
     let score = 18 + academic.bonus + coverage.bonus;
 
@@ -367,9 +367,9 @@
     return { score, detail: parts.join("; ") };
   }
 
-  function alignedReadiness(result, profile) {
+  function alignedReadiness(result, profile, preparedEvidence = null) {
     if (result?.inspection?.state !== "inspected") return result?.readiness || null;
-    const evidence = analyzeQualificationEvidence(result, profile || {});
+    const evidence = preparedEvidence || analyzeQualificationEvidence(result, profile || {});
     const details = [];
     for (const skill of evidence.hardGaps) details.push(`Unsupported hard required skill: ${skill}`);
     for (const skill of evidence.cautiousRequired) details.push(`Required skill only cautiously evidenced: ${skill}`);
@@ -449,8 +449,14 @@
     const gradExcluded = graduateTitleExclusion(result, profile);
     if (gradExcluded) return gradExcluded;
     if (result.excluded || !result.components) return result;
-    const fit = scoreQualificationFit(result, profile);
-    const readiness = alignedReadiness(result, profile);
+    const prepared = result?.inspection?.state === "inspected"
+      ? {
+        academic: authoritativeAcademicSupport(result, profile || {}),
+        evidence: analyzeQualificationEvidence(result, profile || {}),
+      }
+      : null;
+    const fit = scoreQualificationFit(result, profile, prepared);
+    const readiness = alignedReadiness(result, profile, prepared?.evidence || null);
     const eligibility = scoreEligibilityGate(result);
     const freshness = {
       ...(result.components.freshness || { detail: "Posting date unavailable" }),
