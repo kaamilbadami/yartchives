@@ -74,6 +74,20 @@ main.apply-next-profile-mode #applyNextPanel {
   font-size: 0.82rem;
 }
 
+.apply-next-profile-role-groups {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.apply-next-profile-role-group {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.7rem;
+  border: 1px solid var(--line, #d9dde5);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--panel, #fff) 92%, var(--line, #d9dde5));
+}
+
 .apply-next-profile-status {
   min-height: 1.2rem;
 }
