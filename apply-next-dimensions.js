@@ -1,6 +1,6 @@
 (function (root, factory) {
   const base = typeof module === "object" && module.exports
-    ? require("./apply-next-location.js")
+    ? require("./apply-next-location-preferences.js")
     : (root.YartchivesApplyNextLocation || root.YartchivesApplyNext);
   const api = factory(base);
   if (typeof module === "object" && module.exports) module.exports = api;
