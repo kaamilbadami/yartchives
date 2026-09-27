@@ -675,8 +675,8 @@ assert.ok(distanceSubset.some(job => job.id === "job-9"), "A candidate that can 
 assert.ok(!distanceSubset.some(job => job.id === "job-0"), "Remote candidates with distance-independent scores should skip exact distance work");
 assert.ok(
   distanceSubset.every(job => {
-    const result = syntheticRanked.find(row => row.job === job);
-    return result.total + UI.maximumDistanceLocationGain(result) >= 55;
+    const result = syntheticRanked.find(row => row.job?.id === job.id);
+    return result && result.total + UI.maximumDistanceLocationGain(result) >= 55;
   }),
   "Every enriched job must still be capable of crossing a visible decision cutoff after its maximum possible location gain"
 );
