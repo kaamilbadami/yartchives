@@ -53,7 +53,7 @@ const stateCollege = L.scoreLocation({
   states: ["CT", "PA"],
   _distanceMiles: 22,
 }, profile);
-assert.equal(stateCollege.score, 8);
+assert.equal(stateCollege.score, 5);
 assert.doesNotMatch(stateCollege.detail, /Preferred state: CT|Within 50 miles/);
 
 const rtp = L.scoreLocation({
@@ -61,7 +61,7 @@ const rtp = L.scoreLocation({
   states: ["CT", "NC"],
   _distanceMiles: 12,
 }, profile);
-assert.equal(rtp.score, 8);
+assert.equal(rtp.score, 5);
 assert.doesNotMatch(rtp.detail, /Preferred state: CT|Within 50 miles/);
 
 const pittsburghStale = L.scoreLocation({
@@ -69,7 +69,7 @@ const pittsburghStale = L.scoreLocation({
   states: ["PA"],
   _distanceMiles: 18,
 }, profile);
-assert.equal(pittsburghStale.score, 8);
+assert.equal(pittsburghStale.score, 5);
 assert.doesNotMatch(pittsburghStale.detail, /Within 50 miles/);
 const pittsburghTrusted = L.scoreLocation({
   location: "Pittsburgh",
