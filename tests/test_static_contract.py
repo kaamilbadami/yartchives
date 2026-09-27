@@ -130,6 +130,14 @@ class StaticContractTests(unittest.TestCase):
         ]:
             self.assertIn(command, runner)
 
+
+    def test_feed_and_deploy_failures_are_escalated(self):
+        workflow = (ROOT / ".github" / "workflows" / "triage-workflow-failures.yml").read_text(encoding="utf-8")
+        self.assertIn("- Update opportunity feed", workflow)
+        self.assertIn("- Feed freshness watchdog", workflow)
+        self.assertIn("- Deploy Yartchives site", workflow)
+        self.assertIn("issues: write", workflow)
+
     def test_green_pr_quality_wakes_automerge_without_live_source_smoke(self):
         quality = (ROOT / ".github" / "workflows" / "quality.yml").read_text(encoding="utf-8")
         wake = quality.split("  wake-automerge:", 1)[1]
