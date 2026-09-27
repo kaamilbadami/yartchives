@@ -1,6 +1,6 @@
 # Yartchives
 
-**A CS-first internship product focused on one question: what should I apply to next?**
+**A CS-first internship discovery and ranking platform focused on one question: what should I apply to next?**
 
 Yartchives combines public internship sources into one normalized feed, then uses **Apply Next** to turn that feed into a ranked decision queue instead of another job board to browse.
 
@@ -89,8 +89,7 @@ The repository also uses bounded automation for maintenance and implementation w
 - **Beta scope:** CS-first
 - **Feed refresh:** hourly GitHub Actions pipeline
 - **Published listings:** 6,196
-- **Distinct source labels:** 0
-- **Coverage claim:** not yet certified as a complete single discovery source
+- **Coverage:** Beta; not intended as a complete internship-market index
 <!-- yartchives-status:end -->
 
 This block is generated from repository data by the feed workflow. Automation is restricted to replacing the text between the markers above.
