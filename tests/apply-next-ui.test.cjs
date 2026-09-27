@@ -339,6 +339,8 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.ok(index.indexOf('src="apply-next.js"') < index.indexOf('src="apply-next-dimensions.js"'));
   assert.ok(index.indexOf('src="apply-next-dimensions.js"') < index.indexOf('src="apply-next-ui.js"'));
   assert.match(index, /<p class="subtitle">Internships ranked around you\.<\/p>/, "Homepage subtitle should reinforce personalized ranking");
+  assert.match(index, /<link rel="stylesheet" href="beta-theme\.css" \/>/, "Friendly beta theme should be loaded");
+  assert.ok(index.indexOf('href="beta-theme.css"') > index.indexOf('href="apply-next-profile-setup.css"'), "Beta theme must load last so it can safely override legacy visual styles");
   assert.doesNotMatch(index, /<\/script>\\n\s*<script/, "Homepage must not render a literal \\n between script tags");
 
   const uiSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-ui.js"), "utf8");
@@ -448,6 +450,10 @@ assert.equal(jobs[2]._inspection, undefined);
     "Apply Next should wait for a browser frame to paint before computing completion timing"
   );
   const applyNextCss = fs.readFileSync(path.join(__dirname, "..", "apply-next.css"), "utf8");
+  const betaThemeCss = fs.readFileSync(path.join(__dirname, "..", "beta-theme.css"), "utf8");
+  assert.match(betaThemeCss, /color-scheme:\s*light/, "Beta theme should default to a light color scheme");
+  assert.match(betaThemeCss, /\.apply-next-entry\s*\{[\s\S]*?border-radius:\s*30px/, "First-use hero should use the friendly landing treatment");
+  assert.match(betaThemeCss, /\.apply-next-card\s*\{[\s\S]*?background:\s*#ffffff/, "Apply Next cards should use a light surface");
   assert.match(applyNextCss, /\.apply-next-open:disabled\s*\{[\s\S]*?cursor:\s*progress/, "Disabled Apply Next should have a visible loading treatment");
 
   assert.match(uiSource, /Finding your best matches… This usually takes a few seconds\./, "Apply Next should show an immediate loading message with a realistic wait expectation");
@@ -475,6 +481,9 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /Tell Yartchives what you're looking for\. We'll rank current internships around your profile/, "First-use copy should explain the ranked value proposition");
   assert.match(uiSource, /"text-btn apply-next-entry-secondary", "Browse all internships"/, "Browse should be visually secondary to ranked recommendations");
   assert.match(uiSource, /"ghost-btn apply-next-entry-demo", "View sample ranking"/, "First-use entry should expose a one-click sample ranking");
+  assert.match(uiSource, /Current internships/, "First-use entry should explain that recommendations use current listings");
+  assert.match(uiSource, /Transparent ranking/, "First-use entry should explain the ranking value");
+  assert.match(uiSource, /Profile stays in your browser/, "First-use entry should surface the privacy model");
   assert.match(uiSource, /isDemo \? "Apply Next demo" : "Apply Next"/, "Sample ranking should be clearly labeled as a demo");
   assert.match(uiSource, /"Use your own profile"/, "Demo should provide a direct path into real profile setup");
   assert.match(uiSource, /document\.querySelector\("#applyNextBtn"\)\?\.classList\.add\("hidden"\)/, "First-use entry should hide the redundant header Apply Next control");
