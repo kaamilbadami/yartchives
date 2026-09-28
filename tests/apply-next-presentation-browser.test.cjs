@@ -101,4 +101,17 @@ const scored = browserScope.YartchivesApplyNext.scoreJob(
 assert.equal(browserScoreCalls, 1, "presentation wrapper should call the original browser scorer exactly once");
 assert.equal(scored.job.location, "Baltimore, MD");
 
+assert.deepEqual(
+  P.locationPieces({ location: "US-UT-WEST VALLEY CITY-338 ~ 1127 & 1128 w 2400 S", states: ["UT"] }),
+  ["West Valley City, UT"]
+);
+assert.deepEqual(
+  P.locationPieces({ location: "OH05-01-Beachwood-Science Park Drive", states: [] }),
+  ["Beachwood, OH"]
+);
+assert.deepEqual(
+  P.locationPieces({ location: "USA > PA > Conshohocken > West First", states: ["PA"] }),
+  ["Conshohocken, PA"]
+);
+
 console.log("apply-next presentation browser hook tests passed");
