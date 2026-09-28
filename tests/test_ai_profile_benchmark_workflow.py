@@ -6,12 +6,30 @@ WORKFLOW = ROOT / ".github" / "workflows" / "ai-profile-benchmark.yml"
 
 
 class AiProfileBenchmarkWorkflowTests(unittest.TestCase):
-    def test_workflow_is_manual_only(self):
+    def test_workflow_has_only_manual_or_authorized_issue_comment_triggers(self):
         text = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("workflow_dispatch:", text)
+        self.assertIn("issue_comment:", text)
+        self.assertIn("types:\n      - created", text)
         self.assertNotIn("\n  schedule:", text)
         self.assertNotIn("\n  push:", text)
         self.assertNotIn("\n  pull_request:", text)
+
+
+    def test_issue_comment_trigger_is_tightly_authorized(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("github.event.issue.number == 737", text)
+        self.assertIn("github.event.comment.body == '/run-ai-profile-benchmark'", text)
+        self.assertIn("github.event.comment.user.login == github.repository_owner", text)
+        self.assertIn("github.event_name == 'workflow_dispatch' ||", text)
+
+    def test_comment_trigger_uses_bounded_defaults(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("gemini-3.5-flash-lite", text)
+        self.assertIn("GENERAL_LIMIT:", text)
+        self.assertIn("'200'", text)
+        self.assertIn("REFERENCE_LIMIT:", text)
+        self.assertIn("'300'", text)
 
     def test_workflow_requires_secret_and_never_commits(self):
         text = WORKFLOW.read_text(encoding="utf-8")
