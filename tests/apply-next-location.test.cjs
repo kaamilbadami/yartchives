@@ -138,6 +138,25 @@ const duolingoB = {
 assert.equal(L.canonicalPostingKey(duolingoA), L.canonicalPostingKey(duolingoB));
 assert.equal(L.dedupeCanonicalJobs([duolingoA, duolingoB]).length, 1);
 
+const sameTitleDistinctReqA = {
+  ...nearJob,
+  id: "same-title-a",
+  company: "Example Employer",
+  title: "Software Engineering Intern",
+  url: "https://example.wd5.myworkdayjobs.com/external/job/Remote/Software-Engineering-Intern_REQ-48334",
+};
+const sameTitleDistinctReqB = {
+  ...sameTitleDistinctReqA,
+  id: "same-title-b",
+  url: "https://example.wd5.myworkdayjobs.com/external/job/Remote/Software-Engineering-Intern_REQ-48457",
+};
+assert.notEqual(L.canonicalPostingKey(sameTitleDistinctReqA), L.canonicalPostingKey(sameTitleDistinctReqB));
+assert.equal(
+  L.dedupeCanonicalJobs([sameTitleDistinctReqA, sameTitleDistinctReqB]).length,
+  2,
+  "same-employer same-title roles with distinct requisitions must remain distinct"
+);
+
 const geckoA = {
   ...nearJob,
   id: "gecko-a",
