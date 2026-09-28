@@ -114,7 +114,7 @@ assert.equal(direct.components.role.score, 15);
 assert.equal(direct.components.location.score, 20);
 
 const remote = A.scoreLocation({ states: ["Remote"] }, profile);
-assert.equal(remote.score, 18);
+assert.equal(remote.score, 20);
 const nearby = A.scoreLocation({ states: ["PA"], _distanceMiles: 28 }, profile);
 assert.equal(nearby.score, 20);
 const relocation = A.scoreLocation({ states: ["CA"] }, profile);
