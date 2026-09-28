@@ -320,7 +320,7 @@
     if (stateMatch) return { score: 20, detail: `Preferred state: ${stateMatch}` };
 
     if ((rawStates.has("Remote") || /\bremote\b/i.test(String(job?.location || ""))) && profile?.remoteRelevant !== false) {
-      return { score: 18, detail: "Remote opportunity" };
+      return { score: 20, detail: "Remote opportunity" };
     }
 
     const distance = Number(job?._distanceMiles);
