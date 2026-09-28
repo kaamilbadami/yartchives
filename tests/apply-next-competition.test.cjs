@@ -73,6 +73,19 @@ assert.equal(C.marketPressure(genericNy).penalty, 2);
 const remoteGeneric = { ...genericNy, location: "Remote", states: ["Remote"] };
 assert.ok(C.scoreRoi(remoteGeneric, profile).score < C.scoreRoi(neutral, profile).score);
 
+const nationwideRemoteGeneric = { ...genericNy, location: "Remote - United States", states: ["Remote", "US"] };
+const nationwideRemoteSpecialized = {
+  ...nationwideRemoteGeneric,
+  title: "Infrastructure Automation Intern",
+};
+assert.equal(C.marketPressure(nationwideRemoteGeneric).penalty, 4);
+assert.equal(C.marketPressure(nationwideRemoteSpecialized).penalty, 3);
+assert.ok(
+  C.scoreRoi(nationwideRemoteGeneric, profile).score < C.scoreRoi(nationwideRemoteSpecialized, profile).score,
+  "generic nationwide remote roles should carry more competition pressure than specialized remote roles"
+);
+assert.match(C.scoreRoi(nationwideRemoteGeneric, profile).detail, /generic remote role is open to a nationwide applicant pool/);
+
 const footprintJobs = Array.from({ length: 8 }, (_, index) => ({
   ...genericNy,
   id: `big-${index}`,
