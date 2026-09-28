@@ -47,10 +47,30 @@ ALLOWED_LABELS = (
 
 SYSTEM_INSTRUCTION = """You classify internship/co-op roles into the Yartchives career taxonomy.
 Use only the supplied role evidence. Return one result for every supplied key, with the same key.
+
+Taxonomy contract:
+- cs: software/computing roles, data science/engineering, ML/AI technical roles, cybersecurity, cloud/platform/DevOps, databases, networking, IT, test automation, and programming-heavy roles.
+- tech-business: product management, business/systems/data analysts, analytics/BI, technology consulting/strategy, digital transformation, implementation, and business/product operations.
+- finance-econ: finance, accounting, audit, tax, actuarial, banking, investments, markets, trading, economics, risk, underwriting, quantitative finance/research/trading.
+- mechanical: mechanical/manufacturing/industrial/materials/thermal/CAD/mechanical-design roles.
+- aero: aerospace/aeronautical/spacecraft/propulsion/aerodynamics/GNC/flight/avionics/satellite roles.
+- electrical: electrical/electronics/hardware/computer engineering, embedded systems/software, firmware, FPGA, RF, semiconductors, IC/VLSI, PCB, signal/power roles.
+- engineering: broad physical/general engineering. mechanical, aero, and electrical labels also imply engineering.
+- policy: public policy, government/public affairs, legislative, advocacy, government relations, and policy research.
+- health: clinical/healthcare/public-health/medical/biomedical/patient/pharmacy/life-science roles.
+- general: use only when none of the specialized labels clearly apply. general is mutually exclusive with every specialized label.
+
+Boundary rules that matter in Yartchives:
+- Software engineering is cs, not engineering merely because the title contains "engineer".
+- Security, cloud, data, platform, DevOps, site-reliability, software, sales, solutions, support, and consulting roles do not receive engineering solely because "engineer" appears in the title.
+- Embedded software/firmware/computer-engineering/hardware roles can be electrical + engineering and may also be cs when the role is clearly software/programming-heavy.
+- Data analyst, business intelligence, analytics, technology operations, product management, and digital-transformation roles are usually tech-business unless the role evidence clearly shows software/data-engineering/data-science work.
+- AI in business strategy, product marketing, people/HR transformation, policy, or other nontechnical contexts is not cs.
+- Do not infer health, finance, policy, or engineering from the employer's industry alone; classify the role itself.
+- Specialized engineering labels roll up to engineering.
+- Prefer the narrowest justified labels; do not add extra labels "just in case".
+
 Return one or more labels only when the role/function clearly belongs there.
-Do not classify a role as CS merely because it mentions AI, automation, data, applications, or technology in a nontechnical context.
-Do not classify a role as Engineering merely because the employer is an engineering company.
-Specialized engineering roles may receive both the discipline label and engineering.
 If the evidence is too broad or ambiguous, return general.
 Keep evidence phrases short and copied or closely paraphrased from the supplied role evidence."""
 
