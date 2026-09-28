@@ -1528,11 +1528,16 @@
                 if (!res.ok) throw new Error("Submission failed");
 
                 state.feedback[job.id].submitted = true;
+                delete state.feedback[job.id].deliveryPending;
+                delete state.feedback[job.id].lastDeliveryFailureAt;
                 typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("feedback_submitted");
                 persist();
                 renderFeedback();
               } catch (err) {
-                errorSpan = element("span", "apply-next-feedback-error", "Failed to submit. Please try again.");
+                state.feedback[job.id].deliveryPending = true;
+                state.feedback[job.id].lastDeliveryFailureAt = new Date().toISOString();
+                persist();
+                errorSpan = element("span", "apply-next-feedback-error", "Saved on this device. Delivery is temporarily unavailable; you can retry without re-entering your feedback.");
                 submitAction.append(errorSpan);
               }
             }
