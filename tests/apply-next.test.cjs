@@ -125,6 +125,33 @@ assert.equal(exactTerm.score, 18);
 const unknownTerm = A.scoreEligibility({ ...freshDirect, term: null }, profile);
 assert.ok(exactTerm.score > unknownTerm.score);
 
+const electricBoatYearOnly = A.scoreEligibility({
+  ...freshDirect,
+  company: "General Dynamics",
+  title: "Information Technology, Software Engineering, & Computer Science - 2027 Summer Internship",
+  term: "2027",
+}, profile);
+assert.equal(electricBoatYearOnly.excluded, false);
+assert.equal(electricBoatYearOnly.score, exactTerm.score);
+assert.match(electricBoatYearOnly.detail, /Posting title matches Summer 2027/);
+
+const yearOnlyUnspecifiedSeason = A.scoreEligibility({
+  ...freshDirect,
+  title: "Software Engineering Intern",
+  term: "2027",
+}, profile);
+assert.equal(yearOnlyUnspecifiedSeason.excluded, false);
+assert.ok(yearOnlyUnspecifiedSeason.score < exactTerm.score);
+assert.match(yearOnlyUnspecifiedSeason.detail, /season is not normalized/);
+
+const yearBeforeSeasonConflict = A.scoreEligibility({
+  ...freshDirect,
+  title: "Software Engineering Intern - 2027 Spring",
+  term: "2027",
+}, profile);
+assert.equal(yearBeforeSeasonConflict.excluded, true);
+assert.match(yearBeforeSeasonConflict.detail, /spring 2027.*not Summer 2027/i);
+
 const inspectedStrong = {
   ...freshDirect,
   company: "Inspected",
