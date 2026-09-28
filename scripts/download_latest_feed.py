@@ -65,22 +65,27 @@ def _request_bytes(url: str, token: str | None) -> bytes:
 
 
 def latest_artifact(repo: str, workflow: str, artifact_name: str, token: str | None) -> dict | None:
-    runs_url = (
-        f"{API_ROOT}/repos/{repo}/actions/workflows/{workflow}/runs"
-        "?branch=main&status=success&per_page=20"
+    artifacts_url = (
+        f"{API_ROOT}/repos/{repo}/actions/artifacts"
+        f"?name={artifact_name}&per_page=100"
     )
-    payload = _request_json(runs_url, token)
-    for run in payload.get("workflow_runs", []):
-        run_id = run.get("id")
+    payload = _request_json(artifacts_url, token)
+    for artifact in payload.get("artifacts", []):
+        if artifact.get("expired", False):
+            continue
+
+        run_info = artifact.get("workflow_run", {})
+        if run_info.get("head_branch") != "main":
+            continue
+
+        run_id = run_info.get("id")
         if not run_id:
             continue
-        artifacts = _request_json(
-            f"{API_ROOT}/repos/{repo}/actions/runs/{run_id}/artifacts?per_page=100",
-            token,
-        )
-        for artifact in artifacts.get("artifacts", []):
-            if artifact.get("name") == artifact_name and not artifact.get("expired", False):
-                return artifact
+
+        run_payload = _request_json(f"{API_ROOT}/repos/{repo}/actions/runs/{run_id}", token)
+        if run_payload.get("path") and workflow in run_payload["path"]:
+            return artifact
+
     return None
 
 def workflow_has_active_run(repo: str, workflow: str, token: str | None) -> bool:
