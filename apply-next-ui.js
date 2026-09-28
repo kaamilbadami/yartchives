@@ -1601,7 +1601,7 @@
       const funnel = freshFunnelStats(lastRankedResults, now);
       note.textContent = `Showing ${ranked.length} of ${allForView.length} strong recent options posted within the last ${FRESH_MAX_AGE_DAYS} days. ${funnel.recent} recent eligible recommendations were considered; ${funnel.scoreQualified} cleared the overall-score floor, ${funnel.fitQualified} cleared the qualification-fit floor, and ${funnel.evidenceLimitedQualified} additional role-aligned postings had no known requirement conflicts but limited qualification evidence. Ranked by overall Apply Next score, not posting time. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence.`;
     } else {
-      note.textContent = `Showing ${ranked.length} of ${allForView.length} recommended options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded.`;
+      note.textContent = `Showing ${ranked.length} of ${allForView.length} recommended options from ${poolCount.toLocaleString()} current candidates. ${inspectedCount} of these ${ranked.length || 0} recommendations use authoritative posting evidence; the rest use metadata fallback. Known non-${profile.targetTerm} terms plus applied/hidden jobs are excluded. Small score differences are close calls; compare the component evidence rather than treating adjacent ranks as large gaps.`;
     }
 
     list.innerHTML = "";
