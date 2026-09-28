@@ -98,13 +98,20 @@ class Classification:
     evidence: tuple[str, ...]
 
 
+@dataclass(frozen=True)
+class ClassificationOutcome:
+    classification: Classification | None
+    error: str | None = None
+    raw_labels: tuple[str, ...] = ()
+
+
 class ProfileClassifier(Protocol):
     name: str
 
     def classify(self, job: dict[str, Any]) -> Classification:
         ...
 
-    def classify_many(self, jobs: list[dict[str, Any]]) -> list[Classification]:
+    def classify_many(self, jobs: list[dict[str, Any]]) -> list[ClassificationOutcome]:
         ...
 
 
@@ -146,17 +153,20 @@ class GeminiProfileClassifier:
         self.batch_size = batch_size
 
     def classify(self, job: dict[str, Any]) -> Classification:
-        return self.classify_many([job])[0]
+        outcome = self.classify_many([job])[0]
+        if outcome.classification is None:
+            raise ValueError(outcome.error or "Gemini returned an invalid classification")
+        return outcome.classification
 
-    def classify_many(self, jobs: list[dict[str, Any]]) -> list[Classification]:
+    def classify_many(self, jobs: list[dict[str, Any]]) -> list[ClassificationOutcome]:
         if not jobs:
             return []
-        all_results: list[Classification] = []
+        all_results: list[ClassificationOutcome] = []
         for batch in _chunks(jobs, self.batch_size):
             all_results.extend(self._classify_batch(batch))
         return all_results
 
-    def _classify_batch(self, jobs: list[dict[str, Any]]) -> list[Classification]:
+    def _classify_batch(self, jobs: list[dict[str, Any]]) -> list[ClassificationOutcome]:
         keyed_jobs = [
             {"key": str(index), "job": compact_job_evidence(job)}
             for index, job in enumerate(jobs)
@@ -216,14 +226,29 @@ class GeminiProfileClassifier:
                 if not isinstance(rows, list):
                     raise ValueError("Gemini batch response is missing results")
 
-                by_key: dict[str, Classification] = {}
+                by_key: dict[str, ClassificationOutcome] = {}
                 for row in rows:
                     if not isinstance(row, dict):
                         raise ValueError("Gemini batch result must be an object")
                     key = str(row.get("key", ""))
                     if key in by_key:
                         raise ValueError(f"Gemini returned duplicate key {key!r}")
-                    by_key[key] = validate_classification(row)
+                    raw_labels = tuple(
+                        str(label) for label in row.get("labels", [])
+                        if isinstance(label, str)
+                    )
+                    try:
+                        classification = validate_classification(row)
+                        by_key[key] = ClassificationOutcome(
+                            classification=classification,
+                            raw_labels=raw_labels,
+                        )
+                    except ValueError as exc:
+                        by_key[key] = ClassificationOutcome(
+                            classification=None,
+                            error=str(exc),
+                            raw_labels=raw_labels,
+                        )
 
                 expected_keys = {str(index) for index in range(len(jobs))}
                 if set(by_key) != expected_keys:
@@ -350,12 +375,26 @@ def score_gold(expected: list[set[str]], predicted: list[set[str]]) -> dict[str,
 
 def run_gold(provider: ProfileClassifier, gold_path: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     cases = json.loads(gold_path.read_text(encoding="utf-8"))
-    classifications = provider.classify_many(cases)
+    outcomes = provider.classify_many(cases)
     results: list[dict[str, Any]] = []
     expected: list[set[str]] = []
     predicted: list[set[str]] = []
-    for case, classification in zip(cases, classifications):
+    error_count = 0
+    for case, outcome in zip(cases, outcomes):
         exp = set(case["expected_labels"])
+        if outcome.classification is None:
+            error_count += 1
+            results.append({
+                "company": case.get("company"),
+                "title": case.get("title"),
+                "expected_labels": sorted(exp),
+                "predicted_labels": list(outcome.raw_labels),
+                "error": outcome.error,
+                "exact": False,
+            })
+            continue
+
+        classification = outcome.classification
         pred = set(classification.labels)
         expected.append(exp)
         predicted.append(pred)
@@ -368,7 +407,15 @@ def run_gold(provider: ProfileClassifier, gold_path: Path) -> tuple[dict[str, An
             "evidence": list(classification.evidence),
             "exact": exp == pred,
         })
-    return score_gold(expected, predicted), results
+
+    summary = score_gold(expected, predicted)
+    summary.update({
+        "attempted_cases": len(cases),
+        "valid_cases": len(expected),
+        "validation_errors": error_count,
+        "validation_error_rate": error_count / len(cases) if cases else 0.0,
+    })
+    return summary, results
 
 
 def run_live_sample(
@@ -379,11 +426,24 @@ def run_live_sample(
     doc = json.loads(feed_path.read_text(encoding="utf-8"))
     jobs = doc.get("jobs") or []
     sample = stable_general_sample(jobs, limit)
-    classifications = provider.classify_many(sample)
+    outcomes = provider.classify_many(sample)
     rows: list[dict[str, Any]] = []
     label_counts = {label: 0 for label in ALLOWED_LABELS}
     high_confidence_non_general = 0
-    for job, classification in zip(sample, classifications):
+    validation_errors = 0
+    for job, outcome in zip(sample, outcomes):
+        if outcome.classification is None:
+            validation_errors += 1
+            rows.append({
+                "job_id": job.get("id"),
+                "company": job.get("company"),
+                "title": job.get("title"),
+                "labels": list(outcome.raw_labels),
+                "error": outcome.error,
+            })
+            continue
+
+        classification = outcome.classification
         for label in classification.labels:
             label_counts[label] += 1
         if classification.confidence >= 0.95 and classification.labels != ("general",):
@@ -403,6 +463,9 @@ def run_live_sample(
             if isinstance(job, dict) and set(job.get("profiles") or []) == {"general"}
         ),
         "sample_size": len(sample),
+        "valid_results": len(sample) - validation_errors,
+        "validation_errors": validation_errors,
+        "validation_error_rate": validation_errors / len(sample) if sample else 0.0,
         "high_confidence_non_general": high_confidence_non_general,
         "label_counts": label_counts,
     }
@@ -438,7 +501,7 @@ def main() -> int:
     live_summary, live_rows = run_live_sample(provider, args.feed, args.limit)
 
     report = {
-        "schema": "yartchives-ai-profile-benchmark-v1",
+        "schema": "yartchives-ai-profile-benchmark-v2",
         "provider": provider.name,
         "model": args.model,
         "batch_size": args.batch_size,
