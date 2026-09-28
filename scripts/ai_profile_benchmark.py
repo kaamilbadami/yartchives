@@ -14,6 +14,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -26,6 +27,7 @@ DEFAULT_FEED = ROOT / "data" / "listings.json"
 DEFAULT_GOLD = ROOT / "tests" / "fixtures" / "ai-profile-gold.json"
 DEFAULT_OUTPUT = ROOT / "audit" / "ai-profile-benchmark.json"
 DEFAULT_MODEL = "gemini-3.5-flash-lite"
+DEFAULT_BATCH_SIZE = 20
 
 ALLOWED_LABELS = (
     "cs",
@@ -41,14 +43,15 @@ ALLOWED_LABELS = (
 )
 
 SYSTEM_INSTRUCTION = """You classify internship/co-op roles into the Yartchives career taxonomy.
-Use only the supplied role evidence. Return one or more labels only when the role/function clearly belongs there.
+Use only the supplied role evidence. Return one result for every supplied key, with the same key.
+Return one or more labels only when the role/function clearly belongs there.
 Do not classify a role as CS merely because it mentions AI, automation, data, applications, or technology in a nontechnical context.
 Do not classify a role as Engineering merely because the employer is an engineering company.
 Specialized engineering roles may receive both the discipline label and engineering.
 If the evidence is too broad or ambiguous, return general.
 Keep evidence phrases short and copied or closely paraphrased from the supplied role evidence."""
 
-RESPONSE_SCHEMA = {
+CLASSIFICATION_SCHEMA = {
     "type": "object",
     "properties": {
         "labels": {
@@ -67,6 +70,26 @@ RESPONSE_SCHEMA = {
     "additionalProperties": False,
 }
 
+BATCH_RESPONSE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "results": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "key": {"type": "string"},
+                    **CLASSIFICATION_SCHEMA["properties"],
+                },
+                "required": ["key", *CLASSIFICATION_SCHEMA["required"]],
+                "additionalProperties": False,
+            },
+        },
+    },
+    "required": ["results"],
+    "additionalProperties": False,
+}
+
 
 @dataclass(frozen=True)
 class Classification:
@@ -81,20 +104,64 @@ class ProfileClassifier(Protocol):
     def classify(self, job: dict[str, Any]) -> Classification:
         ...
 
+    def classify_many(self, jobs: list[dict[str, Any]]) -> list[Classification]:
+        ...
+
+
+def _chunks(values: list[Any], size: int):
+    for start in range(0, len(values), size):
+        yield values[start:start + size]
+
+
+def _retry_delay_seconds(response: requests.Response, attempt: int) -> float:
+    header = response.headers.get("Retry-After")
+    if header:
+        try:
+            return max(1.0, float(header))
+        except ValueError:
+            pass
+    match = re.search(r"retry in\s+([0-9.]+)s", response.text, flags=re.I)
+    if match:
+        return max(1.0, float(match.group(1)) + 1.0)
+    return float(min(30, 2 ** (attempt + 1)))
+
 
 class GeminiProfileClassifier:
     name = "gemini"
 
-    def __init__(self, api_key: str, model: str = DEFAULT_MODEL, timeout: float = 30.0):
+    def __init__(
+        self,
+        api_key: str,
+        model: str = DEFAULT_MODEL,
+        timeout: float = 60.0,
+        batch_size: int = DEFAULT_BATCH_SIZE,
+    ):
         if not api_key:
             raise ValueError("Gemini API key is required")
+        if batch_size < 1:
+            raise ValueError("batch_size must be positive")
         self.api_key = api_key
         self.model = model
         self.timeout = timeout
+        self.batch_size = batch_size
 
     def classify(self, job: dict[str, Any]) -> Classification:
-        payload = compact_job_evidence(job)
-        prompt = json.dumps(payload, ensure_ascii=False, sort_keys=True)
+        return self.classify_many([job])[0]
+
+    def classify_many(self, jobs: list[dict[str, Any]]) -> list[Classification]:
+        if not jobs:
+            return []
+        all_results: list[Classification] = []
+        for batch in _chunks(jobs, self.batch_size):
+            all_results.extend(self._classify_batch(batch))
+        return all_results
+
+    def _classify_batch(self, jobs: list[dict[str, Any]]) -> list[Classification]:
+        keyed_jobs = [
+            {"key": str(index), "job": compact_job_evidence(job)}
+            for index, job in enumerate(jobs)
+        ]
+        prompt = json.dumps({"jobs": keyed_jobs}, ensure_ascii=False, sort_keys=True)
         url = (
             "https://generativelanguage.googleapis.com/v1beta/models/"
             f"{self.model}:generateContent"
@@ -104,13 +171,14 @@ class GeminiProfileClassifier:
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
                 "responseMimeType": "application/json",
-                "responseJsonSchema": RESPONSE_SCHEMA,
+                "responseJsonSchema": BATCH_RESPONSE_SCHEMA,
                 "temperature": 0,
             },
         }
 
         last_error: Exception | None = None
-        for attempt in range(3):
+        for attempt in range(5):
+            response: requests.Response | None = None
             try:
                 response = requests.post(
                     url,
@@ -121,8 +189,17 @@ class GeminiProfileClassifier:
                     json=request_body,
                     timeout=self.timeout,
                 )
-                if response.status_code == 429 or response.status_code >= 500:
+                if response.status_code == 429:
                     detail = response.text[:1000].strip()
+                    if attempt < 4:
+                        time.sleep(_retry_delay_seconds(response, attempt))
+                        continue
+                    raise RuntimeError(f"Gemini HTTP 429 after retries: {detail}")
+                if response.status_code >= 500:
+                    detail = response.text[:1000].strip()
+                    if attempt < 4:
+                        time.sleep(_retry_delay_seconds(response, attempt))
+                        continue
                     raise RuntimeError(
                         f"Gemini transient HTTP {response.status_code}: {detail}"
                     )
@@ -131,13 +208,46 @@ class GeminiProfileClassifier:
                     raise ValueError(
                         f"Gemini HTTP {response.status_code}: {detail}"
                     )
+
                 body = response.json()
                 text = body["candidates"][0]["content"]["parts"][0]["text"]
-                return validate_classification(json.loads(text))
-            except (requests.RequestException, RuntimeError, KeyError, IndexError, json.JSONDecodeError, ValueError) as exc:
+                raw = json.loads(text)
+                rows = raw.get("results")
+                if not isinstance(rows, list):
+                    raise ValueError("Gemini batch response is missing results")
+
+                by_key: dict[str, Classification] = {}
+                for row in rows:
+                    if not isinstance(row, dict):
+                        raise ValueError("Gemini batch result must be an object")
+                    key = str(row.get("key", ""))
+                    if key in by_key:
+                        raise ValueError(f"Gemini returned duplicate key {key!r}")
+                    by_key[key] = validate_classification(row)
+
+                expected_keys = {str(index) for index in range(len(jobs))}
+                if set(by_key) != expected_keys:
+                    missing = sorted(expected_keys - set(by_key))
+                    extra = sorted(set(by_key) - expected_keys)
+                    raise ValueError(
+                        f"Gemini batch keys mismatch; missing={missing}, extra={extra}"
+                    )
+                return [by_key[str(index)] for index in range(len(jobs))]
+            except (
+                requests.RequestException,
+                RuntimeError,
+                KeyError,
+                IndexError,
+                json.JSONDecodeError,
+                ValueError,
+            ) as exc:
                 last_error = exc
-                if attempt < 2:
-                    time.sleep(2**attempt)
+                if response is not None and response.status_code == 429:
+                    continue
+                if attempt < 4 and isinstance(exc, requests.RequestException):
+                    time.sleep(float(min(30, 2 ** (attempt + 1))))
+                    continue
+                break
         raise RuntimeError(f"Gemini classification failed after retries: {last_error}")
 
 
@@ -240,11 +350,11 @@ def score_gold(expected: list[set[str]], predicted: list[set[str]]) -> dict[str,
 
 def run_gold(provider: ProfileClassifier, gold_path: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]:
     cases = json.loads(gold_path.read_text(encoding="utf-8"))
+    classifications = provider.classify_many(cases)
     results: list[dict[str, Any]] = []
     expected: list[set[str]] = []
     predicted: list[set[str]] = []
-    for case in cases:
-        classification = provider.classify(case)
+    for case, classification in zip(cases, classifications):
         exp = set(case["expected_labels"])
         pred = set(classification.labels)
         expected.append(exp)
@@ -269,11 +379,11 @@ def run_live_sample(
     doc = json.loads(feed_path.read_text(encoding="utf-8"))
     jobs = doc.get("jobs") or []
     sample = stable_general_sample(jobs, limit)
+    classifications = provider.classify_many(sample)
     rows: list[dict[str, Any]] = []
     label_counts = {label: 0 for label in ALLOWED_LABELS}
     high_confidence_non_general = 0
-    for job in sample:
-        classification = provider.classify(job)
+    for job, classification in zip(sample, classifications):
         for label in classification.labels:
             label_counts[label] += 1
         if classification.confidence >= 0.95 and classification.labels != ("general",):
@@ -305,6 +415,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gold", type=Path, default=DEFAULT_GOLD)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--limit", type=int, default=200)
+    parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
     parser.add_argument("--model", default=os.getenv("GEMINI_MODEL", DEFAULT_MODEL))
     parser.add_argument("--api-key-env", default="GEMINI_API_KEY")
     return parser.parse_args()
@@ -318,7 +429,11 @@ def main() -> int:
             f"{args.api_key_env} is not set; benchmark is audit-only and requires an explicit API key"
         )
 
-    provider = GeminiProfileClassifier(api_key=api_key, model=args.model)
+    provider = GeminiProfileClassifier(
+        api_key=api_key,
+        model=args.model,
+        batch_size=args.batch_size,
+    )
     gold_summary, gold_rows = run_gold(provider, args.gold)
     live_summary, live_rows = run_live_sample(provider, args.feed, args.limit)
 
@@ -326,6 +441,7 @@ def main() -> int:
         "schema": "yartchives-ai-profile-benchmark-v1",
         "provider": provider.name,
         "model": args.model,
+        "batch_size": args.batch_size,
         "production_mutation": False,
         "gold": {"summary": gold_summary, "rows": gold_rows},
         "live_general_sample": {"summary": live_summary, "rows": live_rows},
@@ -334,6 +450,7 @@ def main() -> int:
     args.output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(json.dumps({
         "model": args.model,
+        "batch_size": args.batch_size,
         "gold": gold_summary,
         "live_general_sample": live_summary,
         "output": str(args.output),
