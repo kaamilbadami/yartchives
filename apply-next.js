@@ -123,12 +123,29 @@
   function scoreFreshness(job, now) {
     const age = ageDays(job, now);
     if (age === null) return { score: 3, detail: "Posting date unknown" };
-    if (age <= 2) return { score: 10, detail: "Posted within 2 days" };
-    if (age <= 7) return { score: 8, detail: "Posted within 7 days" };
-    if (age <= 14) return { score: 6, detail: "Posted within 14 days" };
-    if (age <= 30) return { score: 3, detail: "Posted within 30 days" };
-    if (age <= 60) return { score: 1, detail: "Posted within 60 days" };
-    return { score: 0, detail: "Older than 60 days" };
+
+    const anchors = [
+      [0, 10],
+      [2, 10],
+      [7, 8],
+      [14, 6],
+      [30, 3],
+      [60, 1],
+      [90, 0],
+    ];
+    let score = 0;
+    for (let index = 1; index < anchors.length; index += 1) {
+      const [startAge, startScore] = anchors[index - 1];
+      const [endAge, endScore] = anchors[index];
+      if (age > endAge) continue;
+      const progress = endAge === startAge ? 1 : (Math.max(startAge, age) - startAge) / (endAge - startAge);
+      score = Math.round(startScore + (endScore - startScore) * progress);
+      break;
+    }
+    return {
+      score: Math.max(0, Math.min(10, score)),
+      detail: `Posted about ${Math.round(age)} ${Math.round(age) === 1 ? "day" : "days"} ago`,
+    };
   }
 
   function inspectionAvailability(inspection) {
