@@ -208,9 +208,15 @@
       return `${titleCaseLocation(countryCity[1].trim())}, ${fallback[0]}`;
     }
 
-    if (fallback.length === 1 && /^[A-Za-z][A-Za-z .'-]+$/.test(text)) {
-      return `${titleCaseLocation(text)}, ${fallback[0]}`;
+    const spacedCityState = text.match(/^(.+?)\s+([A-Z]{2})$/);
+    if (spacedCityState && STATE_NAMES[spacedCityState[2]]) {
+      const city = spacedCityState[1].trim();
+      if (city && city.toUpperCase() !== spacedCityState[2]) {
+        return `${titleCaseLocation(city)}, ${spacedCityState[2]}`;
+      }
     }
+
+    if (/^[A-Z]{2}$/.test(text) && STATE_NAMES[text]) return text;
     return text;
   }
 
