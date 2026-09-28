@@ -146,7 +146,7 @@
       .map(state => String(state || "").toUpperCase())
       .filter(state => STATE_NAMES[state]))];
 
-    if (/\bremote\b/i.test(text) && /^(?:(?:us|usa|united states)[\s_>-]*)?remote\b/i.test(text)) {
+    if (/remote/i.test(text) && /^(?:(?:us|usa|united states)[\s_>-]*)?remote(?:\b|_)/i.test(text)) {
       return "Remote";
     }
 
