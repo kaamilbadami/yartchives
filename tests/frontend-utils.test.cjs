@@ -77,6 +77,14 @@ assert.ok(exactResult.miles < 20);
 const cityJob = { location: "Danbury, CT", states: ["CT"] };
 const cityResult = U.distanceForJob(cityJob, geo.zips.get("06897"), geo);
 assert.equal(cityResult.precision, "city");
+
+const uniqueCityOnly = { location: "San Francisco", states: [] };
+const uniqueCityOnlyResult = U.distanceForJob(uniqueCityOnly, geo.zips.get("06897"), geo);
+assert.equal(uniqueCityOnlyResult.point.state, "CA");
+assert.equal(uniqueCityOnlyResult.point.city, "san francisco");
+
+const ambiguousCityOnly = { location: "Springfield", states: [] };
+assert.equal(U.distanceForJob(ambiguousCityOnly, geo.zips.get("06897"), geo), null);
 assert.ok(cityResult.miles < 20);
 
 const cacheJob = { location: "Danbury, CT", states: ["CT"] };
