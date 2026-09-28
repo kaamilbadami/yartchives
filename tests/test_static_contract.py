@@ -173,7 +173,7 @@ class StaticContractTests(unittest.TestCase):
 
     def test_pages_deploy_requires_and_verifies_fresh_runtime_feed(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-pages.yml").read_text(encoding="utf-8")
-        self.assertRegex(workflow, r"--require-feed-artifact\\s+--max-feed-age-hours 3")
+        self.assertIn("--require-feed-artifact --max-feed-age-hours 3", " ".join(workflow.split()))
         self.assertIn("sha256sum _site/data/listings.json", workflow)
         self.assertIn("/data/listings.json?verify=", workflow)
         self.assertIn("sha256sum /tmp/live-listings.json", workflow)
