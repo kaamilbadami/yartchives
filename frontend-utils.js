@@ -155,7 +155,7 @@
       return `${titleCaseLocation(codedSite[2].trim())}, ${codedSite[1].toUpperCase()}`;
     }
 
-    const countryStateCity = text.match(/^(?:US|USA|United States)\s*(?:-|>|_)\s*([A-Z]{2}|[A-Za-z ]+?)\s*(?:-|>|_)\s*(.+?)(?=\s*(?:-\d+\b|~|>|$))/i);
+    const countryStateCity = text.match(/^(?:US|USA|United States)\s*(?:-|>|_)\s*([A-Z]{2}|[A-Za-z ]+?)\s*(?:-|>|_)\s*(.+?)(?=\s+-\s+|\s+>\s+|-\d+\b|~|$)/i);
     if (countryStateCity) {
       const stateToken = countryStateCity[1].trim();
       const code = /^[A-Z]{2}$/i.test(stateToken)
@@ -166,7 +166,7 @@
       }
     }
 
-    const stateCity = text.match(/^([A-Z]{2})\s*(?:-|>|_)\s*(.+?)(?=\s*(?:-\d+\b|~|>|$))/i);
+    const stateCity = text.match(/^([A-Z]{2})\s*(?:-|>|_)\s*(.+?)(?=\s+-\s+|\s+>\s+|-\d+\b|~|$)/i);
     if (stateCity && STATE_NAMES[stateCity[1].toUpperCase()]) {
       return `${titleCaseLocation(stateCity[2].trim())}, ${stateCity[1].toUpperCase()}`;
     }
