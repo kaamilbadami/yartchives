@@ -49,17 +49,17 @@ If the evidence is too broad or ambiguous, return general.
 Keep evidence phrases short and copied or closely paraphrased from the supplied role evidence."""
 
 RESPONSE_SCHEMA = {
-    "type": "OBJECT",
+    "type": "object",
     "properties": {
         "labels": {
-            "type": "ARRAY",
-            "items": {"type": "STRING", "enum": list(ALLOWED_LABELS)},
+            "type": "array",
+            "items": {"type": "string", "enum": list(ALLOWED_LABELS)},
             "minItems": 1,
         },
-        "confidence": {"type": "NUMBER", "minimum": 0, "maximum": 1},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
         "evidence": {
-            "type": "ARRAY",
-            "items": {"type": "STRING"},
+            "type": "array",
+            "items": {"type": "string"},
             "maxItems": 3,
         },
     },
@@ -104,7 +104,7 @@ class GeminiProfileClassifier:
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
                 "responseMimeType": "application/json",
-                "responseSchema": RESPONSE_SCHEMA,
+                "responseJsonSchema": RESPONSE_SCHEMA,
                 "temperature": 0,
             },
         }
@@ -122,8 +122,15 @@ class GeminiProfileClassifier:
                     timeout=self.timeout,
                 )
                 if response.status_code == 429 or response.status_code >= 500:
-                    raise RuntimeError(f"Gemini transient HTTP {response.status_code}")
-                response.raise_for_status()
+                    detail = response.text[:1000].strip()
+                    raise RuntimeError(
+                        f"Gemini transient HTTP {response.status_code}: {detail}"
+                    )
+                if response.status_code >= 400:
+                    detail = response.text[:1000].strip()
+                    raise ValueError(
+                        f"Gemini HTTP {response.status_code}: {detail}"
+                    )
                 body = response.json()
                 text = body["candidates"][0]["content"]["parts"][0]["text"]
                 return validate_classification(json.loads(text))
