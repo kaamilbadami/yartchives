@@ -1260,11 +1260,14 @@
     const scoreClass = `apply-next-score ${totalScoreBandClass(totalMin)}`;
     const score = element("div", scoreClass);
     score.append(
+      element("span", "apply-next-score-label", "Apply Next"),
       element("strong", "", String(totalMin)),
       element("span", "", "/100")
     );
+    score.setAttribute("aria-label", `Apply Next score ${totalMin} out of 100`);
+    score.title = "Personalized application priority: role value, fit, freshness, requirements, and location all contribute. A strong farther-away role can still outrank a weaker nearby role.";
     if (hasScoreRange) {
-      score.title = `Current score uses the conservative location value. If the location fits your preferences, it could rise to ${totalMax}/100.`;
+      score.title += ` Current score uses the conservative location value; verified location fit could raise it to ${totalMax}/100.`;
     }
     top.append(titleWrap, score);
     card.append(top);
