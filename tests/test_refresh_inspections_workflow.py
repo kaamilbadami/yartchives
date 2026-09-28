@@ -18,6 +18,11 @@ class RefreshInspectionsWorkflowTests(unittest.TestCase):
         self.assertLess(migrate, refresh)
         self.assertIn("scripts/download_latest_feed.py", text[hydrate:migrate])
 
+    def test_authoritative_availability_is_rechecked_daily(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("--ttl-days 1", text)
+        self.assertNotIn("--ttl-days 7", text)
+
     def test_inspections_are_published_as_artifact_not_committed(self):
         text = WORKFLOW.read_text(encoding="utf-8")
         publish = text.index("- name: Publish bounded inspections artifact")
