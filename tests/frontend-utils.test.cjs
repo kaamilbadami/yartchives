@@ -58,6 +58,7 @@ const csv = [
   "20166,Sterling,VA,38.9440,-77.4558,30000",
   "80202,Denver,CO,39.7525,-104.9995,12000",
   "94105,San Francisco,CA,37.7898,-122.3942,34000",
+  "44122,Beachwood,OH,41.4645,-81.5087,12000",
   "78701,Austin,TX,30.2711,-97.7437,18000",
 ].join("\n");
 const geo = U.buildGeoIndex(csv);
@@ -85,6 +86,11 @@ assert.equal(uniqueCityOnlyResult.point.city, "san francisco");
 
 const ambiguousCityOnly = { location: "Springfield", states: [] };
 assert.equal(U.distanceForJob(ambiguousCityOnly, geo.zips.get("06897"), geo), null);
+
+const codedWorkdayCityOnly = { location: "OH05-01-Beachwood-Science Park Drive", states: [] };
+const codedWorkdayCityOnlyResult = U.distanceForJob(codedWorkdayCityOnly, geo.zips.get("06897"), geo);
+assert.equal(codedWorkdayCityOnlyResult.point.state, "OH");
+assert.equal(codedWorkdayCityOnlyResult.point.city, "beachwood");
 assert.ok(cityResult.miles < 20);
 
 const cacheJob = { location: "Danbury, CT", states: ["CT"] };
