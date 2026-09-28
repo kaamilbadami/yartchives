@@ -16,6 +16,12 @@ class AiProfileBenchmarkWorkflowTests(unittest.TestCase):
         self.assertNotIn("\n  pull_request:", text)
 
 
+    def test_issue_comment_runs_use_comment_specific_concurrency(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("github.event.comment.id", text)
+        self.assertIn("github.event_name == 'issue_comment'", text)
+        self.assertIn("cancel-in-progress: true", text)
+
     def test_issue_comment_trigger_is_tightly_authorized(self):
         text = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("github.event.issue.number == 737", text)
