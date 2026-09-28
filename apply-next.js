@@ -532,7 +532,7 @@
     const states = new Set(job?.states || []);
     const preferredStates = profile?.preferredStates || [];
     if (states.has("Remote") && profile?.remoteRelevant !== false) {
-      return { score: 18, detail: "Remote opportunity" };
+      return { score: 20, detail: "Remote opportunity" };
     }
     if (Number.isFinite(job?._distanceMiles)) {
       const near = Number(profile?.nearbyMiles || 50);
