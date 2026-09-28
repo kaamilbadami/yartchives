@@ -67,7 +67,7 @@ def _request_bytes(url: str, token: str | None) -> bytes:
 def latest_artifact(repo: str, workflow: str, artifact_name: str, token: str | None) -> dict | None:
     runs_url = (
         f"{API_ROOT}/repos/{repo}/actions/workflows/{workflow}/runs"
-        "?branch=main&per_page=20"
+        "?branch=main&status=success&per_page=20"
     )
     payload = _request_json(runs_url, token)
     for run in payload.get("workflow_runs", []):
