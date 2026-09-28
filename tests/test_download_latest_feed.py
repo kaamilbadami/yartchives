@@ -2,10 +2,12 @@ import importlib.util
 import io
 import tempfile
 import unittest
+from datetime import datetime, timedelta, timezone
 import zipfile
 from pathlib import Path
 from urllib.request import Request
 from unittest.mock import patch
+import sys
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "download_latest_feed.py"
 spec = importlib.util.spec_from_file_location("download_latest_feed", MODULE_PATH)
@@ -58,6 +60,79 @@ class DownloadLatestFeedTests(unittest.TestCase):
         self.assertIsNone(redirected.get_header("Authorization"))
         self.assertIsNone(redirected.get_header("X-GitHub-Api-Version"))
 
+
+    def test_workflow_has_active_run_recognizes_running_and_queued_states(self):
+        with patch.object(mod, "_request_json", return_value={
+            "workflow_runs": [
+                {"status": "completed"},
+                {"status": "in_progress"},
+            ]
+        }):
+            self.assertTrue(mod.workflow_has_active_run(
+                "owner/repo", "update-feed.yml", "token"
+            ))
+        with patch.object(mod, "_request_json", return_value={
+            "workflow_runs": [{"status": "completed"}]
+        }):
+            self.assertFalse(mod.workflow_has_active_run(
+                "owner/repo", "update-feed.yml", "token"
+            ))
+
+    def test_main_defers_stale_feed_only_when_refresh_is_active(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            feed = Path(tmp) / "listings.json"
+            inspections = Path(tmp) / "inspections.json"
+            universe = Path(tmp) / "universe.json"
+            github_output = Path(tmp) / "github-output.txt"
+            stale = datetime.now(timezone.utc) - timedelta(hours=4)
+            feed.write_text(
+                '{"generated_at":"' + stale.isoformat().replace("+00:00", "Z") + '","jobs":[]}',
+                encoding="utf-8",
+            )
+
+            def fake_hydrate(**kwargs):
+                return "artifact:test"
+
+            argv = [
+                "download_latest_feed.py",
+                "--repo", "owner/repo",
+                "--feed", str(feed),
+                "--inspections", str(inspections),
+                "--employer-universe", str(universe),
+                "--max-feed-age-hours", "3",
+                "--defer-stale-feed-if-workflow-active", "update-feed.yml",
+                "--github-output", str(github_output),
+            ]
+            with patch.object(sys, "argv", argv), \
+                 patch.object(mod, "hydrate_one", side_effect=fake_hydrate), \
+                 patch.object(mod, "workflow_has_active_run", return_value=True):
+                self.assertEqual(mod.main(), 0)
+
+            output = github_output.read_text(encoding="utf-8")
+            self.assertIn("deploy_ready=false", output)
+            self.assertIn("defer_reason=stale_feed_refresh_active", output)
+
+    def test_main_still_fails_stale_feed_when_no_refresh_is_active(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            feed = Path(tmp) / "listings.json"
+            stale = datetime.now(timezone.utc) - timedelta(hours=4)
+            feed.write_text(
+                '{"generated_at":"' + stale.isoformat().replace("+00:00", "Z") + '","jobs":[]}',
+                encoding="utf-8",
+            )
+            argv = [
+                "download_latest_feed.py",
+                "--repo", "owner/repo",
+                "--feed", str(feed),
+                "--max-feed-age-hours", "3",
+                "--defer-stale-feed-if-workflow-active", "update-feed.yml",
+                "--github-output", str(Path(tmp) / "github-output.txt"),
+            ]
+            with patch.object(sys, "argv", argv), \
+                 patch.object(mod, "hydrate_one", return_value="artifact:test"), \
+                 patch.object(mod, "workflow_has_active_run", return_value=False):
+                with self.assertRaisesRegex(RuntimeError, "maximum allowed"):
+                    mod.main()
 
     def test_required_artifact_never_falls_back_to_checked_in_feed(self):
         with tempfile.TemporaryDirectory() as tmp:
