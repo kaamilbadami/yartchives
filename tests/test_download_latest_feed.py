@@ -23,10 +23,19 @@ def zip_bytes(name: str, content: bytes) -> bytes:
 
 
 class DownloadLatestFeedTests(unittest.TestCase):
-    def test_latest_artifact_only_accepts_successful_runs(self):
+    def test_latest_artifact_accepts_validated_artifact_from_later_failed_run(self):
         responses = [
-            {"workflow_runs": [{"id": 9, "conclusion": "success"}]},
-            {"artifacts": [{"id": 99, "name": "yartchives-listings", "expired": False}]},
+            {
+                "artifacts": [
+                    {
+                        "id": 99,
+                        "name": "yartchives-listings",
+                        "expired": False,
+                        "workflow_run": {"id": 9, "head_branch": "main"}
+                    }
+                ]
+            },
+            {"path": ".github/workflows/update-feed.yml"}
         ]
         with patch.object(mod, "_request_json", side_effect=responses) as request_json:
             artifact = mod.latest_artifact(
@@ -36,7 +45,8 @@ class DownloadLatestFeedTests(unittest.TestCase):
                 "token",
             )
         self.assertEqual(artifact["id"], 99)
-        self.assertIn("status=success", request_json.call_args_list[0].args[0])
+        self.assertIn("?name=yartchives-listings", request_json.call_args_list[0].args[0])
+        self.assertIn("/actions/runs/9", request_json.call_args_list[1].args[0])
 
 
     def test_artifact_redirect_drops_github_auth_on_cross_host(self):
