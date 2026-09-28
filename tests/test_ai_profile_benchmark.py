@@ -13,6 +13,15 @@ spec.loader.exec_module(mod)
 
 
 class AiProfileBenchmarkTests(unittest.TestCase):
+
+    def test_prompt_preserves_yartchives_taxonomy_boundaries(self):
+        prompt = mod.SYSTEM_INSTRUCTION
+        self.assertIn("Software engineering is cs, not engineering", prompt)
+        self.assertIn("Specialized engineering labels roll up to engineering", prompt)
+        self.assertIn("AI in business strategy", prompt)
+        self.assertIn("general is mutually exclusive", prompt)
+        self.assertIn("Data analyst", prompt)
+
     def test_validate_classification_accepts_allowed_labels(self):
         result = mod.validate_classification({
             "labels": ["finance-econ", "cs", "cs"],
