@@ -117,7 +117,12 @@
     const reasons = [];
     let penalty = 0;
 
-    if (states.has("Remote") || /\bremote\b/.test(location)) {
+    const remote = states.has("Remote") || /\bremote\b/.test(location);
+    const nationwide = states.has("US")
+      || /\b(united states|nationwide|multiple locations|various locations)\b/.test(location);
+    const generic = isGenericRole(job);
+
+    if (remote) {
       penalty += 2;
       reasons.push("remote role can draw a broad applicant pool");
     }
@@ -125,11 +130,15 @@
       penalty += 2;
       reasons.push("dense applicant market");
     }
-    if (/\b(united states|nationwide|multiple locations|various locations)\b/.test(location)) {
+    if (nationwide) {
       penalty += 1;
       reasons.push("broad geographic applicant pool");
     }
-    return { penalty: Math.min(3, penalty), reasons };
+    if (remote && nationwide && generic) {
+      penalty += 1;
+      reasons.push("generic remote role is open to a nationwide applicant pool");
+    }
+    return { penalty: Math.min(4, penalty), reasons };
   }
 
   function employerKey(job) {
@@ -234,7 +243,7 @@
     competitionPenalty += market.penalty;
     reasons.push(...market.reasons);
 
-    competitionPenalty = Math.min(5, competitionPenalty);
+    competitionPenalty = Math.min(6, competitionPenalty);
     demandBonus = Math.min(5, demandBonus);
     score = Math.max(0, Math.min(10, score - competitionPenalty + demandBonus));
 
