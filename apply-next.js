@@ -278,6 +278,7 @@
       ...(authoritative?.durationEvidence || []),
       ...(authoritative?.dateRangeEvidence || []),
     ].filter(Boolean);
+    const evidenceText = normalize(evidence.join(" "));
 
     const explicitTerms = explicitScheduleTerms(...evidence);
     if (explicitTerms.length && !explicitTerms.includes(`${target.season} ${target.year}`)) {
@@ -286,7 +287,7 @@
 
     const nowMs = new Date(now).getTime();
     const targetMs = target.start.getTime();
-    const immediate = /\b(?:immediate start|start immediately|available immediately|as soon as possible|asap)\b/.test(evidence);
+    const immediate = /\b(?:immediate start|start immediately|available immediately|as soon as possible|asap)\b/.test(evidenceText);
     if (immediate && Number.isFinite(nowMs) && targetMs - nowMs > 45 * 86400000) {
       return `Posting explicitly requires an immediate start, which conflicts with ${profile.targetTerm}`;
     }
