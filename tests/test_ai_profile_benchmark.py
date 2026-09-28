@@ -107,9 +107,11 @@ class AiProfileBenchmarkTests(unittest.TestCase):
             "application/json",
         )
         self.assertEqual(
-            kwargs["json"]["generationConfig"]["responseSchema"],
+            kwargs["json"]["generationConfig"]["responseJsonSchema"],
             mod.RESPONSE_SCHEMA,
         )
+        self.assertNotIn("responseSchema", kwargs["json"]["generationConfig"])
+        self.assertEqual(mod.RESPONSE_SCHEMA["type"], "object")
         self.assertNotIn("profiles", kwargs["json"]["contents"][0]["parts"][0]["text"])
 
 
