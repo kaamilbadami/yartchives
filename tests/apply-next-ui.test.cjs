@@ -390,6 +390,7 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /roi: "Application value"/, "Why-this-ranks-here should name application value directly");
   assert.match(uiSource, /const detail = String\(component\.detail \|\| ""\)\.trim\(\);/, "Component breakdown should expose scoring evidence/details");
   assert.doesNotMatch(uiSource, /card\.append\(highlightsUl\)/, "Recommendation cards should not duplicate the total score with generic badge strips");
+  assert.match(uiSource, /Small score differences are close calls/, "Recommended queue should describe adjacent scores as near-ties rather than large gaps");
 
   assert.match(
     uiSource,
