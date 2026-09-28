@@ -1075,12 +1075,12 @@
 
   function componentLabel(key) {
     return ({
-      fit: "How well you match",
+      fit: "Qualification fit",
       eligibility: "Eligibility",
-      freshness: "How recent it is",
-      roi: "Worth applying",
+      freshness: "Freshness",
+      roi: "Application value",
       role: "Role",
-      location: "Location fit",
+      location: "Location",
       link: "Link",
     })[key] || key;
   }
@@ -1282,13 +1282,6 @@
     top.append(titleWrap, score);
     card.append(top);
 
-        const highlights = decisionHighlights(result);
-    const highlightsUl = element("ul", "apply-next-highlights");
-    for (const h of highlights) {
-      highlightsUl.append(element("li", "", h));
-    }
-    card.append(highlightsUl);
-
     const breakdown = element("div", "apply-next-breakdown");
     for (const [key, component] of Object.entries(result.components || {})) {
       const max = componentMax(key);
@@ -1297,14 +1290,13 @@
       const line = element("div", "apply-next-metric-line");
       const label = element("strong", "", componentLabel(key));
       const unresolvedLocation = key === "location" && component.unresolved === true;
-      const scoreText = element("span", "", unresolvedLocation ? `—/${max}` : `${component.score}/${max}`);
+      const scoreText = element("span", "", `${component.score}/${max}`);
       line.append(label, scoreText);
       metric.append(line);
-      const band = unresolvedLocation ? "Distance not verified" : scoreBand(key, component.score, max, job);
-      if (band) metric.append(element("p", "apply-next-metric-band", band));
+      const detail = String(component.detail || "").trim();
       const explanation = unresolvedLocation
-        ? "Location is not verified yet. The displayed score uses the conservative location value; verified location fit can raise it."
-        : componentExplanation(key);
+        ? `${detail ? detail + " " : ""}Location is not verified yet; this is the conservative location score and verification can raise it.`
+        : (detail || componentExplanation(key));
       if (explanation) metric.append(element("p", "apply-next-metric-explanation", explanation));
       breakdown.append(metric);
     }
