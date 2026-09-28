@@ -13,6 +13,22 @@ spec.loader.exec_module(mod)
 
 
 class AiProfileBenchmarkTests(unittest.TestCase):
+
+    def test_prompt_preserves_yartchives_taxonomy_boundaries(self):
+        prompt = mod.SYSTEM_INSTRUCTION
+        self.assertIn("Software engineering is cs, not engineering", prompt)
+        self.assertIn("Firmware, embedded systems", prompt)
+        self.assertIn("Avionics roles are aero + electrical + engineering", prompt)
+        self.assertIn("Generic \"data\", \"technology\", or \"analytics\" wording alone does not add cs", prompt)
+        self.assertIn("Finance/econ roles do not receive cs", prompt)
+        self.assertIn("Generic physical-engineering titles", prompt)
+        self.assertIn("Mechanical is only for explicit", prompt)
+        self.assertIn("explicitly says medical, clinical, healthcare", prompt)
+        self.assertIn("Specialized engineering labels roll up to engineering", prompt)
+        self.assertIn("AI in business strategy", prompt)
+        self.assertIn("general is mutually exclusive", prompt)
+        self.assertIn("Data analyst", prompt)
+
     def test_validate_classification_accepts_allowed_labels(self):
         result = mod.validate_classification({
             "labels": ["finance-econ", "cs", "cs"],
@@ -249,6 +265,107 @@ class AiProfileBenchmarkTests(unittest.TestCase):
         self.assertEqual(summary["exact_set_accuracy"], 1.0)
         self.assertFalse(rows[1]["exact"])
         self.assertIn("error", rows[1])
+
+
+    def test_rule_reference_excludes_source_key_only_classification(self):
+        source_only = {
+            "id": "source-only",
+            "title": "Marketing Intern",
+            "company": "Example",
+            "profiles": ["cs"],
+            "source_keys": ["ct-example"],
+        }
+        visible_rule = {
+            "id": "visible",
+            "title": "Software Engineering Intern",
+            "company": "Example",
+            "profiles": ["cs"],
+            "source_keys": ["anything"],
+        }
+        candidates = mod.rule_backed_reference_candidates([source_only, visible_rule])
+        self.assertEqual([job["id"] for job in candidates], ["visible"])
+
+    def test_rule_reference_requires_fresh_recomputation_to_match_stored_labels(self):
+        stale = {
+            "id": "stale",
+            "title": "Software Engineering Intern",
+            "company": "Example",
+            "profiles": ["finance-econ"],
+            "source_keys": [],
+        }
+        matching = {
+            "id": "matching",
+            "title": "Financial Analyst Intern",
+            "company": "Example",
+            "profiles": ["finance-econ"],
+            "source_keys": [],
+        }
+        candidates = mod.rule_backed_reference_candidates([stale, matching])
+        self.assertEqual([job["id"] for job in candidates], ["matching"])
+
+    def test_rule_reference_sample_is_deterministic_and_stratified(self):
+        jobs = [
+            {"id": "cs1", "title": "Software Intern", "profiles": ["cs"], "source_keys": []},
+            {"id": "cs2", "title": "Software Developer Intern", "profiles": ["cs"], "source_keys": []},
+            {"id": "fin1", "title": "Finance Intern", "profiles": ["finance-econ"], "source_keys": []},
+            {"id": "ee1", "title": "Electrical Engineering Intern", "profiles": ["electrical", "engineering"], "source_keys": []},
+        ]
+        first = mod.stable_rule_reference_sample(jobs, 3)
+        second = mod.stable_rule_reference_sample(list(reversed(jobs)), 3)
+        self.assertEqual([job["id"] for job in first], [job["id"] for job in second])
+        labels = set().union(*(set(job["profiles"]) for job in first))
+        self.assertIn("cs", labels)
+        self.assertIn("finance-econ", labels)
+        self.assertIn("electrical", labels)
+
+    def test_per_label_metrics_reports_support_precision_and_recall(self):
+        metrics = mod.per_label_metrics(
+            [{"cs"}, {"finance-econ"}, {"cs", "finance-econ"}],
+            [{"cs"}, {"cs"}, {"cs", "finance-econ"}],
+        )
+        self.assertEqual(metrics["cs"]["support"], 2)
+        self.assertAlmostEqual(metrics["cs"]["precision"], 2 / 3)
+        self.assertEqual(metrics["cs"]["recall"], 1.0)
+        self.assertEqual(metrics["finance-econ"]["support"], 2)
+        self.assertEqual(metrics["finance-econ"]["precision"], 1.0)
+        self.assertEqual(metrics["finance-econ"]["recall"], 0.5)
+
+    def test_rule_reference_summary_counts_disagreements_and_invalid_results(self):
+        class FakeProvider:
+            name = "fake"
+            def classify_many(self, jobs):
+                return [
+                    mod.ClassificationOutcome(
+                        classification=mod.Classification(("cs",), 0.95, ("software",))
+                    ),
+                    mod.ClassificationOutcome(
+                        classification=mod.Classification(("tech-business",), 0.9, ("analytics",))
+                    ),
+                    mod.ClassificationOutcome(
+                        classification=None,
+                        error="general cannot be combined with specialized labels",
+                        raw_labels=("general", "finance-econ"),
+                    ),
+                ]
+
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "feed.json"
+            path.write_text(json.dumps({
+                "jobs": [
+                    {"id": "a", "company": "A", "title": "Software Intern", "profiles": ["cs"], "source_keys": []},
+                    {"id": "b", "company": "B", "title": "Finance Intern", "profiles": ["finance-econ"], "source_keys": []},
+                    {"id": "c", "company": "C", "title": "Financial Analyst Intern", "profiles": ["finance-econ"], "source_keys": []},
+                ]
+            }), encoding="utf-8")
+            summary, rows = mod.run_rule_reference(FakeProvider(), path, 3)
+
+        self.assertEqual(summary["sample_size"], 3)
+        self.assertEqual(summary["valid_results"], 2)
+        self.assertEqual(summary["validation_errors"], 1)
+        self.assertEqual(summary["disagreements"], 2)
+        self.assertAlmostEqual(summary["agreement_rate_including_invalid"], 1 / 3)
+        self.assertEqual(len(rows), 3)
 
     def test_retry_delay_uses_gemini_retry_hint(self):
         response = mock.Mock()

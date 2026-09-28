@@ -11,10 +11,18 @@ on:
         description: Number of live general jobs to sample
         required: true
         default: "200"
+      reference_limit:
+        description: Number of rule-backed jobs to compare against
+        required: true
+        default: "300"
+  issue_comment:
+    types:
+      - created
 
 permissions:
   contents: read
   actions: read
+  issues: read
 
 concurrency:
   group: ai-profile-benchmark-${{ github.ref }}
@@ -22,6 +30,14 @@ concurrency:
 
 jobs:
   benchmark:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event_name == 'issue_comment' &&
+        github.event.issue.number == 737 &&
+        github.event.comment.body == '/run-ai-profile-benchmark' &&
+        github.event.comment.user.login == github.repository_owner
+      )
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -55,10 +71,14 @@ jobs:
       - name: Run offline AI profile benchmark
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          BENCHMARK_MODEL: ${{ github.event_name == 'workflow_dispatch' && inputs.model || 'gemini-3.5-flash-lite' }}
+          GENERAL_LIMIT: ${{ github.event_name == 'workflow_dispatch' && inputs.limit || '200' }}
+          REFERENCE_LIMIT: ${{ github.event_name == 'workflow_dispatch' && inputs.reference_limit || '300' }}
         run: >-
           python scripts/ai_profile_benchmark.py
-          --model "${{ inputs.model }}"
-          --limit "${{ inputs.limit }}"
+          --model "$BENCHMARK_MODEL"
+          --limit "$GENERAL_LIMIT"
+          --reference-limit "$REFERENCE_LIMIT"
           --output audit/ai-profile-benchmark.json
 
       - name: Upload benchmark report

@@ -12,9 +12,11 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import os
 import re
+import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -28,6 +30,7 @@ DEFAULT_GOLD = ROOT / "tests" / "fixtures" / "ai-profile-gold.json"
 DEFAULT_OUTPUT = ROOT / "audit" / "ai-profile-benchmark.json"
 DEFAULT_MODEL = "gemini-3.5-flash-lite"
 DEFAULT_BATCH_SIZE = 20
+DEFAULT_REFERENCE_LIMIT = 300
 
 ALLOWED_LABELS = (
     "cs",
@@ -44,10 +47,35 @@ ALLOWED_LABELS = (
 
 SYSTEM_INSTRUCTION = """You classify internship/co-op roles into the Yartchives career taxonomy.
 Use only the supplied role evidence. Return one result for every supplied key, with the same key.
+
+Taxonomy contract:
+- cs: software/computing roles, data science/engineering, ML/AI technical roles, cybersecurity, cloud/platform/DevOps, databases, networking, IT, test automation, and programming-heavy roles.
+- tech-business: product management, business/systems/data analysts, analytics/BI, technology consulting/strategy, digital transformation, implementation, and business/product operations.
+- finance-econ: finance, accounting, audit, tax, actuarial, banking, investments, markets, trading, economics, risk, underwriting, quantitative finance/research/trading.
+- mechanical: mechanical/manufacturing/industrial/materials/thermal/CAD/mechanical-design roles.
+- aero: aerospace/aeronautical/spacecraft/propulsion/aerodynamics/GNC/flight/avionics/satellite roles.
+- electrical: electrical/electronics/hardware/computer engineering, embedded systems/software, firmware, FPGA, RF, semiconductors, IC/VLSI, PCB, signal/power roles.
+- engineering: broad physical/general engineering. mechanical, aero, and electrical labels also imply engineering.
+- policy: public policy, government/public affairs, legislative, advocacy, government relations, and policy research.
+- health: clinical/healthcare/public-health/medical/biomedical/patient/pharmacy/life-science roles.
+- general: use only when none of the specialized labels clearly apply. general is mutually exclusive with every specialized label.
+
+Boundary rules that matter in Yartchives:
+- Software engineering is cs, not engineering merely because the title contains "engineer".
+- Security, cloud, data, platform, DevOps, site-reliability, software, sales, solutions, support, and consulting roles do not receive engineering solely because "engineer" appears in the title.
+- Firmware, embedded systems, computer-engineering, and hardware roles are electrical + engineering. Add cs only when the title/function independently indicates software, programming, computer science, data science/engineering, ML/AI engineering, or another cs role family. Do not add cs merely because firmware or embedded work involves code.
+- Avionics roles are aero + electrical + engineering unless the visible role evidence clearly narrows them otherwise.
+- Data analyst, business intelligence, analytics, technology operations, product management, and digital-transformation roles are tech-business unless the role evidence clearly says software engineering, data engineering, data science, ML/AI engineering, or another cs role family. Generic "data", "technology", or "analytics" wording alone does not add cs.
+- Finance/econ roles do not receive cs merely because they mention data, analytics, technology, or quantitative work. Add cs only for an independently explicit computing role such as quantitative developer, software, data engineering/science, or programming.
+- Generic physical-engineering titles such as Engineering Intern, Systems Engineering Intern, Design Engineer, Test Engineer, or Product Development Engineering stay engineering when no specialized discipline is explicit. Do not invent electrical or mechanical from generic design/test/product wording.
+- Mechanical is only for explicit mechanical/manufacturing/industrial/materials/thermal/CAD/mechanical-design evidence; generic product/design engineering is not enough.
+- AI in business strategy, product marketing, people/HR transformation, policy, or other nontechnical contexts is not cs.
+- A role whose own title/function explicitly says medical, clinical, healthcare, biomedical, pharmacy, public health, or life sciences receives health even when it also has a cs or tech-business function. Do not infer health merely from the employer's industry or company name.
+- Do not infer finance, policy, or engineering from the employer's industry alone; classify the role itself.
+- Specialized engineering labels roll up to engineering.
+- Prefer the narrowest justified labels; do not add extra labels "just in case".
+
 Return one or more labels only when the role/function clearly belongs there.
-Do not classify a role as CS merely because it mentions AI, automation, data, applications, or technology in a nontechnical context.
-Do not classify a role as Engineering merely because the employer is an engineering company.
-Specialized engineering roles may receive both the discipline label and engineering.
 If the evidence is too broad or ambiguous, return general.
 Keep evidence phrases short and copied or closely paraphrased from the supplied role evidence."""
 
@@ -103,6 +131,22 @@ class ClassificationOutcome:
     classification: Classification | None
     error: str | None = None
     raw_labels: tuple[str, ...] = ()
+
+
+
+
+def _load_enrich_feed_module():
+    path = ROOT / "scripts" / "enrich_feed.py"
+    spec = importlib.util.spec_from_file_location("yartchives_enrich_feed", path)
+    if spec is None or spec.loader is None:
+        raise RuntimeError(f"Could not load deterministic classifier from {path}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module
+
+
+ENRICH_FEED = _load_enrich_feed_module()
 
 
 class ProfileClassifier(Protocol):
@@ -355,6 +399,159 @@ def stable_general_sample(jobs: list[dict[str, Any]], limit: int) -> list[dict[s
     return general[: max(0, limit)]
 
 
+
+def _stable_job_key(job: dict[str, Any]) -> str:
+    return hashlib.sha256(
+        str(job.get("id") or f"{job.get('company','')}|{job.get('title','')}").encode("utf-8")
+    ).hexdigest()
+
+
+def rule_backed_reference_candidates(jobs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Return non-General jobs whose labels are reproduced from visible role evidence.
+
+    Source-key-only classifications are excluded by recomputing after source_keys are
+    removed. This keeps the reference set grounded in evidence Gemini can actually see.
+    """
+    candidates: list[dict[str, Any]] = []
+    for job in jobs:
+        if not isinstance(job, dict):
+            continue
+        stored = set(job.get("profiles") or [])
+        if not stored or "general" in stored:
+            continue
+        if not stored.issubset(ALLOWED_LABELS):
+            continue
+
+        visible_job = dict(job)
+        visible_job["source_keys"] = []
+        recomputed = set(ENRICH_FEED.classify_profiles(visible_job))
+        if recomputed == stored:
+            candidates.append(job)
+    return candidates
+
+
+def stable_rule_reference_sample(jobs: list[dict[str, Any]], limit: int) -> list[dict[str, Any]]:
+    """Deterministically stratify rule-backed jobs across profile labels."""
+    if limit <= 0:
+        return []
+    candidates = rule_backed_reference_candidates(jobs)
+    labels = [label for label in ALLOWED_LABELS if label != "general"]
+    buckets: dict[str, list[dict[str, Any]]] = {
+        label: sorted(
+            [job for job in candidates if label in set(job.get("profiles") or [])],
+            key=_stable_job_key,
+        )
+        for label in labels
+    }
+    positions = {label: 0 for label in labels}
+    selected: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    while len(selected) < limit:
+        progressed = False
+        for label in labels:
+            bucket = buckets[label]
+            while positions[label] < len(bucket):
+                job = bucket[positions[label]]
+                positions[label] += 1
+                key = _stable_job_key(job)
+                if key in seen:
+                    continue
+                seen.add(key)
+                selected.append(job)
+                progressed = True
+                break
+            if len(selected) >= limit:
+                break
+        if not progressed:
+            break
+    return selected
+
+
+def per_label_metrics(expected: list[set[str]], predicted: list[set[str]]) -> dict[str, dict[str, float | int]]:
+    metrics: dict[str, dict[str, float | int]] = {}
+    for label in ALLOWED_LABELS:
+        if label == "general":
+            continue
+        tp = sum(1 for exp, pred in zip(expected, predicted) if label in exp and label in pred)
+        fp = sum(1 for exp, pred in zip(expected, predicted) if label not in exp and label in pred)
+        fn = sum(1 for exp, pred in zip(expected, predicted) if label in exp and label not in pred)
+        support = sum(1 for exp in expected if label in exp)
+        if not support and not tp and not fp and not fn:
+            continue
+        metrics[label] = {
+            "support": support,
+            "precision": tp / (tp + fp) if tp + fp else 1.0,
+            "recall": tp / (tp + fn) if tp + fn else 1.0,
+        }
+    return metrics
+
+
+def run_rule_reference(
+    provider: ProfileClassifier,
+    feed_path: Path,
+    limit: int,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    doc = json.loads(feed_path.read_text(encoding="utf-8"))
+    jobs = doc.get("jobs") or []
+    candidates = rule_backed_reference_candidates(jobs)
+    sample = stable_rule_reference_sample(jobs, limit)
+    outcomes = provider.classify_many(sample)
+
+    rows: list[dict[str, Any]] = []
+    expected_valid: list[set[str]] = []
+    predicted_valid: list[set[str]] = []
+    validation_errors = 0
+    disagreements = 0
+
+    for job, outcome in zip(sample, outcomes):
+        exp = set(job.get("profiles") or [])
+        if outcome.classification is None:
+            validation_errors += 1
+            disagreements += 1
+            rows.append({
+                "job_id": job.get("id"),
+                "company": job.get("company"),
+                "title": job.get("title"),
+                "expected_labels": sorted(exp),
+                "predicted_labels": list(outcome.raw_labels),
+                "error": outcome.error,
+                "exact": False,
+            })
+            continue
+
+        pred = set(outcome.classification.labels)
+        expected_valid.append(exp)
+        predicted_valid.append(pred)
+        exact = exp == pred
+        if not exact:
+            disagreements += 1
+        rows.append({
+            "job_id": job.get("id"),
+            "company": job.get("company"),
+            "title": job.get("title"),
+            "expected_labels": sorted(exp),
+            "predicted_labels": sorted(pred),
+            "confidence": outcome.classification.confidence,
+            "evidence": list(outcome.classification.evidence),
+            "exact": exact,
+        })
+
+    summary = score_gold(expected_valid, predicted_valid)
+    summary.update({
+        "candidate_pool": len(candidates),
+        "sample_size": len(sample),
+        "valid_results": len(expected_valid),
+        "validation_errors": validation_errors,
+        "validation_error_rate": validation_errors / len(sample) if sample else 0.0,
+        "disagreements": disagreements,
+        "agreement_rate_including_invalid": (
+            (len(sample) - disagreements) / len(sample) if sample else 0.0
+        ),
+        "per_label": per_label_metrics(expected_valid, predicted_valid),
+    })
+    return summary, rows
+
 def score_gold(expected: list[set[str]], predicted: list[set[str]]) -> dict[str, Any]:
     if len(expected) != len(predicted):
         raise ValueError("expected/predicted lengths differ")
@@ -478,6 +675,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--gold", type=Path, default=DEFAULT_GOLD)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--limit", type=int, default=200)
+    parser.add_argument("--reference-limit", type=int, default=DEFAULT_REFERENCE_LIMIT)
     parser.add_argument("--batch-size", type=int, default=DEFAULT_BATCH_SIZE)
     parser.add_argument("--model", default=os.getenv("GEMINI_MODEL", DEFAULT_MODEL))
     parser.add_argument("--api-key-env", default="GEMINI_API_KEY")
@@ -499,15 +697,19 @@ def main() -> int:
     )
     gold_summary, gold_rows = run_gold(provider, args.gold)
     live_summary, live_rows = run_live_sample(provider, args.feed, args.limit)
+    reference_summary, reference_rows = run_rule_reference(
+        provider, args.feed, args.reference_limit
+    )
 
     report = {
-        "schema": "yartchives-ai-profile-benchmark-v2",
+        "schema": "yartchives-ai-profile-benchmark-v3",
         "provider": provider.name,
         "model": args.model,
         "batch_size": args.batch_size,
         "production_mutation": False,
         "gold": {"summary": gold_summary, "rows": gold_rows},
         "live_general_sample": {"summary": live_summary, "rows": live_rows},
+        "rule_backed_reference": {"summary": reference_summary, "rows": reference_rows},
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
@@ -516,6 +718,7 @@ def main() -> int:
         "batch_size": args.batch_size,
         "gold": gold_summary,
         "live_general_sample": live_summary,
+        "rule_backed_reference": reference_summary,
         "output": str(args.output),
     }, indent=2))
     return 0
