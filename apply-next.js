@@ -249,21 +249,37 @@
     };
   }
 
+  function explicitScheduleTerms(...values) {
+    const text = normalize(values.filter(Boolean).join(" "));
+    const terms = [];
+    const add = (season, year) => {
+      const canonicalSeason = season === "autumn" ? "fall" : season;
+      terms.push(`${canonicalSeason} ${year}`);
+    };
+
+    for (const match of text.matchAll(/\b(spring|summer|fall|autumn|winter)\s+(20\d{2})\b/g)) {
+      add(match[1], match[2]);
+    }
+    for (const match of text.matchAll(/\b(20\d{2})\s+(spring|summer|fall|autumn|winter)\b/g)) {
+      add(match[2], match[1]);
+    }
+    return [...new Set(terms)];
+  }
+
   function explicitScheduleConflict(job, profile, inspection, now = new Date()) {
     const target = targetTermWindow(profile?.targetTerm);
     if (!target) return null;
 
     const authoritative = inspection?.status === "inspected" ? authoritativeSchedule(inspection) : null;
-    const evidence = normalize([
+    const evidence = [
       job?.title,
       job?.term,
       inspection?.posting?.title,
       ...(authoritative?.durationEvidence || []),
       ...(authoritative?.dateRangeEvidence || []),
-    ].filter(Boolean).join(" "));
+    ].filter(Boolean);
 
-    const explicitTerms = [...new Set((evidence.match(/\b(?:spring|summer|fall|autumn|winter)\s+20\d{2}\b/g) || [])
-      .map(value => value.replace(/^autumn\b/, "fall")))];
+    const explicitTerms = explicitScheduleTerms(...evidence);
     if (explicitTerms.length && !explicitTerms.includes(`${target.season} ${target.year}`)) {
       return `Posting explicitly targets ${explicitTerms.join(", ")}, not ${profile.targetTerm}`;
     }
@@ -332,15 +348,28 @@
     } else if (jobTerm === targetTerm) {
       score += 7;
       parts.push(`Matches ${profile.targetTerm}`);
-    } else if (!jobTerm) {
-      score += 4;
-      parts.push("Term unknown");
     } else {
-      return {
-        score: 0,
-        excluded: true,
-        detail: `Known term is ${job.term}, not ${profile.targetTerm}`,
-      };
+      const target = targetTermWindow(profile?.targetTerm);
+      const explicitTerms = explicitScheduleTerms(job?.title, inspection?.posting?.title);
+      const targetExplicitTerm = target ? `${target.season} ${target.year}` : null;
+      const yearOnlyTerm = /^20\d{2}$/.test(jobTerm);
+
+      if (targetExplicitTerm && explicitTerms.includes(targetExplicitTerm)) {
+        score += 7;
+        parts.push(`Posting title matches ${profile.targetTerm}`);
+      } else if (!jobTerm) {
+        score += 4;
+        parts.push("Term unknown");
+      } else if (target && yearOnlyTerm && Number(jobTerm) === target.year) {
+        score += 4;
+        parts.push(`Posting year matches ${target.year}; season is not normalized`);
+      } else {
+        return {
+          score: 0,
+          excluded: true,
+          detail: `Known term is ${job.term}, not ${profile.targetTerm}`,
+        };
+      }
     }
 
     if (authoritative?.durationEvidence?.length || authoritative?.dateRangeEvidence?.length) {
@@ -647,6 +676,7 @@
     scoreFreshness,
     authoritativeSchedule,
     targetTermWindow,
+    explicitScheduleTerms,
     explicitScheduleConflict,
     scoreEligibility,
     scoreFit,
