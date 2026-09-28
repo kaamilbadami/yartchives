@@ -241,6 +241,30 @@ assert.match(
 );
 assert.match(
   workflow,
+  /Hydrate latest runtime artifacts[\s\S]*?id:\s*hydrate[\s\S]*?--defer-stale-feed-if-workflow-active update-feed\.yml/,
+  "Pages should defer stale-feed deploys while the feed producer is already active"
+);
+assert.match(
+  workflow,
+  /Explain deferred deploy[\s\S]*?steps\.hydrate\.outputs\.deploy_ready == 'false'/,
+  "Deferred stale-feed deploys should finish cleanly with an explicit explanation"
+);
+for (const stepName of [
+  "Apply current deterministic feed semantics",
+  "Configure Pages",
+  "Build static artifact",
+  "Upload Pages artifact",
+  "Deploy to GitHub Pages",
+  "Verify live deployment",
+  "Send successful deploy push",
+]) {
+  assert.ok(
+    workflow.includes("- name: " + stepName + "\n        if: steps.hydrate.outputs.deploy_ready != 'false'"),
+    stepName + " should be skipped when deployment is deliberately deferred"
+  );
+}
+assert.match(
+  workflow,
   /Hydrate latest runtime artifacts[\s\S]*?Apply current deterministic feed semantics[\s\S]*?python scripts\/enrich_feed\.py data\/listings\.json[\s\S]*?Configure Pages/,
   "Pages deploys should reapply current deterministic feed semantics after hydrating runtime data so UI/filter changes cannot race an older feed artifact"
 );
