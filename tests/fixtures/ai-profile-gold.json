@@ -1,0 +1,221 @@
+[
+  {
+    "company": "Vanguard",
+    "title": "College to Corporate Internship - Application Development",
+    "function_primary": "Application Development",
+    "expected_labels": [
+      "cs"
+    ]
+  },
+  {
+    "company": "Tencent",
+    "title": "IT Operations Intern",
+    "expected_labels": [
+      "cs"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Security Analyst Intern",
+    "expected_labels": [
+      "cs"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "AI Agent Developer Intern",
+    "expected_labels": [
+      "cs"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Cloud Development Intern",
+    "expected_labels": [
+      "cs"
+    ]
+  },
+  {
+    "company": "Jane Street",
+    "title": "Quantitative Trader Intern",
+    "expected_labels": [
+      "finance-econ"
+    ]
+  },
+  {
+    "company": "Two Sigma",
+    "title": "Quantitative Researcher Intern",
+    "expected_labels": [
+      "finance-econ"
+    ]
+  },
+  {
+    "company": "PIMCO",
+    "title": "Quantitative Portfolio Management Intern",
+    "expected_labels": [
+      "finance-econ"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Risk Advisory Intern",
+    "expected_labels": [
+      "finance-econ"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Quantitative Developer Intern",
+    "expected_labels": [
+      "cs",
+      "finance-econ"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Data Governance & AI Governance Intern",
+    "expected_labels": [
+      "tech-business"
+    ]
+  },
+  {
+    "company": "Google",
+    "title": "User Experience Design Intern",
+    "expected_labels": [
+      "tech-business"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Product Owner Intern",
+    "expected_labels": [
+      "tech-business"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Technology Operations Intern",
+    "expected_labels": [
+      "tech-business"
+    ]
+  },
+  {
+    "company": "Apple",
+    "title": "Analog IC Design Intern",
+    "expected_labels": [
+      "electrical",
+      "engineering"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Circuit Design Intern",
+    "expected_labels": [
+      "electrical",
+      "engineering"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Hardware Design Intern",
+    "expected_labels": [
+      "electrical",
+      "engineering"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Embedded Software Engineering Co-op",
+    "expected_labels": [
+      "cs",
+      "electrical",
+      "engineering"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Mechanical Design Engineering Intern",
+    "expected_labels": [
+      "engineering",
+      "mechanical"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Aerospace Engineering Intern",
+    "expected_labels": [
+      "aero",
+      "engineering"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Technology Policy Intern",
+    "expected_labels": [
+      "policy"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Science Policy Intern",
+    "expected_labels": [
+      "policy"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Community Health Intern",
+    "expected_labels": [
+      "health"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Digital Health Intern",
+    "expected_labels": [
+      "health"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Marketing Intern",
+    "expected_labels": [
+      "general"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Human Resources Intern",
+    "expected_labels": [
+      "general"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Supply Chain Intern",
+    "expected_labels": [
+      "general"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Hardcoats Application Development Intern",
+    "expected_labels": [
+      "general"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "Program Management Intern",
+    "expected_labels": [
+      "general"
+    ]
+  },
+  {
+    "company": "Example",
+    "title": "AI Business Strategy & Transformation Intern",
+    "expected_labels": [
+      "tech-business"
+    ]
+  }
+]

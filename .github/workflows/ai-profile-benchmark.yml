@@ -1,0 +1,70 @@
+name: AI profile benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Gemini model ID
+        required: true
+        default: gemini-3.5-flash-lite
+      limit:
+        description: Number of live general jobs to sample
+        required: true
+        default: "200"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: ai-profile-benchmark-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Hydrate latest runtime feed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/download_latest_feed.py --repo "${{ github.repository }}"
+
+      - name: Require Gemini API key
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "::error::GEMINI_API_KEY is not configured in repository Actions secrets."
+            exit 1
+          fi
+
+      - name: Run offline AI profile benchmark
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: >-
+          python scripts/ai_profile_benchmark.py
+          --model "${{ inputs.model }}"
+          --limit "${{ inputs.limit }}"
+          --output audit/ai-profile-benchmark.json
+
+      - name: Upload benchmark report
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: yartchives-ai-profile-benchmark
+          path: audit/ai-profile-benchmark.json
+          if-no-files-found: error
+          retention-days: 30
