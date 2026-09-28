@@ -49,7 +49,7 @@ jobs:
           --max-greenhouse-requests 25
           --max-ashby-requests 20
           --max-oracle-hcm-requests 20
-          --ttl-days 7
+          --ttl-days 1
 
       - name: Publish bounded inspections artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
