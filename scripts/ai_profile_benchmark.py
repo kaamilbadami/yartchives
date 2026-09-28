@@ -63,10 +63,15 @@ Taxonomy contract:
 Boundary rules that matter in Yartchives:
 - Software engineering is cs, not engineering merely because the title contains "engineer".
 - Security, cloud, data, platform, DevOps, site-reliability, software, sales, solutions, support, and consulting roles do not receive engineering solely because "engineer" appears in the title.
-- Embedded software/firmware/computer-engineering/hardware roles can be electrical + engineering and may also be cs when the role is clearly software/programming-heavy.
-- Data analyst, business intelligence, analytics, technology operations, product management, and digital-transformation roles are usually tech-business unless the role evidence clearly shows software/data-engineering/data-science work.
+- Firmware, embedded systems, computer-engineering, and hardware roles are electrical + engineering. Add cs only when the title/function independently indicates software, programming, computer science, data science/engineering, ML/AI engineering, or another cs role family. Do not add cs merely because firmware or embedded work involves code.
+- Avionics roles are aero + electrical + engineering unless the visible role evidence clearly narrows them otherwise.
+- Data analyst, business intelligence, analytics, technology operations, product management, and digital-transformation roles are tech-business unless the role evidence clearly says software engineering, data engineering, data science, ML/AI engineering, or another cs role family. Generic "data", "technology", or "analytics" wording alone does not add cs.
+- Finance/econ roles do not receive cs merely because they mention data, analytics, technology, or quantitative work. Add cs only for an independently explicit computing role such as quantitative developer, software, data engineering/science, or programming.
+- Generic physical-engineering titles such as Engineering Intern, Systems Engineering Intern, Design Engineer, Test Engineer, or Product Development Engineering stay engineering when no specialized discipline is explicit. Do not invent electrical or mechanical from generic design/test/product wording.
+- Mechanical is only for explicit mechanical/manufacturing/industrial/materials/thermal/CAD/mechanical-design evidence; generic product/design engineering is not enough.
 - AI in business strategy, product marketing, people/HR transformation, policy, or other nontechnical contexts is not cs.
-- Do not infer health, finance, policy, or engineering from the employer's industry alone; classify the role itself.
+- A role whose own title/function explicitly says medical, clinical, healthcare, biomedical, pharmacy, public health, or life sciences receives health even when it also has a cs or tech-business function. Do not infer health merely from the employer's industry or company name.
+- Do not infer finance, policy, or engineering from the employer's industry alone; classify the role itself.
 - Specialized engineering labels roll up to engineering.
 - Prefer the narrowest justified labels; do not add extra labels "just in case".
 

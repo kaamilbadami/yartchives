@@ -17,6 +17,13 @@ class AiProfileBenchmarkTests(unittest.TestCase):
     def test_prompt_preserves_yartchives_taxonomy_boundaries(self):
         prompt = mod.SYSTEM_INSTRUCTION
         self.assertIn("Software engineering is cs, not engineering", prompt)
+        self.assertIn("Firmware, embedded systems", prompt)
+        self.assertIn("Avionics roles are aero + electrical + engineering", prompt)
+        self.assertIn("Generic \"data\", \"technology\", or \"analytics\" wording alone does not add cs", prompt)
+        self.assertIn("Finance/econ roles do not receive cs", prompt)
+        self.assertIn("Generic physical-engineering titles", prompt)
+        self.assertIn("Mechanical is only for explicit", prompt)
+        self.assertIn("explicitly says medical, clinical, healthcare", prompt)
         self.assertIn("Specialized engineering labels roll up to engineering", prompt)
         self.assertIn("AI in business strategy", prompt)
         self.assertIn("general is mutually exclusive", prompt)
