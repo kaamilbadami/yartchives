@@ -1,11 +1,14 @@
 (function (root, factory) {
-  const api = factory();
+  const scoring = typeof module === "object" && module.exports
+    ? require("./apply-next.js")
+    : root.YartchivesApplyNext;
+  const api = factory(scoring);
   if (typeof module === "object" && module.exports) module.exports = api;
   else {
     root.YartchivesApplyNextUI = api;
     if (typeof document !== "undefined") api.init();
   }
-})(typeof globalThis !== "undefined" ? globalThis : this, function () {
+})(typeof globalThis !== "undefined" ? globalThis : this, function (scoring) {
   const STORAGE_KEY = "yartchives-apply-next-profile-v1";
   const FOUNDING_BETA_TESTER_KEY = "yartchives-founding-beta-tester-v1";
   const ENTRY_MODE_KEY = "yartchives-entry-mode-v1";
@@ -396,8 +399,15 @@
     const target = normalize(profile?.targetTerm).toLowerCase();
     if (!target) return false;
 
-    const term = normalize(job?.term).toLowerCase();
-    if (term && term !== target) return true;
+    const targetTerms = typeof scoring?.explicitScheduleTerms === "function"
+      ? scoring.explicitScheduleTerms(profile?.targetTerm)
+      : [];
+    const jobTerms = typeof scoring?.explicitScheduleTerms === "function"
+      ? scoring.explicitScheduleTerms(job?.term)
+      : [];
+    if (targetTerms.length && jobTerms.length && !jobTerms.some(term => targetTerms.includes(term))) {
+      return true;
+    }
 
     const targetSeason = (target.match(/\b(spring|summer|fall|winter)\b/) || [])[1];
     if (!targetSeason) return false;

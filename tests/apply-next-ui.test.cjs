@@ -307,6 +307,8 @@ const jobs = [
   { id: "wrong-term", term: "Summer 2026", title: "Software Intern" },
   { id: "explicit-fall", term: null, title: "Data Engineering Fall Intern (Part Time)" },
   { id: "multi-season", term: null, title: "Spring & Summer 2027 Intern - Security & GRC" },
+  { id: "reversed-term", term: "2027 Summer", title: "Information Technology, Software Engineering, & Computer Science - 2027 Summer Internship" },
+  { id: "year-only-term", term: "2027", title: "Software Intern" },
   { id: "applied", term: "Summer 2027", title: "Software Intern" },
   { id: "hidden", term: "Summer 2027", title: "Software Intern" },
 ];
@@ -314,11 +316,13 @@ const pool = UI.candidatePool(jobs, profile, {
   applied: new Set(["applied"]),
   hidden: new Set(["hidden"]),
 });
-assert.deepEqual(pool.map(job => job.id), ["good", "unknown-term", "multi-season"]);
+assert.deepEqual(pool.map(job => job.id), ["good", "unknown-term", "multi-season", "reversed-term", "year-only-term"]);
 assert.equal(UI.knownWrongTerm(jobs[2], profile), true);
 assert.equal(UI.knownWrongTerm(jobs[1], profile), false);
 assert.equal(UI.knownWrongTerm(jobs[3], profile), true, "explicit Fall-only title must be excluded from a Summer queue even when normalized term is missing");
 assert.equal(UI.knownWrongTerm(jobs[4], profile), false, "multi-season titles remain eligible when they explicitly include the target season");
+assert.equal(UI.knownWrongTerm(jobs[5], profile), false, "2027 Summer must be equivalent to Summer 2027 before candidate filtering");
+assert.equal(UI.knownWrongTerm(jobs[6], profile), false, "year-only terms must reach the canonical eligibility scorer instead of being pre-filtered");
 jobs[0]._inspection = { status: "inspected" };
 jobs[1]._inspection = { status: "metadata-only" };
 assert.deepEqual(UI.authoritativeCandidatePool(jobs).map(job => job.id), ["good"]);
