@@ -14,6 +14,11 @@ assert.equal(U.humanizeLocationPiece("USA > PA > Conshohocken > West First"), "C
 assert.equal(U.humanizeLocationPiece("Remote_United States"), "Remote");
 assert.equal(U.humanizeLocationPiece("USA - Chaska - Beckman Coulter, Inc. - BC18", ["MN"]), "Chaska, MN");
 
+assert.equal(U.humanizeLocationPiece("Los Angeles", ["LA"]), "Los Angeles", "bare city labels must not inherit a possibly misparsed fallback state");
+assert.equal(U.humanizeLocationPiece("San Francisco", ["LA"]), "San Francisco", "bare city labels must remain unqualified when the source text has no state");
+assert.equal(U.humanizeLocationPiece("Atlanta GA", ["GA"]), "Atlanta, GA", "space-delimited city/state should normalize without duplicating the state token");
+assert.equal(U.humanizeLocationPiece("CA", ["CA"]), "CA", "state-only labels must not become fake city/state pairs");
+
 assert.equal(U.classifyEducationFromTitle("Business Data Scientist Intern, PhD, Summer 2027"), "graduate-only");
 assert.equal(U.classifyEducationFromTitle("Software Engineering Intern, BS/MS, Summer 2027"), "undergrad");
 assert.equal(U.classifyEducationFromTitle("Software Engineer Intern"), "unspecified");
