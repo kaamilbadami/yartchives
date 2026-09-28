@@ -25,7 +25,9 @@ permissions:
   issues: read
 
 concurrency:
-  group: ai-profile-benchmark-${{ github.ref }}
+  group: >-
+    ai-profile-benchmark-${{ github.event_name }}-
+    ${{ github.event_name == 'issue_comment' && github.event.comment.id || github.ref }}
   cancel-in-progress: true
 
 jobs:
