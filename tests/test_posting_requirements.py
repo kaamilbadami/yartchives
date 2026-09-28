@@ -86,6 +86,18 @@ class PostingRequirementTests(unittest.TestCase):
             ["C#", "React", "Node.js", ".NET", "PostgreSQL", "GCP", "Jenkins"],
         )
 
+    def test_mechanical_and_aero_skill_annotations_cover_common_aliases(self):
+        result = shared.extract_requirements([
+            "Required Qualifications:",
+            "Experience with finite element analysis, computational fluid dynamics, GD&T, Siemens NX, and FMEA.",
+            "Preferred Qualifications:",
+            "Coursework in astrodynamics, flight dynamics, guidance navigation and control, and Kalman filtering.",
+        ])
+        required = {tech for fact in result["skills"]["required"] for tech in fact.get("technologies", [])}
+        preferred = {tech for fact in result["skills"]["preferred"] for tech in fact.get("technologies", [])}
+        self.assertTrue({"FEA", "CFD", "GD&T", "Siemens NX", "FMEA"}.issubset(required))
+        self.assertTrue({"Orbital mechanics", "Flight dynamics", "GNC", "Kalman filter"}.issubset(preferred))
+
     def test_quantified_preference_remains_preferred(self):
         result = shared.extract_requirements([
             "Preferred but not required:",

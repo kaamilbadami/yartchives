@@ -11,6 +11,18 @@ spec.loader.exec_module(mod)
 
 class BuildFeedTests(unittest.TestCase):
 
+    def test_profile_keywords_cover_mechanical_and_aero_language(self):
+        mechanical = mod.classify_profiles({
+            "title": "Mechanical Stress Analysis Intern",
+            "function_primary": "Finite Element Analysis",
+        })
+        aero = mod.classify_profiles({
+            "title": "Astronautical GNC Intern",
+            "function_primary": "Astrodynamics",
+        })
+        self.assertIn("mechanical", mechanical)
+        self.assertIn("aero", aero)
+
 
     def test_merge_job_enforces_link_kind_precedence(self):
         target = {

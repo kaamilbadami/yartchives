@@ -96,10 +96,12 @@ PROFILE_KEYWORDS: dict[str, tuple[str, ...]] = {
     "mechanical": (
         "mechanical engineer", "mechanical engineering", "manufacturing engineer",
         "manufacturing engineering", "cad intern", "solidworks", "thermal engineer",
+        "mechanical design", "stress analysis", "finite element", "fea",
         "materials engineer", "industrial engineer", "test engineer", "quality engineer",
     ),
     "aero": (
-        "aerospace", "aeronautical", "propulsion", "flight sciences", "flight test",
+        "aerospace", "aeronautical", "astronautical", "aerodynamics", "astrodynamics", "gnc",
+        "guidance navigation and control", "propulsion", "flight sciences", "flight dynamics", "flight test",
         "space systems", "spacecraft", "orbital", "avionics", "rocket", "satellite",
     ),
     "electrical": (

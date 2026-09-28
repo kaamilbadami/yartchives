@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 # way that should invalidate cached requirement facts. The cache updater can
 # re-run this extractor from a stored posting description without another ATS
 # request; entries without a reprocessable description are refreshed normally.
-EXTRACTOR_VERSION = 6
+EXTRACTOR_VERSION = 7
 
 # This vocabulary only annotates exact technology mentions in an already
 # identified qualification statement. It never creates a requirement by itself,
@@ -53,7 +53,34 @@ TECHNOLOGIES: tuple[tuple[str, str], ...] = (
     ("Databricks", r"\bDatabricks\b"),
     ("Spark", r"\b(?:Apache\s+)?Spark\b"),
     ("SolidWorks", r"\bSolidWorks\b"),
-    ("CAD", r"\bCAD\b"),
+    ("AutoCAD", r"\bAutoCAD\b"),
+    ("CAD", r"\bCAD\b|\bcomputer[- ]aided design\b"),
+    ("Siemens NX", r"\bSiemens\s+NX\b|\bNX\s+CAD\b|\bUnigraphics\b"),
+    ("Creo", r"\bCreo\b|\bPro/ENGINEER\b|\bProE\b"),
+    ("CATIA", r"\bCATIA\b"),
+    ("ANSYS", r"\bANSYS\b|\bAnsys\s+(?:Mechanical|Fluent)\b"),
+    ("Abaqus", r"\bAbaqus\b"),
+    ("FEA", r"\bFEA\b|\bfinite[- ]element analysis\b"),
+    ("CFD", r"\bCFD\b|\bcomputational fluid dynamics\b"),
+    ("GD&T", r"\bGD&T\b|\bgeometric dimensioning (?:and|&) tolerancing\b"),
+    ("DFM", r"\bDFM\b|\bdesign for manufactur(?:ing|ability)\b"),
+    ("DFA", r"\bDFA\b|\bdesign for assembly\b"),
+    ("DFMA", r"\bDFMA\b|\bdesign for manufactur(?:e|ing) and assembly\b"),
+    ("FMEA", r"\bFMEA\b|\bfailure modes? and effects analysis\b"),
+    ("CNC", r"\bCNC\b|\bcomputer numerical control\b"),
+    ("Aerodynamics", r"\baerodynamics?\b"),
+    ("Propulsion", r"\bpropulsion\b"),
+    ("Orbital mechanics", r"\borbital mechanics\b|\bastrodynamics\b"),
+    ("Flight dynamics", r"\bflight dynamics\b|\bflight mechanics\b"),
+    ("GNC", r"\bGNC\b|\bguidance,? navigation,? (?:and|&) control\b"),
+    ("Avionics", r"\bavionics\b"),
+    ("Flight test", r"\bflight test(?:ing)?\b"),
+    ("Controls", r"\bcontrol systems?\b|\bcontrols engineering\b|\bfeedback control\b"),
+    ("PID", r"\bPID(?: control)?\b|\bproportional[- ]integral[- ]derivative\b"),
+    ("Kalman filter", r"\bKalman filter(?:ing)?\b"),
+    ("Sensor fusion", r"\bsensor fusion\b"),
+    ("ROS 2", r"\bROS\s*2\b"),
+    ("RTOS", r"\bRTOS\b|\bFreeRTOS\b|\breal[- ]time operating system\b"),
     ("MATLAB", r"\bMATLAB\b"),
     ("AWS", r"\bAWS\b|\bAmazon Web Services\b"),
     ("Azure", r"\bAzure\b"),

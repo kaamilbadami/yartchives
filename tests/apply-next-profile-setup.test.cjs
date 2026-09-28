@@ -116,12 +116,35 @@ assert.deepEqual(
 
 const engineeringHints = Setup.extractResumeHints(`
 Bachelor of Science in Mechanical Engineering — Expected May 2028
-Skills: SolidWorks, MATLAB, Simulink, CAD, ANSYS
+Skills: SolidWorks, MATLAB, Simulink, CAD, ANSYS, finite element analysis, computational fluid dynamics,
+geometric dimensioning and tolerancing, Siemens NX, Abaqus, DFMA, FMEA, CNC, composite materials
 `);
 assert.equal(engineeringHints.major, "Mechanical Engineering");
-for (const skill of ["SolidWorks", "MATLAB", "Simulink", "CAD", "ANSYS"]) {
-  assert.ok(engineeringHints.supportedSkills.includes(skill), `engineering resume parser should recognize ${skill}`);
+for (const skill of [
+  "SolidWorks", "MATLAB", "Simulink", "CAD", "ANSYS", "FEA", "CFD", "GD&T", "Siemens NX",
+  "Abaqus", "DFMA", "FMEA", "CNC", "Composites",
+]) {
+  assert.ok(engineeringHints.supportedSkills.includes(skill), `mechanical resume parser should recognize ${skill}`);
 }
+
+const aeroHints = Setup.extractResumeHints(`
+Bachelor of Science in Astronautical Engineering — Expected May 2028
+Coursework and projects: aerodynamics, propulsion, astrodynamics, flight dynamics,
+guidance navigation and control, avionics, flight testing, wind tunnel testing,
+computational fluid dynamics, Kalman filtering, sensor fusion, MATLAB
+`);
+assert.equal(aeroHints.major, "Astronautical Engineering");
+for (const skill of [
+  "Aerodynamics", "Propulsion", "Orbital mechanics", "Flight dynamics", "GNC", "Avionics",
+  "Flight test", "Wind tunnel testing", "CFD", "Kalman filter", "Sensor fusion", "MATLAB",
+]) {
+  assert.ok(aeroHints.supportedSkills.includes(skill), `aero/astro resume parser should recognize ${skill}`);
+}
+assert.ok(
+  Setup.ENGINEERING_SKILLS.some(skill => skill.disciplines.includes("mechanical"))
+    && Setup.ENGINEERING_SKILLS.some(skill => skill.disciplines.includes("aero")),
+  "engineering taxonomy should explicitly cover mechanical and aero disciplines"
+);
 
 const engineeringProfile = Setup.buildProfile({
   targetTerm: "Summer 2027",

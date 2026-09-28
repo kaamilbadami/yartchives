@@ -22,27 +22,87 @@
     { id: "ai-ml", label: "AI / machine learning", careerAreas: ["cs"], priority: 0.9, keywords: ["machine learning", "artificial intelligence", "AI/ML", "AI engineer"] },
     { id: "cybersecurity", label: "Cybersecurity", careerAreas: ["cs"], priority: 0.9, keywords: ["cybersecurity", "information security", "security engineer"] },
     { id: "hpc", label: "HPC / scientific computing", careerAreas: ["cs", "engineering"], priority: 0.75, keywords: ["HPC", "scientific computing"] },
-    { id: "mechanical-manufacturing", label: "Mechanical / manufacturing", careerAreas: ["engineering"], priority: 1, keywords: ["mechanical engineer", "manufacturing engineer", "mechanical design", "industrial engineer", "materials engineer"] },
+    { id: "mechanical-manufacturing", label: "Mechanical / manufacturing", careerAreas: ["engineering"], priority: 1, keywords: ["mechanical engineer", "manufacturing engineer", "mechanical design", "industrial engineer", "materials engineer", "thermal engineer", "product design", "mechanical systems", "stress analysis"] },
     { id: "electrical-hardware", label: "Electrical / electronics / hardware", careerAreas: ["engineering"], priority: 1, keywords: ["electrical engineer", "electronics engineer", "hardware engineer", "computer engineer", "embedded systems", "firmware", "FPGA", "RF engineer"] },
-    { id: "aerospace", label: "Aerospace / flight / space systems", careerAreas: ["engineering"], priority: 0.95, keywords: ["aerospace", "aeronautical", "propulsion", "flight test", "space systems", "spacecraft", "avionics"] },
+    { id: "aerospace", label: "Aerospace / astronautical / flight / space systems", careerAreas: ["engineering"], priority: 0.95, keywords: ["aerospace", "aeronautical", "astronautical", "propulsion", "aerodynamics", "flight dynamics", "flight test", "space systems", "spacecraft", "satellite", "orbital mechanics", "astrodynamics", "GNC", "avionics"] },
     { id: "engineering-systems", label: "Systems / integration / validation", careerAreas: ["engineering"], priority: 0.95, keywords: ["systems engineer", "systems integration", "validation engineer", "verification engineer", "reliability engineer"] },
     { id: "robotics-controls", label: "Robotics / controls / automation", careerAreas: ["engineering"], priority: 0.95, keywords: ["robotics", "controls engineer", "automation engineer", "mechatronics", "autonomy"] },
     { id: "civil-structural", label: "Civil / structural / transportation", careerAreas: ["engineering"], priority: 0.9, keywords: ["civil engineer", "structural engineer", "transportation engineer", "roadway", "construction engineer"] },
     { id: "product-design-test", label: "Product / design / test engineering", careerAreas: ["engineering"], priority: 0.9, keywords: ["product engineer", "design engineer", "test engineer", "quality engineer", "process engineer", "development engineer"] },
   ];
 
-  const SKILL_VOCABULARY = [
+  const BASE_SKILLS = [
     "Java", "C++", "C", "C#", "Python", "Bash", "JavaScript", "TypeScript", "React", "Node.js",
     "Git", "GitHub", "GitLab CI", "Linux", "Unix", "Slurm", "SQL", "PostgreSQL", "MySQL", "Docker",
     "Kubernetes", "AWS", "Azure", "GCP", "CMake", "gdb", "GoogleTest", "Jenkins", "Jira", "MATLAB", "Simulink",
-    "SolidWorks", "AutoCAD", "CAD", "LabVIEW", "Verilog", "VHDL", "FPGA", "PCB", "Altium", "ANSYS", "Creo", "CATIA",
-    "GD&T", "PLC", "ROS", "R", "Excel", "PowerPoint", "Tableau", "Power BI", "ReFrame", "PMIx", "PRRTE", "HPC"
+    "LabVIEW", "Verilog", "VHDL", "FPGA", "PCB", "Altium", "PLC", "ROS", "R", "Excel", "PowerPoint",
+    "Tableau", "Power BI", "ReFrame", "PMIx", "PRRTE", "HPC"
   ];
+
+  const ENGINEERING_SKILLS = [
+    // Mechanical / manufacturing / product design.
+    { name: "SolidWorks", disciplines: ["mechanical"], aliases: ["SolidWorks"] },
+    { name: "AutoCAD", disciplines: ["mechanical", "civil"], aliases: ["AutoCAD"] },
+    { name: "CAD", disciplines: ["mechanical", "aero", "civil"], aliases: ["CAD", "computer-aided design", "computer aided design"] },
+    { name: "Siemens NX", disciplines: ["mechanical", "aero"], aliases: ["Siemens NX", "NX CAD", "Unigraphics"] },
+    { name: "Creo", disciplines: ["mechanical", "aero"], aliases: ["Creo", "Pro/ENGINEER", "ProE"] },
+    { name: "CATIA", disciplines: ["mechanical", "aero"], aliases: ["CATIA"] },
+    { name: "Fusion 360", disciplines: ["mechanical"], aliases: ["Fusion 360", "Autodesk Fusion"] },
+    { name: "ANSYS", disciplines: ["mechanical", "aero"], aliases: ["ANSYS", "Ansys Mechanical", "Ansys Fluent"] },
+    { name: "Abaqus", disciplines: ["mechanical", "aero"], aliases: ["Abaqus"] },
+    { name: "FEA", disciplines: ["mechanical", "aero"], aliases: ["FEA", "finite element analysis", "finite-element analysis"] },
+    { name: "CFD", disciplines: ["mechanical", "aero"], aliases: ["CFD", "computational fluid dynamics"] },
+    { name: "GD&T", disciplines: ["mechanical", "manufacturing"], aliases: ["GD&T", "geometric dimensioning and tolerancing", "geometric dimensioning & tolerancing"] },
+    { name: "DFM", disciplines: ["mechanical", "manufacturing"], aliases: ["DFM", "design for manufacturability", "design for manufacturing"] },
+    { name: "DFA", disciplines: ["mechanical", "manufacturing"], aliases: ["DFA", "design for assembly"] },
+    { name: "DFMA", disciplines: ["mechanical", "manufacturing"], aliases: ["DFMA", "design for manufacturing and assembly", "design for manufacture and assembly"] },
+    { name: "FMEA", disciplines: ["mechanical", "manufacturing", "systems"], aliases: ["FMEA", "failure mode and effects analysis", "failure modes and effects analysis"] },
+    { name: "CNC", disciplines: ["mechanical", "manufacturing"], aliases: ["CNC", "computer numerical control"] },
+    { name: "Additive manufacturing", disciplines: ["mechanical", "manufacturing"], aliases: ["additive manufacturing", "3D printing", "3-D printing"] },
+    { name: "Injection molding", disciplines: ["mechanical", "manufacturing"], aliases: ["injection molding", "injection moulding"] },
+    { name: "Sheet metal", disciplines: ["mechanical", "manufacturing"], aliases: ["sheet metal", "sheet-metal"] },
+    { name: "Composites", disciplines: ["mechanical", "aero"], aliases: ["composites", "composite materials"] },
+    { name: "Tolerance analysis", disciplines: ["mechanical", "manufacturing"], aliases: ["tolerance analysis", "tolerance stack-up", "tolerance stackup"] },
+    { name: "Thermodynamics", disciplines: ["mechanical", "aero"], aliases: ["thermodynamics"] },
+    { name: "Heat transfer", disciplines: ["mechanical", "aero"], aliases: ["heat transfer"] },
+    { name: "Fluid mechanics", disciplines: ["mechanical", "aero"], aliases: ["fluid mechanics", "fluid dynamics"] },
+    { name: "Mechanics of materials", disciplines: ["mechanical", "aero"], aliases: ["mechanics of materials", "strength of materials"] },
+    { name: "Vibrations", disciplines: ["mechanical", "aero"], aliases: ["vibrations", "vibration analysis", "modal analysis"] },
+
+    // Aerospace / astronautical.
+    { name: "Aerodynamics", disciplines: ["aero"], aliases: ["aerodynamics", "aerodynamic analysis"] },
+    { name: "Propulsion", disciplines: ["aero"], aliases: ["propulsion", "rocket propulsion", "air-breathing propulsion"] },
+    { name: "Orbital mechanics", disciplines: ["aero"], aliases: ["orbital mechanics", "astrodynamics"] },
+    { name: "Flight dynamics", disciplines: ["aero"], aliases: ["flight dynamics", "flight mechanics"] },
+    { name: "GNC", disciplines: ["aero", "controls"], aliases: ["GNC", "guidance navigation and control", "guidance, navigation, and control", "guidance, navigation & control"] },
+    { name: "Avionics", disciplines: ["aero", "electrical"], aliases: ["avionics"] },
+    { name: "Spacecraft systems", disciplines: ["aero", "systems"], aliases: ["spacecraft systems", "space systems"] },
+    { name: "Satellite systems", disciplines: ["aero", "systems"], aliases: ["satellite systems", "satellite engineering"] },
+    { name: "Flight test", disciplines: ["aero", "test"], aliases: ["flight test", "flight testing"] },
+    { name: "Wind tunnel testing", disciplines: ["aero"], aliases: ["wind tunnel", "wind-tunnel testing", "wind tunnel testing"] },
+    { name: "Structural analysis", disciplines: ["mechanical", "aero", "civil"], aliases: ["structural analysis"] },
+
+    // Controls / mechatronics / hardware that commonly overlap mechanical and aerospace.
+    { name: "Controls", disciplines: ["controls", "mechanical", "aero"], aliases: ["control systems", "controls engineering", "feedback control"] },
+    { name: "PID", disciplines: ["controls", "mechanical", "aero"], aliases: ["PID", "PID control", "proportional-integral-derivative"] },
+    { name: "State-space", disciplines: ["controls", "aero"], aliases: ["state-space", "state space"] },
+    { name: "Kalman filter", disciplines: ["controls", "aero", "robotics"], aliases: ["Kalman filter", "Kalman filtering"] },
+    { name: "Sensor fusion", disciplines: ["controls", "aero", "robotics"], aliases: ["sensor fusion"] },
+    { name: "ROS 2", disciplines: ["robotics", "controls"], aliases: ["ROS 2", "ROS2"] },
+    { name: "Embedded systems", disciplines: ["electrical", "aero", "robotics"], aliases: ["embedded systems", "embedded system"] },
+    { name: "RTOS", disciplines: ["electrical", "aero", "robotics"], aliases: ["RTOS", "real-time operating system", "real time operating system", "FreeRTOS"] },
+    { name: "CAN", disciplines: ["electrical", "aero", "automotive"], aliases: ["CAN bus", "Controller Area Network"] },
+    { name: "I2C", disciplines: ["electrical", "embedded"], aliases: ["I2C", "I²C"] },
+    { name: "SPI", disciplines: ["electrical", "embedded"], aliases: ["SPI bus", "Serial Peripheral Interface"] },
+    { name: "UART", disciplines: ["electrical", "embedded"], aliases: ["UART"] },
+  ];
+
+  const SKILL_VOCABULARY = [...BASE_SKILLS, ...ENGINEERING_SKILLS.map(skill => skill.name)];
 
   const MAJORS = [
     "Computer Science", "Computer Engineering", "Electrical Engineering", "Data Science", "Information Systems",
     "Information Technology", "Statistics", "Mathematics", "Business Analytics", "Finance", "Economics",
-    "Mechanical Engineering", "Software Engineering", "Aerospace Engineering", "Civil Engineering",
+    "Mechanical Engineering", "Software Engineering", "Aerospace Engineering", "Astronautical Engineering", "Civil Engineering",
     "Chemical Engineering", "Biomedical Engineering", "Industrial Engineering", "Materials Engineering",
     "Mechatronics Engineering", "Robotics Engineering"
   ];
@@ -145,6 +205,15 @@
     return "Unknown / not provided";
   }
 
+  function extractSupportedSkills(text) {
+    const source = String(text || "");
+    const base = BASE_SKILLS.filter(skill => containsSkill(source, skill));
+    const engineering = ENGINEERING_SKILLS
+      .filter(skill => skill.aliases.some(alias => containsSkill(source, alias)))
+      .map(skill => skill.name);
+    return unique([...base, ...engineering]);
+  }
+
   function extractResumeHints(text) {
     const source = String(text || "");
     const authorization = extractAuthorization(source);
@@ -152,7 +221,7 @@
       graduation: extractGraduation(source),
       degree: extractDegree(source),
       major: extractMajor(source),
-      supportedSkills: SKILL_VOCABULARY.filter(skill => containsSkill(source, skill)),
+      supportedSkills: extractSupportedSkills(source),
       citizenship: authorization.citizenship,
       workAuthorization: authorization.workAuthorization,
       securityClearance: extractClearance(source),
@@ -662,9 +731,11 @@
     CAREER_AREAS,
     ROLE_FAMILIES,
     SKILL_VOCABULARY,
+    ENGINEERING_SKILLS,
     defaultRoleFamilyIdsForAreas,
     splitList,
     containsSkill,
+    extractSupportedSkills,
     extractResumeHints,
     readResumeFile,
     buildProfile,
