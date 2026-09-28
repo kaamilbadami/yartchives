@@ -83,6 +83,28 @@ def latest_artifact(repo: str, workflow: str, artifact_name: str, token: str | N
                 return artifact
     return None
 
+def workflow_has_active_run(repo: str, workflow: str, token: str | None) -> bool:
+    """Return whether the workflow currently has a queued/running main-branch run."""
+
+    if not token:
+        return False
+    runs_url = (
+        f"{API_ROOT}/repos/{repo}/actions/workflows/{workflow}/runs"
+        "?branch=main&per_page=20"
+    )
+    payload = _request_json(runs_url, token)
+    active_statuses = {"queued", "in_progress", "waiting", "requested", "pending"}
+    return any(run.get("status") in active_statuses for run in payload.get("workflow_runs", []))
+
+
+def write_github_output(path: str | None, **values: str) -> None:
+    if not path:
+        return
+    with open(path, "a", encoding="utf-8") as handle:
+        for key, value in values.items():
+            handle.write(f"{key}={value}\n")
+
+
 
 def hydrate_one(
     *,
@@ -141,6 +163,17 @@ def main() -> int:
     parser.add_argument("--require-feed-artifact", action="store_true")
     parser.add_argument("--max-feed-age-hours", type=float, default=None)
     parser.add_argument(
+        "--defer-stale-feed-if-workflow-active",
+        default=None,
+        metavar="WORKFLOW",
+        help="If the feed is stale and this workflow is active, exit successfully with deploy_ready=false.",
+    )
+    parser.add_argument(
+        "--github-output",
+        default=os.environ.get("GITHUB_OUTPUT"),
+        help="Optional GitHub Actions output file used by deploy deferral mode.",
+    )
+    parser.add_argument(
         "--pages-base",
         default=None,
         help="Optional public Pages base URL used only after artifact retrieval fails.",
@@ -165,6 +198,30 @@ def main() -> int:
             generated = generated.replace(tzinfo=timezone.utc)
         age_hours = (datetime.now(timezone.utc) - generated.astimezone(timezone.utc)).total_seconds() / 3600
         if age_hours < 0 or age_hours > args.max_feed_age_hours:
+            if (
+                age_hours > args.max_feed_age_hours
+                and args.defer_stale_feed_if_workflow_active
+                and workflow_has_active_run(
+                    args.repo,
+                    args.defer_stale_feed_if_workflow_active,
+                    args.token,
+                )
+            ):
+                if not args.github_output:
+                    raise RuntimeError(
+                        "deploy deferral requires GITHUB_OUTPUT or --github-output"
+                    )
+                write_github_output(
+                    args.github_output,
+                    deploy_ready="false",
+                    defer_reason="stale_feed_refresh_active",
+                )
+                print(
+                    f"Feed is {age_hours:.2f} hours old (limit {args.max_feed_age_hours:.2f}), "
+                    f"but {args.defer_stale_feed_if_workflow_active} is active; "
+                    "deferring this deploy until the producer completes."
+                )
+                return 0
             raise RuntimeError(
                 f"feed generated_at is {age_hours:.2f} hours old; "
                 f"maximum allowed is {args.max_feed_age_hours:.2f}"
@@ -184,6 +241,7 @@ def main() -> int:
         token=args.token,
         pages_base=None,
     )
+    write_github_output(args.github_output, deploy_ready="true")
     print(f"Hydrated feed from {feed_source}")
     print(f"Hydrated inspections from {inspection_source}")
     print(f"Hydrated employer universe from {employer_universe_source}")
