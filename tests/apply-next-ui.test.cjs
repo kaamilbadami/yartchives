@@ -386,6 +386,11 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.doesNotMatch(index, /<\/script>\\n\s*<script/, "Homepage must not render a literal \\n between script tags");
 
   const uiSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-ui.js"), "utf8");
+  assert.match(uiSource, /fit: "Qualification fit"/, "Why-this-ranks-here should name qualification fit directly");
+  assert.match(uiSource, /roi: "Application value"/, "Why-this-ranks-here should name application value directly");
+  assert.match(uiSource, /const detail = String\(component\.detail \|\| ""\)\.trim\(\);/, "Component breakdown should expose scoring evidence/details");
+  assert.doesNotMatch(uiSource, /card\.append\(highlightsUl\)/, "Recommendation cards should not duplicate the total score with generic badge strips");
+
   assert.match(
     uiSource,
     /timingNow\(\) - lastYieldAt >= LOCATION_ENRICHMENT_YIELD_BUDGET_MS/,
