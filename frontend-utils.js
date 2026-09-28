@@ -281,6 +281,7 @@
     const commaParts = raw.split(",");
     if (commaParts.length > 1) addCandidate(candidates, commaParts[0]);
     for (const segment of raw.split(/[\/;|·]+/)) addCandidate(candidates, segment.split(",")[0]);
+    for (const segment of raw.split(/[-_]+/)) addCandidate(candidates, segment.split(",")[0]);
 
     if (!states.length) {
       const unique = [];
