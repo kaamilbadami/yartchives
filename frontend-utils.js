@@ -182,6 +182,12 @@
       if (code) return `${titleCaseLocation(cityStateNameCountry[1].trim())}, ${code}`;
     }
 
+    const cityStateName = text.match(/^([^,]+),\s*([A-Za-z ]+)$/);
+    if (cityStateName) {
+      const code = Object.entries(STATE_NAMES).find(([, name]) => name.toLowerCase() === cityStateName[2].trim().toLowerCase())?.[0];
+      if (code) return `${titleCaseLocation(cityStateName[1].trim())}, ${code}`;
+    }
+
     const cityState = text.match(/^([^,]+),\s*([A-Z]{2})$/i);
     if (cityState && STATE_NAMES[cityState[2].toUpperCase()]) {
       return `${titleCaseLocation(cityState[1].trim())}, ${cityState[2].toUpperCase()}`;
