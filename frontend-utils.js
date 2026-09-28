@@ -198,6 +198,11 @@
       return `${titleCaseLocation(cityState[1].trim())}, ${cityState[2].toUpperCase()}`;
     }
 
+    const countryNamedPlace = text.match(/^(?:US|USA|United States)\s*[-_]\s*([A-Za-z][A-Za-z .'-]+)$/i);
+    if (countryNamedPlace && fallback.length === 0) {
+      return titleCaseLocation(countryNamedPlace[1].trim());
+    }
+
     const countryCity = text.match(/^(?:US|USA|United States)\s*(?:-|>|_)\s*([^>~_-]+?)(?:\s*(?:-|>|_)\s*.+)?$/i);
     if (countryCity && fallback.length === 1) {
       return `${titleCaseLocation(countryCity[1].trim())}, ${fallback[0]}`;
