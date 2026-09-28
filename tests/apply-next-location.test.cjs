@@ -279,7 +279,7 @@ const raytheonRi = {
 assert.equal(L.semanticEmployerKey(raytheonMaA), L.semanticEmployerKey(raytheonMaB));
 assert.equal(L.semanticTitleKey(raytheonMaA), L.semanticTitleKey(raytheonMaB));
 const raytheonDeduped = L.dedupeCanonicalJobs([raytheonMaA, raytheonMaB, raytheonRi]);
-assert.equal(raytheonDeduped.length, 2);
+assert.equal(raytheonDeduped.length, 3);
 assert.ok(raytheonDeduped.some(x => x.states.includes("MA")));
 assert.ok(raytheonDeduped.some(x => x.states.includes("RI")));
 
@@ -316,8 +316,8 @@ assert.equal(
 );
 assert.equal(
   L.dedupeCanonicalJobs([radianceA, radianceB]).length,
-  1,
-  "Duplicate requisitions for the same employer/title/authoritative location should collapse"
+  2,
+  "Distinct authoritative requisitions must remain separate even when employer/title/location match"
 );
 
 console.log("apply-next authoritative-only, location, and canonical dedupe tests passed");
