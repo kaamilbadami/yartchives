@@ -1,6 +1,8 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const U = require("../frontend-utils.js");
+global.YartchivesUtils = U;
 const UI = require("../apply-next-ui.js");
 
 const profile = {
@@ -266,6 +268,34 @@ assert.deepEqual(
   ["College Park, MD"]
 );
 assert.doesNotMatch(UI.locationValueText({ city: "College Park", state: "MD" }), /\[object Object\]/);
+
+assert.equal(
+  UI.canonicalLocationDisplayValue("US-UT-WEST VALLEY CITY-338 ~ 1127 & 1128 w 2400 S", { states: ["UT"] }),
+  "West Valley City, UT"
+);
+assert.equal(
+  UI.canonicalLocationDisplayValue("OH05-01-Beachwood-Science Park Drive", { states: [] }),
+  "Beachwood, OH"
+);
+assert.deepEqual(
+  UI.canonicalLocationDisplayValues([
+    "Conshohocken, PA",
+    "USA > PA > Conshohocken > West First",
+    "Remote_United States",
+  ], { states: ["PA", "Remote"] }),
+  ["Conshohocken, PA", "Remote"]
+);
+assert.deepEqual(
+  UI.locationDisplayValues({
+    location: "stale fallback",
+    _inspection: {
+      status: "inspected",
+      posting: { locations: { status: "authoritative", values: ["OH05-01-Beachwood-Science Park Drive"] } },
+    },
+  }),
+  ["OH05-01-Beachwood-Science Park Drive"],
+  "distance resolution should keep the raw authoritative value even when display is canonicalized"
+);
 
 assert.equal(
   UI.cardLocationText({

@@ -877,11 +877,35 @@
     const authoritative = (typeof YartchivesUtils !== "undefined" && YartchivesUtils.authoritativeLocationValues)
       ? YartchivesUtils.authoritativeLocationValues(job)
       : [];
-    if (authoritative.length > 1) return authoritative;
+    if (authoritative.length) return authoritative;
     const raw = locationValueText(job?._displayLocation) || locationValueText(job?.location);
     if (!raw) return authoritative.length ? authoritative : [];
     const split = raw.split(/\s*(?:;|\||·)\s*/).map(normalize).filter(Boolean);
     return split.length > 1 ? split : [raw];
+  }
+
+  function canonicalLocationDisplayValue(value, job) {
+    const raw = locationValueText(value);
+    if (!raw) return "";
+    if (typeof YartchivesUtils !== "undefined" && typeof YartchivesUtils.humanizeLocationPiece === "function") {
+      const states = Array.isArray(job?.states) ? job.states : [];
+      return YartchivesUtils.humanizeLocationPiece(raw, states) || raw;
+    }
+    return raw;
+  }
+
+  function canonicalLocationDisplayValues(values, job) {
+    const out = [];
+    const seen = new Set();
+    for (const value of values || []) {
+      const display = canonicalLocationDisplayValue(value, job);
+      if (!display) continue;
+      const key = display.toLowerCase();
+      if (seen.has(key)) continue;
+      seen.add(key);
+      out.push(display);
+    }
+    return out;
   }
 
   function deadlineDisplay(result) {
@@ -1054,7 +1078,10 @@
           const finite = distances.filter(value => Number.isFinite(value));
           return finite.length ? Math.min(...finite) : Infinity;
         });
-        job._displayLocation = orderLocationValues(values, primary, fallback).join(" · ");
+        const ordered = orderLocationValues(values, primary, fallback);
+        job._displayLocation = canonicalLocationDisplayValues(ordered, job).join(" · ");
+      } else if (values.length === 1) {
+        job._displayLocation = canonicalLocationDisplayValue(values[0], job);
       } else {
         delete job._displayLocation;
       }
@@ -2015,6 +2042,8 @@
     deadlineDisplay,
     locationValueText,
     locationDisplayValues,
+    canonicalLocationDisplayValue,
+    canonicalLocationDisplayValues,
     cardLocationText,
     orderLocationValues,
     emptyInspectionArtifact,
