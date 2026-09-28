@@ -113,6 +113,10 @@ class EnrichFeedTests(unittest.TestCase):
             ("Electrical Engineering Intern", "electrical"),
             ("Mechanical Engineering Intern", "mechanical"),
             ("Aerospace Engineering Intern", "aero"),
+            ("Astronautical Engineering Intern", "aero"),
+            ("Aerodynamics Engineering Intern", "aero"),
+            ("GNC Engineering Intern", "aero"),
+            ("Mechanical Stress Analysis Intern", "mechanical"),
         )
         for title, discipline in cases:
             with self.subTest(title=title):
