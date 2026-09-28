@@ -33,7 +33,7 @@ assert.deepEqual(L.scoreLocation({ location: "Baltimore, MD", states: ["MD"], ..
   score: 20,
   detail: "Preferred state: MD",
 });
-assert.equal(L.scoreLocation({ location: "Remote", states: ["Remote"] }, profile).score, 18);
+assert.equal(L.scoreLocation({ location: "Remote", states: ["Remote"] }, profile).score, 20);
 assert.equal(L.scoreLocation({ location: "York, PA", states: ["PA"], ...trustedDistance(35) }, profile).score, 20);
 assert.equal(L.scoreLocation({ location: "York, PA", states: ["PA"], ...trustedDistance(90) }, profile).score, 17);
 assert.equal(L.scoreLocation({ location: "Boston, MA", states: ["MA"], ...trustedDistance(160) }, profile).score, 13);
