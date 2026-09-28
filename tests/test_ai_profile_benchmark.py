@@ -1,12 +1,14 @@
 import importlib.util
 import json
 from pathlib import Path
+import sys
 import unittest
 from unittest import mock
 
 MODULE_PATH = Path(__file__).resolve().parents[1] / "scripts" / "ai_profile_benchmark.py"
 spec = importlib.util.spec_from_file_location("ai_profile_benchmark", MODULE_PATH)
 mod = importlib.util.module_from_spec(spec)
+sys.modules[spec.name] = mod
 spec.loader.exec_module(mod)
 
 
