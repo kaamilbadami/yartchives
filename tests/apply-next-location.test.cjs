@@ -33,7 +33,7 @@ assert.deepEqual(L.scoreLocation({ location: "Baltimore, MD", states: ["MD"], ..
   score: 20,
   detail: "Preferred state: MD",
 });
-assert.equal(L.scoreLocation({ location: "Remote", states: ["Remote"] }, profile).score, 18);
+assert.equal(L.scoreLocation({ location: "Remote", states: ["Remote"] }, profile).score, 20);
 assert.equal(L.scoreLocation({ location: "York, PA", states: ["PA"], ...trustedDistance(35) }, profile).score, 20);
 assert.equal(L.scoreLocation({ location: "York, PA", states: ["PA"], ...trustedDistance(90) }, profile).score, 17);
 assert.equal(L.scoreLocation({ location: "Boston, MA", states: ["MA"], ...trustedDistance(160) }, profile).score, 13);
@@ -137,6 +137,25 @@ const duolingoB = {
 };
 assert.equal(L.canonicalPostingKey(duolingoA), L.canonicalPostingKey(duolingoB));
 assert.equal(L.dedupeCanonicalJobs([duolingoA, duolingoB]).length, 1);
+
+const sameTitleDistinctReqA = {
+  ...nearJob,
+  id: "same-title-a",
+  company: "Example Employer",
+  title: "Software Engineering Intern",
+  url: "https://example.wd5.myworkdayjobs.com/external/job/Remote/Software-Engineering-Intern_REQ-48334",
+};
+const sameTitleDistinctReqB = {
+  ...sameTitleDistinctReqA,
+  id: "same-title-b",
+  url: "https://example.wd5.myworkdayjobs.com/external/job/Remote/Software-Engineering-Intern_REQ-48457",
+};
+assert.notEqual(L.canonicalPostingKey(sameTitleDistinctReqA), L.canonicalPostingKey(sameTitleDistinctReqB));
+assert.equal(
+  L.dedupeCanonicalJobs([sameTitleDistinctReqA, sameTitleDistinctReqB]).length,
+  2,
+  "same-employer same-title roles with distinct requisitions must remain distinct"
+);
 
 const geckoA = {
   ...nearJob,
@@ -260,7 +279,7 @@ const raytheonRi = {
 assert.equal(L.semanticEmployerKey(raytheonMaA), L.semanticEmployerKey(raytheonMaB));
 assert.equal(L.semanticTitleKey(raytheonMaA), L.semanticTitleKey(raytheonMaB));
 const raytheonDeduped = L.dedupeCanonicalJobs([raytheonMaA, raytheonMaB, raytheonRi]);
-assert.equal(raytheonDeduped.length, 2);
+assert.equal(raytheonDeduped.length, 3);
 assert.ok(raytheonDeduped.some(x => x.states.includes("MA")));
 assert.ok(raytheonDeduped.some(x => x.states.includes("RI")));
 
@@ -297,8 +316,8 @@ assert.equal(
 );
 assert.equal(
   L.dedupeCanonicalJobs([radianceA, radianceB]).length,
-  1,
-  "Duplicate requisitions for the same employer/title/authoritative location should collapse"
+  2,
+  "Distinct authoritative requisitions must remain separate even when employer/title/location match"
 );
 
 console.log("apply-next authoritative-only, location, and canonical dedupe tests passed");

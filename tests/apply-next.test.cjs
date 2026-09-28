@@ -114,7 +114,21 @@ assert.equal(direct.components.role.score, 15);
 assert.equal(direct.components.location.score, 20);
 
 const remote = A.scoreLocation({ states: ["Remote"] }, profile);
-assert.equal(remote.score, 18);
+assert.equal(remote.score, 20);
+const freshnessNow = new Date("2026-09-28T12:00:00Z");
+const freshnessScores = [0, 2, 4, 7, 10, 14, 20, 30, 45, 60, 75, 90].map(days => (
+  A.scoreFreshness({ posted_at: new Date(freshnessNow.getTime() - days * 86400000).toISOString() }, freshnessNow).score
+));
+for (let index = 1; index < freshnessScores.length; index += 1) {
+  assert.ok(freshnessScores[index] <= freshnessScores[index - 1], "freshness must decay monotonically with age");
+}
+assert.deepEqual(
+  [freshnessScores[0], freshnessScores[1], freshnessScores[3], freshnessScores[5], freshnessScores[7], freshnessScores[9], freshnessScores[11]],
+  [10, 10, 8, 6, 3, 1, 0],
+  "freshness smoothing must preserve the existing anchor scores"
+);
+assert.ok(new Set(freshnessScores).size > 6, "freshness should use more resolution than the old six score buckets");
+
 const nearby = A.scoreLocation({ states: ["PA"], _distanceMiles: 28 }, profile);
 assert.equal(nearby.score, 20);
 const relocation = A.scoreLocation({ states: ["CA"] }, profile);

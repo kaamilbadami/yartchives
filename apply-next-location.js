@@ -291,6 +291,14 @@
     return candidateTime > currentTime ? candidate : current;
   }
 
+  function hasStrongPostingIdentity(job) {
+    const inspection = job?._inspection || job?.inspection;
+    const requisitionId = String(inspection?.posting?.requisition_id || "").trim();
+    if (requisitionId) return true;
+    const canonical = canonicalPostingKey(job);
+    return /^(?:workday|greenhouse|ashby|icims):/.test(canonical);
+  }
+
   function dedupeCanonicalJobs(jobs) {
     const byKey = new Map();
     for (const job of jobs || []) {
@@ -301,13 +309,30 @@
 
     const byOpportunity = new Map();
     for (const job of byKey.values()) {
-      const key = semanticOpportunityKey(job);
-      if (!key) {
-        byOpportunity.set(`canonical:${canonicalPostingKey(job)}`, job);
+      const semanticKey = semanticOpportunityKey(job);
+      const canonicalKey = canonicalPostingKey(job);
+      if (!semanticKey) {
+        byOpportunity.set(`canonical:${canonicalKey}`, job);
         continue;
       }
-      if (!byOpportunity.has(key)) byOpportunity.set(key, job);
-      else byOpportunity.set(key, preferDuplicate(byOpportunity.get(key), job));
+
+      const existing = byOpportunity.get(semanticKey);
+      if (!existing) {
+        byOpportunity.set(semanticKey, job);
+        continue;
+      }
+
+      const existingCanonical = canonicalPostingKey(existing);
+      if (
+        canonicalKey !== existingCanonical
+        && hasStrongPostingIdentity(job)
+        && hasStrongPostingIdentity(existing)
+      ) {
+        byOpportunity.set(`${semanticKey}|canonical:${canonicalKey}`, job);
+        continue;
+      }
+
+      byOpportunity.set(semanticKey, preferDuplicate(existing, job));
     }
     return [...byOpportunity.values()];
   }
@@ -320,7 +345,7 @@
     if (stateMatch) return { score: 20, detail: `Preferred state: ${stateMatch}` };
 
     if ((rawStates.has("Remote") || /\bremote\b/i.test(String(job?.location || ""))) && profile?.remoteRelevant !== false) {
-      return { score: 18, detail: "Remote opportunity" };
+      return { score: 20, detail: "Remote opportunity" };
     }
 
     const distance = Number(job?._distanceMiles);

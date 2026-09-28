@@ -284,6 +284,7 @@ async function loadGeoIndex() {
 
     const cities = new Map();
     const citiesByState = new Map();
+    const cityStatesByName = new Map();
     try {
       for (const row of payload.cities) {
         if (!Array.isArray(row) || row.length < 4) continue;
@@ -293,6 +294,9 @@ async function loadGeoIndex() {
         cities.set(`${st}|${city}`, point);
         if (!citiesByState.has(st)) citiesByState.set(st, []);
         citiesByState.get(st).push([city, point]);
+        const normalizedCity = normalizePlace(city);
+        if (!cityStatesByName.has(normalizedCity)) cityStatesByName.set(normalizedCity, new Set());
+        cityStatesByName.get(normalizedCity).add(st);
       }
     } catch (error) {
       const classified = new Error("City index construction failed");
@@ -310,7 +314,17 @@ async function loadGeoIndex() {
       throw classified;
     }
 
-    geoIndex = { zips, cities, citiesByState };
+    const citiesByName = new Map();
+    for (const [name, states] of cityStatesByName.entries()) {
+      if (states.size !== 1) {
+        citiesByName.set(name, null);
+        continue;
+      }
+      const [state] = states;
+      citiesByName.set(name, cities.get(`${state}|${name}`) || null);
+    }
+
+    geoIndex = { zips, cities, citiesByState, citiesByName };
     geoError = null;
     return geoIndex;
   })().catch(error => {

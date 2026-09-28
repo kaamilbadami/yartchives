@@ -182,6 +182,7 @@
 
     const zips = new Map();
     const cityAcc = new Map();
+    const cityStatesByName = new Map();
     for (let i = 1; i < lines.length; i++) {
       const row = parseCsvLine(lines[i]);
       const zip = (row[col.zip_code] || "").padStart(5, "0");
@@ -194,9 +195,12 @@
       const point = { lat, lon, state: st, city, zip, precision: "zip" };
       zips.set(zip, point);
 
-      const key = `${st}|${normalizePlace(city)}`;
+      const normalizedCity = normalizePlace(city);
+      const key = `${st}|${normalizedCity}`;
+      if (!cityStatesByName.has(normalizedCity)) cityStatesByName.set(normalizedCity, new Set());
+      cityStatesByName.get(normalizedCity).add(st);
       const weight = Number.isFinite(pop) && pop > 0 ? pop : 1;
-      const acc = cityAcc.get(key) || { lat: 0, lon: 0, weight: 0, name: normalizePlace(city), state: st };
+      const acc = cityAcc.get(key) || { lat: 0, lon: 0, weight: 0, name: normalizedCity, state: st };
       acc.lat += lat * weight;
       acc.lon += lon * weight;
       acc.weight += weight;
@@ -217,8 +221,17 @@
       if (!citiesByState.has(acc.state)) citiesByState.set(acc.state, []);
       citiesByState.get(acc.state).push([acc.name, point]);
     }
+    const citiesByName = new Map();
+    for (const [name, states] of cityStatesByName.entries()) {
+      if (states.size !== 1) {
+        citiesByName.set(name, null);
+        continue;
+      }
+      const [state] = states;
+      citiesByName.set(name, cities.get(`${state}|${name}`) || null);
+    }
     for (const list of citiesByState.values()) list.sort((a, b) => b[0].length - a[0].length);
-    return { zips, cities, citiesByState };
+    return { zips, cities, citiesByState, citiesByName };
   }
 
   function addCandidate(candidates, value) {
@@ -262,13 +275,22 @@
     if (zipPoints.length) return zipPoints;
 
     const states = statesForLocation(raw, job.states || []);
-    if (!states.length) return null;
 
     const normalizedLocation = ` ${normalizePlace(raw)} `;
     const candidates = new Set();
     const commaParts = raw.split(",");
     if (commaParts.length > 1) addCandidate(candidates, commaParts[0]);
     for (const segment of raw.split(/[\/;|·]+/)) addCandidate(candidates, segment.split(",")[0]);
+    for (const segment of raw.split(/[-_]+/)) addCandidate(candidates, segment.split(",")[0]);
+
+    if (!states.length) {
+      const unique = [];
+      for (const candidate of candidates) {
+        const point = geo.citiesByName?.get(candidate);
+        if (point) unique.push(point);
+      }
+      return unique.length ? unique : null;
+    }
 
     const found = [];
     for (const st of states) {

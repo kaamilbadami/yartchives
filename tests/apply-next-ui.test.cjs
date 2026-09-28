@@ -22,10 +22,10 @@ assert.equal(UI.componentMax("freshness"), 10);
 assert.equal(UI.componentMax("eligibility"), 0);
 assert.equal(UI.componentMax("link"), 0);
 assert.equal(UI.componentMax("effort"), 0);
-assert.equal(UI.componentLabel("fit"), "How well you match");
-assert.equal(UI.componentLabel("freshness"), "How recent it is");
-assert.equal(UI.componentLabel("roi"), "Worth applying");
-assert.equal(UI.componentLabel("location"), "Location fit");
+assert.equal(UI.componentLabel("fit"), "Qualification fit");
+assert.equal(UI.componentLabel("freshness"), "Freshness");
+assert.equal(UI.componentLabel("roi"), "Application value");
+assert.equal(UI.componentLabel("location"), "Location");
 assert.match(UI.componentExplanation("fit"), /skills, major, degree level/i);
 assert.equal(UI.scoreBand("fit", 30, 40), "Strong match");
 assert.equal(UI.scoreBand("freshness", 5, 10), "Recent");
@@ -386,6 +386,12 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.doesNotMatch(index, /<\/script>\\n\s*<script/, "Homepage must not render a literal \\n between script tags");
 
   const uiSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-ui.js"), "utf8");
+  assert.match(uiSource, /fit: "Qualification fit"/, "Why-this-ranks-here should name qualification fit directly");
+  assert.match(uiSource, /roi: "Application value"/, "Why-this-ranks-here should name application value directly");
+  assert.match(uiSource, /const detail = String\(component\.detail \|\| ""\)\.trim\(\);/, "Component breakdown should expose scoring evidence/details");
+  assert.doesNotMatch(uiSource, /card\.append\(highlightsUl\)/, "Recommendation cards should not duplicate the total score with generic badge strips");
+  assert.match(uiSource, /Small score differences are close calls/, "Recommended queue should describe adjacent scores as near-ties rather than large gaps");
+
   assert.match(
     uiSource,
     /timingNow\(\) - lastYieldAt >= LOCATION_ENRICHMENT_YIELD_BUDGET_MS/,
@@ -400,15 +406,14 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /Authoritative posting evidence/);
   assert.match(uiSource, /metadata is used as a fallback/);
   assert.match(uiSource, /apply-next-inspection-\$\{inspectionState\}/);
-  assert.match(uiSource, /Worth applying/);
-  assert.match(uiSource, /How well you match/);
-  assert.match(uiSource, /How recent it is/);
-  assert.match(uiSource, /Location fit/);
+  assert.match(uiSource, /Application value/);
+  assert.match(uiSource, /Qualification fit/);
+  assert.match(uiSource, /freshness: "Freshness"/);
+  assert.match(uiSource, /location: "Location"/);
   assert.match(uiSource, /"Apply Next"\)/, "Visible score label should identify the number as Apply Next priority");
   assert.match(uiSource, /Personalized application priority/, "Score tooltip should explain the score is personalized priority, not raw job quality");
   assert.match(uiSource, /strong farther-away role can still outrank a weaker nearby role/, "Score explanation should make location a tradeoff rather than a filter");
-  assert.match(uiSource, /Distance not verified/);
-  assert.match(uiSource, /displayed score uses the conservative location value; verified location fit can raise it/);
+  assert.match(uiSource, /Location is not verified yet; this is the conservative location score and verification can raise it/);
   assert.match(uiSource, /Location could raise score to \$\{totalMax\}\/100/);
   assert.doesNotMatch(uiSource, /\$\{totalMin\}–\$\{totalMax\}/);
   assert.doesNotMatch(uiSource, /Application access|application-link friction/);
