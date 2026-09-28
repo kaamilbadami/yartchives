@@ -113,12 +113,15 @@ class AiProfileBenchmarkTests(unittest.TestCase):
             timeout=1,
             batch_size=20,
         )
-        results = provider.classify_many([
+        outcomes = provider.classify_many([
             {"company": "Example", "title": "Software Development Intern"},
             {"company": "Example", "title": "Quantitative Trader Intern"},
         ])
 
-        self.assertEqual([result.labels for result in results], [("cs",), ("finance-econ",)])
+        self.assertEqual(
+            [outcome.classification.labels for outcome in outcomes],
+            [("cs",), ("finance-econ",)],
+        )
         self.assertEqual(post.call_count, 1)
         _, kwargs = post.call_args
         self.assertEqual(kwargs["headers"]["x-goog-api-key"], "secret")
@@ -165,13 +168,87 @@ class AiProfileBenchmarkTests(unittest.TestCase):
 
         post.side_effect = [response_for(range(2)), response_for(range(1))]
         provider = mod.GeminiProfileClassifier("secret", batch_size=2)
-        results = provider.classify_many([
+        outcomes = provider.classify_many([
             {"title": "A"},
             {"title": "B"},
             {"title": "C"},
         ])
-        self.assertEqual(len(results), 3)
+        self.assertEqual(len(outcomes), 3)
         self.assertEqual(post.call_count, 2)
+
+
+    @mock.patch.object(mod.requests, "post")
+    def test_invalid_item_is_reported_without_aborting_batch(self, post):
+        response = mock.Mock()
+        response.status_code = 200
+        response.headers = {}
+        response.json.return_value = {
+            "candidates": [{
+                "content": {
+                    "parts": [{
+                        "text": json.dumps({
+                            "results": [
+                                {
+                                    "key": "0",
+                                    "labels": ["general", "cs"],
+                                    "confidence": 0.91,
+                                    "evidence": ["ambiguous"],
+                                },
+                                {
+                                    "key": "1",
+                                    "labels": ["finance-econ"],
+                                    "confidence": 0.97,
+                                    "evidence": ["quantitative trading"],
+                                },
+                            ]
+                        })
+                    }]
+                }
+            }]
+        }
+        post.return_value = response
+
+        provider = mod.GeminiProfileClassifier("secret", batch_size=20)
+        outcomes = provider.classify_many([
+            {"title": "AI Strategy Intern"},
+            {"title": "Quantitative Trader Intern"},
+        ])
+
+        self.assertIsNone(outcomes[0].classification)
+        self.assertIn("general cannot be combined", outcomes[0].error)
+        self.assertEqual(outcomes[0].raw_labels, ("general", "cs"))
+        self.assertEqual(outcomes[1].classification.labels, ("finance-econ",))
+
+    def test_gold_summary_counts_validation_errors_separately(self):
+        class FakeProvider:
+            name = "fake"
+            def classify_many(self, jobs):
+                return [
+                    mod.ClassificationOutcome(
+                        classification=mod.Classification(("cs",), 0.9, ("software",))
+                    ),
+                    mod.ClassificationOutcome(
+                        classification=None,
+                        error="general cannot be combined with specialized labels",
+                        raw_labels=("general", "cs"),
+                    ),
+                ]
+
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "gold.json"
+            path.write_text(json.dumps([
+                {"title": "Software Intern", "expected_labels": ["cs"]},
+                {"title": "AI Strategy Intern", "expected_labels": ["tech-business"]},
+            ]), encoding="utf-8")
+            summary, rows = mod.run_gold(FakeProvider(), path)
+
+        self.assertEqual(summary["attempted_cases"], 2)
+        self.assertEqual(summary["valid_cases"], 1)
+        self.assertEqual(summary["validation_errors"], 1)
+        self.assertEqual(summary["exact_set_accuracy"], 1.0)
+        self.assertFalse(rows[1]["exact"])
+        self.assertIn("error", rows[1])
 
     def test_retry_delay_uses_gemini_retry_hint(self):
         response = mock.Mock()
