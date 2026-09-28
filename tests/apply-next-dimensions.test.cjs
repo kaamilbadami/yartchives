@@ -125,6 +125,18 @@ const unsupported = D.scoreJob(job({
   url: "https://example.com/unsupported",
   _inspection: inspection([["Kubernetes required", ["Kubernetes"]]]),
 }), profile, now);
+const sameAuthoritativeRequirementsOffMetadata = D.scoreJob(job({
+  title: "Business Operations Internship",
+  profiles: ["finance-econ"],
+  url: "https://example.com/same-authoritative-off-metadata",
+  _inspection: inspection([["Java required", ["Java"]]]),
+}), profile, now);
+assert.equal(
+  sameAuthoritativeRequirementsOffMetadata.components.fit.score,
+  supported.components.fit.score,
+  "inspected qualification fit must come from authoritative requirements rather than loose title/profile metadata"
+);
+
 assert.ok(supported.components.fit.score > unsupported.components.fit.score);
 assert.match(supported.components.fit.detail, /Exact required skills: java/i);
 assert.match(unsupported.components.fit.detail, /Unsupported hard required skills: kubernetes/i);
