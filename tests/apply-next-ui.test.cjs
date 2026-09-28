@@ -644,7 +644,8 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /const res = await fetch\(FEEDBACK_ENDPOINT, \{[\s\S]*?method:\s*"POST",[\s\S]*?body:\s*JSON\.stringify\(payload\)/, "Submit action should perform a real remote fetch request");
   assert.match(uiSource, /state\.feedback\[job\.id\]\.submitted = true;/, "Feedback state should record submitted status locally to prevent duplicates");
   assert.match(uiSource, /Feedback submitted\. Thank you!/, "Successfully submitted feedback should show a success message");
-  assert.match(uiSource, /"apply-next-feedback-error", "Failed to submit\. Please try again\."/, "Failed submission should show a retryable error without marking it successful");
+  assert.match(uiSource, /deliveryPending = true;/, "Failed feedback delivery should remain queued locally");
+  assert.match(uiSource, /Saved on this device\. Delivery is temporarily unavailable;/, "Failed delivery should explain that feedback was preserved for retry");
   assert.doesNotMatch(uiSource, /delete state\.feedback\[job\.id\]\.submitted;/, "Once submitted, feedback should not be easily undoable to resubmit");
 
 

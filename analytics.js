@@ -3,7 +3,7 @@
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.YartchivesAnalytics = api;
 })(typeof globalThis !== "undefined" ? globalThis : this, function (root) {
-  const ENDPOINT = "https://formspree.io/f/mqakpejw";
+  const ENDPOINT = null;
   const SCHEMA = "yartchives-usage-v2";
   const VISITOR_ID_KEY = "yartchives.analytics.visitor.v1";
   const FIRST_SEEN_KEY = "yartchives.analytics.firstSeen.v1";
@@ -230,6 +230,7 @@
   }
 
   async function flush() {
+    if (!ENDPOINT) return true;
     if (flushing) return flushing;
     const snapshot = pendingCounts();
     if (!Object.keys(snapshot).length) return true;

@@ -97,7 +97,8 @@ assert.deepEqual(
 
 const source = fs.readFileSync(path.join(__dirname, "..", "analytics.js"), "utf8");
 assert.doesNotMatch(source, /searchInput|locationInput|resume|profileToSave|jobId|company|title/);
-assert.match(source, /keepalive:\s*true/);
+assert.equal(Analytics.ENDPOINT, null, "Automated analytics must not consume the human-feedback form quota");
+assert.doesNotMatch(source, /formspree\.io\/f\//, "Analytics must not share the feedback Formspree endpoint");
 assert.match(source, /schema:\s*SCHEMA/);
 assert.match(source, /visitorId:\s*visitor\.visitorId/);
 assert.match(source, /returningVisitor:\s*visitor\.isReturning/);
