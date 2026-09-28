@@ -7,6 +7,13 @@ assert.equal(U.matchesTextLocation({ location: "Acton, Massachusetts", states: [
 assert.equal(U.matchesTextLocation({ location: "Danbury, CT", states: ["CT"] }, "CT"), true);
 assert.equal(U.matchesTextLocation({ location: "Acton, Massachusetts", states: ["MA"] }, "Massachusetts"), true);
 
+assert.equal(U.humanizeLocationPiece("US-UT-WEST VALLEY CITY-338 ~ 1127 & 1128 w 2400 S"), "West Valley City, UT");
+assert.equal(U.humanizeLocationPiece("US-IA-CEDAR RAPIDS-182 ~ 1100 Cimmie Ave Ne ~ BLDG 182"), "Cedar Rapids, IA");
+assert.equal(U.humanizeLocationPiece("OH05-01-Beachwood-Science Park Drive"), "Beachwood, OH");
+assert.equal(U.humanizeLocationPiece("USA > PA > Conshohocken > West First"), "Conshohocken, PA");
+assert.equal(U.humanizeLocationPiece("Remote_United States"), "Remote");
+assert.equal(U.humanizeLocationPiece("USA - Chaska - Beckman Coulter, Inc. - BC18", ["MN"]), "Chaska, MN");
+
 assert.equal(U.classifyEducationFromTitle("Business Data Scientist Intern, PhD, Summer 2027"), "graduate-only");
 assert.equal(U.classifyEducationFromTitle("Software Engineering Intern, BS/MS, Summer 2027"), "undergrad");
 assert.equal(U.classifyEducationFromTitle("Software Engineer Intern"), "unspecified");

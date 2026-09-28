@@ -132,6 +132,88 @@
       .trim();
   }
 
+  function titleCaseLocation(value) {
+    return String(value || "")
+      .toLowerCase()
+      .replace(/\b[a-z]/g, ch => ch.toUpperCase());
+  }
+
+  function humanizeLocationPiece(value, fallbackStates = []) {
+    const text = String(value || "").replace(/\s+/g, " ").trim();
+    if (!text) return "";
+
+    const fallback = [...new Set((fallbackStates || [])
+      .map(state => String(state || "").toUpperCase())
+      .filter(state => STATE_NAMES[state]))];
+
+    if (/remote/i.test(text) && /^(?:(?:us|usa|united states)[\s_>-]*)?remote(?:\b|_)/i.test(text)) {
+      return "Remote";
+    }
+
+    const codedSite = text.match(/^([A-Z]{2})\d{2}-\d{2}-([^-~]+)(?:-|~|$)/i);
+    if (codedSite && STATE_NAMES[codedSite[1].toUpperCase()]) {
+      return `${titleCaseLocation(codedSite[2].trim())}, ${codedSite[1].toUpperCase()}`;
+    }
+
+    const countryStateCity = text.match(/^(?:US|USA|United States)\s*(?:-|>|_)\s*([A-Z]{2}|[A-Za-z ]+?)\s*(?:-|>|_)\s*(.+?)(?=\s+-\s+|\s+>\s+|-\d+\b|~|$)/i);
+    if (countryStateCity) {
+      const stateToken = countryStateCity[1].trim();
+      const code = /^[A-Z]{2}$/i.test(stateToken)
+        ? stateToken.toUpperCase()
+        : Object.entries(STATE_NAMES).find(([, name]) => name.toLowerCase() === stateToken.toLowerCase())?.[0];
+      if (code && STATE_NAMES[code]) {
+        return `${titleCaseLocation(countryStateCity[2].trim())}, ${code}`;
+      }
+    }
+
+    const stateCity = text.match(/^([A-Z]{2})\s*(?:-|>|_)\s*(.+?)(?=\s+-\s+|\s+>\s+|-\d+\b|~|$)/i);
+    if (stateCity && STATE_NAMES[stateCity[1].toUpperCase()]) {
+      return `${titleCaseLocation(stateCity[2].trim())}, ${stateCity[1].toUpperCase()}`;
+    }
+
+    const cityStateCountry = text.match(/^([^,]+),\s*([A-Z]{2}),\s*(?:US|USA|United States)$/i);
+    if (cityStateCountry && STATE_NAMES[cityStateCountry[2].toUpperCase()]) {
+      return `${titleCaseLocation(cityStateCountry[1].trim())}, ${cityStateCountry[2].toUpperCase()}`;
+    }
+
+    const cityStateNameCountry = text.match(/^([^,]+),\s*([A-Za-z ]+),\s*(?:US|USA|United States)$/i);
+    if (cityStateNameCountry) {
+      const code = Object.entries(STATE_NAMES).find(([, name]) => name.toLowerCase() === cityStateNameCountry[2].trim().toLowerCase())?.[0];
+      if (code) return `${titleCaseLocation(cityStateNameCountry[1].trim())}, ${code}`;
+    }
+
+    const streetCityState = text.match(/^(?:\d+\s+)?[^,]+,\s*([^,]+),+\s*([A-Z]{2})$/i);
+    if (streetCityState && STATE_NAMES[streetCityState[2].toUpperCase()]) {
+      return `${titleCaseLocation(streetCityState[1].trim())}, ${streetCityState[2].toUpperCase()}`;
+    }
+
+    const cityStateName = text.match(/^([^,]+),\s*([A-Za-z ]+)$/);
+    if (cityStateName) {
+      const code = Object.entries(STATE_NAMES).find(([, name]) => name.toLowerCase() === cityStateName[2].trim().toLowerCase())?.[0];
+      if (code) return `${titleCaseLocation(cityStateName[1].trim())}, ${code}`;
+    }
+
+    const cityState = text.match(/^([^,]+),\s*([A-Z]{2})$/i);
+    if (cityState && STATE_NAMES[cityState[2].toUpperCase()]) {
+      return `${titleCaseLocation(cityState[1].trim())}, ${cityState[2].toUpperCase()}`;
+    }
+
+    const countryNamedPlace = text.match(/^(?:US|USA|United States)\s*[-_]\s*([A-Za-z][A-Za-z .'-]+)$/i);
+    if (countryNamedPlace && fallback.length === 0) {
+      return titleCaseLocation(countryNamedPlace[1].trim());
+    }
+
+    const countryCity = text.match(/^(?:US|USA|United States)\s*(?:-|>|_)\s*([^>~_-]+?)(?:\s*(?:-|>|_)\s*.+)?$/i);
+    if (countryCity && fallback.length === 1) {
+      return `${titleCaseLocation(countryCity[1].trim())}, ${fallback[0]}`;
+    }
+
+    if (fallback.length === 1 && /^[A-Za-z][A-Za-z .'-]+$/.test(text)) {
+      return `${titleCaseLocation(text)}, ${fallback[0]}`;
+    }
+    return text;
+  }
+
   function matchesTextLocation(job, queryValue) {
     const query = (queryValue || "").trim().toLowerCase();
     if (!query) return true;
@@ -510,6 +592,7 @@
     yieldToBrowser,
     runWithPendingUi,
     normalizePlace,
+    humanizeLocationPiece,
     matchesTextLocation,
     parseCsvLine,
     buildGeoIndex,

@@ -107,7 +107,12 @@
     return String(job?.url || "").trim();
   }
 
-  function humanizeLocationPiece(value) {
+  function humanizeLocationPiece(value, fallbackStates = []) {
+    const shared = typeof utils?.humanizeLocationPiece === "function"
+      ? utils.humanizeLocationPiece(value, fallbackStates)
+      : "";
+    if (shared) return shared;
+
     const text = String(value || "").replace(/\s+/g, " ").trim();
     if (!text) return null;
     if (/\bremote\b/i.test(text) && /^(?:us|usa|united states)?\s*-?\s*remote/i.test(text)) return "Remote";
@@ -151,7 +156,7 @@
       .filter(value => STATE_NAMES[value]))];
     const pieces = rawLocationValues(job)
       .flatMap(raw => String(raw || "").split(/\s*·\s*|\s*;\s*|\s*\|\s*/))
-      .map(humanizeLocationPiece)
+      .map(piece => humanizeLocationPiece(piece, stateCodes))
       .filter(Boolean)
       .map(piece => {
         if (piece === "Remote" || piece.includes(",")) return piece;

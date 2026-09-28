@@ -13,8 +13,10 @@
       .filter(Boolean);
   }
 
-  function cleanLocationPrefix(value) {
-    return String(value || "").replace(/^\d+\s+locations?\s*/i, "").trim();
+  function cleanLocationPrefix(value, fallbackStates = []) {
+    const cleaned = String(value || "").replace(/^\d+\s+locations?\s*/i, "").trim();
+    if (U?.humanizeLocationPiece) return U.humanizeLocationPiece(cleaned, fallbackStates) || cleaned;
+    return cleaned;
   }
 
   function normalized(value) {
@@ -24,7 +26,7 @@
 
   function pointMatchesPiece(piece, point) {
     if (!point?.city || !point?.state) return false;
-    const text = ` ${normalized(cleanLocationPrefix(piece))} `;
+    const text = ` ${normalized(cleanLocationPrefix(piece, [point.state]))} `;
     const city = normalized(point.city);
     const state = normalized(point.state);
     const stateName = normalized(U?.STATE_NAMES?.[point.state] || "");
@@ -48,7 +50,7 @@
     }
     if (index < 0) return { matched: false, text: full, full, multiple: true };
 
-    const matchedText = cleanLocationPrefix(pieces[index]);
+    const matchedText = cleanLocationPrefix(pieces[index], point?.state ? [point.state] : []);
     return {
       matched: true,
       matchedText,
