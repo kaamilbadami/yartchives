@@ -73,7 +73,8 @@ Boundary rules that matter in Yartchives:
 - A role whose own title/function explicitly says medical, clinical, healthcare, biomedical, pharmacy, public health, or life sciences receives health even when it also has a cs or tech-business function. Do not infer health merely from the employer's industry or company name.
 - Do not infer finance, policy, or engineering from the employer's industry alone; classify the role itself.
 - Specialized engineering labels roll up to engineering.
-- Prefer the narrowest justified labels; do not add extra labels "just in case".
+- Prefer coverage over omission when multiple specialized labels are independently supported by the role evidence. Extra plausible supported labels are less harmful than missing a relevant label.
+- Do not add unrelated labels "just in case"; every label still needs visible role evidence.
 
 Return one or more labels only when the role/function clearly belongs there.
 If the evidence is too broad or ambiguous, return general.
@@ -479,10 +480,20 @@ def per_label_metrics(expected: list[set[str]], predicted: list[set[str]]) -> di
         support = sum(1 for exp in expected if label in exp)
         if not support and not tp and not fp and not fn:
             continue
+        precision = tp / (tp + fp) if tp + fp else 1.0
+        recall = tp / (tp + fn) if tp + fn else 1.0
+        beta = 2.0
+        f2 = (
+            (1 + beta * beta) * precision * recall
+            / ((beta * beta * precision) + recall)
+            if precision or recall
+            else 0.0
+        )
         metrics[label] = {
             "support": support,
-            "precision": tp / (tp + fp) if tp + fp else 1.0,
-            "recall": tp / (tp + fn) if tp + fn else 1.0,
+            "precision": precision,
+            "recall": recall,
+            "f2": f2,
         }
     return metrics
 
@@ -562,11 +573,35 @@ def score_gold(expected: list[set[str]], predicted: list[set[str]]) -> dict[str,
     fn = sum(len(exp - pred) for exp, pred in zip(expected, predicted))
     precision = tp / (tp + fp) if tp + fp else 1.0
     recall = tp / (tp + fn) if tp + fn else 1.0
+    beta = 2.0
+    f2 = (
+        (1 + beta * beta) * precision * recall
+        / ((beta * beta * precision) + recall)
+        if precision or recall
+        else 0.0
+    )
+    coverage_cases = sum(1 for exp, pred in zip(expected, predicted) if exp.issubset(pred))
+    underclassified_cases = sum(1 for exp, pred in zip(expected, predicted) if exp - pred)
+    overclassified_only_cases = sum(
+        1 for exp, pred in zip(expected, predicted)
+        if exp < pred
+    )
+    mixed_error_cases = sum(
+        1 for exp, pred in zip(expected, predicted)
+        if (exp - pred) and (pred - exp)
+    )
     return {
         "cases": total,
         "exact_set_accuracy": exact / total if total else 0.0,
+        "coverage_accuracy": coverage_cases / total if total else 0.0,
         "micro_precision": precision,
         "micro_recall": recall,
+        "micro_f2": f2,
+        "missed_label_count": fn,
+        "extra_label_count": fp,
+        "underclassified_cases": underclassified_cases,
+        "overclassified_only_cases": overclassified_only_cases,
+        "mixed_error_cases": mixed_error_cases,
     }
 
 
