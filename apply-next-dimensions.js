@@ -228,11 +228,6 @@
     return experienceEvidence.some(item => pattern.test(item));
   }
 
-  function learnableRequirement(statement) {");
-    const pattern = new RegExp("(^| )" + escaped + "( |$)");
-    return experienceEvidence.some(item => pattern.test(item));
-  }
-
   function learnableRequirement(statement) {
     const text = normalize(statement);
     return /\b(?:familiarity|familiar|interest|exposure|foundational|basic understanding|working knowledge|coursework|academic|project experience|school project|willingness to learn|eager to learn)\b/.test(text);
