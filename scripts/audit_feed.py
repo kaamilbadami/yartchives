@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
-PROFILES = ["cs", "tech-business", "finance-econ", "mechanical", "aero", "electrical", "policy", "health"]
+PROFILES = ["cs", "tech-business", "finance-econ", "engineering", "policy", "health"]
 INTERNSHIP_TYPES = {"internship", "co-op", "student"}
 WORKDAY_HOST_RE = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com$", re.I)
 
