@@ -28,6 +28,9 @@ class AiProfileBenchmarkTests(unittest.TestCase):
         self.assertIn("AI in business strategy", prompt)
         self.assertIn("general is mutually exclusive", prompt)
         self.assertIn("Data analyst", prompt)
+        self.assertIn("Prefer coverage over omission", prompt)
+        self.assertIn("Extra plausible supported labels are less harmful", prompt)
+        self.assertIn("every label still needs visible role evidence", prompt)
 
     def test_validate_classification_accepts_allowed_labels(self):
         result = mod.validate_classification({
@@ -91,6 +94,27 @@ class AiProfileBenchmarkTests(unittest.TestCase):
         self.assertEqual(score["exact_set_accuracy"], 0.5)
         self.assertEqual(score["micro_precision"], 1.0)
         self.assertAlmostEqual(score["micro_recall"], 2 / 3)
+        self.assertAlmostEqual(score["micro_f2"], 5 / 7)
+        self.assertEqual(score["coverage_accuracy"], 0.5)
+        self.assertEqual(score["missed_label_count"], 1)
+        self.assertEqual(score["extra_label_count"], 0)
+        self.assertEqual(score["underclassified_cases"], 1)
+        self.assertEqual(score["overclassified_only_cases"], 0)
+        self.assertEqual(score["mixed_error_cases"], 0)
+
+    def test_score_gold_treats_supported_overclassification_as_coverage(self):
+        score = mod.score_gold(
+            [{"cs"}, {"engineering", "electrical"}],
+            [{"cs", "tech-business"}, {"engineering", "electrical", "cs"}],
+        )
+        self.assertEqual(score["exact_set_accuracy"], 0.0)
+        self.assertEqual(score["coverage_accuracy"], 1.0)
+        self.assertEqual(score["micro_recall"], 1.0)
+        self.assertEqual(score["missed_label_count"], 0)
+        self.assertEqual(score["extra_label_count"], 2)
+        self.assertEqual(score["underclassified_cases"], 0)
+        self.assertEqual(score["overclassified_only_cases"], 2)
+        self.assertEqual(score["mixed_error_cases"], 0)
 
     @mock.patch.object(mod.requests, "post")
     def test_gemini_provider_batches_jobs_and_requests_structured_json(self, post):
@@ -326,6 +350,7 @@ class AiProfileBenchmarkTests(unittest.TestCase):
         self.assertEqual(metrics["cs"]["support"], 2)
         self.assertAlmostEqual(metrics["cs"]["precision"], 2 / 3)
         self.assertEqual(metrics["cs"]["recall"], 1.0)
+        self.assertAlmostEqual(metrics["cs"]["f2"], 10 / 11)
         self.assertEqual(metrics["finance-econ"]["support"], 2)
         self.assertEqual(metrics["finance-econ"]["precision"], 1.0)
         self.assertEqual(metrics["finance-econ"]["recall"], 0.5)
