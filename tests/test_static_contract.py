@@ -205,10 +205,18 @@ class StaticContractTests(unittest.TestCase):
     def test_public_profile_configuration(self):
         text = (ROOT / "profile-config.js").read_text(encoding="utf-8")
         self.assertIn('"Business / Product / Analytics"', text)
-        self.assertIn('"Mechanical / Manufacturing"', text)
-        self.assertIn('"Electrical / Computer Eng."', text)
+        self.assertIn('["mechanical", "aero", "electrical"]', text)
+        self.assertIn("delete PROFILE_LABELS[legacyEngineeringProfile]", text)
         self.assertIn("delete PROFILE_LABELS.policy", text)
         self.assertIn("delete PROFILE_LABELS.health", text)
+
+    def test_legacy_engineering_filters_map_to_engineering(self):
+        app = (ROOT / "app.js").read_text(encoding="utf-8")
+        ux = (ROOT / "ux.js").read_text(encoding="utf-8")
+        self.assertIn('new Set(["mechanical", "aero", "electrical"])', app)
+        self.assertIn('return LEGACY_ENGINEERING_PROFILES.has(key) ? "engineering" : key', app)
+        self.assertIn('new Set(["mechanical", "aero", "electrical"])', ux)
+        self.assertIn('return LEGACY_ENGINEERING_AREAS.has(key) ? "engineering" : key', ux)
 
     def test_multiselect_and_manual_applied_behavior_are_wired(self):
         text = (ROOT / "enhancements.js").read_text(encoding="utf-8")
