@@ -67,6 +67,9 @@ STATE_NAMES = {
 }
 STATE_ABBRS = set(STATE_NAMES.values())
 
+ENGINEERING_DISCIPLINES = ("mechanical", "aero", "electrical")
+_ENGINEERING_DISCIPLINE_SET = set(ENGINEERING_DISCIPLINES)
+
 PROFILE_KEYWORDS: dict[str, tuple[str, ...]] = {
     "cs": (
         "software engineer", "software developer", "software intern", "computer science",
@@ -264,7 +267,7 @@ def extract_states(location: str) -> list[str]:
     return sorted(states)
 
 
-def classify_profiles(job: dict[str, Any], hints: Iterable[str] = ()) -> list[str]:
+def _classify_profile_tags(job: dict[str, Any], hints: Iterable[str] = ()) -> set[str]:
     blob = " ".join([
         job.get("title", ""), job.get("company", ""), job.get("section", ""),
         job.get("function_primary", ""), job.get("source_name", ""),
@@ -281,6 +284,18 @@ def classify_profiles(job: dict[str, Any], hints: Iterable[str] = ()) -> list[st
         tags.add("tech-business")
     if any(x in blob for x in ("data scientist", "machine learning", "software")):
         tags.add("cs")
+    if tags & ENGINEERING_DISCIPLINE_SET:
+        tags.add("engineering")
+    return tags
+
+
+def classify_engineering_disciplines(job: dict[str, Any], hints: Iterable[str] = ()) -> list[str]:
+    return sorted(_classify_profile_tags(job, hints) & ENGINEERING_DISCIPLINE_SET)
+
+
+def classify_profiles(job: dict[str, Any], hints: Iterable[str] = ()) -> list[str]:
+    tags = _classify_profile_tags(job, hints)
+    tags -= ENGINEERING_DISCIPLINE_SET
     if not tags:
         tags.add("general")
     return sorted(tags)
@@ -335,7 +350,11 @@ def base_job(*, company: str, title: str, location: str, url: str | None, posted
         "states": extract_states(location),
         "term": parse_term(title, section),
     }
-    job["profiles"] = classify_profiles(job, source.get("profile_hint", []))
+    profile_hints = source.get("profile_hint", [])
+    job["profiles"] = classify_profiles(job, profile_hints)
+    engineering_disciplines = classify_engineering_disciplines(job, profile_hints)
+    if engineering_disciplines:
+        job["engineering_disciplines"] = engineering_disciplines
     return job
 
 
@@ -650,6 +669,12 @@ def merge_job(target: dict[str, Any], incoming: dict[str, Any]) -> None:
     target["source_names"] = sorted(set(target.get("source_names", [])) | {incoming["source_name"]})
     target["source_urls"] = sorted(set(target.get("source_urls", [])) | {incoming["source_url"]})
     target["profiles"] = sorted(set(target.get("profiles", [])) | set(incoming.get("profiles", [])))
+    disciplines = sorted(
+        set(target.get("engineering_disciplines", []))
+        | set(incoming.get("engineering_disciplines", []))
+    )
+    if disciplines:
+        target["engineering_disciplines"] = disciplines
     target["states"] = sorted(set(target.get("states", [])) | set(incoming.get("states", [])))
     target_kind = target.get("link_kind")
     incoming_kind = incoming.get("link_kind")
