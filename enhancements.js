@@ -4,6 +4,8 @@
   if (!U) return;
 
   const PREF_KEY = "yartchives-student-filters-v2";
+  const LEGACY_ENGINEERING_PROFILES = new Set(["mechanical", "aero", "electrical"]);
+  const normalizeLegacyProfile = key => LEGACY_ENGINEERING_PROFILES.has(key) ? "engineering" : key;
   const defaults = { education: "undergrad-friendly", opportunityType: "internships", profiles: [] };
   let prefs = { ...defaults };
   try {
@@ -11,14 +13,21 @@
     prefs = { ...prefs, ...saved };
   } catch (_) {}
   if (!Array.isArray(prefs.profiles)) prefs.profiles = [];
+  prefs.profiles = prefs.profiles.map(normalizeLegacyProfile).filter(key => key !== "all" && PROFILE_LABELS[key]);
 
   const params = new URLSearchParams(location.search);
   if (params.has("edu")) prefs.education = params.get("edu") || defaults.education;
   if (params.has("type")) prefs.opportunityType = params.get("type") || defaults.opportunityType;
   if (params.has("profiles")) {
-    prefs.profiles = (params.get("profiles") || "").split(",").filter(key => key !== "all" && PROFILE_LABELS[key]);
-  } else if (params.has("profile") && params.get("profile") !== "all" && PROFILE_LABELS[params.get("profile")]) {
-    prefs.profiles = [params.get("profile")];
+    prefs.profiles = (params.get("profiles") || "")
+      .split(",")
+      .map(normalizeLegacyProfile)
+      .filter(key => key !== "all" && PROFILE_LABELS[key]);
+  } else if (params.has("profile")) {
+    const normalizedProfile = normalizeLegacyProfile(params.get("profile"));
+    if (normalizedProfile !== "all" && PROFILE_LABELS[normalizedProfile]) {
+      prefs.profiles = [normalizedProfile];
+    }
   }
 
   // Migrate the old single-profile state once, then keep the core profile filter
@@ -29,7 +38,8 @@
   state.profile = "all";
 
   function savePrefs() {
-    prefs.profiles = [...new Set(prefs.profiles)].filter(key => PROFILE_LABELS[key] && key !== "all");
+    prefs.profiles = [...new Set(prefs.profiles.map(normalizeLegacyProfile))]
+      .filter(key => PROFILE_LABELS[key] && key !== "all");
     localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
   }
 
