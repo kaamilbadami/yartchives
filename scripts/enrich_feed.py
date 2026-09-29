@@ -225,7 +225,7 @@ PROFILE_PATTERNS: dict[str, tuple[str, ...]] = {
         r"\bpre[- ]?med\b",
         r"\blife sciences?\b",
         r"\bbiology (?:intern|research)\b",
-        r"\blab(?:oratory)? (?:intern|assistant|research)\b",
+        r"\b(?:clinical|biomedical|biology|life sciences?) lab(?:oratory)? (?:intern|assistant|research)\b",
     ),
 }
 
