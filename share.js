@@ -2,15 +2,15 @@
 (() => {
   const AREA_LABELS = {
     cs: "Computer Science",
+    engineering: "Engineering",
     "product-analytics": "Product / Analytics",
     "it-consulting": "IT / Tech Consulting",
     "finance-econ": "Finance / Econ",
-    mechanical: "Mechanical",
-    aero: "Aero / Astro",
-    electrical: "Electrical",
     policy: "Policy / Government",
     health: "Premed / Health",
   };
+  const LEGACY_ENGINEERING_AREAS = new Set(["mechanical", "aero", "electrical"]);
+  const normalizeArea = key => LEGACY_ENGINEERING_AREAS.has(key) ? "engineering" : key;
 
   const EDUCATION_LABELS = {
     "undergrad-friendly": "Undergrad-friendly",
@@ -95,7 +95,9 @@
   // A shared URL should win over a recipient's previously saved career-area state.
   const initial = new URLSearchParams(location.search);
   if (initial.has("areas")) {
-    const requested = (initial.get("areas") || "").split(",").filter(key => AREA_LABELS[key]);
+    const requested = [...new Set(
+      (initial.get("areas") || "").split(",").map(normalizeArea).filter(key => AREA_LABELS[key])
+    )];
     const buttons = [...document.querySelectorAll("#profileChips button")];
     const all = buttons.find(button => button.textContent.trim() === "All");
     const activeLabels = new Set(buttons.filter(button => button.classList.contains("active")).map(button => button.textContent.trim()));
@@ -133,7 +135,9 @@
 
     try {
       const ux = JSON.parse(localStorage.getItem("yartchives-ux-v1") || "{}");
-      const areas = Array.isArray(ux.areas) ? ux.areas.filter(key => AREA_LABELS[key]) : [];
+      const areas = Array.isArray(ux.areas)
+        ? [...new Set(ux.areas.map(normalizeArea).filter(key => AREA_LABELS[key]))]
+        : [];
       if (areas.length) url.searchParams.set("areas", areas.join(","));
     } catch (_) {}
 

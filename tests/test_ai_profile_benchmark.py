@@ -18,13 +18,13 @@ class AiProfileBenchmarkTests(unittest.TestCase):
         prompt = mod.SYSTEM_INSTRUCTION
         self.assertIn("Software engineering is cs, not engineering", prompt)
         self.assertIn("Firmware, embedded systems", prompt)
-        self.assertIn("Avionics roles are aero + electrical + engineering", prompt)
+        self.assertIn("Avionics, aerospace, mechanical/manufacturing, and electrical/hardware roles all receive engineering", prompt)
         self.assertIn("Generic \"data\", \"technology\", or \"analytics\" wording alone does not add cs", prompt)
         self.assertIn("Finance/econ roles do not receive cs", prompt)
         self.assertIn("Generic physical-engineering titles", prompt)
-        self.assertIn("Mechanical is only for explicit", prompt)
+        self.assertIn("Mechanical/manufacturing, aerospace, and electrical/hardware distinctions are discipline metadata", prompt)
         self.assertIn("explicitly says medical, clinical, healthcare", prompt)
-        self.assertIn("Specialized engineering labels roll up to engineering", prompt)
+        self.assertIn("not separate career-area labels", prompt)
         self.assertIn("AI in business strategy", prompt)
         self.assertIn("general is mutually exclusive", prompt)
         self.assertIn("Data analyst", prompt)
@@ -41,6 +41,20 @@ class AiProfileBenchmarkTests(unittest.TestCase):
         self.assertEqual(result.labels, ("cs", "finance-econ"))
         self.assertEqual(result.confidence, 0.97)
         self.assertEqual(result.evidence, ("quantitative developer", "software"))
+
+    def test_legacy_engineering_labels_collapse_to_engineering(self):
+        self.assertEqual(
+            mod.canonicalize_profile_labels(["mechanical", "electrical", "cs"]),
+            {"engineering", "cs"},
+        )
+
+    def test_validate_classification_rejects_legacy_engineering_discipline_label(self):
+        with self.assertRaises(ValueError):
+            mod.validate_classification({
+                "labels": ["mechanical"],
+                "confidence": 0.9,
+                "evidence": ["manufacturing"],
+            })
 
     def test_validate_classification_rejects_general_plus_specialized(self):
         with self.assertRaises(ValueError):
@@ -104,8 +118,8 @@ class AiProfileBenchmarkTests(unittest.TestCase):
 
     def test_score_gold_treats_supported_overclassification_as_coverage(self):
         score = mod.score_gold(
-            [{"cs"}, {"engineering", "electrical"}],
-            [{"cs", "tech-business"}, {"engineering", "electrical", "cs"}],
+            [{"cs"}, {"engineering"}],
+            [{"cs", "tech-business"}, {"engineering", "cs"}],
         )
         self.assertEqual(score["exact_set_accuracy"], 0.0)
         self.assertEqual(score["coverage_accuracy"], 1.0)
@@ -337,10 +351,11 @@ class AiProfileBenchmarkTests(unittest.TestCase):
         first = mod.stable_rule_reference_sample(jobs, 3)
         second = mod.stable_rule_reference_sample(list(reversed(jobs)), 3)
         self.assertEqual([job["id"] for job in first], [job["id"] for job in second])
-        labels = set().union(*(set(job["profiles"]) for job in first))
+        labels = set().union(*(mod.canonicalize_profile_labels(job["profiles"]) for job in first))
         self.assertIn("cs", labels)
         self.assertIn("finance-econ", labels)
-        self.assertIn("electrical", labels)
+        self.assertIn("engineering", labels)
+        self.assertNotIn("electrical", labels)
 
     def test_per_label_metrics_reports_support_precision_and_recall(self):
         metrics = mod.per_label_metrics(

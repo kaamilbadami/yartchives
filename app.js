@@ -4,9 +4,6 @@ const PROFILE_LABELS = {
   cs: "Computer Science",
   engineering: "Engineering",
   "finance-econ": "Finance / Econ",
-  mechanical: "Mechanical",
-  aero: "Aero / Astro",
-  electrical: "Electrical",
   policy: "Policy / Government",
   health: "Premed / Health",
 };
@@ -17,12 +14,15 @@ const PROFILE_TITLES = {
   cs: "Computer Science",
   engineering: "Engineering",
   "finance-econ": "Finance / Economics",
-  mechanical: "Mechanical Engineering",
-  aero: "Aerospace / Astronautical",
-  electrical: "Electrical Engineering",
   policy: "Policy / Government",
   health: "Premed / Health",
 };
+
+const LEGACY_ENGINEERING_PROFILES = new Set(["mechanical", "aero", "electrical"]);
+
+function normalizeProfileKey(key) {
+  return LEGACY_ENGINEERING_PROFILES.has(key) ? "engineering" : key;
+}
 
 const STATE_NAMES = {
   AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
@@ -124,11 +124,15 @@ function loadSavedState() {
     state.applied = new Set(saved.applied || []);
     state.hidden = new Set(saved.hidden || []);
     state.feedback = saved.feedback || {};
+    state.profile = normalizeProfileKey(state.profile);
     if (!["all", "saved", "applied", "hidden"].includes(state.status)) state.status = "all";
   } catch (_) {}
 
   const params = new URLSearchParams(location.search);
-  if (params.has("profile") && PROFILE_LABELS[params.get("profile")]) state.profile = params.get("profile");
+  if (params.has("profile")) {
+    const normalizedProfile = normalizeProfileKey(params.get("profile"));
+    if (PROFILE_LABELS[normalizedProfile]) state.profile = normalizedProfile;
+  }
   if (params.has("q")) state.search = params.get("q") || "";
   if (params.has("loc")) state.location = params.get("loc") || "";
   if (params.has("miles")) state.radius = params.get("miles") || "50";

@@ -8,32 +8,37 @@
     ["cs", "Computer Science"],
     ["engineering", "Engineering"],
   ];
-  // Maintain the full set of valid areas so legacy state/URLs remain valid
-  // even though we hide them from the primary beta UI selection.
   const ALL_KNOWN_AREAS = [
     ["cs", "Computer Science"],
     ["engineering", "Engineering"],
     ["product-analytics", "Product / Analytics"],
     ["it-consulting", "IT / Tech Consulting"],
     ["finance-econ", "Finance / Econ"],
-    ["mechanical", "Mechanical"],
-    ["aero", "Aero / Astro"],
-    ["electrical", "Electrical"],
     ["policy", "Policy / Government"],
     ["health", "Premed / Health"],
   ];
   const AREA_LABELS = Object.fromEntries(ALL_KNOWN_AREAS);
   const VALID_AREAS = new Set(ALL_KNOWN_AREAS.map(([key]) => key));
+  const LEGACY_ENGINEERING_AREAS = new Set(["mechanical", "aero", "electrical"]);
+
+  function normalizeCareerArea(key) {
+    return LEGACY_ENGINEERING_AREAS.has(key) ? "engineering" : key;
+  }
 
   function loadUxState() {
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem(UX_KEY) || "{}"); } catch (_) {}
 
-    let selected = Array.isArray(saved.areas) ? saved.areas.filter(key => VALID_AREAS.has(key)) : [];
+    let selected = Array.isArray(saved.areas)
+      ? saved.areas.map(normalizeCareerArea).filter(key => VALID_AREAS.has(key))
+      : [];
     if (!selected.length) {
       const params = new URLSearchParams(location.search);
       if (params.has("areas")) {
-        selected = (params.get("areas") || "").split(",").filter(key => VALID_AREAS.has(key));
+        selected = (params.get("areas") || "")
+          .split(",")
+          .map(normalizeCareerArea)
+          .filter(key => VALID_AREAS.has(key));
       } else {
         let legacy = {};
         try { legacy = JSON.parse(localStorage.getItem(LEGACY_PREF_KEY) || "{}"); } catch (_) {}
@@ -42,7 +47,10 @@
           : (Array.isArray(legacy.profiles) ? legacy.profiles : []);
         for (const key of legacyAreas) {
           if (key === "tech-business") selected.push("product-analytics", "it-consulting");
-          else if (VALID_AREAS.has(key)) selected.push(key);
+          else {
+            const normalized = normalizeCareerArea(key);
+            if (VALID_AREAS.has(normalized)) selected.push(normalized);
+          }
         }
 
         // Beta defaults to CS-first for new visitors

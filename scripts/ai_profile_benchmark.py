@@ -32,14 +32,13 @@ DEFAULT_MODEL = "gemini-3.5-flash-lite"
 DEFAULT_BATCH_SIZE = 20
 DEFAULT_REFERENCE_LIMIT = 300
 
+LEGACY_ENGINEERING_LABELS = {"mechanical", "aero", "electrical"}
+
 ALLOWED_LABELS = (
     "cs",
     "tech-business",
     "finance-econ",
     "engineering",
-    "mechanical",
-    "aero",
-    "electrical",
     "policy",
     "health",
     "general",
@@ -52,10 +51,7 @@ Taxonomy contract:
 - cs: software/computing roles, data science/engineering, ML/AI technical roles, cybersecurity, cloud/platform/DevOps, databases, networking, IT, test automation, and programming-heavy roles.
 - tech-business: product management, business/systems/data analysts, analytics/BI, technology consulting/strategy, digital transformation, implementation, and business/product operations.
 - finance-econ: finance, accounting, audit, tax, actuarial, banking, investments, markets, trading, economics, risk, underwriting, quantitative finance/research/trading.
-- mechanical: mechanical/manufacturing/industrial/materials/thermal/CAD/mechanical-design roles.
-- aero: aerospace/aeronautical/spacecraft/propulsion/aerodynamics/GNC/flight/avionics/satellite roles.
-- electrical: electrical/electronics/hardware/computer engineering, embedded systems/software, firmware, FPGA, RF, semiconductors, IC/VLSI, PCB, signal/power roles.
-- engineering: broad physical/general engineering. mechanical, aero, and electrical labels also imply engineering.
+- engineering: physical engineering roles, including mechanical/manufacturing/industrial/materials/thermal/CAD, aerospace/aeronautical/spacecraft/propulsion/aerodynamics/GNC/flight/avionics, electrical/electronics/hardware/computer engineering, embedded systems/firmware, FPGA/RF/semiconductors/IC/VLSI/PCB/signal/power, and broad physical/general engineering. Mechanical, aerospace, and electrical are sub-disciplines, not separate career-area labels.
 - policy: public policy, government/public affairs, legislative, advocacy, government relations, and policy research.
 - health: clinical/healthcare/public-health/medical/biomedical/patient/pharmacy/life-science roles.
 - general: use only when none of the specialized labels clearly apply. general is mutually exclusive with every specialized label.
@@ -63,16 +59,15 @@ Taxonomy contract:
 Boundary rules that matter in Yartchives:
 - Software engineering is cs, not engineering merely because the title contains "engineer".
 - Security, cloud, data, platform, DevOps, site-reliability, software, sales, solutions, support, and consulting roles do not receive engineering solely because "engineer" appears in the title.
-- Firmware, embedded systems, computer-engineering, and hardware roles are electrical + engineering. Add cs only when the title/function independently indicates software, programming, computer science, data science/engineering, ML/AI engineering, or another cs role family. Do not add cs merely because firmware or embedded work involves code.
-- Avionics roles are aero + electrical + engineering unless the visible role evidence clearly narrows them otherwise.
+- Firmware, embedded systems, computer-engineering, and hardware roles are engineering. Add cs only when the title/function independently indicates software, programming, computer science, data science/engineering, ML/AI engineering, or another cs role family. Do not add cs merely because firmware or embedded work involves code.
+- Avionics, aerospace, mechanical/manufacturing, and electrical/hardware roles all receive engineering; do not emit discipline names as labels.
 - Data analyst, business intelligence, analytics, technology operations, product management, and digital-transformation roles are tech-business unless the role evidence clearly says software engineering, data engineering, data science, ML/AI engineering, or another cs role family. Generic "data", "technology", or "analytics" wording alone does not add cs.
 - Finance/econ roles do not receive cs merely because they mention data, analytics, technology, or quantitative work. Add cs only for an independently explicit computing role such as quantitative developer, software, data engineering/science, or programming.
-- Generic physical-engineering titles such as Engineering Intern, Systems Engineering Intern, Design Engineer, Test Engineer, or Product Development Engineering stay engineering when no specialized discipline is explicit. Do not invent electrical or mechanical from generic design/test/product wording.
-- Mechanical is only for explicit mechanical/manufacturing/industrial/materials/thermal/CAD/mechanical-design evidence; generic product/design engineering is not enough.
+- Generic physical-engineering titles such as Engineering Intern, Systems Engineering Intern, Design Engineer, Test Engineer, or Product Development Engineering receive engineering when the role evidence is genuinely physical/technical engineering.
+- Mechanical/manufacturing, aerospace, and electrical/hardware distinctions are discipline metadata handled separately from this career-area classification.
 - AI in business strategy, product marketing, people/HR transformation, policy, or other nontechnical contexts is not cs.
 - A role whose own title/function explicitly says medical, clinical, healthcare, biomedical, pharmacy, public health, or life sciences receives health even when it also has a cs or tech-business function. Do not infer health merely from the employer's industry or company name.
 - Do not infer finance, policy, or engineering from the employer's industry alone; classify the role itself.
-- Specialized engineering labels roll up to engineering.
 - Prefer coverage over omission when multiple specialized labels are independently supported by the role evidence. Extra plausible supported labels are less harmful than missing a relevant label.
 - Do not add unrelated labels "just in case"; every label still needs visible role evidence.
 
@@ -148,6 +143,14 @@ def _load_enrich_feed_module():
 
 
 ENRICH_FEED = _load_enrich_feed_module()
+
+def canonicalize_profile_labels(labels: Any) -> set[str]:
+    """Collapse legacy engineering discipline labels into the Engineering career area."""
+    values = {str(label) for label in (labels or [])}
+    if values & LEGACY_ENGINEERING_LABELS:
+        values.add("engineering")
+    values -= LEGACY_ENGINEERING_LABELS
+    return values
 
 
 class ProfileClassifier(Protocol):
@@ -417,7 +420,7 @@ def rule_backed_reference_candidates(jobs: list[dict[str, Any]]) -> list[dict[st
     for job in jobs:
         if not isinstance(job, dict):
             continue
-        stored = set(job.get("profiles") or [])
+        stored = canonicalize_profile_labels(job.get("profiles"))
         if not stored or "general" in stored:
             continue
         if not stored.issubset(ALLOWED_LABELS):
@@ -439,7 +442,7 @@ def stable_rule_reference_sample(jobs: list[dict[str, Any]], limit: int) -> list
     labels = [label for label in ALLOWED_LABELS if label != "general"]
     buckets: dict[str, list[dict[str, Any]]] = {
         label: sorted(
-            [job for job in candidates if label in set(job.get("profiles") or [])],
+            [job for job in candidates if label in canonicalize_profile_labels(job.get("profiles"))],
             key=_stable_job_key,
         )
         for label in labels
@@ -516,7 +519,7 @@ def run_rule_reference(
     disagreements = 0
 
     for job, outcome in zip(sample, outcomes):
-        exp = set(job.get("profiles") or [])
+        exp = canonicalize_profile_labels(job.get("profiles"))
         if outcome.classification is None:
             validation_errors += 1
             disagreements += 1
@@ -613,7 +616,7 @@ def run_gold(provider: ProfileClassifier, gold_path: Path) -> tuple[dict[str, An
     predicted: list[set[str]] = []
     error_count = 0
     for case, outcome in zip(cases, outcomes):
-        exp = set(case["expected_labels"])
+        exp = canonicalize_profile_labels(case["expected_labels"])
         if outcome.classification is None:
             error_count += 1
             results.append({

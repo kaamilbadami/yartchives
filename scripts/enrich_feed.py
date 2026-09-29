@@ -249,7 +249,8 @@ _MECHANICAL_CONTEXT = re.compile(
 )
 _TEST_QUALITY = re.compile(r"\b(?:test|quality)(?: engineer(?:ing)?)?\b", flags=re.I)
 
-_ENGINEERING_DISCIPLINES = {"mechanical", "aero", "electrical"}
+ENGINEERING_DISCIPLINES = ("mechanical", "aero", "electrical")
+_ENGINEERING_DISCIPLINES = set(ENGINEERING_DISCIPLINES)
 _GENERIC_ENGINEERING_ROLE = re.compile(
     r"\b(?:systems?|design|test|testing|validation|verification|reliability|quality|"
     r"product|process|development|application|applications|device|manufacturing|industrial|"
@@ -340,8 +341,8 @@ def _matches_any(text: str, patterns: Iterable[str]) -> bool:
     return any(re.search(pattern, text, flags=re.I) for pattern in patterns)
 
 
-def classify_profiles(job: dict[str, Any]) -> list[str]:
-    """Return conservative, role-based profile tags for a merged listing."""
+def _classify_role_tags(job: dict[str, Any]) -> set[str]:
+    """Return role tags before career-area canonicalization."""
     title = clean_display_text(job.get("title"))
     function_primary = clean_display_text(job.get("function_primary"))
     section = clean_display_text(job.get("section"))
@@ -358,11 +359,8 @@ def classify_profiles(job: dict[str, Any]) -> list[str]:
     if _TEST_QUALITY.search(role_text) and _MECHANICAL_CONTEXT.search(role_text):
         tags.add("mechanical")
 
-    # Engineering is a broad public career area, but keep the fallback strict:
-    # specialized engineering profiles roll up automatically; otherwise only
-    # previously-untagged roles with explicit engineering language qualify.
-    # This avoids turning software, AI, sales, consulting, or support roles into
-    # Engineering merely because their titles contain the word "engineer".
+    # Specialized engineering disciplines are metadata beneath the Engineering
+    # career area. Generic physical-engineering roles also map to Engineering.
     if tags & _ENGINEERING_DISCIPLINES:
         tags.add("engineering")
     elif (
@@ -373,22 +371,29 @@ def classify_profiles(job: dict[str, Any]) -> list[str]:
         tags.add("engineering")
 
     # Only map a few narrow upstream section names whose meaning is unambiguous.
-    # In particular, "Hardware Engineering" is intentionally NOT a section-level
-    # Electrical tag; the title/function must independently indicate hardware/EE.
     for profile, patterns in SECTION_PROFILE_PATTERNS.items():
         if _matches_any(section, patterns):
             tags.add(profile)
 
-    # These direct adapters admit rows only after strict CS/technology title
-    # filtering. Preserve that provider-family evidence without trusting broad
-    # aggregator profile tags or widening global title heuristics.
+    # Strict direct adapters preserve their provider-family CS evidence.
     if any(
         str(key).startswith(prefix)
         for key in (job.get("source_keys") or [])
         for prefix in STRICT_CS_SOURCE_PREFIXES
     ):
         tags.add("cs")
+    return tags
 
+
+def classify_engineering_disciplines(job: dict[str, Any]) -> list[str]:
+    """Return engineering sub-disciplines without promoting them to career areas."""
+    return sorted(_classify_role_tags(job) & _ENGINEERING_DISCIPLINES)
+
+
+def classify_profiles(job: dict[str, Any]) -> list[str]:
+    """Return canonical career-area profile tags for a merged listing."""
+    tags = _classify_role_tags(job)
+    tags -= _ENGINEERING_DISCIPLINES
     if not tags:
         tags.add("general")
     return sorted(tags)
@@ -432,6 +437,7 @@ def enrich_document(doc: dict[str, Any]) -> bool:
             education = "graduate-only"
         opportunity_type = classify_opportunity_type(title, job.get("source_keys") or [])
         profiles = classify_profiles(job)
+        engineering_disciplines = classify_engineering_disciplines(job)
 
         if job.get("education_level") != education:
             job["education_level"] = education
@@ -441,6 +447,13 @@ def enrich_document(doc: dict[str, Any]) -> bool:
             changed = True
         if job.get("profiles") != profiles:
             job["profiles"] = profiles
+            changed = True
+        if engineering_disciplines:
+            if job.get("engineering_disciplines") != engineering_disciplines:
+                job["engineering_disciplines"] = engineering_disciplines
+                changed = True
+        elif "engineering_disciplines" in job:
+            del job["engineering_disciplines"]
             changed = True
 
     return changed
