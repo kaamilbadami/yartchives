@@ -15,6 +15,7 @@ const profile = {
     major: "Computer Science",
     supportedSkills: ["Java", "systems"],
     cautiousSkills: ["Python"],
+    experienceEvidence: ["Software Engineering Intern — built Java services and Linux tooling"],
   },
   roleFamilies: [{ id: "software", label: "Software engineering", priority: 1, keywords: ["software engineer"] }],
   preferredStates: ["CT"],
@@ -143,6 +144,37 @@ assert.match(unsupported.components.fit.detail, /Unsupported hard required skill
 assert.ok(supported.components.fit.score <= D.SCORE_MAXIMA.fit);
 assert.match(supported.inspection.label, /Ready on known requirements/i);
 assert.match(unsupported.inspection.label, /Some required gaps/i);
+
+const javaExperienceRequired = D.scoreJob(job({
+  url: "https://example.com/java-experience",
+  _inspection: inspection([["Professional experience with Java required", ["Java"]]]),
+}), profile, now);
+const javaExperienceWithoutEvidence = D.scoreJob(job({
+  url: "https://example.com/java-experience-no-evidence",
+  _inspection: inspection([["Professional experience with Java required", ["Java"]]]),
+}), {
+  ...profile,
+  facts: { ...profile.facts, experienceEvidence: ["Data analyst intern — Excel dashboards"] },
+}, now);
+const plainJavaWithExperience = D.scoreJob(job({
+  url: "https://example.com/plain-java",
+  _inspection: inspection([["Java required", ["Java"]]]),
+}), profile, now);
+const plainJavaWithoutExperience = D.scoreJob(job({
+  url: "https://example.com/plain-java-no-experience",
+  _inspection: inspection([["Java required", ["Java"]]]),
+}), {
+  ...profile,
+  facts: { ...profile.facts, experienceEvidence: [] },
+}, now);
+assert.ok(javaExperienceRequired.components.fit.score > javaExperienceWithoutEvidence.components.fit.score);
+assert.match(javaExperienceRequired.components.fit.detail, /Relevant work experience evidence: java/i);
+assert.doesNotMatch(javaExperienceWithoutEvidence.components.fit.detail, /Relevant work experience evidence/i);
+assert.equal(
+  plainJavaWithExperience.components.fit.score,
+  plainJavaWithoutExperience.components.fit.score,
+  "Work history must not act as a generic qualification bonus when the posting does not explicitly ask for experience"
+);
 
 const preparedBase = L.scoreJob(supported.job, profile, now);
 const preparedQualification = {
@@ -379,7 +411,7 @@ assert.ok(cautious.total <= 100);
 assert.ok(!cautious.inspection.evidence.some(x => /^Qualification readiness adjustment:/i.test(String(x))));
 assert.match(cautious.inspection.label, /Some required gaps/i);
 
-for (const result of [metadataOnly, supported, unsupported, adjacent, learnable, major, domainOnly, aeroLike, conjunctiveLanguages, academicMatch, wexLike, exactTerm, unknownTerm, direct, listing, sourceOnly, cautious, lowerRole]) {
+for (const result of [metadataOnly, supported, unsupported, javaExperienceRequired, javaExperienceWithoutEvidence, plainJavaWithExperience, plainJavaWithoutExperience, adjacent, learnable, major, domainOnly, aeroLike, conjunctiveLanguages, academicMatch, wexLike, exactTerm, unknownTerm, direct, listing, sourceOnly, cautious, lowerRole]) {
   assert.equal(result.total, D.sumRankingComponents(result.components));
   assert.ok(result.total >= 0 && result.total <= 100);
   assert.equal(result.components.role, undefined);
