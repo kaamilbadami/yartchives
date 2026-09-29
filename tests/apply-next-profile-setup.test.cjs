@@ -23,6 +23,8 @@ assert.ok(hints.supportedSkills.includes("Git"));
 assert.ok(hints.supportedSkills.includes("Linux"));
 assert.ok(hints.supportedSkills.includes("Slurm"));
 assert.ok(hints.supportedSkills.includes("ReFrame"));
+assert.deepEqual(hints.experienceEvidence, ["Software Testing Intern — Linux, GitLab CI, Slurm, ReFrame, PMIx, PRRTE"]);
+assert.ok(!hints.experienceEvidence.some(line => /Built Java and C software/i.test(line)), "project evidence must not be promoted to work experience");
 assert.ok(!hints.supportedSkills.includes("C++"), "C must not be promoted to C++");
 assert.equal(hints.citizenship, "Unknown / not provided", "resume omission must remain unknown");
 assert.equal(hints.workAuthorization, "Unknown / not provided", "resume omission must remain unknown");
@@ -67,6 +69,7 @@ const profile = Setup.buildProfile({
   securityClearance: "Unknown / not provided",
   supportedSkills: hints.supportedSkills,
   cautiousSkills: "Python, Bash",
+  experienceEvidence: hints.experienceEvidence.join("\n"),
   careerAreaIds: ["cs"],
   roleFamilyIds: ["software", "testing-systems"],
   opportunityTypes: ["internship", "co-op"],
@@ -86,6 +89,7 @@ assert.deepEqual(profile.baseZips, ["20740", "06897"]);
 assert.ok(profile.supportedKeywords.includes("software engineer"));
 assert.ok(profile.supportedKeywords.includes("Linux"));
 assert.deepEqual(profile.facts.cautiousSkills, ["Python", "Bash"]);
+assert.deepEqual(profile.facts.experienceEvidence, ["Software Testing Intern — Linux, GitLab CI, Slurm, ReFrame, PMIx, PRRTE"]);
 assert.equal(profile.remoteRelevant, true);
 assert.equal(profile.relocationAllowed, true);
 
