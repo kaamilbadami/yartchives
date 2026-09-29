@@ -301,7 +301,7 @@
     const cautiousSkills = splitList(values.cautiousSkills);
     const experienceEvidence = unique(
       (Array.isArray(values.experienceEvidence) ? values.experienceEvidence : String(values.experienceEvidence || "").split(/\n+/))
-        .map(value => normalize(value).slice(0, 240))
+        .map(value => String(value || "").replace(/\s+/g, " ").trim().slice(0, 240))
         .filter(value => value.length >= 4)
     ).slice(0, 16);
     const roleKeywords = roleFamilies.flatMap(family => family.keywords || []);
