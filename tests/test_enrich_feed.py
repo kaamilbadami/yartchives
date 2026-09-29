@@ -56,26 +56,33 @@ class EnrichFeedTests(unittest.TestCase):
             "function_primary": "",
             "source_keys": ["simplify"],
         }
-        self.assertNotIn("electrical", mod.classify_profiles(job))
+        self.assertNotIn("electrical", mod.classify_engineering_disciplines(job))
 
-    def test_actual_electrical_and_hardware_roles_are_electrical(self):
+    def test_electrical_and_hardware_roles_use_engineering_career_area(self):
         for title in (
             "Electrical Engineering Intern",
             "Hardware Engineering Co-Op",
             "FPGA Design Intern",
         ):
             with self.subTest(title=title):
-                self.assertIn("electrical", mod.classify_profiles({"title": title}))
+                job = {"title": title}
+                self.assertIn("engineering", mod.classify_profiles(job))
+                self.assertNotIn("electrical", mod.classify_profiles(job))
+                self.assertIn("electrical", mod.classify_engineering_disciplines(job))
 
-    def test_embedded_software_can_be_both_cs_and_electrical(self):
-        profiles = mod.classify_profiles({"title": "Embedded Software Engineering Co-op"})
+    def test_embedded_software_can_be_cs_and_engineering_with_electrical_discipline(self):
+        job = {"title": "Embedded Software Engineering Co-op"}
+        profiles = mod.classify_profiles(job)
         self.assertIn("cs", profiles)
-        self.assertIn("electrical", profiles)
+        self.assertIn("engineering", profiles)
+        self.assertNotIn("electrical", profiles)
+        self.assertIn("electrical", mod.classify_engineering_disciplines(job))
 
     def test_generic_software_test_role_is_not_mechanical(self):
         profiles = mod.classify_profiles({"title": "Software Test Engineering Intern"})
         self.assertIn("cs", profiles)
         self.assertNotIn("mechanical", profiles)
+        self.assertNotIn("mechanical", mod.classify_engineering_disciplines({"title": "Software Test Engineering Intern"}))
 
     def test_common_technical_titles_do_not_fall_into_general(self):
         cases = {
@@ -103,12 +110,13 @@ class EnrichFeedTests(unittest.TestCase):
             with self.subTest(title=title):
                 self.assertNotIn("cs", mod.classify_profiles({"title": title}))
 
-    def test_mechanical_test_role_is_mechanical(self):
-        profiles = mod.classify_profiles({"title": "Mechanical Test Engineering Intern"})
-        self.assertIn("mechanical", profiles)
-        self.assertIn("engineering", profiles)
+    def test_mechanical_test_role_is_engineering_with_mechanical_discipline(self):
+        job = {"title": "Mechanical Test Engineering Intern"}
+        profiles = mod.classify_profiles(job)
+        self.assertEqual(profiles, ["engineering"])
+        self.assertIn("mechanical", mod.classify_engineering_disciplines(job))
 
-    def test_specialized_engineering_profiles_roll_up_to_engineering(self):
+    def test_specialized_engineering_disciplines_share_one_career_area(self):
         cases = (
             ("Electrical Engineering Intern", "electrical"),
             ("Mechanical Engineering Intern", "mechanical"),
@@ -120,9 +128,12 @@ class EnrichFeedTests(unittest.TestCase):
         )
         for title, discipline in cases:
             with self.subTest(title=title):
-                profiles = mod.classify_profiles({"title": title})
-                self.assertIn(discipline, profiles)
+                job = {"title": title}
+                profiles = mod.classify_profiles(job)
+                disciplines = mod.classify_engineering_disciplines(job)
                 self.assertIn("engineering", profiles)
+                self.assertNotIn(discipline, profiles)
+                self.assertIn(discipline, disciplines)
 
     def test_high_confidence_generic_engineering_roles_leave_general(self):
         for title in (
@@ -217,7 +228,8 @@ class EnrichFeedTests(unittest.TestCase):
         self.assertEqual(job["company"], "Intel")
         self.assertEqual(job["title"], "Silicon Hardware Engineering Intern - Graduate")
         self.assertEqual(job["education_level"], "graduate-only")
-        self.assertEqual(job["profiles"], ["electrical", "engineering"])
+        self.assertEqual(job["profiles"], ["engineering"])
+        self.assertEqual(job["engineering_disciplines"], ["electrical"])
         self.assertEqual(job["source_markers"], ["advanced_degree", "source_featured"])
 
 
