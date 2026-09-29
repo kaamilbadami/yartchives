@@ -323,6 +323,24 @@ class AiProfileBenchmarkTests(unittest.TestCase):
         candidates = mod.rule_backed_reference_candidates([source_only, visible_rule])
         self.assertEqual([job["id"] for job in candidates], ["visible"])
 
+    def test_rule_reference_excludes_generic_engineering_fallback_only_roles(self):
+        generic = {
+            "id": "generic-eng",
+            "title": "Systems Engineering Intern",
+            "company": "Example",
+            "profiles": ["engineering"],
+            "source_keys": [],
+        }
+        discipline_backed = {
+            "id": "electrical-eng",
+            "title": "Electrical Engineering Intern",
+            "company": "Example",
+            "profiles": ["engineering"],
+            "source_keys": [],
+        }
+        candidates = mod.rule_backed_reference_candidates([generic, discipline_backed])
+        self.assertEqual([job["id"] for job in candidates], ["electrical-eng"])
+
     def test_rule_reference_requires_fresh_recomputation_to_match_stored_labels(self):
         stale = {
             "id": "stale",

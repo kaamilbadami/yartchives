@@ -429,8 +429,21 @@ def rule_backed_reference_candidates(jobs: list[dict[str, Any]]) -> list[dict[st
         visible_job = dict(job)
         visible_job["source_keys"] = []
         recomputed = set(ENRICH_FEED.classify_profiles(visible_job))
-        if recomputed == stored:
-            candidates.append(job)
+        if recomputed != stored:
+            continue
+
+        # Generic engineering fallback titles (for example "Systems Engineering"
+        # or "Product Engineering") are intentionally broad in production, but
+        # they are not strong enough to serve as benchmark truth by themselves.
+        # Keep Engineering in the rule-backed reference only when a concrete
+        # engineering discipline is visible in the role evidence.
+        if (
+            "engineering" in stored
+            and not ENRICH_FEED.classify_engineering_disciplines(visible_job)
+        ):
+            continue
+
+        candidates.append(job)
     return candidates
 
 

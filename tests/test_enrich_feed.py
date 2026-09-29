@@ -169,6 +169,20 @@ class EnrichFeedTests(unittest.TestCase):
                 if expected:
                     self.assertIn(expected, profiles)
 
+    def test_generic_lab_roles_do_not_imply_health(self):
+        for title in (
+            "Innovation Lab Intern",
+            "RF Product Development Lab Intern",
+        ):
+            with self.subTest(title=title):
+                self.assertNotIn("health", mod.classify_profiles({"title": title}))
+
+    def test_health_lab_roles_require_health_context(self):
+        self.assertIn(
+            "health",
+            mod.classify_profiles({"title": "Biomedical Lab Research Intern"}),
+        )
+
     def test_public_sector_source_does_not_force_policy(self):
         profiles = mod.classify_profiles({
             "title": "Software Engineering Intern",
