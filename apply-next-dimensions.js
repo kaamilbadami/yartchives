@@ -209,6 +209,25 @@
     return supportedSkills.find(candidate => candidate !== canonicalSkill(skill) && capabilityFamily(candidate) === family) || null;
   }
 
+  function profileExperienceEvidence(profile) {
+    return [...new Set((profile?.facts?.experienceEvidence || profile?.experienceEvidence || [])
+      .map(normalize)
+      .filter(Boolean))];
+  }
+
+  function explicitExperienceRequirement(statement) {
+    const text = normalize(statement);
+    return /\b(?:experience|experienced|professional|production|hands on|prior|previous)\b/.test(text);
+  }
+
+  function experienceSupportsSkill(experienceEvidence, skill) {
+    const term = canonicalSkill(skill);
+    if (!term) return false;
+    const escaped = term.replace(/[.*+?^$()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp("(^| )" + escaped + "( |$)");
+    return experienceEvidence.some(item => pattern.test(item));
+  }
+
   function learnableRequirement(statement) {
     const text = normalize(statement);
     return /\b(?:familiarity|familiar|interest|exposure|foundational|basic understanding|working knowledge|coursework|academic|project experience|school project|willingness to learn|eager to learn)\b/.test(text);
@@ -229,7 +248,9 @@
     const skills = requirementField(inspection, "skills");
     const supportedSkills = profileSkills(profile, "supportedSkills", "supportedKeywords");
     const cautiousSkills = profileSkills(profile, "cautiousSkills", "cautiousKeywords");
+    const experienceEvidence = profileExperienceEvidence(profile);
     const exactRequired = new Set();
+    const experienceRequired = new Set();
     const adjacentRequired = new Map();
     const cautiousRequired = new Set();
     const hardGaps = new Set();
@@ -244,7 +265,12 @@
       if (bucket === "required" && alternativeRequirement(statement, technologies)) {
         const exactMatches = technologies.filter(technology => supportedSkills.includes(technology));
         if (exactMatches.length) {
-          exactMatches.forEach(technology => exactRequired.add(technology));
+          exactMatches.forEach(technology => {
+            exactRequired.add(technology);
+            if (explicitExperienceRequirement(statement) && experienceSupportsSkill(experienceEvidence, technology)) {
+              experienceRequired.add(technology);
+            }
+          });
           return;
         }
         const cautiousMatch = technologies.find(technology => cautiousSkills.includes(technology));
@@ -268,8 +294,12 @@
 
       for (const technology of technologies) {
         if (supportedSkills.includes(technology)) {
-          if (bucket === "required") exactRequired.add(technology);
-          else exactPreferred.add(technology);
+          if (bucket === "required") {
+            exactRequired.add(technology);
+            if (explicitExperienceRequirement(statement) && experienceSupportsSkill(experienceEvidence, technology)) {
+              experienceRequired.add(technology);
+            }
+          } else exactPreferred.add(technology);
           continue;
         }
         if (bucket === "required" && cautiousSkills.includes(technology)) {
@@ -295,6 +325,7 @@
 
     return {
       exactRequired: [...exactRequired],
+      experienceRequired: [...experienceRequired],
       adjacentRequired: [...adjacentRequired.entries()],
       cautiousRequired: [...cautiousRequired],
       hardGaps: [...hardGaps],
@@ -343,6 +374,7 @@
     let score = 18 + academic.bonus + coverage.bonus;
 
     score += Math.min(9, evidence.exactRequired.length * 3);
+    score += Math.min(4, evidence.experienceRequired.length * 2);
     score += Math.min(6, evidence.adjacentRequired.length * 1.5);
     score += Math.min(3, evidence.exactPreferred.length);
     score += Math.min(2, evidence.adjacentPreferred.length * 0.5);
@@ -359,6 +391,7 @@
     if (academic.details.length) parts.push(`Academic match: ${academic.details.join(", ")}`);
     if (coverage.detail) parts.push(`Required coverage: ${coverage.detail}`);
     if (evidence.exactRequired.length) parts.push(`Exact required skills: ${evidence.exactRequired.join(", ")}`);
+    if (evidence.experienceRequired.length) parts.push(`Relevant work experience evidence: ${evidence.experienceRequired.join(", ")}`);
     if (evidence.adjacentRequired.length) {
       parts.push(`Transferable capability: ${evidence.adjacentRequired.map(([needed, evidenceSkill]) => `${evidenceSkill} supports ${needed}`).join(", ")}`);
     }

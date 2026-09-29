@@ -214,6 +214,19 @@
     return unique([...base, ...engineering]);
   }
 
+  function extractExperienceEvidence(text) {
+    const source = String(text || "").replace(/\r/g, "");
+    const evidence = [];
+    const sectionPattern = /(?:^|\n)\s*(?:(?:professional|work)\s+experience|experience|employment)\s*:?\s*\n([\s\S]*?)(?=(?:\n\s*(?:education|projects?|skills?|leadership|activities|awards?|certifications?|coursework|research)\s*:?\s*(?:\n|$))|$)/gi;
+    for (const match of source.matchAll(sectionPattern)) {
+      for (const rawLine of String(match[1] || "").split(/\n+/)) {
+        const line = rawLine.replace(/^\s*[•*\-–—]+\s*/, "").replace(/\s+/g, " ").trim();
+        if (line.length >= 4) evidence.push(line.slice(0, 240));
+      }
+    }
+    return unique(evidence).slice(0, 16);
+  }
+
   function extractResumeHints(text) {
     const source = String(text || "");
     const authorization = extractAuthorization(source);
@@ -222,6 +235,7 @@
       degree: extractDegree(source),
       major: extractMajor(source),
       supportedSkills: extractSupportedSkills(source),
+      experienceEvidence: extractExperienceEvidence(source),
       citizenship: authorization.citizenship,
       workAuthorization: authorization.workAuthorization,
       securityClearance: extractClearance(source),
@@ -247,7 +261,11 @@
       for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
         const page = await pdf.getPage(pageNumber);
         const content = await page.getTextContent();
-        pages.push(content.items.map(item => item.str || "").join(" "));
+        const pageText = content.items
+          .map(item => `${item.str || ""}${item.hasEOL ? "\n" : " "}`)
+          .join("")
+          .trim();
+        pages.push(pageText);
       }
       return pages.join("\n");
     }
@@ -285,6 +303,11 @@
     const roleFamilies = selectedRoleFamilies(requestedRoleIds, effectiveCareerAreas);
     const supportedSkills = splitList(values.supportedSkills);
     const cautiousSkills = splitList(values.cautiousSkills);
+    const experienceEvidence = unique(
+      (Array.isArray(values.experienceEvidence) ? values.experienceEvidence : String(values.experienceEvidence || "").split(/\n+/))
+        .map(value => String(value || "").replace(/\s+/g, " ").trim().slice(0, 240))
+        .filter(value => value.length >= 4)
+    ).slice(0, 16);
     const roleKeywords = roleFamilies.flatMap(family => family.keywords || []);
     const baseZips = splitList(values.baseZips).filter(zip => /^\d{5}$/.test(zip));
     const preferredStates = splitList(values.preferredStates).map(value => value.toUpperCase()).filter(value => /^[A-Z]{2}$/.test(value));
@@ -314,6 +337,7 @@
         securityClearance: normalize(values.securityClearance) || "Unknown / not provided",
         supportedSkills,
         cautiousSkills,
+        experienceEvidence,
       },
       preferredProfiles,
       supportedKeywords: unique([...supportedSkills, ...roleKeywords]),
@@ -385,6 +409,7 @@
       securityClearance: facts.securityClearance || "Unknown / not provided",
       supportedSkills: (facts.supportedSkills || []).join(", "),
       cautiousSkills: (facts.cautiousSkills || []).join(", "),
+      experienceEvidence: (facts.experienceEvidence || []).join("\n"),
       careerAreaIds: (() => {
         const explicit = selectedCareerAreas(profile?.careerAreas || []);
         if (explicit.length) return explicit;
@@ -413,6 +438,7 @@
       securityClearance: get("securityClearance")?.value,
       supportedSkills: get("supportedSkills")?.value,
       cautiousSkills: get("cautiousSkills")?.value,
+      experienceEvidence: get("experienceEvidence")?.value,
       baseZips: get("baseZips")?.value,
       preferredStates: get("preferredStates")?.value,
       nearbyMiles: get("nearbyMiles")?.value,
@@ -439,6 +465,13 @@
     if (hints.supportedSkills?.length) {
       const node = form.querySelector('[name="supportedSkills"]');
       if (node) node.value = unique([...splitList(node.value), ...hints.supportedSkills]).join(", ");
+    }
+    if (hints.experienceEvidence?.length) {
+      const node = form.querySelector('[name="experienceEvidence"]');
+      if (node) {
+        const existing = String(node.value || "").split(/\n+/).map(value => value.trim()).filter(Boolean);
+        node.value = unique([...existing, ...hints.experienceEvidence]).join("\n");
+      }
     }
   }
 
@@ -521,11 +554,12 @@
 
     const skills = element("section", "apply-next-profile-section");
     skills.append(element("h3", "", "4. Confirm skills"));
-    skills.append(element("p", "muted", "Keep skills you can defend in an interview under Supported. Put light exposure under Cautious."));
+    skills.append(element("p", "muted", "Keep skills you can defend in an interview under Supported. Put light exposure under Cautious. Resume-backed work evidence is kept separately so explicit experience requirements can use stronger evidence than a skills list alone."));
     const skillsGrid = element("div", "apply-next-profile-grid");
     skillsGrid.append(
       field("Supported skills", textarea("supportedSkills", values.supportedSkills, 4)),
-      field("Cautious / light exposure", textarea("cautiousSkills", values.cautiousSkills, 4))
+      field("Cautious / light exposure", textarea("cautiousSkills", values.cautiousSkills, 4)),
+      field("Work experience evidence (one resume-backed line per entry)", textarea("experienceEvidence", values.experienceEvidence, 5))
     );
     skills.append(skillsGrid);
     form.append(skills);
@@ -651,7 +685,7 @@
     async function parseResumeText(text, sourceLabel) {
       const hints = extractResumeHints(text);
       applyHints(form, hints);
-      const found = [hints.graduation, hints.degree, hints.major, ...(hints.supportedSkills || [])].filter(Boolean).length;
+      const found = [hints.graduation, hints.degree, hints.major, ...(hints.supportedSkills || []), ...(hints.experienceEvidence || [])].filter(Boolean).length;
       status.textContent = found
         ? `Prefilled ${found} resume-backed facts from ${sourceLabel}. Review them before saving.`
         : `No reliable structured facts found in ${sourceLabel}; you can still fill the profile manually.`;
@@ -736,6 +770,7 @@
     splitList,
     containsSkill,
     extractSupportedSkills,
+    extractExperienceEvidence,
     extractResumeHints,
     readResumeFile,
     buildProfile,
