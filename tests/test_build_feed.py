@@ -11,17 +11,37 @@ spec.loader.exec_module(mod)
 
 class BuildFeedTests(unittest.TestCase):
 
-    def test_profile_keywords_cover_mechanical_and_aero_language(self):
-        mechanical = mod.classify_profiles({
+    def test_engineering_disciplines_are_metadata_beneath_one_career_area(self):
+        mechanical_job = {
             "title": "Mechanical Stress Analysis Intern",
             "function_primary": "Finite Element Analysis",
-        })
-        aero = mod.classify_profiles({
+        }
+        aero_job = {
             "title": "Astronautical GNC Intern",
             "function_primary": "Astrodynamics",
-        })
-        self.assertIn("mechanical", mechanical)
-        self.assertIn("aero", aero)
+        }
+        self.assertEqual(mod.classify_profiles(mechanical_job), ["engineering"])
+        self.assertEqual(mod.classify_profiles(aero_job), ["engineering"])
+        self.assertIn("mechanical", mod.classify_engineering_disciplines(mechanical_job))
+        self.assertIn("aero", mod.classify_engineering_disciplines(aero_job))
+
+    def test_legacy_engineering_profile_hint_is_canonicalized(self):
+        source = {
+            "key": "legacy-mechanical",
+            "name": "Legacy Mechanical Source",
+            "url": "https://example.com/jobs",
+            "profile_hint": ["mechanical"],
+        }
+        job = mod.base_job(
+            company="Example",
+            title="Manufacturing Intern",
+            location="Remote",
+            url="https://example.com/jobs/1",
+            posted_raw=None,
+            source=source,
+        )
+        self.assertEqual(job["profiles"], ["engineering"])
+        self.assertEqual(job["engineering_disciplines"], ["mechanical"])
 
 
     def test_merge_job_enforces_link_kind_precedence(self):
