@@ -223,10 +223,9 @@
   function experienceSupportsSkill(experienceEvidence, skill) {
     const term = canonicalSkill(skill);
     if (!term) return false;
-    const escaped = term.replace(/[.*+?^$()|[\]\\]/g, "\\  function adjacentEvidence(skill, supportedSkills) {
-    const family = capabilityFamily(skill);
-    if (!family) return null;
-    return supportedSkills.find(candidate => candidate !== canonicalSkill(skill) && capabilityFamily(candidate) === family) || null;
+    const escaped = term.replace(/[.*+?^$()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp("(^| )" + escaped + "( |$)");
+    return experienceEvidence.some(item => pattern.test(item));
   }
 
   function learnableRequirement(statement) {");
