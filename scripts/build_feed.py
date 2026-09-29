@@ -68,7 +68,7 @@ STATE_NAMES = {
 STATE_ABBRS = set(STATE_NAMES.values())
 
 ENGINEERING_DISCIPLINES = ("mechanical", "aero", "electrical")
-_ENGINEERING_DISCIPLINE_SET = set(ENGINEERING_DISCIPLINES)
+__ENGINEERING_DISCIPLINE_SET = set(ENGINEERING_DISCIPLINES)
 
 PROFILE_KEYWORDS: dict[str, tuple[str, ...]] = {
     "cs": (
@@ -284,18 +284,18 @@ def _classify_profile_tags(job: dict[str, Any], hints: Iterable[str] = ()) -> se
         tags.add("tech-business")
     if any(x in blob for x in ("data scientist", "machine learning", "software")):
         tags.add("cs")
-    if tags & ENGINEERING_DISCIPLINE_SET:
+    if tags & _ENGINEERING_DISCIPLINE_SET:
         tags.add("engineering")
     return tags
 
 
 def classify_engineering_disciplines(job: dict[str, Any], hints: Iterable[str] = ()) -> list[str]:
-    return sorted(_classify_profile_tags(job, hints) & ENGINEERING_DISCIPLINE_SET)
+    return sorted(_classify_profile_tags(job, hints) & _ENGINEERING_DISCIPLINE_SET)
 
 
 def classify_profiles(job: dict[str, Any], hints: Iterable[str] = ()) -> list[str]:
     tags = _classify_profile_tags(job, hints)
-    tags -= ENGINEERING_DISCIPLINE_SET
+    tags -= _ENGINEERING_DISCIPLINE_SET
     if not tags:
         tags.add("general")
     return sorted(tags)
