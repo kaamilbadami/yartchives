@@ -261,7 +261,11 @@
       for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
         const page = await pdf.getPage(pageNumber);
         const content = await page.getTextContent();
-        pages.push(content.items.map(item => item.str || "").join(" "));
+        const pageText = content.items
+          .map(item => `${item.str || ""}${item.hasEOL ? "\n" : " "}`)
+          .join("")
+          .trim();
+        pages.push(pageText);
       }
       return pages.join("\n");
     }
