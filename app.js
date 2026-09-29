@@ -4,9 +4,6 @@ const PROFILE_LABELS = {
   cs: "Computer Science",
   engineering: "Engineering",
   "finance-econ": "Finance / Econ",
-  mechanical: "Mechanical",
-  aero: "Aero / Astro",
-  electrical: "Electrical",
   policy: "Policy / Government",
   health: "Premed / Health",
 };
@@ -17,9 +14,6 @@ const PROFILE_TITLES = {
   cs: "Computer Science",
   engineering: "Engineering",
   "finance-econ": "Finance / Economics",
-  mechanical: "Mechanical Engineering",
-  aero: "Aerospace / Astronautical",
-  electrical: "Electrical Engineering",
   policy: "Policy / Government",
   health: "Premed / Health",
 };
