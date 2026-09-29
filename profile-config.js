@@ -5,14 +5,13 @@
   PROFILE_LABELS["tech-business"] = "Business / Product / Analytics";
   PROFILE_TITLES["tech-business"] = "Business / Product / Analytics";
 
-  PROFILE_LABELS.mechanical = "Mechanical / Manufacturing";
-  PROFILE_TITLES.mechanical = "Mechanical / Manufacturing";
+  // Engineering disciplines are role-family metadata, not peer career profiles.
+  for (const legacyEngineeringProfile of ["mechanical", "aero", "electrical"]) {
+    delete PROFILE_LABELS[legacyEngineeringProfile];
+    delete PROFILE_TITLES[legacyEngineeringProfile];
+  }
 
-  PROFILE_LABELS.electrical = "Electrical / Computer Eng.";
-  PROFILE_TITLES.electrical = "Electrical / Computer Engineering";
-
-  // These tags remain in the feed for internal auditing, but current source
-  // coverage is not strong enough to present them as first-class public profiles.
+  // These tags remain internal until their source layer is ready.
   delete PROFILE_LABELS.policy;
   delete PROFILE_TITLES.policy;
   delete PROFILE_LABELS.health;
