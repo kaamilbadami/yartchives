@@ -599,6 +599,33 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertNotIn(mod.JULES_ACTIVE_LABEL, mod.label_names(candidate))
         self.assertNotIn(mod.JULES_FEEDBACK_LABEL, mod.label_names(candidate))
 
+    def test_closed_workflow_failure_without_jules_label_is_cleaned_up(self):
+        closed_issue = issue(
+            724,
+            "workflow failure",
+            body="<!-- workflow-failure-signature: Deploy::deploy::hydrate -->",
+            labels=("workflow-failure",),
+            state="closed",
+        )
+        comments = [
+            {"body": "<!-- jules-session-id: session-724 -->"},
+        ]
+        deleted = []
+        gh_calls = []
+
+        mod.cleanup_closed_terminal_jules_sessions(
+            repo="kaamilbadami/yartchives",
+            api_key="test",
+            load_closed=lambda: [closed_issue],
+            load_comments=lambda number: comments,
+            get_session=lambda *args: {"state": "AWAITING_USER_FEEDBACK"},
+            delete_session=deleted.append,
+            run_gh=lambda *args: gh_calls.append(args),
+        )
+
+        self.assertEqual(deleted, ["session-724"])
+        self.assertEqual(gh_calls, [])
+
     def test_clarification_progressed_but_issue_closed_is_cleaned_up(self):
         closed_issue = issue(
             448,

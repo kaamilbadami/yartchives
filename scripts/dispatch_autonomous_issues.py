@@ -1224,10 +1224,11 @@ def cleanup_closed_terminal_jules_sessions(
         JULES_RETRY_LABEL,
         "jules",
     }
+    cleanup_source_labels = lifecycle_labels | {"workflow-failure"}
     if load_closed is None:
         def load_closed() -> list[dict[str, Any]]:
             by_number: dict[int, dict[str, Any]] = {}
-            for label in sorted(lifecycle_labels):
+            for label in sorted(cleanup_source_labels):
                 issues = gh_paginated_json(
                     "api",
                     f"repos/{repo}/issues?state=closed&labels={parse.quote(label)}&per_page=100",
@@ -1252,7 +1253,7 @@ def cleanup_closed_terminal_jules_sessions(
         if "pull_request" in issue:
             continue
         labels = label_names(issue)
-        if not labels & lifecycle_labels:
+        if not labels & cleanup_source_labels:
             continue
         number = int(issue["number"])
         issue_comments = load_comments(number)
