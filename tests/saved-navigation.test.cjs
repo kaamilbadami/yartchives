@@ -336,6 +336,7 @@ async function runTests() {
             { id: "job-1", title: "Software Intern", company: "Company A", profiles: ["cs"], posted_at: "2026-09-01T00:00:00Z" },
             { id: "job-2", title: "Product Intern", company: "Company B", profiles: ["tech-business"], posted_at: "2026-09-02T00:00:00Z" },
             { id: "job-3", title: "Systems Engineering Intern", company: "Company C", profiles: ["engineering"], posted_at: "2026-09-03T00:00:00Z" },
+            { id: "job-4", title: "Finance Intern", company: "Company D", profiles: ["finance-econ"], posted_at: "2026-09-04T00:00:00Z" },
           ],
           sources: {},
           generated_at: "2026-09-01T00:00:00Z",
@@ -361,18 +362,19 @@ async function runTests() {
     // Wait microtask tick for boot fetch
     await new Promise(r => setTimeout(r, 10));
 
-    // The beta defaults to CS, while Engineering is available as a second area.
+    // The beta defaults to CS, while Engineering and Finance are available as additional areas.
     assert.equal(document.querySelector("#shownCount").textContent, "1", "CS-first default should show only CS jobs");
     const careerButtons = document.querySelector("#profileChips").children;
-    assert.equal(careerButtons.length, 2, "Computer Science and Engineering should be rendered");
+    assert.equal(careerButtons.length, 3, "Computer Science, Engineering, and Finance should be rendered");
     assert.equal(careerButtons[0].textContent, "Computer Science");
     assert.equal(careerButtons[1].textContent, "Engineering");
-    careerButtons[1].click();
+    assert.equal(careerButtons[2].textContent, "Finance");
+    careerButtons[2].click();
     await new Promise(r => setTimeout(r, 10));
-    assert.equal(document.querySelector("#shownCount").textContent, "2", "Selecting Engineering alongside CS should include both career areas");
+    assert.equal(document.querySelector("#shownCount").textContent, "2", "Selecting Finance alongside CS should include both career areas");
     careerButtons[0].click();
     await new Promise(r => setTimeout(r, 10));
-    assert.equal(document.querySelector("#shownCount").textContent, "1", "Deselecting CS should leave Engineering results selected");
+    assert.equal(document.querySelector("#shownCount").textContent, "1", "Deselecting CS should leave Finance results selected");
 
     // Check stat navigation setup
     const savedTile = document.querySelector("#newCount").closest(".stat");
