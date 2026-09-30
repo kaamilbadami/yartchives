@@ -3,7 +3,22 @@
   if (typeof module === "object" && module.exports) module.exports = api;
   else root.YartchivesAnalytics = api;
 })(typeof globalThis !== "undefined" ? globalThis : this, function (root) {
-  const ENDPOINT = null;
+  function configuredEndpoint() {
+    const raw = root.document
+      ?.querySelector('meta[name="yartchives-analytics-endpoint"]')
+      ?.getAttribute("content")
+      ?.trim() || "";
+    if (!raw || raw.startsWith("__")) return null;
+    try {
+      const url = new URL(raw, root.location?.href || "https://yartchives.invalid/");
+      if (url.protocol !== "https:") return null;
+      return url.href;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  const ENDPOINT = configuredEndpoint();
   const SCHEMA = "yartchives-usage-v2";
   const VISITOR_ID_KEY = "yartchives.analytics.visitor.v1";
   const FIRST_SEEN_KEY = "yartchives.analytics.firstSeen.v1";

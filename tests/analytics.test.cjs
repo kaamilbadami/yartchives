@@ -97,7 +97,9 @@ assert.deepEqual(
 
 const source = fs.readFileSync(path.join(__dirname, "..", "analytics.js"), "utf8");
 assert.doesNotMatch(source, /searchInput|locationInput|resume|profileToSave|jobId|company|title/);
-assert.equal(Analytics.ENDPOINT, null, "Automated analytics must not consume the human-feedback form quota");
+assert.equal(Analytics.ENDPOINT, null, "Source builds without an injected receiver must remain silent");
+assert.match(source, /yartchives-analytics-endpoint/);
+assert.match(source, /url\.protocol !== "https:"/);
 assert.doesNotMatch(source, /formspree\.io\/f\//, "Analytics must not share the feedback Formspree endpoint");
 assert.match(source, /schema:\s*SCHEMA/);
 assert.match(source, /visitorId:\s*visitor\.visitorId/);
@@ -129,3 +131,36 @@ try {
   if (originalStorage === undefined) delete globalThis.localStorage;
   else globalThis.localStorage = originalStorage;
 }
+
+/* A deployment may activate collection only through an explicit HTTPS receiver. */
+const originalDocument = globalThis.document;
+try {
+  globalThis.document = {
+    querySelector(selector) {
+      if (selector !== 'meta[name="yartchives-analytics-endpoint"]') return null;
+      return { getAttribute() { return "https://analytics.example.test/collect"; } };
+    },
+  };
+  const configured = loadFresh();
+  assert.equal(configured.ENDPOINT, "https://analytics.example.test/collect");
+
+  globalThis.document = {
+    querySelector() {
+      return { getAttribute() { return "http://analytics.example.test/collect"; } };
+    },
+  };
+  const insecure = loadFresh();
+  assert.equal(insecure.ENDPOINT, null);
+} finally {
+  if (originalDocument === undefined) delete globalThis.document;
+  else globalThis.document = originalDocument;
+}
+
+const indexSource = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+const deploySource = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
+assert.match(indexSource, /yartchives-analytics-endpoint/);
+assert.match(indexSource, /__YARTCHIVES_ANALYTICS_ORIGIN__/);
+assert.match(deploySource, /secrets\.YARTCHIVES_ANALYTICS_ENDPOINT/);
+assert.match(deploySource, /__YARTCHIVES_ANALYTICS_ENDPOINT__/);
+assert.match(deploySource, /__YARTCHIVES_ANALYTICS_ORIGIN__/);
+

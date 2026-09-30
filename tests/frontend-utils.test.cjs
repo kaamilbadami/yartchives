@@ -223,7 +223,7 @@ console.log("frontend-utils tests passed");
 const appSource = fs.readFileSync(path.join(__dirname, "..", "app.js"), "utf8");
 assert.doesNotMatch(appSource, /job\.link_kind === "employer_job"/);
 assert.match(appSource, /View job ↗/);
-assert.match(appSource, /job_opened/);
+assert.match(appSource, /apply_clicked/);
 assert.match(appSource, /src\.errors\.join/);
 assert.match(appSource, /Healthy ·/);
 assert.match(appSource, /Degraded ·/);

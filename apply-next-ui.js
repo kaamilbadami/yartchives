@@ -1372,7 +1372,7 @@
       view.target = "_blank";
       view.rel = "noopener noreferrer";
       view.addEventListener("click", () => {
-        typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("job_opened");
+        typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("apply_clicked");
       });
       actions.append(view);
     }
