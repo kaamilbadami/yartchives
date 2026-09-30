@@ -6,7 +6,7 @@ from unittest.mock import patch
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scripts.queue_coverage_gap import create_issue, find_all_gaps, get_active_and_coverage_issues, issue_already_queued, resources_conflict_with_active_work
+from scripts.queue_coverage_gap import create_issue, find_all_gaps, gap_has_meaningful_generic_impact, get_active_and_coverage_issues, issue_already_queued, resources_conflict_with_active_work
 
 class TestQueueCoverageGap(unittest.TestCase):
     def test_find_all_gaps_no_hint(self):
@@ -188,7 +188,7 @@ class TestQueueCoverageGap(unittest.TestCase):
     @patch("scripts.queue_coverage_gap.get_active_and_coverage_issues")
     @patch("scripts.queue_coverage_gap.resources_conflict_with_active_work")
     @patch("scripts.queue_coverage_gap.create_issue")
-    def test_stop_condition_threshold(self, mock_create, mock_conflict, mock_get_issues, mock_already_queued, mock_gh_json):
+    def test_singleton_ats_gap_remains_generic_and_is_queued(self, mock_create, mock_conflict, mock_get_issues, mock_already_queued, mock_gh_json):
         mock_conflict.return_value = False
         mock_get_issues.return_value = ([], [])
         mock_already_queued.return_value = False
@@ -198,15 +198,20 @@ class TestQueueCoverageGap(unittest.TestCase):
 
         with patch('scripts.queue_coverage_gap.find_all_gaps') as mock_find_gaps,              patch('sys.argv', ['scripts/queue_coverage_gap.py', '--repo', 'test/repo']):
 
-            # Only 1 employer, which is below the threshold of 2
             mock_find_gaps.return_value = [
                 ("ATS Family integration (workday)", 1, [], "ats-workday")
             ]
 
             main()
 
-            # create_issue should not be called because count is < 2
-            mock_create.assert_not_called()
+            mock_create.assert_called_once_with(
+                'test/repo', 'ATS Family integration (workday)', 1, 'ats-workday', []
+            )
+
+    def test_singleton_discovery_gap_is_not_generic_enough(self):
+        self.assertFalse(gap_has_meaningful_generic_impact("discovery", 1))
+        self.assertTrue(gap_has_meaningful_generic_impact("discovery", 2))
+        self.assertTrue(gap_has_meaningful_generic_impact("ats-workday", 1))
 
 if __name__ == '__main__':
     unittest.main()
