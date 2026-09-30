@@ -186,7 +186,7 @@ class DirectWorkdayTests(unittest.TestCase):
                 raise mod.requests.HTTPError("422 Client Error", response=response)
 
         doc = {"jobs": [], "sources": {}}
-        mod.enrich_direct_sources(doc, {"jobs": []}, [source], StructuralFailureSession(), ref)
+        mod.enrich_direct_sources(doc, {"jobs": []}, {"employers": []}, [source], StructuralFailureSession(), ref)
         health = doc["sources"][source["key"]]
         self.assertEqual(health["status"], "quarantined")
 

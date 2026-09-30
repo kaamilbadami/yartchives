@@ -13068,20 +13068,11 @@
           "upstream_slug": "capgemini"
         }
       },
-      "careers_url": "https://career5.successfactors.eu/career?company=capgemitecP3&lang=en_US",
-      "careers_platform": "successfactors",
-      "provider": {
-        "family": "successfactors",
-        "status": "resolved",
-        "evidence": "url_or_page_marker",
-        "marker": "successfactors.com",
-        "host": "career5.successfactors.eu"
-      },
       "careers_resolution": {
-        "status": "resolved",
-        "attempt_status": "resolved",
+        "status": "unresolved",
+        "attempt_status": "invalidated",
         "resolved_at": "2026-09-17T23:48:05Z",
-        "last_attempt_at": "2026-09-17T23:48:05Z",
+        "last_attempt_at": "2026-09-30T22:47:50Z",
         "evidence": [
           {
             "type": "http",
@@ -13162,6 +13153,10 @@
               "linked from employer site"
             ],
             "score": 14
+          },
+          {
+            "type": "invalidation",
+            "reason": "sitemap fetch failed with 404"
           }
         ]
       },
@@ -18893,20 +18888,11 @@
           "upstream_slug": "edison-international"
         }
       },
-      "careers_url": "https://career8.successfactors.com/career?company=C0003043182P&lang=en_US",
-      "careers_platform": "successfactors",
-      "provider": {
-        "family": "successfactors",
-        "status": "resolved",
-        "evidence": "url_or_page_marker",
-        "marker": "successfactors.com",
-        "host": "career8.successfactors.com"
-      },
       "careers_resolution": {
-        "status": "resolved",
-        "attempt_status": "resolved",
+        "status": "unresolved",
+        "attempt_status": "invalidated",
         "resolved_at": "2026-09-17T23:38:23Z",
-        "last_attempt_at": "2026-09-17T23:38:23Z",
+        "last_attempt_at": "2026-09-30T22:47:51Z",
         "evidence": [
           {
             "type": "http",
@@ -18983,6 +18969,10 @@
               "linked from employer site"
             ],
             "score": 14
+          },
+          {
+            "type": "invalidation",
+            "reason": "sitemap fetch failed with 404"
           }
         ]
       },

@@ -313,3 +313,23 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+def invalidate_resolution(employer: dict[str, Any], reason: str) -> None:
+    """Invalidate an employer's resolved collection identity.
+
+    This ensures the stale identity is re-probed on the next resolution cycle
+    instead of being blindly reused indefinitely.
+    """
+    if "careers_url" in employer:
+        employer.pop("careers_url")
+    if "careers_platform" in employer:
+        employer.pop("careers_platform")
+    if "provider" in employer:
+        employer.pop("provider")
+
+    resolution = employer.setdefault("careers_resolution", {})
+    resolution["status"] = "unresolved"
+    resolution["attempt_status"] = "invalidated"
+    resolution["last_attempt_at"] = _timestamp(_utc_now())
+    evidence = resolution.setdefault("evidence", [])
+    evidence.append({"type": "invalidation", "reason": reason})

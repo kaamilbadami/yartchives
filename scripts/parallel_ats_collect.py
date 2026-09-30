@@ -145,12 +145,12 @@ def collect(
 ) -> dict[str, dict[str, Any]]:
     def workday_task() -> dict[str, Any]:
         doc = copy.deepcopy(base_doc)
-        workday.enrich_direct_sources(doc, old_doc, direct_sources, workday.session(), reference)
+        workday.enrich_direct_sources(doc, old_doc, universe, direct_sources, workday.session(), reference)
         return doc
 
     def icims_task() -> dict[str, Any]:
         doc = copy.deepcopy(base_doc)
-        icims.enrich(doc, old_doc, icims.retry_session(), reference)
+        icims.enrich(doc, old_doc, universe, icims.retry_session(), reference)
         return doc
 
     def greenhouse_task() -> dict[str, Any]:
@@ -165,7 +165,7 @@ def collect(
 
     def smartrecruiters_task() -> dict[str, Any]:
         doc = copy.deepcopy(base_doc)
-        smartrecruiters.enrich(doc, old_doc, smartrecruiters.retry_session(), reference)
+        smartrecruiters.enrich(doc, old_doc, universe, smartrecruiters.retry_session(), reference)
         return doc
 
     def successfactors_task() -> dict[str, Any]:
@@ -207,6 +207,7 @@ def main() -> int:
     if workday.stable_projection(merged) != workday.stable_projection(base_doc):
         merged["generated_at"] = bf.iso(reference)
     args.feed.write_text(json.dumps(merged, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    args.universe.write_text(json.dumps(universe, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
     counts = ", ".join(
         f"{name}={len((provider_docs.get(name) or {}).get('jobs') or [])}"

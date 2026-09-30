@@ -27,6 +27,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+from employer_resolution_lifecycle import invalidate_resolution  # noqa: E402
 import build_feed as bf  # noqa: E402
 from direct_ct_workday import (  # noqa: E402
     carry_failed_source,
@@ -296,7 +297,7 @@ def fetch_sources_concurrently(
     return results
 
 
-def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Session, reference: datetime) -> dict[str, Any]:
+def enrich(doc: dict[str, Any], old_doc: dict[str, Any], universe: dict[str, Any], client: requests.Session, reference: datetime) -> dict[str, Any]:
     jobs = doc.setdefault("jobs", [])
     health = doc.setdefault("sources", {})
     old_jobs = old_doc.get("jobs", []) if isinstance(old_doc, dict) else []
@@ -330,6 +331,9 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Sessio
                 }
                 print(f"{source['name']}: RETIRED (endpoint retired): {exc}", file=sys.stderr)
             elif isinstance(exc, StructuralSourceError):
+                employer = next((e for e in universe.get("employers", []) if e.get("provider", {}).get("status") == "resolved" and e.get("careers_platform") == "icims" and (e.get("provider", {}).get("host") == source.get("host") or source.get("host") in str(e.get("careers_url", "")))), None)
+                if employer:
+                    invalidate_resolution(employer, str(exc))
                 health[source["key"]] = {
                     "status": "quarantined",
                     "count": 0,
@@ -358,9 +362,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("feed", nargs="?", type=Path, default=DEFAULT_FEED)
     parser.add_argument("--old-feed", type=Path)
+    parser.add_argument("--universe", type=Path, default=SCRIPT_DIR.parent / "employer_universe.json")
     args = parser.parse_args()
 
     doc = json.loads(args.feed.read_text(encoding="utf-8"))
+    universe = json.loads(args.universe.read_text(encoding="utf-8"))
     old_doc: dict[str, Any] = {}
     if args.old_feed and args.old_feed.exists():
         try:
@@ -371,12 +377,13 @@ def main() -> int:
         old_doc = copy.deepcopy(doc)
 
     reference = now_utc()
-    enrich(doc, old_doc, retry_session(), reference)
+    enrich(doc, old_doc, universe, retry_session(), reference)
     if stable_projection(doc) == stable_projection(old_doc):
         print("Auto-discovered iCIMS coverage unchanged.")
         return 0
     doc["generated_at"] = bf.iso(reference)
     args.feed.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    args.universe.write_text(json.dumps(universe, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"Merged auto-discovered iCIMS coverage into {args.feed}")
     return 0
 

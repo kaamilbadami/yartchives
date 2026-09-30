@@ -24,6 +24,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+from employer_resolution_lifecycle import invalidate_resolution  # noqa: E402
 import build_feed as bf  # noqa: E402
 from direct_ct_workday import (  # noqa: E402
     carry_failed_source,
@@ -321,6 +322,9 @@ def enrich(
             }
             print(f"{source['name']}: {len(direct_jobs)} direct US CS-relevant listing(s)")
         except StructuralSourceError as exc:
+            employer = next((e for e in universe.get("employers", []) if e.get("id") == source.get("employer_id")), None)
+            if employer:
+                invalidate_resolution(employer, str(exc))
             health[source["key"]] = {
                 "status": "quarantined",
                 "count": 0,
@@ -370,6 +374,7 @@ def main() -> int:
         return 0
     doc["generated_at"] = bf.iso(reference)
     args.feed.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    args.universe.write_text(json.dumps(universe, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"Merged resolved Oracle coverage into {args.feed}")
     return 0
 

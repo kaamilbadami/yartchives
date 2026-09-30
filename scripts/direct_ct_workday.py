@@ -28,6 +28,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
+from employer_resolution_lifecycle import invalidate_resolution  # noqa: E402
 import build_feed as bf  # noqa: E402
 
 ROOT = SCRIPT_DIR.parent
@@ -362,6 +363,7 @@ def stable_projection(doc: dict[str, Any]) -> str:
 def enrich_direct_sources(
     doc: dict[str, Any],
     old_doc: dict[str, Any],
+    universe: dict[str, Any],
     sources: list[dict[str, Any]],
     s: requests.Session,
     reference: datetime,
@@ -390,6 +392,9 @@ def enrich_direct_sources(
             scope_label = source.get("state") or ("US" if source.get("scope") == "us" else "configured")
             print(f"{source['name']}: {len(direct_jobs)} direct {scope_label} CS-relevant listing(s)")
         except StructuralSourceError as exc:
+            employer = next((e for e in universe.get("employers", []) if str(e.get("id")) == str(source.get("employer_id"))), None)
+            if employer:
+                invalidate_resolution(employer, str(exc))
             health[source["key"]] = {
                 "status": "quarantined",
                 "count": 0,
@@ -423,10 +428,12 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("feed", nargs="?", type=Path, default=DEFAULT_FEED)
     parser.add_argument("--old-feed", type=Path)
+    parser.add_argument("--universe", type=Path, default=DEFAULT_SOURCES.parent / "employer_universe.json")
     parser.add_argument("--sources", type=Path, default=DEFAULT_SOURCES)
     args = parser.parse_args()
 
     doc = json.loads(args.feed.read_text(encoding="utf-8"))
+    universe = json.loads(args.universe.read_text(encoding="utf-8"))
     old_doc: dict[str, Any] = {}
     if args.old_feed and args.old_feed.exists():
         try:
@@ -438,7 +445,7 @@ def main() -> int:
 
     sources = json.loads(args.sources.read_text(encoding="utf-8"))
     reference = now_utc()
-    enrich_direct_sources(doc, old_doc, sources, session(), reference)
+    enrich_direct_sources(doc, old_doc, universe, sources, session(), reference)
 
     if stable_projection(doc) == stable_projection(old_doc):
         # If build_feed.py rewrote only volatile metadata, restore the prior final
@@ -450,6 +457,7 @@ def main() -> int:
 
     doc["generated_at"] = bf.iso(reference)
     args.feed.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    args.universe.write_text(json.dumps(universe, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     print(f"Merged direct employer coverage into {args.feed}")
     return 0
 
