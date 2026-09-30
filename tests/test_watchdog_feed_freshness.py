@@ -1,5 +1,8 @@
+import os
+import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
+from unittest import mock
 import scripts.watchdog_feed_freshness as mod
 
 class TestWatchdogFeedFreshness(unittest.TestCase):
@@ -59,6 +62,21 @@ class TestWatchdogFeedFreshness(unittest.TestCase):
         ok, msg = mod.dispatch_feed_refresh("owner/repo", None)
         self.assertFalse(ok)
         self.assertIn("GITHUB_TOKEN", msg)
+
+    def test_main_exposes_three_hour_alert_state(self):
+        with tempfile.NamedTemporaryFile("w+", suffix=".json") as feed, tempfile.NamedTemporaryFile("w+") as output:
+            generated = self.now - timedelta(hours=3, minutes=5)
+            feed.write('{"generated_at":"' + self._iso(generated) + '"}')
+            feed.flush()
+            with mock.patch.object(mod, "now_utc", return_value=self.now), \
+                 mock.patch.object(mod, "get_workflow_runs", return_value=[{"status": "in_progress", "created_at": self._iso(self.now - timedelta(minutes=5))}]), \
+                 mock.patch.dict(os.environ, {"GITHUB_OUTPUT": output.name, "GITHUB_TOKEN": "token"}, clear=False), \
+                 mock.patch("sys.argv", ["watchdog_feed_freshness.py", "--feed", feed.name]):
+                self.assertEqual(mod.main(), 0)
+            output.seek(0)
+            text = output.read()
+            self.assertIn("alert_required=true", text)
+            self.assertIn("alert_tag=yartchives-feed-stale-", text)
 
 if __name__ == "__main__":
     unittest.main()
