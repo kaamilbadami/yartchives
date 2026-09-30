@@ -98,6 +98,16 @@ main.apply-next-profile-mode #applyNextPanel {
   gap: 0.7rem;
 }
 
+.apply-next-location-basic-grid {
+  grid-template-columns: minmax(9rem, 12rem) minmax(11rem, 14rem);
+  justify-content: start;
+  align-items: start;
+}
+
+.apply-next-location-basic-grid .apply-next-profile-field input {
+  min-width: 0;
+}
+
 .apply-next-location-mode-toggle {
   display: inline-grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -262,7 +272,8 @@ main.apply-next-profile-mode #applyNextPanel {
 
 @media (max-width: 720px) {
   .apply-next-profile-grid,
-  .apply-next-location-region-grid {
+  .apply-next-location-region-grid,
+  .apply-next-location-basic-grid {
     grid-template-columns: 1fr;
   }
 
