@@ -54,6 +54,19 @@ class UpdateFeedWorkflowTests(unittest.TestCase):
         self.assertIn("python -m py_compile", text)
         self.assertIn("scripts/download_latest_feed.py", text)
 
+    def test_ai_profile_fallback_runs_after_deterministic_enrichment_before_validation(self):
+        text = WORKFLOW.read_text(encoding="utf-8")
+        deterministic = text.index("- name: Add student-level metadata")
+        ai_fallback = text.index("- name: Add high-confidence AI career-area fallback")
+        validate = text.index("- name: Validate generated feed")
+        self.assertLess(deterministic, ai_fallback)
+        self.assertLess(ai_fallback, validate)
+        block = text[ai_fallback:validate]
+        self.assertIn("secrets.GEMINI_API_KEY", block)
+        self.assertIn("scripts/enrich_ai_profiles.py", block)
+        self.assertIn("--cache-feed /tmp/yartchives-old-listings.json", block)
+        self.assertIn("--threshold 0.95", block)
+
     def test_metric_stage_names_with_spaces_are_shell_quoted(self):
         text = WORKFLOW.read_text(encoding="utf-8")
         self.assertNotIn('--record \\"', text)
