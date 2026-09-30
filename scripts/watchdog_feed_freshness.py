@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import sys
+import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from typing import Any
@@ -43,29 +44,41 @@ def evaluate_freshness(
     if feed_age <= threshold:
         return True, f"Feed is fresh. Published age: {feed_age} <= {threshold}"
 
-    success_runs = [
-        parse_iso(r["updated_at"]) for r in runs
-        if r.get("status") == "completed" and r.get("conclusion") == "success"
-    ]
-
-    if success_runs:
-        latest_success = max(success_runs)
-        success_age = now - latest_success
-        if success_age <= threshold:
-            return True, f"Feed is fresh (unchanged content). Published age > {threshold}, but latest successful verification was {success_age} ago."
-
     active_runs = [
         parse_iso(r["created_at"]) for r in runs
-        if r.get("status") in ("in_progress", "queued", "pending")
+        if r.get("status") in ("in_progress", "queued", "pending") and r.get("created_at")
     ]
 
     if active_runs:
         latest_active = max(active_runs)
         active_duration = now - latest_active
         if active_duration <= timedelta(minutes=allowed_progress_minutes):
-            return True, f"Freshness breached (age {feed_age}), but an on-time refresh is actively in progress (started {active_duration} ago). Suppressing alert."
+            return True, f"Freshness breached (age {feed_age}), but a refresh is actively in progress (started {active_duration} ago). Suppressing duplicate dispatch."
 
-    return False, f"Feed is STALE. Published age: {feed_age} > {threshold}. No recent successful runs or on-time active refreshes."
+    return False, f"Feed is STALE. Published age: {feed_age} > {threshold}. No on-time active refresh is replacing it."
+
+
+def dispatch_feed_refresh(repo: str, token: str | None, ref: str = "main") -> tuple[bool, str]:
+    if not token:
+        return False, "Cannot dispatch feed refresh: GITHUB_TOKEN is unavailable."
+
+    url = f"https://api.github.com/repos/{repo}/actions/workflows/update-feed.yml/dispatches"
+    payload = json.dumps({"ref": ref}).encode("utf-8")
+    req = urllib.request.Request(url, data=payload, method="POST")
+    req.add_header("Accept", "application/vnd.github+json")
+    req.add_header("Content-Type", "application/json")
+    req.add_header("X-GitHub-Api-Version", "2022-11-28")
+    req.add_header("Authorization", f"Bearer {token}")
+
+    try:
+        with urllib.request.urlopen(req, timeout=10) as response:
+            if response.status == 204:
+                return True, f"Dispatched Update opportunity feed on {ref}."
+            return False, f"Feed refresh dispatch returned unexpected HTTP {response.status}."
+    except urllib.error.HTTPError as e:
+        return False, f"Feed refresh dispatch failed with HTTP {e.code}."
+    except Exception as e:
+        return False, f"Feed refresh dispatch failed: {e}"
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -83,7 +96,8 @@ def main() -> int:
         print(f"Failed to read feed generated_at: {e}", file=sys.stderr)
         return 1
 
-    runs = get_workflow_runs(args.repo, os.environ.get("GITHUB_TOKEN"))
+    token = os.environ.get("GITHUB_TOKEN")
+    runs = get_workflow_runs(args.repo, token)
 
     ok, message = evaluate_freshness(
         generated_at=generated_at,
@@ -96,9 +110,14 @@ def main() -> int:
     if ok:
         print(message)
         return 0
-    else:
-        print(message, file=sys.stderr)
-        return 1
+
+    dispatched, dispatch_message = dispatch_feed_refresh(args.repo, token)
+    if dispatched:
+        print(f"{message} {dispatch_message}")
+        return 0
+
+    print(f"{message} {dispatch_message}", file=sys.stderr)
+    return 1
 
 if __name__ == "__main__":
     sys.exit(main())
