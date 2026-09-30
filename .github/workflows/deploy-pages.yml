@@ -69,6 +69,7 @@ jobs:
         if: steps.hydrate.outputs.deploy_ready != 'false'
         env:
           GH_TOKEN: ${{ github.token }}
+          YARTCHIVES_ANALYTICS_ENDPOINT: ${{ secrets.YARTCHIVES_ANALYTICS_ENDPOINT }}
         run: |
           rm -rf _site
           mkdir -p _site/data _site/assets
@@ -77,6 +78,25 @@ jobs:
           cp -R assets/. _site/assets/
           cp data/listings.json _site/data/listings.json
           cp data/workday-inspections.json _site/data/workday-inspections.json
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          from urllib.parse import urlsplit
+
+          endpoint = os.environ.get("YARTCHIVES_ANALYTICS_ENDPOINT", "").strip()
+          origin = ""
+          if endpoint:
+              parsed = urlsplit(endpoint)
+              if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
+                  raise SystemExit("YARTCHIVES_ANALYTICS_ENDPOINT must be an absolute HTTPS URL without credentials")
+              origin = f"{parsed.scheme}://{parsed.netloc}"
+
+          path = Path("_site/index.html")
+          text = path.read_text(encoding="utf-8")
+          text = text.replace("__YARTCHIVES_ANALYTICS_ENDPOINT__", endpoint)
+          text = text.replace("__YARTCHIVES_ANALYTICS_ORIGIN__", origin)
+          path.write_text(text, encoding="utf-8")
+          PY
           python scripts/build_apply_next_inspections.py data/workday-inspections.json _site/data/apply-next-inspections.json
           python scripts/build_apply_next_candidates.py data/listings.json _site/data/apply-next-candidates.json
           curl --fail --silent --show-error --location \
