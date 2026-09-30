@@ -101,6 +101,12 @@ def issue_already_queued(coverage_issues: list[dict[str, Any]], gap_id: str) -> 
             return True
     return False
 
+def gap_has_meaningful_generic_impact(gap_id: str, count: int) -> bool:
+    """Keep provider-family fixes eligible even when only one benchmark employer exposes the gap."""
+    if count >= 2:
+        return True
+    return count >= 1 and gap_id.startswith("ats-")
+
 def resources_conflict_with_active_work(active_tasks: list[Any]) -> bool:
     candidate = Task(
         0,
@@ -191,7 +197,7 @@ def main() -> None:
     selected_gap = None
     for gap in gaps:
         gap_name, count, employers, gap_id = gap
-        if count < 2:
+        if not gap_has_meaningful_generic_impact(gap_id, count):
             print(f"Skipping {gap_id} (count {count}): insufficient generic impact.")
             continue
 
