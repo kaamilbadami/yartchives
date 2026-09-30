@@ -49,19 +49,23 @@ assert.match(scored.components.roi.detail, /Role value 15\/15/);
 assert.match(scored.components.roi.detail, /Market opportunity 8\/15/);
 assert.ok(scored.total <= 100);
 
-const lowerRoleProfile = {
+const legacyPriorityProfile = {
   ...profile,
   roleFamilies: [
     { id: "software", label: "Software engineering", priority: 0.5, keywords: ["software engineer"] },
   ],
 };
-const lowerRole = D.scoreJob(
-  { ...job, url: "https://example.com/lower-role" },
-  lowerRoleProfile,
+const legacyPriority = D.scoreJob(
+  { ...job, url: "https://example.com/legacy-priority" },
+  legacyPriorityProfile,
   new Date("2026-09-17T16:00:00Z")
 );
-assert.equal(lowerRole.applicationValue.market.score, scored.applicationValue.market.score);
-assert.ok(lowerRole.applicationValue.role.score < scored.applicationValue.role.score);
-assert.ok(lowerRole.components.roi.score < scored.components.roi.score);
+assert.equal(legacyPriority.applicationValue.market.score, scored.applicationValue.market.score);
+assert.equal(
+  legacyPriority.applicationValue.role.score,
+  scored.applicationValue.role.score,
+  "selected role families should be equally preferred unless the product exposes an explicit preference control"
+);
+assert.equal(legacyPriority.components.roi.score, scored.components.roi.score);
 
 console.log("apply-next final weight tests passed");
