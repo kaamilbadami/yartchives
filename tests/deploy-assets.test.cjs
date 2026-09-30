@@ -283,5 +283,12 @@ assert.match(
 const pushSender = fs.readFileSync(path.join(__dirname, "..", "scripts", "send_web_push.py"), "utf8");
 assert.match(pushSender, /VAPID_SUBJECT\s*=\s*"mailto:[^"]+"/, "Web Push VAPID subject must be a mailto contact accepted by push providers");
 assert.match(pushSender, /::error::Web Push delivery failed:[\s\S]*?return 1/, "Web Push delivery errors must fail instead of producing a false-green deploy notification");
+assert.match(pushSender, /--title/, "Web Push sender should support operational alert titles");
+assert.match(pushSender, /--body/, "Web Push sender should support operational alert bodies");
+assert.match(pushSender, /--tag/, "Web Push sender should support stable alert tags");
+const freshnessWorkflow = fs.readFileSync(".github/workflows/feed-freshness.yml", "utf8");
+assert.match(freshnessWorkflow, /Send stale-feed phone alert/, "Freshness watchdog should send a phone alert for prolonged staleness");
+assert.match(freshnessWorkflow, /steps\.freshness\.outputs\.alert_required == 'true'/, "Phone alerts should respect the watchdog's stale threshold output");
+assert.match(freshnessWorkflow, /YARTCHIVES_PUSH_SUBSCRIPTION:[\s\S]*?secrets\.YARTCHIVES_PUSH_SUBSCRIPTION/, "Stale-feed alerts should reuse the configured phone push subscription");
 
 console.log("deploy asset and workflow health contract tests passed");

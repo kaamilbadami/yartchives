@@ -26,6 +26,25 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Check feed freshness
+        id: freshness
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python scripts/watchdog_feed_freshness.py
+
+      - name: Send stale-feed phone alert
+        if: steps.freshness.outputs.alert_required == 'true'
+        env:
+          YARTCHIVES_PUSH_SUBSCRIPTION: ${{ secrets.YARTCHIVES_PUSH_SUBSCRIPTION }}
+          YARTCHIVES_VAPID_PRIVATE_KEY: ${{ secrets.YARTCHIVES_VAPID_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${YARTCHIVES_PUSH_SUBSCRIPTION}" ] || [ -z "${YARTCHIVES_VAPID_PRIVATE_KEY}" ]; then
+            echo "::error::Web Push secrets are not configured; stale-feed phone alert cannot be delivered."
+            exit 1
+          fi
+          python -m pip install -r requirements-push.txt
+          AGE_SECONDS="${{ steps.freshness.outputs.feed_age_seconds }}"
+          AGE_MINUTES="$((AGE_SECONDS / 60))"
+          AGE_HOURS="$((AGE_MINUTES / 60))"
+          AGE_REMAINDER="$((AGE_MINUTES % 60))"
+          python scripts/send_web_push.py             --title "Yartchives feed is stale"             --body "Feed has not updated for ${AGE_HOURS}h ${AGE_REMAINDER}m. Automatic recovery has been triggered."             --tag "${{ steps.freshness.outputs.alert_tag }}"             --navigate "./"

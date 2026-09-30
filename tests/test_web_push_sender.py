@@ -12,6 +12,18 @@ def test_push_payload_contract():
     assert payload["data"]["url"] == "./"
 
 
+def test_push_payload_supports_operational_alerts():
+    payload = json.loads(send_web_push.push_payload(
+        title="Yartchives feed is stale",
+        body="Feed has not updated for 3h 5m.",
+        tag="yartchives-feed-stale-20260930T134454Z",
+        navigate="./",
+    ))
+    assert payload["title"] == "Yartchives feed is stale"
+    assert payload["body"] == "Feed has not updated for 3h 5m."
+    assert payload["tag"] == "yartchives-feed-stale-20260930T134454Z"
+
+
 def test_send_push_skips_without_secrets():
     assert send_web_push.send_push("", "", "abc123", webpush_impl=lambda **_: None) is False
 
