@@ -28,14 +28,14 @@ class TestWatchdogFeedFreshness(unittest.TestCase):
         self.assertFalse(ok)
         self.assertIn("Feed is STALE", msg)
 
-    def test_stale_but_recent_success(self):
+    def test_stale_feed_is_not_masked_by_recent_successful_workflow(self):
         generated_at = self.now - timedelta(hours=3)
         runs = [
             {"status": "completed", "conclusion": "success", "updated_at": self._iso(self.now - timedelta(hours=1))}
         ]
         ok, msg = mod.evaluate_freshness(generated_at, runs, self.now, self.threshold_hours, self.allowed_progress_minutes)
-        self.assertTrue(ok)
-        self.assertIn("Feed is fresh (unchanged content)", msg)
+        self.assertFalse(ok)
+        self.assertIn("Feed is STALE", msg)
 
     def test_stale_but_recent_active_run(self):
         generated_at = self.now - timedelta(hours=3)
@@ -54,6 +54,11 @@ class TestWatchdogFeedFreshness(unittest.TestCase):
         ok, msg = mod.evaluate_freshness(generated_at, runs, self.now, self.threshold_hours, self.allowed_progress_minutes)
         self.assertFalse(ok)
         self.assertIn("Feed is STALE", msg)
+
+    def test_dispatch_requires_token(self):
+        ok, msg = mod.dispatch_feed_refresh("owner/repo", None)
+        self.assertFalse(ok)
+        self.assertIn("GITHUB_TOKEN", msg)
 
 if __name__ == "__main__":
     unittest.main()
