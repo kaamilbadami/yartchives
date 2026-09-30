@@ -202,11 +202,17 @@ def main() -> int:
 
     reference = datetime.now(timezone.utc)
     print("ATS collection: Workday, iCIMS, Greenhouse, SmartRecruiters, Oracle, and SuccessFactors running concurrently")
+
+    original_universe = copy.deepcopy(universe)
     provider_docs = collect(base_doc, old_doc, direct_sources, universe, reference)
     merged = merge_provider_documents(base_doc, provider_docs)
     if workday.stable_projection(merged) != workday.stable_projection(base_doc):
         merged["generated_at"] = bf.iso(reference)
     args.feed.write_text(json.dumps(merged, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+    if universe != original_universe:
+        args.universe.write_text(json.dumps(universe, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        print(f"Merged resolved ATS coverage feedback into {args.universe}")
 
     counts = ", ".join(
         f"{name}={len((provider_docs.get(name) or {}).get('jobs') or [])}"
