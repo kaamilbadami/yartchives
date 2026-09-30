@@ -7,8 +7,9 @@ ROOT = Path(__file__).resolve().parents[1]
 
 class Tests(unittest.TestCase):
     def test_contract(self):
-        workflow = (ROOT / ".github/workflows/reconcile-merged-pr-issues.yml").read_text()
-        self.assertIn("types: [closed]", workflow)
+        workflow = (ROOT / ".github/workflows/repository-housekeeping.yml").read_text()
+        self.assertIn("pull_request:", workflow)
+        self.assertIn("- closed", workflow)
         self.assertIn("github.event.pull_request.merged == true", workflow)
         self.assertIn("issues: write", workflow)
 

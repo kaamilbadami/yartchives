@@ -1,4 +1,4 @@
-name: Clean up stale PR branches
+name: Repository housekeeping
 
 on:
   workflow_dispatch:
@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  issues: write
   pull-requests: read
 
 jobs:
@@ -95,3 +96,16 @@ jobs:
           )
 
           echo "Deleted $deleted stale branches; kept $kept non-default branches."
+
+
+  reconcile-merged-pr-issues:
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Reconcile referenced issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: python scripts/reconcile_merged_pr_issues.py

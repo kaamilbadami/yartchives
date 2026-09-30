@@ -48,32 +48,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  gate:
-    runs-on: ubuntu-latest
-    outputs:
-      should_run: ${{ steps.open_pr.outputs.should_run }}
-    steps:
-      - name: Detect whether a PR already exists
-        id: open_pr
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          open_pr_count="$(gh pr list \
-            --repo "$GITHUB_REPOSITORY" \
-            --head "$GITHUB_REF_NAME" \
-            --state open \
-            --json number \
-            --jq 'length')"
-          if [ "$open_pr_count" -gt 0 ]; then
-            echo "Open PR already exists; still validating this exact branch head before merge."
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "should_run=true" >> "$GITHUB_OUTPUT"
-          fi
-
   tests:
-    needs: gate
-    if: needs.gate.outputs.should_run == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -106,10 +81,8 @@ jobs:
 
   publish-pr:
     needs:
-      - gate
       - tests
     if: >-
-      needs.gate.outputs.should_run == 'true' &&
       needs.tests.result == 'success' &&
       (startsWith(github.ref_name, 'agent/') || startsWith(github.ref_name, 'codex/'))
     runs-on: ubuntu-latest
@@ -131,7 +104,11 @@ jobs:
             --json number \
             --jq '.[0].number // empty')"
           if [ -n "$existing" ]; then
-            echo "PR #$existing already exists; leaving it unchanged."
+            echo "PR #$existing already exists; dispatching authoritative recovery CI for this exact head."
+            gh workflow run quality.yml \
+              --repo "$GITHUB_REPOSITORY" \
+              --ref "$GITHUB_REF_NAME" \
+              -f pr_recovery=true
             exit 0
           fi
 
