@@ -626,7 +626,7 @@ function renderJobs() {
       applyBtn.href = YartchivesUtils.jobViewUrl(job);
       applyBtn.textContent = "View job ↗";
       applyBtn.addEventListener("click", () => {
-        typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("job_opened");
+        typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("apply_clicked");
       });
     } else {
       applyBtn.textContent = "Source";

@@ -453,7 +453,7 @@ assert.equal(jobs[2]._inspection, undefined);
   assert.match(uiSource, /deadlineDisplay\(result\)/);
   assert.match(uiSource, /data\/apply-next-inspections\.json/);
   assert.match(uiSource, /"View job ↗"/);
-  assert.match(uiSource, /job_opened/);
+  assert.match(uiSource, /apply_clicked/);
   assert.doesNotMatch(uiSource, /"Apply ↗"/);
   const appliedHandler = uiSource.match(
     /applied\.addEventListener\("click",\s*\(\)\s*=>\s*\{([\s\S]*?)\n\s*\}\);/
