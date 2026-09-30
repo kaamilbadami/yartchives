@@ -22,6 +22,7 @@ The canonical source is `SCORING_CONTRACT` in `apply-next-dimensions.js`. Score 
 - **Link provenance is not a ranking signal.** Otherwise-identical direct, intermediary-listing, and source-only jobs must receive the same score. Link provenance may still control destination/display behavior.
 - **Eligibility is a gate, not a bonus.** Passing eligibility cannot increase rank; failing an exclusion removes the recommendation.
 - **Work history is evidence, not a generic bonus.** User-confirmed resume-backed work experience may strengthen qualification fit only when an authoritative posting explicitly asks for experience and the work evidence overlaps the required skill. Merely having prior work experience must not increase rank.
+- **Selected role families are equally preferred by default.** A selected role family must not receive a lower application-value score because of legacy hardcoded priority values. Different role-family preference weights require an explicit user-facing preference control.
 - **The approved ranking maxima sum to exactly 100.** CI must fail if the contract drifts above or below 100.
 - **Unknown components are inert.** A future component cannot affect the total unless it is explicitly added to the canonical contract with role `ranking`.
 - **UI score denominators come from the canonical contract.** Do not maintain a second independent weighting scheme in presentation code.
