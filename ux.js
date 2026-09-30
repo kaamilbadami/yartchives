@@ -7,6 +7,7 @@
   const CAREER_AREAS = [
     ["cs", "Computer Science"],
     ["engineering", "Engineering"],
+    ["finance-econ", "Finance"],
   ];
   const ALL_KNOWN_AREAS = [
     ["cs", "Computer Science"],
