@@ -3,6 +3,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 import unittest
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_DIR = ROOT / "scripts"
@@ -101,6 +102,10 @@ class DirectOracleTests(unittest.TestCase):
         }
 
         class Response:
+            def __init__(self):
+                self.history = []
+                self.url = "https://careers.example.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions"
+
             def raise_for_status(self):
                 return None
 
@@ -164,6 +169,8 @@ class DirectOracleTests(unittest.TestCase):
         class Response:
             def __init__(self, ok):
                 self.ok = ok
+                self.history = []
+                self.url = "https://careers.example.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions"
 
             def raise_for_status(self):
                 if not self.ok:
@@ -200,6 +207,31 @@ class DirectOracleTests(unittest.TestCase):
 
 
 
+    def test_enrich_invalidates_resolution_on_structural_error(self):
+        employer = {
+            "id": "amex",
+            "name": "American Express",
+            "careers_url": "https://careers.example.com/en/sites/CX_1",
+            "provider": {"family": "oracle", "status": "resolved"},
+            "careers_resolution": {"status": "resolved", "resolved_at": "2026-09-17T19:00:00Z"},
+        }
+        universe = {"employers": [employer]}
+
+        doc = {}
+        old_doc = {}
+
+        def fetch_mock(*args, **kwargs):
+            raise mod.StructuralSourceError("mock error", [406])
+
+        with mock.patch.object(mod, "fetch_source", side_effect=fetch_mock):
+            with mock.patch.object(mod, "invalidate_resolution") as invalidate_mock:
+                doc = mod.enrich(doc, old_doc, universe, mock.Mock(), datetime(2026, 9, 17, tzinfo=timezone.utc))
+
+        invalidate_mock.assert_called_once_with(
+            employer, "StructuralSourceError: mock error"
+        )
+        self.assertEqual(doc["sources"]["auto-oracle-amex-cx_1"]["status"], "quarantined")
+
     def test_fetch_falls_back_from_non_json_ce_to_ice_resource(self):
         source = {
             "key": "auto-oracle-example",
@@ -218,6 +250,8 @@ class DirectOracleTests(unittest.TestCase):
             def __init__(self, json_ok):
                 self.json_ok = json_ok
                 self.headers = {"Content-Type": "application/json" if json_ok else "text/html"}
+                self.history = []
+                self.url = "https://careers.example.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions"
 
             def raise_for_status(self):
                 return None
@@ -252,6 +286,45 @@ class DirectOracleTests(unittest.TestCase):
         self.assertEqual(jobs[0]["oracle_job_id"], "10")
         self.assertEqual(session.calls[-1], source["api_urls"][1])
 
+    def test_fetch_treats_200_ok_redirects_to_oracle_errors_404_as_structural_404(self):
+        source = {
+            "key": "auto-oracle-example",
+            "name": "Example (resolved Oracle)",
+            "company": "Example",
+            "site_number": "CX_1",
+            "homepage": "https://careers.example.com/en/sites/CX_1",
+            "api_url": "https://careers.example.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
+        }
+
+        class HistoryResponse:
+            pass
+
+        class Response:
+            def __init__(self):
+                self.ok = True
+                self.status_code = 200
+                self.history = [HistoryResponse()]
+                self.url = "https://egug.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/errors/404"
+                self.headers = {"Content-Type": "text/html"}
+
+            def raise_for_status(self):
+                if self.status_code >= 400:
+                    raise mod.requests.HTTPError(f"{self.status_code} Client Error", response=self)
+
+        class Session:
+            def __init__(self):
+                self.calls = []
+
+            def get(self, url, **kwargs):
+                self.calls.append(url)
+                return Response()
+
+        session = Session()
+        with self.assertRaises(mod.StructuralSourceError) as raised:
+            mod.fetch_source(session, source, datetime(2026, 9, 17, tzinfo=timezone.utc))
+
+        self.assertIn("404 Client Error", str(raised.exception))
+        self.assertIn(404, raised.exception.status_codes)
 
 
 if __name__ == "__main__":
