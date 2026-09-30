@@ -528,10 +528,8 @@
     for (const family of families) {
       const keywords = roleFamilyKeywords(family);
       if (!keywords.some(keyword => includesKeyword(text, keyword))) continue;
-      const priority = Math.max(0, Math.min(1, Number(family.priority ?? 1)));
-      const legacyTenPointScore = Math.round(10 * priority);
       const candidate = {
-        score: Math.round(legacyTenPointScore * 1.5),
+        score: 15,
         detail: family.label || family.id || "Preferred role family",
       };
       if (!best || candidate.score > best.score) best = candidate;

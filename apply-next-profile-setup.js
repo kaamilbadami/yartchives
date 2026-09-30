@@ -17,18 +17,18 @@
   const ROLE_FAMILIES = [
     { id: "software", label: "Software engineering", careerAreas: ["cs"], priority: 1, keywords: ["software engineer", "software developer"] },
     { id: "testing-systems", label: "Software testing / systems", careerAreas: ["cs"], priority: 1, keywords: ["software test", "quality assurance", "qa", "systems software"] },
-    { id: "analytics", label: "Data / analytics", careerAreas: ["cs"], priority: 0.85, keywords: ["data analyst", "data engineer", "analytics"] },
-    { id: "infrastructure", label: "Infrastructure / technical ops", careerAreas: ["cs"], priority: 0.8, keywords: ["infrastructure", "technical ops", "IT", "cloud engineer", "devops"] },
-    { id: "ai-ml", label: "AI / machine learning", careerAreas: ["cs"], priority: 0.9, keywords: ["machine learning", "artificial intelligence", "AI/ML", "AI engineer"] },
-    { id: "cybersecurity", label: "Cybersecurity", careerAreas: ["cs"], priority: 0.9, keywords: ["cybersecurity", "information security", "security engineer"] },
-    { id: "hpc", label: "HPC / scientific computing", careerAreas: ["cs", "engineering"], priority: 0.75, keywords: ["HPC", "scientific computing"] },
+    { id: "analytics", label: "Data / analytics", careerAreas: ["cs"], priority: 1, keywords: ["data analyst", "data engineer", "analytics"] },
+    { id: "infrastructure", label: "Infrastructure / technical ops", careerAreas: ["cs"], priority: 1, keywords: ["infrastructure", "technical ops", "IT", "cloud engineer", "devops"] },
+    { id: "ai-ml", label: "AI / machine learning", careerAreas: ["cs"], priority: 1, keywords: ["machine learning", "artificial intelligence", "AI/ML", "AI engineer"] },
+    { id: "cybersecurity", label: "Cybersecurity", careerAreas: ["cs"], priority: 1, keywords: ["cybersecurity", "information security", "security engineer"] },
+    { id: "hpc", label: "HPC / scientific computing", careerAreas: ["cs", "engineering"], priority: 1, keywords: ["HPC", "scientific computing"] },
     { id: "mechanical-manufacturing", label: "Mechanical / manufacturing", careerAreas: ["engineering"], priority: 1, keywords: ["mechanical engineer", "manufacturing engineer", "mechanical design", "industrial engineer", "materials engineer", "thermal engineer", "product design", "mechanical systems", "stress analysis"] },
     { id: "electrical-hardware", label: "Electrical / electronics / hardware", careerAreas: ["engineering"], priority: 1, keywords: ["electrical engineer", "electronics engineer", "hardware engineer", "computer engineer", "embedded systems", "firmware", "FPGA", "RF engineer"] },
-    { id: "aerospace", label: "Aerospace / astronautical / flight / space systems", careerAreas: ["engineering"], priority: 0.95, keywords: ["aerospace", "aeronautical", "astronautical", "propulsion", "aerodynamics", "flight dynamics", "flight test", "space systems", "spacecraft", "satellite", "orbital mechanics", "astrodynamics", "GNC", "avionics"] },
-    { id: "engineering-systems", label: "Systems / integration / validation", careerAreas: ["engineering"], priority: 0.95, keywords: ["systems engineer", "systems integration", "validation engineer", "verification engineer", "reliability engineer"] },
-    { id: "robotics-controls", label: "Robotics / controls / automation", careerAreas: ["engineering"], priority: 0.95, keywords: ["robotics", "controls engineer", "automation engineer", "mechatronics", "autonomy"] },
-    { id: "civil-structural", label: "Civil / structural / transportation", careerAreas: ["engineering"], priority: 0.9, keywords: ["civil engineer", "structural engineer", "transportation engineer", "roadway", "construction engineer"] },
-    { id: "product-design-test", label: "Product / design / test engineering", careerAreas: ["engineering"], priority: 0.9, keywords: ["product engineer", "design engineer", "test engineer", "quality engineer", "process engineer", "development engineer"] },
+    { id: "aerospace", label: "Aerospace / astronautical / flight / space systems", careerAreas: ["engineering"], priority: 15, keywords: ["aerospace", "aeronautical", "astronautical", "propulsion", "aerodynamics", "flight dynamics", "flight test", "space systems", "spacecraft", "satellite", "orbital mechanics", "astrodynamics", "GNC", "avionics"] },
+    { id: "engineering-systems", label: "Systems / integration / validation", careerAreas: ["engineering"], priority: 15, keywords: ["systems engineer", "systems integration", "validation engineer", "verification engineer", "reliability engineer"] },
+    { id: "robotics-controls", label: "Robotics / controls / automation", careerAreas: ["engineering"], priority: 15, keywords: ["robotics", "controls engineer", "automation engineer", "mechatronics", "autonomy"] },
+    { id: "civil-structural", label: "Civil / structural / transportation", careerAreas: ["engineering"], priority: 1, keywords: ["civil engineer", "structural engineer", "transportation engineer", "roadway", "construction engineer"] },
+    { id: "product-design-test", label: "Product / design / test engineering", careerAreas: ["engineering"], priority: 1, keywords: ["product engineer", "design engineer", "test engineer", "quality engineer", "process engineer", "development engineer"] },
   ];
 
   const BASE_SKILLS = [

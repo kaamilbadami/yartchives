@@ -368,14 +368,18 @@ assert.equal(demandRanked[0].applicationValue.role.score, 15);
 assert.ok(demandRanked[0].applicationValue.market.score <= 15);
 assert.ok(demandRanked[0].components.roi.score <= D.SCORE_MAXIMA.roi);
 
-const lowerRoleProfile = {
+const legacyPriorityProfile = {
   ...profile,
   roleFamilies: [{ id: "software", label: "Software engineering", priority: 0.5, keywords: ["software engineer"] }],
 };
-const lowerRole = D.scoreJob(job({ url: "https://example.com/lower-role", _inspection: inspection() }), lowerRoleProfile, now);
-assert.equal(lowerRole.applicationValue.market.score, metadataOnly.applicationValue.market.score);
-assert.ok(lowerRole.applicationValue.role.score < metadataOnly.applicationValue.role.score);
-assert.ok(lowerRole.components.roi.score < metadataOnly.components.roi.score);
+const legacyPriority = D.scoreJob(job({ url: "https://example.com/legacy-priority", _inspection: inspection() }), legacyPriorityProfile, now);
+assert.equal(legacyPriority.applicationValue.market.score, metadataOnly.applicationValue.market.score);
+assert.equal(
+  legacyPriority.applicationValue.role.score,
+  metadataOnly.applicationValue.role.score,
+  "legacy stored role-family priority values must not silently down-rank selected families"
+);
+assert.equal(legacyPriority.components.roi.score, metadataOnly.components.roi.score);
 
 const direct = D.scoreJob(job({ id: "same-direct", _inspection: inspection(), link_kind: "direct" }), profile, now);
 const listing = D.scoreJob(job({ id: "same-listing", link_kind: "listing", url: "https://example.com/listing", _inspection: inspection() }), profile, now);
@@ -411,7 +415,7 @@ assert.ok(cautious.total <= 100);
 assert.ok(!cautious.inspection.evidence.some(x => /^Qualification readiness adjustment:/i.test(String(x))));
 assert.match(cautious.inspection.label, /Some required gaps/i);
 
-for (const result of [metadataOnly, supported, unsupported, javaExperienceRequired, javaExperienceWithoutEvidence, plainJavaWithExperience, plainJavaWithoutExperience, adjacent, learnable, major, domainOnly, aeroLike, conjunctiveLanguages, academicMatch, wexLike, exactTerm, unknownTerm, direct, listing, sourceOnly, cautious, lowerRole]) {
+for (const result of [metadataOnly, supported, unsupported, javaExperienceRequired, javaExperienceWithoutEvidence, plainJavaWithExperience, plainJavaWithoutExperience, adjacent, learnable, major, domainOnly, aeroLike, conjunctiveLanguages, academicMatch, wexLike, exactTerm, unknownTerm, direct, listing, sourceOnly, cautious, legacyPriority]) {
   assert.equal(result.total, D.sumRankingComponents(result.components));
   assert.ok(result.total >= 0 && result.total <= 100);
   assert.equal(result.components.role, undefined);

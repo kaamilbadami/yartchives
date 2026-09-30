@@ -3,6 +3,11 @@ const fs = require("node:fs");
 const path = require("node:path");
 const Setup = require("../apply-next-profile-setup.js");
 
+assert.ok(
+  Setup.ROLE_FAMILIES.every(family => family.priority === 1),
+  "all selected role families should have equal default priority"
+);
+
 const resume = `
 University of Example
 Bachelor of Science in Computer Science — Expected May 2028
