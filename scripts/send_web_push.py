@@ -10,15 +10,22 @@ BODY = "Your interactive change is deployed and ready to test."
 VAPID_SUBJECT = "mailto:kaamil.badami@gmail.com"
 
 
-def push_payload(build_sha: str) -> str:
-    tag = f"yartchives-deploy-{build_sha}" if build_sha else "yartchives-deploy-live"
+def push_payload(
+    build_sha: str = "",
+    *,
+    title: str = TITLE,
+    body: str = BODY,
+    tag: str = "",
+    navigate: str = "./",
+) -> str:
+    resolved_tag = tag or (f"yartchives-deploy-{build_sha}" if build_sha else "yartchives-deploy-live")
     return json.dumps(
         {
-            "title": TITLE,
-            "body": BODY,
-            "tag": tag,
-            "navigate": "./",
-            "data": {"url": "./"},
+            "title": title,
+            "body": body,
+            "tag": resolved_tag,
+            "navigate": navigate,
+            "data": {"url": navigate},
         },
         separators=(",", ":"),
     )
@@ -37,7 +44,17 @@ def load_subscription(raw: str) -> dict:
     return payload
 
 
-def send_push(subscription_raw: str, private_key: str, build_sha: str, webpush_impl=None) -> bool:
+def send_push(
+    subscription_raw: str,
+    private_key: str,
+    build_sha: str = "",
+    webpush_impl=None,
+    *,
+    title: str = TITLE,
+    body: str = BODY,
+    tag: str = "",
+    navigate: str = "./",
+) -> bool:
     if not subscription_raw or not private_key:
         print("Web Push secrets are not configured; skipping deploy push.")
         return False
@@ -48,7 +65,7 @@ def send_push(subscription_raw: str, private_key: str, build_sha: str, webpush_i
 
     webpush_impl(
         subscription_info=subscription,
-        data=push_payload(build_sha),
+        data=push_payload(build_sha, title=title, body=body, tag=tag, navigate=navigate),
         vapid_private_key=private_key,
         vapid_claims={"sub": VAPID_SUBJECT},
         ttl=300,
@@ -57,20 +74,32 @@ def send_push(subscription_raw: str, private_key: str, build_sha: str, webpush_i
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(description="Send the verified interactive Yartchives deploy notification.")
+    parser = argparse.ArgumentParser(description="Send a Yartchives Web Push notification.")
     parser.add_argument("--build-sha", default=os.environ.get("BUILD_SHA", ""))
+    parser.add_argument("--title", default=TITLE)
+    parser.add_argument("--body", default=BODY)
+    parser.add_argument("--tag", default="")
+    parser.add_argument("--navigate", default="./")
     args = parser.parse_args(argv)
 
     subscription = os.environ.get("YARTCHIVES_PUSH_SUBSCRIPTION", "")
     private_key = os.environ.get("YARTCHIVES_VAPID_PRIVATE_KEY", "")
     try:
-        sent = send_push(subscription, private_key, args.build_sha)
+        sent = send_push(
+            subscription,
+            private_key,
+            args.build_sha,
+            title=args.title,
+            body=args.body,
+            tag=args.tag,
+            navigate=args.navigate,
+        )
     except Exception as exc:
         print(f"::error::Web Push delivery failed: {exc}", file=sys.stderr)
         return 1
 
     if sent:
-        print(f"Sent Yartchives deploy push for {args.build_sha or 'current build'}.")
+        print(f"Sent Yartchives Web Push notification with tag {args.tag or args.build_sha or 'default'}.")
     return 0
 
 
