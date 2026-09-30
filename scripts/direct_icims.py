@@ -46,7 +46,12 @@ MAX_SEARCH_PAGES = 5
 NETWORK_WORKERS = 12
 JOB_LINK = re.compile(r"^/jobs/(\d+)(?:/[^?#]+)?/job/?$", re.I)
 SITEMAP_LOC = re.compile(r"<loc>\s*(https?://[^<]+)\s*</loc>", re.I)
-STRUCTURAL_SOURCE_STATUSES = {403, 404, 410}
+STRUCTURAL_SOURCE_STATUSES = {404, 410}
+
+
+class EndpointRetiredError(RuntimeError):
+    """An auto-discovered provider endpoint has been explicitly retired (e.g., WAF block)."""
+    pass
 
 
 class StructuralSourceError(RuntimeError):
@@ -176,6 +181,8 @@ def sitemap_site(client: requests.Session, source: dict[str, Any]) -> list[str]:
         return extract_sitemap_job_links(response.text, source)
     except requests.RequestException as exc:
         status = getattr(exc.response, "status_code", None)
+        if status == 403:
+            raise EndpointRetiredError(f"sitemap endpoint retired {status}: {exc}") from exc
         if status in STRUCTURAL_SOURCE_STATUSES:
             raise StructuralSourceError(f"sitemap structural error {status}: {exc}", [status]) from exc
         raise
@@ -194,6 +201,8 @@ def search_site(client: requests.Session, source: dict[str, Any]) -> list[str]:
             response.raise_for_status()
         except requests.RequestException as exc:
             status = getattr(exc.response, "status_code", None)
+            if status == 403:
+                raise EndpointRetiredError(f"search endpoint retired {status}: {exc}") from exc
             if status in STRUCTURAL_SOURCE_STATUSES:
                 raise StructuralSourceError(f"search structural error {status}: {exc}", [status]) from exc
             raise
@@ -310,7 +319,17 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Sessio
             }
             print(f"{source['name']}: {len(direct_jobs)} direct US CS-relevant listing(s)")
         else:
-            if isinstance(exc, StructuralSourceError):
+            if isinstance(exc, EndpointRetiredError):
+                health[source["key"]] = {
+                    "status": "retired",
+                    "count": 0,
+                    "name": source["name"],
+                    "direct": True,
+                    "auto_discovered": True,
+                    "error": f"EndpointRetiredError: {exc}",
+                }
+                print(f"{source['name']}: RETIRED (endpoint retired): {exc}", file=sys.stderr)
+            elif isinstance(exc, StructuralSourceError):
                 health[source["key"]] = {
                     "status": "quarantined",
                     "count": 0,
