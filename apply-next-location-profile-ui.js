@@ -238,7 +238,7 @@
 
     row.append(
       makeField(index === 0 ? "Primary ZIP" : `Base ${index + 1} ZIP`, zip),
-      makeField("Maximum commute without moving (miles)", miles, "How far you would realistically travel from this base without moving. Jobs beyond this distance can still rank highly when relocation is acceptable."),
+      makeField("Maximum commute (miles)", miles, "How far would you commute from this base without relocating?"),
       makeField("Score /20", score),
       remove
     );
@@ -277,18 +277,18 @@
     }
     if (oldMiles) {
       const label = oldMiles.closest(".apply-next-profile-field")?.querySelector("span");
-      if (label) label.textContent = "Maximum commute without moving (miles)";
+      if (label) label.textContent = "Maximum commute (miles)";
       oldMiles.max = "150";
       const field = oldMiles.closest(".apply-next-profile-field");
       if (field && !field.querySelector(".apply-next-location-field-hint")) {
-        field.append(element("small", "apply-next-location-field-hint", "Enter only the distance you would commute without moving. Farther-away jobs are still considered as relocation opportunities—do not increase this number to keep them in your results."));
+        field.append(element("small", "apply-next-location-field-hint", "How far would you commute from home without relocating?"));
       }
     }
 
     const intro = element("div", "apply-next-location-intro");
     intro.append(
       element("p", "apply-next-profile-subhead", "Location preferences"),
-      element("p", "muted", "This distance only describes jobs you can reach without moving. Strong farther-away roles can still outrank weaker nearby roles; Yartchives handles those as relocation opportunities.")
+      element("p", "muted", "Tell us how far you’re willing to commute without moving. Jobs farther away still appear and can rank highly if they’re a strong match.")
     );
     const modeSelect = makeModeSelect(initialMode);
     intro.append(makeField("Location scoring", modeSelect));
@@ -297,7 +297,7 @@
     defaultPanel.dataset.locationPanel = "normal";
     defaultPanel.append(
       element("div", "apply-next-location-summary-chip", "Default scoring"),
-      element("p", "muted", "Remote = 20. Jobs inside your commute range taper from 20 to 16 as the commute gets longer. Jobs that require moving stay eligible at 8, so an otherwise stronger role can still rank above a weaker nearby one. Unverified location = 10.")
+      element("p", "muted", "Remote: 20 · Within your commute: 16–20 · Relocation: 8 · Location unknown: 10. Farther-away jobs stay eligible, so you don’t need to increase your commute distance to see them.")
     );
 
     const customPanel = element("div", "apply-next-location-panel");
