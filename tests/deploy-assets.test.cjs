@@ -69,8 +69,30 @@ const workflowFiles = fs.readdirSync(".github/workflows")
   .sort();
 assert.deepEqual(
   workflowFiles,
-  ["ai-profile-benchmark.yml", "auto-merge-agent-prs.yml", "autonomous-dispatch.yml", "branch-preflight.yml", "cleanup-closed-pr-branches.yml", "coverage-audit.yml", "coverage-automation.yml", "deploy-pages.yml", "feed-freshness.yml", "quality.yml", "reconcile-merged-pr-issues.yml", "refresh-inspections.yml", "triage-workflow-failures.yml", "update-feed.yml"],
+  ["ai-profile-benchmark.yml", "auto-merge-agent-prs.yml", "autonomous-dispatch.yml", "branch-preflight.yml", "coverage-audit.yml", "coverage-automation.yml", "deploy-pages.yml", "feed-freshness.yml", "quality.yml", "refresh-inspections.yml", "repository-housekeeping.yml", "triage-workflow-failures.yml", "update-feed.yml"],
   "Production workflow set changed; update the workflow-health contract intentionally and do not leave temporary workflows on main"
+);
+
+const housekeepingWorkflow = fs.readFileSync(".github/workflows/repository-housekeeping.yml", "utf8");
+assert.match(
+  housekeepingWorkflow,
+  /pull_request:\s*[\s\S]*?types:\s*[\s\S]*?- closed/,
+  "Repository housekeeping should run immediately when a pull request closes"
+);
+assert.match(
+  housekeepingWorkflow,
+  /schedule:\s*[\s\S]*?- cron: "17 4 \* \* \*"/,
+  "Repository housekeeping should retain the daily stale-branch recovery sweep"
+);
+assert.match(
+  housekeepingWorkflow,
+  /reconcile-stale-branches:[\s\S]*?gh api[\s\S]*?git\/refs\/heads\/\$branch/,
+  "Repository housekeeping should retain safe stale-branch deletion"
+);
+assert.match(
+  housekeepingWorkflow,
+  /reconcile-merged-pr-issues:[\s\S]*?github\.event\.pull_request\.merged == true[\s\S]*?python scripts\/reconcile_merged_pr_issues\.py/,
+  "Repository housekeeping should reconcile referenced issues only for merged pull requests"
 );
 
 const coverageWorkflow = fs.readFileSync(".github/workflows/coverage-audit.yml", "utf8");
