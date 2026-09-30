@@ -113,7 +113,7 @@ def is_workday_job_page(value: str | None) -> bool:
     host = (parsed.hostname or "").lower()
     path = parsed.path.casefold()
     return bool(
-        re.fullmatch(r"[^.]+\.wd\d+\.myworkdayjobs\.com", host)
+        re.fullmatch(r"[^.]+\.wd\d+\.myworkday(?:jobs|site)\.com", host)
         and ("/job/" in path or "/details/" in path)
         and not path.rstrip("/").endswith("/apply")
     )
@@ -480,7 +480,7 @@ def should_validate_direct_link(job: dict[str, Any]) -> bool:
     # Unverified /apply routes are either validated as ok, or downgraded to employer_job.
     parsed = urlparse(str(job.get("url") or ""))
     host = (parsed.hostname or "").lower()
-    if re.fullmatch(r"[^.]+\.wd\d+\.myworkdayjobs\.com", host) and parsed.path.rstrip("/").casefold().endswith("/apply"):
+    if re.fullmatch(r"[^.]+\.wd\d+\.myworkday(?:jobs|site)\.com", host) and parsed.path.rstrip("/").casefold().endswith("/apply"):
         return True
 
     if job.get("link_origin") in VALIDATED_LINK_ORIGINS:
@@ -609,7 +609,7 @@ def downgrade_unverified_workday_apply(job: dict[str, Any]) -> bool:
         return False
     parsed = urlparse(value)
     host = (parsed.hostname or "").lower()
-    if not re.fullmatch(r"[^.]+\.wd\d+\.myworkdayjobs\.com", host):
+    if not re.fullmatch(r"[^.]+\.wd\d+\.myworkday(?:jobs|site)\.com", host):
         return False
     path = parsed.path.rstrip("/")
     if not path.casefold().endswith("/apply"):

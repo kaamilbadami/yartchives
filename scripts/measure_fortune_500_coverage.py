@@ -113,7 +113,7 @@ def main():
 
     # Markdown Report Generation
     print("# Fortune 500 Internship Coverage Report\n")
-    print(f"**Benchmark Population:** {total_f500} employers (from Fortune 500 2026 seed)\n")
+    print(f"Benchmark Population: {total_f500} employers (from Fortune 500 2026 seed)\n")
     print(f"- **Resolved to an authoritative ATS/career source:** {len(resolved_employers)}")
     print(f"- **Currently produce eligible US undergraduate CS internship/co-op/student listings in the feed:** {len(employers_with_listings)}")
     print(f"- **Currently have eligible listings with reachable authoritative links:** {len(employers_with_authoritative_links)}\n")

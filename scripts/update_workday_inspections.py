@@ -293,7 +293,7 @@ def posting_identity(job: dict[str, Any]) -> dict[str, str] | None:
 def provider_for_url(url: str) -> str | None:
     parsed = urlparse(url or "")
     host = (parsed.hostname or "").lower()
-    if re.fullmatch(r"[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com", host, flags=re.I):
+    if re.fullmatch(r"[a-z0-9-]+\.wd\d+\.myworkday(?:jobs|site)\.com", host, flags=re.I):
         return "workday"
     if host.endswith(".icims.com") or "icims=1" in url or "icims.com" in url:
         return "icims"

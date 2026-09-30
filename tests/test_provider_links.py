@@ -125,5 +125,14 @@ class ProviderLinksTests(unittest.TestCase):
             )
 
 
+
+    def test_workday_config_from_myworkdaysite_url(self):
+        self.assertEqual(
+            mod.workday_config_from_url(
+                "https://nvidia.wd5.myworkdaysite.com/en-US/NVIDIAExternalCareerSite/job/US-CA/Test_JR2023856"
+            ),
+            ("nvidia", "nvidia.wd5.myworkdaysite.com", "NVIDIAExternalCareerSite"),
+        )
+
 if __name__ == "__main__":
     unittest.main()

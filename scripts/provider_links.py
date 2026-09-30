@@ -77,7 +77,7 @@ def workday_req_id_from_url(value: str | None) -> str:
         return ""
     parsed = urlparse(value)
     host = parsed.netloc.lower()
-    if not re.fullmatch(r"[^.]+\.wd\d+\.myworkdayjobs\.com", host):
+    if not re.fullmatch(r"[^.]+\.wd\d+\.myworkday(?:jobs|site)\.com", host):
         return ""
     parts = [part for part in parsed.path.split("/") if part]
     if not parts:
@@ -92,7 +92,7 @@ def workday_config_from_url(value: str | None) -> tuple[str, str, str] | None:
         return None
     parsed = urlparse(value)
     host = parsed.netloc.lower()
-    match = re.fullmatch(r"([^.]+)\.(wd\d+)\.myworkdayjobs\.com", host)
+    match = re.fullmatch(r"([^.]+)\.(wd\d+)\.myworkday(?:jobs|site)\.com", host)
     if not match:
         return None
     tenant = match.group(1)

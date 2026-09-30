@@ -13,7 +13,7 @@ from urllib.parse import urlparse
 
 PROFILES = ["cs", "tech-business", "finance-econ", "engineering", "policy", "health"]
 INTERNSHIP_TYPES = {"internship", "co-op", "student"}
-WORKDAY_HOST_RE = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com$", re.I)
+WORKDAY_HOST_RE = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkday(?:jobs|site)\.com$", re.I)
 
 
 def parse_time(value: str | None) -> datetime | None:
