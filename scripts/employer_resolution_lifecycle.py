@@ -61,6 +61,21 @@ def _timestamp(value: datetime) -> str:
     return value.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
 
+def invalidate_resolution(employer: dict[str, Any], reason: str, now: datetime | None = None) -> None:
+    """Invalidate a resolved careers platform to force re-resolution."""
+    resolution = employer.get("careers_resolution")
+    if not isinstance(resolution, dict) or resolution.get("status") not in {"resolved", "provider_resolved"}:
+        return
+    now = now or _utc_now()
+    resolution["resolved_at"] = "2000-01-01T00:00:00Z"
+    evidence = resolution.setdefault("evidence", [])
+    evidence.append({
+        "type": "invalidation",
+        "reason": reason,
+        "invalidated_at": _timestamp(now),
+    })
+
+
 def _valid_existing_resolution(employer: dict[str, Any]) -> bool:
     url = str(employer.get("careers_url") or "").strip()
     if not url:

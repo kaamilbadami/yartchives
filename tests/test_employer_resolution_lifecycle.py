@@ -25,6 +25,36 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
             "employers": employers,
         }
 
+    def test_invalidate_resolution_updates_resolved_at_and_records_evidence(self):
+        employer = {
+            "id": "acme",
+            "careers_resolution": {
+                "status": "resolved",
+                "resolved_at": "2026-09-17T19:00:00Z",
+                "evidence": [{"type": "http", "status": 200}]
+            }
+        }
+        mod.invalidate_resolution(employer, "StructuralSourceError: expected job cards, got landing page", now=NOW)
+        self.assertEqual(employer["careers_resolution"]["resolved_at"], "2000-01-01T00:00:00Z")
+        self.assertEqual(len(employer["careers_resolution"]["evidence"]), 2)
+        invalidation = employer["careers_resolution"]["evidence"][-1]
+        self.assertEqual(invalidation["type"], "invalidation")
+        self.assertEqual(invalidation["reason"], "StructuralSourceError: expected job cards, got landing page")
+        self.assertEqual(invalidation["invalidated_at"], "2026-09-17T20:00:00Z")
+
+    def test_invalidate_resolution_ignores_unresolved_employers(self):
+        employer = {
+            "id": "acme",
+            "careers_resolution": {
+                "status": "transient",
+                "resolved_at": "2026-09-17T19:00:00Z",
+                "evidence": []
+            }
+        }
+        mod.invalidate_resolution(employer, "StructuralSourceError: failure", now=NOW)
+        self.assertEqual(employer["careers_resolution"]["resolved_at"], "2026-09-17T19:00:00Z")
+        self.assertEqual(len(employer["careers_resolution"]["evidence"]), 0)
+
     def employer(self, employer_id, count=1, **extra):
         return {
             "id": employer_id,

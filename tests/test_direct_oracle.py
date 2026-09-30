@@ -3,6 +3,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 import unittest
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT_DIR = ROOT / "scripts"
@@ -199,6 +200,31 @@ class DirectOracleTests(unittest.TestCase):
         self.assertIn("/11.13.18.05/", session.calls[-1][0])
 
 
+
+    def test_enrich_invalidates_resolution_on_structural_error(self):
+        employer = {
+            "id": "amex",
+            "name": "American Express",
+            "careers_url": "https://careers.example.com/en/sites/CX_1",
+            "provider": {"family": "oracle", "status": "resolved"},
+            "careers_resolution": {"status": "resolved", "resolved_at": "2026-09-17T19:00:00Z"},
+        }
+        universe = {"employers": [employer]}
+
+        doc = {}
+        old_doc = {}
+
+        def fetch_mock(*args, **kwargs):
+            raise mod.StructuralSourceError("mock error", [406])
+
+        with mock.patch.object(mod, "fetch_source", side_effect=fetch_mock):
+            with mock.patch.object(mod, "invalidate_resolution") as invalidate_mock:
+                doc = mod.enrich(doc, old_doc, universe, mock.Mock(), datetime(2026, 9, 17, tzinfo=timezone.utc))
+
+        invalidate_mock.assert_called_once_with(
+            employer, "StructuralSourceError: mock error"
+        )
+        self.assertEqual(doc["sources"]["auto-oracle-amex-cx_1"]["status"], "quarantined")
 
     def test_fetch_falls_back_from_non_json_ce_to_ice_resource(self):
         source = {

@@ -18,6 +18,8 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urlparse, urlunparse
 
+from employer_resolution_lifecycle import invalidate_resolution
+
 import requests
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -88,6 +90,7 @@ def _oracle_source(employer: dict[str, Any]) -> dict[str, Any] | None:
         "key": f"auto-oracle-{slug}-{site_number.casefold()}",
         "name": f"{employer['name']} (resolved Oracle)",
         "company": employer["name"],
+        "employer_id": employer["id"],
         "kind": "oracle",
         "site_number": site_number,
         "homepage": homepage,
@@ -330,6 +333,13 @@ def enrich(
                 "error": f"StructuralSourceError: {exc}",
             }
             print(f"{source['name']}: QUARANTINED (structural source error): {exc}", file=sys.stderr)
+
+            employer_id = source.get("employer_id")
+            if employer_id:
+                for employer in universe.get("employers", []):
+                    if isinstance(employer, dict) and employer.get("id") == employer_id:
+                        invalidate_resolution(employer, f"StructuralSourceError: {exc}")
+                        break
         except Exception as exc:
             health[source["key"]] = {
                 "status": "failed",
