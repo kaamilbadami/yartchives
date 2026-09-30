@@ -85,6 +85,7 @@ def main() -> int:
     parser.add_argument("--feed", default="data/listings.json", help="Path to listings.json")
     parser.add_argument("--threshold-hours", type=float, default=2.0)
     parser.add_argument("--allowed-progress-minutes", type=float, default=45.0)
+    parser.add_argument("--alert-hours", type=float, default=3.0)
     parser.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY", "kaamilbadami/yartchives"))
     args = parser.parse_args()
 
@@ -96,13 +97,24 @@ def main() -> int:
         print(f"Failed to read feed generated_at: {e}", file=sys.stderr)
         return 1
 
+    now = now_utc()
+    feed_age = now - generated_at
+    if "GITHUB_OUTPUT" in os.environ:
+        alert_required = feed_age >= timedelta(hours=args.alert_hours)
+        alert_tag = f"yartchives-feed-stale-{generated_at.strftime('%Y%m%dT%H%M%SZ')}"
+        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+            output.write(f"feed_age_seconds={int(feed_age.total_seconds())}\n")
+            output.write(f"feed_generated_at={generated_at.isoformat()}\n")
+            output.write(f"alert_required={'true' if alert_required else 'false'}\n")
+            output.write(f"alert_tag={alert_tag}\n")
+
     token = os.environ.get("GITHUB_TOKEN")
     runs = get_workflow_runs(args.repo, token)
 
     ok, message = evaluate_freshness(
         generated_at=generated_at,
         runs=runs,
-        now=now_utc(),
+        now=now,
         threshold_hours=args.threshold_hours,
         allowed_progress_minutes=args.allowed_progress_minutes,
     )
