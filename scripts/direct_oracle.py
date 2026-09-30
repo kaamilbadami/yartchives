@@ -233,6 +233,8 @@ def _fetch_oracle_page(client: requests.Session, source: dict[str, Any], offset:
                 headers={"Accept": "application/json", "User-Agent": bf.USER_AGENT},
                 timeout=TIMEOUT,
             )
+            if response.history and re.search(r"/errors?/404\b", response.url, re.I):
+                response.status_code = 404
             response.raise_for_status()
             content_type = str(getattr(response, "headers", {}).get("Content-Type", "") or "").casefold()
             if content_type and "json" not in content_type:
