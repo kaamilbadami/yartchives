@@ -7,6 +7,15 @@ assert.ok(
   Setup.ROLE_FAMILIES.every(family => family.priority === 1),
   "all selected role families should have equal default priority"
 );
+assert.deepEqual(
+  Setup.CAREER_AREAS.map(area => [area.id, area.label]),
+  [["cs", "Computer Science"], ["engineering", "Engineering"], ["finance-econ", "Finance"]],
+  "profile setup should expose Finance as a broad top-level career area"
+);
+assert.ok(
+  Setup.defaultRoleFamilyIdsForAreas(["finance-econ"]).includes("finance-broad"),
+  "Finance should have one broad default role family instead of premature sub-specialization"
+);
 
 const resume = `
 University of Example
@@ -180,6 +189,21 @@ assert.deepEqual(engineeringProfile.roleFamilies.map(family => family.id), ["mec
 assert.ok(engineeringProfile.supportedKeywords.includes("mechanical engineer"));
 assert.ok(engineeringProfile.supportedKeywords.includes("SolidWorks"));
 
+const financeProfile = Setup.buildProfile({
+  targetTerm: "Summer 2027",
+  citizenship: "Unknown / not provided",
+  workAuthorization: "Unknown / not provided",
+  securityClearance: "Unknown / not provided",
+  careerAreaIds: ["finance-econ"],
+  opportunityTypes: ["internship"],
+}, {});
+assert.deepEqual(financeProfile.careerAreas, ["finance-econ"]);
+assert.deepEqual(financeProfile.preferredProfiles, ["finance-econ"]);
+assert.deepEqual(financeProfile.roleFamilies.map(family => family.id), ["finance-broad"]);
+assert.ok(financeProfile.supportedKeywords.includes("finance"));
+assert.ok(financeProfile.supportedKeywords.includes("banking"));
+assert.ok(financeProfile.supportedKeywords.includes("economics"));
+
 const combinedProfile = Setup.buildProfile({
   targetTerm: "Summer 2027",
   citizenship: "Unknown / not provided",
@@ -270,11 +294,12 @@ assert.ok(combinedProfile.preferredProfiles.includes("engineering"));
   const source = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.js"), "utf8");
   assert.match(source, /raw resume is never saved or uploaded/i);
   assert.match(source, /When are you looking\?/);
-  assert.match(source, /Choose Computer Science, Engineering, or both/);
+  assert.match(source, /Choose Computer Science, Engineering, Finance, or any combination/);
   assert.match(source, /careerArea/);
   assert.match(source, /Mechanical \/ manufacturing/);
   assert.match(source, /Electrical \/ electronics \/ hardware/);
   assert.match(source, /Robotics \/ controls \/ automation/);
+  assert.match(source, /Broad finance \/ economics/);
   assert.match(source, /When are you graduating \(month year\)/);
   assert.match(source, /input\("targetTerm", "Summer 2027", "radio"\)/);
   assert.match(source, /profile \? "Save profile" : "Create profile"/, "New users should see a clear Create profile action");

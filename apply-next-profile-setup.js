@@ -12,6 +12,7 @@
   const CAREER_AREAS = [
     { id: "cs", label: "Computer Science" },
     { id: "engineering", label: "Engineering" },
+    { id: "finance-econ", label: "Finance" },
   ];
 
   const ROLE_FAMILIES = [
@@ -29,6 +30,7 @@
     { id: "robotics-controls", label: "Robotics / controls / automation", careerAreas: ["engineering"], priority: 1, keywords: ["robotics", "controls engineer", "automation engineer", "mechatronics", "autonomy"] },
     { id: "civil-structural", label: "Civil / structural / transportation", careerAreas: ["engineering"], priority: 1, keywords: ["civil engineer", "structural engineer", "transportation engineer", "roadway", "construction engineer"] },
     { id: "product-design-test", label: "Product / design / test engineering", careerAreas: ["engineering"], priority: 1, keywords: ["product engineer", "design engineer", "test engineer", "quality engineer", "process engineer", "development engineer"] },
+    { id: "finance-broad", label: "Broad finance / economics", careerAreas: ["finance-econ"], priority: 1, keywords: ["finance", "financial analyst", "accounting", "audit", "tax", "actuarial", "banking", "investment", "capital markets", "asset management", "wealth management", "risk", "underwriting", "economics", "economist", "treasury", "credit"] },
   ];
 
   const BASE_SKILLS = [
@@ -566,7 +568,7 @@
 
     const strategy = element("section", "apply-next-profile-section");
     strategy.append(element("h3", "", "5. What are you looking for?"));
-    strategy.append(element("p", "muted", "Choose Computer Science, Engineering, or both. Role families below are scoped to the career areas you select."));
+    strategy.append(element("p", "muted", "Choose Computer Science, Engineering, Finance, or any combination. Role families below are scoped to the career areas you select."));
 
     const careerWrap = element("div", "apply-next-profile-checks");
     const selectedAreas = new Set(values.careerAreaIds?.length ? values.careerAreaIds : ["cs"]);
