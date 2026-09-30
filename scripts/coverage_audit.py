@@ -51,6 +51,7 @@ STATUSES = (
 DISCOVERY_SURFACES = {"linkedin", "handshake", "indeed", "glassdoor", "ziprecruiter"}
 ATS_HINTS = (
     "myworkdayjobs.com",
+    "myworkdaysite.com",
     "greenhouse.io",
     "lever.co",
     "ashbyhq.com",

@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
-WORKDAY_HOST_RE = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com$", re.I)
+WORKDAY_HOST_RE = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkday(?:jobs|site)\.com$", re.I)
 
 ALLOWED_EDUCATION = {"undergrad", "graduate-only", "unspecified"}
 ALLOWED_TYPES = {"internship", "co-op", "fellowship", "research", "student", "other"}

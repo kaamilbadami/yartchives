@@ -23,7 +23,7 @@ from scripts import coverage_audit as base  # noqa: E402
 from scripts.build_feed import canonical_url, norm  # noqa: E402
 
 ATS_HOST_HINTS: dict[str, tuple[str, ...]] = {
-    "workday": ("myworkdayjobs.com",),
+    "workday": ("myworkdayjobs.com", "myworkdaysite.com",),
     "greenhouse": ("greenhouse.io",),
     "lever": ("lever.co",),
     "ashby": ("ashbyhq.com",),
