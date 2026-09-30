@@ -186,9 +186,36 @@ class DirectWorkdayTests(unittest.TestCase):
                 raise mod.requests.HTTPError("422 Client Error", response=response)
 
         doc = {"jobs": [], "sources": {}}
-        mod.enrich_direct_sources(doc, {"jobs": []}, [source], StructuralFailureSession(), ref)
+        universe = {"employers": []}
+        mod.enrich_direct_sources(doc, {"jobs": []}, [source], universe, StructuralFailureSession(), ref)
         health = doc["sources"][source["key"]]
         self.assertEqual(health["status"], "quarantined")
+
+    def test_structural_failure_invalidates_employer_resolution(self):
+        ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
+        source = dict(self.source)
+        source["employer_id"] = "emp_123"
+
+        class StructuralFailureSession:
+            def post(self, url, json=None, timeout=None):
+                response = type("Response", (), {"status_code": 422})()
+                raise mod.requests.HTTPError("422 Client Error", response=response)
+
+        employer = {
+            "id": "emp_123",
+            "careers_resolution": {
+                "status": "resolved"
+            }
+        }
+        universe = {"employers": [employer]}
+        doc = {"jobs": [], "sources": {}}
+
+        mod.enrich_direct_sources(doc, {"jobs": []}, [source], universe, StructuralFailureSession(), ref)
+
+        self.assertEqual(employer["careers_resolution"]["status"], "resolved")
+        self.assertEqual(employer["careers_resolution"]["resolved_at"], "2000-01-01T00:00:00Z")
+        self.assertEqual(employer["careers_resolution"]["evidence"][-1]["type"], "invalidation")
+        self.assertIn("StructuralSourceError", employer["careers_resolution"]["evidence"][-1]["reason"])
 
 
     def test_direct_url_replaces_intermediary_url(self):

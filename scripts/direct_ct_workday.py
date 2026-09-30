@@ -29,6 +29,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 import build_feed as bf  # noqa: E402
+from employer_resolution_lifecycle import invalidate_resolution  # noqa: E402
 
 ROOT = SCRIPT_DIR.parent
 DEFAULT_FEED = ROOT / "data" / "listings.json"
@@ -363,6 +364,7 @@ def enrich_direct_sources(
     doc: dict[str, Any],
     old_doc: dict[str, Any],
     sources: list[dict[str, Any]],
+    universe: dict[str, Any],
     s: requests.Session,
     reference: datetime,
 ) -> dict[str, Any]:
@@ -400,6 +402,13 @@ def enrich_direct_sources(
             }
             carry_failed_source(jobs, old_jobs, source["key"])
             print(f"{source['name']}: QUARANTINED: {exc}", file=sys.stderr)
+
+            employer_id = source.get("employer_id")
+            if employer_id:
+                for employer in universe.get("employers", []):
+                    if isinstance(employer, dict) and employer.get("id") == employer_id:
+                        invalidate_resolution(employer, f"StructuralSourceError: {exc}")
+                        break
         except Exception as exc:
             health[source["key"]] = {
                 "status": "failed",
@@ -438,7 +447,7 @@ def main() -> int:
 
     sources = json.loads(args.sources.read_text(encoding="utf-8"))
     reference = now_utc()
-    enrich_direct_sources(doc, old_doc, sources, session(), reference)
+    enrich_direct_sources(doc, old_doc, sources, {"employers": []}, session(), reference)
 
     if stable_projection(doc) == stable_projection(old_doc):
         # If build_feed.py rewrote only volatile metadata, restore the prior final
