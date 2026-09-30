@@ -152,5 +152,23 @@ class EmployerResolutionQueueTests(unittest.TestCase):
             mod.build_queue(universe, limit=0)
 
 
+
+    def test_ready_priority_with_myworkdaysite_domain(self):
+        universe = self.universe()
+        universe["employers"] = [
+            self.employer("other", "Other", {"benchmark-a": {
+                "domain_hints": ["other.example"],
+                "evidence_count": 100,
+                "authoritative_evidence_count": 100,
+            }}),
+            self.employer("ats", "ATS", {"state-of-ats-2026-verified-hosts": {
+                "domain_hints": ["ats.wd1.myworkdaysite.com"],
+                "evidence_count": 1,
+            }}),
+        ]
+
+        rows = mod.build_queue(universe, ready_only=True)["employers"]
+        self.assertEqual([row["id"] for row in rows], ["ats", "other"])
+
 if __name__ == "__main__":
     unittest.main()

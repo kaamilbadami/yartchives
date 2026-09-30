@@ -122,7 +122,7 @@ def source_from_employer(employer: dict[str, Any]) -> dict[str, Any] | None:
     url = _clean(employer.get("careers_url"))
     parsed = urlparse(url)
     host = (parsed.hostname or "").lower()
-    if not re.fullmatch(r"[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com", host, flags=re.I):
+    if not re.fullmatch(r"[a-z0-9-]+\.wd\d+\.myworkday(?:jobs|site)\.com", host, flags=re.I):
         return None
     parts = [part for part in parsed.path.split("/") if part]
     if parts and LOCALE.fullmatch(parts[0]):

@@ -14,7 +14,7 @@ DISCOVERY_KINDS = {"discovery_surface"}
 AUTHORITATIVE_KINDS = {"authoritative"}
 REQUIRED_ROW_FIELDS = ("company", "title", "location", "url", "source", "expected_state")
 ATS_HINTS = {
-    "workday": ("myworkdayjobs.com",),
+    "workday": ("myworkdayjobs.com", "myworkdaysite.com",),
     "greenhouse": ("greenhouse.io",),
     "icims": ("icims.com",),
     "ashby": ("ashbyhq.com",),

@@ -261,5 +261,13 @@ class WorkdayInspectorTests(unittest.TestCase):
         self.assertEqual(unsupported["provenance"]["interface"], "workday_cxs_json")
 
 
+
+    def test_derives_cxs_endpoint_from_myworkdaysite_domain(self):
+        plain = mod.derive_cxs_endpoint(
+            "https://beta.wd103.myworkdaysite.com/Jobs/job/Remote/Analyst_REQ-9"
+        )
+        self.assertEqual(plain["tenant"], "beta")
+        self.assertEqual(plain["site"], "Jobs")
+
 if __name__ == "__main__":
     unittest.main()

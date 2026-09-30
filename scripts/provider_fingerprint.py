@@ -11,7 +11,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 PROVIDER_PATTERNS: tuple[tuple[str, tuple[str, ...]], ...] = (
-    ("workday", ("myworkdayjobs.com", "/wday/cxs/")),
+    ("workday", ("myworkdayjobs.com", "myworkdaysite.com", "/wday/cxs/")),
     ("greenhouse", ("greenhouse.io", "boards.greenhouse.io", "job-boards.greenhouse.io")),
     ("icims", ("icims.com",)),
     ("ashby", ("ashbyhq.com", "jobs.ashbyhq.com")),

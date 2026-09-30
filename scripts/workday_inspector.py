@@ -33,7 +33,7 @@ _empty_field = empty_requirement_field
 
 TIMEOUT = 25
 INTERFACE = "workday_cxs_json"
-WORKDAY_HOST = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkdayjobs\.com$", re.I)
+WORKDAY_HOST = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkday(?:jobs|site)\.com$", re.I)
 LOCALE = re.compile(r"^[a-z]{2}(?:-[A-Z]{2})?$")
 
 
