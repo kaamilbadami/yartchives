@@ -145,7 +145,7 @@ def collect(
 ) -> dict[str, dict[str, Any]]:
     def workday_task() -> dict[str, Any]:
         doc = copy.deepcopy(base_doc)
-        workday.enrich_direct_sources(doc, old_doc, direct_sources, workday.session(), reference)
+        workday.enrich_direct_sources(doc, old_doc, direct_sources, universe, workday.session(), reference)
         return doc
 
     def icims_task() -> dict[str, Any]:
