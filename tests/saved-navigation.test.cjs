@@ -562,8 +562,10 @@ async function runTests() {
     assert.ok(profileChips, "Profile chips container should exist");
 
     const chipButtons = profileChips.children;
-    assert.equal(chipButtons.length, 2, "Computer Science and Engineering should be rendered in the beta UI");
+    assert.equal(chipButtons.length, 3, "Computer Science, Engineering, and Finance should be rendered in the beta UI");
     assert.equal(chipButtons[0].textContent, "Computer Science");
+    assert.equal(chipButtons[1].textContent, "Engineering");
+    assert.equal(chipButtons[2].textContent, "Finance");
     assert.equal(chipButtons[1].textContent, "Engineering");
     assert.equal(chipButtons[0].classList.contains("active"), true, "Computer Science should remain the default");
     assert.equal(chipButtons[1].classList.contains("active"), false, "Engineering should be opt-in for new visitors");
