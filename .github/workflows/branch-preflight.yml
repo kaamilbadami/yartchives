@@ -132,7 +132,11 @@ jobs:
             --json number \
             --jq '.[0].number // empty')"
           if [ -n "$existing" ]; then
-            echo "PR #$existing already exists; leaving it unchanged."
+            echo "PR #$existing already exists; dispatching authoritative recovery CI for this exact head."
+            gh workflow run quality.yml \
+              --repo "$GITHUB_REPOSITORY" \
+              --ref "$GITHUB_REF_NAME" \
+              -f pr_recovery=true
             exit 0
           fi
 
