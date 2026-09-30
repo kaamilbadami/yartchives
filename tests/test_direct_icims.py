@@ -202,5 +202,60 @@ class DirectIcimsTests(unittest.TestCase):
         finally:
             mod.fetch_source = original_fetch_source
 
+    def test_waf_protected_frontend_is_retired(self):
+        source = {
+            "key": "source1",
+            "host": "source1.icims.com",
+            "name": "Source 1",
+            "search_url": "https://source1.icims.com/jobs/search",
+            "sitemap_url": "https://source1.icims.com/sitemap.xml",
+        }
+
+        class Response:
+            def __init__(self, status_code):
+                self.status_code = status_code
+
+            def raise_for_status(self):
+                import requests
+                raise requests.exceptions.HTTPError(response=self)
+
+        class Session:
+            def get(self, url, **kwargs):
+                return Response(403)
+
+        with self.assertRaises(mod.EndpointRetiredError):
+            mod.search_site(Session(), source)
+
+    def test_waf_protected_sitemap_is_retired(self):
+        source = {
+            "key": "source1",
+            "host": "source1.icims.com",
+            "name": "Source 1",
+            "search_url": "https://source1.icims.com/jobs/search",
+            "sitemap_url": "https://source1.icims.com/sitemap.xml",
+        }
+
+        class Response:
+            def __init__(self, status_code, text=""):
+                self.status_code = status_code
+                self.text = text
+
+            def raise_for_status(self):
+                if self.status_code >= 400:
+                    import requests
+                    raise requests.exceptions.HTTPError(response=self)
+
+        class Session:
+            def get(self, url, **kwargs):
+                if url == source["search_url"]:
+                    return Response(200, "<html><body>Search jobs</body></html>")
+                if url == source["sitemap_url"]:
+                    return Response(403)
+                raise AssertionError(url)
+
+        with self.assertRaises(mod.EndpointRetiredError):
+            mod.sitemap_site(Session(), source)
+
+
 if __name__ == "__main__":
     unittest.main()
