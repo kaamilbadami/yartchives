@@ -77,7 +77,7 @@ SUPERSEDE_MARKER_TEMPLATE = "<!-- supersedes-stale-pr: {pr_number} -->"
 
 def label_names(issue: dict[str, Any]) -> set[str]:
     names: set[str] = set()
-    for label in issue.get("labels", []):
+    for label in (issue.get("labels") or []):
         if isinstance(label, str):
             names.add(label)
         elif isinstance(label, dict) and label.get("name"):
@@ -914,7 +914,7 @@ def github_reports_safe_mergeability(pr: dict[str, Any]) -> bool:
 def comparison_changed_paths(comparison: dict[str, Any]) -> set[str]:
     return {
         str(row.get("filename") or "")
-        for row in comparison.get("files", [])
+        for row in (comparison.get("files") or [])
         if str(row.get("filename") or "")
     }
 
