@@ -160,7 +160,9 @@ const indexSource = fs.readFileSync(path.join(__dirname, "..", "index.html"), "u
 const deploySource = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "deploy-pages.yml"), "utf8");
 assert.match(indexSource, /yartchives-analytics-endpoint/);
 assert.match(indexSource, /__YARTCHIVES_ANALYTICS_ORIGIN__/);
-assert.match(deploySource, /secrets\.YARTCHIVES_ANALYTICS_ENDPOINT/);
+assert.match(deploySource, /yartchives-analytics-endpoint/);
+assert.match(deploySource, /steps\.analytics\.outputs\.endpoint/);
+assert.doesNotMatch(deploySource, /secrets\.YARTCHIVES_ANALYTICS_ENDPOINT/);
 assert.match(deploySource, /__YARTCHIVES_ANALYTICS_ENDPOINT__/);
 assert.match(deploySource, /__YARTCHIVES_ANALYTICS_ORIGIN__/);
 
