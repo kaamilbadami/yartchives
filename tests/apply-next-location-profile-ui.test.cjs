@@ -120,7 +120,7 @@ assert.doesNotMatch(source, /makeModeToggle/);
 const setupSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.js"), "utf8");
 assert.doesNotMatch(setupSource, /field\("Preferred states"/);
 assert.match(source, /Remote: 20/);
-assert.match(source, /20 to 16/);
+assert.match(source, /Within your commute: 16–20/);
 assert.match(source, /Farther-away jobs stay eligible/);
 assert.match(source, /Custom scoring/);
 assert.match(source, /Remote score \/20/);
