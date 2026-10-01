@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T23:43:36.942675Z",
+  "generated_at": "2026-09-30T23:22:22.613132Z",
   "content_hash": "e16fc8fa12fcefbefc7468e269271ef24b1827ad027a328d3f90545f43ea7f43",
   "jobs": [
     {
@@ -284727,7 +284727,7 @@
       "name": "American Express (resolved Oracle)",
       "direct": true,
       "auto_discovered": true,
-      "error": "StructuralSourceError: all Oracle requisition variants failed with structural HTTP status: https://careers.americanexpress.com/hcmRestApi/resources/latest/recruitingICEJobRequisitions: ValueError: Oracle endpoint returned non-JSON content type: text/html; charset=utf-8 | https://careers.americanexpress.com/hcmRestApi/resources/latest/recruitingICEJobRequisitions: ValueError: Oracle endpoint returned non-JSON content type: text/html; charset=utf-8 | https://careers.americanexpress.com/hcmRestApi/resources/11.13.18.05/recruitingICEJobRequisitions: ValueError: Oracle endpoint returned non-JSON content type: text/html; charset=utf-8 | https://careers.americanexpress.com/hcmRestApi/resources/11.13.18.05/recruitingICEJobRequisitions: ValueError: Oracle endpoint returned non-JSON content type: text/html; charset=utf-8"
+      "error": "StructuralSourceError: all Oracle requisition variants failed with structural HTTP status: https://careers.americanexpress.com/hcmRestApi/resources/latest/recruitingICEJobRequisitions: HTTPError: 404 Client Error: OK for url: https://careers.americanexpress.com/errors/404 | https://careers.americanexpress.com/hcmRestApi/resources/latest/recruitingICEJobRequisitions: HTTPError: 404 Client Error: OK for url: https://careers.americanexpress.com/errors/404 | https://careers.americanexpress.com/hcmRestApi/resources/11.13.18.05/recruitingICEJobRequisitions: HTTPError: 404 Client Error: OK for url: https://careers.americanexpress.com/errors/404 | https://careers.americanexpress.com/hcmRestApi/resources/11.13.18.05/recruitingICEJobRequisitions: HTTPError: 404 Client Error: OK for url: https://careers.americanexpress.com/errors/404"
     },
     "auto-oracle-bny-bny-careers": {
       "status": "healthy",
