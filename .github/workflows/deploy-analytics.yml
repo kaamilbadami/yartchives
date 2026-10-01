@@ -60,8 +60,7 @@ jobs:
           if [ -z "$database_id" ]; then
             echo "Creating yartchives-analytics D1 database."
             create_output="$($WRANGLER d1 create yartchives-analytics --location enam 2>&1)"
-            printf '%s
-' "$create_output"
+            printf '%s\\n' "$create_output"
             database_id="$(printf '%s' "$create_output" | python -c '
           import re, sys
           text = sys.stdin.read()
@@ -115,8 +114,7 @@ jobs:
         run: |
           set -euo pipefail
           output="$(npx --yes wrangler@4.143.0 deploy --config analytics/wrangler.generated.jsonc 2>&1)"
-          printf '%s
-' "$output"
+          printf '%s\\n' "$output"
           worker_url="$(printf '%s' "$output" | python -c '
           import re, sys
           text = sys.stdin.read()
@@ -128,8 +126,7 @@ jobs:
             exit 1
           fi
           endpoint="${worker_url%/}/collect"
-          printf '%s
-' "$endpoint" > analytics-endpoint.txt
+          printf '%s\\n' "$endpoint" > analytics-endpoint.txt
           echo "endpoint=$endpoint" >> "$GITHUB_OUTPUT"
           echo "### Analytics backend" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
