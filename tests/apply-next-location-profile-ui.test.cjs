@@ -132,7 +132,9 @@ assert.doesNotMatch(source, /Prefer relocating for the right role/);
 assert.doesNotMatch(source, /Remote is acceptable/);
 
 const css = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.css"), "utf8");
-assert.match(css, /apply-next-location-anchor-row/);\nassert.match(css, /apply-next-location-basic-grid/);\nassert.match(css, /grid-template-columns: minmax\(9rem, 12rem\) minmax\(11rem, 14rem\)/);
+assert.match(css, /apply-next-location-anchor-row/);
+assert.match(css, /apply-next-location-basic-grid/);
+assert.match(css, /grid-template-columns: minmax\(9rem, 12rem\) minmax\(11rem, 14rem\)/);
 assert.match(css, /apply-next-location-region-card/);
 assert.match(css, /apply-next-location-panel\[hidden\]/);
 assert.match(css, /input\[type="radio"\]/);
