@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 ALL_FRONTEND_TESTS = (
     "tests/analytics.test.cjs",
+    "tests/analytics-worker.test.mjs",
     "tests/deploy-assets.test.cjs",
     "tests/frontend-utils.test.cjs",
     "tests/location-display.test.cjs",
@@ -47,6 +48,9 @@ APPLY_NEXT_CORE_TESTS = (
 
 DEPENDENT_TESTS = {
     "analytics.js": ("tests/analytics.test.cjs",),
+    "analytics/worker.mjs": ("tests/analytics-worker.test.mjs",),
+    "analytics/wrangler.template.jsonc": ("tests/analytics-worker.test.mjs",),
+    ".github/workflows/deploy-analytics.yml": ("tests/analytics-worker.test.mjs",),
     "frontend-utils.js": (
         "tests/frontend-utils.test.cjs",
         "tests/apply-next-presentation.test.cjs",
@@ -124,7 +128,7 @@ ROOT_FRONTEND_SUFFIXES = (".js", ".css", ".html")
 
 
 def _is_frontend_path(path: str) -> bool:
-    if path.startswith("tests/") and path.endswith(".cjs"):
+    if path.startswith("tests/") and path.endswith((".cjs", ".mjs")):
         return True
     if "/" not in path and path.endswith(ROOT_FRONTEND_SUFFIXES):
         return True
@@ -140,7 +144,7 @@ def plan_for_paths(paths: Iterable[str]) -> dict[str, list[str]]:
     unknown_frontend = False
 
     for path in normalized:
-        if path.startswith("tests/") and path.endswith(".cjs"):
+        if path.startswith("tests/") and path.endswith((".cjs", ".mjs")):
             tests.add(path)
             continue
 
