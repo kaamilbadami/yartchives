@@ -74,7 +74,7 @@ def latest_artifact(repo: str, workflow: str, artifact_name: str, token: str | N
         if artifact.get("expired", False):
             continue
 
-        run_info = artifact.get("workflow_run", {})
+        run_info = artifact.get("workflow_run") or {}
         if run_info.get("head_branch") != "main":
             continue
 
