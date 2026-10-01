@@ -1298,6 +1298,11 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
 
+    def test_main_skips_pr_when_comparison_has_no_merge_base(self):
+        source = MODULE_PATH.read_text()
+        self.assertIn("BLOCKED_REQUIRES_DECISION PR #{number}: comparison has no merge base for stale-branch safety check", source)
+        self.assertNotIn('raise RuntimeError(\n                    f"PR #{number} comparison has no merge base for stale-branch safety check"\n                )', source)
+
     def test_main_reconciles_stale_overlap_before_lane_and_ci_gates(self):
         source = MODULE_PATH.read_text()
         main_source = source[source.index("def main() -> int:"):]

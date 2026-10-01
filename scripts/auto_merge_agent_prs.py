@@ -1450,9 +1450,10 @@ def main() -> int:
             merge_base = comparison.get("merge_base_commit") or {}
             merge_base_sha = str(merge_base.get("sha") or "")
             if not merge_base_sha:
-                raise RuntimeError(
-                    f"PR #{number} comparison has no merge base for stale-branch safety check"
+                print(
+                    f"BLOCKED_REQUIRES_DECISION PR #{number}: comparison has no merge base for stale-branch safety check"
                 )
+                continue
             base_delta = gh_json(
                 "api",
                 f"repos/{repo}/compare/{merge_base_sha}...{base_ref}",
