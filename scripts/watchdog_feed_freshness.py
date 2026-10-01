@@ -26,7 +26,7 @@ def get_workflow_runs(repo: str, token: str | None) -> list[dict[str, Any]]:
     try:
         with urllib.request.urlopen(req, timeout=10) as response:
             data = json.loads(response.read().decode("utf-8"))
-            return data.get("workflow_runs", [])
+            return data.get("workflow_runs") or []
     except Exception as e:
         print(f"Warning: Failed to fetch workflow runs: {e}", file=sys.stderr)
         return []
