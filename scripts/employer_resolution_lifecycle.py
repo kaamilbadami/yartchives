@@ -139,13 +139,13 @@ def _fresh_provider_resolution(employer: dict[str, Any], now: datetime, ttl_days
 
 
 def _provider_resolution_needs_completion(employer: dict[str, Any]) -> bool:
-    """Workday and BrassRing tenant identity is useful but still needs a career-site slug."""
+    """BrassRing tenant identity is useful but still needs a career-site slug."""
     resolution = employer.get("careers_resolution") or {}
     provider = employer.get("provider") or {}
     return (
         resolution.get("status") == "provider_resolved"
         and provider.get("status") == "resolved"
-        and provider.get("family") in {"workday", "brassring"}
+        and provider.get("family") in {"brassring"}
         and not str(employer.get("careers_url") or "").strip()
     )
 
