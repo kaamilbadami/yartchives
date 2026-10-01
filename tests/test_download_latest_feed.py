@@ -48,6 +48,35 @@ class DownloadLatestFeedTests(unittest.TestCase):
         self.assertIn("?name=yartchives-listings", request_json.call_args_list[0].args[0])
         self.assertIn("/actions/runs/9", request_json.call_args_list[1].args[0])
 
+    def test_latest_artifact_handles_none_workflow_run(self):
+        responses = [
+            {
+                "artifacts": [
+                    {
+                        "id": 98,
+                        "name": "yartchives-listings",
+                        "expired": False,
+                        "workflow_run": None
+                    },
+                    {
+                        "id": 99,
+                        "name": "yartchives-listings",
+                        "expired": False,
+                        "workflow_run": {"id": 9, "head_branch": "main"}
+                    }
+                ]
+            },
+            {"path": ".github/workflows/update-feed.yml"}
+        ]
+        with patch.object(mod, "_request_json", side_effect=responses):
+            artifact = mod.latest_artifact(
+                "owner/repo",
+                "update-feed.yml",
+                "yartchives-listings",
+                "token",
+            )
+        self.assertEqual(artifact["id"], 99)
+
 
     def test_artifact_redirect_drops_github_auth_on_cross_host(self):
         handler = mod._SafeArtifactRedirectHandler()
