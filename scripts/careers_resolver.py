@@ -107,6 +107,8 @@ def has_provider_collection_identity(url: str, family: str | None = None) -> boo
         return False
     parsed = urlparse(url)
     family = family or provider_for(url)["family"]
+    if family == "workday":
+        return bool(parsed.hostname)
     return True
 
 
