@@ -104,7 +104,24 @@ jobs:
             --json number \
             --jq '.[0].number // empty')"
           if [ -n "$existing" ]; then
-            echo "PR #$existing already exists; dispatching authoritative recovery CI for this exact head."
+            echo "PR #$existing already exists; repairing trusted preflight provenance and dispatching authoritative recovery CI."
+            existing_body="$(gh pr view "$existing" \
+              --repo "$GITHUB_REPOSITORY" \
+              --json body \
+              --jq '.body // ""')"
+            if ! grep -Fq '<!-- trusted-preflight-auto-pr -->' <<<"$existing_body"; then
+              trusted_note="$(printf '%s\\n\\n%s\\n' \
+                '<!-- trusted-preflight-auto-pr -->' \
+                "Validated by Branch preflight for `$GITHUB_SHA`; authoritative Quality checks are dispatched for this exact head.")"
+              if [ -n "$existing_body" ]; then
+                updated_body="$(printf '%s\\n\\n%s' "$existing_body" "$trusted_note")"
+              else
+                updated_body="$trusted_note"
+              fi
+              gh pr edit "$existing" \
+                --repo "$GITHUB_REPOSITORY" \
+                --body "$updated_body"
+            fi
             gh workflow run quality.yml \
               --repo "$GITHUB_REPOSITORY" \
               --ref "$GITHUB_REF_NAME" \
