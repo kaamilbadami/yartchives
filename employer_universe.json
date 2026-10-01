@@ -5520,7 +5520,7 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-25T01:00:54Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
         "last_attempt_at": "2026-09-25T01:00:54Z",
         "evidence": [
           {
@@ -5795,6 +5795,11 @@
               "linked from employer site"
             ],
             "score": 4
+          },
+          {
+            "type": "invalidation",
+            "reason": "StructuralSourceError: all Oracle requisition variants failed with structural HTTP status: https://careers.americanexpress.com/hcmRestApi/resources/latest/recruitingICEJobRequisitions: HTTPError: 404 Client Error: OK for url: https://careers.americanexpress.com/errors/404 | https://careers.americanexpress.com/hcmRestApi/resources/latest/recruitingICEJobRequisitions: HTTPError: 404 Client Error: OK for url: https://careers.americanexpress.com/errors/404 | https://careers.americanexpress.com/hcmRestApi/resources/11.13.18.05/recruitingICEJobRequisitions: HTTPError: 404 Client Error: OK for url: https://careers.americanexpress.com/errors/404 | https://careers.americanexpress.com/hcmRestApi/resources/11.13.18.05/recruitingICEJobRequisitions: HTTPError: 404 Client Error: OK for url: https://careers.americanexpress.com/errors/404",
+            "invalidated_at": "2026-10-01T00:14:35Z"
           }
         ]
       },
@@ -13080,7 +13085,7 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-17T23:48:05Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
         "last_attempt_at": "2026-09-17T23:48:05Z",
         "evidence": [
           {
@@ -13162,6 +13167,11 @@
               "linked from employer site"
             ],
             "score": 14
+          },
+          {
+            "type": "invalidation",
+            "reason": "StructuralSourceError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-01T00:14:29Z"
           }
         ]
       },
@@ -18905,7 +18915,7 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-17T23:38:23Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
         "last_attempt_at": "2026-09-17T23:38:23Z",
         "evidence": [
           {
@@ -18983,6 +18993,11 @@
               "linked from employer site"
             ],
             "score": 14
+          },
+          {
+            "type": "invalidation",
+            "reason": "StructuralSourceError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-01T00:14:30Z"
           }
         ]
       },
