@@ -52,6 +52,38 @@ class TestQueueCoverageGap(unittest.TestCase):
         self.assertEqual(gaps[0][0], "ATS Family integration (smartrecruiters)")
         self.assertEqual(gaps[0][3], "ats-smartrecruiters")
 
+    def test_find_all_gaps_unknown_provider_is_actionable(self):
+        universe = {
+            "employers": [
+                {
+                    "name": "Employer 1",
+                    "seed_sets": ["fortune-500-2026"],
+                    "provider": {"status": "unresolved"},
+                    "domain_hints": ["careers.example.com"],
+                    "seed_metadata": {},
+                },
+                {
+                    "name": "Employer 2",
+                    "seed_sets": ["cs-benchmark"],
+                    "provider": {"status": "unresolved"},
+                    "seed_metadata": {
+                        "test": {"domain_hints": ["jobs.example.org"]}
+                    },
+                },
+            ]
+        }
+
+        with patch(
+            "scripts.queue_coverage_gap.fingerprint_provider",
+            return_value={"family": "custom_unknown"},
+        ):
+            gaps = find_all_gaps(universe)
+
+        self.assertEqual(len(gaps), 1)
+        self.assertEqual(gaps[0][0], "Unsupported ATS / Unknown provider family")
+        self.assertEqual(gaps[0][1], 2)
+        self.assertEqual(gaps[0][3], "unknown-provider")
+
     def test_find_all_gaps_ats_family(self):
         universe = {
             "employers": [
@@ -212,6 +244,7 @@ class TestQueueCoverageGap(unittest.TestCase):
         self.assertFalse(gap_has_meaningful_generic_impact("discovery", 1))
         self.assertTrue(gap_has_meaningful_generic_impact("discovery", 2))
         self.assertTrue(gap_has_meaningful_generic_impact("ats-workday", 1))
+        self.assertTrue(gap_has_meaningful_generic_impact("unknown-provider", 2))
 
 if __name__ == '__main__':
     unittest.main()
