@@ -497,6 +497,9 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             )
         )
 
+    def test_label_names_handles_null_labels(self):
+        self.assertEqual(mod.label_names({"labels": None}), set())
+
     def test_stale_green_pr_refreshes_when_main_changed_overlapping_paths(self):
         comparison = {"behind_by": 1}
         self.assertTrue(
@@ -529,6 +532,12 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                 }
             ),
             {"app.js", "tests/app.test.cjs"},
+        )
+
+    def test_comparison_changed_paths_handles_null_files(self):
+        self.assertEqual(
+            mod.comparison_changed_paths({"files": None}),
+            set(),
         )
 
     def test_prioritizes_lifecycle_then_ci_then_normal_prs(self):
