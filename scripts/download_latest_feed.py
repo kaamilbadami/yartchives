@@ -65,25 +65,33 @@ def _request_bytes(url: str, token: str | None) -> bytes:
 
 
 def latest_artifact(repo: str, workflow: str, artifact_name: str, token: str | None) -> dict | None:
-    artifacts_url = (
-        f"{API_ROOT}/repos/{repo}/actions/artifacts"
-        f"?name={artifact_name}&per_page=100"
+    """Return the newest non-expired artifact produced by the workflow on main.
+
+    GitHub's repository-level artifact payload can omit workflow_run metadata.
+    Resolve ownership from the workflow's run list instead so hydration does not
+    depend on optional embedded artifact metadata.
+    """
+
+    runs_url = (
+        f"{API_ROOT}/repos/{repo}/actions/workflows/{workflow}/runs"
+        "?branch=main&per_page=20"
     )
-    payload = _request_json(artifacts_url, token)
-    for artifact in payload.get("artifacts", []):
-        if artifact.get("expired", False):
-            continue
-
-        run_info = artifact.get("workflow_run") or {}
-        if run_info.get("head_branch") != "main":
-            continue
-
-        run_id = run_info.get("id")
+    runs_payload = _request_json(runs_url, token)
+    for run in runs_payload.get("workflow_runs", []):
+        run_id = run.get("id")
         if not run_id:
             continue
 
-        run_payload = _request_json(f"{API_ROOT}/repos/{repo}/actions/runs/{run_id}", token)
-        if run_payload.get("path") and workflow in run_payload["path"]:
+        artifacts_url = (
+            f"{API_ROOT}/repos/{repo}/actions/runs/{run_id}/artifacts"
+            f"?name={artifact_name}&per_page=100"
+        )
+        artifacts_payload = _request_json(artifacts_url, token)
+        for artifact in artifacts_payload.get("artifacts", []):
+            if artifact.get("expired", False):
+                continue
+            if artifact.get("name") != artifact_name:
+                continue
             return artifact
 
     return None

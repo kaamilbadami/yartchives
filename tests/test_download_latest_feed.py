@@ -25,57 +25,71 @@ def zip_bytes(name: str, content: bytes) -> bytes:
 class DownloadLatestFeedTests(unittest.TestCase):
     def test_latest_artifact_accepts_validated_artifact_from_later_failed_run(self):
         responses = [
+            {"workflow_runs": [{"id": 9, "status": "completed", "conclusion": "failure"}]},
             {
                 "artifacts": [
                     {
                         "id": 99,
                         "name": "yartchives-listings",
                         "expired": False,
-                        "workflow_run": {"id": 9, "head_branch": "main"}
+                        "workflow_run": None,
                     }
                 ]
             },
-            {"path": ".github/workflows/update-feed.yml"}
         ]
         with patch.object(mod, "_request_json", side_effect=responses) as request_json:
             artifact = mod.latest_artifact(
-                "owner/repo",
-                "update-feed.yml",
-                "yartchives-listings",
-                "token",
+                "owner/repo", "update-feed.yml", "yartchives-listings", "token"
             )
         self.assertEqual(artifact["id"], 99)
-        self.assertIn("?name=yartchives-listings", request_json.call_args_list[0].args[0])
-        self.assertIn("/actions/runs/9", request_json.call_args_list[1].args[0])
+        self.assertIn(
+            "/actions/workflows/update-feed.yml/runs?branch=main",
+            request_json.call_args_list[0].args[0],
+        )
+        self.assertIn(
+            "/actions/runs/9/artifacts?name=yartchives-listings",
+            request_json.call_args_list[1].args[0],
+        )
 
-    def test_latest_artifact_handles_none_workflow_run(self):
+    def test_latest_artifact_does_not_require_embedded_workflow_run_metadata(self):
         responses = [
+            {"workflow_runs": [{"id": 10}]},
             {
                 "artifacts": [
                     {
-                        "id": 98,
+                        "id": 100,
                         "name": "yartchives-listings",
                         "expired": False,
-                        "workflow_run": None
-                    },
-                    {
-                        "id": 99,
-                        "name": "yartchives-listings",
-                        "expired": False,
-                        "workflow_run": {"id": 9, "head_branch": "main"}
+                        "workflow_run": None,
                     }
                 ]
             },
-            {"path": ".github/workflows/update-feed.yml"}
         ]
         with patch.object(mod, "_request_json", side_effect=responses):
             artifact = mod.latest_artifact(
-                "owner/repo",
-                "update-feed.yml",
-                "yartchives-listings",
-                "token",
+                "owner/repo", "update-feed.yml", "yartchives-listings", "token"
             )
-        self.assertEqual(artifact["id"], 99)
+        self.assertEqual(artifact["id"], 100)
+
+    def test_latest_artifact_skips_runs_without_usable_artifact(self):
+        responses = [
+            {"workflow_runs": [{"id": 11}, {"id": 10}]},
+            {"artifacts": []},
+            {
+                "artifacts": [
+                    {
+                        "id": 100,
+                        "name": "yartchives-listings",
+                        "expired": False,
+                    }
+                ]
+            },
+        ]
+        with patch.object(mod, "_request_json", side_effect=responses):
+            artifact = mod.latest_artifact(
+                "owner/repo", "update-feed.yml", "yartchives-listings", "token"
+            )
+        self.assertEqual(artifact["id"], 100)
 
 
     def test_artifact_redirect_drops_github_auth_on_cross_host(self):
