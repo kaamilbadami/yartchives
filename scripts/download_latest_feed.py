@@ -77,7 +77,7 @@ def latest_artifact(repo: str, workflow: str, artifact_name: str, token: str | N
         "?branch=main&per_page=20"
     )
     runs_payload = _request_json(runs_url, token)
-    for run in runs_payload.get("workflow_runs", []):
+    for run in runs_payload.get("workflow_runs") or []:
         run_id = run.get("id")
         if not run_id:
             continue
@@ -107,7 +107,7 @@ def workflow_has_active_run(repo: str, workflow: str, token: str | None) -> bool
     )
     payload = _request_json(runs_url, token)
     active_statuses = {"queued", "in_progress", "waiting", "requested", "pending"}
-    return any(run.get("status") in active_statuses for run in payload.get("workflow_runs", []))
+    return any(run.get("status") in active_statuses for run in payload.get("workflow_runs") or [])
 
 
 def write_github_output(path: str | None, **values: str) -> None:

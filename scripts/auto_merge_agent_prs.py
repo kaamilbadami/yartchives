@@ -1233,7 +1233,7 @@ def main() -> int:
         runs = gh_json(
             "api",
             quality_runs_api_path(repo, head_sha),
-        ).get("workflow_runs", [])
+        ).get("workflow_runs") or []
         generated = generated_artifact_file_paths(files)
         head_ref = str((pr.get("head") or {}).get("ref") or "")
 
