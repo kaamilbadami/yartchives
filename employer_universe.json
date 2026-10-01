@@ -5520,7 +5520,7 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-25T01:00:54Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
         "last_attempt_at": "2026-09-25T01:00:54Z",
         "evidence": [
           {
@@ -5795,6 +5795,11 @@
               "linked from employer site"
             ],
             "score": 4
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Oracle endpoint retired (redirected to 404): https://careers.americanexpress.com/errors/404",
+            "invalidated_at": "2026-09-30T23:53:16Z"
           }
         ]
       },

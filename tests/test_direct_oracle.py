@@ -286,7 +286,7 @@ class DirectOracleTests(unittest.TestCase):
         self.assertEqual(jobs[0]["oracle_job_id"], "10")
         self.assertEqual(session.calls[-1], source["api_urls"][1])
 
-    def test_fetch_treats_200_ok_redirects_to_oracle_errors_404_as_structural_404(self):
+    def test_fetch_treats_200_ok_redirects_to_oracle_errors_404_as_endpoint_retired(self):
         source = {
             "key": "auto-oracle-example",
             "name": "Example (resolved Oracle)",
@@ -320,11 +320,40 @@ class DirectOracleTests(unittest.TestCase):
                 return Response()
 
         session = Session()
-        with self.assertRaises(mod.StructuralSourceError) as raised:
+        with self.assertRaises(mod.EndpointRetiredError) as raised:
             mod.fetch_source(session, source, datetime(2026, 9, 17, tzinfo=timezone.utc))
 
-        self.assertIn("404 Client Error", str(raised.exception))
-        self.assertIn(404, raised.exception.status_codes)
+        self.assertIn("Oracle endpoint retired (redirected to 404): https://egug.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/errors/404", str(raised.exception))
+
+    def test_enrich_retires_source_and_invalidates_resolution_on_endpoint_retired(self):
+        employer = {
+            "id": "amex",
+            "name": "American Express",
+            "careers_url": "https://careers.example.com/en/sites/CX_1",
+            "provider": {"family": "oracle", "status": "resolved"},
+            "careers_resolution": {"status": "resolved", "resolved_at": "2026-09-17T19:00:00Z"},
+        }
+        universe = {"employers": [employer]}
+
+        doc = {}
+        old_doc = {}
+
+        def fetch_mock(*args, **kwargs):
+            raise mod.EndpointRetiredError("mock retired error")
+
+        with mock.patch.object(mod, "fetch_source", side_effect=fetch_mock):
+            with mock.patch.object(mod, "invalidate_resolution") as invalidate_mock:
+                doc = mod.enrich(doc, old_doc, universe, mock.Mock(), datetime(2026, 9, 17, tzinfo=timezone.utc))
+
+        invalidate_mock.assert_called_once_with(
+            employer,
+            "EndpointRetiredError: mock retired error",
+        )
+        source_key = "auto-oracle-amex-cx_1"
+        self.assertIn(source_key, doc["sources"])
+        self.assertEqual(doc["sources"][source_key]["status"], "retired")
+        self.assertEqual(doc["sources"][source_key]["count"], 0)
+        self.assertIn("EndpointRetiredError: mock retired error", doc["sources"][source_key]["error"])
 
 
 if __name__ == "__main__":
