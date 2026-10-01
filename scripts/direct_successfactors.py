@@ -27,6 +27,7 @@ if str(SCRIPT_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPT_DIR))
 
 import build_feed as bf  # noqa: E402
+from employer_resolution_lifecycle import invalidate_resolution  # noqa: E402
 from direct_ct_workday import (  # noqa: E402
     carry_failed_source,
     is_cs_relevant_title,
@@ -300,6 +301,12 @@ def enrich(
                 "auto_discovered": True,
                 "error": f"StructuralSourceError: {exc}",
             }
+            employer_id = source.get("employer_id")
+            if employer_id:
+                for employer in universe.get("employers", []):
+                    if isinstance(employer, dict) and employer.get("id") == employer_id:
+                        invalidate_resolution(employer, f"StructuralSourceError: {exc}")
+                        break
             print(f"{source['name']}: QUARANTINED (structural source error): {exc}", file=sys.stderr)
         except Exception as exc:
             health[source["key"]] = {
