@@ -186,7 +186,20 @@ def fetch_workday_source(
                     "offset": offset,
                     "searchText": term,
                 }
-                response = s.post(source["api_url"], json=payload, timeout=TIMEOUT)
+                api_url = source["api_url"]
+                response = s.post(api_url, json=payload, timeout=TIMEOUT)
+                if response.status_code in (400, 422):
+                    match = re.search(r'/wday/cxs/([^/]+)/', api_url)
+                    if match:
+                        tenant = match.group(1)
+                        if "-" in tenant:
+                            fallback_tenant = tenant.replace("-", "_")
+                            fallback_url = api_url.replace(f"/wday/cxs/{tenant}/", f"/wday/cxs/{fallback_tenant}/")
+                            fallback_response = s.post(fallback_url, json=payload, timeout=TIMEOUT)
+                            if fallback_response.status_code == 200:
+                                response = fallback_response
+                                source["api_url"] = fallback_url
+
                 response.raise_for_status()
                 data = response.json()
                 postings = data.get("jobPostings") or []

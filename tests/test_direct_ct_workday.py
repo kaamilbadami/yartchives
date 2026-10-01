@@ -10,8 +10,9 @@ spec.loader.exec_module(mod)
 
 
 class FakeResponse:
-    def __init__(self, payload):
+    def __init__(self, payload, status_code=200):
         self._payload = payload
+        self.status_code = status_code
 
     def raise_for_status(self):
         return None
@@ -160,6 +161,54 @@ class DirectWorkdayTests(unittest.TestCase):
         self.assertEqual(jobs[0]["title"], "Software Engineering Intern - Summer 2027")
 
 
+
+    def test_fallback_retry_with_underscores_on_structural_failure(self):
+        ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
+        source = dict(self.source)
+        source["api_url"] = "https://osv-cci.wd1.myworkdayjobs.com/wday/cxs/osv-cci/CCICareers/jobs"
+
+        class FallbackSession:
+            def __init__(self):
+                self.calls = []
+
+            def post(self, url, json=None, timeout=None):
+                self.calls.append(url)
+                if url == "https://osv-cci.wd1.myworkdayjobs.com/wday/cxs/osv-cci/CCICareers/jobs":
+                    response = type("Response", (), {"status_code": 422})()
+                    def raise_err(*args, **kwargs):
+                        raise mod.requests.HTTPError("422 Client Error", response=response)
+                    response.raise_for_status = raise_err
+                    return response
+                elif url == "https://osv-cci.wd1.myworkdayjobs.com/wday/cxs/osv_cci/CCICareers/jobs":
+                    mock_json = {
+                        "jobPostings": [
+                            {
+                                "title": "Software Engineering Intern - Summer 2027",
+                                "locationsText": "Stamford, CT",
+                                "externalPath": "/job/Stamford-CT/Software-Engineering-Intern_R1",
+                                "postedOn": "Posted 3 Days Ago",
+                            }
+                        ],
+                        "total": 1,
+                    }
+                    response = type("Response", (), {"status_code": 200, "json": lambda *args, **kwargs: mock_json})()
+                    def pass_err(*args, **kwargs):
+                        pass
+                    response.raise_for_status = pass_err
+                    return response
+                raise ValueError(f"unexpected url: {url}")
+
+        session = FallbackSession()
+        jobs = mod.fetch_workday_source(session, source, ref)
+        self.assertEqual(len(jobs), 1)
+        self.assertEqual(jobs[0]["title"], "Software Engineering Intern - Summer 2027")
+        self.assertEqual(
+            session.calls,
+            [
+                "https://osv-cci.wd1.myworkdayjobs.com/wday/cxs/osv-cci/CCICareers/jobs",
+                "https://osv-cci.wd1.myworkdayjobs.com/wday/cxs/osv_cci/CCICareers/jobs"
+            ]
+        )
 
     def test_all_structural_422_failures_raise_quarantinable_error(self):
         ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
