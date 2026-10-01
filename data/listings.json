@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-30T23:22:22.613132Z",
+  "generated_at": "2026-10-01T01:18:19.905387Z",
   "content_hash": "e16fc8fa12fcefbefc7468e269271ef24b1827ad027a328d3f90545f43ea7f43",
   "jobs": [
     {
@@ -282803,6 +282803,174 @@
       "education_level": "unspecified",
       "opportunity_type": "internship",
       "link_kind": "direct"
+    },
+    {
+      "company": "Amtrak",
+      "title": "Spring 2027 - Software Engineering Intern - 90413033 - Washington",
+      "location": "Washington, DC, US",
+      "url": "https://careers.amtrak.com/job/Washington-Spring-2027-Software-Engineering-Intern-90413033-Washington-DC-20002/1424849200",
+      "posted_raw": "Tue Sep 29 07:00:00 UTC 2026",
+      "posted_at": "2026-09-29T07:00:00Z",
+      "posted_date_source_key": "auto-successfactors-amtrak",
+      "posted_date_source_name": "Amtrak (resolved SuccessFactors)",
+      "posted_date_provenance": "authoritative_employer",
+      "posted_date_observations": [
+        {
+          "source_key": "auto-successfactors-amtrak",
+          "source_name": "Amtrak (resolved SuccessFactors)",
+          "posted_raw": "Tue Sep 29 07:00:00 UTC 2026",
+          "posted_at": "2026-09-29T07:00:00Z",
+          "provenance": "authoritative_employer"
+        }
+      ],
+      "states": [
+        "DC"
+      ],
+      "term": "Spring 2027",
+      "profiles": [
+        "cs"
+      ],
+      "direct_employer": true,
+      "employer_id": "amtrak",
+      "successfactors_job_id": "2027",
+      "source_keys": [
+        "auto-successfactors-amtrak"
+      ],
+      "source_names": [
+        "Amtrak (resolved SuccessFactors)"
+      ],
+      "source_urls": [
+        "https://careers.amtrak.com/careers"
+      ],
+      "id": "715c3c8332038c4e",
+      "first_seen": "2026-10-01T01:10:26.114083Z",
+      "last_seen": "2026-10-01T01:10:26.114083Z"
+    },
+    {
+      "company": "Amtrak",
+      "title": "Fall 2026/Spring 2027 - Software Engineering Intern - 90413037 - Washington",
+      "location": "Washington, DC, US",
+      "url": "https://careers.amtrak.com/job/Washington-Fall-2026Spring-2027-Software-Engineering-Intern-90413037-Washington-DC-20001/1425042000",
+      "posted_raw": "Tue Sep 29 07:00:00 UTC 2026",
+      "posted_at": "2026-09-29T07:00:00Z",
+      "posted_date_source_key": "auto-successfactors-amtrak",
+      "posted_date_source_name": "Amtrak (resolved SuccessFactors)",
+      "posted_date_provenance": "authoritative_employer",
+      "posted_date_observations": [
+        {
+          "source_key": "auto-successfactors-amtrak",
+          "source_name": "Amtrak (resolved SuccessFactors)",
+          "posted_raw": "Tue Sep 29 07:00:00 UTC 2026",
+          "posted_at": "2026-09-29T07:00:00Z",
+          "provenance": "authoritative_employer"
+        }
+      ],
+      "states": [
+        "DC"
+      ],
+      "term": "Spring 2027",
+      "profiles": [
+        "cs"
+      ],
+      "direct_employer": true,
+      "employer_id": "amtrak",
+      "successfactors_job_id": "2027",
+      "source_keys": [
+        "auto-successfactors-amtrak"
+      ],
+      "source_names": [
+        "Amtrak (resolved SuccessFactors)"
+      ],
+      "source_urls": [
+        "https://careers.amtrak.com/careers"
+      ],
+      "id": "901f0edb29380db4",
+      "first_seen": "2026-10-01T01:10:26.114083Z",
+      "last_seen": "2026-10-01T01:10:26.114083Z"
+    },
+    {
+      "company": "Amtrak",
+      "title": "Fall 2026/Spring 2027 - IT and Ops Engineering Intern - 90413021 - Philadelphia",
+      "location": "Philadelphia, PA, US",
+      "url": "https://careers.amtrak.com/job/Philadelphia-Fall-2026Spring-2027-IT-and-Ops-Engineering-Intern-90413021-Philadelphia-PA-19104/1424996900",
+      "posted_raw": "Tue Sep 29 07:00:00 UTC 2026",
+      "posted_at": "2026-09-29T07:00:00Z",
+      "posted_date_source_key": "auto-successfactors-amtrak",
+      "posted_date_source_name": "Amtrak (resolved SuccessFactors)",
+      "posted_date_provenance": "authoritative_employer",
+      "posted_date_observations": [
+        {
+          "source_key": "auto-successfactors-amtrak",
+          "source_name": "Amtrak (resolved SuccessFactors)",
+          "posted_raw": "Tue Sep 29 07:00:00 UTC 2026",
+          "posted_at": "2026-09-29T07:00:00Z",
+          "provenance": "authoritative_employer"
+        }
+      ],
+      "states": [
+        "PA"
+      ],
+      "term": "Spring 2027",
+      "profiles": [
+        "cs"
+      ],
+      "direct_employer": true,
+      "employer_id": "amtrak",
+      "successfactors_job_id": "2027",
+      "source_keys": [
+        "auto-successfactors-amtrak"
+      ],
+      "source_names": [
+        "Amtrak (resolved SuccessFactors)"
+      ],
+      "source_urls": [
+        "https://careers.amtrak.com/careers"
+      ],
+      "id": "64fc95c239bd46bc",
+      "first_seen": "2026-10-01T01:10:26.114083Z",
+      "last_seen": "2026-10-01T01:10:26.114083Z"
+    },
+    {
+      "company": "Amtrak",
+      "title": "Fall 2026/Spring 2027 - Database Analyst Co-op - 90243031 - Washington",
+      "location": "Washington, DC, US",
+      "url": "https://careers.amtrak.com/job/Washington-Fall-2026Spring-2027-Database-Analyst-Co-op-90243031-Washington-DC-20001/1432437400",
+      "posted_raw": "Tue Sep 22 00:00:00 UTC 2026",
+      "posted_at": "2026-09-22T00:00:00Z",
+      "posted_date_source_key": "auto-successfactors-amtrak",
+      "posted_date_source_name": "Amtrak (resolved SuccessFactors)",
+      "posted_date_provenance": "authoritative_employer",
+      "posted_date_observations": [
+        {
+          "source_key": "auto-successfactors-amtrak",
+          "source_name": "Amtrak (resolved SuccessFactors)",
+          "posted_raw": "Tue Sep 22 00:00:00 UTC 2026",
+          "posted_at": "2026-09-22T00:00:00Z",
+          "provenance": "authoritative_employer"
+        }
+      ],
+      "states": [
+        "DC"
+      ],
+      "term": "Spring 2027",
+      "profiles": [
+        "cs"
+      ],
+      "direct_employer": true,
+      "employer_id": "amtrak",
+      "successfactors_job_id": "2027",
+      "source_keys": [
+        "auto-successfactors-amtrak"
+      ],
+      "source_names": [
+        "Amtrak (resolved SuccessFactors)"
+      ],
+      "source_urls": [
+        "https://careers.amtrak.com/careers"
+      ],
+      "id": "e3585d3bb23a4fd2",
+      "first_seen": "2026-10-01T01:10:26.114083Z",
+      "last_seen": "2026-10-01T01:10:26.114083Z"
     }
   ],
   "sources": {
@@ -284733,6 +284901,50 @@
       "status": "healthy",
       "count": 4,
       "name": "BNY (resolved Oracle)",
+      "direct": true,
+      "auto_discovered": true
+    },
+    "auto-successfactors-amtrak": {
+      "status": "healthy",
+      "count": 4,
+      "name": "Amtrak (resolved SuccessFactors)",
+      "direct": true,
+      "auto_discovered": true
+    },
+    "auto-successfactors-capgemini": {
+      "status": "retired",
+      "count": 0,
+      "name": "Capgemini (resolved SuccessFactors)",
+      "direct": true,
+      "auto_discovered": true,
+      "error": "EndpointRetiredError: sitemap fetch failed with 404"
+    },
+    "auto-successfactors-edison-international": {
+      "status": "retired",
+      "count": 0,
+      "name": "Edison International (resolved SuccessFactors)",
+      "direct": true,
+      "auto_discovered": true,
+      "error": "EndpointRetiredError: sitemap fetch failed with 404"
+    },
+    "auto-successfactors-hii-mission-technologies": {
+      "status": "healthy",
+      "count": 0,
+      "name": "HII Mission Technologies (resolved SuccessFactors)",
+      "direct": true,
+      "auto_discovered": true
+    },
+    "auto-successfactors-huntington-ingalls-industries": {
+      "status": "healthy",
+      "count": 0,
+      "name": "Huntington Ingalls Industries (resolved SuccessFactors)",
+      "direct": true,
+      "auto_discovered": true
+    },
+    "auto-successfactors-leonardo-drs": {
+      "status": "healthy",
+      "count": 0,
+      "name": "Leonardo DRS (resolved SuccessFactors)",
       "direct": true,
       "auto_discovered": true
     }

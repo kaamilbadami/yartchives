@@ -42,7 +42,12 @@ DEFAULT_FEED = ROOT / "data" / "listings.json"
 DEFAULT_UNIVERSE = ROOT / "employer_universe.json"
 TIMEOUT = 25
 MAX_RESULTS_PER_SOURCE = 500
-STRUCTURAL_SOURCE_STATUSES = {403, 404, 406, 410, 422}
+STRUCTURAL_SOURCE_STATUSES = {403, 406, 422}
+
+
+class EndpointRetiredError(RuntimeError):
+    """An auto-discovered provider endpoint has been explicitly retired."""
+    pass
 
 
 class StructuralSourceError(RuntimeError):
@@ -144,6 +149,8 @@ def fetch_source(client: requests.Session, source: dict[str, Any], reference: da
         response.raise_for_status()
     except requests.RequestException as exc:
         status = getattr(exc.response, "status_code", None)
+        if status in {404, 410}:
+             raise EndpointRetiredError(f"sitemap fetch failed with {status}")
         if status in STRUCTURAL_SOURCE_STATUSES:
              raise StructuralSourceError(f"sitemap fetch failed with {status}", [status])
         raise RuntimeError(f"sitemap fetch failed: {exc}")
@@ -292,6 +299,22 @@ def enrich(
                 "auto_discovered": True,
             }
             print(f"{source['name']}: {len(direct_jobs)} direct US CS-relevant listing(s)")
+        except EndpointRetiredError as exc:
+            health[source["key"]] = {
+                "status": "retired",
+                "count": 0,
+                "name": source["name"],
+                "direct": True,
+                "auto_discovered": True,
+                "error": f"EndpointRetiredError: {exc}",
+            }
+            employer_id = source.get("employer_id")
+            if employer_id:
+                for employer in universe.get("employers", []):
+                    if isinstance(employer, dict) and employer.get("id") == employer_id:
+                        invalidate_resolution(employer, f"EndpointRetiredError: {exc}")
+                        break
+            print(f"{source['name']}: RETIRED (endpoint permanently unavailable): {exc}", file=sys.stderr)
         except StructuralSourceError as exc:
             health[source["key"]] = {
                 "status": "quarantined",
