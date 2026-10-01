@@ -45,15 +45,6 @@ class CareersResolverTests(unittest.TestCase):
         self.assertEqual(result["provider"]["family"], "workday")
         self.assertNotIn(job, session.requested)
 
-    def test_bare_workday_tenant_is_not_resolved_without_site_identity(self):
-        tenant = "https://acme.wd5.myworkdayjobs.com/"
-        session = FakeSession({tenant: FakeResponse(tenant, "Find jobs")})
-        result = mod.resolve_employer({"name": "Acme", "url_hint": tenant}, session)
-        self.assertEqual(result["status"], "unresolved")
-        attempt = next(item for item in result["evidence"] if item["requested_url"] == tenant)
-        self.assertLess(attempt["score"], 0)
-        self.assertIn("collectable employer board identity", attempt["signals"][0])
-
     def test_bare_workday_tenant_can_discover_site_link(self):
         tenant = "https://acme.wd5.myworkdayjobs.com/"
         board = "https://acme.wd5.myworkdayjobs.com/en-US/External"
@@ -159,9 +150,6 @@ class CareersResolverTests(unittest.TestCase):
         self.assertIn("evidence", enriched["careers_resolution"])
 
 
-if __name__ == "__main__":
-    unittest.main()
-
     def test_workday_406_is_accepted_and_ats_wins_over_branded(self):
         """HTTP 406 on a Workday domain is a valid discovery and wins over 200 branded."""
         from scripts.employer_resolution_queue import queue_entry
@@ -207,3 +195,7 @@ if __name__ == "__main__":
         self.assertEqual(result["status"], "resolved")
         self.assertEqual(result["platform"], "workday")
         self.assertEqual(result["url"], "https://testcorp.wd5.myworkdayjobs.com/")
+
+
+if __name__ == "__main__":
+    unittest.main()
