@@ -325,6 +325,42 @@ class DirectOracleTests(unittest.TestCase):
 
         self.assertIn("Oracle endpoint retired (redirected to 404): https://egug.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/errors/404", str(raised.exception))
 
+    def test_fetch_treats_404_response_to_oracle_errors_404_as_endpoint_retired(self):
+        source = {
+            "key": "auto-oracle-example",
+            "name": "Example (resolved Oracle)",
+            "company": "Example",
+            "site_number": "CX_1",
+            "homepage": "https://careers.example.com/en/sites/CX_1",
+            "api_url": "https://careers.example.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions",
+        }
+
+        class Response:
+            def __init__(self):
+                self.ok = False
+                self.status_code = 404
+                self.history = []
+                self.url = "https://egug.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/errors/404"
+                self.headers = {"Content-Type": "text/html"}
+
+            def raise_for_status(self):
+                if self.status_code >= 400:
+                    raise mod.requests.HTTPError(f"{self.status_code} Client Error: OK for url: {self.url}", response=self)
+
+        class Session:
+            def __init__(self):
+                self.calls = []
+
+            def get(self, url, **kwargs):
+                self.calls.append(url)
+                return Response()
+
+        session = Session()
+        with self.assertRaises(mod.EndpointRetiredError) as raised:
+            mod.fetch_source(session, source, datetime(2026, 9, 17, tzinfo=timezone.utc))
+
+        self.assertIn("Oracle endpoint retired (redirected to 404): https://egug.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/errors/404", str(raised.exception))
+
     def test_enrich_retires_source_and_invalidates_resolution_on_endpoint_retired(self):
         employer = {
             "id": "amex",
