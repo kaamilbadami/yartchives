@@ -38,6 +38,7 @@ def find_all_gaps(universe: dict[str, Any]) -> list[tuple[str, int, list[dict[st
             benchmark_employers.append(e)
 
     no_hint = []
+    unknown_provider = []
     unresolved_families = defaultdict(list)
 
     for e in benchmark_employers:
@@ -55,8 +56,15 @@ def find_all_gaps(universe: dict[str, Any]) -> list[tuple[str, int, list[dict[st
                     providers.add(p_info.get("family", "unknown"))
 
         if providers:
-            for p in providers:
-                unresolved_families[p].append(e)
+            known_providers = {
+                p for p in providers
+                if p not in {"unknown", "unknown/none", "custom_unknown"}
+            }
+            if known_providers:
+                for p in known_providers:
+                    unresolved_families[p].append(e)
+            else:
+                unknown_provider.append(e)
         else:
             no_hint.append(e)
 
@@ -64,9 +72,16 @@ def find_all_gaps(universe: dict[str, Any]) -> list[tuple[str, int, list[dict[st
     if no_hint:
         gaps.append(("Discovery gap (No domain hint)", len(no_hint), no_hint, "discovery"))
 
+    if unknown_provider:
+        gaps.append((
+            "Unsupported ATS / Unknown provider family",
+            len(unknown_provider),
+            unknown_provider,
+            "unknown-provider",
+        ))
+
     for f, emps in unresolved_families.items():
-        if f not in {"unknown", "unknown/none", "custom_unknown"}:
-            gaps.append((f"ATS Family integration ({f})", len(emps), emps, f"ats-{f}"))
+        gaps.append((f"ATS Family integration ({f})", len(emps), emps, f"ats-{f}"))
 
     gaps.sort(key=lambda x: -x[1])
     return gaps
