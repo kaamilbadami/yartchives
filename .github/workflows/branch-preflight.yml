@@ -114,40 +114,13 @@ jobs:
                 '<!-- trusted-preflight-auto-pr -->' \
                 "Validated by Branch preflight for `$GITHUB_SHA`; authoritative Quality checks are dispatched for this exact head.")"
               if [ -n "$existing_body" ]; then
-                updated_body="$(printf '%s\n\n%s\n' "$existing_body" "$trusted_note")"
+                updated_body="$(printf '%s\\n\\n%s' "$existing_body" "$trusted_note")"
               else
                 updated_body="$trusted_note"
               fi
               gh pr edit "$existing" \
                 --repo "$GITHUB_REPOSITORY" \
                 --body "$updated_body"
-            fi
-            gh workflow run quality.yml \
-              --repo "$GITHUB_REPOSITORY" \
-              --ref "$GITHUB_REF_NAME" \
-              -f pr_recovery=true
-            exit 0
-          fi
-
-          title="$(git log -1 --pretty=%s)"
-          body="<!-- trusted-preflight-auto-pr -->
-          Auto-created after targeted Branch preflight passed for \`$GITHUB_SHA\`.
-
-          Full Quality checks are dispatched explicitly because PRs created by GITHUB_TOKEN do not recursively trigger pull_request workflows."
-
-          gh pr create \
-            --repo "$GITHUB_REPOSITORY" \
-            --base main \
-            --head "$GITHUB_REF_NAME" \
-            --title "$title" \
-            --body "$body"
-
-          gh workflow run quality.yml \
-            --repo "$GITHUB_REPOSITORY" \
-            --ref "$GITHUB_REF_NAME" \
-            -f pr_recovery=true
-
-\n\n'}${trusted_note}"
             fi
             gh workflow run quality.yml \
               --repo "$GITHUB_REPOSITORY" \
