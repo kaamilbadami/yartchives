@@ -29,7 +29,7 @@ class DirectSuccessFactorsTests(unittest.TestCase):
         old_doc = {}
 
         def fetch_mock(*args, **kwargs):
-            raise mod.StructuralSourceError("mock error", [404])
+            raise mod.StructuralSourceError("mock error", [406])
 
         with mock.patch.object(mod, "fetch_source", side_effect=fetch_mock):
             with mock.patch.object(mod, "invalidate_resolution") as invalidate_mock:
@@ -39,6 +39,32 @@ class DirectSuccessFactorsTests(unittest.TestCase):
             employer, "StructuralSourceError: mock error"
         )
         self.assertEqual(doc["sources"]["auto-successfactors-capgemini"]["status"], "quarantined")
+
+
+    def test_enrich_invalidates_resolution_on_endpoint_retired(self):
+        employer = {
+            "id": "capgemini",
+            "name": "Capgemini",
+            "careers_url": "https://careers.capgemini.com",
+            "provider": {"family": "successfactors", "status": "resolved"},
+            "careers_resolution": {"status": "resolved", "resolved_at": "2026-09-17T19:00:00Z"},
+        }
+        universe = {"employers": [employer]}
+
+        doc = {}
+        old_doc = {}
+
+        def fetch_mock(*args, **kwargs):
+            raise mod.EndpointRetiredError("mock retired error")
+
+        with mock.patch.object(mod, "fetch_source", side_effect=fetch_mock):
+            with mock.patch.object(mod, "invalidate_resolution") as invalidate_mock:
+                doc = mod.enrich(doc, old_doc, universe, mock.Mock(), datetime(2026, 9, 17, tzinfo=timezone.utc))
+
+        invalidate_mock.assert_called_once_with(
+            employer, "EndpointRetiredError: mock retired error"
+        )
+        self.assertEqual(doc["sources"]["auto-successfactors-capgemini"]["status"], "retired")
 
 if __name__ == "__main__":
     unittest.main()

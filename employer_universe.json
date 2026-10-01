@@ -5800,6 +5800,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Oracle endpoint retired (redirected to 404): https://careers.americanexpress.com/errors/404",
             "invalidated_at": "2026-09-30T23:53:16Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Oracle endpoint retired (redirected to 404): https://careers.americanexpress.com/errors/404",
+            "invalidated_at": "2026-10-01T01:22:24Z"
           }
         ]
       },
@@ -13085,7 +13090,7 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-17T23:48:05Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
         "last_attempt_at": "2026-09-17T23:48:05Z",
         "evidence": [
           {
@@ -13167,6 +13172,11 @@
               "linked from employer site"
             ],
             "score": 14
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-01T01:22:24Z"
           }
         ]
       },
@@ -18910,7 +18920,7 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-17T23:38:23Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
         "last_attempt_at": "2026-09-17T23:38:23Z",
         "evidence": [
           {
@@ -18988,6 +18998,11 @@
               "linked from employer site"
             ],
             "score": 14
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-01T01:22:25Z"
           }
         ]
       },
