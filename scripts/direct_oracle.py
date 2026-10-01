@@ -238,7 +238,7 @@ def _fetch_oracle_page(client: requests.Session, source: dict[str, Any], offset:
                 headers={"Accept": "application/json", "User-Agent": bf.USER_AGENT},
                 timeout=TIMEOUT,
             )
-            if response.history and re.search(r"/errors?/404\b", response.url, re.I):
+            if re.search(r"/errors?/404\b", response.url, re.I):
                 raise EndpointRetiredError(f"Oracle endpoint retired (redirected to 404): {response.url}")
             response.raise_for_status()
             content_type = str(getattr(response, "headers", {}).get("Content-Type", "") or "").casefold()
