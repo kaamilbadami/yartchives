@@ -107,11 +107,6 @@ def has_provider_collection_identity(url: str, family: str | None = None) -> boo
         return False
     parsed = urlparse(url)
     family = family or provider_for(url)["family"]
-    if family == "workday":
-        parts = [part for part in parsed.path.split("/") if part]
-        if parts and re.fullmatch(r"[a-z]{2}(?:-[A-Za-z]{2})?", parts[0]):
-            parts = parts[1:]
-        return bool(parts)
     return True
 
 
