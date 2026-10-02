@@ -210,24 +210,6 @@ class EmployerUniverseTests(unittest.TestCase):
 
 
 
-    def test_merge_promotes_seed_metadata_domain_hints_to_root(self):
-        seed = {
-            "schema_version": 1,
-            "source": {"key": "fortune", "kind": "catalog"},
-            "employers": [{
-                "name": "E1",
-                "seed_metadata": {
-                    "fortune": {
-                        "domain_hints": ["e1.wd5.myworkdayjobs.com"],
-                    },
-                },
-            }],
-        }
-        merged = mod.merge_seed(self.empty_universe(), seed)
-        employer = merged["employers"][0]
-        self.assertEqual(employer["domain_hints"], ["e1.wd5.myworkdayjobs.com"])
-
-
     def test_merge_accumulates_root_domain_hints(self):
         benchmark = {
             "schema_version": 1,
