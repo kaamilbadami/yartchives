@@ -195,12 +195,21 @@ def _request_count(resolution: dict[str, Any]) -> int:
     )
 
 
+def _fresh_failure(employer: dict[str, Any], now: datetime, ttl_days: int) -> bool:
+    resolution = employer.get("careers_resolution") or {}
+    if resolution.get("status") in {"resolved", "provider_resolved", "ambiguous"}:
+        return False
+    attempted_at = _parse_timestamp(resolution.get("last_attempt_at"))
+    return bool(attempted_at and now - attempted_at < timedelta(days=ttl_days))
+
 def _candidate_rows(universe: dict[str, Any], now: datetime, ttl_days: int) -> list[tuple[dict[str, Any], dict[str, Any]]]:
     rows: list[tuple[dict[str, Any], dict[str, Any]]] = []
     for employer in universe.get("employers", []):
         if _fresh_success(employer, now, ttl_days):
             continue
         if _fresh_provider_resolution(employer, now, ttl_days) and not _provider_resolution_needs_completion(employer):
+            continue
+        if _fresh_failure(employer, now, ttl_days):
             continue
         entry = queue_entry(employer)
         if entry["resolution_readiness"] != "ready":

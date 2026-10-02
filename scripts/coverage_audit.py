@@ -59,6 +59,13 @@ ATS_HINTS = (
     "icims.com",
     "jobvite.com",
     "oraclecloud.com",
+    "sapsf.com",
+    "sapsf.eu",
+    "taleo.net",
+    "eightfold.ai",
+    "avature.net",
+    "phenompeople.com",
+    "brassring.com",
 )
 STATE_NAMES = {
     "alabama": "al", "alaska": "ak", "arizona": "az", "arkansas": "ar",
