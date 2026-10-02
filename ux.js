@@ -64,6 +64,7 @@
   }
 
   let uxState = loadUxState();
+  let careerAreaCounts = null;
 
   function saveUxState() {
     localStorage.setItem(UX_KEY, JSON.stringify({ areas: uxState.areas }));
@@ -112,6 +113,11 @@
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = label;
+      if (careerAreaCounts) {
+        const count = careerAreaCounts.get(key) || 0;
+        button.dataset.count = count.toLocaleString();
+        button.setAttribute("aria-label", `${label}: ${count.toLocaleString()} matches with current filters`);
+      }
       const active = selected.has(key);
       button.classList.toggle("active", active);
       button.setAttribute("aria-pressed", String(active));
@@ -423,10 +429,17 @@
   applyFilters = async function () {
     await priorApplyFilters();
 
+    const baseFiltered = filtered;
+    careerAreaCounts = new Map(CAREER_AREAS.map(([key]) => [
+      key,
+      baseFiltered.filter(job => matchesCareerArea(job, key)).length,
+    ]));
+
     const activeAreas = uxState.areas.length
       ? uxState.areas
       : CAREER_AREAS.map(([key]) => key);
-    filtered = filtered.filter(job => activeAreas.some(area => matchesCareerArea(job, area)));
+    filtered = baseFiltered.filter(job => activeAreas.some(area => matchesCareerArea(job, area)));
+    renderCareerAreas();
     sortFiltered(filtered, Boolean(currentZip()));
     renderJobs();
     updateStats();
