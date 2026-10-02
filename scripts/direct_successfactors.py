@@ -68,7 +68,7 @@ def _clean(value: Any) -> str:
 
 def _successfactors_source(employer: dict[str, Any]) -> dict[str, Any] | None:
     provider = employer.get("provider") or {}
-    if provider.get("family") != "successfactors":
+    if provider.get("family") != "successfactors" or provider.get("status") != "resolved":
         return None
     resolution = employer.get("careers_resolution") or {}
     if resolution.get("status") != "resolved":
