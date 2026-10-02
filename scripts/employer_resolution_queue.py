@@ -82,6 +82,10 @@ def _metadata_rows(employer: dict[str, Any]) -> list[tuple[str, dict[str, Any]]]
 
 def queue_entry(employer: dict[str, Any]) -> dict[str, Any]:
     domains: set[str] = set()
+    for hint in (employer.get("domain_hints") or []):
+        val = str(hint).strip()
+        if val:
+            domains.add(val)
     states: set[str] = set()
     evidence_count = 0
     authoritative_count = 0
