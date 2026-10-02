@@ -5835,6 +5835,16 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Oracle endpoint retired (redirected to 404): https://careers.americanexpress.com/errors/404",
             "invalidated_at": "2026-10-02T03:18:08Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Oracle endpoint retired (redirected to 404): https://careers.americanexpress.com/errors/404",
+            "invalidated_at": "2026-10-02T14:21:59Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Oracle endpoint retired (redirected to 404): https://careers.americanexpress.com/errors/404",
+            "invalidated_at": "2026-10-02T14:23:30Z"
           }
         ]
       },
@@ -13237,6 +13247,16 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-02T03:18:08Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-02T14:21:57Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-02T14:23:38Z"
           }
         ]
       },
@@ -19093,6 +19113,16 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-02T03:18:08Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-02T14:21:58Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-02T14:23:39Z"
           }
         ]
       },
@@ -39057,7 +39087,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-09-22T05:46:09Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
         "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
@@ -39066,6 +39096,16 @@
             "domain_hint": "jobs.lever.co/spotify-studios",
             "ats_system": "Lever",
             "source_url": "https://withresumeai.com/ats-checker/spotify-studios"
+          },
+          {
+            "type": "invalidation",
+            "reason": "Lever board retired: 404",
+            "invalidated_at": "2026-10-02T14:21:56Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "Lever board retired: 404",
+            "invalidated_at": "2026-10-02T14:23:27Z"
           }
         ]
       }
@@ -43006,7 +43046,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-09-22T05:46:09Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
         "last_attempt_at": "2026-09-22T05:46:09Z",
         "evidence": [
           {
@@ -43015,6 +43055,16 @@
             "domain_hint": "jobs.lever.co/veeva-systems",
             "ats_system": "Lever",
             "source_url": "https://withresumeai.com/ats-checker/veeva-systems"
+          },
+          {
+            "type": "invalidation",
+            "reason": "Lever board retired: 404",
+            "invalidated_at": "2026-10-02T14:21:56Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "Lever board retired: 404",
+            "invalidated_at": "2026-10-02T14:23:27Z"
           }
         ]
       }
