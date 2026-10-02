@@ -66,5 +66,31 @@ class DirectSuccessFactorsTests(unittest.TestCase):
         )
         self.assertEqual(doc["sources"]["auto-successfactors-capgemini"]["status"], "retired")
 
+    def test_fetch_source_raises_endpoint_retired_on_404(self):
+        import requests
+        mock_response = mock.Mock()
+        mock_response.status_code = 404
+        mock_response.raise_for_status.side_effect = requests.RequestException(response=mock_response)
+
+        mock_client = mock.Mock()
+        mock_client.get.return_value = mock_response
+
+        with self.assertRaises(mod.EndpointRetiredError):
+            mod.fetch_source(mock_client, {"sitemap_url": "mock://url"}, mock.Mock())
+
+    def test_fetch_source_raises_structural_error_on_403(self):
+        import requests
+        mock_response = mock.Mock()
+        mock_response.status_code = 403
+        mock_response.raise_for_status.side_effect = requests.RequestException(response=mock_response)
+
+        mock_client = mock.Mock()
+        mock_client.get.return_value = mock_response
+
+        with self.assertRaises(mod.StructuralSourceError) as context:
+            mod.fetch_source(mock_client, {"sitemap_url": "mock://url"}, mock.Mock())
+
+        self.assertEqual(context.exception.status_codes, (403,))
+
 if __name__ == "__main__":
     unittest.main()
