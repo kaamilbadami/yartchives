@@ -51,8 +51,9 @@ class EmployerResolutionQueueTests(unittest.TestCase):
             },
         })]
 
+        universe["employers"][0]["domain_hints"] = ["discovered.acme.com"]
         row = mod.build_queue(universe)["employers"][0]
-        self.assertEqual(row["domain_hints"], ["careers.acme.com", "jobs.acme.com"])
+        self.assertEqual(row["domain_hints"], ["careers.acme.com", "discovered.acme.com", "jobs.acme.com"])
         self.assertEqual(row["states"], ["MD", "VA"])
         self.assertEqual(row["evidence_count"], 5)
         self.assertEqual(row["authoritative_evidence_count"], 3)
