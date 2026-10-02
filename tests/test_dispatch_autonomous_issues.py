@@ -3569,5 +3569,119 @@ class AutonomousDispatcherTests(unittest.TestCase):
             frozenset({"resource:area-fallback:coverage"}),
         )
 
+    def test_coverage_gap_provider_creates_highest_value_independent_issue(self):
+        candidates = [
+            {
+                "id": "ats-workday:provider-resolution",
+                "title": "Close Workday provider-resolution coverage gap",
+                "family": "workday",
+                "resources": ["ats-workday"],
+                "affected_employers": 12,
+                "evidence": "12 benchmark employers fingerprint as Workday.",
+            },
+            {
+                "id": "ats-greenhouse:provider-resolution",
+                "title": "Close Greenhouse provider-resolution coverage gap",
+                "family": "greenhouse",
+                "resources": ["ats-greenhouse"],
+                "affected_employers": 8,
+                "evidence": "8 benchmark employers fingerprint as Greenhouse.",
+            },
+        ]
+        calls = []
+
+        with mock.patch.object(mod, "load_coverage_gap_candidates", return_value=candidates):
+            with mock.patch.object(mod, "gh_run", side_effect=lambda *args: calls.append(args)):
+                created = mod._provider_coverage_gap("owner/repo", [], frozenset())
+
+        self.assertTrue(created)
+        self.assertEqual(len(calls), 1)
+        joined = " ".join(calls[0])
+        self.assertIn("Close Workday provider-resolution coverage gap", joined)
+        self.assertIn("resources: ats-workday", joined)
+        self.assertIn("<!-- coverage-gap: ats-workday:provider-resolution -->", joined)
+        self.assertIn("12 benchmark employers fingerprint as Workday.", joined)
+
+    def test_coverage_gap_provider_skips_resource_conflict_and_uses_next_gap(self):
+        candidates = [
+            {
+                "id": "ats-workday:provider-resolution",
+                "title": "Workday gap",
+                "family": "workday",
+                "resources": ["ats-workday"],
+                "affected_employers": 12,
+                "evidence": "Workday evidence",
+            },
+            {
+                "id": "ats-greenhouse:provider-resolution",
+                "title": "Greenhouse gap",
+                "family": "greenhouse",
+                "resources": ["ats-greenhouse"],
+                "affected_employers": 8,
+                "evidence": "Greenhouse evidence",
+            },
+        ]
+        calls = []
+
+        with mock.patch.object(mod, "load_coverage_gap_candidates", return_value=candidates):
+            with mock.patch.object(mod, "gh_run", side_effect=lambda *args: calls.append(args)):
+                created = mod._provider_coverage_gap(
+                    "owner/repo",
+                    [],
+                    frozenset({"resource:ats-workday"}),
+                )
+
+        self.assertTrue(created)
+        self.assertIn("Greenhouse gap", " ".join(calls[0]))
+        self.assertIn("resources: ats-greenhouse", " ".join(calls[0]))
+
+    def test_coverage_gap_provider_respects_wip_target(self):
+        issues = [
+            issue(
+                920 + idx,
+                f"Coverage {idx}",
+                body=task_body("P1", "coverage", resources=f"ats-family-{idx}"),
+                labels=("jules-session",),
+            )
+            for idx in range(mod.COVERAGE_WIP_TARGET)
+        ]
+
+        with mock.patch.object(
+            mod,
+            "load_coverage_gap_candidates",
+            side_effect=AssertionError("audit should not run at WIP target"),
+        ):
+            created = mod._provider_coverage_gap("owner/repo", issues, frozenset())
+
+        self.assertFalse(created)
+
+    def test_coverage_gap_provider_deduplicates_open_gap_identity(self):
+        existing = issue(
+            930,
+            "Existing Workday gap",
+            body=(
+                "<!-- coverage-gap: ats-workday:provider-resolution -->\n"
+                + task_body("P1", "coverage", resources="ats-workday")
+            ),
+        )
+        candidates = [
+            {
+                "id": "ats-workday:provider-resolution",
+                "title": "Workday gap",
+                "family": "workday",
+                "resources": ["ats-workday"],
+                "affected_employers": 12,
+                "evidence": "Workday evidence",
+            }
+        ]
+        calls = []
+
+        with mock.patch.object(mod, "load_coverage_gap_candidates", return_value=candidates):
+            with mock.patch.object(mod, "gh_run", side_effect=lambda *args: calls.append(args)):
+                created = mod._provider_coverage_gap("owner/repo", [existing], frozenset())
+
+        self.assertFalse(created)
+        self.assertEqual(calls, [])
+
 if __name__ == "__main__":
     unittest.main()
