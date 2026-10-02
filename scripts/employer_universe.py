@@ -167,14 +167,10 @@ def merge_seed(universe: dict[str, Any], seed: dict[str, Any]) -> dict[str, Any]
 
         merged_domain_hints = set(match.get("domain_hints") or [])
         merged_domain_hints.update(incoming.get("domain_hints") or [])
-
-        metadata = _seed_metadata(incoming)
-        if metadata:
-            merged_domain_hints.update(metadata.get("domain_hints") or [])
-
         if merged_domain_hints:
             match["domain_hints"] = sorted(merged_domain_hints)
 
+        metadata = _seed_metadata(incoming)
         seed_metadata = dict(match.get("seed_metadata") or {})
         if metadata:
             seed_metadata[source_key] = metadata
