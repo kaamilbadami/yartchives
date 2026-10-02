@@ -224,6 +224,20 @@ class DirectWorkdayTests(unittest.TestCase):
             mod.fetch_workday_source(StructuralFailureSession(), source, ref)
         self.assertEqual(raised.exception.status_codes, (422, 422))
 
+    def test_all_404_failures_raise_endpoint_retired_error(self):
+        ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
+        source = dict(self.source)
+        source["search_terms"] = ["intern", "student"]
+
+        class RetiredFailureSession:
+            def post(self, url, json=None, timeout=None):
+                response = type("Response", (), {"status_code": 404})()
+                raise mod.requests.HTTPError("404 Client Error", response=response)
+
+        with self.assertRaises(mod.EndpointRetiredError) as raised:
+            mod.fetch_workday_source(RetiredFailureSession(), source, ref)
+        self.assertEqual(raised.exception.status_codes, (404, 404))
+
     def test_structural_failure_is_recorded_as_quarantined_not_active_failure(self):
         ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
         source = dict(self.source)
@@ -253,7 +267,9 @@ class DirectWorkdayTests(unittest.TestCase):
         employer = {
             "id": "emp_123",
             "careers_resolution": {
-                "status": "resolved"
+                "status": "resolved",
+                "resolved_at": "2000-01-01T00:00:00Z",
+                "evidence": []
             }
         }
         universe = {"employers": [employer]}
@@ -265,6 +281,36 @@ class DirectWorkdayTests(unittest.TestCase):
         self.assertEqual(employer["careers_resolution"]["resolved_at"], "2000-01-01T00:00:00Z")
         self.assertEqual(employer["careers_resolution"]["evidence"][-1]["type"], "invalidation")
         self.assertIn("StructuralSourceError", employer["careers_resolution"]["evidence"][-1]["reason"])
+
+    def test_endpoint_retired_invalidates_employer_resolution_and_sets_retired(self):
+        ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
+        source = dict(self.source)
+        source["employer_id"] = "emp_123"
+
+        class RetiredFailureSession:
+            def post(self, url, json=None, timeout=None):
+                response = type("Response", (), {"status_code": 404})()
+                raise mod.requests.HTTPError("404 Client Error", response=response)
+
+        employer = {
+            "id": "emp_123",
+            "careers_resolution": {
+                "status": "resolved",
+                "resolved_at": "2000-01-01T00:00:00Z",
+                "evidence": []
+            }
+        }
+        universe = {"employers": [employer]}
+        doc = {"jobs": [], "sources": {}}
+
+        mod.enrich_direct_sources(doc, {"jobs": []}, [source], universe, RetiredFailureSession(), ref)
+
+        health = doc["sources"][source["key"]]
+        self.assertEqual(health["status"], "retired")
+        self.assertEqual(employer["careers_resolution"]["status"], "resolved")
+        self.assertEqual(employer["careers_resolution"]["resolved_at"], "2000-01-01T00:00:00Z")
+        self.assertEqual(employer["careers_resolution"]["evidence"][-1]["type"], "invalidation")
+        self.assertIn("EndpointRetiredError", employer["careers_resolution"]["evidence"][-1]["reason"])
 
 
     def test_direct_url_replaces_intermediary_url(self):
