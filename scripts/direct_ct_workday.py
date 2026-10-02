@@ -37,7 +37,15 @@ DEFAULT_SOURCES = ROOT / "direct_sources.json"
 TIMEOUT = 25
 WORKDAY_PAGE_SIZE = 20
 MAX_RESULTS_PER_QUERY = 500
-STRUCTURAL_SOURCE_STATUSES = {404, 410, 422}
+STRUCTURAL_SOURCE_STATUSES = {422}
+
+
+class EndpointRetiredError(RuntimeError):
+    """An auto-discovered provider endpoint has been explicitly retired."""
+
+    def __init__(self, message: str, status_codes: list[int] | None = None):
+        super().__init__(message)
+        self.status_codes = tuple(status_codes or [])
 
 
 class StructuralSourceError(RuntimeError):
@@ -176,6 +184,7 @@ def fetch_workday_source(
     successful_terms = 0
     term_errors: list[str] = []
     structural_statuses: list[int] = []
+    retired_statuses: list[int] = []
     for term in source.get("search_terms", ["intern"]):
         offset = 0
         try:
@@ -257,12 +266,20 @@ def fetch_workday_source(
             term_errors.append(f"{term}: {type(exc).__name__}: {exc}")
             response = getattr(exc, "response", None)
             status = getattr(response, "status_code", None)
-            if isinstance(status, int) and status in STRUCTURAL_SOURCE_STATUSES:
-                structural_statuses.append(status)
+            if isinstance(status, int):
+                if status in (404, 410):
+                    retired_statuses.append(status)
+                elif status in STRUCTURAL_SOURCE_STATUSES:
+                    structural_statuses.append(status)
             continue
 
     if successful_terms == 0 and term_errors:
-        if len(structural_statuses) == len(term_errors):
+        if len(retired_statuses) == len(term_errors):
+            raise EndpointRetiredError(
+                "all Workday search terms failed with explicit retirement HTTP status: " + " | ".join(term_errors),
+                retired_statuses,
+            )
+        if len(structural_statuses) + len(retired_statuses) == len(term_errors):
             raise StructuralSourceError(
                 "all Workday search terms failed with structural HTTP status: " + " | ".join(term_errors),
                 structural_statuses,
@@ -404,6 +421,23 @@ def enrich_direct_sources(
             }
             scope_label = source.get("state") or ("US" if source.get("scope") == "us" else "configured")
             print(f"{source['name']}: {len(direct_jobs)} direct {scope_label} CS-relevant listing(s)")
+        except EndpointRetiredError as exc:
+            health[source["key"]] = {
+                "status": "retired",
+                "count": 0,
+                "name": source["name"],
+                "direct": True,
+                "auto_discovered": bool(source.get("auto_discovered")),
+                "error": f"EndpointRetiredError: {exc}",
+            }
+            print(f"{source['name']}: RETIRED: {exc}", file=sys.stderr)
+
+            employer_id = source.get("employer_id")
+            if employer_id:
+                for employer in universe.get("employers", []):
+                    if isinstance(employer, dict) and employer.get("id") == employer_id:
+                        invalidate_resolution(employer, f"EndpointRetiredError: {exc}")
+                        break
         except StructuralSourceError as exc:
             health[source["key"]] = {
                 "status": "quarantined",
