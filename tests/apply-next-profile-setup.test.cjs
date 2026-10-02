@@ -198,11 +198,37 @@ const financeProfile = Setup.buildProfile({
   opportunityTypes: ["internship"],
 }, {});
 assert.deepEqual(financeProfile.careerAreas, ["finance-econ"]);
-assert.deepEqual(financeProfile.preferredProfiles, ["finance-econ"]);
-assert.deepEqual(financeProfile.roleFamilies.map(family => family.id), ["finance-broad"]);
+assert.deepEqual(financeProfile.preferredProfiles, ["finance-econ", "tech-business"]);
+assert.deepEqual(
+  financeProfile.roleFamilies.map(family => family.id),
+  ["analytics", "business-operations", "technology-business", "finance-broad"]
+);
 assert.ok(financeProfile.supportedKeywords.includes("finance"));
 assert.ok(financeProfile.supportedKeywords.includes("banking"));
 assert.ok(financeProfile.supportedKeywords.includes("economics"));
+assert.ok(financeProfile.supportedKeywords.includes("business analyst"));
+assert.ok(financeProfile.supportedKeywords.includes("operations analyst"));
+assert.ok(financeProfile.supportedKeywords.includes("IT analyst"));
+assert.ok(financeProfile.supportedKeywords.includes("FP&A"));
+
+const businessDataProfile = Setup.buildProfile({
+  targetTerm: "Summer 2027",
+  major: "Computer Science",
+  citizenship: "U.S. citizen",
+  workAuthorization: "Authorized to work in the U.S. without sponsorship",
+  supportedSkills: "Java, C, Python, Linux, Git, GitLab CI, Excel",
+  cautiousSkills: "Python",
+  careerAreaIds: ["cs"],
+  roleFamilyIds: ["analytics", "business-operations", "technology-business"],
+  opportunityTypes: ["internship"],
+  preferredStates: "CT, NY",
+  remoteRelevant: true,
+}, {});
+assert.deepEqual(businessDataProfile.careerAreas, ["cs"]);
+assert.ok(businessDataProfile.preferredProfiles.includes("tech-business"));
+assert.ok(businessDataProfile.supportedKeywords.includes("decision science"));
+assert.ok(businessDataProfile.supportedKeywords.includes("strategy & operations"));
+assert.ok(businessDataProfile.supportedKeywords.includes("digital business analyst"));
 
 const combinedProfile = Setup.buildProfile({
   targetTerm: "Summer 2027",

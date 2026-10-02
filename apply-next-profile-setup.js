@@ -18,7 +18,7 @@
   const ROLE_FAMILIES = [
     { id: "software", label: "Software engineering", careerAreas: ["cs"], priority: 1, keywords: ["software engineer", "software developer"] },
     { id: "testing-systems", label: "Software testing / systems", careerAreas: ["cs"], priority: 1, keywords: ["software test", "quality assurance", "qa", "systems software"] },
-    { id: "analytics", label: "Data / analytics", careerAreas: ["cs"], priority: 1, keywords: ["data analyst", "data engineer", "analytics"] },
+    { id: "analytics", label: "Data / analytics", careerAreas: ["cs", "finance-econ"], priority: 1, keywords: ["data analyst", "data engineer", "business intelligence", "business analyst", "product analyst", "analytics", "decision science", "decision analytics", "customer analytics", "commercial analytics", "marketing analytics"] },
     { id: "infrastructure", label: "Infrastructure / technical ops", careerAreas: ["cs"], priority: 1, keywords: ["infrastructure", "technical ops", "IT", "cloud engineer", "devops"] },
     { id: "ai-ml", label: "AI / machine learning", careerAreas: ["cs"], priority: 1, keywords: ["machine learning", "artificial intelligence", "AI/ML", "AI engineer"] },
     { id: "cybersecurity", label: "Cybersecurity", careerAreas: ["cs"], priority: 1, keywords: ["cybersecurity", "information security", "security engineer"] },
@@ -30,7 +30,9 @@
     { id: "robotics-controls", label: "Robotics / controls / automation", careerAreas: ["engineering"], priority: 1, keywords: ["robotics", "controls engineer", "automation engineer", "mechatronics", "autonomy"] },
     { id: "civil-structural", label: "Civil / structural / transportation", careerAreas: ["engineering"], priority: 1, keywords: ["civil engineer", "structural engineer", "transportation engineer", "roadway", "construction engineer"] },
     { id: "product-design-test", label: "Product / design / test engineering", careerAreas: ["engineering"], priority: 1, keywords: ["product engineer", "design engineer", "test engineer", "quality engineer", "process engineer", "development engineer"] },
-    { id: "finance-broad", label: "Broad finance / economics", careerAreas: ["finance-econ"], priority: 1, keywords: ["finance", "financial analyst", "accounting", "audit", "tax", "actuarial", "banking", "investment", "capital markets", "asset management", "wealth management", "risk", "underwriting", "economics", "economist", "treasury", "credit"] },
+    { id: "business-operations", label: "Business / strategy / operations", careerAreas: ["cs", "finance-econ"], priority: 1, keywords: ["business operations", "operations analyst", "strategy and operations", "strategy & operations", "sales operations", "revenue operations", "commercial analytics", "customer analytics"] },
+    { id: "technology-business", label: "Technology / business analyst", careerAreas: ["cs", "finance-econ"], priority: 1, keywords: ["technology analyst", "IT analyst", "business systems analyst", "digital business analyst", "technology business analyst", "systems analyst"] },
+    { id: "finance-broad", label: "Broad finance / economics", careerAreas: ["finance-econ"], priority: 1, keywords: ["finance", "financial analyst", "FP&A", "financial planning and analysis", "finance analytics", "corporate finance", "accounting", "audit", "tax", "actuarial", "banking", "investment", "capital markets", "asset management", "wealth management", "risk", "underwriting", "economics", "economist", "treasury", "credit"] },
   ];
 
   const BASE_SKILLS = [
@@ -320,7 +322,7 @@
     }
     const preferredProfiles = unique([
       ...effectiveCareerAreas,
-      ...(roleFamilies.some(family => family.id === "analytics") ? ["tech-business"] : []),
+      ...(roleFamilies.some(family => ["analytics", "business-operations", "technology-business"].includes(family.id)) ? ["tech-business"] : []),
     ]);
     return {
       ...base,

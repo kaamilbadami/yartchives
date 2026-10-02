@@ -219,6 +219,25 @@ assert.match(learnable.components.fit.detail, /Learnable\/low-threshold stack ga
 assert.doesNotMatch(learnable.components.fit.detail, /Unsupported hard required skills/i);
 assert.match(learnable.inspection.label, /Ready on known requirements/i);
 
+const preferredBusinessTools = D.scoreJob(job({
+  url: "https://example.com/preferred-business-tools",
+  _inspection: inspection([], [[
+    "SQL, Tableau, and Power BI are preferred.",
+    ["SQL", "Tableau", "Power BI"],
+  ]]),
+}), profile, now);
+const requiredBusinessTools = D.scoreJob(job({
+  url: "https://example.com/required-business-tools",
+  _inspection: inspection([[
+    "SQL, Tableau, and Power BI are required.",
+    ["SQL", "Tableau", "Power BI"],
+  ]]),
+}), profile, now);
+assert.match(preferredBusinessTools.inspection.label, /Ready on known requirements/i);
+assert.doesNotMatch(preferredBusinessTools.components.fit.detail, /Unsupported hard required skills/i);
+assert.match(requiredBusinessTools.components.fit.detail, /Unsupported hard required skills/i);
+assert.ok(preferredBusinessTools.components.fit.score > requiredBusinessTools.components.fit.score);
+
 const major = D.scoreJob(job({
   url: "https://example.com/major",
   _inspection: inspection([
