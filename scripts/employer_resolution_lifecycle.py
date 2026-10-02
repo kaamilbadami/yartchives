@@ -85,6 +85,13 @@ def _valid_existing_resolution(employer: dict[str, Any]) -> bool:
         return False
     if provider.get("status") == "resolved" and not has_provider_collection_identity(url, provider.get("family")):
         return False
+
+    metadata = (employer.get("seed_metadata") or {}).get(VERIFIED_ATS_SEED_KEY)
+    if isinstance(metadata, dict):
+        expected_family = ATS_FAMILY_NAMES.get(str(metadata.get("ats_system") or "").strip())
+        if expected_family and provider.get("family") != expected_family:
+            return False
+
     return True
 
 
@@ -111,6 +118,10 @@ def _verified_provider_fast_path(employer: dict[str, Any], now: datetime) -> boo
         return False
     if not has_provider_tenant_identity(url, family):
         return False
+
+    if not _valid_existing_resolution(employer):
+        employer.pop("careers_url", None)
+        employer.pop("careers_platform", None)
 
     resolved_at = _timestamp(now)
     employer["careers_platform"] = family
@@ -147,7 +158,7 @@ def _provider_resolution_needs_completion(employer: dict[str, Any]) -> bool:
     return (
         resolution.get("status") == "provider_resolved"
         and provider.get("status") == "resolved"
-        and provider.get("family") in {"brassring"}
+        and provider.get("family") in {"brassring", "greenhouse"}
         and not str(employer.get("careers_url") or "").strip()
     )
 

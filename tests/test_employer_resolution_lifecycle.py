@@ -281,6 +281,68 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
         self.assertEqual(summary["attempted_employers"], 0)
         self.assertEqual(summary["requests_used"], 0)
 
+    def test_invalidates_existing_resolution_if_verified_seed_family_mismatches(self):
+        employer = self.employer(
+            "airbnb",
+            careers_url="https://careers.airbnb.com/zh",
+            careers_platform="custom_unknown",
+            provider={"status": "resolved", "family": "custom_unknown"},
+            careers_resolution={
+                "status": "resolved",
+                "resolved_at": "2026-09-17T19:00:00Z",
+                "last_attempt_at": "2026-09-17T19:00:00Z",
+            },
+        )
+        employer["seed_sets"].append("state-of-ats-2026-verified-hosts")
+        employer["seed_metadata"]["state-of-ats-2026-verified-hosts"] = {
+            "ats_system": "Greenhouse",
+            "domain_hints": ["boards.greenhouse.io/airbnb"],
+            "evidence_method": "vendor board API",
+        }
+
+        self.assertFalse(mod._valid_existing_resolution(employer))
+
+    def test_verified_greenhouse_tenant_fast_paths_then_completes_site(self):
+        employer = self.employer(
+            "airbnb-fast-path",
+            careers_url="https://careers.airbnb.com/zh",
+            careers_platform="custom_unknown",
+            provider={"status": "resolved", "family": "custom_unknown"},
+            careers_resolution={
+                "status": "resolved",
+                "resolved_at": "2026-09-17T19:00:00Z",
+                "last_attempt_at": "2026-09-17T19:00:00Z",
+            },
+        )
+        employer["seed_sets"].append("state-of-ats-2026-verified-hosts")
+        employer["seed_metadata"]["state-of-ats-2026-verified-hosts"] = {
+            "ats_system": "Greenhouse",
+            "domain_hints": ["boards.greenhouse.io/airbnb"],
+            "evidence_method": "vendor board API",
+        }
+        calls = []
+
+        def resolver(entry, **kwargs):
+            calls.append(entry["id"])
+            return self.resolved("https://boards.greenhouse.io/airbnb", platform="greenhouse", requests=1)
+
+        updated, summary = mod.run_lifecycle(
+            self.universe([employer]),
+            now=NOW,
+            resolver=resolver,
+        )
+
+        self.assertEqual(calls, ["airbnb-fast-path"])
+        row = updated["employers"][0]
+        self.assertEqual(row["careers_url"], "https://boards.greenhouse.io/airbnb")
+        self.assertEqual(row["careers_platform"], "greenhouse")
+        self.assertEqual(row["provider"]["family"], "greenhouse")
+        self.assertEqual(row["careers_resolution"]["status"], "resolved")
+        self.assertEqual(row["careers_resolution"]["attempt_status"], "resolved")
+        self.assertEqual(summary["fast_path_provider_resolved"], 1)
+        self.assertEqual(summary["attempted_employers"], 1)
+        self.assertEqual(summary["requests_used"], 1)
+
     def test_verified_brassring_tenant_fast_paths_then_completes_site(self):
         employer = self.employer("verified-brassring")
         employer["seed_sets"].append("state-of-ats-2026-verified-hosts")
