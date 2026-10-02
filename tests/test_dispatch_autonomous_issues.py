@@ -3475,5 +3475,99 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertIn("autonomous-backlog", labels)
         self.assertEqual(len(calls), 2)
 
+    def test_coverage_tasks_with_different_ats_resources_can_run_concurrently(self):
+        issues = [
+            {
+                "number": 900,
+                "state": "open",
+                "title": "Improve Workday coverage",
+                "body": "<!-- autonomous-task -->\npriority: P1\narea: coverage\nresources: ats-workday\nautonomous: true",
+                "labels": [],
+            },
+            {
+                "number": 901,
+                "state": "open",
+                "title": "Improve Greenhouse coverage",
+                "body": "<!-- autonomous-task -->\npriority: P1\narea: coverage\nresources: ats-greenhouse\nautonomous: true",
+                "labels": [],
+            },
+        ]
+
+        selected = mod.select_tasks(issues, max_active=2)
+
+        self.assertEqual([task.number for task in selected], [900, 901])
+        self.assertEqual(mod.task_lock_keys(selected[0]), frozenset({"resource:ats-workday"}))
+        self.assertEqual(mod.task_lock_keys(selected[1]), frozenset({"resource:ats-greenhouse"}))
+
+    def test_coverage_tasks_for_same_ats_still_serialize(self):
+        issues = [
+            {
+                "number": 902,
+                "state": "open",
+                "title": "Workday query coverage",
+                "body": "<!-- autonomous-task -->\npriority: P1\narea: coverage\nresources: ats-workday\nautonomous: true",
+                "labels": [],
+            },
+            {
+                "number": 903,
+                "state": "open",
+                "title": "Workday parser coverage",
+                "body": "<!-- autonomous-task -->\npriority: P1\narea: coverage\nresources: ats-workday\nautonomous: true",
+                "labels": [],
+            },
+        ]
+
+        selected = mod.select_tasks(issues, max_active=2)
+
+        self.assertEqual([task.number for task in selected], [902])
+
+    def test_coverage_tasks_share_only_declared_core_resources(self):
+        issues = [
+            {
+                "number": 904,
+                "state": "open",
+                "title": "Workday registry update",
+                "body": "<!-- autonomous-task -->\npriority: P1\narea: coverage\nresources: ats-workday, source-registry\nautonomous: true",
+                "labels": [],
+            },
+            {
+                "number": 905,
+                "state": "open",
+                "title": "Greenhouse registry update",
+                "body": "<!-- autonomous-task -->\npriority: P1\narea: coverage\nresources: ats-greenhouse, source-registry\nautonomous: true",
+                "labels": [],
+            },
+        ]
+
+        selected = mod.select_tasks(issues, max_active=2)
+
+        self.assertEqual([task.number for task in selected], [904])
+
+    def test_unscoped_legacy_coverage_tasks_remain_serialized(self):
+        issues = [
+            {
+                "number": 906,
+                "state": "open",
+                "title": "Legacy coverage task A",
+                "body": "<!-- autonomous-task -->\npriority: P1\narea: coverage\nautonomous: true",
+                "labels": [],
+            },
+            {
+                "number": 907,
+                "state": "open",
+                "title": "Legacy coverage task B",
+                "body": "<!-- autonomous-task -->\npriority: P1\narea: coverage\nautonomous: true",
+                "labels": [],
+            },
+        ]
+
+        selected = mod.select_tasks(issues, max_active=2)
+
+        self.assertEqual([task.number for task in selected], [906])
+        self.assertEqual(
+            mod.task_lock_keys(selected[0]),
+            frozenset({"resource:area-fallback:coverage"}),
+        )
+
 if __name__ == "__main__":
     unittest.main()
