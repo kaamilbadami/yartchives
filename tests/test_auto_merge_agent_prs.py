@@ -1148,6 +1148,88 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             commands,
         )
 
+    def test_update_branch_falls_back_to_github_api_when_direct_push_fails(self):
+        ok = mock.Mock(returncode=0, stdout="", stderr="", args=["git"])
+        rev_parse = mock.Mock(
+            returncode=0,
+            stdout="abc\n",
+            stderr="",
+            args=["git", "rev-parse"],
+        )
+        push_failed = mock.Mock(
+            returncode=1,
+            stdout="",
+            stderr="remote rejected direct push",
+            args=["git", "push"],
+        )
+        api_ok = mock.Mock(
+            returncode=0,
+            stdout='{"message":"Updating pull request branch."}',
+            stderr="",
+            args=["gh", "api"],
+        )
+        with mock.patch.object(
+            mod.subprocess,
+            "run",
+            side_effect=[ok, rev_parse, ok, ok, push_failed, api_ok],
+        ) as run:
+            updated, detail = mod.update_pull_request_branch(
+                "kaamilbadami/yartchives",
+                196,
+                "abc",
+                "feature/issue-196",
+                "main",
+            )
+
+        self.assertTrue(updated)
+        self.assertIn("remote rejected direct push", detail)
+        commands = [call.args[0] for call in run.call_args_list]
+        self.assertIn(
+            [
+                "gh", "api", "--method", "PUT",
+                "repos/kaamilbadami/yartchives/pulls/196/update-branch",
+                "-f", "expected_head_sha=abc",
+            ],
+            commands,
+        )
+
+    def test_update_branch_push_and_api_failure_is_nonfatal(self):
+        ok = mock.Mock(returncode=0, stdout="", stderr="", args=["git"])
+        rev_parse = mock.Mock(
+            returncode=0,
+            stdout="abc\n",
+            stderr="",
+            args=["git", "rev-parse"],
+        )
+        push_failed = mock.Mock(
+            returncode=1,
+            stdout="",
+            stderr="remote rejected direct push",
+            args=["git", "push"],
+        )
+        api_failed = mock.Mock(
+            returncode=1,
+            stdout="",
+            stderr="update branch denied",
+            args=["gh", "api"],
+        )
+        with mock.patch.object(
+            mod.subprocess,
+            "run",
+            side_effect=[ok, rev_parse, ok, ok, push_failed, api_failed],
+        ):
+            updated, detail = mod.update_pull_request_branch(
+                "kaamilbadami/yartchives",
+                196,
+                "abc",
+                "feature/issue-196",
+                "main",
+            )
+
+        self.assertFalse(updated)
+        self.assertIn("direct branch push failed", detail)
+        self.assertIn("GitHub update-branch fallback failed", detail)
+
     def test_update_branch_merge_conflict_isolated_as_nonfatal(self):
         ok = mock.Mock(returncode=0, stdout="", stderr="", args=["git"])
         rev_parse = mock.Mock(
