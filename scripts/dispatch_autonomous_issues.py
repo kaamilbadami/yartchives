@@ -37,10 +37,13 @@ AREA_RESOURCE_LOCKS = {
     "ranking-sensitivity": frozenset({"ranking"}),
     "ranking-regression": frozenset({"ranking"}),
     "ranking-stability": frozenset({"ranking"}),
-    "coverage": frozenset({"coverage"}),
-    "coverage-benchmark": frozenset({"coverage"}),
-    "coverage-diagnostics": frozenset({"coverage"}),
-    "employer-resolution": frozenset({"coverage", "source-collection"}),
+    # Coverage work is intentionally not given one blanket lock. Explicit
+    # resources such as ats-workday, ats-greenhouse, aggregators, source-registry,
+    # coverage-benchmark, classification, location-normalization, and feed-core
+    # describe the actual shared subsystem and permit independent source-family
+    # work to run concurrently. Legacy coverage issues without resources still
+    # serialize through task_lock_keys' area fallback.
+    "employer-resolution": frozenset({"source-registry"}),
     "performance": frozenset({"frontend-state"}),
     "automation": frozenset({"automation"}),
     "quality": frozenset({"quality"}),
@@ -219,6 +222,8 @@ def task_lock_keys(task: Task) -> frozenset[str]:
     default_resources = AREA_RESOURCE_LOCKS.get(task.area, frozenset())
     resources = default_resources | task.resources
     if not resources:
+        # Keep legacy/unscoped work safe: same-area tasks serialize until the
+        # issue declares the narrower resources it actually modifies.
         resources = frozenset({f"area-fallback:{task.area}"})
     return frozenset(f"resource:{resource}" for resource in resources)
 
