@@ -6,7 +6,7 @@
   const PREF_KEY = "yartchives-student-filters-v2";
   const LEGACY_ENGINEERING_PROFILES = new Set(["mechanical", "aero", "electrical"]);
   const normalizeLegacyProfile = key => LEGACY_ENGINEERING_PROFILES.has(key) ? "engineering" : key;
-  const defaults = { education: "undergrad-friendly", opportunityType: "internships", profiles: [] };
+  const defaults = { education: "undergrad-friendly", opportunityType: "all", profiles: [] };
   let prefs = { ...defaults };
   try {
     const saved = JSON.parse(localStorage.getItem(PREF_KEY) || "{}");
@@ -14,10 +14,12 @@
   } catch (_) {}
   if (!Array.isArray(prefs.profiles)) prefs.profiles = [];
   prefs.profiles = prefs.profiles.map(normalizeLegacyProfile).filter(key => key !== "all" && PROFILE_LABELS[key]);
+  // Browse is intentionally type-agnostic: students care about relevant current opportunities,
+  // not a separate internship/co-op/research taxonomy control.
+  prefs.opportunityType = "all";
 
   const params = new URLSearchParams(location.search);
   if (params.has("edu")) prefs.education = params.get("edu") || defaults.education;
-  if (params.has("type")) prefs.opportunityType = params.get("type") || defaults.opportunityType;
   if (params.has("profiles")) {
     prefs.profiles = (params.get("profiles") || "")
       .split(",")
@@ -68,15 +70,9 @@
     if (!education || !type) return;
 
     education.value = prefs.education;
-    type.value = prefs.opportunityType;
+    type.value = "all";
     education.addEventListener("change", () => {
       prefs.education = education.value;
-      savePrefs();
-      visibleLimit = PAGE_SIZE;
-      applyFilters();
-    });
-    type.addEventListener("change", () => {
-      prefs.opportunityType = type.value;
       savePrefs();
       visibleLimit = PAGE_SIZE;
       applyFilters();
@@ -128,51 +124,19 @@
     const label = input?.closest("label");
     const labelText = label?.querySelector("span");
     if (labelText) labelText.textContent = "ZIP / location";
-    if (input) input.placeholder = "ZIP code (best), city, or state...";
+    if (input) input.placeholder = "ZIP code or city";
 
     const quick = document.querySelector(".quick-locations");
     if (!quick || quick.dataset.enhanced === "true") return;
     quick.dataset.enhanced = "true";
 
+    // Keep only universal shortcuts. Personal ZIPs and state fallbacks made Browse
+    // feel preconfigured for one user instead of a general internship browser.
     const buttons = [...quick.querySelectorAll("button")];
     const anywhere = buttons.find(btn => btn.dataset.location === "");
-    const wilton = buttons.find(btn => btn.dataset.location === "06897");
-    const collegePark = buttons.find(btn => btn.dataset.location === "20740");
     const remote = buttons.find(btn => btn.dataset.location === "Remote");
-    const stateButtons = buttons.filter(btn => /^[A-Z]{2}$/.test(btn.dataset.location || ""));
-
-    if (anywhere) anywhere.textContent = "Anywhere";
-    const ct = stateButtons.find(btn => btn.dataset.location === "CT");
-    if (ct) {
-      ct.textContent = "CT";
-      ct.title = "State fallback";
-    }
-
     quick.innerHTML = "";
-    for (const btn of [anywhere, wilton, collegePark, remote].filter(Boolean)) quick.appendChild(btn);
-
-    const details = document.createElement("details");
-    details.className = "state-backup";
-    const summary = document.createElement("summary");
-    summary.textContent = "State fallback";
-    const inner = document.createElement("div");
-    inner.className = "quick-locations state-locations";
-    details.append(summary, inner);
-
-    const existingStates = new Map(stateButtons.map(btn => [btn.dataset.location, btn]));
-    if (!existingStates.has("WI")) {
-      const wi = document.createElement("button");
-      wi.type = "button";
-      wi.dataset.location = "WI";
-      wi.textContent = "WI";
-      wi.addEventListener("click", () => setLocation("WI"));
-      existingStates.set("WI", wi);
-    }
-    for (const code of ["CT", "MD", "DC", "VA", "WI", "NY", "NJ", "MA"]) {
-      const btn = existingStates.get(code);
-      if (btn) inner.appendChild(btn);
-    }
-    quick.insertAdjacentElement("afterend", details);
+    for (const btn of [anywhere, remote].filter(Boolean)) quick.appendChild(btn);
   }
 
   // Keep app.js as the single owner of geo-index loading. The canonical loader
@@ -305,8 +269,7 @@
     else url.searchParams.delete("profiles");
     if (prefs.education !== defaults.education) url.searchParams.set("edu", prefs.education);
     else url.searchParams.delete("edu");
-    if (prefs.opportunityType !== defaults.opportunityType) url.searchParams.set("type", prefs.opportunityType);
-    else url.searchParams.delete("type");
+    url.searchParams.delete("type");
     history.replaceState(null, "", url);
   }, { capture: true });
 
