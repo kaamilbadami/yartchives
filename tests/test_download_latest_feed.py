@@ -43,7 +43,7 @@ class DownloadLatestFeedTests(unittest.TestCase):
             )
         self.assertEqual(artifact["id"], 99)
         self.assertIn(
-            "/actions/workflows/update-feed.yml/runs?branch=main",
+            "/actions/workflows/update-feed.yml/runs?branch=main&per_page=100&page=1",
             request_json.call_args_list[0].args[0],
         )
         self.assertIn(
@@ -85,6 +85,30 @@ class DownloadLatestFeedTests(unittest.TestCase):
                 ]
             },
         ]
+    def test_latest_artifact_paginates_workflow_runs(self):
+        responses = [
+            {"workflow_runs": [{"id": 10}, {"id": 9}]},
+            {"artifacts": []},
+            {"artifacts": []},
+            {"workflow_runs": [{"id": 8}]},
+            {
+                "artifacts": [
+                    {
+                        "id": 100,
+                        "name": "yartchives-listings",
+                        "expired": False,
+                    }
+                ]
+            },
+        ]
+        with patch.object(mod, "_request_json", side_effect=responses) as request_json:
+            artifact = mod.latest_artifact(
+                "owner/repo", "update-feed.yml", "yartchives-listings", "token"
+            )
+        self.assertEqual(artifact["id"], 100)
+        self.assertIn("page=1", request_json.call_args_list[0].args[0])
+        self.assertIn("page=2", request_json.call_args_list[3].args[0])
+
         with patch.object(mod, "_request_json", side_effect=responses):
             artifact = mod.latest_artifact(
                 "owner/repo", "update-feed.yml", "yartchives-listings", "token"
