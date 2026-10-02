@@ -201,6 +201,26 @@ class EnrichFeedTests(unittest.TestCase):
             "section": "Product Management",
         }))
 
+    def test_business_data_title_families_leave_general(self):
+        cases = {
+            "Operations Analyst Intern": "tech-business",
+            "Strategy & Operations Intern": "tech-business",
+            "Sales Operations Analyst Intern": "tech-business",
+            "Customer Analytics Intern": "tech-business",
+            "Marketing Analytics Intern": "tech-business",
+            "Decision Science Intern": "tech-business",
+            "IT Analyst Intern": "tech-business",
+            "Digital Business Analyst Intern": "tech-business",
+            "FP&A Intern": "finance-econ",
+            "Finance Analytics Intern": "finance-econ",
+            "Corporate Finance Intern": "finance-econ",
+        }
+        for title, expected in cases.items():
+            with self.subTest(title=title):
+                profiles = mod.classify_profiles({"title": title})
+                self.assertIn(expected, profiles)
+                self.assertNotIn("general", profiles)
+
     def test_direct_ct_source_retains_cs_after_strict_adapter(self):
         profiles = mod.classify_profiles({
             "title": "Digital Technology Intern",
