@@ -139,6 +139,28 @@ class CareersResolverTests(unittest.TestCase):
         self.assertEqual(result["status"], "resolved")
         self.assertEqual(result["platform"], "greenhouse")
 
+    def test_prioritizes_ats_with_error_over_generic_landing_page(self):
+        domain = "https://example.com"
+        branded = "https://example.com/careers"
+        ats = "https://example.wd5.myworkdayjobs.com/"
+        ats_careers = "https://example.wd5.myworkdayjobs.com/careers"
+
+        session = FakeSession({
+            domain + "/": FakeResponse(domain + "/", "Welcome to Example"),
+            branded: FakeResponse(branded, "Careers and opportunities"),
+            ats: FakeResponse(ats, "", status=406),
+            ats_careers: FakeResponse(ats_careers, "", status=404),
+        })
+        entry = {
+            "id": "example",
+            "name": "Example",
+            "domain_hints": ["example.com", "example.wd5.myworkdayjobs.com"],
+        }
+        result = mod.resolve_employer(entry, session)
+        self.assertEqual(result["status"], "resolved")
+        self.assertEqual(result["platform"], "workday")
+        self.assertEqual(result["url"], ats)
+
     def test_registry_is_enriched_without_losing_input_fields(self):
         careers = "https://acme.example/careers"
         session = FakeSession({careers: FakeResponse(careers, "Careers and opportunities")})

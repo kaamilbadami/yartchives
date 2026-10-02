@@ -51,6 +51,10 @@ def _hint_families(employer: dict[str, Any]) -> set[str]:
     provider_family = str((employer.get("provider") or {}).get("family") or "")
     if provider_family and provider_family not in {"unknown", "custom_unknown"}:
         families.add(provider_family)
+    for hint in employer.get("domain_hints") or []:
+        family = str(fingerprint_provider(str(hint)).get("family") or "")
+        if family and family not in {"unknown", "custom_unknown"}:
+            families.add(family)
     for metadata in (employer.get("seed_metadata") or {}).values():
         if not isinstance(metadata, dict):
             continue

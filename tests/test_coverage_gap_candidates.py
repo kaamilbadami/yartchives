@@ -26,6 +26,34 @@ class CoverageGapCandidatesTests(unittest.TestCase):
             "seed_metadata": {"benchmark": {"domain_hints": hints}},
         }
 
+    def test_checks_root_domain_hints_for_families(self):
+        employer = self.employer(1, "workday")
+        employer["domain_hints"] = employer["seed_metadata"]["benchmark"]["domain_hints"]
+        employer["seed_metadata"] = {}
+
+        employer2 = self.employer(2, "greenhouse")
+        employer2["domain_hints"] = employer2["seed_metadata"]["benchmark"]["domain_hints"]
+        employer2["seed_metadata"] = {}
+
+        universe = {
+            "employers": [
+                employer,
+                *[self.employer(i, "workday") for i in range(2, 7)],
+                employer2,
+                *[self.employer(i + 20, "greenhouse") for i in range(3, 7)],
+            ]
+        }
+
+        candidates = build_gap_candidates(universe)
+
+        self.assertEqual(
+            [candidate["id"] for candidate in candidates],
+            [
+                "ats-workday:provider-resolution",
+                "ats-greenhouse:provider-resolution",
+            ],
+        )
+
     def test_emits_independent_ats_family_candidates(self):
         universe = {
             "employers": [
