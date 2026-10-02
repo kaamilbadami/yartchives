@@ -569,8 +569,36 @@ def parse_markdown(text: str, source: dict[str, Any], reference: datetime) -> li
     return jobs
 
 
+def parse_program_page(text: str, source: dict[str, Any], reference: datetime) -> list[dict[str, Any]]:
+    """Emit one authoritative program listing only while required page evidence remains present."""
+    for pattern in source.get("required_patterns", []):
+        if not re.search(pattern, text, flags=re.I | re.S):
+            raise ValueError(f"authoritative program page missing required evidence: {pattern}")
+
+    job = base_job(
+        company=source["company"],
+        title=source["program_title"],
+        location=source.get("location") or "Location not listed",
+        url=source.get("apply_url") or source.get("homepage") or source.get("url"),
+        posted_raw="",
+        source=source,
+        section=source.get("section") or "Authoritative student program",
+        function_primary=source.get("function_primary") or "",
+        posted_at=None,
+    )
+    if not job:
+        return []
+    if source.get("term"):
+        job["term"] = clean_text(source["term"])
+    job["direct_employer"] = True
+    job["source_program"] = clean_text(source.get("program_title"))
+    return [job]
+
+
 def fetch_source(s: requests.Session, source: dict[str, Any], reference: datetime) -> list[dict[str, Any]]:
     text = fetch_text(s, source["url"])
+    if source["kind"] == "program_page":
+        return parse_program_page(text, source, reference)
     if source["kind"] == "dreamwork_json":
         return parse_dreamwork(json.loads(text), source, reference)
     if source["kind"] == "tech_jobs_json":
