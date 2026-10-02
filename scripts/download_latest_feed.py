@@ -72,27 +72,35 @@ def latest_artifact(repo: str, workflow: str, artifact_name: str, token: str | N
     depend on optional embedded artifact metadata.
     """
 
-    runs_url = (
-        f"{API_ROOT}/repos/{repo}/actions/workflows/{workflow}/runs"
-        "?branch=main&per_page=20"
-    )
-    runs_payload = _request_json(runs_url, token)
-    for run in runs_payload.get("workflow_runs") or []:
-        run_id = run.get("id")
-        if not run_id:
-            continue
-
-        artifacts_url = (
-            f"{API_ROOT}/repos/{repo}/actions/runs/{run_id}/artifacts"
-            f"?name={artifact_name}&per_page=100"
+    page = 1
+    while page <= 10:
+        runs_url = (
+            f"{API_ROOT}/repos/{repo}/actions/workflows/{workflow}/runs"
+            f"?branch=main&per_page=100&page={page}"
         )
-        artifacts_payload = _request_json(artifacts_url, token)
-        for artifact in artifacts_payload.get("artifacts", []):
-            if artifact.get("expired", False):
+        runs_payload = _request_json(runs_url, token)
+        runs = runs_payload.get("workflow_runs") or []
+        if not runs:
+            break
+
+        for run in runs:
+            run_id = run.get("id")
+            if not run_id:
                 continue
-            if artifact.get("name") != artifact_name:
-                continue
-            return artifact
+
+            artifacts_url = (
+                f"{API_ROOT}/repos/{repo}/actions/runs/{run_id}/artifacts"
+                f"?name={artifact_name}&per_page=100"
+            )
+            artifacts_payload = _request_json(artifacts_url, token)
+            for artifact in artifacts_payload.get("artifacts", []):
+                if artifact.get("expired", False):
+                    continue
+                if artifact.get("name") != artifact_name:
+                    continue
+                return artifact
+
+        page += 1
 
     return None
 
