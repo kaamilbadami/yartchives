@@ -5306,10 +5306,6 @@
         "fortune-500-2026": {
           "fortune_slug": "/company/american-airlines-group/",
           "order": 86,
-          "provider": {
-            "family": "successfactors",
-            "status": "retired"
-          },
           "rank": 86
         }
       },
@@ -9103,29 +9099,6 @@
         "athleta.net",
         "gapinc.wd1.myworkdayjobs.com"
       ]
-    },
-    {
-      "id": "atlas-air-worldwide",
-      "name": "Atlas Air Worldwide",
-      "aliases": [
-        "Atlas Air",
-        "Atlas Air Worldwide Holdings"
-      ],
-      "seed_sets": [
-        "cs-benchmark"
-      ],
-      "domain_hints": [
-        "https://careers.atlasairworldwide.com/",
-        "https://www.atlasairworldwide.com/careers/"
-      ],
-      "seed_metadata": {
-        "cs-benchmark": {
-          "domain_hints": [
-            "https://www.atlasairworldwide.com/careers/",
-            "https://careers.atlasairworldwide.com/"
-          ]
-        }
-      }
     },
     {
       "id": "atlassian",
@@ -33205,12 +33178,9 @@
     {
       "id": "nsa",
       "name": "NSA",
-      "aliases": [
-        "National Security Agency"
-      ],
+      "aliases": [],
       "seed_sets": [
-        "coverage-benchmark-2026-09-17",
-        "cs-benchmark"
+        "coverage-benchmark-2026-09-17"
       ],
       "seed_metadata": {
         "coverage-benchmark-2026-09-17": {
@@ -33219,17 +33189,9 @@
           "states": [
             "MD"
           ]
-        },
-        "cs-benchmark": {
-          "domain_hints": [
-            "https://www.nsa.gov/Careers/Student-Programs/",
-            "https://apply.intelligencecareers.gov/job-listings?agency=NSA"
-          ]
         }
       },
       "domain_hints": [
-        "https://apply.intelligencecareers.gov/job-listings?agency=NSA",
-        "https://www.nsa.gov/Careers/Student-Programs/",
         "nsaneforums.com"
       ]
     },
