@@ -57,12 +57,20 @@ def http_url(value: Any) -> str | None:
 def entry_hints(entry: dict[str, Any]) -> list[str]:
     """Accept domain hints from seed, universe, and ordinary registry records."""
     values: list[Any] = []
-    for key in (
+    keys_to_check = (
         "domain", "domains", "domain_hint", "domain_hints", "website",
         "homepage", "url_hint", "url_hints", "careers_url",
-    ):
+    )
+    for key in keys_to_check:
         value = entry.get(key)
         values.extend(value if isinstance(value, list) else [value])
+
+    for metadata in (entry.get("seed_metadata") or {}).values():
+        if isinstance(metadata, dict):
+            for key in keys_to_check:
+                value = metadata.get(key)
+                values.extend(value if isinstance(value, list) else [value])
+
     return list(dict.fromkeys(url for value in values if (url := http_url(value))))
 
 

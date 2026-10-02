@@ -150,6 +150,18 @@ class CareersResolverTests(unittest.TestCase):
         self.assertIn("evidence", enriched["careers_resolution"])
 
 
+    def test_entry_hints_reads_nested_seed_metadata(self):
+        hints = mod.entry_hints({
+            "name": "Nested",
+            "seed_metadata": {
+                "fortune-500-2026": {
+                    "domain_hints": ["nested.wd5.myworkdayjobs.com"],
+                },
+            },
+        })
+        self.assertEqual(hints, ["https://nested.wd5.myworkdayjobs.com/"])
+
+
     def test_workday_406_is_accepted_and_ats_wins_over_branded(self):
         """HTTP 406 on a Workday domain is a valid discovery and wins over 200 branded."""
         from scripts.employer_resolution_queue import queue_entry

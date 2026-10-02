@@ -385,3 +385,11 @@ button:hover, .apply-btn:hover, .ghost-btn:hover { filter: brightness(1.07); }
   white-space: nowrap;
   border-width: 0;
 }
+
+
+/* Show career-area inventory under the user's active non-career filters. */
+#profileChips button[data-count]::after {
+  content: " (" attr(data-count) ")";
+  opacity: .72;
+  font-variant-numeric: tabular-nums;
+}

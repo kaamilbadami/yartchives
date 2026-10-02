@@ -15,6 +15,15 @@ from urllib import parse, request
 
 PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
 MAX_ACTIVE = 15
+COVERAGE_WIP_TARGET = 4
+COVERAGE_WIP_MAX = 6
+COVERAGE_AREAS = frozenset({
+    "coverage",
+    "coverage-benchmark",
+    "coverage-diagnostics",
+    "employer-resolution",
+})
+COVERAGE_GAP_MARKER = "<!-- coverage-gap: {gap_id} -->"
 AREA_RESOURCE_LOCKS = {
     "feed": frozenset({"feed-core"}),
     "feed-quality": frozenset({"feed-core"}),
@@ -37,10 +46,13 @@ AREA_RESOURCE_LOCKS = {
     "ranking-sensitivity": frozenset({"ranking"}),
     "ranking-regression": frozenset({"ranking"}),
     "ranking-stability": frozenset({"ranking"}),
-    "coverage": frozenset({"coverage"}),
-    "coverage-benchmark": frozenset({"coverage"}),
-    "coverage-diagnostics": frozenset({"coverage"}),
-    "employer-resolution": frozenset({"coverage", "source-collection"}),
+    # Coverage work is intentionally not given one blanket lock. Explicit
+    # resources such as ats-workday, ats-greenhouse, aggregators, source-registry,
+    # coverage-benchmark, classification, location-normalization, and feed-core
+    # describe the actual shared subsystem and permit independent source-family
+    # work to run concurrently. Legacy coverage issues without resources still
+    # serialize through task_lock_keys' area fallback.
+    "employer-resolution": frozenset({"source-registry"}),
     "performance": frozenset({"frontend-state"}),
     "automation": frozenset({"automation"}),
     "quality": frozenset({"quality"}),
@@ -219,6 +231,8 @@ def task_lock_keys(task: Task) -> frozenset[str]:
     default_resources = AREA_RESOURCE_LOCKS.get(task.area, frozenset())
     resources = default_resources | task.resources
     if not resources:
+        # Keep legacy/unscoped work safe: same-area tasks serialize until the
+        # issue declares the narrower resources it actually modifies.
         resources = frozenset({f"area-fallback:{task.area}"})
     return frozenset(f"resource:{resource}" for resource in resources)
 
@@ -2557,6 +2571,105 @@ class EvidenceProvider(Protocol):
     def generate(self, repo: str, issues: list[dict[str, Any]], occupied_locks: frozenset[str]) -> bool:
         ...
 
+def load_coverage_gap_candidates() -> list[dict[str, Any]]:
+    """Load ranked coverage gaps from the repository's current benchmark evidence."""
+    try:
+        from scripts.coverage_gap_candidates import load_candidates
+    except ModuleNotFoundError:
+        from coverage_gap_candidates import load_candidates
+    return load_candidates()
+
+
+def coverage_work_in_flight(issues: Iterable[dict[str, Any]]) -> int:
+    """Count productive or review-pending coverage work that should hold WIP."""
+    count = 0
+    for issue in issues:
+        if str(issue.get("state") or "open") != "open":
+            continue
+        task = task_from_issue(issue)
+        if task is None or task.area not in COVERAGE_AREAS:
+            continue
+        if task.labels & {JULES_FAILED_LABEL, "blocked", "needs-product-decision"}:
+            continue
+        count += 1
+    return count
+
+
+def _provider_coverage_gap(
+    repo: str,
+    issues: list[dict[str, Any]],
+    occupied_locks: frozenset[str],
+) -> bool:
+    """Generate one highest-value independent coverage task when WIP has room."""
+    in_flight = coverage_work_in_flight(issues)
+    if in_flight >= COVERAGE_WIP_TARGET or in_flight >= COVERAGE_WIP_MAX:
+        return False
+
+    existing_bodies = [str(issue.get("body") or "") for issue in issues]
+    for candidate in load_coverage_gap_candidates():
+        gap_id = str(candidate.get("id") or "").strip()
+        resources = [
+            str(resource).strip().casefold()
+            for resource in candidate.get("resources", [])
+            if str(resource).strip()
+        ]
+        if not gap_id or not resources:
+            continue
+
+        marker = COVERAGE_GAP_MARKER.format(gap_id=gap_id)
+        if any(marker in body for body in existing_bodies):
+            continue
+
+        locks = frozenset(f"resource:{resource}" for resource in resources)
+        if locks & occupied_locks:
+            continue
+
+        affected = int(candidate.get("affected_employers") or 0)
+        evidence = str(candidate.get("evidence") or "").strip()
+        family = str(candidate.get("family") or "unknown").strip()
+        title = str(candidate.get("title") or f"Close coverage gap: {gap_id}").strip()
+        resource_line = ", ".join(resources)
+        body = f"""{marker}
+<!-- autonomous-task -->
+priority: P1
+area: coverage
+resources: {resource_line}
+autonomous: true
+
+## Concrete evidence
+{evidence}
+
+Current benchmark impact: **{affected} employers**.
+Gap family: \`{family}\`.
+
+## Goal
+Fix the highest-leverage generic source-family cause behind this measured gap. Prefer reusable ATS-family, aggregator, provider-resolution, classification, or normalization improvements over employer-by-employer exceptions.
+
+## Acceptance criteria
+- Reproduce the gap from current \`main\` before changing code.
+- Implement the smallest root-cause fix that improves the affected source family generically.
+- Add regression coverage for the failure mode.
+- Re-run \`python scripts/coverage_gap_candidates.py\` and report the before/after affected-employer count for this gap.
+- Do not add employer-specific production exceptions solely to improve the benchmark.
+- Do not scrape LinkedIn or Handshake as production sources.
+- Keep unrelated source families unchanged.
+
+Treat the current repository as the source of truth.
+"""
+
+        gh_run(
+            "issue", "create",
+            "--repo", repo,
+            "--title", title,
+            "--body", body,
+            "--label", "agent-ready",
+            "--label", "autonomous-backlog",
+        )
+        return True
+
+    return False
+
+
 def _provider_workflow_failure(repo: str, issues: list[dict[str, Any]], occupied_locks: frozenset[str]) -> bool:
     candidate = None
     for issue in issues:
@@ -2618,6 +2731,7 @@ The workflow failure requires automated triage and resolution.
 
 EVIDENCE_PROVIDERS: list[EvidenceProvider] = [
     _provider_workflow_failure,  # type: ignore
+    _provider_coverage_gap,  # type: ignore
 ]
 
 def generate_evidence_backed_tasks(
