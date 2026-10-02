@@ -18,6 +18,7 @@ if str(SCRIPT_DIR) not in sys.path:
 
 import build_feed as bf  # noqa: E402
 import direct_ct_workday as workday  # noqa: E402
+import direct_ashby as ashby  # noqa: E402
 import direct_greenhouse as greenhouse  # noqa: E402
 import direct_icims as icims  # noqa: E402
 import direct_lever as lever  # noqa: E402
@@ -28,7 +29,7 @@ import direct_successfactors as successfactors  # noqa: E402
 DEFAULT_FEED = SCRIPT_DIR.parent / "data" / "listings.json"
 DEFAULT_SOURCES = SCRIPT_DIR.parent / "direct_sources.json"
 DEFAULT_UNIVERSE = SCRIPT_DIR.parent / "employer_universe.json"
-PROVIDER_ORDER = ("workday", "icims", "greenhouse", "smartrecruiters", "oracle", "successfactors", "lever")
+PROVIDER_ORDER = ("workday", "icims", "greenhouse", "smartrecruiters", "oracle", "successfactors", "lever", "ashby")
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -179,6 +180,11 @@ def collect(
         lever.enrich(doc, old_doc, universe, reference)
         return doc
 
+    def ashby_task() -> dict[str, Any]:
+        doc = copy.deepcopy(base_doc)
+        ashby.enrich(doc, old_doc, universe, reference)
+        return doc
+
     return run_parallel(
         {
             "workday": workday_task,
@@ -188,6 +194,7 @@ def collect(
             "oracle": oracle_task,
             "successfactors": successfactors_task,
             "lever": lever_task,
+            "ashby": ashby_task,
         }
     )
 
@@ -208,7 +215,7 @@ def main() -> int:
         raise ValueError("direct source file must contain a list")
 
     reference = datetime.now(timezone.utc)
-    print("ATS collection: Workday, iCIMS, Greenhouse, SmartRecruiters, Oracle, SuccessFactors, and Lever running concurrently")
+    print("ATS collection: Workday, iCIMS, Greenhouse, SmartRecruiters, Oracle, SuccessFactors, Lever, and Ashby running concurrently")
 
     original_universe = copy.deepcopy(universe)
     provider_docs = collect(base_doc, old_doc, direct_sources, universe, reference)
