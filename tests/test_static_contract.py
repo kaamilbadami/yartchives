@@ -192,11 +192,10 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("mkdir -p _site/data _site/assets", workflow)
         self.assertIn("cp -R assets/. _site/assets/", workflow)
 
-    def test_quick_zip_buttons(self):
+    def test_quick_location_buttons_are_generic(self):
         soup = BeautifulSoup((ROOT / "index.html").read_text(encoding="utf-8"), "html.parser")
         values = {button.get("data-location") for button in soup.select(".quick-locations button")}
-        self.assertIn("06897", values)
-        self.assertIn("20740", values)
+        self.assertEqual(values, {"", "Remote"})
 
     def test_frontend_script_order(self):
         soup = BeautifulSoup((ROOT / "index.html").read_text(encoding="utf-8"), "html.parser")
@@ -286,17 +285,30 @@ class StaticContractTests(unittest.TestCase):
 
     def test_share_view_preserves_public_filters_only(self):
         text = (ROOT / "share.js").read_text(encoding="utf-8")
-        for parameter in ["q", "loc", "miles", "fresh", "areas", "edu", "type", "sort", "view", "company"]:
+        for parameter in ["q", "loc", "miles", "fresh", "areas", "edu", "sort", "view", "company"]:
             self.assertIn(f'url.searchParams.set("{parameter}"', text)
+        self.assertIn('url.searchParams.delete("type")', text)
         self.assertIn("event.stopImmediatePropagation()", text)
         self.assertNotIn('url.searchParams.set("saved"', text)
         self.assertNotIn('url.searchParams.set("hidden"', text)
         self.assertNotIn('url.searchParams.set("applied"', text)
 
-    def test_state_filter_is_present_as_secondary_ui(self):
+    def test_browse_location_ui_has_no_personal_or_state_fallback_shortcuts(self):
         text = (ROOT / "enhancements.js").read_text(encoding="utf-8")
-        self.assertIn('summary.textContent = "State fallback"', text)
+        html = (ROOT / "index.html").read_text(encoding="utf-8")
+        self.assertNotIn('summary.textContent = "State fallback"', text)
+        self.assertNotIn('data-location="06897"', html)
+        self.assertNotIn('data-location="20740"', html)
         self.assertIn('radiusField.classList.toggle("hidden", !currentZip())', text)
+
+    def test_browse_filters_are_type_agnostic_and_search_skills(self):
+        soup = BeautifulSoup((ROOT / "index.html").read_text(encoding="utf-8"), "html.parser")
+        opportunity = soup.find(id="opportunityTypeSelect")
+        self.assertIsNotNone(opportunity)
+        self.assertIn("hidden", opportunity.get("class", []))
+        self.assertEqual(opportunity.find("option", selected=True).get("value"), "all")
+        app = (ROOT / "app.js").read_text(encoding="utf-8")
+        self.assertIn("Array.isArray(job.skills) ? job.skills : []", app)
 
     def test_ai_source_is_cs_adjacent(self):
         sources = json.loads((ROOT / "sources.json").read_text(encoding="utf-8"))
