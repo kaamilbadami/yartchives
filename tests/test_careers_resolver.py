@@ -211,3 +211,28 @@ class CareersResolverTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+    def test_respects_provider_identity_lost_in_redirect_to_company_branded(self):
+        entry = {
+            "id": "airbnb",
+            "name": "Airbnb",
+            "domain_hints": ["job-boards.greenhouse.io/airbnb", "airbnb.com"],
+            "aliases": []
+        }
+
+        intermediate = FakeResponse("https://job-boards.greenhouse.io/airbnb", status=302)
+        final = FakeResponse("https://careers.airbnb.com/positions/", text="<html><body>Careers</body></html>", status=200, history=[intermediate])
+
+        # When hitting the hint, it redirects to a company-branded URL
+        session = FakeSession({
+            "https://job-boards.greenhouse.io/airbnb": final,
+            "https://airbnb.com/": FakeResponse("https://airbnb.com/", text="Home"),
+            "https://airbnb.com/careers": FakeResponse("https://airbnb.com/careers", status=404),
+            "https://airbnb.com/jobs": FakeResponse("https://airbnb.com/jobs", status=404),
+        })
+
+        result, _ = self.resolve(entry, session)
+        self.assertEqual(result["status"], "resolved")
+        self.assertEqual(result["platform"], "greenhouse")
+        self.assertEqual(result["provider"]["family"], "greenhouse")
+        self.assertEqual(result["url"], "https://careers.airbnb.com/positions/")

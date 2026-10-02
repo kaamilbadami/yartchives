@@ -173,17 +173,28 @@ def redirect_chain(response: requests.Response, requested: str) -> list[dict[str
     ]
 
 
-def page_score(candidate: Candidate, final_url: str, html: str, official_domains: set[str]) -> tuple[int, list[str]]:
-    platform = platform_for(final_url, html)
+def page_score(candidate: Candidate, final_url: str, html: str, official_domains: set[str], redirect_chain_items: list[dict[str, Any]] | None = None) -> tuple[int, list[str]]:
     parsed = urlparse(final_url)
     text = BeautifulSoup(html, "html.parser").get_text(" ", strip=True)[:12000] if html else ""
     signals: list[str] = []
     score = 0
     direct_provider = provider_for(final_url)
+    provider_url = final_url
+    platform = platform_for(final_url, html)
+
+    if redirect_chain_items:
+        for item in reversed(redirect_chain_items):
+            p = provider_for(item["url"])
+            if p["status"] == "resolved" and has_provider_tenant_identity(item["url"]):
+                direct_provider = p
+                provider_url = item["url"]
+                platform = p["family"]
+                break
+
     if direct_provider["status"] == "resolved":
-        if not has_provider_tenant_identity(final_url):
+        if not has_provider_tenant_identity(provider_url):
             return -50, ["shared provider host lacks employer tenant identity"]
-        if not has_provider_collection_identity(final_url):
+        if not has_provider_collection_identity(provider_url):
             return -50, ["provider URL lacks collectable employer board identity"]
     if platform != "company-branded":
         score += 5
@@ -254,11 +265,19 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
             record.update({"redirect_chain": redirect_chain(response, candidate.url), "final_url": final_url, "status": response.status_code})
             content_type = (response.headers.get("Content-Type", "") if hasattr(response, "headers") else "").lower()
             html = response.text if response.status_code < 400 and ("html" in content_type or not content_type) else ""
-            score, signals = page_score(candidate, final_url, html, official_domains)
+            score, signals = page_score(candidate, final_url, html, official_domains, record.get("redirect_chain"))
             record.update({"signals": signals, "score": score})
             if (response.status_code < 400 or response.status_code == 406) and score >= 5:
                 provider = provider_for(final_url, html)
                 platform = provider["family"] if provider["status"] == "resolved" else "company-branded"
+
+                if record.get("redirect_chain"):
+                    for item in reversed(record["redirect_chain"]):
+                        p = provider_for(item["url"])
+                        if p["status"] == "resolved" and has_provider_tenant_identity(item["url"]):
+                            provider = p
+                            platform = p["family"]
+                            break
                 scored.append((score, -order, normalized_landing_url(final_url, platform), platform, provider))
             final_host = urlparse(final_url).hostname
             if html and any(host_matches(final_host, domain) for domain in official_domains):
