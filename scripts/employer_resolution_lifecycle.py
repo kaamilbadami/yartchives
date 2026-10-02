@@ -116,18 +116,30 @@ def _verified_provider_fast_path(employer: dict[str, Any], now: datetime) -> boo
     expected_family = ATS_FAMILY_NAMES.get(str(metadata.get("ats_system") or "").strip())
     if expected_family and family != expected_family:
         return False
-    if not has_provider_tenant_identity(url, family):
+
+    check_url = url
+    if not has_provider_tenant_identity(check_url, family):
+        slug = str(metadata.get("upstream_slug") or "").strip()
+        if slug:
+            if not check_url.endswith("/"):
+                check_url += "/"
+            check_url += slug.lstrip("/")
+
+    if not has_provider_tenant_identity(check_url, family):
         return False
 
     if not _valid_existing_resolution(employer):
         employer.pop("careers_url", None)
         employer.pop("careers_platform", None)
 
+    if check_url != url:
+        employer["careers_url"] = check_url
+
     resolved_at = _timestamp(now)
     employer["careers_platform"] = family
     employer["provider"] = provider
     employer["careers_resolution"] = {
-        "status": "provider_resolved",
+        "status": "resolved" if employer.get("careers_url") else "provider_resolved",
         "attempt_status": "verified_seed",
         "resolved_at": resolved_at,
         "last_attempt_at": resolved_at,
@@ -158,7 +170,7 @@ def _provider_resolution_needs_completion(employer: dict[str, Any]) -> bool:
     return (
         resolution.get("status") == "provider_resolved"
         and provider.get("status") == "resolved"
-        and provider.get("family") in {"brassring", "greenhouse"}
+        and provider.get("family") in {"brassring", "greenhouse", "ashby", "lever", "smartrecruiters"}
         and not str(employer.get("careers_url") or "").strip()
     )
 

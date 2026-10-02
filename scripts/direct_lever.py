@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
+from domain_discovery import _domain_token
 from employer_resolution_lifecycle import invalidate_resolution
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -87,7 +88,9 @@ def discover_sources(universe: dict[str, Any]) -> list[dict[str, Any]]:
 
     for employer in universe.get("employers", []):
         provider = employer.get("provider", {})
-        if provider.get("status") != "resolved" or provider.get("family") != "lever":
+        is_resolved_lever = provider.get("status") == "resolved" and provider.get("family") == "lever"
+        has_lever_hint = any("jobs.lever.co" in h or "lever.co" in h for h in employer.get("domain_hints", []))
+        if not (is_resolved_lever or has_lever_hint):
             continue
 
         domain_hints = employer.get("domain_hints", [])
@@ -114,6 +117,35 @@ def discover_sources(universe: dict[str, Any]) -> list[dict[str, Any]]:
                  if apply_host and "jobs.lever.co/" in apply_host:
                      lever_host = apply_host.split("jobs.lever.co/")[1].strip("/")
                      break
+
+        if not lever_host:
+            # Guess slug from name and domains
+            slugs = set()
+            name = employer.get("name", "")
+            slugs.add(re.sub(r"[^a-z0-9]+", "", name.lower()))
+            slugs.add(re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-"))
+
+            for hint in domain_hints:
+                if "lever.co" not in hint:
+                    token = _domain_token(hint)
+                    if token:
+                        slugs.add(token)
+                        slugs.add(token.replace(" ", ""))
+                        slugs.add(token.replace(" ", "-"))
+
+            # probe slugs safely
+            for slug in slugs:
+                if not slug: continue
+                url = f"https://api.lever.co/v0/postings/{slug}?mode=json"
+                try:
+                    resp = requests.get(url, timeout=5)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        if isinstance(data, list):
+                            lever_host = slug
+                            break
+                except Exception:
+                    pass
 
         if not lever_host:
             continue
