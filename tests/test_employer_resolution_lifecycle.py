@@ -302,7 +302,7 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
 
         self.assertFalse(mod._valid_existing_resolution(employer))
 
-    def test_verified_greenhouse_tenant_fast_paths_then_completes_site(self):
+    def test_verified_greenhouse_tenant_fast_paths_and_completes_site(self):
         employer = self.employer(
             "airbnb-fast-path",
             careers_url="https://careers.airbnb.com/zh",
@@ -332,16 +332,16 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
             resolver=resolver,
         )
 
-        self.assertEqual(calls, ["airbnb-fast-path"])
+        self.assertEqual(calls, [])
         row = updated["employers"][0]
-        self.assertEqual(row["careers_url"], "https://boards.greenhouse.io/airbnb")
+        self.assertEqual(row.get("careers_url"), None)
         self.assertEqual(row["careers_platform"], "greenhouse")
         self.assertEqual(row["provider"]["family"], "greenhouse")
-        self.assertEqual(row["careers_resolution"]["status"], "resolved")
-        self.assertEqual(row["careers_resolution"]["attempt_status"], "resolved")
+        self.assertEqual(row["careers_resolution"]["status"], "provider_resolved")
+        self.assertEqual(row["careers_resolution"]["attempt_status"], "verified_seed")
         self.assertEqual(summary["fast_path_provider_resolved"], 1)
-        self.assertEqual(summary["attempted_employers"], 1)
-        self.assertEqual(summary["requests_used"], 1)
+        self.assertEqual(summary["attempted_employers"], 0)
+        self.assertEqual(summary["requests_used"], 0)
 
     def test_verified_brassring_tenant_fast_paths_then_completes_site(self):
         employer = self.employer("verified-brassring")

@@ -158,7 +158,7 @@ def _provider_resolution_needs_completion(employer: dict[str, Any]) -> bool:
     return (
         resolution.get("status") == "provider_resolved"
         and provider.get("status") == "resolved"
-        and provider.get("family") in {"brassring", "greenhouse"}
+        and provider.get("family") in {"brassring"}
         and not str(employer.get("careers_url") or "").strip()
     )
 
