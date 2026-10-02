@@ -765,7 +765,20 @@
       "order": 86,
       "rank": 86,
       "name": "American Airlines Group",
-      "fortune_slug": "/company/american-airlines-group/"
+      "fortune_slug": "/company/american-airlines-group/",
+      "careers_url": "https://jobs.aa.com",
+      "careers_platform": "successfactors",
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "resolved_at": "2026-10-02T13:03:25Z"
+      },
+      "provider": {
+        "family": "successfactors",
+        "status": "retired"
+      },
+      "domain_hints": [
+        "https://jobs.aa.com"
+      ]
     },
     {
       "order": 87,
