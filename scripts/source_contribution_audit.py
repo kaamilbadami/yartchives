@@ -35,6 +35,9 @@ SOURCE_METADATA: dict[str, dict[str, str]] = {
     "sndsh": {"class": "curated GitHub/list", "scope": "2027 internships published in sndsh404/summer-2027-internships", "confidence": "high"},
     "public-sector": {"class": "aggregator-derived mirror/subset", "scope": "rows in jobright-ai/2026-Public-Sector-Internship; broader Jobright inventory is not measurable", "confidence": "high for repository subset; not measurable for Jobright"},
     "campus-to-career": {"class": "curated GitHub/list", "scope": "rows in fromcampustocareer/fromcampustocareer-opportunities", "confidence": "high"},
+    "jobright-swe": {"class": "aggregator-derived mirror/subset", "scope": "rows in jobright-ai/2026-Software-Engineer-Internship; broader Jobright inventory is not measurable", "confidence": "high for repository subset; not measurable for Jobright"},
+    "jobright-account": {"class": "aggregator-derived mirror/subset", "scope": "rows in jobright-ai/2026-Account-Internship; broader Jobright inventory is not measurable", "confidence": "high for repository subset; not measurable for Jobright"},
+    "pittcsc-quant": {"class": "curated GitHub/list", "scope": "2027 quant internships published in pittcsc/2027QuantInternships", "confidence": "high"},
     "usajobs": {"class": "direct employer / ATS", "scope": "USAJOBS student hiring-path results from the prior 60 days matching explicit student/intern terms", "confidence": "high for API query; broader federal inventory not measured"},
 }
 
