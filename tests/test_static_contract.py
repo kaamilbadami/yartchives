@@ -301,6 +301,15 @@ class StaticContractTests(unittest.TestCase):
         self.assertNotIn('data-location="20740"', html)
         self.assertIn('radiusField.classList.toggle("hidden", !currentZip())', text)
 
+    def test_browse_filters_are_type_agnostic_and_search_skills(self):
+        soup = BeautifulSoup((ROOT / "index.html").read_text(encoding="utf-8"), "html.parser")
+        opportunity = soup.find(id="opportunityTypeSelect")
+        self.assertIsNotNone(opportunity)
+        self.assertIn("hidden", opportunity.get("class", []))
+        self.assertEqual(opportunity.find("option", selected=True).get("value"), "all")
+        app = (ROOT / "app.js").read_text(encoding="utf-8")
+        self.assertIn("Array.isArray(job.skills) ? job.skills : []", app)
+
     def test_ai_source_is_cs_adjacent(self):
         sources = json.loads((ROOT / "sources.json").read_text(encoding="utf-8"))
         source = next(row for row in sources if row["key"] == "speedyapply-ai")
