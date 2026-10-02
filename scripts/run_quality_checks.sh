@@ -10,6 +10,7 @@ run_python() {
 
 run_frontend() {
   node --check analytics.js
+  node --check analytics/worker.mjs
   node --check frontend-utils.js
   node --check app.js
   node --check enhancements.js
@@ -28,6 +29,7 @@ run_frontend() {
   node --check apply-next-ui.js
   node --check apply-next-profile-setup.js
   node tests/analytics.test.cjs
+  node tests/analytics-worker.test.mjs
   node tests/deploy-assets.test.cjs
   node tests/frontend-utils.test.cjs
   node tests/location-display.test.cjs

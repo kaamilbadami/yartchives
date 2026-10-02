@@ -31,6 +31,15 @@ class TargetedFrontendPreflightTests(unittest.TestCase):
         self.assertEqual(plan["syntax_checks"], [])
         self.assertEqual(plan["tests"], ["tests/apply-next-ui.test.cjs"])
 
+    def test_changed_mjs_test_runs_itself(self):
+        plan = plan_for_paths(["tests/analytics-worker.test.mjs"])
+        self.assertEqual(plan["syntax_checks"], [])
+        self.assertEqual(plan["tests"], ["tests/analytics-worker.test.mjs"])
+
+    def test_analytics_worker_change_runs_worker_contract(self):
+        plan = plan_for_paths(["analytics/worker.mjs"])
+        self.assertEqual(plan["tests"], ["tests/analytics-worker.test.mjs"])
+
     def test_known_static_asset_change_is_bounded(self):
         plan = plan_for_paths(["index.html"])
         self.assertEqual(

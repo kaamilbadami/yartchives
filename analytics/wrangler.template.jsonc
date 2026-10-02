@@ -1,0 +1,20 @@
+{
+  "name": "yartchives-analytics",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-09-30",
+  "workers_dev": true,
+  "vars": {
+    "ALLOWED_ORIGIN": "https://kaamilbadami.github.io"
+  },
+  "triggers": {
+    "crons": ["17 6 * * *"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "yartchives-analytics",
+      "database_id": "__YARTCHIVES_ANALYTICS_D1_DATABASE_ID__",
+      "migrations_dir": "migrations"
+    }
+  ]
+}
