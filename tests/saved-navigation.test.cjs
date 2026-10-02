@@ -369,6 +369,10 @@ async function runTests() {
     assert.equal(careerButtons[0].textContent, "Computer Science");
     assert.equal(careerButtons[1].textContent, "Engineering");
     assert.equal(careerButtons[2].textContent, "Finance");
+    assert.equal(careerButtons[0].dataset.count, "1", "CS chip should show the current-filter CS inventory");
+    assert.equal(careerButtons[1].dataset.count, "1", "Engineering chip should show the current-filter Engineering inventory");
+    assert.equal(careerButtons[2].dataset.count, "1", "Finance chip should show the current-filter Finance inventory");
+    assert.match(careerButtons[2].getAttribute("aria-label"), /Finance: 1 matches with current filters/);
     careerButtons[2].click();
     await new Promise(r => setTimeout(r, 10));
     assert.equal(document.querySelector("#shownCount").textContent, "2", "Selecting Finance alongside CS should include both career areas");
@@ -571,6 +575,7 @@ async function runTests() {
     assert.equal(chipButtons[1].classList.contains("active"), false, "Engineering should be opt-in for new visitors");
 
     assert.ok(uxCode.includes('Choose one or more career areas.'), "Career-area helper should explain multi-select behavior");
+    assert.ok(uxCode.includes("careerAreaCounts"), "Career chips should expose filter-aware inventory counts");
 
     // Check that 'cs' is defaulted
     const stateObj = JSON.parse(localStorage.getItem("yartchives-ux-v1") || "{}");
