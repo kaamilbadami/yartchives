@@ -43,6 +43,7 @@ DEFAULT_UNIVERSE = ROOT / "employer_universe.json"
 TIMEOUT = 25
 MAX_RESULTS_PER_SOURCE = 500
 STRUCTURAL_SOURCE_STATUSES = {403, 406, 422}
+PROVIDER_LIFECYCLE_SEED_KEY = "provider-lifecycle-overrides"
 
 
 class EndpointRetiredError(RuntimeError):
@@ -67,8 +68,12 @@ def _clean(value: Any) -> str:
 
 
 def _successfactors_source(employer: dict[str, Any]) -> dict[str, Any] | None:
+    lifecycle = ((employer.get("seed_metadata") or {}).get(PROVIDER_LIFECYCLE_SEED_KEY) or {}).get("provider_lifecycle") or {}
+    if lifecycle.get("family") == "successfactors" and lifecycle.get("status") == "retired":
+        return None
+
     provider = employer.get("provider") or {}
-    if provider.get("family") != "successfactors":
+    if provider.get("family") != "successfactors" or provider.get("status") != "resolved":
         return None
     resolution = employer.get("careers_resolution") or {}
     if resolution.get("status") != "resolved":
