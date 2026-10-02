@@ -214,6 +214,12 @@ class EnrichFeedTests(unittest.TestCase):
             "FP&A Intern": "finance-econ",
             "Finance Analytics Intern": "finance-econ",
             "Corporate Finance Intern": "finance-econ",
+            "Accounting Intern": "finance-econ",
+            "Tax Intern": "finance-econ",
+            "Audit Intern": "finance-econ",
+            "Quant Research Intern": "finance-econ",
+            "Quantitative Trading Intern": "finance-econ",
+            "Actuarial Intern": "finance-econ",
         }
         for title, expected in cases.items():
             with self.subTest(title=title):

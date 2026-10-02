@@ -95,5 +95,25 @@
     ],
     "url": "https://raw.githubusercontent.com/jobright-ai/2026-Software-Engineer-Internship/master/README.md",
     "homepage": "https://github.com/jobright-ai/2026-Software-Engineer-Internship"
+  },
+  {
+    "key": "jobright-account",
+    "name": "Jobright Accounting",
+    "kind": "markdown",
+    "profile_hint": [
+      "finance-econ"
+    ],
+    "url": "https://raw.githubusercontent.com/jobright-ai/2026-Account-Internship/master/README.md",
+    "homepage": "https://github.com/jobright-ai/2026-Account-Internship"
+  },
+  {
+    "key": "pittcsc-quant",
+    "name": "Pitt CSC Quant",
+    "kind": "markdown",
+    "profile_hint": [
+      "finance-econ"
+    ],
+    "url": "https://raw.githubusercontent.com/pittcsc/2027QuantInternships/main/README.md",
+    "homepage": "https://github.com/pittcsc/2027QuantInternships"
   }
 ]
