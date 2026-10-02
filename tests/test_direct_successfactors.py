@@ -66,6 +66,26 @@ class DirectSuccessFactorsTests(unittest.TestCase):
         )
         self.assertEqual(doc["sources"]["auto-successfactors-capgemini"]["status"], "retired")
 
+    def test_discover_sources_skips_retired_provider_override(self):
+        universe = {
+            "employers": [{
+                "id": "american-airlines-group",
+                "name": "American Airlines Group",
+                "careers_url": "https://jobs.aa.com",
+                "provider": {"family": "successfactors", "status": "resolved"},
+                "careers_resolution": {"status": "resolved"},
+                "seed_metadata": {
+                    "provider-lifecycle-overrides": {
+                        "provider_lifecycle": {
+                            "family": "successfactors",
+                            "status": "retired",
+                        }
+                    }
+                },
+            }]
+        }
+        self.assertEqual(mod.discover_sources(universe), [])
+
     def test_fetch_source_raises_endpoint_retired_on_404(self):
         import requests
         mock_response = mock.Mock()
