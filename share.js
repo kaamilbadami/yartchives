@@ -14,8 +14,8 @@
 
   const EDUCATION_LABELS = {
     "undergrad-friendly": "Undergrad-friendly",
-    "explicit-undergrad": "Explicit undergrad",
-    "graduate-only": "Graduate-only",
+    "explicit-undergrad": "Undergrad only",
+    "graduate-only": "Graduate only",
   };
   const OPPORTUNITY_LABELS = {
     internships: "internships + co-ops",
@@ -41,7 +41,7 @@
 
   function audienceOpportunityLabel() {
     const education = document.querySelector("#educationSelect")?.value || "undergrad-friendly";
-    const type = document.querySelector("#opportunityTypeSelect")?.value || "internships";
+    const type = document.querySelector("#opportunityTypeSelect")?.value || "all";
     if (education === "all" && type === "all") return "All opportunities";
     const audience = EDUCATION_LABELS[education] || "";
     const opportunity = OPPORTUNITY_LABELS[type] || (type === "all" ? "opportunities" : "opportunities");
@@ -144,8 +144,7 @@
     const education = document.querySelector("#educationSelect")?.value || "undergrad-friendly";
     if (education !== "undergrad-friendly") url.searchParams.set("edu", education);
 
-    const type = document.querySelector("#opportunityTypeSelect")?.value || "internships";
-    if (type !== "internships") url.searchParams.set("type", type);
+    url.searchParams.delete("type");
 
     const sort = document.querySelector("#sortSelect")?.value || "newest";
     if (sort !== "newest") url.searchParams.set("sort", sort);

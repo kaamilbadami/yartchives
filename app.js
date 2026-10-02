@@ -187,8 +187,14 @@ function renderProfiles() {
 }
 
 function searchable(job) {
-  return [job.company, job.title, job.location, ...(job.profiles || []), ...(job.source_names || [])]
-    .filter(Boolean).join(" ").toLowerCase();
+  return [
+    job.company,
+    job.title,
+    job.location,
+    ...(job.profiles || []),
+    ...(job.source_names || []),
+    ...(Array.isArray(job.skills) ? job.skills : []),
+  ].filter(Boolean).join(" ").toLowerCase();
 }
 
 function jobAgeDays(job) {
