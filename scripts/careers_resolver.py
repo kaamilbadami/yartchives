@@ -288,7 +288,12 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
         order += 1
     if not scored:
         return {"status": "unresolved", "url": None, "platform": None, "provider": None, "evidence": evidence}
-    _, _, url, platform, provider = max(scored, key=lambda item: (1 if (item[4] or {}).get("status") == "resolved" else 0, 1 if item[3] != "company-branded" else 0, item[0], item[1]))
+    _, _, url, platform, provider = max(scored, key=lambda item: (
+        1 if item[3] != "company-branded" else 0,
+        1 if (item[4] or {}).get("status") == "resolved" else 0,
+        item[0],
+        item[1],
+    ))
     return {"status": "resolved", "url": url, "platform": platform, "provider": provider, "evidence": evidence}
 
 
