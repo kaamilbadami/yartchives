@@ -1161,12 +1161,31 @@ def update_pull_request_branch(
         capture_output=True,
     )
     if push.returncode != 0:
-        raise subprocess.CalledProcessError(
-            push.returncode,
-            push.args,
-            output=push.stdout,
-            stderr=push.stderr,
+        push_detail = "\n".join(
+            part for part in (push.stdout, push.stderr) if part
+        ).strip()
+        fallback = subprocess.run(
+            [
+                "gh", "api", "--method", "PUT",
+                f"repos/{repo}/pulls/{number}/update-branch",
+                "-f", f"expected_head_sha={head_sha}",
+            ],
+            text=True,
+            capture_output=True,
         )
+        if fallback.returncode == 0:
+            return True, push_detail
+        fallback_detail = "\n".join(
+            part for part in (fallback.stdout, fallback.stderr) if part
+        ).strip()
+        detail = "\n".join(
+            part for part in (
+                f"direct branch push failed: {push_detail}" if push_detail else "direct branch push failed",
+                f"GitHub update-branch fallback failed: {fallback_detail}" if fallback_detail else "GitHub update-branch fallback failed",
+            )
+            if part
+        )
+        return False, detail
     return True, ""
 
 
