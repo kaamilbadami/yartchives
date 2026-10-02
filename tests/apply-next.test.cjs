@@ -115,6 +115,25 @@ assert.equal(direct.components.location.score, 20);
 
 const remote = A.scoreLocation({ states: ["Remote"] }, profile);
 assert.equal(remote.score, 20);
+
+const expandedAnalyticsRole = A.scoreRole({
+  title: "Decision Science Intern",
+  profiles: ["tech-business"],
+}, {
+  ...profile,
+  roleFamilies: [{ id: "analytics", label: "Data / analytics", keywords: ["data analyst"] }],
+});
+assert.equal(expandedAnalyticsRole.score, 15);
+assert.match(expandedAnalyticsRole.detail, /Data \/ analytics/i);
+
+const expandedFinanceRole = A.scoreRole({
+  title: "FP&A Intern",
+  profiles: ["finance-econ"],
+}, {
+  ...profile,
+  roleFamilies: [{ id: "finance-broad", label: "Broad finance / economics", keywords: ["finance"] }],
+});
+assert.equal(expandedFinanceRole.score, 15);
 const freshnessNow = new Date("2026-09-28T12:00:00Z");
 const freshnessScores = [0, 2, 4, 7, 10, 14, 20, 30, 45, 60, 75, 90].map(days => (
   A.scoreFreshness({ posted_at: new Date(freshnessNow.getTime() - days * 86400000).toISOString() }, freshnessNow).score
