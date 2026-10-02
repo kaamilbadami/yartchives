@@ -115,5 +115,30 @@
     ],
     "url": "https://raw.githubusercontent.com/pittcsc/2027QuantInternships/main/README.md",
     "homepage": "https://github.com/pittcsc/2027QuantInternships"
+  },
+  {
+    "key": "nsa-student-programs",
+    "name": "NSA Student Programs",
+    "kind": "program_page",
+    "company": "National Security Agency",
+    "url": "https://www.nsa.gov/Careers/Student-Programs/",
+    "homepage": "https://www.nsa.gov/Careers/Student-Programs/",
+    "apply_url": "https://apply.intelligencecareers.gov/job-listings?agency=NSA",
+    "program_title": "2027 Summer Internships",
+    "location": "Fort Meade, MD / Colorado / Georgia / Texas / Hawaii / Utah",
+    "term": "Summer 2027",
+    "section": "NSA 2027 Summer Internships",
+    "function_primary": "Computer Science / Technology",
+    "profile_hint": [
+      "cs",
+      "engineering"
+    ],
+    "posted_date_provenance": "authoritative_government",
+    "required_patterns": [
+      "2027\\s+Summer\\s+Internships",
+      "Computer\\s+Science",
+      "Cybersecurity",
+      "applications?\\s+for\\s+summer\\s+internships?.*August\\s+15"
+    ]
   }
 ]
