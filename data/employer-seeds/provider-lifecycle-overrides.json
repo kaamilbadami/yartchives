@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "source": {
+    "key": "provider-lifecycle-overrides",
+    "kind": "provider-lifecycle",
+    "description": "Explicit provider lifecycle overrides for stale or retired ATS resolutions."
+  },
+  "employers": [
+    {
+      "name": "American Airlines Group",
+      "provider_lifecycle": {
+        "family": "successfactors",
+        "status": "retired",
+        "reason": "Persistent resolved SuccessFactors sitemap returns HTTP 403; retire the stale provider resolution without weakening family-wide structural validation.",
+        "observed_at": "2026-10-02"
+      }
+    }
+  ]
+}
