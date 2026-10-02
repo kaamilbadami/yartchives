@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Queue the next bounded generic coverage gap as an autonomous issue."""
+"""Queue bounded, non-overlapping generic coverage gaps as autonomous issues."""
 
 import argparse
 import json
@@ -16,7 +16,13 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts.provider_fingerprint import fingerprint_provider
-from scripts.dispatch_autonomous_issues import Task, task_from_issue, active_jules_task, task_lock_keys, JULES_FEEDBACK_LABEL
+from scripts.dispatch_autonomous_issues import (
+    JULES_FEEDBACK_LABEL,
+    MAX_ACTIVE,
+    Task,
+    task_from_issue,
+    task_lock_keys,
+)
 
 def _gh_json(*args: str) -> Any:
     result = subprocess.run(
@@ -122,7 +128,12 @@ def gap_has_meaningful_generic_impact(gap_id: str, count: int) -> bool:
         return True
     return count >= 1 and gap_id.startswith("ats-")
 
-def resources_conflict_with_active_work(active_tasks: list[Any]) -> bool:
+def coverage_gap_resources(gap_id: str) -> frozenset[str]:
+    """Return the narrow scheduler resource for one independent coverage gap."""
+    return frozenset({f"coverage-gap:{gap_id}"})
+
+
+def resources_conflict_with_active_work(active_tasks: list[Any], gap_id: str) -> bool:
     candidate = Task(
         0,
         "coverage automation candidate",
@@ -130,7 +141,7 @@ def resources_conflict_with_active_work(active_tasks: list[Any]) -> bool:
         "P2",
         "coverage-automation",
         frozenset(),
-        frozenset({"automation", "coverage-analysis"}),
+        coverage_gap_resources(gap_id),
         frozenset(),
     )
     new_task_locks = task_lock_keys(candidate)
@@ -152,7 +163,7 @@ def create_issue(repo: str, gap_name: str, count: int, gap_id: str, employers: l
 <!-- autonomous-task -->
 priority: P2
 area: coverage-automation
-resources: automation, coverage-analysis
+resources: {", ".join(sorted(coverage_gap_resources(gap_id)))}
 autonomous: true
 
 ## Coverage Gap Identified
@@ -174,7 +185,7 @@ Please investigate this gap.
 - Update `employer_universe.json` or source scripts to recover these.
 
 ## Stop condition
-Exactly one next task may be created or refreshed. Stop if no generic improvements remain. Do not create a batch of employer-specific issues.
+Keep this issue bounded to the named generic gap. Other non-overlapping provider-family gaps may run concurrently in separate issues. Stop if no generic improvement remains for this gap, and do not create employer-specific follow-up batches.
 """
     _gh_run(
         "issue",
@@ -204,14 +215,16 @@ def main() -> None:
         return
 
     active_tasks, coverage_issues = get_active_and_coverage_issues(args.repo)
-
-    if resources_conflict_with_active_work(active_tasks):
-        print("Active feed work or coverage tasks prevent queuing new tasks at this time.")
+    available_slots = max(0, MAX_ACTIVE - len(active_tasks))
+    if available_slots == 0:
+        print("Jules is at the configured active-session cap; no new coverage gaps queued.")
         return
 
-    selected_gap = None
-    for gap in gaps:
-        gap_name, count, employers, gap_id = gap
+    queued = 0
+    for gap_name, count, employers, gap_id in gaps:
+        if queued >= available_slots:
+            break
+
         if not gap_has_meaningful_generic_impact(gap_id, count):
             print(f"Skipping {gap_id} (count {count}): insufficient generic impact.")
             continue
@@ -220,18 +233,18 @@ def main() -> None:
             print(f"Issue for gap {gap_id} already exists or is in progress. Skipping.")
             continue
 
-        selected_gap = gap
-        break
+        if resources_conflict_with_active_work(active_tasks, gap_id):
+            print(f"Skipping {gap_id}: its scheduler resource conflicts with active work.")
+            continue
 
-    if not selected_gap:
+        print(f"Queuing actionable gap: {gap_name} affecting {count} employers.")
+        create_issue(args.repo, gap_name, count, gap_id, employers)
+        coverage_issues.append({"body": f"<!-- coverage-gap: {gap_id} -->"})
+        queued += 1
+        print(f"Queued issue for gap: {gap_id}")
+
+    if queued == 0:
         print("No unsupported generic gaps remaining to queue.")
-        return
-
-    gap_name, count, employers, gap_id = selected_gap
-    print(f"Queuing next actionable gap: {gap_name} affecting {count} employers.")
-
-    create_issue(args.repo, gap_name, count, gap_id, employers)
-    print(f"Queued issue for gap: {gap_id}")
 
 if __name__ == "__main__":
     main()
