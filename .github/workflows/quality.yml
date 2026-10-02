@@ -14,6 +14,7 @@ on:
       - main
     paths:
       - "analytics.js"
+      - "analytics/**"
       - "app.js"
       - "frontend-utils.js"
       - "enhancements.js"
