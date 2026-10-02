@@ -21,6 +21,7 @@ ATS_HINTS = {
     "lever": ("lever.co",),
     "oracle": ("oraclecloud.com",),
     "eightfold": ("eightfold.ai",),
+    "successfactors": ("successfactors.com", "successfactors.eu", "career5.successfactors", "sapsf.com", "sapsf.eu"),
 }
 
 

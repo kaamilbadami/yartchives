@@ -116,6 +116,20 @@ def queue_entry(employer: dict[str, Any]) -> dict[str, Any]:
             "states": seed_states,
         })
 
+    root_hints = sorted(
+        str(value).strip()
+        for value in employer.get("domain_hints", [])
+        if str(value).strip()
+    )
+    if root_hints:
+        evidence_sources.append({
+            "seed_key": "domain_discovery",
+            "evidence_count": 0,
+            "authoritative_evidence_count": 0,
+            "domain_hints": root_hints,
+            "states": [],
+        })
+
     valid_domains = sorted(domain for domain in domains if _url(domain))
     statuses = {_hint_identity_status(domain) for domain in valid_domains}
     if "tenant" in statuses:

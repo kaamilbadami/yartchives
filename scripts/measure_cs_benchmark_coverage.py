@@ -76,6 +76,9 @@ def main():
 
             # Check domain hints for potential providers
             providers = set()
+            for hint in e.get("domain_hints", []):
+                p_info = fingerprint_provider(hint)
+                providers.add(p_info.get("family", "unknown"))
             for md in e.get("seed_metadata", {}).values():
                 if isinstance(md, dict):
                     for hint in md.get("domain_hints", []):
