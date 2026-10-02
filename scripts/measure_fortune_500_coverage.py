@@ -17,6 +17,19 @@ if str(ROOT) not in sys.path:
 from scripts.provider_fingerprint import fingerprint_provider
 from scripts.coverage_audit import expectations, surface_issues, compact
 
+UNKNOWN_PROVIDER_FAMILIES = {"custom_unknown", "unknown", "unknown/none"}
+
+
+def classify_unresolved_provider_families(providers):
+    """Separate genuinely unsupported providers from resolvable known-family hosts."""
+    families = set(providers or [])
+    if not families:
+        return "no_domain_hint"
+    if all(family in UNKNOWN_PROVIDER_FAMILIES for family in families):
+        return "unsupported_ats"
+    return "unresolved_host"
+
+
 def main():
     universe_path = ROOT / "employer_universe.json"
     feed_path = ROOT / "data/listings.json"
@@ -58,13 +71,15 @@ def main():
             if providers:
                 for p in providers:
                     provider_families_unresolved[p] += 1
-
-                if any(p in {"custom_unknown", "unknown", "unknown/none"} for p in providers):
-                    unsupported_ats.append(e)
-                else:
-                    unresolved_host.append(e)
             else:
                 provider_families_unresolved["unknown"] += 1
+
+            classification = classify_unresolved_provider_families(providers)
+            if classification == "unsupported_ats":
+                unsupported_ats.append(e)
+            elif classification == "unresolved_host":
+                unresolved_host.append(e)
+            else:
                 no_domain_hint.append(e)
 
 
