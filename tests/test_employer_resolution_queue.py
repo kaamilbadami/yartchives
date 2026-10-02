@@ -57,7 +57,7 @@ class EmployerResolutionQueueTests(unittest.TestCase):
         self.assertEqual(row["states"], ["MD", "VA"])
         self.assertEqual(row["evidence_count"], 5)
         self.assertEqual(row["authoritative_evidence_count"], 3)
-        self.assertEqual([item["seed_key"] for item in row["evidence_sources"]], ["benchmark-a", "benchmark-b"])
+        self.assertEqual([item["seed_key"] for item in row["evidence_sources"]], ["benchmark-a", "benchmark-b", "domain_discovery"])
 
     def test_priority_is_readiness_then_evidence_then_id(self):
         universe = self.universe()

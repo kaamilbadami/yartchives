@@ -247,6 +247,13 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
         queue.append(Candidate(hint, "input-hint"))
         if parsed.path in {"", "/"}:
             queue.extend(Candidate(origin + suffix, "conventional-path") for suffix in ("/careers", "/jobs"))
+            host = parsed.netloc.removeprefix("www.")
+            if not host.startswith("careers.") and not host.startswith("jobs."):
+                queue.extend([
+                    Candidate(f"{parsed.scheme}://careers.{host}/", "conventional-subdomain"),
+                    Candidate(f"{parsed.scheme}://jobs.{host}/", "conventional-subdomain"),
+                ])
+
     evidence: list[dict[str, Any]] = []
     scored: list[tuple[int, int, str, str, dict[str, Any]]] = []
     seen: set[str] = set()

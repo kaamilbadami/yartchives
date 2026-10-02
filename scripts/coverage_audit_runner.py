@@ -31,7 +31,7 @@ ATS_HOST_HINTS: dict[str, tuple[str, ...]] = {
     "icims": ("icims.com",),
     "oracle": ("oraclecloud.com",),
     "jobvite": ("jobvite.com",),
-    "successfactors": ("successfactors.com",),
+    "successfactors": ("successfactors.com", "successfactors.eu", "career5.successfactors", "sapsf.com", "sapsf.eu"),
     "taleo": ("taleo.net",),
     "eightfold": ("eightfold.ai",),
     "usajobs": ("usajobs.gov",),
