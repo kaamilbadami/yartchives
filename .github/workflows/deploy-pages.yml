@@ -11,6 +11,7 @@ on:
     workflows:
       - Update opportunity feed
       - Refresh bounded inspections
+      - Deploy analytics backend
     types:
       - completed
   repository_dispatch:
@@ -61,6 +62,46 @@ jobs:
         if: steps.hydrate.outputs.deploy_ready != 'false'
         run: python scripts/enrich_feed.py data/listings.json
 
+      - name: Hydrate latest analytics endpoint
+        if: steps.hydrate.outputs.deploy_ready != 'false'
+        id: analytics
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          endpoint=""
+          run_id="$(gh run list \
+            --repo "$GITHUB_REPOSITORY" \
+            --workflow deploy-analytics.yml \
+            --branch main \
+            --status success \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId // empty')"
+
+          if [ -n "$run_id" ]; then
+            rm -rf /tmp/yartchives-analytics-endpoint
+            mkdir -p /tmp/yartchives-analytics-endpoint
+            if gh run download "$run_id" \
+              --repo "$GITHUB_REPOSITORY" \
+              --name yartchives-analytics-endpoint \
+              --dir /tmp/yartchives-analytics-endpoint; then
+              endpoint="$(tr -d '\r\n' < /tmp/yartchives-analytics-endpoint/analytics-endpoint.txt)"
+              python - "$endpoint" <<'PY'
+          import sys
+          from urllib.parse import urlsplit
+          endpoint = sys.argv[1].strip()
+          parsed = urlsplit(endpoint)
+          if parsed.scheme != "https" or not parsed.netloc or parsed.username or parsed.password:
+              raise SystemExit("Analytics artifact must contain an absolute HTTPS URL without credentials")
+          if parsed.path != "/collect" or parsed.query or parsed.fragment:
+              raise SystemExit("Analytics artifact must point to the /collect endpoint")
+          PY
+            fi
+          fi
+
+          echo "endpoint=$endpoint" >> "$GITHUB_OUTPUT"
+
       - name: Configure Pages
         if: steps.hydrate.outputs.deploy_ready != 'false'
         uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d
@@ -69,7 +110,7 @@ jobs:
         if: steps.hydrate.outputs.deploy_ready != 'false'
         env:
           GH_TOKEN: ${{ github.token }}
-          YARTCHIVES_ANALYTICS_ENDPOINT: ${{ secrets.YARTCHIVES_ANALYTICS_ENDPOINT }}
+          YARTCHIVES_ANALYTICS_ENDPOINT: ${{ steps.analytics.outputs.endpoint }}
         run: |
           rm -rf _site
           mkdir -p _site/data _site/assets
