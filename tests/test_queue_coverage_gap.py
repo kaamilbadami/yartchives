@@ -6,7 +6,15 @@ from unittest.mock import patch
 import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from scripts.queue_coverage_gap import create_issue, find_all_gaps, gap_has_meaningful_generic_impact, get_active_and_coverage_issues, issue_already_queued, resources_conflict_with_active_work
+from scripts.queue_coverage_gap import (
+    coverage_gap_resources,
+    create_issue,
+    find_all_gaps,
+    gap_has_meaningful_generic_impact,
+    get_active_and_coverage_issues,
+    issue_already_queued,
+    resources_conflict_with_active_work,
+)
 
 class TestQueueCoverageGap(unittest.TestCase):
     def test_find_all_gaps_no_hint(self):
@@ -157,31 +165,55 @@ class TestQueueCoverageGap(unittest.TestCase):
         self.assertEqual(labels, ["autonomous-backlog", "agent-ready"])
         self.assertNotIn("coverage-automation", labels)
         self.assertNotIn("jules", labels)
+        body = args[args.index("--body") + 1]
+        self.assertIn("resources: coverage-gap:discovery", body)
+        self.assertNotIn("resources: automation, coverage-analysis", body)
+
+    def test_coverage_gap_resources_are_family_specific(self):
+        self.assertEqual(
+            coverage_gap_resources("ats-workday"),
+            frozenset({"coverage-gap:ats-workday"}),
+        )
+        self.assertNotEqual(
+            coverage_gap_resources("ats-workday"),
+            coverage_gap_resources("ats-icims"),
+        )
 
     def test_resources_conflict_with_active_work(self):
         from scripts.dispatch_autonomous_issues import Task
 
-        # Non-conflicting task
-        active_task_1 = Task(1, "Test", "", "P1", "link-quality", frozenset(), frozenset(), frozenset())
-        self.assertFalse(resources_conflict_with_active_work([active_task_1]))
+        active_link_task = Task(
+            1, "Test", "", "P1", "link-quality",
+            frozenset(), frozenset(), frozenset(),
+        )
+        self.assertFalse(
+            resources_conflict_with_active_work([active_link_task], "ats-workday")
+        )
 
-        # Conflicting feed-core task
-        active_task_2 = Task(1, "Test", "", "P1", "feed", frozenset(), frozenset(), frozenset())
-        self.assertTrue(resources_conflict_with_active_work([active_task_2]))
+        active_feed_task = Task(
+            2, "Test", "", "P1", "feed",
+            frozenset(), frozenset(), frozenset(),
+        )
+        self.assertTrue(
+            resources_conflict_with_active_work([active_feed_task], "ats-workday")
+        )
 
-        # Conflicting coverage task shares the explicit scheduling resources used
-        # by generated coverage-automation issues.
-        active_task_3 = Task(
-            1,
+        active_workday_task = Task(
+            3,
             "Test",
             "",
             "P1",
             "coverage-automation",
             frozenset(),
-            frozenset({"automation", "coverage-analysis"}),
+            frozenset({"coverage-gap:ats-workday"}),
             frozenset(),
         )
-        self.assertTrue(resources_conflict_with_active_work([active_task_3]))
+        self.assertTrue(
+            resources_conflict_with_active_work([active_workday_task], "ats-workday")
+        )
+        self.assertFalse(
+            resources_conflict_with_active_work([active_workday_task], "ats-icims")
+        )
 
 
     @patch("scripts.queue_coverage_gap._gh_json")
@@ -189,31 +221,34 @@ class TestQueueCoverageGap(unittest.TestCase):
     @patch("scripts.queue_coverage_gap.get_active_and_coverage_issues")
     @patch("scripts.queue_coverage_gap.resources_conflict_with_active_work")
     @patch("scripts.queue_coverage_gap.create_issue")
-    def test_select_next_unqueued_gap(self, mock_create, mock_conflict, mock_get_issues, mock_already_queued, mock_gh_json):
+    def test_select_all_unqueued_independent_gaps(self, mock_create, mock_conflict, mock_get_issues, mock_already_queued, mock_gh_json):
         mock_conflict.return_value = False
         mock_get_issues.return_value = ([], [])
-
-        # Simulate that the first gap is already queued, but not the second
-        def side_effect_queued(issues, gap_id):
-            return gap_id == "discovery"
-        mock_already_queued.side_effect = side_effect_queued
+        mock_already_queued.return_value = False
 
         import sys
         from scripts.queue_coverage_gap import main
 
-        with patch('scripts.queue_coverage_gap.find_all_gaps') as mock_find_gaps,              patch('sys.argv', ['scripts/queue_coverage_gap.py', '--repo', 'test/repo']):
+        with patch("scripts.queue_coverage_gap.find_all_gaps") as mock_find_gaps, \
+             patch("scripts.queue_coverage_gap.MAX_ACTIVE", 2), \
+             patch("sys.argv", ["scripts/queue_coverage_gap.py", "--repo", "test/repo"]):
 
             mock_find_gaps.return_value = [
-                ("Discovery gap (No domain hint)", 10, [], "discovery"),
-                ("ATS Family integration (workday)", 5, [], "ats-workday")
+                ("ATS Family integration (workday)", 5, [], "ats-workday"),
+                ("ATS Family integration (icims)", 4, [], "ats-icims"),
             ]
 
             main()
 
-            # The second gap should be queued because the first one was already queued
-            mock_create.assert_called_once_with(
-                'test/repo', 'ATS Family integration (workday)', 5, 'ats-workday', []
+            self.assertEqual(mock_create.call_count, 2)
+            mock_create.assert_any_call(
+                "test/repo", "ATS Family integration (workday)", 5, "ats-workday", []
             )
+            mock_create.assert_any_call(
+                "test/repo", "ATS Family integration (icims)", 4, "ats-icims", []
+            )
+            mock_conflict.assert_any_call([], "ats-workday")
+            mock_conflict.assert_any_call([], "ats-icims")
 
     @patch("scripts.queue_coverage_gap._gh_json")
     @patch("scripts.queue_coverage_gap.issue_already_queued")
@@ -239,6 +274,7 @@ class TestQueueCoverageGap(unittest.TestCase):
             mock_create.assert_called_once_with(
                 'test/repo', 'ATS Family integration (workday)', 1, 'ats-workday', []
             )
+            mock_conflict.assert_called_once_with([], "ats-workday")
 
     def test_singleton_discovery_gap_is_not_generic_enough(self):
         self.assertFalse(gap_has_meaningful_generic_impact("discovery", 1))
