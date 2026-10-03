@@ -155,6 +155,27 @@ class EnrichAiProfilesTests(unittest.TestCase):
         self.assertEqual(current["profiles"], ["general"])
         self.assertEqual(stats["cache_reused"], 0)
 
+    def test_request_budget_defers_remaining_general_jobs(self):
+        jobs = [
+            {"id": f"job-{index}", "title": "Unknown Intern", "profiles": ["general"]}
+            for index in range(25)
+        ]
+        provider = FakeProvider([
+            outcome(("general",), 0.99)
+            for _ in range(20)
+        ])
+        stats = mod.apply_ai_fallback(
+            {"jobs": jobs},
+            provider,
+            model="test",
+            request_batch_size=20,
+            max_batches=1,
+        )
+
+        self.assertEqual(provider.calls, [[f"job-{index}" for index in range(20)]])
+        self.assertEqual(stats["model_attempted"], 20)
+        self.assertEqual(stats["budget_deferred"], 5)
+
     def test_failed_batch_is_fail_open(self):
         class FailingProvider:
             name = "fake"
@@ -174,19 +195,32 @@ class EnrichAiProfilesTests(unittest.TestCase):
             original = json.dumps(payload)
             path.write_text(original, encoding="utf-8")
             old_argv = sys.argv
-            old_key = mod.os.environ.pop("TEST_MISSING_AI_KEY", None)
+            env_names = (
+                "TEST_MISSING_AI_KEY",
+                "TEST_MISSING_AZURE_KEY",
+                "TEST_MISSING_AZURE_ENDPOINT",
+                "TEST_MISSING_AZURE_DEPLOYMENT",
+            )
+            old_values = {name: mod.os.environ.pop(name, None) for name in env_names}
             try:
                 sys.argv = [
                     str(MODULE_PATH),
                     str(path),
                     "--api-key-env",
                     "TEST_MISSING_AI_KEY",
+                    "--azure-api-key-env",
+                    "TEST_MISSING_AZURE_KEY",
+                    "--azure-endpoint-env",
+                    "TEST_MISSING_AZURE_ENDPOINT",
+                    "--azure-deployment-env",
+                    "TEST_MISSING_AZURE_DEPLOYMENT",
                 ]
                 self.assertEqual(mod.main(), 0)
             finally:
                 sys.argv = old_argv
-                if old_key is not None:
-                    mod.os.environ["TEST_MISSING_AI_KEY"] = old_key
+                for name, value in old_values.items():
+                    if value is not None:
+                        mod.os.environ[name] = value
             self.assertEqual(path.read_text(encoding="utf-8"), original)
 
 

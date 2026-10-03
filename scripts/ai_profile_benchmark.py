@@ -249,8 +249,13 @@ class GeminiProfileClassifier:
                 )
                 if response.status_code == 429:
                     detail = response.text[:1000].strip()
+                    retry_delay = _retry_delay_seconds(response, attempt)
+                    if retry_delay > 30:
+                        raise RuntimeError(
+                            f"Gemini quota unavailable for {retry_delay:.1f}s: {detail}"
+                        )
                     if attempt < 4:
-                        time.sleep(_retry_delay_seconds(response, attempt))
+                        time.sleep(retry_delay)
                         continue
                     raise RuntimeError(f"Gemini HTTP 429 after retries: {detail}")
                 if response.status_code >= 500:
@@ -316,7 +321,9 @@ class GeminiProfileClassifier:
             ) as exc:
                 last_error = exc
                 if response is not None and response.status_code == 429:
-                    continue
+                    if attempt < 4 and _retry_delay_seconds(response, attempt) <= 30:
+                        continue
+                    break
                 if attempt < 4 and isinstance(exc, requests.RequestException):
                     time.sleep(float(min(30, 2 ** (attempt + 1))))
                     continue
