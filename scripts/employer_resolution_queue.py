@@ -60,8 +60,10 @@ def _hint_identity_status(value: str) -> str:
 
     if family == "greenhouse":
         return "tenant" if parts and parts[0].casefold() not in {"jobs", "careers"} else "shared_provider"
-    if family in {"ashby", "lever", "smartrecruiters"}:
+    if family in {"smartrecruiters"}:
         return "tenant" if parts else "shared_provider"
+    if family in {"ashby", "lever"}:
+        return "tenant"
     if family == "successfactors":
         return "tenant" if query.get("company") else "shared_provider"
     # Workday, iCIMS, Oracle, Eightfold, Avature, and Phenom commonly encode
