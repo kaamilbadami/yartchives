@@ -255,7 +255,7 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
         slug_candidates.add(first_token)
 
     for hint in hints:
-        if "lever.co" not in hint:
+        if "lever.co" not in hint and "greenhouse.io" not in hint:
             token = _domain_token(hint)
             if token:
                 slug_candidates.add(token)
@@ -282,6 +282,22 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
                         if isinstance(data, list):
                             queue.insert(0, Candidate(f"https://jobs.lever.co/{slug}", "auto-discovered-tenant"))
                             break
+                except Exception:
+                    pass
+
+        if host in {"boards.greenhouse.io", "job-boards.greenhouse.io"} and parsed.path in {"", "/"}:
+            for slug in slug_candidates:
+                if not slug:
+                    continue
+                try:
+                    resp = client.get(
+                        f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs",
+                        headers={"User-Agent": USER_AGENT},
+                        timeout=timeout,
+                    )
+                    if resp.status_code == 200:
+                        queue.insert(0, Candidate(f"https://{host}/{slug}", "auto-discovered-tenant"))
+                        break
                 except Exception:
                     pass
 
