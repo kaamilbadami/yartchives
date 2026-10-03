@@ -58,7 +58,7 @@ def source_catalog(sources_path: Path, direct_path: Path) -> dict[str, dict[str,
     for key, row in catalog.items():
         if key in SOURCE_METADATA:
             row.update(SOURCE_METADATA[key])
-        elif row.get("kind") == "workday":
+        elif row.get("kind") in ("workday", "ashby"):
             row.update({
                 "class": "direct employer / ATS",
                 "scope": "configured employer's CT student opportunities matching the source-specific CS rules",
