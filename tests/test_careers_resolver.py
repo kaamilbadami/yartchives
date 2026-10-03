@@ -258,3 +258,34 @@ if __name__ == "__main__":
         self.assertEqual(result["platform"], "greenhouse")
         self.assertEqual(result["provider"]["family"], "greenhouse")
         self.assertEqual(result["url"], "https://careers.airbnb.com/positions/")
+
+    def test_ashby_auto_discovery(self):
+        class FakeJsonResponse:
+            def __init__(self, url, status=200, json_data=None):
+                self.url = url
+                self.status_code = status
+                self._json = json_data or {}
+                self.headers = {"Content-Type": "application/json"}
+                self.history = []
+                self.text = "json"
+
+            def json(self):
+                return self._json
+
+        class FakeAshbySession:
+            def __init__(self):
+                self.requested = []
+
+            def get(self, url, **kwargs):
+                self.requested.append(url)
+                if url == "https://api.ashbyhq.com/posting-api/job-board/acme":
+                    return FakeJsonResponse(url, json_data={"jobs": []})
+                if url == "https://jobs.ashbyhq.com/acme":
+                    return FakeJsonResponse(url, json_data={}) # Return generic 200 for crawler
+                return FakeJsonResponse(url, status=404)
+
+        session = FakeAshbySession()
+        result = mod.resolve_employer({"name": "Acme", "domain_hints": ["jobs.ashbyhq.com"]}, session)
+        self.assertEqual(result["status"], "resolved")
+        self.assertEqual(result["platform"], "ashby")
+        self.assertEqual(result["url"], "https://jobs.ashbyhq.com/acme")
