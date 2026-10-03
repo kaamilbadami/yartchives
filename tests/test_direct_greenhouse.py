@@ -40,13 +40,28 @@ class DirectGreenhouseTests(unittest.TestCase):
                 },
             ]
         }
-        sources = mod.discover_sources(feed)
+        universe = {"employers": []}
+        sources = mod.discover_sources(feed, universe)
         self.assertEqual(len(sources), 1)
         self.assertEqual(sources[0]["board_token"], "schonfeld")
         self.assertEqual(
             sources[0]["api_url"],
             "https://boards-api.greenhouse.io/v1/boards/schonfeld/jobs",
         )
+
+    def test_discovers_from_universe(self):
+        universe = {
+            "employers": [
+                {
+                    "name": "Acme",
+                    "domain_hints": ["job-boards.greenhouse.io/acme"]
+                }
+            ]
+        }
+        feed = {"jobs": []}
+        sources = mod.discover_sources(feed, universe)
+        self.assertEqual(len(sources), 1)
+        self.assertEqual(sources[0]["board_token"], "acme")
 
     def test_authoritative_us_cs_intern_becomes_direct_job(self):
         source = {
@@ -168,6 +183,9 @@ class DirectGreenhouseTests(unittest.TestCase):
         }
 
         class Response:
+            def __init__(self):
+                self.status_code = 200
+
             def raise_for_status(self):
                 return None
 
@@ -214,6 +232,8 @@ class DirectGreenhouseTests(unittest.TestCase):
         def fake_fetch(client, source, current_reference):
             nonlocal active, max_active
             self.assertEqual(current_reference, reference)
+            if source["key"] == "board-5":
+                raise mod.StructuralSourceError("Failed")
             with lock:
                 active += 1
                 max_active = max(max_active, active)

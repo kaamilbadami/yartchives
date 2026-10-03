@@ -157,7 +157,7 @@ def collect(
 
     def greenhouse_task() -> dict[str, Any]:
         doc = copy.deepcopy(base_doc)
-        greenhouse.enrich(doc, old_doc, greenhouse.retry_session(), reference)
+        greenhouse.enrich(doc, old_doc, universe, greenhouse.retry_session(), reference)
         return doc
 
     def oracle_task() -> dict[str, Any]:
