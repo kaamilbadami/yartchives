@@ -34235,7 +34235,16 @@
       "domain_hints": [
         "jobs.lever.co",
         "palantir.com"
-      ]
+      ],
+      "careers_url": "https://jobs.lever.co/palantir",
+      "careers_platform": "lever",
+      "provider": {
+        "family": "lever",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "lever.co",
+        "host": "jobs.lever.co"
+      }
     },
     {
       "id": "palo-alto-networks",

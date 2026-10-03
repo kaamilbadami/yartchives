@@ -269,7 +269,9 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
         origin = urlunparse((parsed.scheme, parsed.netloc, "", "", "", ""))
         queue.append(Candidate(hint, "input-hint"))
         host = parsed.netloc.removeprefix("www.")
-        if host in {"jobs.lever.co", "lever.co"} and parsed.path in {"", "/"}:
+        if host in {"jobs.lever.co", "lever.co"}:
+            if parsed.path not in {"", "/"}:
+                slug_candidates.add(parsed.path.strip("/"))
             for slug in slug_candidates:
                 if not slug:
                     continue
