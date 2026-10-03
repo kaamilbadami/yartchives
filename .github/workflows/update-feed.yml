@@ -116,6 +116,14 @@ jobs:
       - name: Add student-level metadata
         run: python scripts/benchmark_feed_stages.py --record "enrichment" -- python scripts/enrich_feed.py data/listings.json
 
+      - name: Smoke-test Azure AI profile provider
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_DEPLOYMENT }}
+        run: python scripts/smoke_ai_profile_provider.py
+
       - name: Add high-confidence AI career-area fallback
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
