@@ -74,7 +74,7 @@ class DownloadLatestFeedTests(unittest.TestCase):
     def test_latest_artifact_skips_runs_without_usable_artifact(self):
         responses = [
             {"workflow_runs": [{"id": 11}, {"id": 10}]},
-            {"artifacts": []},
+            {"artifacts": None},
             {
                 "artifacts": [
                     {
@@ -88,7 +88,7 @@ class DownloadLatestFeedTests(unittest.TestCase):
     def test_latest_artifact_paginates_workflow_runs(self):
         responses = [
             {"workflow_runs": [{"id": 10}, {"id": 9}]},
-            {"artifacts": []},
+            {"artifacts": None},
             {"artifacts": []},
             {"workflow_runs": [{"id": 8}]},
             {
