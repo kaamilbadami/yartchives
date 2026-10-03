@@ -36,10 +36,18 @@ from direct_ct_workday import (  # noqa: E402
     stable_projection,
     upsert_direct_job,
 )
+from employer_resolution_lifecycle import invalidate_resolution  # noqa: E402
 from greenhouse_inspector import UnsupportedGreenhouseUrl, derive_greenhouse_endpoint  # noqa: E402
 
 ROOT = SCRIPT_DIR.parent
 DEFAULT_FEED = ROOT / "data" / "listings.json"
+DEFAULT_UNIVERSE = ROOT / "employer_universe.json"
+
+class StructuralSourceError(RuntimeError):
+    pass
+
+class EndpointRetiredError(RuntimeError):
+    pass
 TIMEOUT = 12
 NETWORK_WORKERS = 12
 API_HOST = "https://boards-api.greenhouse.io"
@@ -82,9 +90,24 @@ def source_from_job(job: dict[str, Any]) -> dict[str, Any] | None:
     }
 
 
-def discover_sources(feed: dict[str, Any]) -> list[dict[str, Any]]:
+from urllib.parse import urlparse, unquote
+def _extract_board_token(url: str) -> str | None:
+    if not url:
+        return None
+    url = url if "://" in url else "https://" + url
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower()
+    if host in {"boards.greenhouse.io", "job-boards.greenhouse.io"}:
+        parts = [unquote(part) for part in parsed.path.split("/") if part]
+        if parts:
+            return parts[0].strip().lower()
+    return None
+
+def discover_sources(feed: dict[str, Any], universe: dict[str, Any]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     seen: set[str] = set()
+
+    # 1. Feed-evidenced discovery
     jobs = [job for job in (feed.get("jobs") or []) if isinstance(job, dict)]
     jobs.sort(key=lambda job: (_clean(job.get("company")).casefold(), _clean(job.get("url")).casefold()))
     for job in jobs:
@@ -93,6 +116,45 @@ def discover_sources(feed: dict[str, Any]) -> list[dict[str, Any]]:
             continue
         out.append(source)
         seen.add(source["board_token"])
+
+    # 2. Universe-evidenced discovery
+    for employer in universe.get("employers", []):
+        provider = employer.get("provider", {})
+        is_resolved_greenhouse = provider.get("status") == "resolved" and provider.get("family") == "greenhouse"
+
+        board_token = None
+        for hint in employer.get("domain_hints", []):
+            token = _extract_board_token(hint)
+            if token:
+                board_token = token
+                break
+
+        if not board_token:
+            for seed_data in employer.get("seed_metadata", {}).values():
+                if seed_data.get("apply_host") in {"job-boards.greenhouse.io", "boards.greenhouse.io"} and seed_data.get("upstream_slug"):
+                    board_token = seed_data["upstream_slug"]
+                    break
+
+        if not board_token and is_resolved_greenhouse:
+            board_token = _extract_board_token(employer.get("careers_url") or "")
+
+        if board_token and board_token not in seen:
+            company = employer.get("name") or board_token
+            slug = re.sub(r"[^a-z0-9]+", "-", board_token.casefold()).strip("-")
+            source = {
+                "key": f"auto-greenhouse-{slug}",
+                "name": f"{company} (auto-discovered Greenhouse)",
+                "company": company,
+                "kind": "greenhouse",
+                "board_token": board_token,
+                "homepage": f"https://job-boards.greenhouse.io/{quote(board_token, safe='-._~')}",
+                "api_url": f"{API_HOST}/v1/boards/{quote(board_token, safe='-._~')}/jobs",
+                "profile_hint": ["cs"],
+                "auto_discovered": True,
+            }
+            out.append(source)
+            seen.add(board_token)
+
     return out
 
 
@@ -197,16 +259,28 @@ def fetch_source(client: requests.Session, source: dict[str, Any], reference: da
         except requests.RequestException:
             pass
 
-    response = client.get(
-        source["api_url"],
-        headers={"Accept": "application/json", "User-Agent": bf.USER_AGENT},
-        timeout=TIMEOUT,
-    )
-    response.raise_for_status()
-    payload = response.json()
+    try:
+        response = client.get(
+            source["api_url"],
+            headers={"Accept": "application/json", "User-Agent": bf.USER_AGENT},
+            timeout=TIMEOUT,
+        )
+        if response.status_code in {404, 410}:
+            raise EndpointRetiredError(f"Greenhouse board retired: HTTP {response.status_code}")
+        response.raise_for_status()
+    except requests.RequestException as e:
+        if isinstance(e, EndpointRetiredError):
+            raise
+        raise StructuralSourceError(f"Network error: {e}")
+
+    try:
+        payload = response.json()
+    except ValueError:
+        raise StructuralSourceError("Invalid JSON response")
+
     items = payload.get("jobs") if isinstance(payload, dict) else None
     if not isinstance(items, list):
-        raise ValueError("Greenhouse board response did not contain a jobs list")
+        raise StructuralSourceError("Greenhouse board response did not contain a jobs list")
 
     out: list[dict[str, Any]] = []
     seen_ids: set[str] = set()
@@ -266,13 +340,35 @@ def apply_authoritative_board_brand(
         return
 
 
-def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Session, reference: datetime) -> dict[str, Any]:
+def enrich(doc: dict[str, Any], old_doc: dict[str, Any], universe: dict[str, Any], client: requests.Session, reference: datetime) -> dict[str, Any]:
     jobs = doc.setdefault("jobs", [])
     health = doc.setdefault("sources", {})
     old_jobs = old_doc.get("jobs", []) if isinstance(old_doc, dict) else []
     old_jobs_by_id = {j.get("id"): j for j in old_jobs if isinstance(j, dict) and j.get("id")}
 
-    sources = discover_sources(doc)
+    sources = discover_sources(doc, universe)
+
+    # Map board tokens to employers for invalidation
+    token_to_employer = {}
+    for employer in universe.get("employers", []):
+        board_token = None
+        for hint in employer.get("domain_hints", []):
+            token = _extract_board_token(hint)
+            if token:
+                board_token = token
+                break
+        if not board_token:
+            for seed_data in employer.get("seed_metadata", {}).values():
+                if seed_data.get("apply_host") in {"job-boards.greenhouse.io", "boards.greenhouse.io"} and seed_data.get("upstream_slug"):
+                    board_token = seed_data["upstream_slug"]
+                    break
+        if not board_token:
+            provider = employer.get("provider", {})
+            if provider.get("status") == "resolved" and provider.get("family") == "greenhouse":
+                board_token = _extract_board_token(employer.get("careers_url") or "")
+        if board_token:
+            token_to_employer[board_token] = employer
+
     fetched = fetch_sources_concurrently(sources, reference)
     print(f"Greenhouse enumeration: {len(sources)} board(s), up to {min(NETWORK_WORKERS, len(sources)) if sources else 0} concurrent")
 
@@ -293,6 +389,24 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], client: requests.Sessio
             print(f"{source['name']}: {len(direct_jobs)} direct US CS student listing(s)")
             continue
 
+        if isinstance(exc, EndpointRetiredError):
+            health[source["key"]] = {
+                "status": "retired",
+                "name": source["name"],
+                "error": str(exc),
+                "direct": True,
+            }
+            employer = token_to_employer.get(source["board_token"])
+            if employer:
+                invalidate_resolution(employer, f"EndpointRetiredError: {exc}")
+            print(f"{source['name']}: RETIRED: {exc}", file=sys.stderr)
+            continue
+
+        if isinstance(exc, StructuralSourceError):
+            employer = token_to_employer.get(source["board_token"])
+            if employer:
+                invalidate_resolution(employer, f"StructuralSourceError: {exc}")
+
         health[source["key"]] = {
             "status": "failed",
             "count": 0,
@@ -311,9 +425,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("feed", nargs="?", type=Path, default=DEFAULT_FEED)
     parser.add_argument("--old-feed", type=Path)
+    parser.add_argument("--universe", type=Path, default=DEFAULT_UNIVERSE)
     args = parser.parse_args()
 
     doc = json.loads(args.feed.read_text(encoding="utf-8"))
+    universe = json.loads(args.universe.read_text(encoding="utf-8"))
+
     old_doc: dict[str, Any] = {}
     if args.old_feed and args.old_feed.exists():
         try:
@@ -324,7 +441,7 @@ def main() -> int:
         old_doc = copy.deepcopy(doc)
 
     reference = now_utc()
-    enrich(doc, old_doc, retry_session(), reference)
+    enrich(doc, old_doc, universe, retry_session(), reference)
     if stable_projection(doc) == stable_projection(old_doc):
         print("Auto-discovered Greenhouse coverage unchanged.")
         return 0
