@@ -241,13 +241,52 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
     client = session or requests.Session()
     official_domains = {(urlparse(url).hostname or "").lower().removeprefix("www.") for url in hints}
     queue: list[Candidate] = []
+
+    import re
+    from domain_discovery import _domain_token
+
+    slug_candidates = set()
+    name = entry.get("name", "")
+    slug_candidates.add(re.sub(r"[^a-z0-9]+", "", name.lower()))
+    slug_candidates.add(re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-"))
+
+    first_token = re.sub(r"[^a-z0-9]+", "", name.lower().split(" ")[0])
+    if first_token:
+        slug_candidates.add(first_token)
+
+    for hint in hints:
+        if "lever.co" not in hint:
+            token = _domain_token(hint)
+            if token:
+                slug_candidates.add(token)
+                slug_candidates.add(token.replace(" ", ""))
+                slug_candidates.add(token.replace(" ", "-"))
+
     for hint in hints:
         parsed = urlparse(hint)
         origin = urlunparse((parsed.scheme, parsed.netloc, "", "", "", ""))
         queue.append(Candidate(hint, "input-hint"))
+        host = parsed.netloc.removeprefix("www.")
+        if host in {"jobs.lever.co", "lever.co"} and parsed.path in {"", "/"}:
+            for slug in slug_candidates:
+                if not slug:
+                    continue
+                try:
+                    resp = client.get(
+                        f"https://api.lever.co/v0/postings/{slug}?mode=json",
+                        headers={"User-Agent": USER_AGENT},
+                        timeout=timeout,
+                    )
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        if isinstance(data, list):
+                            queue.insert(0, Candidate(f"https://jobs.lever.co/{slug}", "auto-discovered-tenant"))
+                            break
+                except Exception:
+                    pass
+
         if parsed.path in {"", "/"}:
             queue.extend(Candidate(origin + suffix, "conventional-path") for suffix in ("/careers", "/jobs"))
-            host = parsed.netloc.removeprefix("www.")
             if not host.startswith("careers.") and not host.startswith("jobs."):
                 queue.extend([
                     Candidate(f"{parsed.scheme}://careers.{host}/", "conventional-subdomain"),
