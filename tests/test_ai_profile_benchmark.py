@@ -425,6 +425,26 @@ class AiProfileBenchmarkTests(unittest.TestCase):
         self.assertAlmostEqual(summary["agreement_rate_including_invalid"], 1 / 3)
         self.assertEqual(len(rows), 3)
 
+    @mock.patch.object(mod.time, "sleep")
+    @mock.patch.object(mod.requests, "post")
+    def test_gemini_long_quota_retry_fails_fast_without_sleeping(self, post, sleep):
+        response = mock.Mock()
+        response.status_code = 429
+        response.headers = {}
+        response.text = (
+            "Quota exceeded for generate_content_free_tier_requests. "
+            "Please retry in 9272.0s."
+        )
+        post.return_value = response
+
+        provider = mod.GeminiProfileClassifier("secret", batch_size=20)
+        with self.assertRaises(RuntimeError) as ctx:
+            provider.classify_many([{"title": "Unknown Intern"}])
+
+        self.assertIn("quota unavailable", str(ctx.exception))
+        self.assertEqual(post.call_count, 1)
+        sleep.assert_not_called()
+
     def test_retry_delay_uses_gemini_retry_hint(self):
         response = mock.Mock()
         response.headers = {}
