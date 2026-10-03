@@ -93,7 +93,7 @@ def latest_artifact(repo: str, workflow: str, artifact_name: str, token: str | N
                 f"?name={artifact_name}&per_page=100"
             )
             artifacts_payload = _request_json(artifacts_url, token)
-            for artifact in artifacts_payload.get("artifacts", []):
+            for artifact in artifacts_payload.get("artifacts") or []:
                 if artifact.get("expired", False):
                     continue
                 if artifact.get("name") != artifact_name:
