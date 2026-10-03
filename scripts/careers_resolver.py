@@ -100,8 +100,10 @@ def has_provider_tenant_identity(url: str, family: str | None = None) -> bool:
     query = parse_qs(parsed.query.lower())
     if family == "greenhouse":
         return bool(parts and parts[0] not in {"jobs", "careers"})
-    if family in {"ashby", "lever", "smartrecruiters"}:
+    if family in {"lever", "smartrecruiters"}:
         return bool(parts)
+    if family == "ashby":
+        return bool(parts and parts[0].casefold() not in {"jobs", "careers"})
     if family == "successfactors":
         return bool(query.get("company"))
     if family == "oracle":
@@ -298,6 +300,24 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
                     if resp.status_code == 200:
                         queue.insert(0, Candidate(f"https://{host}/{slug}", "auto-discovered-tenant"))
                         break
+                except Exception:
+                    pass
+
+        if host in {"jobs.ashbyhq.com", "ashbyhq.com"} and parsed.path in {"", "/"}:
+            for slug in slug_candidates:
+                if not slug:
+                    continue
+                try:
+                    resp = client.get(
+                        f"https://api.ashbyhq.com/posting-api/job-board/{slug}",
+                        headers={"User-Agent": USER_AGENT},
+                        timeout=timeout,
+                    )
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        if isinstance(data, dict) and "jobs" in data:
+                            queue.insert(0, Candidate(f"https://jobs.ashbyhq.com/{slug}", "auto-discovered-tenant"))
+                            break
                 except Exception:
                     pass
 
