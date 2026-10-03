@@ -62,7 +62,7 @@ jobs:
 
       - name: Validate code
         run: |
-          python -m py_compile scripts/build_feed.py scripts/careers_resolver.py scripts/employer_resolution_lifecycle.py scripts/employer_resolution_queue.py scripts/direct_ct_workday.py scripts/direct_icims.py scripts/direct_greenhouse.py scripts/direct_oracle.py scripts/direct_ashby.py scripts/parallel_ats_collect.py scripts/discover_workday_sources.py scripts/posting_requirements.py scripts/workday_inspector.py scripts/icims_inspector.py scripts/greenhouse_inspector.py scripts/migrate_cached_requirements.py scripts/update_workday_inspections.py scripts/reconcile_workday_duplicates.py scripts/stabilize_job_ids.py scripts/enrich_feed.py scripts/enrich_ai_profiles.py scripts/ai_profile_benchmark.py scripts/repair_links.py scripts/provider_links.py scripts/jobright_links.py scripts/source_links.py scripts/validate_feed.py scripts/audit_feed.py scripts/coverage_audit.py scripts/coverage_contract.py scripts/source_contribution_audit.py scripts/employer_universe.py scripts/employer_seed_from_benchmark.py scripts/fortune_500_seed.py scripts/state_of_ats_seed.py scripts/refresh_employer_universe.py scripts/provider_fingerprint.py scripts/update_readme_status.py scripts/download_latest_feed.py scripts/triage_source_quarantines.py
+          python -m py_compile scripts/build_feed.py scripts/careers_resolver.py scripts/employer_resolution_lifecycle.py scripts/employer_resolution_queue.py scripts/direct_ct_workday.py scripts/direct_icims.py scripts/direct_greenhouse.py scripts/direct_oracle.py scripts/parallel_ats_collect.py scripts/discover_workday_sources.py scripts/posting_requirements.py scripts/workday_inspector.py scripts/icims_inspector.py scripts/greenhouse_inspector.py scripts/migrate_cached_requirements.py scripts/update_workday_inspections.py scripts/reconcile_workday_duplicates.py scripts/stabilize_job_ids.py scripts/enrich_feed.py scripts/enrich_ai_profiles.py scripts/ai_profile_providers.py scripts/ai_profile_benchmark.py scripts/repair_links.py scripts/provider_links.py scripts/jobright_links.py scripts/source_links.py scripts/validate_feed.py scripts/audit_feed.py scripts/coverage_audit.py scripts/coverage_contract.py scripts/source_contribution_audit.py scripts/employer_universe.py scripts/employer_seed_from_benchmark.py scripts/fortune_500_seed.py scripts/state_of_ats_seed.py scripts/refresh_employer_universe.py scripts/provider_fingerprint.py scripts/update_readme_status.py scripts/download_latest_feed.py scripts/triage_source_quarantines.py
           node --check frontend-utils.js
           node --check app.js
           node --check enhancements.js
@@ -119,11 +119,15 @@ jobs:
       - name: Add high-confidence AI career-area fallback
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_DEPLOYMENT }}
         run: >-
           python scripts/benchmark_feed_stages.py --record "enrichment" --
           python scripts/enrich_ai_profiles.py data/listings.json
           --cache-feed /tmp/yartchives-old-listings.json
           --threshold 0.95
+          --max-batches 10
 
       - name: Repair and validate application links
         run: python scripts/benchmark_feed_stages.py --record "link repair" -- python scripts/repair_links.py data/listings.json --old-feed /tmp/yartchives-old-listings.json
