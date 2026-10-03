@@ -63,9 +63,13 @@ class UpdateFeedWorkflowTests(unittest.TestCase):
         self.assertLess(ai_fallback, validate)
         block = text[ai_fallback:validate]
         self.assertIn("secrets.GEMINI_API_KEY", block)
+        self.assertIn("secrets.AZURE_OPENAI_API_KEY", block)
+        self.assertIn("secrets.AZURE_OPENAI_ENDPOINT", block)
+        self.assertIn("secrets.AZURE_OPENAI_DEPLOYMENT", block)
         self.assertIn("scripts/enrich_ai_profiles.py", block)
         self.assertIn("--cache-feed /tmp/yartchives-old-listings.json", block)
         self.assertIn("--threshold 0.95", block)
+        self.assertIn("--max-batches 10", block)
 
     def test_metric_stage_names_with_spaces_are_shell_quoted(self):
         text = WORKFLOW.read_text(encoding="utf-8")
