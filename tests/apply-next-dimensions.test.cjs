@@ -15,7 +15,8 @@ const profile = {
     major: "Computer Science",
     supportedSkills: ["Java", "systems"],
     cautiousSkills: ["Python"],
-    experienceEvidence: ["Software Engineering Intern — built Java services and Linux tooling"],
+    workExperienceEvidence: ["Software Engineering Intern — built Java services and Linux tooling"],
+    courseworkEvidence: ["Data Structures in Java"],
   },
   roleFamilies: [{ id: "software", label: "Software engineering", priority: 1, keywords: ["software engineer"] }],
   preferredStates: ["CT"],
@@ -154,7 +155,15 @@ const javaExperienceWithoutEvidence = D.scoreJob(job({
   _inspection: inspection([["Professional experience with Java required", ["Java"]]]),
 }), {
   ...profile,
-  facts: { ...profile.facts, experienceEvidence: ["Data analyst intern — Excel dashboards"] },
+  facts: { ...profile.facts, workExperienceEvidence: ["Data analyst intern — Excel dashboards"] },
+}, now);
+
+const javaLearnableWithCoursework = D.scoreJob(job({
+  url: "https://example.com/java-learnable",
+  _inspection: inspection([["Academic coursework in Java", ["Java"]]]),
+}), {
+  ...profile,
+  facts: { ...profile.facts, workExperienceEvidence: [], courseworkEvidence: ["Data Structures in Java"] },
 }, now);
 const plainJavaWithExperience = D.scoreJob(job({
   url: "https://example.com/plain-java",
@@ -165,11 +174,12 @@ const plainJavaWithoutExperience = D.scoreJob(job({
   _inspection: inspection([["Java required", ["Java"]]]),
 }), {
   ...profile,
-  facts: { ...profile.facts, experienceEvidence: [] },
+  facts: { ...profile.facts, workExperienceEvidence: [], experienceEvidence: [] },
 }, now);
 assert.ok(javaExperienceRequired.components.fit.score > javaExperienceWithoutEvidence.components.fit.score);
 assert.match(javaExperienceRequired.components.fit.detail, /Relevant work experience evidence: java/i);
 assert.doesNotMatch(javaExperienceWithoutEvidence.components.fit.detail, /Relevant work experience evidence/i);
+assert.doesNotMatch(javaLearnableWithCoursework.components.fit.detail, /Unsupported/i, "Academic coursework should satisfy academic/learnable requirements without throwing unsupported hard skills gaps");
 assert.equal(
   plainJavaWithExperience.components.fit.score,
   plainJavaWithoutExperience.components.fit.score,

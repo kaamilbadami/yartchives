@@ -209,10 +209,18 @@
     return supportedSkills.find(candidate => candidate !== canonicalSkill(skill) && capabilityFamily(candidate) === family) || null;
   }
 
+  function profileEvidence(profile, key) {
+    const arr = profile?.facts?.[key] || profile?.[key];
+    if (Array.isArray(arr)) return [...new Set(arr.map(normalize).filter(Boolean))];
+    if (typeof arr === "string") return [...new Set(arr.split(/\n+/).map(normalize).filter(Boolean))];
+    return [];
+  }
+
   function profileExperienceEvidence(profile) {
-    return [...new Set((profile?.facts?.experienceEvidence || profile?.experienceEvidence || [])
-      .map(normalize)
-      .filter(Boolean))];
+    return [...new Set([
+      ...profileEvidence(profile, "workExperienceEvidence"),
+      ...profileEvidence(profile, "experienceEvidence")
+    ])];
   }
 
   function explicitExperienceRequirement(statement) {
@@ -249,6 +257,10 @@
     const supportedSkills = profileSkills(profile, "supportedSkills", "supportedKeywords");
     const cautiousSkills = profileSkills(profile, "cautiousSkills", "cautiousKeywords");
     const experienceEvidence = profileExperienceEvidence(profile);
+    const academicEvidence = [...new Set([
+      ...profileEvidence(profile, "courseworkEvidence"),
+      ...profileEvidence(profile, "projectEvidence")
+    ])];
     const exactRequired = new Set();
     const experienceRequired = new Set();
     const adjacentRequired = new Map();
@@ -287,8 +299,13 @@
             return;
           }
         }
-        if (learnableRequirement(statement)) learnableGaps.add(group);
-        else hardGaps.add(group);
+        if (learnableRequirement(statement)) {
+          // If they have explicit academic evidence for a learnable requirement but missed exact exactMatches, they don't get the gap
+          const supportsAny = technologies.some(tech => experienceSupportsSkill(academicEvidence, tech));
+          if (!supportsAny) learnableGaps.add(group);
+        } else {
+          hardGaps.add(group);
+        }
         return;
       }
 
@@ -313,8 +330,9 @@
           continue;
         }
         if (bucket === "required") {
-          if (learnableRequirement(statement)) learnableGaps.add(technology);
-          else hardGaps.add(technology);
+          if (learnableRequirement(statement)) {
+            if (!experienceSupportsSkill(academicEvidence, technology)) learnableGaps.add(technology);
+          } else hardGaps.add(technology);
         }
       }
     }
