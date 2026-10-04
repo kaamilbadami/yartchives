@@ -25,6 +25,14 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Hydrate production feed artifact
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          python scripts/download_latest_feed.py
+          --repo "${{ github.repository }}"
+          --require-feed-artifact
+
       - name: Check feed freshness
         id: freshness
         env:
