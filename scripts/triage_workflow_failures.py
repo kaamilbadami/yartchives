@@ -20,6 +20,20 @@ JULES_OUTPUT_MARKER_REGEX = re.compile(
 
 REPAIR_BUDGET = 2
 
+def _jules_output_match_for_head(
+    comments: list[dict[str, Any]], head_sha: str
+) -> re.Match[str] | None:
+    """Return the newest durable Jules output marker for this exact PR head."""
+    for comment in reversed(comments):
+        matches = list(
+            JULES_OUTPUT_MARKER_REGEX.finditer(str(comment.get("body") or ""))
+        )
+        for match in reversed(matches):
+            if match.group("head") == head_sha:
+                return match
+    return None
+
+
 def _get_target_issue_for_head(ctx: Context, gh_json: GhJson) -> dict[str, Any] | None:
     issues = gh_json(
         "api",
@@ -27,24 +41,19 @@ def _get_target_issue_for_head(ctx: Context, gh_json: GhJson) -> dict[str, Any] 
         f"repos/{ctx.repo}/issues?state=open&per_page=100",
     )
 
-    # We only care about issues with a jules label
-    candidate_issues = []
     for issue in issues:
         if "pull_request" in issue:
             continue
         labels = _label_names(issue)
-        if any(label.startswith("jules") for label in labels):
-            candidate_issues.append(issue)
-
-    for issue in candidate_issues:
-        body = issue.get("body") or ""
-        # Find all jules-output markers
-        matches = list(JULES_OUTPUT_MARKER_REGEX.finditer(body))
-        if matches:
-            # Check the latest one
-            latest_match = matches[-1]
-            if latest_match.group("head") == ctx.head_sha:
-                return issue
+        if not any(label.startswith("jules") for label in labels):
+            continue
+        comments = gh_json(
+            "api",
+            "--paginate",
+            f"repos/{ctx.repo}/issues/{issue['number']}/comments?per_page=100",
+        )
+        if _jules_output_match_for_head(comments, ctx.head_sha):
+            return issue
     return None
 
 def _get_log_excerpt(repo: str, run_id: str, job_id: str | None, job_name: str) -> str:
@@ -80,19 +89,17 @@ def handle_agent_pr_failure(ctx: Context, gh_json: GhJson, gh_run: GhRun) -> Non
     number = str(issue["number"])
     labels = _label_names(issue)
 
-    # Find session from the body
-    body = issue.get("body") or ""
-    matches = list(JULES_OUTPUT_MARKER_REGEX.finditer(body))
-    if not matches:
-        return
-    session_id = matches[-1].group("session")
-
-    # Read comments to check for idempotency and budget
+    # Jules output markers are durable issue comments written by the dispatcher.
+    # Match the exact failing head so an older attempt cannot receive repair feedback.
     comments = gh_json(
         "api",
         "--paginate",
         f"repos/{ctx.repo}/issues/{number}/comments?per_page=100",
     )
+    output_match = _jules_output_match_for_head(comments, ctx.head_sha)
+    if output_match is None:
+        return
+    session_id = output_match.group("session")
 
     repair_marker = f"<!-- ci-repair-delivered: {ctx.head_sha}::{job_name}::{step_name} -->"
 
