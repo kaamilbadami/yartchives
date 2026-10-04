@@ -2200,6 +2200,40 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertIn("run tests", prompt)
         self.assertIn("genuine product decision", prompt)
 
+    def test_session_prompt_enforces_implement_first_contract(self):
+        task = mod.Task(
+            188,
+            "Implement bounded ranking fix",
+            task_body("P1", "ranking"),
+            "P1",
+            "ranking",
+            frozenset(),
+        )
+        prompt = mod.session_prompt("kaamilbadami/yartchives", task)
+        self.assertIn("Use one brief planning pass only", prompt)
+        self.assertIn("begin implementation immediately", prompt)
+        self.assertIn("Do not ask the user to approve a plan, file breakdown", prompt)
+        self.assertIn("A question that can be answered by inspecting current main", prompt)
+        self.assertIn("choose the smallest architecture-consistent option and proceed", prompt)
+        self.assertIn("unavailable credential/secret", prompt)
+
+    def test_retry_prompt_does_not_reask_prior_routine_decisions(self):
+        task = mod.Task(
+            189,
+            "Retry bounded ranking fix",
+            task_body("P1", "ranking"),
+            "P1",
+            "ranking",
+            frozenset(),
+        )
+        prompt = mod.session_prompt(
+            "kaamilbadami/yartchives",
+            task,
+            retry_context="Prior session already chose the existing ranking module.",
+        )
+        self.assertIn("instead of re-deriving or re-asking it", prompt)
+        self.assertIn("Use one brief planning pass only", prompt)
+
     def test_open_dependency_blocks_dispatch_until_dependency_closes(self):
         issues = [
             issue(177, "identity", body=task_body("P1", "identity")),
