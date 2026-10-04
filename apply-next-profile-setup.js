@@ -218,28 +218,45 @@
     return unique([...base, ...engineering]);
   }
 
-  function extractExperienceEvidence(text) {
+  function extractStructuredEvidence(text) {
     const source = String(text || "").replace(/\r/g, "");
-    const evidence = [];
-    const sectionPattern = /(?:^|\n)\s*(?:(?:professional|work)\s+experience|experience|employment)\s*:?\s*\n([\s\S]*?)(?=(?:\n\s*(?:education|projects?|skills?|leadership|activities|awards?|certifications?|coursework|research)\s*:?\s*(?:\n|$))|$)/gi;
-    for (const match of source.matchAll(sectionPattern)) {
-      for (const rawLine of String(match[1] || "").split(/\n+/)) {
-        const line = rawLine.replace(/^\s*[•*\-–—]+\s*/, "").replace(/\s+/g, " ").trim();
-        if (line.length >= 4) evidence.push(line.slice(0, 240));
+
+    function parseSection(pattern) {
+      const evidence = [];
+      for (const match of source.matchAll(pattern)) {
+        for (const rawLine of String(match[1] || "").split(/\n+/)) {
+          const line = rawLine.replace(/^\s*[•*\-–—]+\s*/, "").replace(/\s+/g, " ").trim();
+          if (line.length >= 4) evidence.push(line.slice(0, 240));
+        }
       }
+      return unique(evidence).slice(0, 16);
     }
-    return unique(evidence).slice(0, 16);
+
+    const sections = "(?:education|projects?|skills?|leadership|activities|awards?|certifications?|coursework|research|experience|employment|professional\\s+experience|work\\s+experience|relevant\\s+coursework|extracurriculars?)";
+
+    return {
+      skillsEvidence: parseSection(new RegExp(`(?:^|\\n)\\s*(?:skills?)\\s*:?\\s*\\n([\\s\\S]*?)(?=(?:\\n\\s*${sections}\\s*:?\\s*(?:\\n|$))|$)`, "gi")),
+      courseworkEvidence: parseSection(new RegExp(`(?:^|\\n)\\s*(?:coursework|relevant coursework)\\s*:?\\s*\\n([\\s\\S]*?)(?=(?:\\n\\s*${sections}\\s*:?\\s*(?:\\n|$))|$)`, "gi")),
+      projectEvidence: parseSection(new RegExp(`(?:^|\\n)\\s*(?:projects?)\\s*:?\\s*\\n([\\s\\S]*?)(?=(?:\\n\\s*${sections}\\s*:?\\s*(?:\\n|$))|$)`, "gi")),
+      workExperienceEvidence: parseSection(new RegExp(`(?:^|\\n)\\s*(?:(?:professional|work)\\s+experience|experience|employment)\\s*:?\\s*\\n([\\s\\S]*?)(?=(?:\\n\\s*${sections}\\s*:?\\s*(?:\\n|$))|$)`, "gi")),
+      leadershipEvidence: parseSection(new RegExp(`(?:^|\\n)\\s*(?:leadership|activities|extracurriculars?)\\s*:?\\s*\\n([\\s\\S]*?)(?=(?:\\n\\s*${sections}\\s*:?\\s*(?:\\n|$))|$)`, "gi"))
+    };
   }
 
   function extractResumeHints(text) {
     const source = String(text || "");
     const authorization = extractAuthorization(source);
+    const structured = extractStructuredEvidence(source);
     return {
       graduation: extractGraduation(source),
       degree: extractDegree(source),
       major: extractMajor(source),
       supportedSkills: extractSupportedSkills(source),
-      experienceEvidence: extractExperienceEvidence(source),
+      skillsEvidence: structured.skillsEvidence,
+      courseworkEvidence: structured.courseworkEvidence,
+      projectEvidence: structured.projectEvidence,
+      workExperienceEvidence: structured.workExperienceEvidence,
+      leadershipEvidence: structured.leadershipEvidence,
       citizenship: authorization.citizenship,
       workAuthorization: authorization.workAuthorization,
       securityClearance: extractClearance(source),
@@ -307,11 +324,18 @@
     const roleFamilies = selectedRoleFamilies(requestedRoleIds, effectiveCareerAreas);
     const supportedSkills = splitList(values.supportedSkills);
     const cautiousSkills = splitList(values.cautiousSkills);
-    const experienceEvidence = unique(
-      (Array.isArray(values.experienceEvidence) ? values.experienceEvidence : String(values.experienceEvidence || "").split(/\n+/))
+    const cleanLines = raw => unique(
+      (Array.isArray(raw) ? raw : String(raw || "").split(/\n+/))
         .map(value => String(value || "").replace(/\s+/g, " ").trim().slice(0, 240))
         .filter(value => value.length >= 4)
     ).slice(0, 16);
+
+    const skillsEvidence = cleanLines(values.skillsEvidence);
+    const courseworkEvidence = cleanLines(values.courseworkEvidence);
+    const projectEvidence = cleanLines(values.projectEvidence);
+    const workExperienceEvidence = cleanLines(values.workExperienceEvidence || values.experienceEvidence);
+    const leadershipEvidence = cleanLines(values.leadershipEvidence);
+    const experienceEvidence = workExperienceEvidence;
     const roleKeywords = roleFamilies.flatMap(family => family.keywords || []);
     const baseZips = splitList(values.baseZips).filter(zip => /^\d{5}$/.test(zip));
     const preferredStates = splitList(values.preferredStates).map(value => value.toUpperCase()).filter(value => /^[A-Z]{2}$/.test(value));
@@ -342,6 +366,11 @@
         supportedSkills,
         cautiousSkills,
         experienceEvidence,
+        skillsEvidence,
+        courseworkEvidence,
+        projectEvidence,
+        workExperienceEvidence,
+        leadershipEvidence,
       },
       preferredProfiles,
       supportedKeywords: unique([...supportedSkills, ...roleKeywords]),
@@ -414,6 +443,11 @@
       supportedSkills: (facts.supportedSkills || []).join(", "),
       cautiousSkills: (facts.cautiousSkills || []).join(", "),
       experienceEvidence: (facts.experienceEvidence || []).join("\n"),
+      skillsEvidence: (facts.skillsEvidence || []).join("\n"),
+      courseworkEvidence: (facts.courseworkEvidence || []).join("\n"),
+      projectEvidence: (facts.projectEvidence || []).join("\n"),
+      workExperienceEvidence: (facts.workExperienceEvidence || facts.experienceEvidence || []).join("\n"),
+      leadershipEvidence: (facts.leadershipEvidence || []).join("\n"),
       careerAreaIds: (() => {
         const explicit = selectedCareerAreas(profile?.careerAreas || []);
         if (explicit.length) return explicit;
@@ -443,6 +477,11 @@
       supportedSkills: get("supportedSkills")?.value,
       cautiousSkills: get("cautiousSkills")?.value,
       experienceEvidence: get("experienceEvidence")?.value,
+      skillsEvidence: get("skillsEvidence")?.value,
+      courseworkEvidence: get("courseworkEvidence")?.value,
+      projectEvidence: get("projectEvidence")?.value,
+      workExperienceEvidence: get("workExperienceEvidence")?.value,
+      leadershipEvidence: get("leadershipEvidence")?.value,
       baseZips: get("baseZips")?.value,
       preferredStates: get("preferredStates")?.value,
       nearbyMiles: get("nearbyMiles")?.value,
@@ -470,13 +509,21 @@
       const node = form.querySelector('[name="supportedSkills"]');
       if (node) node.value = unique([...splitList(node.value), ...hints.supportedSkills]).join(", ");
     }
-    if (hints.experienceEvidence?.length) {
-      const node = form.querySelector('[name="experienceEvidence"]');
+    const appendLinesIf = (name, newLines) => {
+      if (!newLines?.length) return;
+      const node = form.querySelector(`[name="${name}"]`);
       if (node) {
         const existing = String(node.value || "").split(/\n+/).map(value => value.trim()).filter(Boolean);
-        node.value = unique([...existing, ...hints.experienceEvidence]).join("\n");
+        node.value = unique([...existing, ...newLines]).join("\n");
       }
-    }
+    };
+
+    appendLinesIf("experienceEvidence", hints.experienceEvidence);
+    appendLinesIf("workExperienceEvidence", hints.workExperienceEvidence);
+    appendLinesIf("skillsEvidence", hints.skillsEvidence);
+    appendLinesIf("courseworkEvidence", hints.courseworkEvidence);
+    appendLinesIf("projectEvidence", hints.projectEvidence);
+    appendLinesIf("leadershipEvidence", hints.leadershipEvidence);
   }
 
   function refreshApplyNextPanel(doc = document) {
@@ -563,7 +610,11 @@
     skillsGrid.append(
       field("Supported skills", textarea("supportedSkills", values.supportedSkills, 4)),
       field("Cautious / light exposure", textarea("cautiousSkills", values.cautiousSkills, 4)),
-      field("Work experience evidence (one resume-backed line per entry)", textarea("experienceEvidence", values.experienceEvidence, 5))
+      field("Skills evidence (one resume-backed line per entry)", textarea("skillsEvidence", values.skillsEvidence, 5)),
+      field("Coursework evidence (one resume-backed line per entry)", textarea("courseworkEvidence", values.courseworkEvidence, 5)),
+      field("Project evidence (one resume-backed line per entry)", textarea("projectEvidence", values.projectEvidence, 5)),
+      field("Work experience evidence (one resume-backed line per entry)", textarea("workExperienceEvidence", values.workExperienceEvidence, 5)),
+      field("Leadership evidence (one resume-backed line per entry)", textarea("leadershipEvidence", values.leadershipEvidence, 5))
     );
     skills.append(skillsGrid);
     form.append(skills);
@@ -689,7 +740,15 @@
     async function parseResumeText(text, sourceLabel) {
       const hints = extractResumeHints(text);
       applyHints(form, hints);
-      const found = [hints.graduation, hints.degree, hints.major, ...(hints.supportedSkills || []), ...(hints.experienceEvidence || [])].filter(Boolean).length;
+      const found = [
+        hints.graduation, hints.degree, hints.major,
+        ...(hints.supportedSkills || []),
+        ...(hints.workExperienceEvidence || hints.experienceEvidence || []),
+        ...(hints.skillsEvidence || []),
+        ...(hints.courseworkEvidence || []),
+        ...(hints.projectEvidence || []),
+        ...(hints.leadershipEvidence || [])
+      ].filter(Boolean).length;
       status.textContent = found
         ? `Prefilled ${found} resume-backed facts from ${sourceLabel}. Review them before saving.`
         : `No reliable structured facts found in ${sourceLabel}; you can still fill the profile manually.`;
@@ -774,7 +833,7 @@
     splitList,
     containsSkill,
     extractSupportedSkills,
-    extractExperienceEvidence,
+    extractStructuredEvidence,
     extractResumeHints,
     readResumeFile,
     buildProfile,
