@@ -36,6 +36,14 @@ def task_body(priority, area, autonomous=True, resources=None, depends_on=None):
 
 
 class AutonomousDispatcherTests(unittest.TestCase):
+    def test_routine_clarification_allows_evidence_backed_no_code_conclusion(self):
+        response = mod.routine_clarification_response(
+            "Should I invent another provider discovery architecture?"
+        )
+        self.assertIn("do not invent a patch", response)
+        self.assertIn("evidence report", response)
+        self.assertIn("no-code conclusion is valid", response)
+
     def test_session_prompt_requires_reconciling_superseded_regression_contracts(self):
         task = mod.Task(10, "Change behavior", "priority: P1\narea: quality\nautonomous: true", "P1", "quality", frozenset())
         prompt = mod.session_prompt("kaamilbadami/yartchives", task)
