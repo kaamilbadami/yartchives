@@ -184,6 +184,65 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
 
+    @mock.patch.object(mod, "gh_run")
+    @mock.patch.object(mod, "close_linked_issue_after_merge")
+    @mock.patch.object(mod, "try_guarded_squash_merge")
+    @mock.patch.object(mod, "gh_json")
+    @mock.patch.object(mod, "gh_paginated_json")
+    def test_main_accepts_owner_pr_with_exact_head_quality(
+        self, mock_paginated, mock_json, mock_merge, mock_close, mock_run
+    ):
+        pr_data = {
+            "number": 881,
+            "state": "open",
+            "draft": False,
+            "user": {"login": "owner_name"},
+            "head": {
+                "repo": {"full_name": "owner_name/repo"},
+                "sha": "66c62217c3e7cd6eeda9ee6d5fc35ab59fb00afe",
+                "ref": "my-branch",
+            },
+            "base": {"ref": "main"},
+            "body": "Some description without issue link",
+        }
+        files = [{"filename": "some/file.txt"}]
+        quality_runs = [
+            {
+                "name": "Quality checks",
+                "head_sha": "66c62217c3e7cd6eeda9ee6d5fc35ab59fb00afe",
+                "status": "completed",
+                "conclusion": "success",
+            }
+        ]
+
+        def paginated_side_effect(api, path, *args, **kwargs):
+            if "pulls?state=open" in path:
+                return [pr_data]
+            elif "pulls/881/files" in path:
+                return files
+            return []
+
+        mock_paginated.side_effect = paginated_side_effect
+
+        def json_side_effect(api, path, *args, **kwargs):
+            if "actions/runs" in path:
+                return {"workflow_runs": quality_runs}
+            elif "compare/" in path:
+                return {"merge_base_commit": {"sha": "base_sha"}}
+            elif "pulls/881" in path:
+                return {"mergeable": True, "mergeable_state": "clean"}
+            return {}
+
+        mock_json.side_effect = json_side_effect
+        mock_merge.return_value = (True, "")
+
+        with mock.patch.dict(mod.os.environ, {"REPOSITORY": "owner_name/repo"}):
+            mod.main()
+
+        mock_merge.assert_called_once_with(
+            "owner_name/repo", 881, "66c62217c3e7cd6eeda9ee6d5fc35ab59fb00afe"
+        )
+
     def test_owner_authorized_lane_bypasses_issue_link_and_protected_paths_but_not_ci(self):
         source = MODULE_PATH.read_text()
         self.assertIn(
@@ -1484,6 +1543,11 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertTrue(
             mod.missing_required_tests_status(
                 'Repository rule violations found: Required status check "tests" is expected.'
+            )
+        )
+        self.assertTrue(
+            mod.missing_required_tests_status(
+                'Repository rule violations found: Required status check "Quality checks" is expected.'
             )
         )
         self.assertFalse(
