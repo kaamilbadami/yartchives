@@ -2217,6 +2217,34 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertIn("choose the smallest architecture-consistent option and proceed", prompt)
         self.assertIn("unavailable credential/secret", prompt)
 
+    def test_benchmark_prompt_does_not_expand_into_discovered_implementation_fixes(self):
+        task = mod.Task(
+            885,
+            "Finance benchmark",
+            task_body("P0", "product-benchmark"),
+            "P0",
+            "product-benchmark",
+            frozenset(),
+        )
+        prompt = mod.session_prompt("kaamilbadami/yartchives", task)
+        self.assertIn("This is a benchmark/audit task", prompt)
+        self.assertIn("Keep the session measurement-first", prompt)
+        self.assertIn("do not expand the task into newly discovered", prompt)
+        self.assertIn("create a separate bounded follow-up issue", prompt)
+        self.assertIn("Do not add employer-specific patches", prompt)
+
+    def test_non_benchmark_prompt_does_not_get_measurement_only_scope(self):
+        task = mod.Task(
+            886,
+            "Ranking implementation",
+            task_body("P0", "ranking"),
+            "P0",
+            "ranking",
+            frozenset(),
+        )
+        prompt = mod.session_prompt("kaamilbadami/yartchives", task)
+        self.assertNotIn("This is a benchmark/audit task", prompt)
+
     def test_retry_prompt_does_not_reask_prior_routine_decisions(self):
         task = mod.Task(
             189,
