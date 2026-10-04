@@ -238,9 +238,9 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
             {
                 "number": 123,
                 "state": "open",
-                "body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-1 -->",
+                "body": "autonomous task",
                 "labels": [{"name": "jules-review-ready"}],
-                "comments": []
+                "comments": [{"body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-1 -->"}]
             }
         ]
 
@@ -267,9 +267,9 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
             {
                 "number": 123,
                 "state": "open",
-                "body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-2 -->",
+                "body": "autonomous task",
                 "labels": [{"name": "jules-retry-ready"}],
-                "comments": []
+                "comments": [{"body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-2 -->"}]
             }
         ]
 
@@ -324,9 +324,10 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
             {
                 "number": 123,
                 "state": "open",
-                "body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-1 -->",
+                "body": "autonomous task",
                 "labels": [{"name": "jules-retry-ready"}],
                 "comments": [
+                    {"body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-1 -->"},
                     {"body": "<!-- ci-repair-delivered: other-sha::tests::Python tests -->"},
                     {"body": "<!-- ci-repair-delivered: other-sha-2::tests::Python tests -->"}
                 ]
@@ -375,9 +376,9 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
             {
                 "number": 123,
                 "state": "open",
-                "body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-2 -->", # head mismatch
+                "body": "autonomous task",
                 "labels": [{"name": "jules-review-ready"}],
-                "comments": []
+                "comments": [{"body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-2 -->"}] # head mismatch
             }
         ]
 
