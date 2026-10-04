@@ -544,7 +544,9 @@ def exact_head_quality_action_required(
 
 def missing_required_tests_status(detail: str | None) -> bool:
     text = str(detail or "").lower()
-    return "required status check" in text and '"tests"' in text
+    return "required status check" in text and (
+        '"tests"' in text or '"quality checks"' in text
+    )
 
 
 def exact_head_quality_in_flight(
