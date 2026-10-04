@@ -912,20 +912,22 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         original = {
             "title": "Benchmark Apply Next interaction and ranking performance",
             "body": "<!-- autonomous-task -->\npriority: P2\narea: performance\nautonomous: true\n\n## Acceptance criteria\n- Measure ranking.",
+            "number": 123
         }
         body = mod.replacement_issue_body(original, 232)
         self.assertIn("## Acceptance criteria\n- Measure ranking.", body)
-        self.assertIn("<!-- supersedes-stale-pr: 232 -->", body)
+        self.assertIn("<!-- supersedes-stale-pr: 232 original-issue: 123 -->", body)
         self.assertIn("Do not port the stale branch wholesale", body)
 
     def test_conflict_replacement_preserves_acceptance_criteria_and_is_idempotent(self):
         original = {
             "title": "Add clear Apply Next states",
             "body": "## Acceptance criteria\n- Preserve saved state.",
+            "number": 124
         }
         body = mod.conflict_replacement_issue_body(original, 235, "main")
         self.assertIn("## Acceptance criteria\n- Preserve saved state.", body)
-        self.assertIn("<!-- supersedes-stale-pr: 235 -->", body)
+        self.assertIn("<!-- supersedes-stale-pr: 235 original-issue: 124 -->", body)
         self.assertIn("could not be updated onto current main without conflicts", body)
         self.assertIn("Do not port or resolve the stale branch wholesale", body)
 
@@ -938,7 +940,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         gh_json.assert_not_called()
 
     def test_supersede_conflicted_pr_closes_stale_pr_and_original_issue(self):
-        original = {"number": 225, "title": "Empty states", "body": "criteria"}
+        original = {"number": 225, "title": "Empty states", "body": "criteria", "labels": [{"name": "jules-review-ready"}, {"name": "autonomous-backlog"}]}
         candidate = {"number": 235}
         calls = []
         with mock.patch.object(
@@ -951,7 +953,8 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             )
         self.assertEqual(replacement, 301)
         self.assertTrue(any(call[:4] == ("api", "--method", "PATCH", "repos/kaamilbadami/yartchives/pulls/235") for call in calls))
-        self.assertTrue(any(call[:4] == ("api", "--method", "PATCH", "repos/kaamilbadami/yartchives/issues/225") for call in calls))
+        self.assertFalse(any("state=closed" in arg for call in calls for arg in call if "issues/225" in arg))
+        self.assertTrue(any(call[:6] == ("issue", "edit", "225", "--repo", "kaamilbadami/yartchives", "--remove-label") and call[6] == "jules-review-ready" for call in calls))
 
     def test_existing_replacement_marker_prevents_duplicate_issue_creation(self):
         existing = {
@@ -963,7 +966,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertIs(found, existing)
 
     def test_supersede_closes_pr_and_original_issue_after_replacement_exists(self):
-        original = {"number": 155, "title": "Performance", "body": "<!-- autonomous-task -->"}
+        original = {"number": 155, "title": "Performance", "body": "<!-- autonomous-task -->", "labels": [{"name": "jules"}]}
         candidate = {"number": 232}
         calls = []
         with mock.patch.object(
@@ -976,7 +979,8 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             )
         self.assertEqual(replacement, 300)
         self.assertTrue(any(call[:4] == ("api", "--method", "PATCH", "repos/kaamilbadami/yartchives/pulls/232") for call in calls))
-        self.assertTrue(any(call[:4] == ("api", "--method", "PATCH", "repos/kaamilbadami/yartchives/issues/155") for call in calls))
+        self.assertFalse(any("state=closed" in arg for call in calls for arg in call if "issues/155" in arg))
+        self.assertTrue(any(call[:6] == ("issue", "edit", "155", "--repo", "kaamilbadami/yartchives", "--remove-label") and call[6] == "jules" for call in calls))
 
     def test_priority_does_not_bypass_protected_path_guard(self):
         candidate = pr()
