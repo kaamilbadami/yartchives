@@ -506,10 +506,16 @@ def routine_clarification_response(question: str) -> str:
         "criteria, existing tests, and repository documentation. Preserve established "
         "user-visible behavior and choose the smallest root-cause implementation that "
         "fits the existing architecture. Do not wait for confirmation on technical "
-        "implementation choices, test scope, generated artifacts, or PR creation. If "
-        "repository evidence is genuinely conflicting and the choice would change "
-        "user-facing product semantics, stop and ask again with the conflict and concrete "
-        f"options.\n\nClarification to resolve: {question}"
+        "implementation choices, test scope, generated artifacts, or PR creation. "
+        "If investigation shows the requested improvement has no evidence-backed, "
+        "high-leverage implementation, do not invent a patch and do not ask which "
+        "speculative architecture to choose. Instead finish the task with a concise "
+        "evidence report: what you tested, measured before/after impact, why the proposed "
+        "paths are insufficient, and the smallest concrete follow-up experiment (if any). "
+        "A no-code conclusion is valid when the acceptance criteria cannot be improved "
+        "without unsupported assumptions. If repository evidence is genuinely conflicting "
+        "and the choice would change user-facing product semantics, stop and ask again "
+        f"with the conflict and concrete options.\n\nClarification to resolve: {question}"
     )
 
 
