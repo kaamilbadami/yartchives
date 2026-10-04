@@ -388,7 +388,9 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
             gh.json,
             gh.run,
         )
-        self.assertEqual(len(gh.issues[0]["comments"]), 0)
+        self.assertEqual(len(gh.issues[0]["comments"]), 1)
+        self.assertFalse(any(call[:2] == ("issue", "edit") for call in gh.calls))
+        self.assertFalse(any(call[:2] == ("issue", "comment") for call in gh.calls))
 
     def test_default_branch_behavior_unchanged(self):
         gh = FakeGh()
