@@ -238,9 +238,9 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
             {
                 "number": 123,
                 "state": "open",
-                "body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-1 -->",
+                "body": "autonomous task",
                 "labels": [{"name": "jules-review-ready"}],
-                "comments": []
+                "comments": [{"body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-1 -->"}]
             }
         ]
 
@@ -255,10 +255,10 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
         self.assertIn("jules-retry-ready", labels)
         self.assertNotIn("jules-review-ready", labels)
 
-        self.assertEqual(len(issue["comments"]), 1)
-        self.assertIn("ci-repair-delivered: sha-1::tests::Python tests", issue["comments"][0]["body"])
-        self.assertIn("<!-- jules-retry-from: abc -->", issue["comments"][0]["body"])
-        self.assertIn("line1", issue["comments"][0]["body"])
+        self.assertEqual(len(issue["comments"]), 2)
+        self.assertIn("ci-repair-delivered: sha-1::tests::Python tests", issue["comments"][-1]["body"])
+        self.assertIn("<!-- jules-retry-from: abc -->", issue["comments"][-1]["body"])
+        self.assertIn("line1", issue["comments"][-1]["body"])
 
     @patch("subprocess.run")
     def test_trusted_jules_pr_successful_rerun_automerges(self, mock_run):
@@ -267,9 +267,9 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
             {
                 "number": 123,
                 "state": "open",
-                "body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-2 -->",
+                "body": "autonomous task",
                 "labels": [{"name": "jules-retry-ready"}],
-                "comments": []
+                "comments": [{"body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-2 -->"}]
             }
         ]
 
@@ -283,8 +283,8 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
         labels = {label["name"] for label in issue["labels"]}
         self.assertIn("jules-review-ready", labels)
         self.assertNotIn("jules-retry-ready", labels)
-        self.assertEqual(len(issue["comments"]), 1)
-        self.assertIn("CI is green again. Proceeding toward auto-merge.", issue["comments"][0]["body"])
+        self.assertEqual(len(issue["comments"]), 2)
+        self.assertIn("CI is green again. Proceeding toward auto-merge.", issue["comments"][-1]["body"])
         self.assertTrue(any(call[:2] == ("workflow", "run") for call in gh.calls))
 
     @patch("subprocess.run")
@@ -296,9 +296,10 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
             {
                 "number": 123,
                 "state": "open",
-                "body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-1 -->",
+                "body": "autonomous task",
                 "labels": [{"name": "jules-retry-ready"}],
                 "comments": [
+                    {"body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-1 -->"},
                     {"body": "<!-- ci-repair-delivered: sha-1::tests::Python tests -->"}
                 ]
             }
@@ -313,7 +314,7 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
         )
 
         issue = gh._issue(123)
-        self.assertEqual(len(issue["comments"]), 1) # No new comment added
+        self.assertEqual(len(issue["comments"]), 2) # No new comment added
 
     @patch("subprocess.run")
     def test_exhausted_repair_budget_parks_task(self, mock_run):
@@ -324,9 +325,10 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
             {
                 "number": 123,
                 "state": "open",
-                "body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-1 -->",
+                "body": "autonomous task",
                 "labels": [{"name": "jules-retry-ready"}],
                 "comments": [
+                    {"body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-1 -->"},
                     {"body": "<!-- ci-repair-delivered: other-sha::tests::Python tests -->"},
                     {"body": "<!-- ci-repair-delivered: other-sha-2::tests::Python tests -->"}
                 ]
@@ -344,7 +346,7 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
         self.assertIn("jules-failed", labels)
         self.assertNotIn("jules-retry-ready", labels)
 
-        self.assertEqual(len(issue["comments"]), 3)
+        self.assertEqual(len(issue["comments"]), 4)
         self.assertIn("CI repair budget exhausted", issue["comments"][-1]["body"])
 
     def test_ordinary_pr_is_ignored(self):
@@ -375,9 +377,9 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
             {
                 "number": 123,
                 "state": "open",
-                "body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-2 -->", # head mismatch
+                "body": "autonomous task",
                 "labels": [{"name": "jules-review-ready"}],
-                "comments": []
+                "comments": [{"body": "<!-- jules-output: issue=100 session=abc pr=123 head=sha-2 -->"}] # head mismatch
             }
         ]
 
@@ -386,7 +388,9 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
             gh.json,
             gh.run,
         )
-        self.assertEqual(len(gh.issues[0]["comments"]), 0)
+        self.assertEqual(len(gh.issues[0]["comments"]), 1)
+        self.assertFalse(any(call[:2] == ("issue", "edit") for call in gh.calls))
+        self.assertFalse(any(call[:2] == ("issue", "comment") for call in gh.calls))
 
     def test_default_branch_behavior_unchanged(self):
         gh = FakeGh()
