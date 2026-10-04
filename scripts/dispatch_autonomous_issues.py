@@ -2408,7 +2408,20 @@ def session_prompt(
         "implementation, run tests, commit changes, or open the pull request; make the best "
         "engineering decision and continue. Ask for user feedback only when a genuine product "
         "decision, conflicting requirement, destructive action, unavailable credential/secret, "
-        "or missing prerequisite prevents safe progress. Open a pull request that includes "
+        "or missing prerequisite prevents safe progress. "
+    )
+    if task.area in {"product-benchmark", "coverage-benchmark"}:
+        prompt += (
+            "This is a benchmark/audit task. Keep the session measurement-first: you may change "
+            "benchmark fixtures, benchmark harnesses, reports, and deterministic regression assertions "
+            "needed to produce a valid measurement, but do not expand the task into newly discovered "
+            "product, ranking, source, parser, provider, or employer fixes. Even if the issue body "
+            "conditionally says to fix defects you uncover, document the measured root cause and create "
+            "a separate bounded follow-up issue with the evidence, narrow area/resources, and acceptance "
+            "criteria instead. Do not add employer-specific patches just to improve the benchmark. "
+        )
+    prompt += (
+        "Open a pull request that includes "
         f"'Closes #{task.number}'. Do not merge the pull request yourself."
     )
     if retry_context:
