@@ -72,7 +72,8 @@ CONTROL_PLANE_MAX_FILES = 8
 CONTROL_PLANE_MAX_CHANGES = 500
 SUPERSEDE_PROTECTED_MAX_FILES = 12
 SUPERSEDE_PROTECTED_MAX_CHANGES = 1000
-SUPERSEDE_MARKER_TEMPLATE = "<!-- supersedes-stale-pr: {pr_number} -->"
+SUPERSEDE_MARKER_PREFIX = "<!-- supersedes-stale-pr: {pr_number}"
+SUPERSEDE_MARKER_TEMPLATE = "<!-- supersedes-stale-pr: {pr_number} original-issue: {issue_number} -->"
 
 
 def label_names(issue: dict[str, Any]) -> set[str]:
@@ -696,7 +697,10 @@ def supersession_candidate(
 
 def replacement_issue_body(original_issue: dict[str, Any], pr_number: int) -> str:
     body = str(original_issue.get("body") or "").rstrip()
-    marker = SUPERSEDE_MARKER_TEMPLATE.format(pr_number=pr_number)
+    marker = SUPERSEDE_MARKER_TEMPLATE.format(
+        pr_number=pr_number,
+        issue_number=original_issue.get("number", "unknown")
+    )
     context = (
         f"{marker}\n\n"
         "## Supersession context\n"
@@ -712,7 +716,10 @@ def conflict_replacement_issue_body(
     original_issue: dict[str, Any], pr_number: int, base_ref: str
 ) -> str:
     body = str(original_issue.get("body") or "").rstrip()
-    marker = SUPERSEDE_MARKER_TEMPLATE.format(pr_number=pr_number)
+    marker = SUPERSEDE_MARKER_TEMPLATE.format(
+        pr_number=pr_number,
+        issue_number=original_issue.get("number", "unknown")
+    )
     context = (
         f"{marker}\n\n"
         "## Merge-conflict recovery context\n"
@@ -725,7 +732,7 @@ def conflict_replacement_issue_body(
 
 
 def find_existing_replacement_issue(repo: str, pr_number: int) -> dict[str, Any] | None:
-    marker = SUPERSEDE_MARKER_TEMPLATE.format(pr_number=pr_number)
+    marker_prefix = SUPERSEDE_MARKER_PREFIX.format(pr_number=pr_number)
     issues = gh_paginated_json(
         "api",
         f"repos/{repo}/issues?state=open&per_page=100",
@@ -733,7 +740,7 @@ def find_existing_replacement_issue(repo: str, pr_number: int) -> dict[str, Any]
     for issue in issues:
         if "pull_request" in issue:
             continue
-        if marker in str(issue.get("body") or ""):
+        if marker_prefix in str(issue.get("body") or ""):
             return issue
     return None
 
@@ -782,12 +789,12 @@ def create_or_find_conflict_replacement_issue(
 def supersede_conflicted_pull_request(
     repo: str,
     pr: dict[str, Any],
-    issue: dict[str, Any],
+    original_issue: dict[str, Any],
     base_ref: str,
 ) -> int:
     number = int(pr["number"])
     replacement = create_or_find_conflict_replacement_issue(
-        repo, issue, number, base_ref
+        repo, original_issue, number, base_ref
     )
     replacement_number = int(replacement["number"])
     gh_run(
@@ -802,7 +809,7 @@ def supersede_conflicted_pull_request(
     gh_run(
         "api", "--method", "PATCH", f"repos/{repo}/pulls/{number}", "-f", "state=closed"
     )
-    original_number = int(issue["number"])
+    original_number = int(original_issue["number"])
     gh_run(
         "issue", "comment", str(original_number), "--repo", repo,
         "--body",
@@ -811,20 +818,20 @@ def supersede_conflicted_pull_request(
             f"could not be updated onto {base_ref} without merge conflicts."
         ),
     )
-    gh_run(
-        "api", "--method", "PATCH", f"repos/{repo}/issues/{original_number}",
-        "-f", "state=closed", "-f", "state_reason=not_planned",
-    )
+    for label in (original_issue.get("labels") or []):
+        name = label.get("name") or ""
+        if name in ("autonomous-backlog", "jules", "jules-session", "jules-review-ready") or name.startswith("jules-retry-") or name.startswith("jules-failure-"):
+            gh_run("issue", "edit", str(original_number), "--repo", repo, "--remove-label", name)
     return replacement_number
 
 
 def supersede_pull_request(
     repo: str,
     pr: dict[str, Any],
-    issue: dict[str, Any],
+    original_issue: dict[str, Any],
 ) -> int:
     number = int(pr["number"])
-    replacement = create_or_find_replacement_issue(repo, issue, number)
+    replacement = create_or_find_replacement_issue(repo, original_issue, number)
     replacement_number = int(replacement["number"])
     gh_run(
         "issue", "comment", str(number), "--repo", repo,
@@ -838,7 +845,7 @@ def supersede_pull_request(
     gh_run(
         "api", "--method", "PATCH", f"repos/{repo}/pulls/{number}", "-f", "state=closed"
     )
-    original_number = int(issue["number"])
+    original_number = int(original_issue["number"])
     gh_run(
         "issue", "comment", str(original_number), "--repo", repo,
         "--body",
@@ -847,10 +854,10 @@ def supersede_pull_request(
             "became too broad to merge safely."
         ),
     )
-    gh_run(
-        "api", "--method", "PATCH", f"repos/{repo}/issues/{original_number}",
-        "-f", "state=closed", "-f", "state_reason=not_planned",
-    )
+    for label in (original_issue.get("labels") or []):
+        name = label.get("name") or ""
+        if name in ("autonomous-backlog", "jules", "jules-session", "jules-review-ready") or name.startswith("jules-retry-") or name.startswith("jules-failure-"):
+            gh_run("issue", "edit", str(original_number), "--repo", repo, "--remove-label", name)
     return replacement_number
 
 
