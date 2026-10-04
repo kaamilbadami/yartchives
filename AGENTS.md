@@ -34,6 +34,8 @@ These instructions apply to automated coding agents working in this repository.
 ## Benchmark discipline
 
 - Treat the checked-in Northeast / Mid-Atlantic benchmark as frozen unless the task explicitly calls for changing benchmark membership.
+- Benchmark/audit tasks are measurement-first. They may change benchmark fixtures, benchmark harnesses, reports, and deterministic assertions needed for valid measurement, but must not absorb newly discovered product/source/provider/ranking fixes into the same task.
+- When a benchmark uncovers an implementation defect, document the evidence and open a separate bounded follow-up issue with a narrow area/resource lock and regression criteria. Do not turn the benchmark issue into an open-ended "measure and fix whatever you find" task.
 - Improve measured coverage through source, parser, provider, identity, or visibility fixes rather than editing benchmark expectations.
 - When diagnosing coverage gaps, distinguish uncovered sources, known-employer missing roles, hidden/presentation issues, provider identity mismatches, and probable duplicates.
 
