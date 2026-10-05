@@ -15,8 +15,8 @@ def parse_iso(dt_str: str) -> datetime:
         dt_str = dt_str[:-1] + "+00:00"
     return datetime.fromisoformat(dt_str)
 
-def get_workflow_runs(repo: str, token: str | None) -> list[dict[str, Any]]:
-    url = f"https://api.github.com/repos/{repo}/actions/workflows/update-feed.yml/runs?per_page=10"
+def get_workflow_runs(repo: str, token: str | None, workflow: str = "update-feed-fast.yml") -> list[dict[str, Any]]:
+    url = f"https://api.github.com/repos/{repo}/actions/workflows/{workflow}/runs?per_page=10"
     req = urllib.request.Request(url)
     req.add_header("Accept", "application/vnd.github+json")
     req.add_header("X-GitHub-Api-Version", "2022-11-28")
@@ -58,11 +58,16 @@ def evaluate_freshness(
     return False, f"Feed is STALE. Published age: {feed_age} > {threshold}. No on-time active refresh is replacing it."
 
 
-def dispatch_feed_refresh(repo: str, token: str | None, ref: str = "main") -> tuple[bool, str]:
+def dispatch_feed_refresh(
+    repo: str,
+    token: str | None,
+    ref: str = "main",
+    workflow: str = "update-feed-fast.yml",
+) -> tuple[bool, str]:
     if not token:
         return False, "Cannot dispatch feed refresh: GITHUB_TOKEN is unavailable."
 
-    url = f"https://api.github.com/repos/{repo}/actions/workflows/update-feed.yml/dispatches"
+    url = f"https://api.github.com/repos/{repo}/actions/workflows/{workflow}/dispatches"
     payload = json.dumps({"ref": ref}).encode("utf-8")
     req = urllib.request.Request(url, data=payload, method="POST")
     req.add_header("Accept", "application/vnd.github+json")
@@ -73,7 +78,7 @@ def dispatch_feed_refresh(repo: str, token: str | None, ref: str = "main") -> tu
     try:
         with urllib.request.urlopen(req, timeout=10) as response:
             if response.status == 204:
-                return True, f"Dispatched Update opportunity feed on {ref}."
+                return True, f"Dispatched fast feed refresh ({workflow}) on {ref}."
             return False, f"Feed refresh dispatch returned unexpected HTTP {response.status}."
     except urllib.error.HTTPError as e:
         return False, f"Feed refresh dispatch failed with HTTP {e.code}."
@@ -87,6 +92,7 @@ def main() -> int:
     parser.add_argument("--allowed-progress-minutes", type=float, default=45.0)
     parser.add_argument("--alert-hours", type=float, default=3.0)
     parser.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY", "kaamilbadami/yartchives"))
+    parser.add_argument("--recovery-workflow", default="update-feed-fast.yml")
     args = parser.parse_args()
 
     try:
@@ -109,7 +115,7 @@ def main() -> int:
             output.write(f"alert_tag={alert_tag}\n")
 
     token = os.environ.get("GITHUB_TOKEN")
-    runs = get_workflow_runs(args.repo, token)
+    runs = get_workflow_runs(args.repo, token, args.recovery_workflow)
 
     ok, message = evaluate_freshness(
         generated_at=generated_at,
@@ -123,7 +129,11 @@ def main() -> int:
         print(message)
         return 0
 
-    dispatched, dispatch_message = dispatch_feed_refresh(args.repo, token)
+    dispatched, dispatch_message = dispatch_feed_refresh(
+        args.repo,
+        token,
+        workflow=args.recovery_workflow,
+    )
     if dispatched:
         print(f"{message} {dispatch_message}")
         return 0
