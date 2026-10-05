@@ -63,16 +63,36 @@ class TestWatchdogFeedFreshness(unittest.TestCase):
         self.assertFalse(ok)
         self.assertIn("GITHUB_TOKEN", msg)
 
+    def test_stale_recovery_dispatches_fast_workflow(self):
+        generated_at = self.now - timedelta(hours=3)
+        with mock.patch.object(mod, "get_workflow_runs", return_value=[]), \
+             mock.patch.object(mod, "dispatch_feed_refresh", return_value=(True, "ok")) as dispatch:
+            ok, _ = mod.evaluate_freshness(
+                generated_at, [], self.now, self.threshold_hours, self.allowed_progress_minutes
+            )
+            self.assertFalse(ok)
+            mod.dispatch_feed_refresh(
+                "owner/repo",
+                "token",
+                workflow="update-feed-fast.yml",
+            )
+        dispatch.assert_called_once_with(
+            "owner/repo",
+            "token",
+            workflow="update-feed-fast.yml",
+        )
+
     def test_main_exposes_three_hour_alert_state(self):
         with tempfile.NamedTemporaryFile("w+", suffix=".json") as feed, tempfile.NamedTemporaryFile("w+") as output:
             generated = self.now - timedelta(hours=3, minutes=5)
             feed.write('{"generated_at":"' + self._iso(generated) + '"}')
             feed.flush()
             with mock.patch.object(mod, "now_utc", return_value=self.now), \
-                 mock.patch.object(mod, "get_workflow_runs", return_value=[{"status": "in_progress", "created_at": self._iso(self.now - timedelta(minutes=5))}]), \
+                 mock.patch.object(mod, "get_workflow_runs", return_value=[{"status": "in_progress", "created_at": self._iso(self.now - timedelta(minutes=5))}]) as runs, \
                  mock.patch.dict(os.environ, {"GITHUB_OUTPUT": output.name, "GITHUB_TOKEN": "token"}, clear=False), \
                  mock.patch("sys.argv", ["watchdog_feed_freshness.py", "--feed", feed.name]):
                 self.assertEqual(mod.main(), 0)
+            runs.assert_called_once_with("kaamilbadami/yartchives", "token", "update-feed-fast.yml")
             output.seek(0)
             text = output.read()
             self.assertIn("alert_required=true", text)

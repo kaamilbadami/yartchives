@@ -10,6 +10,7 @@ on:
   workflow_run:
     workflows:
       - Update opportunity feed
+      - Refresh opportunity feed fast path
       - Refresh bounded inspections
       - Deploy analytics backend
     types:
@@ -52,7 +53,7 @@ jobs:
           --repo "${{ github.repository }}"
           --require-feed-artifact
           --max-feed-age-hours 3
-          --defer-stale-feed-if-workflow-active update-feed.yml
+          --defer-stale-feed-if-workflow-active update-feed-fast.yml
 
       - name: Explain deferred deploy
         if: steps.hydrate.outputs.deploy_ready == 'false'
