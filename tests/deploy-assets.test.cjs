@@ -69,7 +69,7 @@ const workflowFiles = fs.readdirSync(".github/workflows")
   .sort();
 assert.deepEqual(
   workflowFiles,
-  ["ai-profile-benchmark.yml", "auto-merge-agent-prs.yml", "autonomous-dispatch.yml", "branch-preflight.yml", "coverage-audit.yml", "coverage-automation.yml", "deploy-analytics.yml", "deploy-pages.yml", "feed-freshness.yml", "quality.yml", "refresh-inspections.yml", "repository-housekeeping.yml", "triage-workflow-failures.yml", "update-feed.yml"],
+  ["ai-profile-benchmark.yml", "auto-merge-agent-prs.yml", "autonomous-dispatch.yml", "branch-preflight.yml", "coverage-audit.yml", "coverage-automation.yml", "deploy-analytics.yml", "deploy-pages.yml", "feed-freshness.yml", "quality.yml", "refresh-inspections.yml", "repository-housekeeping.yml", "triage-workflow-failures.yml", "update-feed-fast.yml", "update-feed.yml"],
   "Production workflow set changed; update the workflow-health contract intentionally and do not leave temporary workflows on main"
 );
 
@@ -263,8 +263,8 @@ assert.match(
 );
 assert.match(
   workflow,
-  /Hydrate latest runtime artifacts[\s\S]*?id:\s*hydrate[\s\S]*?--defer-stale-feed-if-workflow-active update-feed\.yml/,
-  "Pages should defer stale-feed deploys while the feed producer is already active"
+  /Hydrate latest runtime artifacts[\s\S]*?id:\s*hydrate[\s\S]*?--defer-stale-feed-if-workflow-active update-feed-fast\.yml/,
+  "Pages should defer stale-feed deploys while the bounded freshness producer is already active"
 );
 assert.match(
   workflow,
@@ -292,8 +292,13 @@ assert.match(
 );
 assert.match(
   workflow,
-  /workflows:[\s\S]*?- Update opportunity feed[\s\S]*?- Refresh bounded inspections/,
-  "Pages should redeploy after either runtime artifact producer succeeds"
+  /workflows:[\s\S]*?- Update opportunity feed[\s\S]*?- Refresh opportunity feed fast path[\s\S]*?- Refresh bounded inspections/,
+  "Pages should redeploy after rich feed, fast feed, or inspection runtime artifacts change"
+);
+assert.match(
+  workflow,
+  /--defer-stale-feed-if-workflow-active update-feed-fast\.yml/,
+  "Stale deploy deferral should follow the bounded freshness producer rather than the long enrichment workflow"
 );
 assert.match(
   workflow,

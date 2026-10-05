@@ -1,0 +1,75 @@
+name: Refresh opportunity feed fast path
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "47 * * * *"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: update-opportunity-feed-fast
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Validate fast-path code
+        run: |
+          python -m py_compile scripts/build_feed.py scripts/enrich_feed.py scripts/repair_links.py scripts/reconcile_workday_duplicates.py scripts/stabilize_job_ids.py scripts/validate_feed.py scripts/download_latest_feed.py
+
+      - name: Hydrate latest runtime state
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/download_latest_feed.py --repo "${{ github.repository }}"
+
+      - name: Snapshot existing feed
+        run: cp data/listings.json /tmp/yartchives-old-listings.json
+
+      - name: Build normalized broad-source feed
+        env:
+          USAJOBS_API_KEY: ${{ secrets.USAJOBS_API_KEY }}
+          USAJOBS_EMAIL: ${{ secrets.USAJOBS_EMAIL }}
+        run: python scripts/build_feed.py
+
+      - name: Add deterministic student metadata
+        run: python scripts/enrich_feed.py data/listings.json
+
+      - name: Preserve repairable links without network validation
+        run: python scripts/repair_links.py data/listings.json --old-feed /tmp/yartchives-old-listings.json --offline
+
+      - name: Reconcile duplicate Workday postings
+        run: python scripts/reconcile_workday_duplicates.py data/listings.json
+
+      - name: Stabilize published job identities
+        run: python scripts/stabilize_job_ids.py data/listings.json --old-feed /tmp/yartchives-old-listings.json
+
+      - name: Validate fast-path feed
+        run: python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8
+
+      - name: Publish fast-path feed artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: yartchives-listings-fast
+          path: data/listings.json
+          if-no-files-found: error
+          retention-days: 7

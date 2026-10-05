@@ -2,7 +2,7 @@ name: Feed freshness watchdog
 
 on:
   schedule:
-    - cron: "47 * * * *"
+    - cron: "7 * * * *"
   workflow_dispatch:
 
 permissions:
