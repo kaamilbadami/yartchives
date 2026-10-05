@@ -315,11 +315,11 @@
       return { kind: "prior-internship" };
     }
     if (/\b(?:coursework|academic experience|project experience|school project|class project)\b/.test(text)
-      && /\b(?:accepted|acceptable|considered|qualif|experience|background|may substitute|in lieu)\b/.test(text)) {
+      && /\b(?:accepted|acceptable|considered|qualif(?:y|ies|ied)|may substitute|in lieu)\b/.test(text)) {
       return { kind: "coursework-accepted" };
     }
     if (/\b(?:leadership|extracurricular|student organization|student organisation|club|campus organization|campus organisation)\b/.test(text)
-      && /\b(?:accepted|acceptable|considered|experience|background|qualif)\b/.test(text)) {
+      && /\b(?:accepted|acceptable|considered|qualif(?:y|ies|ied)|may substitute|in lieu)\b/.test(text)) {
       return { kind: "leadership-accepted" };
     }
     if (/\b(?:advanced|deep|expert|expertise|strong)\b[^.;]{0,50}\b(?:domain|industry|technical|knowledge|background|experience)\b|\b(?:advanced|deep|expert)\s+(?:knowledge|understanding)\b/.test(text)) {
