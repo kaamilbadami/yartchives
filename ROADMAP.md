@@ -77,7 +77,7 @@ GitHub issues, Jules sessions, PRs, checks, merges, retries, and cleanup should 
 ### Near-term direction
 
 - Finish the authoritative workflow-failure → Jules lifecycle work.
-- Maintain a small evidence-backed Jules queue when qualifying current-main signals exist: target roughly 3–6 non-overlapping ready issues, with the replenisher aiming for 4 and creating at most 3 per scan.
+- Use all otherwise-idle Jules capacity for legitimate evidence-backed work when non-overlapping current-main signals exist; existing eligible work is always selected before generating more.
 - Keep #507's evidence-backed replenishment architecture healthy and extend providers only from machine-verifiable signals; zero generated work remains valid when no strong evidence exists.
 - Keep concurrency resource-driven rather than forcing arbitrary utilization.
 - Improve diagnostics when slots remain unused.
@@ -109,7 +109,8 @@ Yartchives should discover a large, useful share of relevant US undergraduate CS
 
 - Resolve the current systemic source-health regression.
 - Raise direct-link coverage by fixing generic unresolved destination patterns.
-- Continue the evidence-driven generic coverage loop.
+- Keep independent ATS-family coverage lanes continuously replenished: Workday, Greenhouse, Lever, Oracle, iCIMS, SmartRecruiters, Ashby, SuccessFactors, Eightfold, Avature, Phenom, BrassRing, Jobvite, Paylocity, Breezy, Workable, ApplyToJob, Paradox, and newly fingerprinted families each use their own resource lock.
+- After an ATS-family task completes, re-measure current `main`; if a meaningful generic gap remains, allow the next bounded issue for that same family to be generated automatically. Do not impose one blanket coverage WIP cap across independent ATS locks.
 - Improve Fortune 500 / high-value CS benchmark coverage by fixing source-family gaps, not by accumulating employer exceptions.
 
 ### Non-goals
@@ -260,7 +261,7 @@ Good evidence includes reproducible workflow failures, failing regression covera
 
 Weak evidence includes generic cleanup opportunities, subjective code-style preferences, speculative rewrites, documentation-only churn, and work whose value cannot be measured.
 
-Issue #507 completed the first implementation of capacity-aware evidence-backed task generation. The dispatcher now treats that as an ongoing operating capability: it selects existing eligible work first, replenishes toward a four-item evidence-backed ready target only when spare Jules capacity exists, creates at most three issues in one scan, and re-reads issue state between creations so dedupe, coverage WIP, and resource locks remain authoritative. Zero generated work remains correct when no qualifying evidence exists.
+Issue #507 completed the first implementation of capacity-aware evidence-backed task generation. The dispatcher now treats that as an ongoing operating capability: it selects existing eligible work first, then may use remaining Jules capacity for machine-verifiable non-overlapping work. It re-reads issue state between creations so dedupe and resource locks remain authoritative. Coverage is intentionally lane-based rather than globally capped: distinct ATS-family locks may run concurrently, and a completed family can generate another bounded issue after current-main evidence is re-measured. Zero generated work remains correct when no qualifying evidence exists.
 
 ## Relationship to older planning issues
 
