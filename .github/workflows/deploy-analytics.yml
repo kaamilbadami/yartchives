@@ -28,18 +28,18 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Check Cloudflare configuration
+      - name: Validate Cloudflare configuration
         id: cloudflare
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          if [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$CLOUDFLARE_API_TOKEN" ]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::Analytics backend deployment is disabled until CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN are configured."
+          set -euo pipefail
+          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::Analytics backend deployment requires CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN."
+            exit 1
           fi
+          echo "configured=true" >> "$GITHUB_OUTPUT"
 
       - name: Provision D1 database
         if: steps.cloudflare.outputs.configured == 'true'
