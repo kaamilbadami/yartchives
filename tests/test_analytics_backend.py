@@ -22,6 +22,12 @@ class AnalyticsBackendTests(unittest.TestCase):
         self.assertIn("idx_usage_batches_visitor_id", schema)
         self.assertNotRegex(schema, r'\b(email|resume|search|location|job_id|job_title|company|ip_address|user_agent)\b')
 
+    def test_ai_profile_quota_schema_is_anonymous_and_bounded(self):
+        schema = (ROOT / "analytics" / "migrations" / "0002_ai_profile_usage.sql").read_text(encoding="utf-8")
+        self.assertIn("CREATE TABLE IF NOT EXISTS ai_profile_usage", schema)
+        self.assertIn("PRIMARY KEY (usage_date, client_id)", schema)
+        self.assertNotRegex(schema, r"\b(email|resume|location|job_id|ip_address|user_agent)\b")
+
     def test_deploy_is_credential_gated_and_self_provisions_d1(self):
         workflow = (ROOT / ".github" / "workflows" / "deploy-analytics.yml").read_text(encoding="utf-8")
         self.assertIn("secrets.CLOUDFLARE_ACCOUNT_ID", workflow)
@@ -33,6 +39,10 @@ class AnalyticsBackendTests(unittest.TestCase):
         self.assertIn("wrangler@4.143.0 deploy", workflow)
         self.assertIn("yartchives-analytics-endpoint", workflow)
         self.assertIn("/health", workflow)
+        self.assertIn("secrets.AZURE_OPENAI_API_KEY", workflow)
+        self.assertIn("secrets.AZURE_OPENAI_ENDPOINT", workflow)
+        self.assertIn("secrets.AZURE_OPENAI_DEPLOYMENT", workflow)
+        self.assertIn("wrangler@4.143.0 secret put AZURE_OPENAI_API_KEY", workflow)
         self.assertNotIn("git push", workflow)
 
     def test_pages_consumes_endpoint_artifact_instead_of_endpoint_secret(self):

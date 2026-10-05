@@ -296,3 +296,34 @@ main.apply-next-profile-mode #applyNextPanel {
     width: 100%;
   }
 }
+
+
+.apply-next-intent-section {
+  border-color: color-mix(in srgb, var(--accent, #315efb) 28%, var(--line, #d9dde5));
+  background: color-mix(in srgb, var(--panel, #fff) 94%, var(--accent, #315efb));
+}
+
+.apply-next-intent-confirmation {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0.8rem;
+  border: 1px solid var(--line, #d9dde5);
+  border-radius: 10px;
+  background: var(--panel, #fff);
+}
+
+.apply-next-intent-confirmation.hidden {
+  display: none;
+}
+
+.apply-next-intent-confirmation h4 {
+  margin: 0;
+}
+
+.apply-next-intent-summary {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.88rem;
+}
