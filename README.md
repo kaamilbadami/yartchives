@@ -100,7 +100,7 @@ The first beta is intentionally focused on Computer Science students, while the 
 
 Broad public aggregators are the discovery backbone. Employer and ATS sources such as Workday, Greenhouse, and iCIMS are targeted gap-fillers where supported, and federal opportunity data comes from the official USAJOBS Search API.
 
-LinkedIn and Handshake are used as **discovery and audit surfaces**, not production scraping sources.
+LinkedIn, Handshake, and Indeed are used as **discovery and audit surfaces**, not production scraping sources. Indeed may reveal coverage gaps, but Yartchives should trace those roles to authoritative employer/ATS destinations rather than depend on Indeed for production ingestion.
 
 Yartchives does not claim to represent the entire internship market. The machine-readable `coverage_contract.json` defines the evidence required before the product can make stronger coverage claims; until those gates pass on an independent benchmark, Apply Next should be understood as ranking the opportunities Yartchives currently knows about.
 

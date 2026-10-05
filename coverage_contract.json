@@ -3,12 +3,25 @@
   "version": 1,
   "promise": "A student can use Yartchives as their only discovery queue for current US undergraduate computer-science internships and co-ops without routinely checking other aggregators.",
   "scope": {
-    "profiles": ["cs"],
-    "opportunity_types": ["internship", "co-op", "student"],
+    "profiles": [
+      "cs"
+    ],
+    "opportunity_types": [
+      "internship",
+      "co-op",
+      "student"
+    ],
     "geography": "United States and US-eligible remote roles",
     "education": "undergraduate-friendly; graduate-only roles excluded",
     "market": "publicly discoverable, apparently open employer/ATS requisitions",
-    "discovery_surfaces": ["employer/ATS sites", "LinkedIn", "Handshake", "major aggregators", "ordinary web search"]
+    "discovery_surfaces": [
+      "employer/ATS sites",
+      "LinkedIn",
+      "Handshake",
+      "Indeed",
+      "major aggregators",
+      "ordinary web search"
+    ]
   },
   "gates": {
     "minimum_unique_benchmark_listings": 200,

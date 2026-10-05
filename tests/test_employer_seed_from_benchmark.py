@@ -75,6 +75,12 @@ def test_build_seed_is_deterministic_and_ignores_discovery_hosts():
             "company": "Example Inc.",
             "expected_state": "MD",
             "url_kind": "authoritative",
+            "url": "https://www.indeed.com/viewjob?jk=abc123",
+        },
+        {
+            "company": "Example Inc.",
+            "expected_state": "MD",
+            "url_kind": "authoritative",
             "url": "https://careers.example.com/jobs/1",
         },
     ]
