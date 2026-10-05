@@ -60,14 +60,21 @@ class CoverageDenominatorTests(unittest.TestCase):
                 "url": "https://app.joinhandshake.com/jobs/99999",
                 "source": "Handshake",
             },
+            {
+                "company": "Acme Corp",
+                "title": "Software Engineering Intern",
+                "location": "Hartford, CT",
+                "url": "https://www.indeed.com/viewjob?jk=abc123",
+                "source": "Indeed",
+            },
         ]
 
         deduped = mod.dedupe_external_rows(rows)
         self.assertEqual(len(deduped), 1)
-        self.assertEqual(deduped[0]["_audit_observation_count"], 3)
+        self.assertEqual(deduped[0]["_audit_observation_count"], 4)
         self.assertEqual(
             set(deduped[0]["_audit_observed_sources"]),
-            {"LinkedIn", "Employer site", "Handshake"},
+            {"LinkedIn", "Employer site", "Handshake", "Indeed"},
         )
         self.assertEqual(deduped[0]["url"], "https://jobs.acme.com/job/12345")
 
