@@ -1853,6 +1853,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
             f"<!-- jules-clarification-handled: ask1:{mod.clarification_key(question)} -->",
             gh_calls[0][-1],
         )
+        self.assertIn("--remove-label", gh_calls[1])
         self.assertNotIn("jules-needs-feedback", mod.label_names(issues[0]))
 
     def test_forwarded_feedback_comment_is_not_sent_twice(self):
@@ -1981,8 +1982,9 @@ class AutonomousDispatcherTests(unittest.TestCase):
             run_gh=lambda *args: gh_calls.append(args),
         )
 
-        self.assertEqual(gh_calls, [])
-        self.assertIn("jules-needs-feedback", mod.label_names(issues[0]))
+        self.assertEqual(len(gh_calls), 1)
+        self.assertIn("--remove-label", gh_calls[0])
+        self.assertNotIn("jules-needs-feedback", mod.label_names(issues[0]))
 
     def test_already_handled_clarification_clears_stale_feedback_labels(self):
         issues = [
