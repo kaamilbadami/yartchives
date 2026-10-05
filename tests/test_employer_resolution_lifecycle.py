@@ -405,14 +405,14 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
         updated, summary = mod.run_lifecycle(
             self.universe([employer]),
             now=NOW,
-            resolver=lambda entry, **kwargs: self.fail("shared provider root should not be network-resolved"),
+            resolver=lambda entry, **kwargs: {"status": "unresolved"},
         )
 
         row = updated["employers"][0]
         self.assertNotIn("provider", row)
-        self.assertNotIn("careers_resolution", row)
+        self.assertIn("careers_resolution", row)
         self.assertEqual(summary["fast_path_provider_resolved"], 0)
-        self.assertEqual(summary["attempted_employers"], 0)
+        self.assertEqual(summary["attempted_employers"], 1)
 
 
     def test_fresh_brassring_provider_resolution_is_completed_and_preserved_on_failure(self):

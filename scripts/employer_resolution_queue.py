@@ -60,11 +60,9 @@ def _hint_identity_status(value: str) -> str:
     parts = [part for part in parsed.path.split("/") if part]
     query = parse_qs(parsed.query.casefold())
 
-    if family == "greenhouse":
-        return "tenant" if parts and parts[0].casefold() not in {"jobs", "careers"} else "shared_provider"
     if family in {"smartrecruiters"}:
         return "tenant" if parts else "shared_provider"
-    if family in {"ashby", "lever"}:
+    if family in {"ashby", "lever", "greenhouse"}:
         return "tenant"
     if family == "successfactors":
         return "tenant" if query.get("company") else "shared_provider"

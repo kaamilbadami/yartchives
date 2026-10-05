@@ -67,7 +67,7 @@ def build_seed(rows: list[dict[str, str]]) -> dict[str, Any]:
         ats_system = _clean(row.get("ats_system"))
         if ats_system.casefold() == "lever" and apply_host == "jobs.lever.co":
             apply_host = f"{apply_host}/{slug}"
-        elif ats_system.casefold() == "greenhouse" and apply_host in {"boards.greenhouse.io", "job-boards.greenhouse.io"}:
+        elif ats_system.casefold() == "greenhouse" and apply_host in {"boards.greenhouse.io", "job-boards.greenhouse.io", "job-boards.eu.greenhouse.io", "boards.eu.greenhouse.io"}:
             apply_host = f"{apply_host}/{slug}"
         elif ats_system.casefold() == "successfactors" and "successfactors" in apply_host.casefold():
             apply_host = f"{apply_host}/career?company={slug}"

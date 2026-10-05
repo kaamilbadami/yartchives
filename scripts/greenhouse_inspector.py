@@ -26,7 +26,7 @@ TIMEOUT = 25
 INTERFACE = "greenhouse_job_board_api"
 CANONICAL_HOST = "job-boards.greenhouse.io"
 API_HOST = "boards-api.greenhouse.io"
-GREENHOUSE_HOSTS = {CANONICAL_HOST, "boards.greenhouse.io"}
+GREENHOUSE_HOSTS = {CANONICAL_HOST, "boards.greenhouse.io", "job-boards.eu.greenhouse.io", "boards.eu.greenhouse.io"}
 BOARD_TOKEN = re.compile(r"^[A-Za-z0-9._-]+$")
 
 
@@ -49,6 +49,10 @@ def derive_greenhouse_endpoint(job_url: str) -> dict[str, str]:
     host = (parsed.hostname or "").lower()
     if parsed.scheme.lower() != "https" or host not in GREENHOUSE_HOSTS:
         raise UnsupportedGreenhouseUrl("expected an HTTPS Greenhouse-hosted job board URL")
+    if "eu.greenhouse.io" in host:
+        api_host = "boards-api.eu.greenhouse.io"
+    else:
+        api_host = API_HOST
 
     parts = [unquote(part) for part in parsed.path.split("/") if part]
     if len(parts) == 3 and parts[1].lower() == "jobs" and parts[2].isdigit():
@@ -77,7 +81,7 @@ def derive_greenhouse_endpoint(job_url: str) -> dict[str, str]:
     canonical_path = f"/{encoded_board}/jobs/{job_id}"
     canonical_url = urlunparse(("https", CANONICAL_HOST, canonical_path, "", "", ""))
     endpoint_path = f"/v1/boards/{encoded_board}/jobs/{job_id}"
-    endpoint_url = urlunparse(("https", API_HOST, endpoint_path, "", "", ""))
+    endpoint_url = urlunparse(("https", api_host, endpoint_path, "", "", ""))
     return {
         "board_token": board_token,
         "job_id": job_id,
