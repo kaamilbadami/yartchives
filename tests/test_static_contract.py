@@ -164,6 +164,9 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn('event_type=deploy_yartchives_site', auto_merge)
         self.assertIn('client_payload[sha]=$AFTER_SHA', auto_merge)
         self.assertNotIn("gh workflow run deploy-pages.yml", auto_merge)
+        self.assertIn("gh workflow run deploy-analytics.yml", auto_merge)
+        self.assertIn("analytics/", auto_merge)
+        self.assertIn("\\.github/workflows/deploy-analytics\\.yml$", auto_merge)
         for path in [
             "scripts/build_apply_next_inspections\\.py$",
             "scripts/build_apply_next_candidates\\.py$",
