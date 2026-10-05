@@ -190,6 +190,20 @@ assert.equal(
   "explicit student-stage correction should override graduation-derived stage"
 );
 
+const unknownStageProfile = JSON.parse(JSON.stringify(sophomoreProfile));
+unknownStageProfile.facts.graduation = "";
+unknownStageProfile.facts.studentStage = "";
+const unknownStage = R.scoreJob(seniorRequired, unknownStageProfile, new Date("2026-10-05T12:00:00Z"));
+assert.equal(unknownStage.excluded, false, "unknown student stage must remain unknown rather than becoming incompatible");
+assert.match(unknownStage.components.eligibility.detail, /profile stage is unavailable/i);
+
+const preferredSenior = inspectedJob({
+  studentPreferred: [{ statement: "Current senior standing is preferred." }],
+});
+const preferredStageMismatch = R.scoreJob(preferredSenior, sophomoreProfile, new Date("2026-10-05T12:00:00Z"));
+assert.equal(preferredStageMismatch.excluded, false, "preferred stage mismatch must remain a concern rather than a hard gate");
+assert.match(preferredStageMismatch.components.eligibility.detail, /preferred student-stage condition/i);
+
 const silentExperience = inspectedJob();
 assert.equal(R.scoreReadiness(silentExperience, sophomoreProfile).delta, 0, "silence about experience must stay neutral");
 
