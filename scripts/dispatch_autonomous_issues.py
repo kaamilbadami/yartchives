@@ -1820,6 +1820,20 @@ def reconcile_jules_sessions(
                             f"`{session_id}`."
                         ).strip(),
                     )
+                    stale_feedback_labels = label_names(issue) & {
+                        JULES_FEEDBACK_LABEL,
+                        "needs-product-decision",
+                    }
+                    if stale_feedback_labels:
+                        run_gh(
+                            "issue", "edit", str(number), "--repo", repo,
+                            "--remove-label", JULES_FEEDBACK_LABEL,
+                            "--remove-label", "needs-product-decision",
+                        )
+                        replace_issue_labels_in_memory(
+                            issue,
+                            remove=(JULES_FEEDBACK_LABEL, "needs-product-decision"),
+                        )
                     print(
                         f"Forwarded GitHub feedback comment {comment_id} to Jules "
                         f"session {session_id} for #{number}."
