@@ -36,26 +36,28 @@ When implementation work is created:
 - keep unknown requirements unknown;
 - do not commit private user profile, resume, credential, secret, or account data.
 
-## Current phase: CS-first beta
+## Current phase: prove discovery trust before beta promotion
 
-The near-term objective is a small CS-student beta where the core loop works reliably:
+The near-term objective is not feature completeness. It is to prove that Yartchives is a more trustworthy way for a CS student to decide what to apply to next than a diligent repeated ChatGPT/web-search workflow.
+
+The core loop remains:
 
 **profile → recommendations → Apply / Hide / Save → next recommendation → Good / Bad feedback**
 
-The beta does not require perfect market coverage, every ATS family, broader career areas, or a major redesign.
+But a polished ranking experience is not sufficient if the candidate universe is materially incomplete. Coverage therefore becomes a release-critical input to trust, not merely an ongoing maintenance metric.
 
-The beta is ready when:
+Yartchives should not be treated as broadly beta-ready until:
 
-- automation no longer needs routine manual babysitting;
-- the UI is clearly CS-first;
-- Apply Next is fast, concise, and understandable;
-- recommendation explanations make the value and biggest concern clear;
-- action state changes are responsive and reversible;
-- major empty, error, and mobile states are covered;
-- obviously dead or inappropriate recommendations are under control;
-- recommendation feedback is available and useful for learning.
+- a reproducible external-discovery benchmark compares Yartchives against a diligent, tailored ChatGPT/web-search workflow across representative student personas;
+- Yartchives captures the large majority of reviewed strong opportunities from that external benchmark, with no obvious systemic ATS/source-family holes;
+- Yartchives also surfaces additional strong opportunities or provides materially better freshness, authoritative links, evidence, ranking, or persistent context such that the overall student decision workflow is better than the external baseline;
+- misses are classified by root cause: employer discovery, provider resolution, retrieval, normalization/classification, term filtering, freshness, link quality, or ranking;
+- source-family misses generate generic fixes and are re-measured until the systemic gap is closed or shown to be non-release-blocking;
+- recommendation usefulness, eligibility, explanation integrity, security, and first-use UX gates also pass.
 
-Issue #280 remains the final beta verification gate.
+Perfect market coverage is not required. Materially inferior discovery coverage is a release blocker.
+
+Issue #898 is the trust/readiness release gate. Issue #901 is the security/abuse-resistance release gate.
 
 ---
 
@@ -98,20 +100,25 @@ Yartchives should discover a large, useful share of relevant US undergraduate CS
 
 ### Success signals
 
-- independent coverage benchmarks improve over time;
+- against a reviewed external-discovery benchmark, Yartchives captures the large majority of strong opportunities a diligent repeated ChatGPT/web-search workflow finds for representative CS-student personas;
+- Yartchives also finds useful opportunities the external workflow misses, or provides enough freshness, authoritative evidence, ranking quality, and persistent context to make the overall decision workflow materially better;
+- coverage is measured at the opportunity level, not only by indexed-listing count or resolved-employer count;
+- the coverage chain is observable end to end: employer discovered → provider/source resolved → jobs retrieved → internship/term/classification preserved → authoritative destination reachable → role reaches the candidate set;
 - direct-link coverage is high enough that intermediary destinations are exceptional rather than routine;
 - source-family failures are isolated and diagnosable;
 - the largest remaining gaps are attacked generically by ATS/source family;
-- broad aggregators remain useful as the backbone while employer sources close measured gaps;
-- the product does not claim complete market coverage before the coverage contract is actually satisfied.
+- broad aggregators remain the discovery backbone while employer/ATS sources close measured gaps;
+- the product does not claim trustworthy market coverage before the release benchmark supports it.
 
 ### Near-term direction
 
-- Resolve the current systemic source-health regression.
-- Raise direct-link coverage by fixing generic unresolved destination patterns.
+- Build and run the external ChatGPT/web-search comparison required by #898 across representative CS-student personas; convert "captures most strong opportunities" into a measured threshold before release rather than relying on listing-count intuition.
+- Treat opportunity recall against that benchmark as the primary coverage metric; use employer/provider resolution as diagnostic leading indicators rather than the final success condition.
+- Resolve the largest current systemic source-family and discovery gaps before spending roadmap priority on additional UI polish or ranking complexity.
 - Keep independent ATS-family coverage lanes continuously replenished: Workday, Greenhouse, Lever, Oracle, iCIMS, SmartRecruiters, Ashby, SuccessFactors, Eightfold, Avature, Phenom, BrassRing, Jobvite, Paylocity, Breezy, Workable, ApplyToJob, Paradox, and newly fingerprinted families each use their own resource lock.
 - After an ATS-family task completes, re-measure current `main`; if a meaningful generic gap remains, allow the next bounded issue for that same family to be generated automatically. Do not impose one blanket coverage WIP cap across independent ATS locks.
-- Improve Fortune 500 / high-value CS benchmark coverage by fixing source-family gaps, not by accumulating employer exceptions.
+- Expand coverage benchmarks beyond Fortune 500 to the employer/source categories that materially matter for CS internship search: major technology, defense/aerospace, finance, semiconductor, industrial/engineering, research labs, government, universities, strong regional employers, and high-value remote roles.
+- Fix source-family gaps generically rather than accumulating employer-specific production exceptions.
 
 ### Non-goals
 
@@ -218,23 +225,26 @@ The feed and Apply Next should feel current and responsive without making slow e
 
 ### Outcome
 
-The first beta should generate useful evidence about whether Yartchives helps CS students decide what to apply to next.
+Broad beta promotion should happen only after Yartchives demonstrates that its discovery + ranking workflow is trustworthy enough to outperform a diligent general-purpose ChatGPT/web-search workflow for the target CS-student use case.
 
 ### Success signals
 
-- beta users can complete the core loop without explanation from the product owner;
+- #898's external-discovery comparison shows Yartchives is not materially missing strong opportunities that a diligent ChatGPT/web-search workflow repeatedly finds;
+- benchmark personas receive useful top-10 recommendations from a sufficiently complete candidate universe, with no known major eligibility/trust failures;
+- #901's security and abuse-resistance gate passes or has only explicitly documented low-risk exceptions;
+- external students can complete the core loop without explanation from the product owner;
 - recommendation feedback is captured with minimal private data;
 - recurring complaints become measurable product gaps;
-- roadmap priorities change when real usage contradicts assumptions;
-- known non-blocking limitations are documented before expanding the beta.
+- roadmap priorities change when real usage contradicts assumptions.
 
 ### Near-term direction
 
-- Complete the final beta-readiness smoke test (#280).
-- Run a small CS-student beta.
+- Make #898's coverage comparison the immediate release-readiness priority and close the largest systemic discovery/source-family gaps it exposes.
+- Complete #901's security/abuse-resistance gate in parallel where it does not contend with coverage resources.
+- Only after those gates are credible, run a small CS-student beta and compare whether students make better application decisions with Yartchives than with a reasonable ChatGPT/web-search workflow.
 - Review Good / Bad suggestion feedback and observed friction.
 - Convert repeated evidence into bounded roadmap-linked issues.
-- Expand scope only after the core loop is stable.
+- Expand scope only after the CS-first trust bar is met.
 
 ### Non-goals
 
@@ -267,7 +277,7 @@ Issue #507 completed the first implementation of capacity-aware evidence-backed 
 
 Issue #18 contains valuable historical Apply Next product thinking and remains useful context, but this file is the durable cross-product roadmap going forward.
 
-Issue #280 remains the current beta gate.
+Issue #280 is historical beta-smoke context and is closed. Current release readiness is governed by #898 (trust/coverage/readiness) and #901 (security/abuse resistance).
 
 Individual issues should reference the relevant roadmap track when practical, but the roadmap should not duplicate every open issue or become a manually maintained issue index.
 
