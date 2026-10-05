@@ -288,5 +288,10 @@ class CareersResolverTests(unittest.TestCase):
         self.assertEqual(result["platform"], "ashby")
         self.assertEqual(result["url"], "https://jobs.ashbyhq.com/acme")
 
+    def test_applytojob_job_detail(self):
+        self.assertTrue(mod.is_job_detail("https://company.applytojob.com/apply/OevsyOHRn9/Business-Analyst"))
+        self.assertFalse(mod.is_job_detail("https://company.applytojob.com/apply"))
+        self.assertFalse(mod.is_job_detail("https://company.applytojob.com/"))
+
 if __name__ == "__main__":
     unittest.main()
