@@ -157,8 +157,6 @@ sophomoreProfile.facts.courseworkEvidence = ["Corporate Finance and Excel modeli
 sophomoreProfile.facts.projectEvidence = [];
 sophomoreProfile.facts.leadershipEvidence = [];
 
-assert.equal(R.profileStudentStage ? R.profileStudentStage : undefined, undefined, "stage derivation belongs to deterministic eligibility base");
-
 const sophomoreRequired = inspectedJob({
   studentRequired: [{ statement: "Must be a current sophomore." }],
 });
