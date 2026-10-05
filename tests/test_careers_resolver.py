@@ -289,3 +289,9 @@ if __name__ == "__main__":
         self.assertEqual(result["status"], "resolved")
         self.assertEqual(result["platform"], "ashby")
         self.assertEqual(result["url"], "https://jobs.ashbyhq.com/acme")
+
+    def test_applytojob_is_job_detail(self):
+        url = "https://aerotech.applytojob.com/apply/OevsyOHRn9/Business-Analyst"
+        self.assertTrue(mod.is_job_detail(url))
+        url = "https://aerotech.applytojob.com/apply"
+        self.assertFalse(mod.is_job_detail(url))

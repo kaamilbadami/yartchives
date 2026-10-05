@@ -2119,7 +2119,29 @@
       "domain_hints": [
         "aerotech.applytojob.com",
         "aerotechnews.com"
-      ]
+      ],
+      "careers_resolution": {
+        "status": "resolved",
+        "url": "https://aerotech.applytojob.com/apply",
+        "platform": "applytojob",
+        "provider": {
+          "family": "applytojob",
+          "status": "resolved",
+          "evidence": "url_or_page_marker",
+          "marker": "applytojob.com",
+          "host": "aerotech.applytojob.com"
+        },
+        "evidence": []
+      },
+      "careers_url": "https://aerotech.applytojob.com/apply",
+      "careers_platform": "applytojob",
+      "provider": {
+        "family": "applytojob",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "applytojob.com",
+        "host": "aerotech.applytojob.com"
+      }
     },
     {
       "id": "aerovironment",
