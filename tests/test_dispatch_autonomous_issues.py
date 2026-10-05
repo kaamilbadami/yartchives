@@ -3388,12 +3388,12 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertTrue(called)
         self.assertEqual(generated[0], 1)
 
-    def test_generate_evidence_backed_tasks_prefers_existing_backlog_target(self):
-        called = False
+    def test_generate_evidence_backed_tasks_existing_work_consumes_capacity_first(self):
+        calls = 0
 
         def fake_provider(repo, issues, occupied_locks):
-            nonlocal called
-            called = True
+            nonlocal calls
+            calls += 1
             return True
 
         selected = [
@@ -3414,13 +3414,12 @@ class AutonomousDispatcherTests(unittest.TestCase):
             "owner/repo",
             [],
             selected,
-            max_active=15,
+            max_active=5,
             providers=[fake_provider],
-            backlog_target=4,
         )
 
-        self.assertEqual(generated, (0, "existing eligible backlog already meets target"))
-        self.assertFalse(called)
+        self.assertEqual(generated[0], 1)
+        self.assertEqual(calls, 1)
     def test_generate_evidence_backed_tasks_no_spare_capacity(self):
         from scripts.dispatch_autonomous_issues import generate_evidence_backed_tasks, Task
 
@@ -3507,12 +3506,56 @@ class AutonomousDispatcherTests(unittest.TestCase):
             max_active=15,
             providers=[fake_provider],
             reload_issues=lambda: snapshots.pop(0),
-            backlog_target=6,
             per_cycle_cap=3,
         )
 
         self.assertEqual(generated[0], 3)
         self.assertEqual(call_count, 3)
+
+    def test_generate_evidence_backed_tasks_can_fill_spare_capacity_with_distinct_ats_lanes(self):
+        candidates = [
+            {
+                "id": f"ats-family-{idx}:provider-resolution",
+                "title": f"Family {idx} gap",
+                "family": f"family-{idx}",
+                "resources": [f"ats-family-{idx}"],
+                "affected_employers": 10 - idx,
+                "evidence": f"Measured family {idx} gap",
+            }
+            for idx in range(5)
+        ]
+        snapshots = []
+        created_issues = []
+
+        def fake_run_gh(*args):
+            resource = next(part for part in args if isinstance(part, str) and "resources: ats-family-" in part)
+            idx = int(resource.split("resources: ats-family-")[1].split()[0])
+            created_issues.append(
+                issue(
+                    950 + idx,
+                    f"Family {idx} gap",
+                    body=(
+                        f"<!-- coverage-gap: ats-family-{idx}:provider-resolution -->\n"
+                        + task_body("P1", "coverage", resources=f"ats-family-{idx}")
+                    ),
+                )
+            )
+
+        with mock.patch.object(mod, "load_coverage_gap_candidates", return_value=candidates):
+            with mock.patch.object(mod, "gh_run", side_effect=fake_run_gh):
+                generated = mod.generate_evidence_backed_tasks(
+                    "owner/repo",
+                    [],
+                    [],
+                    max_active=5,
+                    providers=[mod._provider_coverage_gap],
+                    reload_issues=lambda: list(created_issues),
+                    per_cycle_cap=5,
+                )
+
+        self.assertEqual(generated[0], 5)
+        resources = {next(iter(mod.task_from_issue(item).resources)) for item in created_issues}
+        self.assertEqual(resources, {f"ats-family-{idx}" for idx in range(5)})
 
     def test_generate_evidence_backed_tasks_passes_occupied_locks(self):
         from scripts.dispatch_autonomous_issues import generate_evidence_backed_tasks, Task
@@ -3810,26 +3853,35 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertIn("Greenhouse gap", " ".join(calls[0]))
         self.assertIn("resources: ats-greenhouse", " ".join(calls[0]))
 
-    def test_coverage_gap_provider_respects_wip_target(self):
-        issues = [
+    def test_coverage_gap_provider_has_no_blanket_wip_cap_for_distinct_ats_lanes(self):
+        existing = [
             issue(
                 920 + idx,
                 f"Coverage {idx}",
                 body=task_body("P1", "coverage", resources=f"ats-family-{idx}"),
                 labels=("jules-session",),
             )
-            for idx in range(mod.COVERAGE_WIP_TARGET)
+            for idx in range(6)
         ]
+        occupied = frozenset(f"resource:ats-family-{idx}" for idx in range(6))
+        candidates = [
+            {
+                "id": "ats-family-6:provider-resolution",
+                "title": "Close Family 6 provider-resolution coverage gap",
+                "family": "family-6",
+                "resources": ["ats-family-6"],
+                "affected_employers": 7,
+                "evidence": "7 benchmark employers fingerprint as family-6.",
+            }
+        ]
+        calls = []
 
-        with mock.patch.object(
-            mod,
-            "load_coverage_gap_candidates",
-            side_effect=AssertionError("audit should not run at WIP target"),
-        ):
-            created = mod._provider_coverage_gap("owner/repo", issues, frozenset())
+        with mock.patch.object(mod, "load_coverage_gap_candidates", return_value=candidates):
+            with mock.patch.object(mod, "gh_run", side_effect=lambda *args: calls.append(args)):
+                created = mod._provider_coverage_gap("owner/repo", existing, occupied)
 
-        self.assertFalse(created)
-
+        self.assertTrue(created)
+        self.assertIn("resources: ats-family-6", " ".join(calls[0]))
     def test_coverage_gap_provider_deduplicates_semantic_unknown_provider_alias(self):
         existing = issue(
             891,
