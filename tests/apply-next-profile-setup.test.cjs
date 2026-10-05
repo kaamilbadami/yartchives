@@ -370,8 +370,6 @@ assert.ok(combinedProfile.preferredProfiles.includes("engineering"));
   assert.equal(nodes.get("priorInternship").value, "none");
   assert.equal(nodes.get("remoteRelevant").checked, true);
   assert.equal(nodes.get("relocationAllowed").checked, false);
-}
-
 
   const textFile = {
     name: "resume.txt",
