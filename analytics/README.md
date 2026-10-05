@@ -23,6 +23,8 @@ the workflow finds or creates the `yartchives-analytics` D1 database, applies mi
 
 The Pages workflow consumes the newest successful endpoint artifact and injects it into the frontend automatically. If no backend artifact exists, Pages deploys with analytics disabled.
 
+Automated merges that touch `analytics/**` or the analytics deploy workflow explicitly dispatch `deploy-analytics.yml`, because GitHub suppresses downstream push workflows created by the repository token.
+
 The Cloudflare API token should be scoped to the Yartchives account. The current workflow needs:
 - Account → Workers Scripts → Edit
 - Account → D1 → Edit
