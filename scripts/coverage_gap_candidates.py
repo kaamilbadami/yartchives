@@ -77,7 +77,8 @@ def _hint_families(employer: dict[str, Any]) -> set[str]:
 def build_gap_candidates(universe: dict[str, Any]) -> list[dict[str, Any]]:
     """Rank generic provider-resolution gaps from the current employer universe."""
     by_family: dict[str, set[str]] = defaultdict(set)
-    unknown: set[str] = set()
+    unknown_with_domain: set[str] = set()
+    unknown_no_domain: set[str] = set()
 
     for employer in _benchmark_employers(universe):
         provider = employer.get("provider") or {}
@@ -91,7 +92,15 @@ def build_gap_candidates(universe: dict[str, Any]) -> list[dict[str, Any]]:
             for family in families:
                 by_family[family].add(employer_id)
         else:
-            unknown.add(employer_id)
+            has_domain_hint = bool(employer.get("domain_hints")) or any(
+                bool(metadata.get("domain_hints"))
+                for metadata in (employer.get("seed_metadata") or {}).values()
+                if isinstance(metadata, dict)
+            )
+            if has_domain_hint:
+                unknown_with_domain.add(employer_id)
+            else:
+                unknown_no_domain.add(employer_id)
 
     candidates: list[dict[str, Any]] = []
     for family, employer_ids in by_family.items():
@@ -116,21 +125,40 @@ def build_gap_candidates(universe: dict[str, Any]) -> list[dict[str, Any]]:
             }
         )
 
-    if len(unknown) >= MIN_UNKNOWN_GAP:
+    if len(unknown_with_domain) >= MIN_UNKNOWN_GAP:
         candidates.append(
             {
                 "id": "source-registry:unknown-provider-resolution",
                 "kind": "unknown-provider-resolution",
                 "family": "unknown",
                 "resources": ["source-registry"],
-                "affected_employers": len(unknown),
+                "affected_employers": len(unknown_with_domain),
                 "confidence": 0.7,
                 "generic_leverage": 0.8,
-                "score": len(unknown) * 0.56,
+                "score": len(unknown_with_domain) * 0.56,
                 "title": "Reduce unresolved provider discovery gaps",
                 "evidence": (
-                    f"{len(unknown)} benchmark employers remain unresolved without a "
-                    "known ATS fingerprint in their current domain hints."
+                    f"{len(unknown_with_domain)} benchmark employers remain unresolved with a "
+                    "domain hint but no known ATS fingerprint."
+                ),
+            }
+        )
+
+    if len(unknown_no_domain) >= MIN_UNKNOWN_GAP:
+        candidates.append(
+            {
+                "id": "source-registry:no-domain-discovery",
+                "kind": "no-domain-discovery",
+                "family": "unknown",
+                "resources": ["source-registry"],
+                "affected_employers": len(unknown_no_domain),
+                "confidence": 0.5,
+                "generic_leverage": 0.5,
+                "score": len(unknown_no_domain) * 0.25,
+                "title": "Discover careers domains for unresolved employers",
+                "evidence": (
+                    f"{len(unknown_no_domain)} benchmark employers remain unresolved without any "
+                    "known domain hint."
                 ),
             }
         )
