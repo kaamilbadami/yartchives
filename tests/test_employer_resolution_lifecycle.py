@@ -114,8 +114,8 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
         self.assertEqual(summary["outcomes"], {"unresolved": 1})
 
     def test_default_lifecycle_budgets_are_scaled_but_bounded(self):
-        self.assertEqual(mod.DEFAULT_EMPLOYER_BUDGET, 20)
-        self.assertEqual(mod.DEFAULT_REQUEST_BUDGET, 120)
+        self.assertEqual(mod.DEFAULT_EMPLOYER_BUDGET, 50)
+        self.assertEqual(mod.DEFAULT_REQUEST_BUDGET, 300)
 
     def test_reuses_fresh_success_without_network_work(self):
         employer = self.employer(
@@ -208,28 +208,39 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
         self.assertEqual(summary["requests_used"], 3)
         self.assertNotIn("careers_url", updated["employers"][0])
 
-    def test_lifecycle_attempts_fortune_before_verified_ats_before_other(self):
-        fortune = self.employer("fortune", 1)
-        fortune["seed_sets"].append("fortune-500-2026")
-        fortune["seed_metadata"]["fortune-500-2026"] = {
+    def test_lifecycle_attempts_benchmark_before_fortune_before_verified_ats_before_other(self):
+        benchmark = self.employer("benchmark", 1)
+        benchmark["seed_sets"] = ["cs-benchmark"]
+        benchmark["seed_metadata"] = {"cs-benchmark": {
+            "domain_hints": ["benchmark.wd1.myworkdayjobs.com"]
+        }}
+
+        fortune = self.employer("fortune", 2)
+        fortune["seed_sets"] = ["fortune-500-2026"]
+        fortune["seed_metadata"] = {"fortune-500-2026": {
             "domain_hints": ["fortune.wd1.myworkdayjobs.com"]
-        }
+        }}
 
         ats = self.employer("ats", 50)
-        ats["seed_sets"].append("state-of-ats-2026-verified-hosts")
-        ats["seed_metadata"]["state-of-ats-2026-verified-hosts"] = {
+        ats["seed_sets"] = ["state-of-ats-2026-verified-hosts"]
+        ats["seed_metadata"] = {"state-of-ats-2026-verified-hosts": {
             "domain_hints": ["ats.wd1.myworkdayjobs.com"]
-        }
+        }}
 
         other = self.employer("other", 100)
+        other["seed_sets"] = ["other"]
+        other["seed_metadata"] = {"other": {
+            "domain_hints": ["other.example.com"]
+        }}
         universe = {
             "schema_version": 1,
             "seed_sets": [
-                {"key": "benchmark", "kind": "coverage_benchmark"},
+                {"key": "cs-benchmark", "kind": "coverage_benchmark"},
                 {"key": "fortune-500-2026", "kind": "fortune_500"},
                 {"key": "state-of-ats-2026-verified-hosts", "kind": "external_ats_evidence"},
+                {"key": "other", "kind": "other"},
             ],
-            "employers": [other, ats, fortune],
+            "employers": [other, ats, benchmark, fortune],
         }
         calls = []
 
@@ -240,11 +251,11 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
         updated, summary = mod.run_lifecycle(
             universe,
             now=NOW,
-            employer_budget=3,
-            request_budget=3,
+            employer_budget=2,
+            request_budget=2,
             resolver=resolver,
         )
-        self.assertEqual(calls, ["fortune", "other"])
+        self.assertEqual(calls, ["benchmark", "fortune"])
         ats_row = next(row for row in updated["employers"] if row["id"] == "ats")
         self.assertEqual(ats_row["careers_resolution"]["status"], "provider_resolved")
         self.assertEqual(summary["fast_path_provider_resolved"], 1)

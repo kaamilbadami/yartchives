@@ -126,6 +126,25 @@ class CoverageGapCandidatesTests(unittest.TestCase):
         )
         self.assertEqual(candidates[0]["resources"], ["source-registry"])
 
+    def test_unknown_provider_gap_splits_by_domain_hint_presence(self):
+        with_domain = [self.employer(i, "unknown") for i in range(1, 11)]
+        no_domain = [self.employer(i, None) for i in range(11, 21)]
+        universe = {
+            "employers": with_domain + no_domain
+        }
+
+        candidates = build_gap_candidates(universe)
+        ids = [candidate["id"] for candidate in candidates]
+
+        self.assertEqual(len(candidates), 2)
+        self.assertIn("source-registry:unknown-provider-resolution", ids)
+        self.assertIn("source-registry:no-domain-discovery", ids)
+
+        unknown_candidate = next(c for c in candidates if c["id"] == "source-registry:unknown-provider-resolution")
+        no_domain_candidate = next(c for c in candidates if c["id"] == "source-registry:no-domain-discovery")
+
+        self.assertEqual(unknown_candidate["affected_employers"], 10)
+        self.assertEqual(no_domain_candidate["affected_employers"], 10)
 
 if __name__ == "__main__":
     unittest.main()
