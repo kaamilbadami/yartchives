@@ -90,18 +90,21 @@ class CoverageGapCandidatesTests(unittest.TestCase):
         )
         self.assertEqual(candidates[0]["affected_employers"], 1)
 
-    def test_includes_cs_benchmark_even_when_fortune_500_exists(self):
+    def test_includes_cs_and_finance_benchmarks_even_when_fortune_500_exists(self):
         fortune = self.employer(1, "workday")
         cs = self.employer(2, "greenhouse")
         cs["seed_sets"] = ["cs-benchmark"]
+        finance = self.employer(3, "oracle")
+        finance["seed_sets"] = ["finance-benchmark"]
 
-        candidates = build_gap_candidates({"employers": [fortune, cs]})
+        candidates = build_gap_candidates({"employers": [fortune, cs, finance]})
 
         self.assertEqual(
             {candidate["id"] for candidate in candidates},
             {
                 "ats-workday:provider-resolution",
                 "ats-greenhouse:provider-resolution",
+                "ats-oracle:provider-resolution",
             },
         )
 
