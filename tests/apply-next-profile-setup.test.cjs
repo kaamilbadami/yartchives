@@ -339,6 +339,19 @@ assert.ok(combinedProfile.preferredProfiles.includes("engineering"));
     }
   );
   assert.equal(patch.studentStage, "Sophomore");
+  assert.equal(
+    Setup.appendIntentStarter("", "I prefer Maryland or DC"),
+    "I prefer Maryland or DC"
+  );
+  assert.equal(
+    Setup.appendIntentStarter("I’m a CS sophomore looking for Summer 2027", "I prefer Maryland or DC"),
+    "I’m a CS sophomore looking for Summer 2027. I prefer Maryland or DC"
+  );
+  assert.equal(
+    Setup.appendIntentStarter("I’m open to remote roles.", "I’m open to remote roles"),
+    "I’m open to remote roles.",
+    "starter chips should not duplicate an already-present idea"
+  );
   const missing = Setup.quickIntentQuestions({
     targetTerm: "Summer 2027",
     studentStage: "Sophomore",
@@ -443,7 +456,12 @@ assert.ok(combinedProfile.preferredProfiles.includes("engineering"));
 
   const source = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.js"), "utf8");
   assert.match(source, /Raw resume text stays in your browser/i);
-  assert.match(source, /Tell Yartchives what you want/);
+  assert.match(source, /Tell Yartchives what you’re looking for/);
+  assert.match(source, /major, student year, target summer, location, experience, and the kinds of roles you want/);
+  assert.match(source, /Not sure what to say\? Add:/);
+  assert.match(source, /Use quick setup instead/);
+  assert.match(source, /Find my matches/);
+  assert.match(source, /appendIntentStarter/);
   assert.match(source, /Here’s what Yartchives understood/);
   assert.match(source, /Apply these details/);
   assert.match(source, /A few important details are still missing/);
@@ -483,6 +501,9 @@ assert.ok(combinedProfile.preferredProfiles.includes("engineering"));
   assert.match(setupCss, /display: none !important;/);
   assert.match(setupCss, /\.apply-next-quick-choice/);
   assert.match(setupCss, /\.apply-next-profile-advanced/);
+  assert.match(setupCss, /\.apply-next-intent-starters/);
+  assert.match(setupCss, /\.apply-next-intent-starter/);
+  assert.match(setupCss, /\.apply-next-intent-actions/);
 
   const quality = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "quality.yml"), "utf8");
   const qualityRunner = fs.readFileSync(path.join(__dirname, "..", "scripts", "run_quality_checks.sh"), "utf8");
