@@ -20,16 +20,18 @@ from provider_fingerprint import fingerprint_provider  # noqa: E402
 
 SCHEMA_VERSION = 1
 READINESS_ORDER = {"ready": 0, "needs_tenant_identity": 1, "no_domain_hint": 2}
-PRIORITY_SEEDS = ("fortune-500-2026", "state-of-ats-2026-verified-hosts")
+PRIORITY_SEEDS = ("cs-benchmark", "finance-benchmark", "fortune-500-2026", "state-of-ats-2026-verified-hosts")
 
 
 def resolution_priority(seed_sets: list[str] | tuple[str, ...] | set[str]) -> tuple[int, str]:
     seeds = set(seed_sets or [])
+    if any("benchmark" in seed.lower() for seed in seeds):
+        return 0, "benchmark"
     if "fortune-500-2026" in seeds:
-        return 0, "fortune-500"
+        return 1, "fortune-500"
     if "state-of-ats-2026-verified-hosts" in seeds:
-        return 1, "verified-ats"
-    return 2, "other"
+        return 2, "verified-ats"
+    return 3, "other"
 
 
 

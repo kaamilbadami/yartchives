@@ -90,10 +90,11 @@ class EmployerResolutionQueueTests(unittest.TestCase):
             "no_domain_hint": 1,
         })
 
-    def test_ready_priority_is_fortune_then_verified_ats_then_other(self):
+    def test_ready_priority_is_benchmark_then_fortune_then_verified_ats_then_other(self):
         universe = self.universe()
+        universe["seed_sets"].append({"key": "other", "kind": "other"})
         universe["employers"] = [
-            self.employer("other", "Other", {"benchmark-a": {
+            self.employer("other", "Other", {"other": {
                 "domain_hints": ["other.example"],
                 "evidence_count": 100,
                 "authoritative_evidence_count": 100,
@@ -110,13 +111,17 @@ class EmployerResolutionQueueTests(unittest.TestCase):
                 "fortune-500-2026": {"domain_hints": ["both.wd1.myworkdayjobs.com"]},
                 "state-of-ats-2026-verified-hosts": {"domain_hints": ["both.wd1.myworkdayjobs.com"]},
             }),
+            self.employer("benchmark", "Benchmark", {"benchmark-a": {
+                "domain_hints": ["benchmark.wd1.myworkdayjobs.com"],
+                "evidence_count": 1,
+            }}),
         ]
 
         rows = mod.build_queue(universe, ready_only=True)["employers"]
-        self.assertEqual([row["id"] for row in rows], ["fortune", "both", "ats", "other"])
+        self.assertEqual([row["id"] for row in rows], ["benchmark", "fortune", "both", "ats", "other"])
         self.assertEqual(
             [row["resolution_priority_label"] for row in rows],
-            ["fortune-500", "fortune-500", "verified-ats", "other"],
+            ["benchmark", "fortune-500", "fortune-500", "verified-ats", "other"]
         )
 
     def test_tenant_path_makes_shared_provider_hint_ready(self):
@@ -156,8 +161,9 @@ class EmployerResolutionQueueTests(unittest.TestCase):
 
     def test_ready_priority_with_myworkdaysite_domain(self):
         universe = self.universe()
+        universe["seed_sets"].append({"key": "other", "kind": "other"})
         universe["employers"] = [
-            self.employer("other", "Other", {"benchmark-a": {
+            self.employer("other", "Other", {"other": {
                 "domain_hints": ["other.example"],
                 "evidence_count": 100,
                 "authoritative_evidence_count": 100,
