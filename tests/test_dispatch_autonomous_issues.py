@@ -1853,7 +1853,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
             f"<!-- jules-clarification-handled: ask1:{mod.clarification_key(question)} -->",
             gh_calls[0][-1],
         )
-        self.assertIn("jules-needs-feedback", mod.label_names(issues[0]))
+        self.assertNotIn("jules-needs-feedback", mod.label_names(issues[0]))
 
     def test_forwarded_feedback_comment_is_not_sent_twice(self):
         issues = [
@@ -1983,6 +1983,58 @@ class AutonomousDispatcherTests(unittest.TestCase):
 
         self.assertEqual(gh_calls, [])
         self.assertIn("jules-needs-feedback", mod.label_names(issues[0]))
+
+    def test_already_handled_clarification_clears_stale_feedback_labels(self):
+        issues = [
+            issue(
+                151,
+                "freshness",
+                body=task_body("P1", "apply-next-ui"),
+                labels=(
+                    "jules",
+                    "jules-session",
+                    "jules-needs-feedback",
+                    "needs-product-decision",
+                    "agent-ready",
+                ),
+            )
+        ]
+        gh_calls = []
+        question = "Can I update the generated fixture after the parser fix?"
+        question_key = mod.clarification_key(question)
+        comments = [
+            {"body": "<!-- jules-session-id: ask1 -->"},
+            {
+                "created_at": "2026-09-18T22:02:00Z",
+                "body": (
+                    f"<!-- jules-auto-feedback: ask1:{question_key} -->\n"
+                    f"<!-- jules-clarification-handled: ask1:{question_key} -->"
+                ),
+            },
+        ]
+
+        mod.reconcile_jules_sessions(
+            issues,
+            repo="kaamilbadami/yartchives",
+            api_key="secret",
+            load_comments=lambda number: comments,
+            get_session=lambda api_key, path: {
+                "id": "ask1",
+                "state": "AWAITING_USER_FEEDBACK",
+            },
+            load_activities=lambda session_id: [
+                {"agentMessaged": {"agentMessage": question}}
+            ],
+            run_gh=lambda *args: gh_calls.append(args),
+            now_fn=lambda: mod.parse_jules_time("2026-09-18T22:03:00Z"),
+        )
+
+        labels = mod.label_names(issues[0])
+        self.assertIn("jules-session", labels)
+        self.assertNotIn("jules-needs-feedback", labels)
+        self.assertNotIn("needs-product-decision", labels)
+        self.assertEqual(len(gh_calls), 1)
+        self.assertIn("--remove-label", gh_calls[0])
 
     def test_feedback_waiting_session_becomes_active_again_after_user_reply(self):
         issues = [
@@ -3724,6 +3776,38 @@ class AutonomousDispatcherTests(unittest.TestCase):
             created = mod._provider_coverage_gap("owner/repo", issues, frozenset())
 
         self.assertFalse(created)
+
+    def test_coverage_gap_provider_deduplicates_semantic_unknown_provider_alias(self):
+        existing = issue(
+            891,
+            "Automate coverage gap: Unsupported ATS / Unknown provider family",
+            body=(
+                "<!-- coverage-gap: unknown-provider -->\n"
+                + task_body(
+                    "P2",
+                    "coverage-automation",
+                    resources="coverage-gap:unknown-provider",
+                )
+            ),
+        )
+        candidates = [
+            {
+                "id": "source-registry:unknown-provider-resolution",
+                "title": "Reduce unresolved provider discovery gaps",
+                "family": "unknown",
+                "resources": ["source-registry"],
+                "affected_employers": 348,
+                "evidence": "348 benchmark employers remain unresolved.",
+            }
+        ]
+        calls = []
+
+        with mock.patch.object(mod, "load_coverage_gap_candidates", return_value=candidates):
+            with mock.patch.object(mod, "gh_run", side_effect=lambda *args: calls.append(args)):
+                created = mod._provider_coverage_gap("owner/repo", [existing], frozenset())
+
+        self.assertFalse(created)
+        self.assertEqual(calls, [])
 
     def test_coverage_gap_provider_deduplicates_open_gap_identity(self):
         existing = issue(
