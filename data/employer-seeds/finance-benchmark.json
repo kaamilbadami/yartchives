@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "source": {
+    "key": "finance-benchmark",
+    "kind": "coverage_benchmark",
+    "name": "Bel Air Finance Sophomore Benchmark",
+    "status": "active"
+  },
+  "employers": [
+    {
+      "name": "McCormick"
+    },
+    {
+      "name": "Harford Mutual",
+      "aliases": ["Harford Mutual Insurance Group"]
+    },
+    {
+      "name": "Allan Myers"
+    },
+    {
+      "name": "Constellation Energy"
+    },
+    {
+      "name": "Under Armour"
+    },
+    {
+      "name": "Liberty Mutual Insurance Group"
+    }
+  ]
+}
