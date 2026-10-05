@@ -15,10 +15,7 @@ from urllib import parse, request
 
 PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
 MAX_ACTIVE = 15
-EVIDENCE_BACKLOG_TARGET = 4
-MAX_EVIDENCE_GENERATED_PER_CYCLE = 3
-COVERAGE_WIP_TARGET = 4
-COVERAGE_WIP_MAX = 6
+MAX_EVIDENCE_GENERATED_PER_CYCLE = MAX_ACTIVE
 COVERAGE_AREAS = frozenset({
     "coverage",
     "coverage-benchmark",
@@ -2679,11 +2676,7 @@ def _provider_coverage_gap(
     issues: list[dict[str, Any]],
     occupied_locks: frozenset[str],
 ) -> bool:
-    """Generate one highest-value independent coverage task when WIP has room."""
-    in_flight = coverage_work_in_flight(issues)
-    if in_flight >= COVERAGE_WIP_TARGET or in_flight >= COVERAGE_WIP_MAX:
-        return False
-
+    """Generate one highest-value independent coverage task for a free resource lane."""
     existing_bodies = [str(issue.get("body") or "") for issue in issues]
     existing_gap_ids = frozenset(
         gap_id
@@ -2830,15 +2823,15 @@ def generate_evidence_backed_tasks(
     providers: list[EvidenceProvider] | None = None,
     *,
     reload_issues: Callable[[], list[dict[str, Any]]] | None = None,
-    backlog_target: int = EVIDENCE_BACKLOG_TARGET,
     per_cycle_cap: int = MAX_EVIDENCE_GENERATED_PER_CYCLE,
 ) -> tuple[int, str]:
-    """Replenish a small evidence-backed queue without manufacturing busywork.
+    """Fill spare Jules capacity with bounded evidence-backed work.
 
-    Existing dispatchable work is always selected first. Generation only fills the
-    remaining target, never exceeds spare Jules capacity, and is bounded per cycle.
-    Production reloads issue state after each creation so dedupe, WIP, and locks
-    remain authoritative before another candidate is generated.
+    Existing dispatchable work is always selected first. Generation never exceeds
+    spare Jules capacity or the per-cycle safety cap. Production reloads issue state
+    after each creation so dedupe and resource locks remain authoritative before
+    another candidate is generated. Independent ATS-family gaps may therefore fill
+    independent resource lanes concurrently without a blanket coverage WIP cap.
     """
     if providers is None:
         providers = EVIDENCE_PROVIDERS
@@ -2867,13 +2860,10 @@ def generate_evidence_backed_tasks(
 
     raw_slots = max(0, max_active - len(active_tasks) - len(feedback_tasks))
     unfilled = max(0, raw_slots - len(selected))
-    target_shortfall = max(0, backlog_target - len(selected))
-    generation_budget = min(unfilled, target_shortfall, max(0, per_cycle_cap))
+    generation_budget = min(unfilled, max(0, per_cycle_cap))
 
     if unfilled <= 0:
         return 0, "no spare capacity"
-    if target_shortfall <= 0:
-        return 0, "existing eligible backlog already meets target"
     if generation_budget <= 0:
         return 0, "generation cap is zero"
 
