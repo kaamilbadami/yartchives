@@ -21,7 +21,7 @@ These instructions apply to automated coding agents working in this repository.
 - Prefer scalable source architecture over one-off employer exceptions.
 - Broad aggregators are the discovery backbone; direct employer and ATS sources are targeted authoritative gap-fillers.
 - Prefer generic ATS/provider-family improvements over adding employers one by one.
-- Do not use LinkedIn or Handshake as production scraping sources. They may be used only as discovery or audit surfaces.
+- Do not use LinkedIn, Handshake, or Indeed as production scraping sources. They may be used only as discovery or audit surfaces. When Indeed reveals a missed opportunity, trace it to the authoritative employer/ATS posting and fix the underlying generic coverage gap rather than ingesting Indeed directly.
 
 ## Feed and evidence contracts
 

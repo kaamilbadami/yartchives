@@ -11,7 +11,7 @@ Treat these as blocking when supported by the diff or repository context:
 - Feed, link, eligibility, identity, or evidence contracts are weakened to accommodate bad data.
 - Workday employer posting pages are mislabeled as verified direct application links, or a verified `/apply` destination is lost while retaining `link_kind: direct`.
 - Frozen benchmark membership or expected benchmark semantics are changed without the task explicitly requiring a benchmark change.
-- LinkedIn or Handshake is introduced as a production scraping source.
+- LinkedIn, Handshake, or Indeed is introduced as a production scraping source, or an Indeed-derived miss is "fixed" by depending on Indeed instead of tracing it to an authoritative employer/ATS source.
 - Secrets, credentials, or sensitive tokens are added to tracked files.
 - Generated data is edited solely to satisfy a test instead of fixing the source logic or brittle assertion.
 - The PR introduces broad employer-specific special cases where a provider-family or generic source fix is appropriate.
