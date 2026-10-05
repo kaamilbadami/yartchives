@@ -16,8 +16,7 @@ except ModuleNotFoundError:
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_UNIVERSE = ROOT / "employer_universe.json"
-BENCHMARK_SEED = "fortune-500-2026"
-MIN_ATS_GAP = 5
+MIN_ATS_GAP = 1
 MIN_UNKNOWN_GAP = 10
 
 ATS_RESOURCES = {
@@ -48,7 +47,10 @@ def _benchmark_employers(universe: dict[str, Any]) -> list[dict[str, Any]]:
     seeded = [
         employer
         for employer in employers
-        if BENCHMARK_SEED in (employer.get("seed_sets") or [])
+        if any(
+            "benchmark" in seed.lower() or "fortune" in seed.lower()
+            for seed in (employer.get("seed_sets") or [])
+        )
     ]
     return seeded or list(employers)
 
