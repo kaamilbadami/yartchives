@@ -623,6 +623,79 @@
     return lines;
   }
 
+  function quickIntentQuestions(patch = {}) {
+    const questions = [];
+    if (!patch.priorInternship) {
+      questions.push({
+        key: "priorInternship",
+        label: "Prior internship?",
+        options: [
+          { value: "none", label: "None" },
+          { value: "has_prior", label: "1+" },
+        ],
+      });
+    }
+    if (!patch.workAuthorization) {
+      questions.push({
+        key: "workAuthorization",
+        label: "U.S. work authorization?",
+        options: [
+          { value: "Authorized to work in the U.S. without sponsorship", label: "Authorized" },
+          { value: "Needs visa sponsorship", label: "Need sponsorship" },
+        ],
+      });
+    }
+    if (typeof patch.remoteRelevant !== "boolean") {
+      questions.push({
+        key: "remoteRelevant",
+        label: "Remote roles?",
+        options: [
+          { value: true, label: "Yes" },
+          { value: false, label: "No" },
+        ],
+      });
+    }
+    if (typeof patch.relocationAllowed !== "boolean") {
+      questions.push({
+        key: "relocationAllowed",
+        label: "Relocate for a strong role?",
+        options: [
+          { value: true, label: "Yes" },
+          { value: false, label: "No" },
+        ],
+      });
+    }
+    if (!Array.isArray(patch.roleFamilyIds) || !patch.roleFamilyIds.length) {
+      questions.push({
+        key: "roleFamilyIds",
+        label: "Role interests",
+        multi: true,
+        options: [
+          { value: "software", label: "Software" },
+          { value: "analytics", label: "Data / analytics" },
+          { value: "cybersecurity", label: "Security" },
+          { value: "testing-systems", label: "Systems / testing" },
+          { value: "business-operations", label: "Business / operations" },
+          { value: "finance-broad", label: "Finance" },
+        ],
+      });
+    }
+    return questions;
+  }
+
+  function applyQuickIntentChoice(patch, key, value, { multi = false } = {}) {
+    const next = { ...(patch || {}) };
+    if (multi) {
+      const current = Array.isArray(next[key]) ? [...next[key]] : [];
+      next[key] = current.includes(value)
+        ? current.filter(item => item !== value)
+        : [...current, value];
+    } else {
+      next[key] = value;
+    }
+    return next;
+  }
+
   function applyHints(form, hints) {
     const setIf = (name, value) => {
       const node = form.querySelector(`[name="${name}"]`);
@@ -718,6 +791,14 @@
     resumeCard.append(field("Resume file", file), field("Or paste resume text", paste), parsePaste, status);
     form.append(resumeCard);
 
+    const advancedDetails = element("details", "apply-next-profile-advanced");
+    advancedDetails.open = !aiProfileEndpoint();
+    const advancedSummary = element("summary", "apply-next-profile-advanced-summary", "Edit all details");
+    const advancedIntro = element("p", "muted", "Use this for complete control over eligibility, skills, role families, and location scoring. It also works when AI setup is unavailable.");
+    const advancedBody = element("div", "apply-next-profile-advanced-body");
+    advancedDetails.append(advancedSummary, advancedIntro, advancedBody);
+    form.append(advancedDetails);
+
     const basics = element("section", "apply-next-profile-section");
     basics.append(element("h3", "", "3. Review the basics"));
     const basicsGrid = element("div", "apply-next-profile-grid");
@@ -735,7 +816,7 @@
       field("Major", input("major", values.major))
     );
     basics.append(basicsGrid, degree);
-    form.append(basics);
+    advancedBody.append(basics);
 
     const eligibility = element("section", "apply-next-profile-section");
     eligibility.append(element("h3", "", "4. Confirm eligibility facts"));
@@ -752,7 +833,7 @@
       ], values.priorInternship))
     );
     eligibility.append(eligibilityGrid);
-    form.append(eligibility);
+    advancedBody.append(eligibility);
 
     const skills = element("section", "apply-next-profile-section");
     skills.append(element("h3", "", "5. Confirm skills"));
@@ -768,7 +849,7 @@
       field("Leadership evidence (one resume-backed line per entry)", textarea("leadershipEvidence", values.leadershipEvidence, 5))
     );
     skills.append(skillsGrid);
-    form.append(skills);
+    advancedBody.append(skills);
 
     const strategy = element("section", "apply-next-profile-section");
     strategy.append(element("h3", "", "6. Choose role interests"));
@@ -848,7 +929,7 @@
       typeWrap.append(label);
     }
     strategy.append(element("p", "apply-next-profile-subhead", "Career areas"), careerWrap, roleWrap, element("p", "apply-next-profile-subhead", "Opportunity types"), typeWrap);
-    form.append(strategy);
+    advancedBody.append(strategy);
 
     const location = element("section", "apply-next-profile-section");
     location.append(element("h3", "", "7. Location preferences"));
@@ -870,7 +951,7 @@
       locationChecks.append(label);
     }
     location.append(locationChecks);
-    form.append(location);
+    advancedBody.append(location);
 
     const error = element("p", "error-box hidden");
     const actions = element("div", "apply-next-profile-actions");
@@ -920,20 +1001,60 @@
           return;
         }
         pendingIntentPatch = patch;
-        intentStatus.textContent = "Review what Yartchives understood before applying it.";
-        confirmation.append(element("h4", "", "Here’s what Yartchives understood"));
-        const list = element("ul", "apply-next-intent-summary");
-        for (const line of lines) list.append(element("li", "", line));
-        const apply = element("button", "secondary-btn", "Apply these details");
-        apply.type = "button";
-        apply.addEventListener("click", () => {
-          if (!pendingIntentPatch) return;
-          applyIntentPatch(form, pendingIntentPatch);
-          intentStatus.textContent = "Applied to the form below. Review or change anything before saving your profile.";
-          confirmation.classList.add("hidden");
-        });
-        confirmation.append(list, apply);
-        confirmation.classList.remove("hidden");
+        intentStatus.textContent = "Review what Yartchives understood and fill any important gaps.";
+
+        const renderConfirmation = () => {
+          confirmation.innerHTML = "";
+          confirmation.append(element("h4", "", "Here’s what Yartchives understood"));
+          const list = element("ul", "apply-next-intent-summary");
+          for (const line of summarizeIntentPatch(pendingIntentPatch)) list.append(element("li", "", line));
+          confirmation.append(list);
+
+          const questions = quickIntentQuestions(pendingIntentPatch);
+          if (questions.length) {
+            const quick = element("div", "apply-next-quick-questions");
+            quick.append(element("p", "apply-next-profile-subhead", "A few important details are still missing"));
+            for (const question of questions) {
+              const row = element("div", "apply-next-quick-question");
+              row.append(element("span", "apply-next-quick-label", question.label));
+              const choices = element("div", "apply-next-quick-choices");
+              for (const option of question.options) {
+                const choice = element("button", "apply-next-quick-choice", option.label);
+                choice.type = "button";
+                const selected = question.multi
+                  ? (pendingIntentPatch[question.key] || []).includes(option.value)
+                  : pendingIntentPatch[question.key] === option.value;
+                choice.setAttribute("aria-pressed", selected ? "true" : "false");
+                choice.addEventListener("click", () => {
+                  pendingIntentPatch = applyQuickIntentChoice(
+                    pendingIntentPatch,
+                    question.key,
+                    option.value,
+                    { multi: Boolean(question.multi) }
+                  );
+                  renderConfirmation();
+                });
+                choices.append(choice);
+              }
+              row.append(choices);
+              quick.append(row);
+            }
+            confirmation.append(quick);
+          }
+
+          const apply = element("button", "secondary-btn", "Apply these details");
+          apply.type = "button";
+          apply.addEventListener("click", () => {
+            if (!pendingIntentPatch) return;
+            applyIntentPatch(form, pendingIntentPatch);
+            intentStatus.textContent = "Applied. You can save now or open Edit all details for complete control.";
+            confirmation.classList.add("hidden");
+          });
+          confirmation.append(apply);
+          confirmation.classList.remove("hidden");
+        };
+
+        renderConfirmation();
       } catch (err) {
         intentStatus.textContent = err.message || "Conversational setup is unavailable right now.";
       } finally {
@@ -1029,6 +1150,8 @@
     parseIntentWithAi,
     applyIntentPatch,
     summarizeIntentPatch,
+    quickIntentQuestions,
+    applyQuickIntentChoice,
     refreshApplyNextPanel,
     init,
   };

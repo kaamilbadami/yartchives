@@ -339,6 +339,34 @@ assert.ok(combinedProfile.preferredProfiles.includes("engineering"));
     }
   );
   assert.equal(patch.studentStage, "Sophomore");
+  const missing = Setup.quickIntentQuestions({
+    targetTerm: "Summer 2027",
+    studentStage: "Sophomore",
+    major: "Computer Science",
+  });
+  assert.deepEqual(
+    missing.map(item => item.key),
+    ["priorInternship", "workAuthorization", "remoteRelevant", "relocationAllowed", "roleFamilyIds"],
+    "AI onboarding should ask only for high-impact facts that remain unspecified"
+  );
+  assert.equal(
+    Setup.quickIntentQuestions({
+      priorInternship: "none",
+      workAuthorization: "Authorized to work in the U.S. without sponsorship",
+      remoteRelevant: true,
+      relocationAllowed: false,
+      roleFamilyIds: ["software"],
+    }).length,
+    0,
+    "quick questions should disappear once the high-impact facts are known"
+  );
+  const quickPatch = Setup.applyQuickIntentChoice({}, "priorInternship", "none");
+  assert.equal(quickPatch.priorInternship, "none");
+  const rolesOnce = Setup.applyQuickIntentChoice({}, "roleFamilyIds", "software", { multi: true });
+  const rolesTwice = Setup.applyQuickIntentChoice(rolesOnce, "roleFamilyIds", "analytics", { multi: true });
+  assert.deepEqual(rolesTwice.roleFamilyIds, ["software", "analytics"]);
+  const rolesToggled = Setup.applyQuickIntentChoice(rolesTwice, "roleFamilyIds", "software", { multi: true });
+  assert.deepEqual(rolesToggled.roleFamilyIds, ["analytics"]);
   assert.match(Setup.summarizeIntentPatch(patch).join(" "), /Computer Science/);
   assert.match(Setup.summarizeIntentPatch(patch).join(" "), /Software engineering/);
 
@@ -418,6 +446,11 @@ assert.ok(combinedProfile.preferredProfiles.includes("engineering"));
   assert.match(source, /Tell Yartchives what you want/);
   assert.match(source, /Here’s what Yartchives understood/);
   assert.match(source, /Apply these details/);
+  assert.match(source, /A few important details are still missing/);
+  assert.match(source, /Edit all details/);
+  assert.match(source, /quickIntentQuestions/);
+  assert.match(source, /applyQuickIntentChoice/);
+  assert.match(source, /advancedDetails\.open = !aiProfileEndpoint\(\)/, "Manual setup should open the full editor when AI is unavailable");
   assert.match(source, /parseIntentWithAi/);
   assert.match(source, /AI_CLIENT_KEY/);
   assert.match(source, /When are you looking\?/);
@@ -448,6 +481,8 @@ assert.ok(combinedProfile.preferredProfiles.includes("engineering"));
   const setupCss = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.css"), "utf8");
   assert.match(setupCss, /main\.apply-next-profile-mode > :not\(#applyNextPanel\)/, "Focused profile mode should hide the ordinary feed");
   assert.match(setupCss, /display: none !important;/);
+  assert.match(setupCss, /\.apply-next-quick-choice/);
+  assert.match(setupCss, /\.apply-next-profile-advanced/);
 
   const quality = fs.readFileSync(path.join(__dirname, "..", ".github", "workflows", "quality.yml"), "utf8");
   const qualityRunner = fs.readFileSync(path.join(__dirname, "..", "scripts", "run_quality_checks.sh"), "utf8");

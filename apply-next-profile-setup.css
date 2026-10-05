@@ -327,3 +327,69 @@ main.apply-next-profile-mode #applyNextPanel {
   padding-left: 1.2rem;
   font-size: 0.88rem;
 }
+
+
+.apply-next-quick-questions {
+  display: grid;
+  gap: 0.75rem;
+  padding-top: 0.15rem;
+}
+
+.apply-next-quick-question {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.apply-next-quick-label {
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.apply-next-quick-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.apply-next-quick-choice {
+  appearance: none;
+  border: 1px solid var(--line, #d9dde5);
+  border-radius: 999px;
+  padding: 0.42rem 0.7rem;
+  background: var(--panel, #fff);
+  color: inherit;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.apply-next-quick-choice[aria-pressed="true"] {
+  border-color: var(--accent, #315efb);
+  background: color-mix(in srgb, var(--accent, #315efb) 12%, var(--panel, #fff));
+  color: var(--accent, #315efb);
+}
+
+.apply-next-profile-advanced {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border: 1px solid var(--line, #d9dde5);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel, #fff) 96%, var(--line, #d9dde5));
+}
+
+.apply-next-profile-advanced-summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.apply-next-profile-advanced-body {
+  display: grid;
+  gap: 1rem;
+}
+
+.apply-next-profile-advanced:not([open]) > .apply-next-profile-advanced-body,
+.apply-next-profile-advanced:not([open]) > p {
+  display: none;
+}
