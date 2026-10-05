@@ -48,7 +48,7 @@ def _benchmark_employers(universe: dict[str, Any]) -> list[dict[str, Any]]:
     seeded = [
         employer
         for employer in employers
-        if BENCHMARK_SEED in (employer.get("seed_sets") or [])
+        if BENCHMARK_SEEDS & set(employer.get("seed_sets") or [])
     ]
     return seeded or list(employers)
 
