@@ -461,8 +461,13 @@
     }
 
     details.push(...auth.details, ...clearance.details);
+    const experience = experienceBurdenAdjustment(job, profile);
+    details.push(...experience.details);
     const unverifiedPenalty = Math.min(10, auth.penalty + clearance.penalty);
-    const totalPenalty = Math.min(30, skillPenalty + cautiousPenalty + domainPenalty + unverifiedPenalty);
+    const totalPenalty = Math.min(
+      30,
+      skillPenalty + cautiousPenalty + domainPenalty + unverifiedPenalty + experience.penalty
+    );
     const label = totalPenalty >= 16 || skills.unsupported.length >= 2
       ? "Major required gaps"
       : (totalPenalty > 0 ? "Some required gaps" : "Ready on known requirements");
