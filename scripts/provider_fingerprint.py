@@ -23,6 +23,13 @@ PROVIDER_PATTERNS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("avature", ("avature.net", "avature")),
     ("phenom", ("phenompeople.com", "phenom")),
     ("brassring", ("brassring.com",)),
+    ("beamery", ("beamery.com",)),
+    ("jobvite", ("jobvite.com",)),
+    ("paylocity", ("paylocity.com",)),
+    ("breezy", ("breezy.hr",)),
+    ("workable", ("workable.com",)),
+    ("applytojob", ("applytojob.com",)),
+    ("paradox", ("paradox.ai",)),
 )
 
 

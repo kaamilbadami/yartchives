@@ -33,6 +33,13 @@ ATS_RESOURCES = {
     "avature": "ats-avature",
     "phenom": "ats-phenom",
     "brassring": "ats-brassring",
+    "beamery": "ats-beamery",
+    "jobvite": "ats-jobvite",
+    "paylocity": "ats-paylocity",
+    "breezy": "ats-breezy",
+    "workable": "ats-workable",
+    "applytojob": "ats-applytojob",
+    "paradox": "ats-paradox",
 }
 
 
