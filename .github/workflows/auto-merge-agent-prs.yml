@@ -92,6 +92,13 @@ jobs:
 
           changed_paths="$(git diff --name-only "$BEFORE_SHA" "$AFTER_SHA")"
 
+          if printf '%s\n' "$changed_paths" | grep -Eq '^(analytics/|\.github/workflows/deploy-analytics\.yml$)'; then
+            echo "Auto-merge changed analytics backend files; dispatching analytics deploy from resulting main."
+            gh workflow run deploy-analytics.yml --repo "$REPOSITORY" --ref main
+          else
+            echo "Auto-merge changed only analytics-unrelated files; no analytics deploy needed."
+          fi
+
           if printf '%s\n' "$changed_paths" | grep -Eq '^(index\.html|[^/]+\.(js|css)|assets/|data/listings\.json$|data/workday-inspections\.json$|scripts/build_apply_next_inspections\.py$|scripts/build_apply_next_candidates\.py$|scripts/build_geo_index\.py$|\.nojekyll$|\.github/workflows/deploy-pages\.yml$)'; then
             echo "Auto-merge changed deploy-relevant files; dispatching Pages from resulting main."
             gh api --method POST "repos/$REPOSITORY/dispatches" \
