@@ -393,3 +393,57 @@ main.apply-next-profile-mode #applyNextPanel {
 .apply-next-profile-advanced:not([open]) > p {
   display: none;
 }
+
+
+.apply-next-intent-section {
+  padding: 1.15rem;
+}
+
+.apply-next-intent-section textarea[name="naturalIntent"] {
+  min-height: 8rem;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.apply-next-intent-starters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.apply-next-intent-starter-label {
+  width: 100%;
+  color: var(--muted, #6b7280);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.apply-next-intent-starter {
+  appearance: none;
+  border: 1px solid var(--line, #d9dde5);
+  border-radius: 999px;
+  padding: 0.42rem 0.68rem;
+  background: var(--panel, #fff);
+  color: inherit;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.apply-next-intent-starter:hover,
+.apply-next-intent-starter:focus-visible {
+  border-color: var(--accent, #315efb);
+}
+
+.apply-next-intent-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.85rem;
+  align-items: center;
+}
+
+.apply-next-quick-setup-link {
+  font-weight: 750;
+}
