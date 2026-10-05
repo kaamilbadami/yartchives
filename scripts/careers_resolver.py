@@ -257,7 +257,7 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
         slug_candidates.add(first_token)
 
     for hint in hints:
-        if "lever.co" not in hint and "greenhouse.io" not in hint:
+        if "lever.co" not in hint and "greenhouse.io" not in hint and "ashbyhq.com" not in hint:
             token = _domain_token(hint)
             if token:
                 slug_candidates.add(token)
@@ -305,7 +305,9 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
                 except Exception:
                     pass
 
-        if host in {"jobs.ashbyhq.com", "ashbyhq.com"} and parsed.path in {"", "/"}:
+        if host in {"jobs.ashbyhq.com", "ashbyhq.com"}:
+            if parsed.path not in {"", "/"}:
+                slug_candidates.add(parsed.path.strip("/"))
             for slug in slug_candidates:
                 if not slug:
                     continue

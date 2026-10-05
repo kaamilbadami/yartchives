@@ -16320,7 +16320,185 @@
       "domain_hints": [
         "cyvl.ai",
         "jobs.ashbyhq.com"
-      ]
+      ],
+      "careers_url": "https://jobs.ashbyhq.com/cyvl",
+      "careers_platform": "ashby",
+      "provider": {
+        "family": "ashby",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "ashbyhq.com",
+        "host": "jobs.ashbyhq.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "verified_crawler",
+        "resolved_at": "2026-10-05T22:15:31Z",
+        "last_attempt_at": "2026-10-05T22:15:31Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "auto-discovered-tenant",
+            "requested_url": "https://jobs.ashbyhq.com/cyvl",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.ashbyhq.com/cyvl",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.ashbyhq.com/cyvl",
+            "status": 200,
+            "signals": [
+              "ashby provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://cyvl.ai/",
+            "redirect_chain": [
+              {
+                "url": "https://cyvl.ai/",
+                "status": 301
+              },
+              {
+                "url": "https://www.cyvl.ai/",
+                "status": 301
+              },
+              {
+                "url": "https://cyvl.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://cyvl.com/",
+            "status": 200,
+            "signals": [
+              "ashby provider fingerprint",
+              "careers page content"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://cyvl.ai/careers",
+            "redirect_chain": [
+              {
+                "url": "https://cyvl.ai/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.cyvl.ai/careers",
+                "status": 301
+              },
+              {
+                "url": "https://cyvl.com/careers/",
+                "status": 301
+              },
+              {
+                "url": "https://jobs.ashbyhq.com/cyvl",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.ashbyhq.com/cyvl",
+            "status": 200,
+            "signals": [
+              "ashby provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://cyvl.ai/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://cyvl.ai/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.cyvl.ai/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://www.cyvl.ai/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.cyvl.ai/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='careers.cyvl.ai', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='careers.cyvl.ai', port=443): Failed to resolve 'careers.cyvl.ai' ([Errno -2] Name or service not known)\"))"
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.cyvl.ai/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='jobs.cyvl.ai', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='jobs.cyvl.ai', port=443): Failed to resolve 'jobs.cyvl.ai' ([Errno -2] Name or service not known)\"))"
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://jobs.ashbyhq.com/",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.ashbyhq.com/",
+                "status": 404
+              }
+            ],
+            "final_url": "https://jobs.ashbyhq.com/",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.ashbyhq.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.ashbyhq.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.ashbyhq.com/careers",
+            "status": 200,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.ashbyhq.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.ashbyhq.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.ashbyhq.com/jobs",
+            "status": 200,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          }
+        ]
+      }
     },
     {
       "id": "d-r-horton",
@@ -19854,7 +20032,7 @@
     },
     {
       "id": "estee-lauder",
-      "name": "Estée Lauder",
+      "name": "Est\u00e9e Lauder",
       "aliases": [],
       "seed_sets": [
         "fortune-500-2026",
@@ -32829,7 +33007,7 @@
     },
     {
       "id": "mondelez-international",
-      "name": "Mondelēz International",
+      "name": "Mondel\u0113z International",
       "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
@@ -35622,7 +35800,159 @@
       "domain_hints": [
         "jobs.ashbyhq.com",
         "phoebehealth.com"
-      ]
+      ],
+      "careers_url": "https://careers.phoebehealth.com/",
+      "careers_platform": "workday",
+      "provider": {
+        "family": "workday",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "myworkdayjobs.com",
+        "host": "careers.phoebehealth.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "verified_crawler",
+        "resolved_at": "2026-10-05T22:15:34Z",
+        "last_attempt_at": "2026-10-05T22:15:34Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://jobs.ashbyhq.com/",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.ashbyhq.com/",
+                "status": 404
+              }
+            ],
+            "final_url": "https://jobs.ashbyhq.com/",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.ashbyhq.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.ashbyhq.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.ashbyhq.com/careers",
+            "status": 200,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://jobs.ashbyhq.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.ashbyhq.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.ashbyhq.com/jobs",
+            "status": 200,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://phoebehealth.com/",
+            "redirect_chain": [
+              {
+                "url": "https://phoebehealth.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://phoebehealth.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://phoebehealth.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://phoebehealth.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://careers.phoebehealth.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.phoebehealth.com/",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://phoebehealth.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://phoebehealth.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://phoebehealth.com/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.phoebehealth.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.phoebehealth.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.phoebehealth.com/",
+            "status": 200,
+            "signals": [
+              "workday provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.phoebehealth.com/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='jobs.phoebehealth.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='jobs.phoebehealth.com', port=443): Failed to resolve 'jobs.phoebehealth.com' ([Errno -2] Name or service not known)\"))"
+          }
+        ]
+      }
     },
     {
       "id": "pinterest",
