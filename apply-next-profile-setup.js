@@ -623,6 +623,16 @@
     return lines;
   }
 
+  function appendIntentStarter(current, starter) {
+    const base = normalize(current);
+    const addition = normalize(starter);
+    if (!addition) return base;
+    if (!base) return addition;
+    if (base.toLowerCase().includes(addition.toLowerCase())) return base;
+    const separator = /[.!?]$/.test(base) ? " " : ". ";
+    return `${base}${separator}${addition}`;
+  }
+
   function quickIntentQuestions(patch = {}) {
     const questions = [];
     if (!patch.priorInternship) {
@@ -764,18 +774,42 @@
 
     const intentCard = element("section", "apply-next-profile-section apply-next-intent-section");
     intentCard.append(
-      element("p", "eyebrow", "optional AI-assisted setup"),
-      element("h3", "", "Tell Yartchives what you want"),
-      element("p", "muted", "Write naturally. Yartchives will suggest structured profile changes for you to review; it will not save them or change ranking rules on its own.")
+      element("p", "eyebrow", "recommended setup"),
+      element("h3", "", "Tell Yartchives what you’re looking for"),
+      element("p", "muted", "You can mention your major, student year, target summer, location, experience, and the kinds of roles you want. Write normally—no special prompt format needed.")
     );
-    const intentText = textarea("naturalIntent", "", 4);
-    intentText.placeholder = "Example: I’m a sophomore finance major looking for Summer 2027. I prefer Maryland or DC, have no prior internship, and I’d relocate for a really strong role.";
-    const understand = element("button", "primary-btn", "Understand this");
+    const intentText = textarea("naturalIntent", "", 5);
+    intentText.placeholder = "I’m a sophomore CS major looking for Summer 2027. I prefer Maryland/DC, I’m open to remote, and I don’t have prior internship experience.";
+
+    const starterWrap = element("div", "apply-next-intent-starters");
+    starterWrap.append(element("span", "apply-next-intent-starter-label", "Not sure what to say? Add:"));
+    for (const starter of [
+      "I’m a CS sophomore looking for Summer 2027",
+      "I have no prior internship experience",
+      "I prefer Maryland or DC",
+      "I’m open to remote roles",
+      "I’m interested in software and data",
+      "I’d relocate for a really strong opportunity",
+    ]) {
+      const chip = element("button", "apply-next-intent-starter", starter);
+      chip.type = "button";
+      chip.addEventListener("click", () => {
+        intentText.value = appendIntentStarter(intentText.value, starter);
+        intentText.focus();
+      });
+      starterWrap.append(chip);
+    }
+
+    const intentActions = element("div", "apply-next-intent-actions");
+    const understand = element("button", "primary-btn", "Find my matches");
     understand.type = "button";
-    const intentStatus = element("p", "apply-next-profile-status muted", aiProfileEndpoint() ? "Nothing interpreted yet." : "AI setup is unavailable; use the detailed fields below.");
+    const quickSetup = element("button", "text-btn apply-next-quick-setup-link", "Use quick setup instead");
+    quickSetup.type = "button";
+    const intentStatus = element("p", "apply-next-profile-status muted", aiProfileEndpoint() ? "Yartchives will turn this into profile details for you to review." : "AI setup is unavailable; use quick setup or Edit all details.");
     const confirmation = element("div", "apply-next-intent-confirmation hidden");
     let pendingIntentPatch = null;
-    intentCard.append(field("What are you looking for?", intentText), understand, intentStatus, confirmation);
+    intentActions.append(understand, quickSetup);
+    intentCard.append(field("What are you looking for?", intentText), starterWrap, intentActions, intentStatus, confirmation);
     form.append(intentCard);
 
     const resumeCard = element("section", "apply-next-profile-section");
@@ -798,6 +832,12 @@
     const advancedBody = element("div", "apply-next-profile-advanced-body");
     advancedDetails.append(advancedSummary, advancedIntro, advancedBody);
     form.append(advancedDetails);
+
+    quickSetup.addEventListener("click", () => {
+      advancedDetails.open = true;
+      advancedDetails.scrollIntoView?.({ behavior: "smooth", block: "start" });
+      advancedSummary.focus?.();
+    });
 
     const basics = element("section", "apply-next-profile-section");
     basics.append(element("h3", "", "3. Review the basics"));
@@ -1150,6 +1190,7 @@
     parseIntentWithAi,
     applyIntentPatch,
     summarizeIntentPatch,
+    appendIntentStarter,
     quickIntentQuestions,
     applyQuickIntentChoice,
     refreshApplyNextPanel,
