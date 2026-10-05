@@ -23,4 +23,11 @@ the workflow finds or creates the `yartchives-analytics` D1 database, applies mi
 
 The Pages workflow consumes the newest successful endpoint artifact and injects it into the frontend automatically. If no backend artifact exists, Pages deploys with analytics disabled.
 
-The Cloudflare API token should be scoped to the account and only the permissions needed for Workers and D1 deployment. Never commit credentials.
+The Cloudflare API token should be scoped to the Yartchives account. The current workflow needs:
+- Account → Workers Scripts → Edit
+- Account → D1 → Edit
+- Account → Account Settings → Read
+- User → User Details → Read
+- User → Memberships → Read
+
+No zone permission is required for the workers.dev deployment. Never commit credentials.
