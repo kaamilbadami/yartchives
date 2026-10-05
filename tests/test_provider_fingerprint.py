@@ -24,6 +24,13 @@ class ProviderFingerprintTests(unittest.TestCase):
             "https://acme.eightfold.ai/careers": "eightfold",
             "https://acme.avature.net/careers": "avature",
             "https://sjobs.brassring.com/TGnewUI/Search/Home/Home": "brassring",
+            "https://acme.beamery.com/jobs": "beamery",
+            "https://jobs.jobvite.com/acme": "jobvite",
+            "https://recruiting.paylocity.com/acme": "paylocity",
+            "https://acme.breezy.hr/": "breezy",
+            "https://apply.workable.com/acme/": "workable",
+            "https://acme.applytojob.com/apply": "applytojob",
+            "https://acme.paradox.ai/login": "paradox",
         }
         for url, expected in cases.items():
             with self.subTest(url=url):
