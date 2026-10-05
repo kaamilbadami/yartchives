@@ -263,8 +263,8 @@ assert.match(
 );
 assert.match(
   workflow,
-  /Hydrate latest runtime artifacts[\s\S]*?id:\s*hydrate[\s\S]*?--defer-stale-feed-if-workflow-active update-feed\.yml/,
-  "Pages should defer stale-feed deploys while the feed producer is already active"
+  /Hydrate latest runtime artifacts[\s\S]*?id:\s*hydrate[\s\S]*?--defer-stale-feed-if-workflow-active update-feed-fast\.yml/,
+  "Pages should defer stale-feed deploys while the bounded freshness producer is already active"
 );
 assert.match(
   workflow,
