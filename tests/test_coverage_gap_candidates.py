@@ -112,19 +112,43 @@ class CoverageGapCandidatesTests(unittest.TestCase):
         self.assertEqual(candidates[0]["id"], "ats-workday:provider-resolution")
         self.assertEqual(candidates[0]["affected_employers"], 3) # only the 3 benchmark ones
 
-    def test_unknown_provider_gap_uses_shared_registry_resource(self):
-        universe = {
-            "employers": [self.employer(i, "unknown") for i in range(1, 11)]
-        }
+    def test_unknown_provider_with_domain_uses_employer_resolution_lane(self):
+        universe = {"employers": [self.employer(1, "unknown")]}
 
         candidates = build_gap_candidates(universe)
 
         self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0]["id"], "employer-resolution:unknown-provider")
+        self.assertEqual(candidates[0]["resources"], ["employer-resolution"])
+        self.assertEqual(candidates[0]["affected_employers"], 1)
+
+    def test_no_domain_hint_uses_independent_source_discovery_lane(self):
+        universe = {"employers": [self.employer(1)]}
+
+        candidates = build_gap_candidates(universe)
+
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0]["id"], "source-discovery:no-domain-hint")
+        self.assertEqual(candidates[0]["resources"], ["source-discovery"])
+        self.assertEqual(candidates[0]["affected_employers"], 1)
+
+    def test_unknown_domain_and_no_hint_can_be_measured_independently(self):
+        universe = {
+            "employers": [
+                self.employer(1, "unknown"),
+                self.employer(2),
+            ]
+        }
+
+        candidates = build_gap_candidates(universe)
+
         self.assertEqual(
-            candidates[0]["id"],
-            "source-registry:unknown-provider-resolution",
+            {candidate["id"] for candidate in candidates},
+            {
+                "employer-resolution:unknown-provider",
+                "source-discovery:no-domain-hint",
+            },
         )
-        self.assertEqual(candidates[0]["resources"], ["source-registry"])
 
 
 if __name__ == "__main__":
