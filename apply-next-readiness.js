@@ -109,6 +109,9 @@
   function isDomainRequirementStatement(statement) {
     const text = normalize(statement);
     if (!text) return false;
+    if (/\b(?:no|zero) (?:prior |previous |professional )?experience (?:is )?(?:required|needed|necessary)\b|\bexperience (?:is )?not required\b/.test(text)) {
+      return false;
+    }
     const domainEvidence = /\b(?:experience|knowledge|familiarity|familiar|proficiency|proficient|expertise|coursework|background)\b/.test(text);
     if (!domainEvidence) return false;
     const softSkillOnly = /\b(?:communication|interpersonal|organizational|collaboration|teamwork|time management)\b/.test(text)
