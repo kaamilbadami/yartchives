@@ -114,8 +114,8 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
         self.assertEqual(summary["outcomes"], {"unresolved": 1})
 
     def test_default_lifecycle_budgets_are_scaled_but_bounded(self):
-        self.assertEqual(mod.DEFAULT_EMPLOYER_BUDGET, 20)
-        self.assertEqual(mod.DEFAULT_REQUEST_BUDGET, 120)
+        self.assertEqual(mod.DEFAULT_EMPLOYER_BUDGET, 50)
+        self.assertEqual(mod.DEFAULT_REQUEST_BUDGET, 300)
 
     def test_reuses_fresh_success_without_network_work(self):
         employer = self.employer(
