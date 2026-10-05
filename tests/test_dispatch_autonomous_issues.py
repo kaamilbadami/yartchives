@@ -3388,6 +3388,39 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertTrue(called)
         self.assertEqual(generated[0], 1)
 
+    def test_generate_evidence_backed_tasks_prefers_existing_backlog_target(self):
+        called = False
+
+        def fake_provider(repo, issues, occupied_locks):
+            nonlocal called
+            called = True
+            return True
+
+        selected = [
+            mod.Task(
+                number=number,
+                title=f"existing {number}",
+                body=task_body("P1", f"area-{number}", resources=f"resource-{number}"),
+                priority="P1",
+                area=f"area-{number}",
+                labels=frozenset({"agent-ready", "autonomous-backlog"}),
+                resources=frozenset({f"resource-{number}"}),
+                dependencies=frozenset(),
+            )
+            for number in range(1, 5)
+        ]
+
+        generated = mod.generate_evidence_backed_tasks(
+            "owner/repo",
+            [],
+            selected,
+            max_active=15,
+            providers=[fake_provider],
+            backlog_target=4,
+        )
+
+        self.assertEqual(generated, (0, "existing eligible backlog already meets target"))
+        self.assertFalse(called)
     def test_generate_evidence_backed_tasks_no_spare_capacity(self):
         from scripts.dispatch_autonomous_issues import generate_evidence_backed_tasks, Task
 
@@ -3455,17 +3488,31 @@ class AutonomousDispatcherTests(unittest.TestCase):
             call_count += 1
             return True
 
-        # Even with two providers that succeed, it should cap at 1 generated per cycle
+        snapshots = [
+            [issue(901, "generated 1", body=task_body("P1", "generated", resources="g1"))],
+            [
+                issue(901, "generated 1", body=task_body("P1", "generated", resources="g1")),
+                issue(902, "generated 2", body=task_body("P1", "generated", resources="g2")),
+            ],
+            [
+                issue(901, "generated 1", body=task_body("P1", "generated", resources="g1")),
+                issue(902, "generated 2", body=task_body("P1", "generated", resources="g2")),
+                issue(903, "generated 3", body=task_body("P1", "generated", resources="g3")),
+            ],
+        ]
         generated = generate_evidence_backed_tasks(
             repo="kaamilbadami/yartchives",
             issues=[],
             selected=[],
             max_active=15,
-            providers=[fake_provider, fake_provider]
+            providers=[fake_provider],
+            reload_issues=lambda: snapshots.pop(0),
+            backlog_target=6,
+            per_cycle_cap=3,
         )
 
-        self.assertEqual(generated[0], 1)
-        self.assertEqual(call_count, 1)
+        self.assertEqual(generated[0], 3)
+        self.assertEqual(call_count, 3)
 
     def test_generate_evidence_backed_tasks_passes_occupied_locks(self):
         from scripts.dispatch_autonomous_issues import generate_evidence_backed_tasks, Task
