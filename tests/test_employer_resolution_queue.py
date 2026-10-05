@@ -64,7 +64,7 @@ class EmployerResolutionQueueTests(unittest.TestCase):
         universe["employers"] = [
             self.employer("missing", "Missing", {"benchmark-a": {"evidence_count": 20}}),
             self.employer("shared", "Shared", {"benchmark-a": {
-                "domain_hints": ["job-boards.greenhouse.io"],
+                "domain_hints": ["jobs.smartrecruiters.com"],
                 "evidence_count": 30,
                 "authoritative_evidence_count": 30,
             }}),

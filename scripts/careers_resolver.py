@@ -289,13 +289,17 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
                 except Exception:
                     pass
 
-        if host in {"boards.greenhouse.io", "job-boards.greenhouse.io"} and parsed.path in {"", "/"}:
+        if host in {"boards.greenhouse.io", "job-boards.greenhouse.io", "job-boards.eu.greenhouse.io", "boards.eu.greenhouse.io"} and parsed.path in {"", "/"}:
             for slug in slug_candidates:
                 if not slug:
                     continue
+                if "eu.greenhouse.io" in host:
+                    api_host = "boards-api.eu.greenhouse.io"
+                else:
+                    api_host = "boards-api.greenhouse.io"
                 try:
                     resp = client.get(
-                        f"https://boards-api.greenhouse.io/v1/boards/{slug}/jobs",
+                        f"https://{api_host}/v1/boards/{slug}/jobs",
                         headers={"User-Agent": USER_AGENT},
                         timeout=timeout,
                     )

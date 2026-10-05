@@ -176,7 +176,7 @@ def _unsupported_greenhouse_identity(url: str) -> dict[str, str] | None:
     host = (parsed.hostname or "").lower()
     is_gh = False
     if parsed.scheme.lower() == "https":
-        if host in {"boards.greenhouse.io", "job-boards.greenhouse.io"}:
+        if host in {"boards.greenhouse.io", "job-boards.greenhouse.io", "job-boards.eu.greenhouse.io", "boards.eu.greenhouse.io"}:
             is_gh = True
         elif host.endswith(".greenhouse.io"):
             is_gh = True

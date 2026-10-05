@@ -97,7 +97,7 @@ def _extract_board_token(url: str) -> str | None:
     url = url if "://" in url else "https://" + url
     parsed = urlparse(url)
     host = (parsed.hostname or "").lower()
-    if host in {"boards.greenhouse.io", "job-boards.greenhouse.io"}:
+    if host in {"boards.greenhouse.io", "job-boards.greenhouse.io", "job-boards.eu.greenhouse.io", "boards.eu.greenhouse.io"}:
         parts = [unquote(part) for part in parsed.path.split("/") if part]
         if parts:
             return parts[0].strip().lower()
@@ -131,7 +131,7 @@ def discover_sources(feed: dict[str, Any], universe: dict[str, Any]) -> list[dic
 
         if not board_token:
             for seed_data in employer.get("seed_metadata", {}).values():
-                if seed_data.get("apply_host") in {"job-boards.greenhouse.io", "boards.greenhouse.io"} and seed_data.get("upstream_slug"):
+                if seed_data.get("apply_host") in {"job-boards.greenhouse.io", "boards.greenhouse.io", "job-boards.eu.greenhouse.io", "boards.eu.greenhouse.io"} and seed_data.get("upstream_slug"):
                     board_token = seed_data["upstream_slug"]
                     break
 
@@ -359,7 +359,7 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], universe: dict[str, Any
                 break
         if not board_token:
             for seed_data in employer.get("seed_metadata", {}).values():
-                if seed_data.get("apply_host") in {"job-boards.greenhouse.io", "boards.greenhouse.io"} and seed_data.get("upstream_slug"):
+                if seed_data.get("apply_host") in {"job-boards.greenhouse.io", "boards.greenhouse.io", "job-boards.eu.greenhouse.io", "boards.eu.greenhouse.io"} and seed_data.get("upstream_slug"):
                     board_token = seed_data["upstream_slug"]
                     break
         if not board_token:
