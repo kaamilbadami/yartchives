@@ -512,6 +512,7 @@
 
     const changedFit = JSON.stringify(oldProfile.facts?.supportedSkills) !== JSON.stringify(newProfile.facts?.supportedSkills) ||
       JSON.stringify(oldProfile.facts?.cautiousSkills) !== JSON.stringify(newProfile.facts?.cautiousSkills) ||
+      oldProfile.facts?.studentStage !== newProfile.facts?.studentStage ||
       oldProfile.major !== newProfile.major ||
       oldProfile.degree !== newProfile.degree ||
       oldProfile.graduation !== newProfile.graduation ||

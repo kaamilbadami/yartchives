@@ -350,7 +350,8 @@ def extract_requirements(lines: Iterable[str]) -> dict[str, dict[str, Any]]:
 
         if re.search(
             r"\b(?:current(?:ly)? (?:a )?student|actively enrolled|enrolled (?:in|through|at)|"
-            r"pursuing (?:a |an )?(?:degree|bachelor|master|BS|BA|MS)|returning to school)\b",
+            r"pursuing (?:a |an )?(?:degree|bachelor|master|BS|BA|MS)|returning to school|"
+            r"(?:rising\s+)?(?:freshm(?:an|en)|sophomores?|juniors?|seniors?)|undergraduate|graduate students?)\b",
             statement,
             flags=re.I,
         ):

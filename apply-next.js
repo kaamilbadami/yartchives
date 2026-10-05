@@ -88,6 +88,117 @@
     return [...new Set((String(statement || "").match(/\b20\d{2}\b/g) || []).map(Number))].sort();
   }
 
+  const STUDENT_STAGES = ["freshman", "sophomore", "junior", "senior", "graduate"];
+
+  function normalizeStudentStage(value) {
+    const text = normalize(value);
+    if (!text || text === "auto" || text === "derive from graduation") return null;
+    const match = STUDENT_STAGES.find(stage => text.includes(stage));
+    return match || null;
+  }
+
+  function profileStudentStage(profile, now = new Date()) {
+    const explicit = normalizeStudentStage(
+      profile?.facts?.studentStage || profile?.studentStage
+    );
+    if (explicit) return explicit;
+
+    const gradYear = profileGraduationYear(profile);
+    const current = new Date(now);
+    if (!gradYear || !Number.isFinite(current.getTime())) return null;
+    const academicYear = current.getMonth() >= 6
+      ? current.getFullYear()
+      : current.getFullYear() - 1;
+    const yearsToGraduation = gradYear - academicYear;
+    if (yearsToGraduation >= 4) return "freshman";
+    if (yearsToGraduation === 3) return "sophomore";
+    if (yearsToGraduation === 2) return "junior";
+    if (yearsToGraduation === 1) return "senior";
+    return "graduate";
+  }
+
+  function priorStudentStage(stage) {
+    const index = STUDENT_STAGES.indexOf(stage);
+    return index > 0 ? STUDENT_STAGES[index - 1] : null;
+  }
+
+  function statementStudentStages(statement) {
+    const text = normalize(statement);
+    const terms = {
+      freshman: "freshm(?:an|en)",
+      sophomore: "sophomores?",
+      junior: "juniors?",
+      senior: "seniors?",
+      graduate: "graduates?",
+    };
+    const stages = new Set(
+      STUDENT_STAGES.filter(stage => new RegExp("\\b" + terms[stage] + "\\b").test(text))
+    );
+    const rising = [];
+    for (const stage of ["sophomore", "junior", "senior"]) {
+      if (new RegExp("\\brising\\s+" + terms[stage] + "\\b").test(text)) {
+        rising.push(stage);
+      }
+    }
+    return { stages: [...stages], rising };
+  }
+
+  function studentStageAdjustment(inspection, profile, now = new Date()) {
+    const field = requirementField(inspection, "student_status");
+    if (!field) return { excluded: false, delta: 0, detail: null };
+
+    const required = evidenceFacts(field, "required");
+    const preferred = evidenceFacts(field, "preferred");
+    const facts = required.length ? required : preferred;
+    if (!facts.length) return { excluded: false, delta: 0, detail: null };
+
+    const bucket = required.length ? "required" : "preferred";
+    const stage = profileStudentStage(profile, now);
+    const explicitStageFacts = facts
+      .map(fact => ({ fact, parsed: statementStudentStages(fact?.statement) }))
+      .filter(row => row.parsed.stages.length || row.parsed.rising.length);
+
+    if (!explicitStageFacts.length) {
+      return {
+        excluded: false,
+        delta: 0,
+        detail: `Posting has an explicit ${bucket} student-status condition`,
+      };
+    }
+    if (!stage) {
+      return {
+        excluded: false,
+        delta: 0,
+        detail: `Posting has an explicit ${bucket} student-stage condition; profile stage is unavailable`,
+      };
+    }
+
+    const matches = explicitStageFacts.some(({ parsed }) => {
+      if (parsed.stages.includes(stage) && !parsed.rising.includes(stage)) return true;
+      return parsed.rising.some(targetStage => priorStudentStage(targetStage) === stage);
+    });
+    if (matches) {
+      return {
+        excluded: false,
+        delta: 0,
+        detail: `Profile stage ${stage} fits the posting's explicit ${bucket} student-stage condition`,
+      };
+    }
+
+    if (required.length) {
+      return {
+        excluded: true,
+        delta: 0,
+        detail: `Profile stage ${stage} does not match the posting's explicit required student-stage condition`,
+      };
+    }
+    return {
+      excluded: false,
+      delta: 0,
+      detail: `Profile stage ${stage} does not match the posting's preferred student-stage condition`,
+    };
+  }
+
   function opportunityType(job) {
     if (job?.opportunity_type) return job.opportunity_type;
     const text = normalize(job?.title);
@@ -410,6 +521,12 @@
       score += grad.delta;
       if (grad.detail) parts.push(grad.detail);
 
+      const stage = studentStageAdjustment(inspection, profile, now);
+      if (stage.excluded) {
+        return { score: 0, excluded: true, detail: stage.detail };
+      }
+      if (stage.detail) parts.push(stage.detail);
+
       const auth = authorizationAdjustment(inspection, profile);
       score += auth.delta;
       parts.push(...auth.details);
@@ -690,6 +807,10 @@
     profileCautiousKeywords,
     profileGraduationYear,
     statementYears,
+    normalizeStudentStage,
+    profileStudentStage,
+    statementStudentStages,
+    studentStageAdjustment,
     opportunityType,
     educationLevel,
     ageDays,

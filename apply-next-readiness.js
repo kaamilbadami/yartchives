@@ -109,6 +109,9 @@
   function isDomainRequirementStatement(statement) {
     const text = normalize(statement);
     if (!text) return false;
+    if (/\b(?:no|zero) (?:prior |previous |professional )?experience (?:is )?(?:required|needed|necessary)\b|\bexperience (?:is )?not required\b/.test(text)) {
+      return false;
+    }
     const domainEvidence = /\b(?:experience|knowledge|familiarity|familiar|proficiency|proficient|expertise|coursework|background)\b/.test(text);
     if (!domainEvidence) return false;
     const softSkillOnly = /\b(?:communication|interpersonal|organizational|collaboration|teamwork|time management)\b/.test(text)
@@ -156,7 +159,15 @@
         }
       }
       if (domainRequirement && !candidates.length && fact?.statement) {
-        unverifiedDomainRequirements.add(String(fact.statement).trim());
+        const burden = classifyExperienceBurden(fact.statement);
+        const acceptedAlternative = burden && [
+          "no-experience-required",
+          "coursework-accepted",
+          "leadership-accepted",
+        ].includes(burden.kind);
+        if (!acceptedAlternative) {
+          unverifiedDomainRequirements.add(String(fact.statement).trim());
+        }
       }
     }
 
@@ -265,6 +276,120 @@
     ].filter(Boolean).join(" "));
   }
 
+  function profileEvidence(profile, key) {
+    const value = profile?.facts?.[key] ?? profile?.[key];
+    if (Array.isArray(value)) return value.map(item => String(item || "").trim()).filter(Boolean);
+    if (typeof value === "string") return value.split(/\n+/).map(item => item.trim()).filter(Boolean);
+    return [];
+  }
+
+  function requirementFacts(inspection) {
+    const rows = [];
+    for (const key of ["skills", "other_eligibility", "education", "student_status"]) {
+      const field = requirementField(inspection, key);
+      for (const bucket of ["required", "preferred", "unspecified", "not_required"]) {
+        for (const fact of evidenceFacts(field, bucket)) {
+          rows.push({
+            key,
+            bucket,
+            statement: String(fact?.statement || "").trim(),
+          });
+        }
+      }
+    }
+    return rows.filter(row => row.statement);
+  }
+
+  function classifyExperienceBurden(statement) {
+    const text = normalize(statement);
+    if (!text) return null;
+    if (/\b(?:no|zero) (?:prior |previous |professional )?experience (?:is )?(?:required|needed|necessary)\b|\bexperience (?:is )?not required\b/.test(text)) {
+      return { kind: "no-experience-required" };
+    }
+    const years = text.match(/\b(\d+)\+?\s*(?:or more\s*)?years?\b[^.;]{0,50}\bexperience\b|\bexperience\b[^.;]{0,50}\b(\d+)\+?\s*years?\b/);
+    if (years) {
+      const count = Number(years[1] || years[2] || 0);
+      return { kind: "years", years: count || null };
+    }
+    if (/\b(?:prior|previous)\b[^.;]{0,40}\b(?:internship|intern|co ?op)\b|\b(?:internship|intern|co ?op)\b[^.;]{0,40}\b(?:prior|previous|required)\b/.test(text)) {
+      return { kind: "prior-internship" };
+    }
+    if (/\b(?:coursework|academic experience|project experience|school project|class project)\b/.test(text)
+      && /\b(?:accepted|acceptable|considered|qualif(?:y|ies|ied)|may substitute|in lieu)\b/.test(text)) {
+      return { kind: "coursework-accepted" };
+    }
+    if (/\b(?:leadership|extracurricular|student organization|student organisation|club|campus organization|campus organisation)\b/.test(text)
+      && /\b(?:accepted|acceptable|considered|qualif(?:y|ies|ied)|may substitute|in lieu)\b/.test(text)) {
+      return { kind: "leadership-accepted" };
+    }
+    if (/\b(?:advanced|deep|expert|expertise|strong)\b[^.;]{0,50}\b(?:domain|industry|technical|knowledge|background|experience)\b|\b(?:advanced|deep|expert)\s+(?:knowledge|understanding)\b/.test(text)) {
+      return { kind: "advanced-domain" };
+    }
+    return null;
+  }
+
+  function extractExperienceBurden(job) {
+    const inspection = inspectionForJob(job);
+    const result = { required: [], preferred: [], unspecified: [], not_required: [] };
+    if (!inspection || inspection.status !== "inspected") return result;
+    for (const row of requirementFacts(inspection)) {
+      const burden = classifyExperienceBurden(row.statement);
+      if (!burden) continue;
+      const bucket = burden.kind === "no-experience-required" ? "not_required" : row.bucket;
+      result[bucket].push({ ...burden, statement: row.statement });
+    }
+    return result;
+  }
+
+  function experienceBurdenAdjustment(job, profile) {
+    const burden = extractExperienceBurden(job);
+    const workEvidence = profileEvidence(profile, "workExperienceEvidence");
+    const courseworkEvidence = profileEvidence(profile, "courseworkEvidence");
+    const projectEvidence = profileEvidence(profile, "projectEvidence");
+    const leadershipEvidence = profileEvidence(profile, "leadershipEvidence");
+    const internshipEvidence = workEvidence.some(item => /\b(?:intern|internship|co ?op)\b/i.test(item));
+    const hasWorkEvidence = workEvidence.length > 0;
+    const hasAcademicEvidence = courseworkEvidence.length > 0 || projectEvidence.length > 0;
+    const hasLeadershipEvidence = leadershipEvidence.length > 0;
+
+    let penalty = 0;
+    const details = [];
+
+    function apply(rows, bucket) {
+      for (const row of rows) {
+        const preferred = bucket === "preferred";
+        if (row.kind === "prior-internship" && !internshipEvidence) {
+          penalty += preferred ? 4 : 16;
+          details.push(`${preferred ? "Preferred" : "Required"} prior internship experience not supported by profile`);
+        } else if (row.kind === "years" && !hasWorkEvidence) {
+          penalty += preferred ? 4 : 14;
+          details.push(`${preferred ? "Preferred" : "Required"} ${row.years || ""} year${row.years === 1 ? "" : "s"} of experience not supported by profile`.replace(/\s+/g, " ").trim());
+        } else if (row.kind === "coursework-accepted") {
+          details.push(hasAcademicEvidence
+            ? "Coursework/project evidence can satisfy an accepted experience path"
+            : "Posting accepts coursework/project evidence, but none is in the profile");
+        } else if (row.kind === "leadership-accepted") {
+          details.push(hasLeadershipEvidence
+            ? "Leadership/extracurricular evidence can satisfy an accepted experience path"
+            : "Posting accepts leadership/extracurricular evidence, but none is in the profile");
+        } else if (row.kind === "advanced-domain" && !hasWorkEvidence && !hasAcademicEvidence) {
+          penalty += preferred ? 3 : 10;
+          details.push(`${preferred ? "Preferred" : "Required"} advanced domain background is not supported by profile evidence`);
+        }
+      }
+    }
+
+    apply(burden.required, "required");
+    apply(burden.preferred, "preferred");
+    if (burden.not_required.length) details.push("Posting explicitly says prior experience is not required");
+
+    return {
+      penalty: Math.min(20, penalty),
+      details,
+      burden,
+    };
+  }
+
   function clearanceGate(job, profile) {
     const inspection = inspectionForJob(job);
     const other = requirementField(inspection, "other_eligibility");
@@ -336,8 +461,13 @@
     }
 
     details.push(...auth.details, ...clearance.details);
+    const experience = experienceBurdenAdjustment(job, profile);
+    details.push(...experience.details);
     const unverifiedPenalty = Math.min(10, auth.penalty + clearance.penalty);
-    const totalPenalty = Math.min(30, skillPenalty + cautiousPenalty + domainPenalty + unverifiedPenalty);
+    const totalPenalty = Math.min(
+      30,
+      skillPenalty + cautiousPenalty + domainPenalty + unverifiedPenalty + experience.penalty
+    );
     const label = totalPenalty >= 16 || skills.unsupported.length >= 2
       ? "Major required gaps"
       : (totalPenalty > 0 ? "Some required gaps" : "Ready on known requirements");
@@ -415,6 +545,9 @@
     scoreFit,
     authorizationGate,
     clearanceGate,
+    classifyExperienceBurden,
+    extractExperienceBurden,
+    experienceBurdenAdjustment,
     scoreReadiness,
     scoreJob,
     rankJobs,

@@ -885,6 +885,16 @@ assert.ok(
 const oldProfile = { targetTerm: "Summer 2027", roleFamilies: [{ id: "software" }] };
 assert.equal(UI.explainProfileChange(oldProfile, oldProfile, "1", "1"), null);
 
+const stageChanged = {
+  ...oldProfile,
+  facts: { studentStage: "Junior" },
+};
+assert.match(
+  UI.explainProfileChange({ ...oldProfile, facts: { studentStage: "Sophomore" } }, stageChanged, "1", "1"),
+  /skills\/background|profile changes/,
+  "student-stage correction should be treated as a material reranking change"
+);
+
 const newTerm = { targetTerm: "Fall 2027", roleFamilies: [{ id: "software" }] };
 assert.match(UI.explainProfileChange(oldProfile, newTerm, "1", "1"), /Recommendations re-evaluated after target term changes./);
 
