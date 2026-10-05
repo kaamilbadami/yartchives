@@ -83,7 +83,7 @@ class TestQueueCoverageGap(unittest.TestCase):
 
         with patch(
             "scripts.queue_coverage_gap.fingerprint_provider",
-            return_value={"family": "custom_unknown"},
+            return_value={"family": "unknown"},
         ):
             gaps = find_all_gaps(universe)
 

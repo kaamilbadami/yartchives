@@ -53,7 +53,7 @@ def main() -> int:
         if not emp:
             continue
 
-        if emp.get("careers_url"):
+        if emp.get("careers_url") and (emp.get("provider") or {}).get("status") == "resolved":
             continue # Already resolved
 
         name = emp["name"]

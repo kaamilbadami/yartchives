@@ -82,9 +82,11 @@ def _valid_existing_resolution(employer: dict[str, Any]) -> bool:
     if not url:
         return False
     provider = employer.get("provider") or {}
-    if provider.get("status") == "ambiguous":
+    if provider.get("status") != "resolved":
         return False
-    if provider.get("status") == "resolved" and not has_provider_collection_identity(url, provider.get("family")):
+    if not has_provider_collection_identity(url, provider.get("family")):
+        return False
+    if provider.get("status") == "unresolved" and provider.get("family") == "custom_unknown":
         return False
 
     metadata = (employer.get("seed_metadata") or {}).get(VERIFIED_ATS_SEED_KEY)
@@ -178,7 +180,9 @@ def _provider_resolution_needs_completion(employer: dict[str, Any]) -> bool:
 
 def _fresh_success(employer: dict[str, Any], now: datetime, ttl_days: int) -> bool:
     resolution = employer.get("careers_resolution") or {}
-    if resolution.get("status") != "resolved" or not _valid_existing_resolution(employer):
+    if resolution.get("status") != "resolved":
+        return False
+    if not _valid_existing_resolution(employer):
         return False
     resolved_at = _parse_timestamp(resolution.get("resolved_at"))
     return bool(resolved_at and now - resolved_at < timedelta(days=ttl_days))

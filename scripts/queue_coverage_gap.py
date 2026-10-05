@@ -64,7 +64,7 @@ def find_all_gaps(universe: dict[str, Any]) -> list[tuple[str, int, list[dict[st
         if providers:
             known_providers = {
                 p for p in providers
-                if p not in {"unknown", "unknown/none", "custom_unknown"}
+                if p not in {"unknown", "unknown/none"}
             }
             if known_providers:
                 for p in known_providers:

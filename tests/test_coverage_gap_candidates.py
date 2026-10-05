@@ -19,9 +19,9 @@ class CoverageGapCandidatesTests(unittest.TestCase):
             "name": f"Employer {idx}",
             "seed_sets": ["fortune-500-2026"],
             "provider": (
-                {"status": "resolved", "family": family or "custom_unknown"}
+                {"status": "resolved", "family": family or "unknown"}
                 if resolved
-                else {"status": "unresolved", "family": "custom_unknown"}
+                else {"status": "unresolved", "family": "unknown"}
             ),
             "seed_metadata": {"benchmark": {"domain_hints": hints}},
         }

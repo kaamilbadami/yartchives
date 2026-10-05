@@ -70,7 +70,7 @@ def fingerprint_provider(url: str, *, final_url: str | None = None, html: str | 
             "host": host,
         }
     return {
-        "family": "custom_unknown",
+        "family": "unknown",
         "status": "unresolved",
         "evidence": "no_known_provider_marker",
         "host": host,

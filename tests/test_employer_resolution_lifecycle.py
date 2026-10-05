@@ -122,6 +122,7 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
             "fresh",
             careers_url="https://fresh.example/careers",
             careers_platform="workday",
+            provider={"status": "resolved", "family": "workday"},
             careers_resolution={
                 "status": "resolved",
                 "resolved_at": "2026-09-15T20:00:00Z",

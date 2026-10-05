@@ -17,7 +17,7 @@ if str(ROOT) not in sys.path:
 from scripts.provider_fingerprint import fingerprint_provider
 from scripts.coverage_audit import expectations, surface_issues, compact
 
-UNKNOWN_PROVIDER_FAMILIES = {"custom_unknown", "unknown", "unknown/none"}
+UNKNOWN_PROVIDER_FAMILIES = {"unknown", "unknown/none"}
 
 
 def classify_unresolved_provider_families(providers):

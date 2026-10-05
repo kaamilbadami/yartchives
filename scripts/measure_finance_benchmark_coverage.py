@@ -85,7 +85,7 @@ def main():
 
                 employer_status[emp_id]["detected_provider_family"] = ", ".join(sorted(providers))
 
-                if any(p in {"custom_unknown", "unknown", "unknown/none"} for p in providers):
+                if any(p in {"unknown", "unknown/none"} for p in providers):
                     unsupported_ats.append((e, providers))
                 else:
                     unresolved_host.append((e, providers))

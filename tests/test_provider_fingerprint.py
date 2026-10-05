@@ -67,11 +67,11 @@ class ProviderFingerprintTests(unittest.TestCase):
 
     def test_unknown_provider_is_explicit_not_guessed(self):
         result = mod.fingerprint_provider("https://careers.example.com/jobs")
-        self.assertEqual(result["family"], "custom_unknown")
+        self.assertEqual(result["family"], "unknown")
         self.assertEqual(result["status"], "unresolved")
 
         result_non_matching = mod.fingerprint_provider("https://example.com/not-sapsf-just-random")
-        self.assertEqual(result_non_matching["family"], "custom_unknown")
+        self.assertEqual(result_non_matching["family"], "unknown")
         self.assertEqual(result_non_matching["status"], "unresolved")
 
     def test_multiple_provider_markers_are_ambiguous(self):

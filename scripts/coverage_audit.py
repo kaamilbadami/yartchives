@@ -624,7 +624,7 @@ def classify_miss_category(status: str, reason: str, url: str | None) -> str | N
         if url:
             provider = fingerprint_provider(url)
             family = provider.get("family", "unknown")
-            if family not in ("custom_unknown", "unknown"):
+            if family != "unknown":
                 return "unsupported_ats"
         if "direct ATS host" in reason and "is not configured" in reason:
             return "unsupported_ats"

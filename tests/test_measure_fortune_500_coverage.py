@@ -24,7 +24,7 @@ def test_measure_fortune_500_coverage_script_runs():
 
 
 def test_mixed_provider_hints_are_not_mislabeled_unsupported():
-    assert mod.classify_unresolved_provider_families({"custom_unknown", "workday"}) == "unresolved_host"
+    assert mod.classify_unresolved_provider_families({"unknown", "workday"}) == "unresolved_host"
     assert mod.classify_unresolved_provider_families({"unknown", "greenhouse"}) == "unresolved_host"
-    assert mod.classify_unresolved_provider_families({"custom_unknown", "unknown"}) == "unsupported_ats"
+    assert mod.classify_unresolved_provider_families({"unknown", "unknown/none"}) == "unsupported_ats"
     assert mod.classify_unresolved_provider_families(set()) == "no_domain_hint"

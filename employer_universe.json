@@ -1370,7 +1370,7 @@
       "careers_url": "https://careers.acehardware.com/",
       "careers_platform": "company-branded",
       "provider": {
-        "family": "custom_unknown",
+        "family": "unknown",
         "status": "unresolved",
         "evidence": "no_known_provider_marker",
         "host": "careers.acehardware.com"
@@ -1657,7 +1657,7 @@
       "careers_url": "https://advanceautoparts.com/jobs",
       "careers_platform": "company-branded",
       "provider": {
-        "family": "custom_unknown",
+        "family": "unknown",
         "status": "unresolved",
         "evidence": "no_known_provider_marker",
         "host": "advanceautoparts.com"
@@ -5508,8 +5508,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "http",
@@ -5749,47 +5749,9 @@
             "score": 14
           },
           {
-            "type": "http",
-            "source": "employer-link",
-            "requested_url": "https://egug.fa.us2.oraclecloud.com/",
-            "linked_from": "https://www.americanexpress.com/en-us/careers/",
-            "redirect_chain": [
-              {
-                "url": "https://egug.fa.us2.oraclecloud.com/",
-                "status": 302
-              },
-              {
-                "url": "https://egug.fa.us2.oraclecloud.com/homePage/faces/AtkHomePageWelcome",
-                "status": 301
-              },
-              {
-                "url": "https://egug.fa.us2.oraclecloud.com/fscmUI/faces/AtkHomePageWelcome",
-                "status": 302
-              },
-              {
-                "url": "https://egug.fa.us2.oraclecloud.com/fscmUI/adfAuthentication?level=FORM&success_url=%2FfscmUI%2Ffaces%2FAtkHomePageWelcome%3F_adf.no-new-window-redirect%3Dtrue",
-                "status": 302
-              },
-              {
-                "url": "https://idcs-a379cf3fbe6e4147b2c39dd4cf1c7dae.identity.oraclecloud.com/oauth2/v1/authorize?response_mode=form_post&response_type=id_token&scope=openid&IDCS_CG_ENC_VER=v2&state=-5pDI2AFBZJxcDe4OAE6dJ2ESegG1ZQmOS2AM0CCCfk&nonce=tPEM9-PjPRLB09ci7S35Z_bwQCsuZiDCc1MXCz7Jb7Y&IDCS_IS_CLOUDGATE=true&X-HOST-IDENTIFIER-NAME=egug.fa.us2.oraclecloud.com%3A443&idcs_app_name=FAAppResource_11-13-26-07-0-08000_APPID&idcs_app_resource_url=https%3A%2F%2Fegug.fa.us2.oraclecloud.com%3A443%2FfscmUI%2FadfAuthentication%3Flevel%3DFORM%26success_url%3D%252FfscmUI%252Ffaces%252FAtkHomePageWelcome%253F_adf.no-new-window-redirect%253Dtrue&client_id=173cb36018664470ae18a29ebae69c95_APPID&IDCS_CG_ENC=true&enc=ZS51iwozcnqzAgAAeQIAABAgeQIAAF8CAAAQACr7J7npx2Z06IFxSAyMe_FhDUGmrngwGq4_9LHKl1DfU2Snz32W2qqxO27SV_aGKx__ajsNO3NXDHMDgDnQrcBxXaU4xNBMlW22NzIVK6CaSkau_TPULMvUM-fa04J4zxACqAT6c3QOoa_5mOEKaYtXExxViNa8YexBe8lW4gwi2hsoeTkH4gh1k5nGfMvnu2Ghg_IYQK01xMlx1qcBUTyFI2cORCPqFKm9D3V6c9fF3xsgBf7-sQKX0zmY3nBZ_HSu4b3zJOSaqF1i2GbsJ1KNB0ecWB5pG1Q7NOktuKGySTVJQtD54OIJ3qO3olyIPAQwDE0VGc6Ys1uw95ST0vOqhzNw17aRKPbDpu0u904NrwJeXRyJ_j-uLs4ko5HGVk6HxjysVmv9Nd305wMRcre8k5a323QHlWMkCPbNZQm6vvERnDeEGh34LXpg0ESdLTmVZeNS-MOM7jP1TYXW41r9Pc1JwW161cJhZDnJRKjcwRP-DmfeHTP4GaMTo1NjLXA50c2EkTd_XC7gnIXFSHh4V23u1PMCUoNKNKUbN4VZumVZep9Rv5zyPsjuX-dnjKcygPUdfvrJfsFuSyEk4inYl5SfOxkG-ogGyz0tgN_fOvPOQMHcGmZpcd6KOz6bjcx58FKdrFbL-H6FYfRDVmGQza0ZUKgBjPNi8Zyz5j33s5BSkoltOBACbJ1Qn0dX3IUrTDezUJ_Fv-0xdlSFvck_P1_XNt-q5br6_UHIJQOUg1cSRl-HIUD7NeyX0U-21r_0ACO2vd9NvuC_7yXDnJjo5iqGRunr4ggiUxYJq5gcDVoqIGvgRo2bfJk2UZYTrHzxZPnyhh9QXx0w7zhaqv_s0rbEmErT9LBvM5Es10srzkMeiti4c3wPQPw0Igo2",
-                "status": 303
-              },
-              {
-                "url": "https://idcs-a379cf3fbe6e4147b2c39dd4cf1c7dae.identity.oraclecloud.com:443/fed/v1/user/request/login",
-                "status": 302
-              },
-              {
-                "url": "https://aexp.okta.com/app/americanexpressproduction_hcmmyhrprod_1/exknu2qgij00pu8k10x7/sso/saml?SAMLRequest=hVPbTuMwEP2VyDwndi5QajVFQEFUC2y17aJqX5BrT1pvEzvYDr18%2FTrtRmJXorxZ43NmzsyZGVxtqzJ4B2OlVjmKI4ICUFwLqZY5%2Bjm7Dy9RYB1TgpVaQY52YNHVcGBZVdb0unEr9QPeGrAu8ImUpdtzQnLUGEU1s9JSxSqw1HE6vX56pElEaG10IUsfZM4ZuWgc0LknoS6BlTlaOVdTjDebTbRJI22WOCEkxvOnxylfQcVCqVpRHDpWq%2Bd0WWYtGOe77Ci%2BzU8LkQx7kEecdWhh5fITOMGk38JbyNlHQfWXg3Ca6xIFk7%2BvG6mOgz9FWxxBlj7MZpNw8n06Q8G9NhwObuSoYKX1cxl5T6Ri7uBrq9t64Qy2daTXjkVcV5jVNfbpjeRM%2BQ8D1npNouEt6XXFq2q3Mm3kNcawXasmeVvK34TUzeU6JtsetlbjtlEUjK1tYHwwxeUoIclFGJOQnM%2FihKY9mvV%2FoeCl27Kk3bLxKEdShPvsbl5M9y%2B8eTDv87s63LPR7beb5WK%2BDtFxz%2BghuWmbrJg7PZw24rMWB6i32Em3Q8OufSm4DVna6%2FMiLRZwAVmc9RYJT%2FtCZLyIeU8wiKQ48ry%2FjJfAS92Idl40y1JcgBjgD6q6U3j2hcejiS4l3wXXZak3twaY8xfjTAPoS%2FFxFP8nvlG2Bi4LCQLh4bHovyc3%2FAM%3D&RelayState=S43X&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=NIkYqH0QVEQt5Tmd16XofpI9XN84Sh2chk1x3Nnm5HT9WxMqLjVJr%2FRfQQ9ct1z8D71cmUa7t4oAISwU8%2BjjPatfgtS%2B7kMsa%2BOZV2imRk8Nx4MABBOBkW1Wi2bbOXjr2Yb8mpo3sAR0Y62cPFi9gmD0sxFJFzmjzSG5VdlsbXRpDjdl3KzcMg9IY%2B8fVfJgQR1sV88ZcvoGBui5neq%2BX8%2BHC5pOT6IaXlPpE9Rk4HMZmjY04ccWLzmZ6jqp8ZuyhaZSg%2FPJ70osPJMsdLw5HdLqx%2B3PTVVb0%2FYQ9%2B5iqt%2FfMWJYNkhnd6SmwHUErr4bggJhrEOygwIT%2FLVQqXnjcA%3D%3D",
-                "status": 200
-              }
-            ],
-            "final_url": "https://aexp.okta.com/app/americanexpressproduction_hcmmyhrprod_1/exknu2qgij00pu8k10x7/sso/saml?SAMLRequest=hVPbTuMwEP2VyDwndi5QajVFQEFUC2y17aJqX5BrT1pvEzvYDr18%2FTrtRmJXorxZ43NmzsyZGVxtqzJ4B2OlVjmKI4ICUFwLqZY5%2Bjm7Dy9RYB1TgpVaQY52YNHVcGBZVdb0unEr9QPeGrAu8ImUpdtzQnLUGEU1s9JSxSqw1HE6vX56pElEaG10IUsfZM4ZuWgc0LknoS6BlTlaOVdTjDebTbRJI22WOCEkxvOnxylfQcVCqVpRHDpWq%2Bd0WWYtGOe77Ci%2BzU8LkQx7kEecdWhh5fITOMGk38JbyNlHQfWXg3Ca6xIFk7%2BvG6mOgz9FWxxBlj7MZpNw8n06Q8G9NhwObuSoYKX1cxl5T6Ri7uBrq9t64Qy2daTXjkVcV5jVNfbpjeRM%2BQ8D1npNouEt6XXFq2q3Mm3kNcawXasmeVvK34TUzeU6JtsetlbjtlEUjK1tYHwwxeUoIclFGJOQnM%2FihKY9mvV%2FoeCl27Kk3bLxKEdShPvsbl5M9y%2B8eTDv87s63LPR7beb5WK%2BDtFxz%2BghuWmbrJg7PZw24rMWB6i32Em3Q8OufSm4DVna6%2FMiLRZwAVmc9RYJT%2FtCZLyIeU8wiKQ48ry%2FjJfAS92Idl40y1JcgBjgD6q6U3j2hcejiS4l3wXXZak3twaY8xfjTAPoS%2FFxFP8nvlG2Bi4LCQLh4bHovyc3%2FAM%3D&RelayState=S43X&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=NIkYqH0QVEQt5Tmd16XofpI9XN84Sh2chk1x3Nnm5HT9WxMqLjVJr%2FRfQQ9ct1z8D71cmUa7t4oAISwU8%2BjjPatfgtS%2B7kMsa%2BOZV2imRk8Nx4MABBOBkW1Wi2bbOXjr2Yb8mpo3sAR0Y62cPFi9gmD0sxFJFzmjzSG5VdlsbXRpDjdl3KzcMg9IY%2B8fVfJgQR1sV88ZcvoGBui5neq%2BX8%2BHC5pOT6IaXlPpE9Rk4HMZmjY04ccWLzmZ6jqp8ZuyhaZSg%2FPJ70osPJMsdLw5HdLqx%2B3PTVVb0%2FYQ9%2B5iqt%2FfMWJYNkhnd6SmwHUErr4bggJhrEOygwIT%2FLVQqXnjcA%3D%3D",
-            "status": 200,
-            "signals": [
-              "oracle provider fingerprint",
-              "linked from employer site"
-            ],
-            "score": 9
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Oracle endpoint retired (redirected to 404): https://careers.americanexpress.com/errors/404",
+            "invalidated_at": "2026-10-05T15:19:11Z"
           }
         ]
       },
@@ -6444,8 +6406,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -6453,6 +6415,11 @@
             "domain_hint": "boards.greenhouse.io/anduril",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/anduril"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -6906,7 +6873,7 @@
       "careers_url": "https://www.apple.com/careers/us",
       "careers_platform": "company-branded",
       "provider": {
-        "family": "custom_unknown",
+        "family": "unknown",
         "status": "unresolved",
         "evidence": "no_known_provider_marker",
         "host": "www.apple.com"
@@ -7236,8 +7203,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -7245,6 +7212,11 @@
             "domain_hint": "boards.greenhouse.io/aqr-capital",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/aqr-capital"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -7273,7 +7245,7 @@
       "careers_url": "https://careers.aramark.com/jobs",
       "careers_platform": "company-branded",
       "provider": {
-        "family": "custom_unknown",
+        "family": "unknown",
         "status": "unresolved",
         "evidence": "no_known_provider_marker",
         "host": "careers.aramark.com"
@@ -7835,7 +7807,7 @@
       "careers_url": "https://www.arista.com/careers",
       "careers_platform": "company-branded",
       "provider": {
-        "family": "custom_unknown",
+        "family": "unknown",
         "status": "unresolved",
         "evidence": "no_known_provider_marker",
         "host": "www.arista.com"
@@ -9245,7 +9217,7 @@
       "careers_url": "https://www.autoliv.com/careers",
       "careers_platform": "company-branded",
       "provider": {
-        "family": "custom_unknown",
+        "family": "unknown",
         "status": "unresolved",
         "evidence": "no_known_provider_marker",
         "host": "www.autoliv.com"
@@ -9595,7 +9567,7 @@
       "careers_url": "https://www.averydennison.com/en/home/careers/overview.html",
       "careers_platform": "company-branded",
       "provider": {
-        "family": "custom_unknown",
+        "family": "unknown",
         "status": "unresolved",
         "evidence": "no_known_provider_marker",
         "host": "www.averydennison.com"
@@ -10520,7 +10492,7 @@
       "careers_url": "https://ballotpedia.org/careers",
       "careers_platform": "company-branded",
       "provider": {
-        "family": "custom_unknown",
+        "family": "unknown",
         "status": "unresolved",
         "evidence": "no_known_provider_marker",
         "host": "ballotpedia.org"
@@ -13008,6 +12980,16 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-04T22:45:16Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-05T14:30:04Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-05T15:19:12Z"
           }
         ]
       },
@@ -17881,8 +17863,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2026-10-05T15:04:54Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "http",
@@ -19063,6 +19045,16 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-04T22:45:17Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-05T14:30:05Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-05T15:19:13Z"
           }
         ]
       },
@@ -19622,8 +19614,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -19631,6 +19623,11 @@
             "domain_hint": "job-boards.greenhouse.io/epic-games",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/epic-games"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -21988,7 +21985,7 @@
       "careers_url": "https://jobs.gartner.com/jobs",
       "careers_platform": "company-branded",
       "provider": {
-        "family": "custom_unknown",
+        "family": "unknown",
         "status": "unresolved",
         "evidence": "no_known_provider_marker",
         "host": "jobs.gartner.com"
@@ -24693,8 +24690,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -24702,6 +24699,11 @@
             "domain_hint": "boards.greenhouse.io/hudson-river-trading",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/hudson-river-trading"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -24863,8 +24865,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2026-10-05T15:04:54Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "http",
@@ -26447,8 +26449,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -26456,6 +26458,11 @@
             "domain_hint": "job-boards.greenhouse.io/jane-street",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/jane-street"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -28069,8 +28076,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -28078,6 +28085,11 @@
             "domain_hint": "job-boards.greenhouse.io/khan-academy",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/khan-academy"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -30196,8 +30208,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -30205,6 +30217,11 @@
             "domain_hint": "job-boards.greenhouse.io/lucid-motors",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/lucid-motors"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -30846,8 +30863,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -30855,6 +30872,11 @@
             "domain_hint": "job-boards.greenhouse.io/marqeta",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/marqeta"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -32503,8 +32525,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -32512,6 +32534,11 @@
             "domain_hint": "boards.greenhouse.io/mlb",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/mlb"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -33525,8 +33552,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -33534,6 +33561,11 @@
             "domain_hint": "job-boards.greenhouse.io/new-relic",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/new-relic"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -36385,8 +36417,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -36394,6 +36426,11 @@
             "domain_hint": "job-boards.greenhouse.io/pure-storage",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/pure-storage"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -37151,8 +37188,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -37160,6 +37197,11 @@
             "domain_hint": "job-boards.greenhouse.io/riot-games",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/riot-games"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -37651,8 +37693,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2026-10-05T15:04:54Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "http",
@@ -37975,8 +38017,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2026-10-05T15:04:54Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "http",
@@ -38395,8 +38437,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -38404,6 +38446,11 @@
             "domain_hint": "job-boards.greenhouse.io/scale-ai",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/scale-ai"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -38626,8 +38673,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -38635,6 +38682,11 @@
             "domain_hint": "job-boards.greenhouse.io/sentinelone",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/sentinelone"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -39731,8 +39783,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -39740,6 +39792,11 @@
             "domain_hint": "job-boards.greenhouse.io/sony-music",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/sony-music"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -39909,7 +39966,7 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
         "last_attempt_at": "2026-10-03T10:50:14Z",
         "evidence": [
           {
@@ -39918,6 +39975,11 @@
             "domain_hint": "boards.greenhouse.io/spacex",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/spacex"
+          },
+          {
+            "type": "invalidation",
+            "reason": "StructuralSourceError: Network error: HTTPSConnectionPool(host='boards-api.greenhouse.io', port=443): Max retries exceeded with url: /v1/boards/spacex/jobs (Caused by ReadTimeoutError(\"HTTPSConnectionPool(host='boards-api.greenhouse.io', port=443): Read timed out. (read timeout=12)\"))",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -40190,8 +40252,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -40199,6 +40261,11 @@
             "domain_hint": "jobs.lever.co/spotify-studios",
             "ats_system": "Lever",
             "source_url": "https://withresumeai.com/ats-checker/spotify-studios"
+          },
+          {
+            "type": "invalidation",
+            "reason": "Lever board retired: 404",
+            "invalidated_at": "2026-10-05T15:19:15Z"
           }
         ]
       },
@@ -41598,8 +41665,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -41607,6 +41674,11 @@
             "domain_hint": "job-boards.greenhouse.io/take-two-interactive",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/take-two-interactive"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -42290,8 +42362,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -42299,6 +42371,11 @@
             "domain_hint": "job-boards.greenhouse.io/new-york-times",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/new-york-times"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -44307,8 +44384,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -44316,6 +44393,11 @@
             "domain_hint": "jobs.lever.co/veeva-systems",
             "ats_system": "Lever",
             "source_url": "https://withresumeai.com/ats-checker/veeva-systems"
+          },
+          {
+            "type": "invalidation",
+            "reason": "Lever board retired: 404",
+            "invalidated_at": "2026-10-05T15:19:14Z"
           }
         ]
       },
@@ -44865,8 +44947,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-05T12:36:58Z",
-        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "resolved_at": "2000-01-01T00:00:00Z",
+        "last_attempt_at": "2026-10-05T15:04:54Z",
         "evidence": [
           {
             "type": "seed",
@@ -44874,6 +44956,11 @@
             "domain_hint": "job-boards.greenhouse.io/vox-media",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/vox-media"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-05T15:20:52Z"
           }
         ]
       },
@@ -45140,7 +45227,7 @@
       "careers_url": "https://careers.walmart.com/careers",
       "careers_platform": "company-branded",
       "provider": {
-        "family": "custom_unknown",
+        "family": "unknown",
         "status": "unresolved",
         "evidence": "no_known_provider_marker",
         "host": "careers.walmart.com"
