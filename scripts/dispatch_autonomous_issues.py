@@ -15,6 +15,8 @@ from urllib import parse, request
 
 PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
 MAX_ACTIVE = 15
+EVIDENCE_BACKLOG_TARGET = 4
+MAX_EVIDENCE_GENERATED_PER_CYCLE = 3
 COVERAGE_WIP_TARGET = 4
 COVERAGE_WIP_MAX = 6
 COVERAGE_AREAS = frozenset({
@@ -2826,24 +2828,36 @@ def generate_evidence_backed_tasks(
     selected: list[Task],
     max_active: int = MAX_ACTIVE,
     providers: list[EvidenceProvider] | None = None,
+    *,
+    reload_issues: Callable[[], list[dict[str, Any]]] | None = None,
+    backlog_target: int = EVIDENCE_BACKLOG_TARGET,
+    per_cycle_cap: int = MAX_EVIDENCE_GENERATED_PER_CYCLE,
 ) -> tuple[int, str]:
+    """Replenish a small evidence-backed queue without manufacturing busywork.
+
+    Existing dispatchable work is always selected first. Generation only fills the
+    remaining target, never exceeds spare Jules capacity, and is bounded per cycle.
+    Production reloads issue state after each creation so dedupe, WIP, and locks
+    remain authoritative before another candidate is generated.
+    """
     if providers is None:
         providers = EVIDENCE_PROVIDERS
 
+    current_issues = list(issues)
     active_tasks = [
         task
-        for issue in issues
+        for issue in current_issues
         if (task := active_jules_task(issue)) is not None
     ]
     feedback_tasks = [
         task
-        for issue in issues
+        for issue in current_issues
         if JULES_FEEDBACK_LABEL in label_names(issue)
         and (task := task_from_issue(issue)) is not None
     ]
     reserved_codex = [
         task
-        for issue in issues
+        for issue in current_issues
         if (task := reserved_codex_task(issue)) is not None
     ]
 
@@ -2853,24 +2867,55 @@ def generate_evidence_backed_tasks(
 
     raw_slots = max(0, max_active - len(active_tasks) - len(feedback_tasks))
     unfilled = max(0, raw_slots - len(selected))
+    target_shortfall = max(0, backlog_target - len(selected))
+    generation_budget = min(unfilled, target_shortfall, max(0, per_cycle_cap))
 
     if unfilled <= 0:
         return 0, "no spare capacity"
+    if target_shortfall <= 0:
+        return 0, "existing eligible backlog already meets target"
+    if generation_budget <= 0:
+        return 0, "generation cap is zero"
 
     generated = 0
-    for provider in providers:
-        if generated >= 1:
-            break
-        try:
-            if provider(repo, issues, frozenset(occupied_locks)): # type: ignore
+    known_numbers = {int(issue["number"]) for issue in current_issues}
+    while generated < generation_budget:
+        generated_this_pass = False
+        for provider in providers:
+            try:
+                if not provider(repo, current_issues, frozenset(occupied_locks)):  # type: ignore
+                    continue
                 generated += 1
-        except Exception as e:
-            print(f"Evidence provider failed: {e}")
+                generated_this_pass = True
+
+                if reload_issues is None:
+                    break
+
+                current_issues = reload_issues()
+                new_issues = [
+                    issue
+                    for issue in current_issues
+                    if int(issue.get("number") or 0) not in known_numbers
+                ]
+                known_numbers.update(
+                    int(issue["number"])
+                    for issue in new_issues
+                    if issue.get("number") is not None
+                )
+                for issue in new_issues:
+                    task = task_from_issue(issue)
+                    if task is not None:
+                        occupied_locks.update(task_lock_keys(task))
+                break
+            except Exception as e:
+                print(f"Evidence provider failed: {e}")
+
+        if not generated_this_pass or reload_issues is None:
+            break
 
     if generated > 0:
         return generated, ""
     return 0, "no eligible candidates found or lock conflicts prevented generation"
-
 
 
 def dispatch_capacity_summary(
@@ -3016,7 +3061,12 @@ def run_dispatch_cycle(
     reconcile_autonomous_labels(issues, repo=repo)
 
     selected = select_tasks(issues)
-    generated, skip_reason = generate_evidence_backed_tasks(repo, issues, selected)
+    generated, skip_reason = generate_evidence_backed_tasks(
+        repo,
+        issues,
+        selected,
+        reload_issues=lambda: fetch_active_issues(repo),
+    )
     summary = dispatch_capacity_summary(issues, selected)
     if generated > 0:
         print(f"{summary} ({generated} evidence-backed candidates generated this cycle)")
