@@ -37,6 +37,7 @@ ATS_FAMILY_NAMES = {
     "Avature": "avature",
     "Phenom": "phenom",
     "Kenexa BrassRing": "brassring",
+    "Paradox": "paradox",
 }
 
 

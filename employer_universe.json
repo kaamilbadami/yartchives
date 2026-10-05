@@ -140,9 +140,39 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-23T06:52:22Z",
-        "last_attempt_at": "2026-09-23T06:52:22Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://3m.com/",
+            "error": "ReadTimeout: HTTPSConnectionPool(host='www.3m.com', port=443): Read timed out. (read timeout=15)"
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://3m.com/careers",
+            "error": "ReadTimeout: HTTPSConnectionPool(host='www.3m.com', port=443): Read timed out. (read timeout=15)"
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://3m.com/jobs",
+            "error": "ReadTimeout: HTTPSConnectionPool(host='www.3m.com', port=443): Read timed out. (read timeout=15)"
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.3m.com/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='careers.3m.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='careers.3m.com', port=443): Failed to resolve 'careers.3m.com' ([Errno -5] No address associated with hostname)\"))"
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.3m.com/",
+            "error": "ReadTimeout: HTTPConnectionPool(host='www.3m.com', port=80): Read timed out. (read timeout=15)"
+          },
           {
             "type": "http",
             "source": "input-hint",
@@ -159,7 +189,7 @@
               "workday provider fingerprint",
               "employer domain"
             ],
-            "score": 22
+            "score": 7
           },
           {
             "type": "http",
@@ -178,7 +208,7 @@
               "careers path",
               "employer domain"
             ],
-            "score": 25
+            "score": 10
           },
           {
             "type": "http",
@@ -197,7 +227,19 @@
               "careers path",
               "employer domain"
             ],
-            "score": 25
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.3m.wd1.myworkdayjobs.com/",
+            "error": "SSLError: HTTPSConnectionPool(host='careers.3m.wd1.myworkdayjobs.com', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLError(1, '[SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:1010)')))"
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.3m.wd1.myworkdayjobs.com/",
+            "error": "SSLError: HTTPSConnectionPool(host='jobs.3m.wd1.myworkdayjobs.com', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLError(1, '[SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:1010)')))"
           }
         ]
       },
@@ -345,8 +387,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-25T01:00:54Z",
-        "last_attempt_at": "2026-09-25T01:00:54Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "http",
@@ -429,6 +471,37 @@
           },
           {
             "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.abbott.com/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='careers.abbott.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='careers.abbott.com', port=443): Failed to resolve 'careers.abbott.com' ([Errno -5] No address associated with hostname)\"))"
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.abbott.com/",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.abbott.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.jobs.abbott/",
+                "status": 303
+              },
+              {
+                "url": "https://www.jobs.abbott/us/en",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.jobs.abbott/us/en",
+            "status": 200,
+            "signals": [
+              "careers page content"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
             "source": "employer-link",
             "requested_url": "https://abbott.wd5.myworkdayjobs.com/abbottcareers/login",
             "linked_from": "https://www.abbott.com/en-us/careers",
@@ -491,8 +564,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T18:37:29Z",
-        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "http",
@@ -565,6 +638,30 @@
           },
           {
             "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.abbvie.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.abbvie.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.abbvie.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.abbvie.com/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='jobs.abbvie.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='jobs.abbvie.com', port=443): Failed to resolve 'jobs.abbvie.com' ([Errno -2] Name or service not known)\"))"
+          },
+          {
+            "type": "http",
             "source": "input-hint",
             "requested_url": "https://jobs.smartrecruiters.com/",
             "redirect_chain": [
@@ -601,9 +698,11 @@
             "final_url": "https://jobs.smartrecruiters.com/",
             "status": 200,
             "signals": [
-              "shared provider host lacks employer tenant identity"
+              "smartrecruiters provider fingerprint",
+              "careers page content",
+              "employer domain"
             ],
-            "score": -50
+            "score": 9
           },
           {
             "type": "http",
@@ -627,6 +726,94 @@
               "careers page content"
             ],
             "score": 10
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://jobs.smartrecruiters.com/abbvie",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.smartrecruiters.com/abbvie",
+                "status": 301
+              },
+              {
+                "url": "https://careers.smartrecruiters.com/abbvie",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.smartrecruiters.com/abbvie",
+            "status": 200,
+            "signals": [
+              "smartrecruiters provider fingerprint",
+              "careers page content"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers.abbvie.com/en/jobs?options=&page=1&q=strategy&ln=&la=0&lo=0&lr=100&li=/jobs/",
+            "linked_from": "https://careers.abbvie.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.abbvie.com/en/jobs?options=&page=1&q=strategy&ln=&la=0&lo=0&lr=100&li=/jobs/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.abbvie.com/en/jobs?options=&page=1&q=strategy&ln=&la=0&lo=0&lr=100&li=/jobs/",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers.abbvie.com/en/jobs?q=technology&options=&page=1/jobs/",
+            "linked_from": "https://careers.abbvie.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.abbvie.com/en/jobs?q=technology&options=&page=1/jobs/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.abbvie.com/en/jobs?q=technology&options=&page=1/jobs/",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers.abbvie.com/en/jobs?q=finance&options=&page=1/jobs/",
+            "linked_from": "https://careers.abbvie.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.abbvie.com/en/jobs?q=finance&options=&page=1/jobs/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.abbvie.com/en/jobs?q=finance&options=&page=1/jobs/",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
           }
         ]
       },
@@ -653,23 +840,11 @@
           "rank": 454
         }
       },
-      "careers_url": "https://www.abm.com/careers",
-      "careers_platform": "company-branded",
-      "provider": {
-        "family": "unknown",
-        "status": "ambiguous",
-        "evidence": "multiple_provider_markers",
-        "candidates": [
-          "lever",
-          "oracle"
-        ],
-        "host": "www.abm.com"
-      },
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T18:37:29Z",
-        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "http",
@@ -745,6 +920,18 @@
           },
           {
             "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.abm.com/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='careers.abm.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='careers.abm.com', port=443): Failed to resolve 'careers.abm.com' ([Errno -2] Name or service not known)\"))"
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.abm.com/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='jobs.abm.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='jobs.abm.com', port=443): Failed to resolve 'jobs.abm.com' ([Errno -5] No address associated with hostname)\"))"
+          },
+          {
+            "type": "http",
             "source": "employer-link",
             "requested_url": "https://eiqg.fa.us2.oraclecloud.com/fscmUI/redwood/internalmobility/",
             "linked_from": "https://www.abm.com/",
@@ -754,11 +941,11 @@
                 "status": 302
               },
               {
-                "url": "https://idcs-821fd68b7b28404b9ee6943950fe9b09.identity.oraclecloud.com/oauth2/v1/authorize?response_mode=form_post&response_type=id_token&scope=openid&IDCS_CG_ENC_VER=v2&state=Ugl32pH8HQmPzqck99ysAvrEdbAmrRcLtVF9VcYf6gw&nonce=5bfviLQTlY7L0pobf6PFvKSK34iB13Wyod-c37UuluQ&IDCS_IS_CLOUDGATE=true&X-HOST-IDENTIFIER-NAME=eiqg.fa.us2.oraclecloud.com%3A443&idcs_app_name=FAAppResource_11-13-26-07-0-08000_APPID&idcs_app_resource_url=https%3A%2F%2Feiqg.fa.us2.oraclecloud.com%3A443%2FfscmUI%2Fredwood%2Finternalmobility%2F&client_id=28e457011e874804be5f86a12a1488f2_APPID&IDCS_CG_ENC=true&enc=wFlDVGXR3SRaAgAAIAIAABAgIAIAAAYCAAAQAMFKa2NvzrPTHKhlLsuAGFS2NCRPsFMCsuB1dPiPl2WQ3Hu4UXLTnv2fOz1s_uOhzOqLSVoh63u774JD5dzRTf8yMLHttY7Q5w4Htq2KsLG6T9dN9tYFh9P57RlauMxkqWHNb9QHPkFgwXk6U3CINhdut1D8KcmPXqD80RJBd70x_NVIkDNePywECx_kuepEgtrFvnT7iecKJgyIedekm5FnxhRgAl3FyhqXdm7sVLoM7C9kDgt8Y2grTIkKX1122HdxkzrY7AK8IQG_tWpR4JvXwXF2GZ7jabVdKOf5wspRPyXfVmaHkjWs7QnRVw8NUfX-gcS5f5YxUaMG2lldMbcjbfrLCy3mO89G2bKCbBizM_h1IohxYAqPEHOwx8_rHBozrZ_ncCvOqYVoJ4_Jn5odkpCZiOPNEcc_95ezCNTPXh2JrxRpqnT0AMwwX7-qTlomnCZzqmARqqYr-LHEB5FAA5-9GHa-YV_e-LfK8tF1I_OVQ75QdQjKyxqA2WykV_t_pHkdfECTQUcKQYAZrAbMI6qTBH3d98LOOnptvjKRFsRIr5sC_vq2LTU79n2QRgxsnkuyZmUmCLczUPkNzBM_OJWPwdqbV6nNcqvY6KHabDX_Gcyip5DN1Ny7k5bsSZYfYSGS2H7tN_hNL14TduDZoWQ4ehfkaaypcDkPc6tghEf65NDZwFaHLnqW9T8ClnhHXG9m05osSpKvWnwtkzp2LVW_SzqA7TcBZm0sLOAx5w0LM1OaA6xl2sjDiFnyTDHwBp3T9w",
+                "url": "https://idcs-821fd68b7b28404b9ee6943950fe9b09.identity.oraclecloud.com/oauth2/v1/authorize?response_mode=form_post&response_type=id_token&scope=openid&IDCS_CG_ENC_VER=v2&state=R8OQgOSHnVMxrsfaF_7BDynexZj0XrWB_36jGDUdM2E&nonce=ZKi9HQx70hNJ3_l_UL68IQ2QsG43GasH_Iu_U1p5vHk&IDCS_IS_CLOUDGATE=true&X-HOST-IDENTIFIER-NAME=eiqg.fa.us2.oraclecloud.com%3A443&idcs_app_name=FAAppResource_11-13-26-07-0-08000_APPID&idcs_app_resource_url=https%3A%2F%2Feiqg.fa.us2.oraclecloud.com%3A443%2FfscmUI%2Fredwood%2Finternalmobility%2F&client_id=28e457011e874804be5f86a12a1488f2_APPID&IDCS_CG_ENC=true&enc=tToFr_WnG8NaAgAAIAIAABAgIAIAAAYCAAAQAFL_6-PHJkPlD0JajNlCLyT3ry8XeCJSf53-oQ9B4li7_OSbPCg5Zlq4E3oDw0ktYFatTmyqBlFNwH0sHc84hwAfYmzMTHsJx5bC5sk6S50aRcNpnD3bn2tjw2GivXDMQaTldL7kqAXuXvHakhI5l38JrjjbcWZtVesbADzjGu8wKDCycHgjP2ukRuKLHZUtJ_8a7C3yyOHG39P0K6Stluci72h-4iS1saFK_pbHSHJ8wfIi_VOVtoj54rR6tJvqhNAQeG2A6NUpuiginHH6dOadQb6Vcf4ewDsdYDDa7dOMX_zeggWAwL0keemZ-PEtyGa8S9uVvBF9Ub6CZkbzeqIiakJu9FQyfCKexqmqTkx1YCSxCWcCL4w4gzg2sX2grCUIeBqLjWgUn9zZu3_Vu5C8JQSl-ml2MUIY1UTPCyWtH5BmjS1ocaS8JnN_c-fDPBzEgO7xj5HkSQRx2Zhybk3vNfsmz6oUJwgFnM8SBTEDC0i2lW417o2KbvaU0ExxDlaEgpwBNpmXbI_P2tkL6lJiG3elWfiHp3kyQxfFdH3vU1tV3NKKDcE26_U3-9wW9s9q_UBhyShI25ycIGocbJFFbTCcdtbRYnhaHZHMhzymZUaqtBhPqFfuiFz5Ew9iqXIOoI3WEdzX2QgtMYaoeRRr9nDDDdNgFshJsVj9t2HQBrqVvUjdbI7yURERNyFAFookbs8Xzqj0rmypUCSu_Wsu-24C09GPlKjE-s-l08GFB-g6Y23pdBAtl77rXVbWq4cY7iKzPg",
                 "status": 200
               }
             ],
-            "final_url": "https://idcs-821fd68b7b28404b9ee6943950fe9b09.identity.oraclecloud.com/oauth2/v1/authorize?response_mode=form_post&response_type=id_token&scope=openid&IDCS_CG_ENC_VER=v2&state=Ugl32pH8HQmPzqck99ysAvrEdbAmrRcLtVF9VcYf6gw&nonce=5bfviLQTlY7L0pobf6PFvKSK34iB13Wyod-c37UuluQ&IDCS_IS_CLOUDGATE=true&X-HOST-IDENTIFIER-NAME=eiqg.fa.us2.oraclecloud.com%3A443&idcs_app_name=FAAppResource_11-13-26-07-0-08000_APPID&idcs_app_resource_url=https%3A%2F%2Feiqg.fa.us2.oraclecloud.com%3A443%2FfscmUI%2Fredwood%2Finternalmobility%2F&client_id=28e457011e874804be5f86a12a1488f2_APPID&IDCS_CG_ENC=true&enc=wFlDVGXR3SRaAgAAIAIAABAgIAIAAAYCAAAQAMFKa2NvzrPTHKhlLsuAGFS2NCRPsFMCsuB1dPiPl2WQ3Hu4UXLTnv2fOz1s_uOhzOqLSVoh63u774JD5dzRTf8yMLHttY7Q5w4Htq2KsLG6T9dN9tYFh9P57RlauMxkqWHNb9QHPkFgwXk6U3CINhdut1D8KcmPXqD80RJBd70x_NVIkDNePywECx_kuepEgtrFvnT7iecKJgyIedekm5FnxhRgAl3FyhqXdm7sVLoM7C9kDgt8Y2grTIkKX1122HdxkzrY7AK8IQG_tWpR4JvXwXF2GZ7jabVdKOf5wspRPyXfVmaHkjWs7QnRVw8NUfX-gcS5f5YxUaMG2lldMbcjbfrLCy3mO89G2bKCbBizM_h1IohxYAqPEHOwx8_rHBozrZ_ncCvOqYVoJ4_Jn5odkpCZiOPNEcc_95ezCNTPXh2JrxRpqnT0AMwwX7-qTlomnCZzqmARqqYr-LHEB5FAA5-9GHa-YV_e-LfK8tF1I_OVQ75QdQjKyxqA2WykV_t_pHkdfECTQUcKQYAZrAbMI6qTBH3d98LOOnptvjKRFsRIr5sC_vq2LTU79n2QRgxsnkuyZmUmCLczUPkNzBM_OJWPwdqbV6nNcqvY6KHabDX_Gcyip5DN1Ny7k5bsSZYfYSGS2H7tN_hNL14TduDZoWQ4ehfkaaypcDkPc6tghEf65NDZwFaHLnqW9T8ClnhHXG9m05osSpKvWnwtkzp2LVW_SzqA7TcBZm0sLOAx5w0LM1OaA6xl2sjDiFnyTDHwBp3T9w",
+            "final_url": "https://idcs-821fd68b7b28404b9ee6943950fe9b09.identity.oraclecloud.com/oauth2/v1/authorize?response_mode=form_post&response_type=id_token&scope=openid&IDCS_CG_ENC_VER=v2&state=R8OQgOSHnVMxrsfaF_7BDynexZj0XrWB_36jGDUdM2E&nonce=ZKi9HQx70hNJ3_l_UL68IQ2QsG43GasH_Iu_U1p5vHk&IDCS_IS_CLOUDGATE=true&X-HOST-IDENTIFIER-NAME=eiqg.fa.us2.oraclecloud.com%3A443&idcs_app_name=FAAppResource_11-13-26-07-0-08000_APPID&idcs_app_resource_url=https%3A%2F%2Feiqg.fa.us2.oraclecloud.com%3A443%2FfscmUI%2Fredwood%2Finternalmobility%2F&client_id=28e457011e874804be5f86a12a1488f2_APPID&IDCS_CG_ENC=true&enc=tToFr_WnG8NaAgAAIAIAABAgIAIAAAYCAAAQAFL_6-PHJkPlD0JajNlCLyT3ry8XeCJSf53-oQ9B4li7_OSbPCg5Zlq4E3oDw0ktYFatTmyqBlFNwH0sHc84hwAfYmzMTHsJx5bC5sk6S50aRcNpnD3bn2tjw2GivXDMQaTldL7kqAXuXvHakhI5l38JrjjbcWZtVesbADzjGu8wKDCycHgjP2ukRuKLHZUtJ_8a7C3yyOHG39P0K6Stluci72h-4iS1saFK_pbHSHJ8wfIi_VOVtoj54rR6tJvqhNAQeG2A6NUpuiginHH6dOadQb6Vcf4ewDsdYDDa7dOMX_zeggWAwL0keemZ-PEtyGa8S9uVvBF9Ub6CZkbzeqIiakJu9FQyfCKexqmqTkx1YCSxCWcCL4w4gzg2sX2grCUIeBqLjWgUn9zZu3_Vu5C8JQSl-ml2MUIY1UTPCyWtH5BmjS1ocaS8JnN_c-fDPBzEgO7xj5HkSQRx2Zhybk3vNfsmz6oUJwgFnM8SBTEDC0i2lW417o2KbvaU0ExxDlaEgpwBNpmXbI_P2tkL6lJiG3elWfiHp3kyQxfFdH3vU1tV3NKKDcE26_U3-9wW9s9q_UBhyShI25ycIGocbJFFbTCcdtbRYnhaHZHMhzymZUaqtBhPqFfuiFz5Ew9iqXIOoI3WEdzX2QgtMYaoeRRr9nDDDdNgFshJsVj9t2HQBrqVvUjdbI7yURERNyFAFookbs8Xzqj0rmypUCSu_Wsu-24C09GPlKjE-s-l08GFB-g6Y23pdBAtl77rXVbWq4cY7iKzPg",
             "status": 200,
             "signals": [
               "oracle provider fingerprint",
@@ -831,6 +1018,27 @@
           {
             "type": "http",
             "source": "employer-link",
+            "requested_url": "https://ravenvolt.applytojob.com/apply/",
+            "linked_from": "https://www.abm.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://ravenvolt.applytojob.com/apply/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://ravenvolt.applytojob.com/apply/",
+            "status": 200,
+            "signals": [
+              "applytojob provider fingerprint",
+              "careers link text",
+              "careers page content",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
             "requested_url": "https://eiqg.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/join-talent-community?sortBy=RELEVANCY",
             "linked_from": "https://www.abm.com/careers",
             "redirect_chain": [
@@ -871,7 +1079,16 @@
       },
       "domain_hints": [
         "abm.com"
-      ]
+      ],
+      "careers_url": "https://ravenvolt.applytojob.com/apply",
+      "careers_platform": "applytojob",
+      "provider": {
+        "family": "applytojob",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "applytojob.com",
+        "host": "ravenvolt.applytojob.com"
+      }
     },
     {
       "id": "accendra-health",
@@ -905,8 +1122,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-25T01:00:54Z",
-        "last_attempt_at": "2026-09-25T01:00:54Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "http",
@@ -975,6 +1192,18 @@
               "employer domain"
             ],
             "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.accendrahealth.com/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='careers.accendrahealth.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='careers.accendrahealth.com', port=443): Failed to resolve 'careers.accendrahealth.com' ([Errno -2] Name or service not known)\"))"
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.accendrahealth.com/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='jobs.accendrahealth.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='jobs.accendrahealth.com', port=443): Failed to resolve 'jobs.accendrahealth.com' ([Errno -2] Name or service not known)\"))"
           },
           {
             "type": "http",
@@ -5279,8 +5508,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "http",
@@ -5542,7 +5771,7 @@
                 "status": 302
               },
               {
-                "url": "https://idcs-a379cf3fbe6e4147b2c39dd4cf1c7dae.identity.oraclecloud.com/oauth2/v1/authorize?response_mode=form_post&response_type=id_token&scope=openid&IDCS_CG_ENC_VER=v2&state=poE56uvRA9j6Mc5UaG3X1bPQc10DvxdOe4rduxqGpKs&nonce=Lg7UE1XuxmRuM4xCd2DaoSxoIe5Uq-eBt8FWkusA6cA&IDCS_IS_CLOUDGATE=true&X-HOST-IDENTIFIER-NAME=egug.fa.us2.oraclecloud.com%3A443&idcs_app_name=FAAppResource_11-13-26-07-0-08000_APPID&idcs_app_resource_url=https%3A%2F%2Fegug.fa.us2.oraclecloud.com%3A443%2FfscmUI%2FadfAuthentication%3Flevel%3DFORM%26success_url%3D%252FfscmUI%252Ffaces%252FAtkHomePageWelcome%253F_adf.no-new-window-redirect%253Dtrue&client_id=173cb36018664470ae18a29ebae69c95_APPID&IDCS_CG_ENC=true&enc=_kk5ZlQdCiCzAgAAeQIAABAgeQIAAF8CAAAQAK8fbE1YS82kW4dqf7SR8em6MnhQZnuE2fW1W6AHWN9kpmlZ8Uc-_iXcgxxdw4aiJEt54het6dQhIgg7drDLYQSDouLABwba0kI0Gd0WOm3FxY3MibtPdPJ1wAYY15kVP6Saj4JFsmBberJUFchdqCpo7vM0MbMAQswuIEhdFaLvW2Z5rZljGXoMGplgJdM8Ylu4i0pw46pGrFPBCYCTf2cRqZkvV-tnidtVQCwa6ddggfmIWU-bHzRY3DFgCogOsJyEVQM27P9jFtuZSuSr8GB56VCr5Jp1M-qN9ddnBwOfWcFRmVuHW-NMcxR9zEr1KVGAhTbcMR7hHL79YtrtgrV6swy8VdePt6AZb8jKz7Cm72ykaQPGqYslOMQHMR23or_BwMZBIyRK5C-eunc04xumYCpwEegbcqgIoTK22m4VcLVtfR7AOLCZ4dszbAxcOgFD4bcwJyw6cDdn76k319lrAAqGxicxCeWmAE22zDLwFDf10SWwHg5dadCdYAO-1E-PJtimlXdWLRSrwBfbEfskocKIN2a1asJi7T_mebwyHSswbbFhxgtIYu0ZkUjgnGnJrHf-wLpcRQReusWIQsolUw0czrPoFaviB5O1AwpPKfVox4QPbVLvFZf5XS_KEp4IZ8f0UdXIO8NqGoizs79Z2xlnumkEg2VQjZtjoHEB5dbnuf0R7ScVXx3s1HM2b3p83VkJuUDNc5fOQVna1wRpAgIiWkpuaCbOH7mWnnaE29qDDf4FvCN2NNbWnymTCOFOJ8zyCDJ_FPiKdxOqMc2ruQJq3hfVgntOXXHTIdmLwA4vzlgRJBiuNcV8_J-IIaImb8QrL1XG046-cG7_Jd8SEd9VtXrgqgEPYv6hBrwbNuFwiBVc3H0gcWZTZd4d",
+                "url": "https://idcs-a379cf3fbe6e4147b2c39dd4cf1c7dae.identity.oraclecloud.com/oauth2/v1/authorize?response_mode=form_post&response_type=id_token&scope=openid&IDCS_CG_ENC_VER=v2&state=-5pDI2AFBZJxcDe4OAE6dJ2ESegG1ZQmOS2AM0CCCfk&nonce=tPEM9-PjPRLB09ci7S35Z_bwQCsuZiDCc1MXCz7Jb7Y&IDCS_IS_CLOUDGATE=true&X-HOST-IDENTIFIER-NAME=egug.fa.us2.oraclecloud.com%3A443&idcs_app_name=FAAppResource_11-13-26-07-0-08000_APPID&idcs_app_resource_url=https%3A%2F%2Fegug.fa.us2.oraclecloud.com%3A443%2FfscmUI%2FadfAuthentication%3Flevel%3DFORM%26success_url%3D%252FfscmUI%252Ffaces%252FAtkHomePageWelcome%253F_adf.no-new-window-redirect%253Dtrue&client_id=173cb36018664470ae18a29ebae69c95_APPID&IDCS_CG_ENC=true&enc=ZS51iwozcnqzAgAAeQIAABAgeQIAAF8CAAAQACr7J7npx2Z06IFxSAyMe_FhDUGmrngwGq4_9LHKl1DfU2Snz32W2qqxO27SV_aGKx__ajsNO3NXDHMDgDnQrcBxXaU4xNBMlW22NzIVK6CaSkau_TPULMvUM-fa04J4zxACqAT6c3QOoa_5mOEKaYtXExxViNa8YexBe8lW4gwi2hsoeTkH4gh1k5nGfMvnu2Ghg_IYQK01xMlx1qcBUTyFI2cORCPqFKm9D3V6c9fF3xsgBf7-sQKX0zmY3nBZ_HSu4b3zJOSaqF1i2GbsJ1KNB0ecWB5pG1Q7NOktuKGySTVJQtD54OIJ3qO3olyIPAQwDE0VGc6Ys1uw95ST0vOqhzNw17aRKPbDpu0u904NrwJeXRyJ_j-uLs4ko5HGVk6HxjysVmv9Nd305wMRcre8k5a323QHlWMkCPbNZQm6vvERnDeEGh34LXpg0ESdLTmVZeNS-MOM7jP1TYXW41r9Pc1JwW161cJhZDnJRKjcwRP-DmfeHTP4GaMTo1NjLXA50c2EkTd_XC7gnIXFSHh4V23u1PMCUoNKNKUbN4VZumVZep9Rv5zyPsjuX-dnjKcygPUdfvrJfsFuSyEk4inYl5SfOxkG-ogGyz0tgN_fOvPOQMHcGmZpcd6KOz6bjcx58FKdrFbL-H6FYfRDVmGQza0ZUKgBjPNi8Zyz5j33s5BSkoltOBACbJ1Qn0dX3IUrTDezUJ_Fv-0xdlSFvck_P1_XNt-q5br6_UHIJQOUg1cSRl-HIUD7NeyX0U-21r_0ACO2vd9NvuC_7yXDnJjo5iqGRunr4ggiUxYJq5gcDVoqIGvgRo2bfJk2UZYTrHzxZPnyhh9QXx0w7zhaqv_s0rbEmErT9LBvM5Es10srzkMeiti4c3wPQPw0Igo2",
                 "status": 303
               },
               {
@@ -5550,22 +5779,17 @@
                 "status": 302
               },
               {
-                "url": "https://aexp.okta.com/app/americanexpressproduction_hcmmyhrprod_1/exknu2qgij00pu8k10x7/sso/saml?SAMLRequest=hVNdb%2BIwEPwrkfuc2EmggEWo6HFVqfpBD%2B5U8VIZewM%2BEju1nQL%2F%2Fhy4SL2TSt%2Bs9czu7M7u8GpfFsE7GCu1ylAcERSA4lpItc7Qz8VN2EeBdUwJVmgFGTqARVejoWVlUdFx7TbqB7zVYF3gEylL911CMlQbRTWz0lLFSrDUcTofP9zTJCK0MjqXhQ8y54xc1Q7oiyehNoGVGdo4V1GMd7tdtEsjbdY4ISTGLw%2F3c76BkoVSNaI4tKxGz%2FmyzFowznfZUnybnxYiHexBHnHRooWV60%2FgBJNBA28gFx8FVV8OwmmuCxTM%2Fr6upToN%2FhxtdQJZertYzMLZ03yBghttOBzdyFDOCuvnMvGeSMXc0ddGt%2FXCGeyrSG8di7guMasq7NMbyZnyHwas9ZpEzRvS64aX5WFjmshrjGG%2FVXXytpa%2FCanq%2FjYm%2Bx62VuOmURRMra1hejTFZSghyWUYk5Cki5jQbky7%2FSUKfrVbljRbNp1kSIowdhsehnfP9%2Bn3yd1tvZz1r9%2BnTwuYLp9DdNozekxumiZL5s4Pp4n4rPkR6i120h3QqG1fCm5DlvYGPE%2FzFVxCJ%2B70VglPB0J0eB7znmAQSXHieX8ZL4AXuhbNvGink%2BIcxBB%2FUNWewqMvPJ3MdCH5IRgXhd59M8CcvxhnakBfio%2Bj%2BD%2FxtbIVcJlLEAiPTkX%2FPbnRHw%3D%3D&RelayState=RreV&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=yHIpT0qbBfMmwsS4%2F2fcAO%2B0F9IqmmkNykEJEr8EXhmo%2FA%2Bt1TNfKimyIOaieHzNuB%2ByGzqJuJEUR%2B170OLcD53PSwY57YnY0silHtO71HicMrNbUjCIycGM6XfRp%2BOqCgVPk6Vl3mqxdzb4hdCTraj91ytxmL7U9%2BbYSrX5bwF0hjaEmJ%2Bn43zT6WrLsNmfzMsD%2BX1De33rBSSdV4KTKmpCQX76KUyKJqxoiImK853SnhoY%2FDT2zqY0nCNqhne2WXaLgiX2oQAsXXVnVuIAO04P0MOfBDnAxLzdVv4no72%2F9MESm80zNZjcCRRMp3HwTKDryHa5P4%2Bhf7jvG9ZWrw%3D%3D",
+                "url": "https://aexp.okta.com/app/americanexpressproduction_hcmmyhrprod_1/exknu2qgij00pu8k10x7/sso/saml?SAMLRequest=hVPbTuMwEP2VyDwndi5QajVFQEFUC2y17aJqX5BrT1pvEzvYDr18%2FTrtRmJXorxZ43NmzsyZGVxtqzJ4B2OlVjmKI4ICUFwLqZY5%2Bjm7Dy9RYB1TgpVaQY52YNHVcGBZVdb0unEr9QPeGrAu8ImUpdtzQnLUGEU1s9JSxSqw1HE6vX56pElEaG10IUsfZM4ZuWgc0LknoS6BlTlaOVdTjDebTbRJI22WOCEkxvOnxylfQcVCqVpRHDpWq%2Bd0WWYtGOe77Ci%2BzU8LkQx7kEecdWhh5fITOMGk38JbyNlHQfWXg3Ca6xIFk7%2BvG6mOgz9FWxxBlj7MZpNw8n06Q8G9NhwObuSoYKX1cxl5T6Ri7uBrq9t64Qy2daTXjkVcV5jVNfbpjeRM%2BQ8D1npNouEt6XXFq2q3Mm3kNcawXasmeVvK34TUzeU6JtsetlbjtlEUjK1tYHwwxeUoIclFGJOQnM%2FihKY9mvV%2FoeCl27Kk3bLxKEdShPvsbl5M9y%2B8eTDv87s63LPR7beb5WK%2BDtFxz%2BghuWmbrJg7PZw24rMWB6i32Em3Q8OufSm4DVna6%2FMiLRZwAVmc9RYJT%2FtCZLyIeU8wiKQ48ry%2FjJfAS92Idl40y1JcgBjgD6q6U3j2hcejiS4l3wXXZak3twaY8xfjTAPoS%2FFxFP8nvlG2Bi4LCQLh4bHovyc3%2FAM%3D&RelayState=S43X&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=NIkYqH0QVEQt5Tmd16XofpI9XN84Sh2chk1x3Nnm5HT9WxMqLjVJr%2FRfQQ9ct1z8D71cmUa7t4oAISwU8%2BjjPatfgtS%2B7kMsa%2BOZV2imRk8Nx4MABBOBkW1Wi2bbOXjr2Yb8mpo3sAR0Y62cPFi9gmD0sxFJFzmjzSG5VdlsbXRpDjdl3KzcMg9IY%2B8fVfJgQR1sV88ZcvoGBui5neq%2BX8%2BHC5pOT6IaXlPpE9Rk4HMZmjY04ccWLzmZ6jqp8ZuyhaZSg%2FPJ70osPJMsdLw5HdLqx%2B3PTVVb0%2FYQ9%2B5iqt%2FfMWJYNkhnd6SmwHUErr4bggJhrEOygwIT%2FLVQqXnjcA%3D%3D",
                 "status": 200
               }
             ],
-            "final_url": "https://aexp.okta.com/app/americanexpressproduction_hcmmyhrprod_1/exknu2qgij00pu8k10x7/sso/saml?SAMLRequest=hVNdb%2BIwEPwrkfuc2EmggEWo6HFVqfpBD%2B5U8VIZewM%2BEju1nQL%2F%2Fhy4SL2TSt%2Bs9czu7M7u8GpfFsE7GCu1ylAcERSA4lpItc7Qz8VN2EeBdUwJVmgFGTqARVejoWVlUdFx7TbqB7zVYF3gEylL911CMlQbRTWz0lLFSrDUcTofP9zTJCK0MjqXhQ8y54xc1Q7oiyehNoGVGdo4V1GMd7tdtEsjbdY4ISTGLw%2F3c76BkoVSNaI4tKxGz%2FmyzFowznfZUnybnxYiHexBHnHRooWV60%2FgBJNBA28gFx8FVV8OwmmuCxTM%2Fr6upToN%2FhxtdQJZertYzMLZ03yBghttOBzdyFDOCuvnMvGeSMXc0ddGt%2FXCGeyrSG8di7guMasq7NMbyZnyHwas9ZpEzRvS64aX5WFjmshrjGG%2FVXXytpa%2FCanq%2FjYm%2Bx62VuOmURRMra1hejTFZSghyWUYk5Cki5jQbky7%2FSUKfrVbljRbNp1kSIowdhsehnfP9%2Bn3yd1tvZz1r9%2BnTwuYLp9DdNozekxumiZL5s4Pp4n4rPkR6i120h3QqG1fCm5DlvYGPE%2FzFVxCJ%2B70VglPB0J0eB7znmAQSXHieX8ZL4AXuhbNvGink%2BIcxBB%2FUNWewqMvPJ3MdCH5IRgXhd59M8CcvxhnakBfio%2Bj%2BD%2FxtbIVcJlLEAiPTkX%2FPbnRHw%3D%3D&RelayState=RreV&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=yHIpT0qbBfMmwsS4%2F2fcAO%2B0F9IqmmkNykEJEr8EXhmo%2FA%2Bt1TNfKimyIOaieHzNuB%2ByGzqJuJEUR%2B170OLcD53PSwY57YnY0silHtO71HicMrNbUjCIycGM6XfRp%2BOqCgVPk6Vl3mqxdzb4hdCTraj91ytxmL7U9%2BbYSrX5bwF0hjaEmJ%2Bn43zT6WrLsNmfzMsD%2BX1De33rBSSdV4KTKmpCQX76KUyKJqxoiImK853SnhoY%2FDT2zqY0nCNqhne2WXaLgiX2oQAsXXVnVuIAO04P0MOfBDnAxLzdVv4no72%2F9MESm80zNZjcCRRMp3HwTKDryHa5P4%2Bhf7jvG9ZWrw%3D%3D",
+            "final_url": "https://aexp.okta.com/app/americanexpressproduction_hcmmyhrprod_1/exknu2qgij00pu8k10x7/sso/saml?SAMLRequest=hVPbTuMwEP2VyDwndi5QajVFQEFUC2y17aJqX5BrT1pvEzvYDr18%2FTrtRmJXorxZ43NmzsyZGVxtqzJ4B2OlVjmKI4ICUFwLqZY5%2Bjm7Dy9RYB1TgpVaQY52YNHVcGBZVdb0unEr9QPeGrAu8ImUpdtzQnLUGEU1s9JSxSqw1HE6vX56pElEaG10IUsfZM4ZuWgc0LknoS6BlTlaOVdTjDebTbRJI22WOCEkxvOnxylfQcVCqVpRHDpWq%2Bd0WWYtGOe77Ci%2BzU8LkQx7kEecdWhh5fITOMGk38JbyNlHQfWXg3Ca6xIFk7%2BvG6mOgz9FWxxBlj7MZpNw8n06Q8G9NhwObuSoYKX1cxl5T6Ri7uBrq9t64Qy2daTXjkVcV5jVNfbpjeRM%2BQ8D1npNouEt6XXFq2q3Mm3kNcawXasmeVvK34TUzeU6JtsetlbjtlEUjK1tYHwwxeUoIclFGJOQnM%2FihKY9mvV%2FoeCl27Kk3bLxKEdShPvsbl5M9y%2B8eTDv87s63LPR7beb5WK%2BDtFxz%2BghuWmbrJg7PZw24rMWB6i32Em3Q8OufSm4DVna6%2FMiLRZwAVmc9RYJT%2FtCZLyIeU8wiKQ48ry%2FjJfAS92Idl40y1JcgBjgD6q6U3j2hcejiS4l3wXXZak3twaY8xfjTAPoS%2FFxFP8nvlG2Bi4LCQLh4bHovyc3%2FAM%3D&RelayState=S43X&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=NIkYqH0QVEQt5Tmd16XofpI9XN84Sh2chk1x3Nnm5HT9WxMqLjVJr%2FRfQQ9ct1z8D71cmUa7t4oAISwU8%2BjjPatfgtS%2B7kMsa%2BOZV2imRk8Nx4MABBOBkW1Wi2bbOXjr2Yb8mpo3sAR0Y62cPFi9gmD0sxFJFzmjzSG5VdlsbXRpDjdl3KzcMg9IY%2B8fVfJgQR1sV88ZcvoGBui5neq%2BX8%2BHC5pOT6IaXlPpE9Rk4HMZmjY04ccWLzmZ6jqp8ZuyhaZSg%2FPJ70osPJMsdLw5HdLqx%2B3PTVVb0%2FYQ9%2B5iqt%2FfMWJYNkhnd6SmwHUErr4bggJhrEOygwIT%2FLVQqXnjcA%3D%3D",
             "status": 200,
             "signals": [
               "oracle provider fingerprint",
               "linked from employer site"
             ],
             "score": 9
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Oracle endpoint retired (redirected to 404): https://careers.americanexpress.com/errors/404",
-            "invalidated_at": "2026-10-04T22:45:16Z"
           }
         ]
       },
@@ -6220,8 +6444,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -6229,11 +6453,6 @@
             "domain_hint": "boards.greenhouse.io/anduril",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/anduril"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -7017,8 +7236,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -7026,11 +7245,6 @@
             "domain_hint": "boards.greenhouse.io/aqr-capital",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/aqr-capital"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -16276,76 +16490,32 @@
         }
       },
       "careers_resolution": {
-        "status": "unresolved",
-        "attempt_status": "unresolved",
-        "last_attempt_at": "2026-09-17T23:48:05Z",
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
-            "type": "http",
-            "source": "input-hint",
-            "requested_url": "https://darden.paradox.ai/",
-            "redirect_chain": [
-              {
-                "url": "https://darden.paradox.ai/",
-                "status": 302
-              },
-              {
-                "url": "https://darden.paradox.ai/login",
-                "status": 200
-              }
-            ],
-            "final_url": "https://darden.paradox.ai/login",
-            "status": 200,
-            "signals": [
-              "employer domain"
-            ],
-            "score": 2
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://darden.paradox.ai/careers",
-            "redirect_chain": [
-              {
-                "url": "https://darden.paradox.ai/careers",
-                "status": 404
-              }
-            ],
-            "final_url": "https://darden.paradox.ai/careers",
-            "status": 404,
-            "signals": [
-              "careers path",
-              "employer domain"
-            ],
-            "score": 5
-          },
-          {
-            "type": "http",
-            "source": "conventional-path",
-            "requested_url": "https://darden.paradox.ai/jobs",
-            "redirect_chain": [
-              {
-                "url": "https://darden.paradox.ai/jobs",
-                "status": 302
-              },
-              {
-                "url": "https://darden.paradox.ai/login?next=%2Fjobs",
-                "status": 200
-              }
-            ],
-            "final_url": "https://darden.paradox.ai/login?next=%2Fjobs",
-            "status": 200,
-            "signals": [
-              "employer domain"
-            ],
-            "score": 2
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "darden.paradox.ai",
+            "ats_system": "Paradox",
+            "source_url": "https://withresumeai.com/ats-checker/darden-restaurants"
           }
         ]
       },
       "domain_hints": [
         "darden.com",
         "darden.paradox.ai"
-      ]
+      ],
+      "careers_platform": "paradox",
+      "provider": {
+        "family": "paradox",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "paradox.ai",
+        "host": "darden.paradox.ai"
+      }
     },
     {
       "id": "darpa",
@@ -17711,8 +17881,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-03T10:50:14Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "http",
@@ -19452,8 +19622,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -19461,11 +19631,6 @@
             "domain_hint": "job-boards.greenhouse.io/epic-games",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/epic-games"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -19689,7 +19854,7 @@
     },
     {
       "id": "estee-lauder",
-      "name": "Est\u00e9e Lauder",
+      "name": "Estée Lauder",
       "aliases": [],
       "seed_sets": [
         "fortune-500-2026",
@@ -21084,20 +21249,116 @@
           "rank": 392
         }
       },
-      "careers_url": "https://fmtc.co/careers",
-      "careers_platform": "company-branded",
+      "careers_url": "https://careers.fm.com/careers-home",
+      "careers_platform": "icims",
       "provider": {
-        "family": "custom_unknown",
-        "status": "unresolved",
-        "evidence": "no_known_provider_marker",
-        "host": "fmtc.co"
+        "family": "icims",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "icims.com",
+        "host": "careers.fm.com"
       },
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-20T18:37:29Z",
-        "last_attempt_at": "2026-09-20T18:37:29Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://fm.com/",
+            "redirect_chain": [
+              {
+                "url": "https://fm.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.fm.com/",
+                "status": 403
+              }
+            ],
+            "final_url": "https://www.fm.com/",
+            "status": 403,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://fm.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://fm.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.fm.com/careers",
+                "status": 403
+              }
+            ],
+            "final_url": "https://www.fm.com/careers",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://fm.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://fm.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.fm.com/jobs",
+                "status": 403
+              }
+            ],
+            "final_url": "https://www.fm.com/jobs",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.fm.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.fm.com/",
+                "status": 302
+              },
+              {
+                "url": "https://careers.fm.com/careers-home/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.fm.com/careers-home/",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.fm.com/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='jobs.fm.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='jobs.fm.com', port=443): Failed to resolve 'jobs.fm.com' ([Errno -2] Name or service not known)\"))"
+          },
           {
             "type": "http",
             "source": "input-hint",
@@ -21115,10 +21376,11 @@
             "final_url": "https://www.fmtc.co/",
             "status": 200,
             "signals": [
+              "workable provider fingerprint",
               "careers page content",
               "employer domain"
             ],
-            "score": 4
+            "score": 9
           },
           {
             "type": "http",
@@ -21155,6 +21417,70 @@
               "employer domain"
             ],
             "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.fmtc.co/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='careers.fmtc.co', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='careers.fmtc.co', port=443): Failed to resolve 'careers.fmtc.co' ([Errno -2] Name or service not known)\"))"
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.fmtc.co/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='jobs.fmtc.co', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='jobs.fmtc.co', port=443): Failed to resolve 'jobs.fmtc.co' ([Errno -2] Name or service not known)\"))"
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://us-careers-fm.icims.com/jobs/login?loginOnly=1",
+            "linked_from": "https://careers.fm.com/careers-home/",
+            "redirect_chain": [
+              {
+                "url": "https://us-careers-fm.icims.com/jobs/login?loginOnly=1",
+                "status": 200
+              }
+            ],
+            "final_url": "https://us-careers-fm.icims.com/jobs/login?loginOnly=1",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers path",
+              "linked from employer site"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://careers.fm.com/internal/jobs",
+            "linked_from": "https://careers.fm.com/careers-home/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.fm.com/internal/jobs",
+                "status": 302
+              },
+              {
+                "url": "https://careers.fm.com/auth/auth0?internal=true",
+                "status": 302
+              },
+              {
+                "url": "https://login.icims.com/authorize?connection=hs-15595-azure&ui_locales=en-US&nonce=e34621b22758f99c7e3efca4087a7fd6&organization=org_oNpKuT1lFyzoimgx&response_type=code&redirect_uri=https%3A%2F%2Ffm.jibeapply.com%2Fapi%2Fapplicants%2Foidp-response%3FcnameHost%3Dhttps%3A%2F%2Fcareers.fm.com%26context%3Dinternal&scope=openid%20email%20profile&state=5ZrOPutdIqdSubQwcXMGOFtW&client_id=kRwnBoaw4MwKYHMEiQitHm2dnRq4YA1l",
+                "status": 302
+              },
+              {
+                "url": "https://login.microsoftonline.com/fmglobal.onmicrosoft.com/oauth2/v2.0/authorize?response_type=code&client_id=5bc1c946-df33-4ce7-9dde-fa2c745d58ce&redirect_uri=https%3A%2F%2Flogin.icims.com%2Flogin%2Fcallback&nonce=0U%2BwfHcvLs4ebLJ0xCfz&scope=openid%20profile%20email&state=yHYBBW_Xq7jg0o71PqDDBKuTdb6mhyuT",
+                "status": 200
+              }
+            ],
+            "final_url": "https://login.microsoftonline.com/fmglobal.onmicrosoft.com/oauth2/v2.0/authorize?response_type=code&client_id=5bc1c946-df33-4ce7-9dde-fa2c745d58ce&redirect_uri=https%3A%2F%2Flogin.icims.com%2Flogin%2Fcallback&nonce=0U%2BwfHcvLs4ebLJ0xCfz&scope=openid%20profile%20email&state=yHYBBW_Xq7jg0o71PqDDBKuTdb6mhyuT",
+            "status": 200,
+            "signals": [
+              "icims provider fingerprint",
+              "careers link text",
+              "linked from employer site"
+            ],
+            "score": 12
           }
         ]
       },
@@ -24367,8 +24693,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -24376,11 +24702,6 @@
             "domain_hint": "boards.greenhouse.io/hudson-river-trading",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/hudson-river-trading"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -24410,7 +24731,30 @@
       "domain_hints": [
         "apply.workable.com",
         "huggingface.co"
-      ]
+      ],
+      "careers_platform": "workable",
+      "provider": {
+        "family": "workable",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "workable.com",
+        "host": "apply.workable.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "apply.workable.com",
+            "ats_system": "Workable",
+            "source_url": "https://withresumeai.com/ats-checker/hugging-face"
+          }
+        ]
+      }
     },
     {
       "id": "humana",
@@ -24519,8 +24863,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-03T10:50:14Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "http",
@@ -24585,13 +24929,46 @@
             "type": "http",
             "source": "input-hint",
             "requested_url": "https://hii.com/",
-            "error": "ConnectionError: HTTPSConnectionPool(host='hii.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='hii.com', port=443): Failed to resolve 'hii.com' ([Errno -3] Temporary failure in name resolution)\"))"
+            "redirect_chain": [
+              {
+                "url": "https://hii.com/",
+                "status": 307
+              },
+              {
+                "url": "https://www.hii.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.hii.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
           },
           {
             "type": "http",
             "source": "conventional-path",
             "requested_url": "https://hii.com/careers",
-            "error": "ConnectionError: HTTPSConnectionPool(host='hii.com', port=443): Max retries exceeded with url: /careers (Caused by NameResolutionError(\"HTTPSConnection(host='hii.com', port=443): Failed to resolve 'hii.com' ([Errno -3] Temporary failure in name resolution)\"))"
+            "redirect_chain": [
+              {
+                "url": "https://hii.com/careers",
+                "status": 307
+              },
+              {
+                "url": "https://www.hii.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.hii.com/careers",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
           },
           {
             "type": "http",
@@ -24661,7 +25038,7 @@
             "type": "http",
             "source": "employer-link",
             "requested_url": "https://www.hii.com/careers",
-            "linked_from": "https://www.hii.com/careers",
+            "linked_from": "https://www.hii.com/",
             "redirect_chain": [
               {
                 "url": "https://www.hii.com/careers",
@@ -26070,8 +26447,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -26079,11 +26456,6 @@
             "domain_hint": "job-boards.greenhouse.io/jane-street",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/jane-street"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -27697,8 +28069,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -27706,11 +28078,6 @@
             "domain_hint": "job-boards.greenhouse.io/khan-academy",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/khan-academy"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -27950,7 +28317,30 @@
       "domain_hints": [
         "jobs.jobvite.com",
         "knighttrans.com"
-      ]
+      ],
+      "careers_platform": "jobvite",
+      "provider": {
+        "family": "jobvite",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "jobvite.com",
+        "host": "jobs.jobvite.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "jobs.jobvite.com",
+            "ats_system": "Jobvite",
+            "source_url": "https://withresumeai.com/ats-checker/knight-swift"
+          }
+        ]
+      }
     },
     {
       "id": "kohl-s",
@@ -29806,8 +30196,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -29815,11 +30205,6 @@
             "domain_hint": "job-boards.greenhouse.io/lucid-motors",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/lucid-motors"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -30461,8 +30846,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -30470,11 +30855,6 @@
             "domain_hint": "job-boards.greenhouse.io/marqeta",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/marqeta"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -31173,7 +31553,30 @@
       "domain_hints": [
         "app.jobvite.com",
         "mccarthy.com"
-      ]
+      ],
+      "careers_platform": "jobvite",
+      "provider": {
+        "family": "jobvite",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "jobvite.com",
+        "host": "app.jobvite.com"
+      },
+      "careers_resolution": {
+        "status": "provider_resolved",
+        "attempt_status": "verified_seed",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
+        "evidence": [
+          {
+            "type": "seed",
+            "seed_key": "state-of-ats-2026-verified-hosts",
+            "domain_hint": "app.jobvite.com",
+            "ats_system": "Jobvite",
+            "source_url": "https://withresumeai.com/ats-checker/mccarthy-building"
+          }
+        ]
+      }
     },
     {
       "id": "mccormick",
@@ -32100,8 +32503,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -32109,11 +32512,6 @@
             "domain_hint": "boards.greenhouse.io/mlb",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/mlb"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -32431,7 +32829,7 @@
     },
     {
       "id": "mondelez-international",
-      "name": "Mondel\u0113z International",
+      "name": "Mondelēz International",
       "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
@@ -33127,8 +33525,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -33136,11 +33534,6 @@
             "domain_hint": "job-boards.greenhouse.io/new-relic",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/new-relic"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -35992,8 +36385,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -36001,11 +36394,6 @@
             "domain_hint": "job-boards.greenhouse.io/pure-storage",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/pure-storage"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -36763,8 +37151,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -36772,11 +37160,6 @@
             "domain_hint": "job-boards.greenhouse.io/riot-games",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/riot-games"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -37268,8 +37651,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-03T10:50:14Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "http",
@@ -37592,8 +37975,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-03T10:50:14Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "http",
@@ -38012,8 +38395,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -38021,11 +38404,6 @@
             "domain_hint": "job-boards.greenhouse.io/scale-ai",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/scale-ai"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -38248,8 +38626,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -38257,11 +38635,6 @@
             "domain_hint": "job-boards.greenhouse.io/sentinelone",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/sentinelone"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -39358,8 +39731,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -39367,11 +39740,6 @@
             "domain_hint": "job-boards.greenhouse.io/sony-music",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/sony-music"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -39822,8 +40190,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -39831,11 +40199,6 @@
             "domain_hint": "jobs.lever.co/spotify-studios",
             "ats_system": "Lever",
             "source_url": "https://withresumeai.com/ats-checker/spotify-studios"
-          },
-          {
-            "type": "invalidation",
-            "reason": "Lever board retired: 404",
-            "invalidated_at": "2026-10-04T22:45:20Z"
           }
         ]
       },
@@ -39949,8 +40312,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-09-23T06:52:22Z",
-        "last_attempt_at": "2026-09-23T06:52:22Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "http",
@@ -39968,7 +40331,7 @@
               "workday provider fingerprint",
               "employer domain"
             ],
-            "score": 22
+            "score": 7
           },
           {
             "type": "http",
@@ -39987,7 +40350,7 @@
               "careers path",
               "employer domain"
             ],
-            "score": 25
+            "score": 10
           },
           {
             "type": "http",
@@ -40006,7 +40369,96 @@
               "careers path",
               "employer domain"
             ],
-            "score": 25
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.sbdinc.wd1.myworkdayjobs.com/",
+            "error": "SSLError: HTTPSConnectionPool(host='careers.sbdinc.wd1.myworkdayjobs.com', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLError(1, '[SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:1010)')))"
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.sbdinc.wd1.myworkdayjobs.com/",
+            "error": "SSLError: HTTPSConnectionPool(host='jobs.sbdinc.wd1.myworkdayjobs.com', port=443): Max retries exceeded with url: / (Caused by SSLError(SSLError(1, '[SSL: SSLV3_ALERT_HANDSHAKE_FAILURE] sslv3 alert handshake failure (_ssl.c:1010)')))"
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://stanleyblackanddecker.com/",
+            "redirect_chain": [
+              {
+                "url": "https://stanleyblackanddecker.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.stanleyblackanddecker.com/",
+                "status": 403
+              }
+            ],
+            "final_url": "https://www.stanleyblackanddecker.com/",
+            "status": 403,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://stanleyblackanddecker.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://stanleyblackanddecker.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.stanleyblackanddecker.com/careers",
+                "status": 403
+              }
+            ],
+            "final_url": "https://www.stanleyblackanddecker.com/careers",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://stanleyblackanddecker.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://stanleyblackanddecker.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.stanleyblackanddecker.com/jobs",
+                "status": 403
+              }
+            ],
+            "final_url": "https://www.stanleyblackanddecker.com/jobs",
+            "status": 403,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.stanleyblackanddecker.com/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='careers.stanleyblackanddecker.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='careers.stanleyblackanddecker.com', port=443): Failed to resolve 'careers.stanleyblackanddecker.com' ([Errno -2] Name or service not known)\"))"
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.stanleyblackanddecker.com/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='jobs.stanleyblackanddecker.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='jobs.stanleyblackanddecker.com', port=443): Failed to resolve 'jobs.stanleyblackanddecker.com' ([Errno -2] Name or service not known)\"))"
           }
         ]
       },
@@ -41146,8 +41598,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -41155,11 +41607,6 @@
             "domain_hint": "job-boards.greenhouse.io/take-two-interactive",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/take-two-interactive"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -41843,8 +42290,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -41852,11 +42299,6 @@
             "domain_hint": "job-boards.greenhouse.io/new-york-times",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/new-york-times"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
@@ -43865,8 +44307,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -43874,11 +44316,6 @@
             "domain_hint": "jobs.lever.co/veeva-systems",
             "ats_system": "Lever",
             "source_url": "https://withresumeai.com/ats-checker/veeva-systems"
-          },
-          {
-            "type": "invalidation",
-            "reason": "Lever board retired: 404",
-            "invalidated_at": "2026-10-04T22:45:21Z"
           }
         ]
       },
@@ -44428,8 +44865,8 @@
       "careers_resolution": {
         "status": "provider_resolved",
         "attempt_status": "verified_seed",
-        "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-10-05T12:36:58Z",
+        "last_attempt_at": "2026-10-05T12:36:58Z",
         "evidence": [
           {
             "type": "seed",
@@ -44437,11 +44874,6 @@
             "domain_hint": "job-boards.greenhouse.io/vox-media",
             "ats_system": "Greenhouse",
             "source_url": "https://withresumeai.com/ats-checker/vox-media"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-04T22:46:12Z"
           }
         ]
       },
