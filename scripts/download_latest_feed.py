@@ -8,7 +8,7 @@ runtime payload without requiring generated data commits on main.
 from __future__ import annotations
 
 import argparse
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import io
 import json
 import os
