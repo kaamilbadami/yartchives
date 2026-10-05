@@ -90,10 +90,15 @@ class EmployerResolutionQueueTests(unittest.TestCase):
             "no_domain_hint": 1,
         })
 
-    def test_ready_priority_is_fortune_then_verified_ats_then_other(self):
+    def test_ready_priority_is_benchmark_then_verified_ats_then_fortune_then_other(self):
         universe = self.universe()
         universe["employers"] = [
-            self.employer("other", "Other", {"benchmark-a": {
+            self.employer("benchmark", "Benchmark", {"benchmark-a": {
+                "domain_hints": ["benchmark.example"],
+                "evidence_count": 100,
+                "authoritative_evidence_count": 100,
+            }}),
+            self.employer("other", "Other", {"catalog": {
                 "domain_hints": ["other.example"],
                 "evidence_count": 100,
                 "authoritative_evidence_count": 100,
@@ -113,10 +118,10 @@ class EmployerResolutionQueueTests(unittest.TestCase):
         ]
 
         rows = mod.build_queue(universe, ready_only=True)["employers"]
-        self.assertEqual([row["id"] for row in rows], ["fortune", "both", "ats", "other"])
+        self.assertEqual([row["id"] for row in rows], ["benchmark", "ats", "fortune", "both", "other"])
         self.assertEqual(
             [row["resolution_priority_label"] for row in rows],
-            ["fortune-500", "fortune-500", "verified-ats", "other"],
+            ["coverage-benchmark", "verified-ats", "fortune-500", "fortune-500", "other"],
         )
 
     def test_tenant_path_makes_shared_provider_hint_ready(self):
@@ -169,7 +174,7 @@ class EmployerResolutionQueueTests(unittest.TestCase):
         ]
 
         rows = mod.build_queue(universe, ready_only=True)["employers"]
-        self.assertEqual([row["id"] for row in rows], ["ats", "other"])
+        self.assertEqual([row["id"] for row in rows], ["other", "ats"])
 
 if __name__ == "__main__":
     unittest.main()
