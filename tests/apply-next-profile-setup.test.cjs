@@ -97,6 +97,7 @@ const profile = Setup.buildProfile({
   citizenship: "Unknown / not provided",
   workAuthorization: "Unknown / not provided",
   securityClearance: "Unknown / not provided",
+  priorInternship: "none",
   supportedSkills: hints.supportedSkills,
   cautiousSkills: "Python, Bash",
   experienceEvidence: (hints.workExperienceEvidence || []).join("\n"),
@@ -117,6 +118,7 @@ assert.equal(profile.facts.studentStage, "Sophomore");
 assert.equal(profile.facts.degree, "Bachelor of Science");
 assert.equal(profile.facts.citizenship, "Unknown / not provided");
 assert.equal(profile.facts.workAuthorization, "Unknown / not provided");
+assert.equal(profile.facts.priorInternship, "none");
 assert.deepEqual(profile.baseZips, ["20740", "06897"]);
 assert.ok(profile.supportedKeywords.includes("software engineer"));
 assert.ok(profile.supportedKeywords.includes("Linux"));
@@ -294,6 +296,81 @@ assert.ok(combinedProfile.preferredProfiles.includes("engineering"));
 }
 
 (async () => {
+  const fakeDoc = {
+    location: { href: "https://kaamilbadami.github.io/yartchives/" },
+    querySelector(selector) {
+      if (selector !== 'meta[name="yartchives-analytics-endpoint"]') return null;
+      return { getAttribute() { return "https://example.workers.dev/collect"; } };
+    },
+  };
+  assert.equal(Setup.aiProfileEndpoint(fakeDoc), "https://example.workers.dev/ai/profile");
+
+  const storageValues = new Map();
+  const storage = {
+    getItem(key) { return storageValues.get(key) || null; },
+    setItem(key, value) { storageValues.set(key, value); },
+  };
+  const patch = await Setup.parseIntentWithAi(
+    "I am a sophomore CS student looking for Summer 2027 software internships.",
+    {
+      endpoint: "https://example.workers.dev/ai/profile",
+      storage,
+      fetchImpl: async (_url, options) => {
+        const sent = JSON.parse(options.body);
+        assert.match(sent.clientId, /^ai-/);
+        assert.match(sent.intent, /sophomore CS student/i);
+        return {
+          ok: true,
+          async json() {
+            return {
+              ok: true,
+              patch: {
+                targetTerm: "Summer 2027",
+                studentStage: "Sophomore",
+                major: "Computer Science",
+                careerAreaIds: ["cs"],
+                roleFamilyIds: ["software"],
+                priorInternship: "none",
+              },
+            };
+          },
+        };
+      },
+    }
+  );
+  assert.equal(patch.studentStage, "Sophomore");
+  assert.match(Setup.summarizeIntentPatch(patch).join(" "), /Computer Science/);
+  assert.match(Setup.summarizeIntentPatch(patch).join(" "), /Software engineering/);
+
+  const nodes = new Map([
+    ["targetTerm", { value: "" }],
+    ["studentStage", { value: "" }],
+    ["major", { value: "" }],
+    ["priorInternship", { value: "unknown" }],
+    ["remoteRelevant", { checked: false }],
+    ["relocationAllowed", { checked: true }],
+  ]);
+  const fakeForm = {
+    querySelector(selector) {
+      const match = selector.match(/^\[name="([^"]+)"\]$/);
+      return match ? nodes.get(match[1]) || null : null;
+    },
+    querySelectorAll() { return []; },
+  };
+  Setup.applyIntentPatch(fakeForm, {
+    targetTerm: "Summer 2027",
+    studentStage: "Sophomore",
+    major: "Computer Science",
+    priorInternship: "none",
+    remoteRelevant: true,
+    relocationAllowed: false,
+  });
+  assert.equal(nodes.get("studentStage").value, "Sophomore");
+  assert.equal(nodes.get("major").value, "Computer Science");
+  assert.equal(nodes.get("priorInternship").value, "none");
+  assert.equal(nodes.get("remoteRelevant").checked, true);
+  assert.equal(nodes.get("relocationAllowed").checked, false);
+
   const textFile = {
     name: "resume.txt",
     type: "text/plain",
@@ -337,7 +414,12 @@ assert.ok(combinedProfile.preferredProfiles.includes("engineering"));
   assert.match(index, /worker-src/);
 
   const source = fs.readFileSync(path.join(__dirname, "..", "apply-next-profile-setup.js"), "utf8");
-  assert.match(source, /raw resume is never saved or uploaded/i);
+  assert.match(source, /Raw resume text stays in your browser/i);
+  assert.match(source, /Tell Yartchives what you want/);
+  assert.match(source, /Here’s what Yartchives understood/);
+  assert.match(source, /Apply these details/);
+  assert.match(source, /parseIntentWithAi/);
+  assert.match(source, /AI_CLIENT_KEY/);
   assert.match(source, /When are you looking\?/);
   assert.match(source, /Choose Computer Science, Engineering, Finance, or any combination/);
   assert.match(source, /careerArea/);
