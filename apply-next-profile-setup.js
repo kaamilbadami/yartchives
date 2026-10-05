@@ -8,6 +8,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
   const PDFJS_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs";
   const PDFJS_WORKER_URL = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
+  const AI_CLIENT_KEY = "yartchives-ai-profile-client-v1";
 
   const CAREER_AREAS = [
     { id: "cs", label: "Computer Science" },
@@ -364,6 +365,9 @@
         citizenship,
         workAuthorization,
         securityClearance: normalize(values.securityClearance) || "Unknown / not provided",
+        priorInternship: ["none", "has_prior", "unknown"].includes(normalize(values.priorInternship))
+          ? normalize(values.priorInternship)
+          : "unknown",
         supportedSkills,
         cautiousSkills,
         experienceEvidence,
@@ -442,6 +446,7 @@
       citizenship: facts.citizenship || "Unknown / not provided",
       workAuthorization: facts.workAuthorization || "Unknown / not provided",
       securityClearance: facts.securityClearance || "Unknown / not provided",
+      priorInternship: facts.priorInternship || "unknown",
       supportedSkills: (facts.supportedSkills || []).join(", "),
       cautiousSkills: (facts.cautiousSkills || []).join(", "),
       experienceEvidence: (facts.experienceEvidence || []).join("\n"),
@@ -477,6 +482,7 @@
       citizenship: get("citizenship")?.value,
       workAuthorization: get("workAuthorization")?.value,
       securityClearance: get("securityClearance")?.value,
+      priorInternship: get("priorInternship")?.value,
       supportedSkills: get("supportedSkills")?.value,
       cautiousSkills: get("cautiousSkills")?.value,
       experienceEvidence: get("experienceEvidence")?.value,
@@ -495,6 +501,120 @@
       roleFamilyIds: [...form.querySelectorAll('[name="roleFamily"]:checked')].map(node => node.value),
       opportunityTypes: [...form.querySelectorAll('[name="opportunityType"]:checked')].map(node => node.value),
     };
+  }
+
+  function aiProfileEndpoint(doc = document) {
+    const meta = doc?.querySelector?.('meta[name="yartchives-analytics-endpoint"]');
+    const configured = String(meta?.getAttribute?.("content") || "").trim();
+    if (!configured || configured.includes("__YARTCHIVES_")) return "";
+    try {
+      const url = new URL(configured, doc?.location?.href || undefined);
+      if (url.protocol !== "https:" || url.pathname !== "/collect") return "";
+      url.pathname = "/ai/profile";
+      url.search = "";
+      url.hash = "";
+      return url.toString();
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function aiClientId(storage = localStorage) {
+    const existing = String(storage?.getItem?.(AI_CLIENT_KEY) || "").trim();
+    if (/^ai-[a-z0-9-]{8,80}$/i.test(existing)) return existing;
+    const random = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+    const created = `ai-${random}`;
+    storage?.setItem?.(AI_CLIENT_KEY, created);
+    return created;
+  }
+
+  async function parseIntentWithAi(intent, {
+    endpoint = aiProfileEndpoint(),
+    storage = localStorage,
+    fetchImpl = fetch,
+  } = {}) {
+    const text = normalize(intent);
+    if (text.length < 4) throw new Error("Tell Yartchives a little more about what you want.");
+    if (!endpoint) throw new Error("Conversational setup is unavailable right now. You can still use the detailed profile below.");
+    const response = await fetchImpl(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ intent: text, clientId: aiClientId(storage) }),
+    });
+    let payload = null;
+    try { payload = await response.json(); } catch (_) {}
+    if (!response.ok || !payload?.ok || !payload.patch || typeof payload.patch !== "object") {
+      const code = String(payload?.error || "");
+      if (response.status === 429 || code.includes("limit") || code.includes("quota")) {
+        throw new Error("Conversational setup has reached its temporary usage limit. The detailed profile still works.");
+      }
+      throw new Error("Yartchives could not understand that with AI right now. The detailed profile still works.");
+    }
+    return payload.patch;
+  }
+
+  function applyIntentPatch(form, patch) {
+    if (!form || !patch || typeof patch !== "object") return;
+    const setValue = (name, value) => {
+      if (value === undefined || value === null || value === "") return;
+      const node = form.querySelector(`[name="${name}"]`);
+      if (node) node.value = String(value);
+    };
+    setValue("targetTerm", patch.targetTerm);
+    setValue("studentStage", patch.studentStage);
+    setValue("graduation", patch.graduation);
+    setValue("degree", patch.degree);
+    setValue("major", patch.major);
+    setValue("baseZips", Array.isArray(patch.baseZips) ? patch.baseZips.join(", ") : null);
+    setValue("preferredStates", Array.isArray(patch.preferredStates) ? patch.preferredStates.join(", ") : null);
+    setValue("nearbyMiles", patch.nearbyMiles);
+    setValue("citizenship", patch.citizenship);
+    setValue("workAuthorization", patch.workAuthorization);
+    setValue("priorInternship", patch.priorInternship);
+
+    for (const key of ["remoteRelevant", "relocationAllowed"]) {
+      if (typeof patch[key] === "boolean") {
+        const node = form.querySelector(`[name="${key}"]`);
+        if (node) node.checked = patch[key];
+      }
+    }
+
+    if (Array.isArray(patch.careerAreaIds) && patch.careerAreaIds.length) {
+      const wanted = new Set(patch.careerAreaIds);
+      for (const node of form.querySelectorAll('[name="careerArea"]')) node.checked = wanted.has(node.value);
+      form.querySelector('[name="careerArea"]')?.dispatchEvent?.(new Event("change", { bubbles: true }));
+    }
+    if (Array.isArray(patch.roleFamilyIds) && patch.roleFamilyIds.length) {
+      const wanted = new Set(patch.roleFamilyIds);
+      for (const node of form.querySelectorAll('[name="roleFamily"]')) node.checked = wanted.has(node.value);
+    }
+  }
+
+  function summarizeIntentPatch(patch) {
+    const lines = [];
+    const add = (label, value) => {
+      if (value === undefined || value === null || value === "") return;
+      const rendered = Array.isArray(value) ? value.join(", ") : String(value);
+      if (rendered) lines.push(`${label}: ${rendered}`);
+    };
+    add("Target term", patch.targetTerm);
+    add("Student stage", patch.studentStage);
+    add("Graduation", patch.graduation);
+    add("Degree", patch.degree);
+    add("Major", patch.major);
+    add("Career areas", patch.careerAreaIds);
+    add("Role interests", patch.roleFamilyIds);
+    add("Home ZIP", patch.baseZips);
+    add("Preferred states", patch.preferredStates);
+    add("Commute range", patch.nearbyMiles ? `${patch.nearbyMiles} miles` : null);
+    if (typeof patch.remoteRelevant === "boolean") add("Remote roles", patch.remoteRelevant ? "relevant" : "not requested");
+    if (typeof patch.relocationAllowed === "boolean") add("Relocation", patch.relocationAllowed ? "open to it" : "not desired");
+    add("Citizenship", patch.citizenship);
+    add("Work authorization", patch.workAuthorization);
+    add("Prior internship", patch.priorInternship === "none" ? "none" : (patch.priorInternship === "has_prior" ? "yes" : null));
+    return lines;
   }
 
   function applyHints(form, hints) {
@@ -550,7 +670,7 @@
     copy.append(
       element("p", "eyebrow", "private browser profile"),
       element("h2", "", "Set up Apply Next"),
-      element("p", "muted", "Upload a resume to prefill what it actually says, then confirm the few eligibility and strategy facts resumes often leave out. The raw resume is never saved or uploaded; only the profile you confirm is stored in this browser.")
+      element("p", "muted", "Tell Yartchives what you want in normal language, optionally add a resume for evidence, then review the structured details before anything is saved. Raw resume text stays in your browser.")
     );
     const back = element("button", "ghost-btn apply-next-back", "← Back to Yartchives");
     back.type = "button";
@@ -563,8 +683,24 @@
     const form = element("form", "apply-next-profile-wizard");
     form.noValidate = true;
 
+    const intentCard = element("section", "apply-next-profile-section apply-next-intent-section");
+    intentCard.append(
+      element("p", "eyebrow", "optional AI-assisted setup"),
+      element("h3", "", "Tell Yartchives what you want"),
+      element("p", "muted", "Write naturally. Yartchives will suggest structured profile changes for you to review; it will not save them or change ranking rules on its own.")
+    );
+    const intentText = textarea("naturalIntent", "", 4);
+    intentText.placeholder = "Example: I’m a sophomore finance major looking for Summer 2027. I prefer Maryland or DC, have no prior internship, and I’d relocate for a really strong role.";
+    const understand = element("button", "primary-btn", "Understand this");
+    understand.type = "button";
+    const intentStatus = element("p", "apply-next-profile-status muted", aiProfileEndpoint() ? "Nothing interpreted yet." : "AI setup is unavailable; use the detailed fields below.");
+    const confirmation = element("div", "apply-next-intent-confirmation hidden");
+    let pendingIntentPatch = null;
+    intentCard.append(field("What are you looking for?", intentText), understand, intentStatus, confirmation);
+    form.append(intentCard);
+
     const resumeCard = element("section", "apply-next-profile-section");
-    resumeCard.append(element("h3", "", "1. Prefill from your resume"));
+    resumeCard.append(element("h3", "", "2. Add resume evidence"));
     resumeCard.append(element("p", "muted", "PDF, TXT, or Markdown. PDF parsing runs in your browser; the parser library is downloaded only when needed."));
     const file = input("resumeFile", "", "file");
     file.accept = ".pdf,.txt,.md,.markdown,application/pdf,text/plain,text/markdown";
@@ -577,7 +713,7 @@
     form.append(resumeCard);
 
     const basics = element("section", "apply-next-profile-section");
-    basics.append(element("h3", "", "2. Review the basics"));
+    basics.append(element("h3", "", "3. Review the basics"));
     const basicsGrid = element("div", "apply-next-profile-grid");
     const targetTermField = element("div", "apply-next-profile-field");
     const targetTermOption = element("label", "apply-next-profile-check");
@@ -596,19 +732,24 @@
     form.append(basics);
 
     const eligibility = element("section", "apply-next-profile-section");
-    eligibility.append(element("h3", "", "3. Confirm eligibility facts"));
+    eligibility.append(element("h3", "", "4. Confirm eligibility facts"));
     eligibility.append(element("p", "muted", "These are not guessed when a resume omits them. Unknown stays unknown."));
     const eligibilityGrid = element("div", "apply-next-profile-grid");
     eligibilityGrid.append(
       field("Citizenship", select("citizenship", ["Unknown / not provided", "U.S. citizen", "Not a U.S. citizen"], values.citizenship)),
       field("U.S. work authorization", select("workAuthorization", ["Unknown / not provided", "Authorized to work in the U.S. without sponsorship", "Needs visa sponsorship"], values.workAuthorization)),
-      field("Security clearance", select("securityClearance", ["Unknown / not provided", "No active security clearance", "Eligible / able to obtain a clearance", "Active Secret clearance", "Active Top Secret clearance"], values.securityClearance))
+      field("Security clearance", select("securityClearance", ["Unknown / not provided", "No active security clearance", "Eligible / able to obtain a clearance", "Active Secret clearance", "Active Top Secret clearance"], values.securityClearance)),
+      field("Prior internship experience", select("priorInternship", [
+        "unknown",
+        "none",
+        "has_prior"
+      ], values.priorInternship))
     );
     eligibility.append(eligibilityGrid);
     form.append(eligibility);
 
     const skills = element("section", "apply-next-profile-section");
-    skills.append(element("h3", "", "4. Confirm skills"));
+    skills.append(element("h3", "", "5. Confirm skills"));
     skills.append(element("p", "muted", "Keep skills you can defend in an interview under Supported. Put light exposure under Cautious. Resume-backed work evidence is kept separately so explicit experience requirements can use stronger evidence than a skills list alone."));
     const skillsGrid = element("div", "apply-next-profile-grid");
     skillsGrid.append(
@@ -624,7 +765,7 @@
     form.append(skills);
 
     const strategy = element("section", "apply-next-profile-section");
-    strategy.append(element("h3", "", "5. What are you looking for?"));
+    strategy.append(element("h3", "", "6. Choose role interests"));
     strategy.append(element("p", "muted", "Choose Computer Science, Engineering, Finance, or any combination. Role families below are scoped to the career areas you select."));
 
     const careerWrap = element("div", "apply-next-profile-checks");
@@ -704,7 +845,7 @@
     form.append(strategy);
 
     const location = element("section", "apply-next-profile-section");
-    location.append(element("h3", "", "6. Location preferences"));
+    location.append(element("h3", "", "7. Location preferences"));
     const locationGrid = element("div", "apply-next-profile-grid apply-next-location-basic-grid");
     locationGrid.append(
       field("Base ZIPs", input("baseZips", values.baseZips)),
@@ -757,6 +898,42 @@
         ? `Prefilled ${found} resume-backed facts from ${sourceLabel}. Review them before saving.`
         : `No reliable structured facts found in ${sourceLabel}; you can still fill the profile manually.`;
     }
+
+    understand.addEventListener("click", async () => {
+      const text = intentText.value.trim();
+      confirmation.innerHTML = "";
+      confirmation.classList.add("hidden");
+      pendingIntentPatch = null;
+      understand.disabled = true;
+      intentStatus.textContent = "Understanding your preferences…";
+      try {
+        const patch = await parseIntentWithAi(text);
+        const lines = summarizeIntentPatch(patch);
+        if (!lines.length) {
+          intentStatus.textContent = "I couldn’t find any explicit profile details in that. Add a little more detail or use the fields below.";
+          return;
+        }
+        pendingIntentPatch = patch;
+        intentStatus.textContent = "Review what Yartchives understood before applying it.";
+        confirmation.append(element("h4", "", "Here’s what Yartchives understood"));
+        const list = element("ul", "apply-next-intent-summary");
+        for (const line of lines) list.append(element("li", "", line));
+        const apply = element("button", "secondary-btn", "Apply these details");
+        apply.type = "button";
+        apply.addEventListener("click", () => {
+          if (!pendingIntentPatch) return;
+          applyIntentPatch(form, pendingIntentPatch);
+          intentStatus.textContent = "Applied to the form below. Review or change anything before saving your profile.";
+          confirmation.classList.add("hidden");
+        });
+        confirmation.append(list, apply);
+        confirmation.classList.remove("hidden");
+      } catch (err) {
+        intentStatus.textContent = err.message || "Conversational setup is unavailable right now.";
+      } finally {
+        understand.disabled = false;
+      }
+    });
 
     file.addEventListener("change", async () => {
       if (!file.files?.[0]) return;
@@ -841,6 +1018,11 @@
     extractResumeHints,
     readResumeFile,
     buildProfile,
+    aiProfileEndpoint,
+    aiClientId,
+    parseIntentWithAi,
+    applyIntentPatch,
+    summarizeIntentPatch,
     refreshApplyNextPanel,
     init,
   };
