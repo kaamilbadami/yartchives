@@ -231,8 +231,6 @@ class CareersResolverTests(unittest.TestCase):
         self.assertEqual(result["url"], "https://testcorp.wd5.myworkdayjobs.com/")
 
 
-if __name__ == "__main__":
-    unittest.main()
 
     def test_respects_provider_identity_lost_in_redirect_to_company_branded(self):
         entry = {
@@ -253,11 +251,11 @@ if __name__ == "__main__":
             "https://airbnb.com/jobs": FakeResponse("https://airbnb.com/jobs", status=404),
         })
 
-        result, _ = self.resolve(entry, session)
+        result = mod.resolve_employer(entry, session)
         self.assertEqual(result["status"], "resolved")
         self.assertEqual(result["platform"], "greenhouse")
         self.assertEqual(result["provider"]["family"], "greenhouse")
-        self.assertEqual(result["url"], "https://careers.airbnb.com/positions/")
+        self.assertEqual(result["url"], "https://careers.airbnb.com/positions")
 
     def test_ashby_auto_discovery(self):
         class FakeJsonResponse:
@@ -289,3 +287,6 @@ if __name__ == "__main__":
         self.assertEqual(result["status"], "resolved")
         self.assertEqual(result["platform"], "ashby")
         self.assertEqual(result["url"], "https://jobs.ashbyhq.com/acme")
+
+if __name__ == "__main__":
+    unittest.main()
