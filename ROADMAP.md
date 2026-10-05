@@ -32,7 +32,7 @@ When implementation work is created:
 - preserve product invariants unless an issue explicitly changes them;
 - use resource locks to prevent overlapping work;
 - prefer broad aggregators as the discovery backbone and direct employer sources as targeted gap-fillers;
-- do not use LinkedIn or Handshake as production scraping sources;
+- do not use LinkedIn, Handshake, or Indeed as production scraping sources; use them only to discover/audit gaps and trace roles back to authoritative employer/ATS destinations;
 - keep unknown requirements unknown;
 - do not commit private user profile, resume, credential, secret, or account data.
 
