@@ -141,6 +141,8 @@ def is_job_detail(url: str) -> bool:
         return bool(re.search(r"/jobs/\d+(?:/|$)", path))
     if family == "smartrecruiters":
         return len([part for part in path.split("/") if part]) > 1
+    if family == "applytojob":
+        return bool(re.search(r"^/apply/[a-zA-Z0-9]+/[^/?#]+", parsed.path))
     return bool(re.search(r"/(?:jobs?|careers?)/(?:[^/?#]+/)*\d{3,}(?:/|$)", path))
 
 
