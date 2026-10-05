@@ -239,25 +239,61 @@ class DownloadLatestFeedTests(unittest.TestCase):
             self.assertEqual(source, f"fallback:{output}")
             self.assertIn('"old"', output.read_text(encoding="utf-8"))
 
-    def test_latest_artifact_replaces_fallback_atomically_at_file_level(self):
-        payload = zip_bytes("nested/listings.json", b'{"jobs": [{"id": "new"}]}')
+    def test_recent_rich_feed_is_preferred_over_fast_fallback(self):
+        now = datetime(2026, 10, 5, 16, 0, tzinfo=timezone.utc)
+        rich_payload = zip_bytes(
+            "nested/listings.json",
+            ('{"generated_at":"' + (now - timedelta(minutes=30)).isoformat() + '","jobs":[{"id":"rich"}]}').encode(),
+        )
+        fast_payload = zip_bytes(
+            "nested/listings.json",
+            ('{"generated_at":"' + (now - timedelta(minutes=5)).isoformat() + '","jobs":[{"id":"fast"}]}').encode(),
+        )
+        artifacts = [
+            {"id": 123, "archive_download_url": "https://example.invalid/rich"},
+            {"id": 124, "archive_download_url": "https://example.invalid/fast"},
+        ]
         with tempfile.TemporaryDirectory() as tmp:
             output = Path(tmp) / "listings.json"
-            output.write_text('{"jobs": [{"id": "old"}]}', encoding="utf-8")
-            with patch.object(
-                mod,
-                "latest_artifact",
-                return_value={"id": 123, "archive_download_url": "https://example.invalid/archive"},
-            ), patch.object(mod, "_request_bytes", return_value=payload):
-                source = mod.hydrate_one(
+            with patch.object(mod, "latest_artifact", side_effect=artifacts), \
+                 patch.object(mod, "_request_bytes", side_effect=[rich_payload, fast_payload]):
+                source = mod.hydrate_best_feed(
                     repo="owner/repo",
-                    kind="feed",
                     output=output,
                     token="token",
                     pages_base=None,
+                    now=now,
                 )
-            self.assertEqual(source, "artifact:123")
-            self.assertIn('"new"', output.read_text(encoding="utf-8"))
+            self.assertEqual(source, "artifact:123:rich")
+            self.assertIn('"rich"', output.read_text(encoding="utf-8"))
+
+    def test_stale_rich_feed_falls_back_to_newer_fast_feed(self):
+        now = datetime(2026, 10, 5, 16, 0, tzinfo=timezone.utc)
+        rich_payload = zip_bytes(
+            "nested/listings.json",
+            ('{"generated_at":"' + (now - timedelta(hours=2, minutes=10)).isoformat() + '","jobs":[{"id":"rich"}]}').encode(),
+        )
+        fast_payload = zip_bytes(
+            "nested/listings.json",
+            ('{"generated_at":"' + (now - timedelta(minutes=20)).isoformat() + '","jobs":[{"id":"fast"}]}').encode(),
+        )
+        artifacts = [
+            {"id": 123, "archive_download_url": "https://example.invalid/rich"},
+            {"id": 124, "archive_download_url": "https://example.invalid/fast"},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "listings.json"
+            with patch.object(mod, "latest_artifact", side_effect=artifacts), \
+                 patch.object(mod, "_request_bytes", side_effect=[rich_payload, fast_payload]):
+                source = mod.hydrate_best_feed(
+                    repo="owner/repo",
+                    output=output,
+                    token="token",
+                    pages_base=None,
+                    now=now,
+                )
+            self.assertEqual(source, "artifact:124:fast")
+            self.assertIn('"fast"', output.read_text(encoding="utf-8"))
 
     def test_missing_artifact_does_not_destroy_last_known_good_file(self):
         with tempfile.TemporaryDirectory() as tmp:
