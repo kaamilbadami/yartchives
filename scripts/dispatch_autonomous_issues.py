@@ -1903,6 +1903,20 @@ def reconcile_jules_sessions(
                 continue
 
             if question_already_handled:
+                stale_feedback_labels = label_names(issue) & {
+                    JULES_FEEDBACK_LABEL,
+                    "needs-product-decision",
+                }
+                if stale_feedback_labels:
+                    run_gh(
+                        "issue", "edit", str(number), "--repo", repo,
+                        "--remove-label", JULES_FEEDBACK_LABEL,
+                        "--remove-label", "needs-product-decision",
+                    )
+                    replace_issue_labels_in_memory(
+                        issue,
+                        remove=(JULES_FEEDBACK_LABEL, "needs-product-decision"),
+                    )
                 handled_at = clarification_handled_time(comments, session_id, question)
                 feedback_stuck = (
                     handled_at is not None
@@ -2606,6 +2620,29 @@ def load_coverage_gap_candidates() -> list[dict[str, Any]]:
     return load_candidates()
 
 
+def canonical_coverage_gap_id(gap_id: str) -> str:
+    """Collapse semantically identical generated coverage gaps to one owner."""
+    normalized = re.sub(r"[^a-z0-9]+", "-", gap_id.casefold()).strip("-")
+    aliases = (
+        "unknown-provider",
+        "unsupported-ats-unknown-provider",
+        "source-registry-unknown-provider-resolution",
+    )
+    if any(alias in normalized for alias in aliases):
+        return "unknown-provider"
+    return normalized
+
+
+def coverage_gap_ids_from_body(body: str) -> frozenset[str]:
+    """Return canonical coverage-gap identities declared by one issue body."""
+    pattern = re.compile(r"<!--\s*coverage-gap:\s*([^>]+?)\s*-->")
+    return frozenset(
+        canonical_coverage_gap_id(match.group(1).strip())
+        for match in pattern.finditer(body)
+        if match.group(1).strip()
+    )
+
+
 def coverage_work_in_flight(issues: Iterable[dict[str, Any]]) -> int:
     """Count productive or review-pending coverage work that should hold WIP."""
     count = 0
@@ -2632,6 +2669,11 @@ def _provider_coverage_gap(
         return False
 
     existing_bodies = [str(issue.get("body") or "") for issue in issues]
+    existing_gap_ids = frozenset(
+        gap_id
+        for body in existing_bodies
+        for gap_id in coverage_gap_ids_from_body(body)
+    )
     for candidate in load_coverage_gap_candidates():
         gap_id = str(candidate.get("id") or "").strip()
         resources = [
@@ -2643,7 +2685,11 @@ def _provider_coverage_gap(
             continue
 
         marker = COVERAGE_GAP_MARKER.format(gap_id=gap_id)
-        if any(marker in body for body in existing_bodies):
+        canonical_gap_id = canonical_coverage_gap_id(gap_id)
+        if (
+            canonical_gap_id in existing_gap_ids
+            or any(marker in body for body in existing_bodies)
+        ):
             continue
 
         locks = frozenset(f"resource:{resource}" for resource in resources)
