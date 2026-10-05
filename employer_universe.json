@@ -26,6 +26,12 @@
       "status": "active"
     },
     {
+      "key": "finance-benchmark",
+      "kind": "coverage_benchmark",
+      "name": "Bel Air Finance Sophomore Benchmark",
+      "status": "active"
+    },
+    {
       "key": "fortune-500-2026",
       "kind": "fortune_500",
       "name": "Fortune 500",
@@ -3833,6 +3839,14 @@
         ]
       },
       "careers_platform": "greenhouse"
+    },
+    {
+      "id": "allan-myers",
+      "name": "Allan Myers",
+      "aliases": [],
+      "seed_sets": [
+        "finance-benchmark"
+      ]
     },
     {
       "id": "allegion",
@@ -15211,6 +15225,7 @@
       "name": "Constellation Energy",
       "aliases": [],
       "seed_sets": [
+        "finance-benchmark",
         "fortune-500-2026"
       ],
       "seed_metadata": {
@@ -19674,7 +19689,7 @@
     },
     {
       "id": "estee-lauder",
-      "name": "Estée Lauder",
+      "name": "Est\u00e9e Lauder",
       "aliases": [],
       "seed_sets": [
         "fortune-500-2026",
@@ -23024,6 +23039,16 @@
         ]
       },
       "careers_platform": "successfactors"
+    },
+    {
+      "id": "harford-mutual",
+      "name": "Harford Mutual",
+      "aliases": [
+        "Harford Mutual Insurance Group"
+      ],
+      "seed_sets": [
+        "finance-benchmark"
+      ]
     },
     {
       "id": "harley-davidson",
@@ -29173,6 +29198,7 @@
       "name": "Liberty Mutual Insurance Group",
       "aliases": [],
       "seed_sets": [
+        "finance-benchmark",
         "fortune-500-2026"
       ],
       "seed_metadata": {
@@ -31150,6 +31176,14 @@
       ]
     },
     {
+      "id": "mccormick",
+      "name": "McCormick",
+      "aliases": [],
+      "seed_sets": [
+        "finance-benchmark"
+      ]
+    },
+    {
       "id": "mcdonald-s",
       "name": "McDonald's",
       "aliases": [],
@@ -32397,7 +32431,7 @@
     },
     {
       "id": "mondelez-international",
-      "name": "Mondelēz International",
+      "name": "Mondel\u0113z International",
       "aliases": [],
       "seed_sets": [
         "fortune-500-2026"
@@ -43233,6 +43267,14 @@
       "careers_platform": "icims"
     },
     {
+      "id": "under-armour",
+      "name": "Under Armour",
+      "aliases": [],
+      "seed_sets": [
+        "finance-benchmark"
+      ]
+    },
+    {
       "id": "unilever",
       "name": "Unilever",
       "aliases": [],
@@ -46691,6 +46733,14 @@
         ]
       },
       "careers_platform": "greenhouse"
+    }
+  ],
+  "sources": [
+    {
+      "key": "finance-benchmark",
+      "kind": "coverage_benchmark",
+      "name": "Bel Air Finance Sophomore Benchmark",
+      "status": "active"
     }
   ]
 }
