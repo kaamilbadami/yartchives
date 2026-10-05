@@ -74,15 +74,36 @@ class CoverageGapCandidatesTests(unittest.TestCase):
         self.assertEqual(candidates[0]["resources"], ["ats-workday"])
         self.assertEqual(candidates[1]["resources"], ["ats-greenhouse"])
 
-    def test_ignores_small_or_already_resolved_gaps(self):
+    def test_emits_single_known_family_gap_and_ignores_resolved(self):
         universe = {
             "employers": [
-                *[self.employer(i, "oracle") for i in range(1, 5)],
+                self.employer(1, "oracle"),
                 *[self.employer(i + 10, "workday", resolved=True) for i in range(1, 8)],
             ]
         }
 
-        self.assertEqual(build_gap_candidates(universe), [])
+        candidates = build_gap_candidates(universe)
+
+        self.assertEqual(
+            [candidate["id"] for candidate in candidates],
+            ["ats-oracle:provider-resolution"],
+        )
+        self.assertEqual(candidates[0]["affected_employers"], 1)
+
+    def test_includes_cs_benchmark_even_when_fortune_500_exists(self):
+        fortune = self.employer(1, "workday")
+        cs = self.employer(2, "greenhouse")
+        cs["seed_sets"] = ["cs-benchmark"]
+
+        candidates = build_gap_candidates({"employers": [fortune, cs]})
+
+        self.assertEqual(
+            {candidate["id"] for candidate in candidates},
+            {
+                "ats-workday:provider-resolution",
+                "ats-greenhouse:provider-resolution",
+            },
+        )
 
     def test_unknown_provider_gap_uses_shared_registry_resource(self):
         universe = {
