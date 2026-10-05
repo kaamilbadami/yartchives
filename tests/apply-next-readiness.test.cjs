@@ -17,7 +17,7 @@ const profile = {
   relocationAllowed: true,
 };
 
-function inspectedJob({ required = [], preferred = [], other = [], citizenship = [], authorization = [] } = {}) {
+function inspectedJob({ required = [], preferred = [], other = [], citizenship = [], authorization = [], studentRequired = [], studentPreferred = [] } = {}) {
   return {
     company: "Test",
     title: "Software Engineer Intern",
@@ -36,6 +36,13 @@ function inspectedJob({ required = [], preferred = [], other = [], citizenship =
         other_eligibility: { classification: other.length ? "required" : "unknown", required: other, preferred: [], unspecified: [], not_required: [] },
         citizenship: { classification: citizenship.length ? "required" : "unknown", required: citizenship, preferred: [], unspecified: [], not_required: [] },
         work_authorization: { classification: authorization.length ? "required" : "unknown", required: authorization, preferred: [], unspecified: [], not_required: [] },
+        student_status: {
+          classification: studentRequired.length ? "required" : (studentPreferred.length ? "preferred" : "unknown"),
+          required: studentRequired,
+          preferred: studentPreferred,
+          unspecified: [],
+          not_required: [],
+        },
       },
     },
   };
@@ -141,6 +148,87 @@ const needsSponsorship = JSON.parse(JSON.stringify(profile));
 needsSponsorship.facts.workAuthorization = "Requires visa sponsorship";
 const sponsorshipConflict = R.scoreJob(sponsorshipJob, needsSponsorship, new Date("2026-09-16T16:00:00Z"));
 assert.equal(sponsorshipConflict.excluded, true);
+
+const sophomoreProfile = JSON.parse(JSON.stringify(profile));
+sophomoreProfile.facts.graduation = "May 2029";
+sophomoreProfile.facts.studentStage = "";
+sophomoreProfile.facts.workExperienceEvidence = [];
+sophomoreProfile.facts.courseworkEvidence = ["Corporate Finance and Excel modeling"];
+sophomoreProfile.facts.projectEvidence = [];
+sophomoreProfile.facts.leadershipEvidence = [];
+
+assert.equal(R.profileStudentStage ? R.profileStudentStage : undefined, undefined, "stage derivation belongs to deterministic eligibility base");
+
+const sophomoreRequired = inspectedJob({
+  studentRequired: [{ statement: "Must be a current sophomore." }],
+});
+assert.equal(
+  R.scoreJob(sophomoreRequired, sophomoreProfile, new Date("2026-10-05T12:00:00Z")).excluded,
+  false,
+  "May 2029 graduation should derive to sophomore in fall 2026"
+);
+
+const risingJuniorRequired = inspectedJob({
+  studentRequired: [{ statement: "Applicants must be rising juniors." }],
+});
+assert.equal(
+  R.scoreJob(risingJuniorRequired, sophomoreProfile, new Date("2026-10-05T12:00:00Z")).excluded,
+  false,
+  "current sophomores should satisfy a rising-junior requirement"
+);
+
+const seniorRequired = inspectedJob({
+  studentRequired: [{ statement: "Applicants must be current seniors." }],
+});
+const seniorConflict = R.scoreJob(seniorRequired, sophomoreProfile, new Date("2026-10-05T12:00:00Z"));
+assert.equal(seniorConflict.excluded, true);
+assert.match(seniorConflict.reasons.join(" "), /student-stage condition/i);
+
+const stageOverride = JSON.parse(JSON.stringify(sophomoreProfile));
+stageOverride.facts.studentStage = "Senior";
+assert.equal(
+  R.scoreJob(seniorRequired, stageOverride, new Date("2026-10-05T12:00:00Z")).excluded,
+  false,
+  "explicit student-stage correction should override graduation-derived stage"
+);
+
+const silentExperience = inspectedJob();
+assert.equal(R.scoreReadiness(silentExperience, sophomoreProfile).delta, 0, "silence about experience must stay neutral");
+
+const preferredInternship = inspectedJob({
+  preferred: [{ statement: "Previous internship experience preferred." }],
+});
+const preferredInternshipReadiness = R.scoreReadiness(preferredInternship, sophomoreProfile);
+assert.ok(preferredInternshipReadiness.delta < 0 && preferredInternshipReadiness.delta > -10);
+assert.match(preferredInternshipReadiness.details.join(" "), /Preferred prior internship experience/i);
+
+const requiredInternship = inspectedJob({
+  required: [{ statement: "Previous internship experience required." }],
+});
+const requiredInternshipReadiness = R.scoreReadiness(requiredInternship, sophomoreProfile);
+assert.ok(requiredInternshipReadiness.delta <= -10);
+assert.match(requiredInternshipReadiness.details.join(" "), /Required prior internship experience/i);
+
+const courseworkAccepted = inspectedJob({
+  required: [{ statement: "Relevant coursework or project experience is acceptable in lieu of prior professional experience." }],
+});
+const courseworkReadiness = R.scoreReadiness(courseworkAccepted, sophomoreProfile);
+assert.equal(courseworkReadiness.delta, 0);
+assert.match(courseworkReadiness.details.join(" "), /Coursework\/project evidence can satisfy/i);
+
+const yearsRequired = inspectedJob({
+  required: [{ statement: "2+ years of relevant professional experience required." }],
+});
+const yearsReadiness = R.scoreReadiness(yearsRequired, sophomoreProfile);
+assert.ok(yearsReadiness.delta <= -10);
+assert.match(yearsReadiness.details.join(" "), /Required 2 years of experience/i);
+
+const noExperienceRequired = inspectedJob({
+  required: [{ statement: "No prior experience is required." }],
+});
+const noExperienceReadiness = R.scoreReadiness(noExperienceRequired, sophomoreProfile);
+assert.equal(noExperienceReadiness.delta, 0);
+assert.match(noExperienceReadiness.details.join(" "), /explicitly says prior experience is not required/i);
 
 const metadataOnly = {
   company: "Metadata",
