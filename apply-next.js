@@ -124,13 +124,19 @@
 
   function statementStudentStages(statement) {
     const text = normalize(statement);
-    const stages = new Set();
-    for (const stage of STUDENT_STAGES) {
-      if (new RegExp("\\b" + stage + "\\b").test(text)) stages.add(stage);
-    }
+    const patterns = {
+      freshman: "\\bfreshm(?:an|en)\\b",
+      sophomore: "\\bsophomores?\\b",
+      junior: "\\bjuniors?\\b",
+      senior: "\\bseniors?\\b",
+      graduate: "\\bgraduates?\\b",
+    };
+    const stages = new Set(
+      STUDENT_STAGES.filter(stage => new RegExp(patterns[stage]).test(text))
+    );
     const rising = [];
     for (const stage of ["sophomore", "junior", "senior"]) {
-      if (new RegExp("\\brising\\s+" + stage + "\\b").test(text)) {
+      if (new RegExp("\\brising\\s+" + patterns[stage].replace(/^\\\\b/, "")).test(text)) {
         rising.push(stage);
       }
     }
