@@ -38,6 +38,18 @@ class PostingRequirementTests(unittest.TestCase):
         self.assertEqual(result["work_authorization"]["classification"], "not_required")
         self.assertEqual(result["graduation"]["classification"], "unknown")
 
+    def test_student_stage_language_is_preserved_as_student_status(self):
+        result = shared.extract_requirements([
+            "Required Qualifications:",
+            "Applicants must be current sophomores or rising juniors.",
+            "Preferred Qualifications:",
+            "Current junior standing is preferred.",
+        ])
+        required = [fact["statement"] for fact in result["student_status"]["required"]]
+        preferred = [fact["statement"] for fact in result["student_status"]["preferred"]]
+        self.assertIn("Applicants must be current sophomores or rising juniors.", required)
+        self.assertIn("Current junior standing is preferred.", preferred)
+
     def test_generic_what_were_looking_for_section_is_required_context(self):
         result = shared.extract_requirements([
             "What we're looking for:",

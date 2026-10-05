@@ -91,6 +91,7 @@ assert.equal(collegeWithoutExpected.graduation, "May 2028", "higher-education co
 const profile = Setup.buildProfile({
   targetTerm: "Summer 2027",
   graduation: hints.graduation,
+  studentStage: "Sophomore",
   degree: hints.degree,
   major: hints.major,
   citizenship: "Unknown / not provided",
@@ -112,6 +113,7 @@ const profile = Setup.buildProfile({
 }, {});
 
 assert.equal(profile.facts.graduation, "May 2028");
+assert.equal(profile.facts.studentStage, "Sophomore");
 assert.equal(profile.facts.degree, "Bachelor of Science");
 assert.equal(profile.facts.citizenship, "Unknown / not provided");
 assert.equal(profile.facts.workAuthorization, "Unknown / not provided");

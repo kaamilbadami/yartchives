@@ -358,6 +358,7 @@
       facts: {
         ...(base.facts || {}),
         graduation: normalize(values.graduation),
+        studentStage: normalize(values.studentStage) === "Derive from graduation" ? "" : normalize(values.studentStage),
         degree: normalize(values.degree),
         major: normalize(values.major),
         citizenship,
@@ -435,6 +436,7 @@
     return {
       targetTerm: profile?.targetTerm || "Summer 2027",
       graduation: facts.graduation || "",
+      studentStage: facts.studentStage || "Derive from graduation",
       degree: facts.degree || "",
       major: facts.major || "",
       citizenship: facts.citizenship || "Unknown / not provided",
@@ -469,6 +471,7 @@
     return {
       targetTerm: get("targetTerm")?.value,
       graduation: get("graduation")?.value,
+      studentStage: get("studentStage")?.value,
       degree: get("degree")?.value,
       major: get("major")?.value,
       citizenship: get("citizenship")?.value,
@@ -586,6 +589,7 @@
     basicsGrid.append(
       targetTermField,
       field("When are you graduating (month year)", input("graduation", values.graduation)),
+      field("Student stage (optional override)", select("studentStage", ["Derive from graduation", "Freshman", "Sophomore", "Junior", "Senior", "Graduate"], values.studentStage)),
       field("Major", input("major", values.major))
     );
     basics.append(basicsGrid, degree);
