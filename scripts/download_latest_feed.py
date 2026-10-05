@@ -29,6 +29,9 @@ ARTIFACT_SPECS = {
     "employer_universe": ("update-feed.yml", "yartchives-employer-universe", "employer_universe.json"),
 }
 
+FAST_FEED_SPEC = ("update-feed-fast.yml", "yartchives-listings-fast", "listings.json")
+RICH_FEED_PREFERRED_MAX_AGE_HOURS = 1.5
+
 
 def _request_json(url: str, token: str | None) -> dict:
     headers = {"Accept": "application/vnd.github+json", "User-Agent": USER_AGENT}
@@ -104,6 +107,87 @@ def latest_artifact(repo: str, workflow: str, artifact_name: str, token: str | N
 
     return None
 
+
+def _artifact_member_bytes(artifact: dict, member_name: str, token: str | None) -> bytes:
+    raw = _request_bytes(artifact["archive_download_url"], token)
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        candidates = [name for name in archive.namelist() if Path(name).name == member_name]
+        if not candidates:
+            raise RuntimeError(f"artifact {artifact.get('name') or artifact.get('id')} did not contain {member_name}")
+        return archive.read(candidates[0])
+
+
+def _feed_generated_at(raw: bytes) -> datetime:
+    payload = json.loads(raw.decode("utf-8"))
+    generated_at = payload.get("generated_at")
+    if not generated_at:
+        raise RuntimeError("feed artifact is missing generated_at")
+    generated = datetime.fromisoformat(str(generated_at).replace("Z", "+00:00"))
+    if generated.tzinfo is None:
+        generated = generated.replace(tzinfo=timezone.utc)
+    return generated.astimezone(timezone.utc)
+
+
+def hydrate_best_feed(
+    *,
+    repo: str,
+    output: Path,
+    token: str | None,
+    pages_base: str | None,
+    require_artifact: bool = False,
+    now: datetime | None = None,
+) -> str:
+    """Prefer the rich feed while recent, otherwise use the freshest valid feed artifact."""
+
+    now = now or datetime.now(timezone.utc)
+    candidates: list[tuple[str, dict, bytes, datetime]] = []
+    for label, (workflow, artifact_name, member_name) in (
+        ("rich", ARTIFACT_SPECS["feed"]),
+        ("fast", FAST_FEED_SPEC),
+    ):
+        try:
+            artifact = latest_artifact(repo, workflow, artifact_name, token) if token else None
+            if not artifact:
+                continue
+            raw = _artifact_member_bytes(artifact, member_name, token)
+            generated = _feed_generated_at(raw)
+            if generated > now + timedelta(minutes=5):
+                continue
+            candidates.append((label, artifact, raw, generated))
+        except (OSError, KeyError, RuntimeError, ValueError, json.JSONDecodeError, urllib.error.URLError, zipfile.BadZipFile) as exc:
+            print(f"warning: could not hydrate {label} feed artifact: {exc}", file=sys.stderr)
+
+    rich = next((candidate for candidate in candidates if candidate[0] == "rich"), None)
+    if rich is not None:
+        rich_age_hours = (now - rich[3]).total_seconds() / 3600
+        if 0 <= rich_age_hours <= RICH_FEED_PREFERRED_MAX_AGE_HOURS:
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_bytes(rich[2])
+            return f"artifact:{rich[1].get('id')}:rich"
+
+    if candidates:
+        chosen = max(candidates, key=lambda candidate: candidate[3])
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_bytes(chosen[2])
+        return f"artifact:{chosen[1].get('id')}:{chosen[0]}"
+
+    if require_artifact:
+        raise RuntimeError("required feed artifact could not be hydrated")
+
+    if pages_base:
+        try:
+            url = f"{pages_base.rstrip('/')}/data/listings.json"
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.write_bytes(_request_bytes(url, None))
+            return f"pages:{url}"
+        except (OSError, urllib.error.URLError) as exc:
+            print(f"warning: could not hydrate feed from Pages: {exc}", file=sys.stderr)
+
+    if output.exists():
+        return f"fallback:{output}"
+    raise RuntimeError("no usable feed runtime data is available")
+
+
 def workflow_has_active_run(repo: str, workflow: str, token: str | None) -> bool:
     """Return whether the workflow currently has a queued/running main-branch run."""
 
@@ -136,6 +220,15 @@ def hydrate_one(
     pages_base: str | None,
     require_artifact: bool = False,
 ) -> str:
+    if kind == "feed":
+        return hydrate_best_feed(
+            repo=repo,
+            output=output,
+            token=token,
+            pages_base=pages_base,
+            require_artifact=require_artifact,
+        )
+
     workflow, artifact_name, member_name = ARTIFACT_SPECS[kind]
     if token:
         try:
