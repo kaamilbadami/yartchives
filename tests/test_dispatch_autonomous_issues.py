@@ -1866,6 +1866,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
             )
         ]
         sent = []
+        gh_calls = []
         question = "Should Recommended remain the default user-facing sort?"
         question_key = mod.clarification_key(question)
         comments = [
@@ -1894,10 +1895,13 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 {"agentMessaged": {"agentMessage": question}}
             ],
             send_feedback=lambda session_id, prompt: sent.append((session_id, prompt)),
-            run_gh=lambda *args: self.fail("already-forwarded feedback should be a no-op"),
+            run_gh=lambda *args: gh_calls.append(args),
         )
 
         self.assertEqual(sent, [])
+        self.assertEqual(len(gh_calls), 1)
+        self.assertIn("--remove-label", gh_calls[0])
+        self.assertNotIn("jules-needs-feedback", mod.label_names(issues[0]))
 
     def test_new_clarification_after_prior_feedback_is_processed(self):
         issues = [
