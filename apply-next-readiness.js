@@ -159,7 +159,15 @@
         }
       }
       if (domainRequirement && !candidates.length && fact?.statement) {
-        unverifiedDomainRequirements.add(String(fact.statement).trim());
+        const burden = classifyExperienceBurden(fact.statement);
+        const acceptedAlternative = burden && [
+          "no-experience-required",
+          "coursework-accepted",
+          "leadership-accepted",
+        ].includes(burden.kind);
+        if (!acceptedAlternative) {
+          unverifiedDomainRequirements.add(String(fact.statement).trim());
+        }
       }
     }
 
