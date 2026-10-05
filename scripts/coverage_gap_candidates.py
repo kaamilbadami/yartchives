@@ -16,8 +16,8 @@ except ModuleNotFoundError:
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_UNIVERSE = ROOT / "employer_universe.json"
-BENCHMARK_SEED = "fortune-500-2026"
-MIN_ATS_GAP = 5
+BENCHMARK_SEEDS = frozenset({"fortune-500-2026", "cs-benchmark", "finance-benchmark"})
+MIN_ATS_GAP = 1
 MIN_UNKNOWN_GAP = 10
 
 ATS_RESOURCES = {
