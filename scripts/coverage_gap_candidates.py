@@ -17,7 +17,8 @@ except ModuleNotFoundError:
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_UNIVERSE = ROOT / "employer_universe.json"
 MIN_ATS_GAP = 1
-MIN_UNKNOWN_GAP = 10
+MIN_UNKNOWN_DOMAIN_GAP = 1
+MIN_NO_DOMAIN_GAP = 1
 
 ATS_RESOURCES = {
     "workday": "ats-workday",
@@ -55,6 +56,23 @@ def _benchmark_employers(universe: dict[str, Any]) -> list[dict[str, Any]]:
     return seeded or list(employers)
 
 
+def _domain_hints(employer: dict[str, Any]) -> set[str]:
+    hints = {
+        str(hint).strip()
+        for hint in (employer.get("domain_hints") or [])
+        if str(hint).strip()
+    }
+    for metadata in (employer.get("seed_metadata") or {}).values():
+        if not isinstance(metadata, dict):
+            continue
+        hints.update(
+            str(hint).strip()
+            for hint in (metadata.get("domain_hints") or [])
+            if str(hint).strip()
+        )
+    return hints
+
+
 def _hint_families(employer: dict[str, Any]) -> set[str]:
     families: set[str] = set()
     provider_family = str((employer.get("provider") or {}).get("family") or "")
@@ -77,7 +95,8 @@ def _hint_families(employer: dict[str, Any]) -> set[str]:
 def build_gap_candidates(universe: dict[str, Any]) -> list[dict[str, Any]]:
     """Rank generic provider-resolution gaps from the current employer universe."""
     by_family: dict[str, set[str]] = defaultdict(set)
-    unknown: set[str] = set()
+    unknown_with_hints: set[str] = set()
+    no_domain_hint: set[str] = set()
 
     for employer in _benchmark_employers(universe):
         provider = employer.get("provider") or {}
@@ -90,8 +109,10 @@ def build_gap_candidates(universe: dict[str, Any]) -> list[dict[str, Any]]:
         if families:
             for family in families:
                 by_family[family].add(employer_id)
+        elif _domain_hints(employer):
+            unknown_with_hints.add(employer_id)
         else:
-            unknown.add(employer_id)
+            no_domain_hint.add(employer_id)
 
     candidates: list[dict[str, Any]] = []
     for family, employer_ids in by_family.items():
@@ -116,21 +137,40 @@ def build_gap_candidates(universe: dict[str, Any]) -> list[dict[str, Any]]:
             }
         )
 
-    if len(unknown) >= MIN_UNKNOWN_GAP:
+    if len(unknown_with_hints) >= MIN_UNKNOWN_DOMAIN_GAP:
         candidates.append(
             {
-                "id": "source-registry:unknown-provider-resolution",
+                "id": "employer-resolution:unknown-provider",
                 "kind": "unknown-provider-resolution",
                 "family": "unknown",
-                "resources": ["source-registry"],
-                "affected_employers": len(unknown),
-                "confidence": 0.7,
-                "generic_leverage": 0.8,
-                "score": len(unknown) * 0.56,
-                "title": "Reduce unresolved provider discovery gaps",
+                "resources": ["employer-resolution"],
+                "affected_employers": len(unknown_with_hints),
+                "confidence": 0.8,
+                "generic_leverage": 0.9,
+                "score": len(unknown_with_hints) * 0.72,
+                "title": "Resolve benchmark employers with unfingerprinted careers domains",
                 "evidence": (
-                    f"{len(unknown)} benchmark employers remain unresolved without a "
-                    "known ATS fingerprint in their current domain hints."
+                    f"{len(unknown_with_hints)} benchmark employers have usable domain or "
+                    "careers hints but remain unresolved without a known ATS fingerprint."
+                ),
+            }
+        )
+
+    if len(no_domain_hint) >= MIN_NO_DOMAIN_GAP:
+        candidates.append(
+            {
+                "id": "source-discovery:no-domain-hint",
+                "kind": "source-discovery",
+                "family": "unknown",
+                "resources": ["source-discovery"],
+                "affected_employers": len(no_domain_hint),
+                "confidence": 0.9,
+                "generic_leverage": 0.9,
+                "score": len(no_domain_hint) * 0.81,
+                "title": "Discover missing careers domains for benchmark employers",
+                "evidence": (
+                    f"{len(no_domain_hint)} benchmark employers remain unresolved because "
+                    "they have no usable domain or careers hint."
                 ),
             }
         )
