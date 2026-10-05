@@ -417,9 +417,11 @@
     node.name = name;
     for (const option of options) {
       const item = document.createElement("option");
-      item.value = option;
-      item.textContent = option;
-      item.selected = option === value;
+      const optionValue = typeof option === "object" ? option.value : option;
+      const optionLabel = typeof option === "object" ? option.label : option;
+      item.value = optionValue;
+      item.textContent = optionLabel;
+      item.selected = optionValue === value;
       node.append(item);
     }
     return node;
@@ -604,8 +606,12 @@
     add("Graduation", patch.graduation);
     add("Degree", patch.degree);
     add("Major", patch.major);
-    add("Career areas", patch.careerAreaIds);
-    add("Role interests", patch.roleFamilyIds);
+    add("Career areas", Array.isArray(patch.careerAreaIds)
+      ? patch.careerAreaIds.map(id => CAREER_AREAS.find(area => area.id === id)?.label || id)
+      : patch.careerAreaIds);
+    add("Role interests", Array.isArray(patch.roleFamilyIds)
+      ? patch.roleFamilyIds.map(id => ROLE_FAMILIES.find(family => family.id === id)?.label || id)
+      : patch.roleFamilyIds);
     add("Home ZIP", patch.baseZips);
     add("Preferred states", patch.preferredStates);
     add("Commute range", patch.nearbyMiles ? `${patch.nearbyMiles} miles` : null);
@@ -740,9 +746,9 @@
       field("U.S. work authorization", select("workAuthorization", ["Unknown / not provided", "Authorized to work in the U.S. without sponsorship", "Needs visa sponsorship"], values.workAuthorization)),
       field("Security clearance", select("securityClearance", ["Unknown / not provided", "No active security clearance", "Eligible / able to obtain a clearance", "Active Secret clearance", "Active Top Secret clearance"], values.securityClearance)),
       field("Prior internship experience", select("priorInternship", [
-        "unknown",
-        "none",
-        "has_prior"
+        { value: "unknown", label: "Unknown / not provided" },
+        { value: "none", label: "No prior internship" },
+        { value: "has_prior", label: "Has prior internship" }
       ], values.priorInternship))
     );
     eligibility.append(eligibilityGrid);
