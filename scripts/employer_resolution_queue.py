@@ -25,11 +25,13 @@ PRIORITY_SEEDS = ("fortune-500-2026", "state-of-ats-2026-verified-hosts")
 
 def resolution_priority(seed_sets: list[str] | tuple[str, ...] | set[str]) -> tuple[int, str]:
     seeds = set(seed_sets or [])
-    if "fortune-500-2026" in seeds:
-        return 0, "fortune-500"
+    if any("benchmark" in seed.casefold() for seed in seeds):
+        return 0, "coverage-benchmark"
     if "state-of-ats-2026-verified-hosts" in seeds:
         return 1, "verified-ats"
-    return 2, "other"
+    if "fortune-500-2026" in seeds:
+        return 2, "fortune-500"
+    return 3, "other"
 
 
 

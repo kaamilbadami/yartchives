@@ -21,8 +21,8 @@ from employer_universe import validate_universe  # noqa: E402
 from provider_fingerprint import fingerprint_provider  # noqa: E402
 
 DEFAULT_TTL_DAYS = 7
-DEFAULT_EMPLOYER_BUDGET = 20
-DEFAULT_REQUEST_BUDGET = 120
+DEFAULT_EMPLOYER_BUDGET = 50
+DEFAULT_REQUEST_BUDGET = 300
 VERIFIED_ATS_SEED_KEY = "state-of-ats-2026-verified-hosts"
 ATS_FAMILY_NAMES = {
     "Workday": "workday",
