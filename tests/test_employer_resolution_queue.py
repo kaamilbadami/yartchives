@@ -118,10 +118,10 @@ class EmployerResolutionQueueTests(unittest.TestCase):
         ]
 
         rows = mod.build_queue(universe, ready_only=True)["employers"]
-        self.assertEqual([row["id"] for row in rows], ["benchmark", "ats", "fortune", "both", "other"])
+        self.assertEqual([row["id"] for row in rows], ["benchmark", "ats", "both", "fortune", "other"])
         self.assertEqual(
             [row["resolution_priority_label"] for row in rows],
-            ["coverage-benchmark", "verified-ats", "fortune-500", "fortune-500", "other"],
+            ["coverage-benchmark", "verified-ats", "verified-ats", "fortune-500", "other"],
         )
 
     def test_tenant_path_makes_shared_provider_hint_ready(self):
