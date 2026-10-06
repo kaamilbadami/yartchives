@@ -40,7 +40,8 @@ class PersonaExternalDiscoveryTests(unittest.TestCase):
             },
         )
         persona = {"id": "KB"}
-        with mock.patch.object(mod.requests, "post", side_effect=[rate_limited, success]),              mock.patch.object(mod.time, "sleep") as sleep:
+        with mock.patch.object(mod.requests, "post", side_effect=[rate_limited, success]) as post, \
+             mock.patch.object(mod.time, "sleep") as sleep:
             rows = mod.discover(
                 persona,
                 endpoint="https://example.openai.azure.com",
@@ -51,6 +52,10 @@ class PersonaExternalDiscoveryTests(unittest.TestCase):
             )
         self.assertEqual(rows, [])
         sleep.assert_called_once_with(1.0)
+        request_json = post.call_args_list[0].kwargs["json"]
+        self.assertEqual(request_json["reasoning"], {"effort": "low"})
+        self.assertEqual(request_json["max_tool_calls"], 1)
+        self.assertEqual(request_json["max_output_tokens"], 6000)
 
     def test_response_text_prefers_top_level_output_text(self):
         payload = {

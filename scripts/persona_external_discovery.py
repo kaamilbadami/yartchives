@@ -137,8 +137,10 @@ Rules:
                 "model": deployment,
                 "tools": [{"type": "web_search"}],
                 "tool_choice": "auto",
+                "reasoning": {"effort": "low"},
+                "max_tool_calls": max(1, min(8, max_results)),
                 "input": prompt,
-                "max_output_tokens": max(1800, min(4000, max_results * 280)),
+                "max_output_tokens": max(6000, min(12000, max_results * 800)),
             },
             timeout=timeout,
         )
@@ -171,7 +173,9 @@ Rules:
         ]
         raise RuntimeError(
             "Azure response contained no extractable output text "
-            f"(status={payload.get('status')!r}, output_types={output_types})"
+            f"(status={payload.get('status')!r}, "
+            f"incomplete_details={payload.get('incomplete_details')!r}, "
+            f"output_types={output_types})"
         )
     parsed = _parse_json_text(response_text)
     rows = parsed.get("discoveries")
