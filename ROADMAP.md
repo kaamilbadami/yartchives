@@ -72,7 +72,7 @@ The first trust benchmark is now an explicit staged build rather than a one-off 
 7. classify every meaningful miss through the existing coverage taxonomy and create the smallest bounded ATS/source/ranking/eligibility follow-up issue;
 8. rerun only the affected benchmark slice after each fix, while preserving the frozen external comparison set unless the benchmark is intentionally versioned.
 
-The initial reviewed real-derived cohort is `KB`, `AA`, `JH`, `AL`, `GW`, `DD`, `BM`, `NR`, and `AM`. The existing Bel Air finance-sophomore reference remains in the benchmark suite so Finance coverage is still represented even though the first real-user-derived cohort is sophomore-heavy. Add synthetic freshman/junior and other edge cases only to cover release-gate gaps, not to replace the real-derived cohort.
+The initial reviewed real-derived cohort is `KB`, `AA`, `JH`, `AL`, `GW`, `DD`, `BM`, `NR`, and `AM`. Each benchmark persona represents a whole student profile—academic background, experience, skills, career intent, class year, and preferences—with location treated as one input rather than the persona's defining purpose. Avoid duplicate reference personas when an existing real-derived persona already covers the same overall student-profile scenario. Add synthetic freshman/junior and other edge cases only to cover release-gate gaps, not to replace the real-derived cohort.
 
 The first implementation should optimize for reproducibility and measurement, not a perfect harness. Persona fixtures and deterministic validation come first; independent external discovery and authoritative validation come next; ranking/coverage defects discovered by the run become separate bounded work.
 

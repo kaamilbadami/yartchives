@@ -31,6 +31,18 @@ class TrustBenchmarkPersonaValidationTests(unittest.TestCase):
         errors = mod.validate_document(document)
         self.assertTrue(any("at least 9 real-derived" in error for error in errors))
 
+    def test_am_is_real_derived_finance_economics_persona(self):
+        ids = {row["id"] for row in self.document["personas"]}
+        self.assertIn("AM", ids)
+        self.assertNotIn("BF", ids)
+        am = next(row for row in self.document["personas"] if row["id"] == "AM")
+        self.assertEqual(am["source_kind"], "real_derived")
+        self.assertEqual(am["primary_area"], "finance")
+        self.assertIn("business", am.get("secondary_areas", []))
+        self.assertIn("economics/market research", am["role_intent"])
+        self.assertIn("Excel Skills for Business certification", am["evidence"])
+        self.assertIn("no prior finance internship", am["evidence"])
+
     def test_requires_cs_engineering_and_finance_coverage(self):
         document = copy.deepcopy(self.document)
         document["personas"] = [
