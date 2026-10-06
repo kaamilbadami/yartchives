@@ -57,8 +57,8 @@ class TestExternalDiscoveryBenchmark(unittest.TestCase):
             self.assertTrue(data["sampling_method"]["selection_independent_of_yartchives"])
             self.assertIn("benchmark_fixed_at", data)
 
-            # BM is business, KB is computer_science
-            self.assertCountEqual(data["scope"]["profiles"], ["business", "computer_science"])
+            # Persona areas are normalized to feed profile IDs.
+            self.assertCountEqual(data["scope"]["profiles"], ["cs", "tech-business"])
             self.assertCountEqual(data["scope"]["states"], ["CT", "MA"])
 
             discoveries = data["discoveries"]
@@ -66,9 +66,11 @@ class TestExternalDiscoveryBenchmark(unittest.TestCase):
 
             d1 = next(d for d in discoveries if d["persona_id"] == "KB")
             self.assertEqual(d1["url_kind"], "authoritative")
+            self.assertEqual(d1["expected_profile"], "cs")
 
             d2 = next(d for d in discoveries if d["persona_id"] == "BM")
             self.assertEqual(d2["url_kind"], "discovery_surface")
+            self.assertEqual(d2["expected_profile"], "tech-business")
 
 if __name__ == "__main__":
     unittest.main()
