@@ -1,0 +1,100 @@
+name: Persona trust benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      persona:
+        description: Persona ID to benchmark, or all
+        required: true
+        default: KB
+      max_results:
+        description: Maximum discoveries per persona
+        required: true
+        default: "12"
+  schedule:
+    - cron: "23 12 * * 1"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: persona-trust-benchmark-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Hydrate latest runtime feed
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python scripts/download_latest_feed.py --repo "${{ github.repository }}"
+
+      - name: Resolve benchmark scope
+        env:
+          REQUESTED_PERSONA: ${{ github.event_name == 'workflow_dispatch' && inputs.persona || 'all' }}
+          REQUESTED_MAX: ${{ github.event_name == 'workflow_dispatch' && inputs.max_results || '12' }}
+        run: |
+          echo "PERSONA=$REQUESTED_PERSONA" >> "$GITHUB_ENV"
+          echo "MAX_RESULTS=$REQUESTED_MAX" >> "$GITHUB_ENV"
+
+      - name: Generate bounded search plan
+        run: >-
+          python scripts/external_discovery_benchmark.py
+          --personas audit/personas/trust-benchmark-personas.json
+          --generate-plan audit/runtime/persona-search-plan.md
+          --generate-csv audit/runtime/persona-discoveries.csv
+
+      - name: Run grounded external discovery
+        env:
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_DEPLOYMENT: ${{ secrets.AZURE_OPENAI_DEPLOYMENT }}
+        run: >-
+          python scripts/persona_external_discovery.py
+          --persona "$PERSONA"
+          --max-results "$MAX_RESULTS"
+          --output-csv audit/runtime/persona-discoveries.csv
+
+      - name: Freeze reviewed external set
+        run: >-
+          python scripts/external_discovery_benchmark.py
+          --personas audit/personas/trust-benchmark-personas.json
+          --draft-csv audit/runtime/persona-discoveries.csv
+          --output-json audit/runtime/persona-frozen-benchmark.json
+          --benchmark-name "Independent Persona Trust Benchmark"
+          --skip-interactive
+
+      - name: Compare frozen set with Yartchives
+        run: >-
+          python scripts/coverage_audit.py
+          audit/runtime/persona-frozen-benchmark.json
+          --output audit/runtime/persona-miss-report.json
+          --markdown-output audit/runtime/persona-miss-report.md
+
+      - name: Upload benchmark artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: persona-trust-benchmark-${{ env.PERSONA }}
+          path: |
+            audit/runtime/persona-search-plan.md
+            audit/runtime/persona-discoveries.csv
+            audit/runtime/persona-frozen-benchmark.json
+            audit/runtime/persona-miss-report.json
+            audit/runtime/persona-miss-report.md
+          if-no-files-found: error
+          retention-days: 90
