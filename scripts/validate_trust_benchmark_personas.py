@@ -50,7 +50,9 @@ def _walk(value: Any, path: str = "$"):
             yield from _walk(item, f"{path}.{key}")
     elif isinstance(value, list):
         for index, item in enumerate(value):
-            yield from _walk(item, f"{path}[{index}]")
+            item_path = f"{path}[{index}]"
+            yield item_path, str(index), item
+            yield from _walk(item, item_path)
 
 
 def validate_document(document: dict[str, Any]) -> list[str]:
