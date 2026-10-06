@@ -306,6 +306,48 @@
       }
     },
     {
+      "id": "AM",
+      "source_kind": "real_derived",
+      "student_stage": "Sophomore",
+      "graduation_options": [
+        "May 2029"
+      ],
+      "primary_area": "finance",
+      "secondary_areas": [
+        "business"
+      ],
+      "role_intent": [
+        "finance",
+        "financial analysis",
+        "corporate finance",
+        "business analysis",
+        "operations analysis",
+        "economics/market research",
+        "data/analytics roles with realistic entry requirements"
+      ],
+      "evidence": [
+        "economics major with quantitative academic foundation",
+        "3.5 GPA",
+        "Excel Skills for Business certification",
+        "customer-facing retail work",
+        "STEM career-research program",
+        "economics and finance student organizations",
+        "no prior finance internship"
+      ],
+      "negative_preferences": [],
+      "location": {
+        "home_region": "Bel Air, MD area",
+        "school_region": "College Park/DC area",
+        "preference_mode": "tiered",
+        "preferred_regions": [
+          "Baltimore / Bel Air",
+          "College Park / DC"
+        ],
+        "relocation_allowed": true,
+        "notes": "Resume does not state a geographic preference; benchmark prioritizes home/school regions while allowing materially stronger national roles."
+      }
+    },
+    {
       "id": "BF",
       "source_kind": "reference",
       "student_stage": "Sophomore",
