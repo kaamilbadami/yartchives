@@ -1,0 +1,381 @@
+{
+  "schema_version": 1,
+  "benchmark_name": "multi-persona-trust-v1",
+  "target_term": "Summer 2027",
+  "privacy_note": "Sanitized benchmark personas. IDs are short mnemonic codes only. Do not add full names, contact details, raw resumes, raw social-profile text, citizenship, work authorization, or other identifying/private data.",
+  "personas": [
+    {
+      "id": "KB",
+      "source_kind": "real_derived",
+      "student_stage": "Sophomore",
+      "graduation_options": [
+        "May 2028",
+        "May 2029"
+      ],
+      "primary_area": "computer_science",
+      "role_intent": [
+        "software engineering",
+        "systems/infrastructure",
+        "testing/validation",
+        "HPC/scientific computing",
+        "data/analytics",
+        "technical business/analytics",
+        "applied AI when fit is realistic"
+      ],
+      "evidence": [
+        "prior technical internship",
+        "HPC/software testing",
+        "CI/regression testing",
+        "Java/C exposure"
+      ],
+      "negative_preferences": [
+        "hardware-first physical engineering roles"
+      ],
+      "location": {
+        "home_region": "Fairfield County, CT",
+        "school_region": "College Park/DC area",
+        "preference_mode": "tiered",
+        "preferred_regions": [
+          "Southwest Connecticut / NYC",
+          "College Park / DC"
+        ],
+        "relocation_allowed": true,
+        "notes": "Nationwide roles remain eligible when opportunity quality is materially stronger."
+      }
+    },
+    {
+      "id": "AA",
+      "source_kind": "real_derived",
+      "student_stage": "Sophomore",
+      "graduation_options": [
+        "May 2028",
+        "May 2029"
+      ],
+      "primary_area": "engineering",
+      "role_intent": [
+        "mechanical engineering",
+        "manufacturing engineering",
+        "design engineering",
+        "test engineering",
+        "aerospace-adjacent engineering",
+        "energy/environment engineering"
+      ],
+      "evidence": [
+        "manufacturing internship",
+        "precision aerospace components",
+        "CAD/CAM",
+        "GD&T and dimensional inspection",
+        "mechanical design projects",
+        "controls/sensor project exposure"
+      ],
+      "negative_preferences": [],
+      "location": {
+        "home_region": "Fairfield County, CT",
+        "school_region": "West Lafayette, IN",
+        "preference_mode": "national",
+        "preferred_regions": [],
+        "relocation_allowed": true,
+        "notes": "Broad national engineering search; environment/energy is an interest, not an exclusive filter."
+      }
+    },
+    {
+      "id": "JH",
+      "source_kind": "real_derived",
+      "student_stage": "Sophomore",
+      "graduation_options": [
+        "May 2028",
+        "May 2029"
+      ],
+      "primary_area": "engineering",
+      "secondary_areas": [
+        "computer_science"
+      ],
+      "role_intent": [
+        "electrical engineering",
+        "electronics",
+        "embedded/firmware",
+        "hardware-software integration",
+        "test/validation",
+        "RF/electronics",
+        "computer engineering",
+        "systems software",
+        "general software engineering"
+      ],
+      "evidence": [
+        "EE and CS coursework",
+        "RF/electronics internship",
+        "soldering and oscilloscope work",
+        "manufacturing process analysis",
+        "Java/Python/SQL",
+        "Arduino and PCB projects"
+      ],
+      "negative_preferences": [],
+      "location": {
+        "home_region": "Fairfield County, CT",
+        "school_region": "Madison, WI",
+        "preference_mode": "national",
+        "preferred_regions": [],
+        "relocation_allowed": true,
+        "notes": "Treat as EECS-like cross-domain profile rather than forcing one career bucket."
+      }
+    },
+    {
+      "id": "AL",
+      "source_kind": "real_derived",
+      "student_stage": "Sophomore",
+      "graduation_options": [
+        "May 2028",
+        "May 2029"
+      ],
+      "primary_area": "computer_science",
+      "role_intent": [
+        "software engineering",
+        "systems",
+        "data/analytics",
+        "machine learning/applied AI",
+        "infrastructure",
+        "testing",
+        "cybersecurity",
+        "CS-relevant technical business/analytics"
+      ],
+      "evidence": [
+        "prior machine-learning internship",
+        "Python/AI exposure"
+      ],
+      "negative_preferences": [],
+      "location": {
+        "home_region": "Maryland",
+        "school_region": "College Park/DC area",
+        "preference_mode": "national",
+        "preferred_regions": [
+          "Maryland / DC"
+        ],
+        "relocation_allowed": true,
+        "notes": "Keep preferences broad; prior ML experience affects fit but does not imply an ML-only search."
+      }
+    },
+    {
+      "id": "GW",
+      "source_kind": "real_derived",
+      "student_stage": "Sophomore",
+      "graduation_options": [
+        "May 2028",
+        "May 2029"
+      ],
+      "primary_area": "computer_science",
+      "role_intent": [
+        "software engineering",
+        "machine learning/applied AI",
+        "computer vision",
+        "data/ML engineering",
+        "research engineering",
+        "systems/infrastructure",
+        "testing",
+        "cybersecurity"
+      ],
+      "evidence": [
+        "multi-summer applied ML experience",
+        "computer-vision work",
+        "synthetic-data/simulation exposure",
+        "technical research/projects",
+        "leadership/mentoring signal",
+        "additional crypto-related software project"
+      ],
+      "negative_preferences": [],
+      "location": {
+        "home_region": "Maryland",
+        "school_region": "College Park/DC area",
+        "preference_mode": "national",
+        "preferred_regions": [
+          "Maryland / DC"
+        ],
+        "relocation_allowed": true,
+        "notes": "Do not infer a crypto, quant, or finance preference from one project."
+      }
+    },
+    {
+      "id": "DD",
+      "source_kind": "real_derived",
+      "student_stage": "Sophomore",
+      "graduation_options": [
+        "May 2028",
+        "May 2029"
+      ],
+      "primary_area": "computer_science",
+      "role_intent": [
+        "software engineering",
+        "systems/infrastructure",
+        "HPC",
+        "ML systems/inference",
+        "data engineering",
+        "research engineering",
+        "finance-tech/quant-dev-adjacent when fit is strong"
+      ],
+      "evidence": [
+        "prior software internship",
+        "HPC/research exposure",
+        "quantitative/finance exposure",
+        "ML/data experience"
+      ],
+      "negative_preferences": [],
+      "location": {
+        "home_region": "Maryland",
+        "school_region": "College Park/DC area",
+        "preference_mode": "national",
+        "preferred_regions": [
+          "Maryland / DC"
+        ],
+        "relocation_allowed": true,
+        "notes": "Past finance experience is evidence, not a stated finance-first preference."
+      }
+    },
+    {
+      "id": "BM",
+      "source_kind": "real_derived",
+      "student_stage": "Sophomore",
+      "graduation_options": [
+        "May 2029"
+      ],
+      "primary_area": "business",
+      "role_intent": [
+        "general business internships",
+        "business analysis",
+        "operations",
+        "marketing/commercial",
+        "sales operations",
+        "business development",
+        "customer/market analytics",
+        "entry-level finance/corporate finance",
+        "HR/people operations",
+        "consulting-style roles with realistic requirements"
+      ],
+      "evidence": [
+        "customer service/hospitality",
+        "education/childcare work",
+        "recent transition into business major"
+      ],
+      "negative_preferences": [],
+      "location": {
+        "home_region": "Fairfield County, CT",
+        "school_region": "Boston, MA",
+        "preference_mode": "commute_first",
+        "preferred_regions": [
+          "Fairfield County / Southwest Connecticut",
+          "Westchester / NYC when commute is practical"
+        ],
+        "relocation_allowed": true,
+        "notes": "Local commute fit should matter more than for the other reviewed personas, while materially stronger distant roles may still surface."
+      }
+    },
+    {
+      "id": "NR",
+      "source_kind": "real_derived",
+      "student_stage": "Sophomore",
+      "graduation_options": [
+        "May 2028",
+        "May 2029"
+      ],
+      "primary_area": "engineering",
+      "role_intent": [
+        "aerospace/astronautical engineering",
+        "propulsion",
+        "space systems",
+        "aerodynamics/flight",
+        "aerospace design/test",
+        "mechanical design",
+        "manufacturing",
+        "systems/integration",
+        "thermal/fluids",
+        "controls when evidence fits"
+      ],
+      "evidence": [
+        "student propulsion engineering",
+        "CAD/CAM and machining",
+        "rocket-motor analysis",
+        "Arduino/C++ project work",
+        "MATLAB simulation"
+      ],
+      "negative_preferences": [],
+      "location": {
+        "home_region": "Fairfield County, CT",
+        "school_region": "West Lafayette, IN",
+        "preference_mode": "national",
+        "preferred_regions": [],
+        "relocation_allowed": true,
+        "notes": "Aerospace-first but engineering-broad; unrelated engineering disciplines should not receive equal preference merely from sharing the engineering label."
+      }
+    },
+    {
+      "id": "AM",
+      "source_kind": "real_derived",
+      "student_stage": "Sophomore",
+      "graduation_options": [
+        "May 2029"
+      ],
+      "primary_area": "finance",
+      "secondary_areas": [
+        "business"
+      ],
+      "role_intent": [
+        "finance",
+        "financial analysis",
+        "corporate finance",
+        "business analysis",
+        "operations analysis",
+        "economics/market research",
+        "data/analytics roles with realistic entry requirements"
+      ],
+      "evidence": [
+        "economics major with quantitative academic foundation",
+        "3.5 GPA",
+        "Excel Skills for Business certification",
+        "customer-facing retail work",
+        "STEM career-research program",
+        "economics and finance student organizations",
+        "no prior finance internship"
+      ],
+      "negative_preferences": [],
+      "location": {
+        "home_region": "Bel Air, MD area",
+        "school_region": "College Park/DC area",
+        "preference_mode": "tiered",
+        "preferred_regions": [
+          "Baltimore / Bel Air",
+          "College Park / DC"
+        ],
+        "relocation_allowed": true,
+        "notes": "Resume does not state a geographic preference; benchmark prioritizes home/school regions while allowing materially stronger national roles."
+      }
+    },
+    {
+      "id": "BF",
+      "source_kind": "reference",
+      "student_stage": "Sophomore",
+      "graduation_options": [
+        "May 2029"
+      ],
+      "primary_area": "finance",
+      "role_intent": [
+        "finance",
+        "financial analysis",
+        "business analysis",
+        "operations analysis"
+      ],
+      "evidence": [
+        "Excel/coursework/basic analytical evidence",
+        "no prior internship"
+      ],
+      "negative_preferences": [],
+      "location": {
+        "home_region": "Bel Air, MD area",
+        "school_region": null,
+        "preference_mode": "commute_first",
+        "preferred_regions": [
+          "Bel Air / Baltimore"
+        ],
+        "relocation_allowed": true,
+        "notes": "Required reference persona preserved from the existing finance-sophomore benchmark; local strongly preferred, remote allowed, relocation eligible but penalized."
+      }
+    }
+  ]
+}

@@ -59,6 +59,23 @@ Perfect market coverage is not required. Materially inferior discovery coverage 
 
 Issue #898 is the trust/readiness release gate. Issue #901 is the security/abuse-resistance release gate.
 
+### Trust benchmark implementation sequence
+
+The first trust benchmark is now an explicit staged build rather than a one-off manual comparison:
+
+1. check in a sanitized persona cohort using short mnemonic codes only;
+2. convert each persona into a bounded, reproducible search/ranking input without committing raw resumes, social-profile dumps, contact details, citizenship, or work-authorization assumptions;
+3. build the external-discovery set independently of the Yartchives feed using a diligent tailored ChatGPT/web-search workflow;
+4. validate discovered opportunities against authoritative employer/ATS destinations and freeze the reviewed comparison set before looking at Yartchives recall;
+5. run the same frozen personas against the current Yartchives feed/ranker and capture the visible Top 10 plus candidate-universe evidence;
+6. measure opportunity-level recall, usefulness, eligibility/trust failures, freshness/link quality, and Yartchives-only useful discoveries;
+7. classify every meaningful miss through the existing coverage taxonomy and create the smallest bounded ATS/source/ranking/eligibility follow-up issue;
+8. rerun only the affected benchmark slice after each fix, while preserving the frozen external comparison set unless the benchmark is intentionally versioned.
+
+The initial reviewed real-derived cohort is `KB`, `AA`, `JH`, `AL`, `GW`, `DD`, `BM`, `NR`, and `AM`. The existing Bel Air finance-sophomore reference remains in the benchmark suite so Finance coverage is still represented even though the first real-user-derived cohort is sophomore-heavy. Add synthetic freshman/junior and other edge cases only to cover release-gate gaps, not to replace the real-derived cohort.
+
+The first implementation should optimize for reproducibility and measurement, not a perfect harness. Persona fixtures and deterministic validation come first; independent external discovery and authoritative validation come next; ranking/coverage defects discovered by the run become separate bounded work.
+
 ---
 
 ## Track 1 — Automation reliability
@@ -112,7 +129,7 @@ Yartchives should discover a large, useful share of relevant US undergraduate CS
 
 ### Near-term direction
 
-- Build and run the external ChatGPT/web-search comparison required by #898 across representative CS-student personas; convert "captures most strong opportunities" into a measured threshold before release rather than relying on listing-count intuition.
+- Bootstrap the sanitized multi-persona fixtures and deterministic validator, then build and run the external ChatGPT/web-search comparison required by #898. Freeze externally discovered strong opportunities before comparing them with Yartchives, and convert "captures most strong opportunities" into a measured threshold before release rather than relying on listing-count intuition.
 - Treat opportunity recall against that benchmark as the primary coverage metric; use employer/provider resolution as diagnostic leading indicators rather than the final success condition.
 - Resolve the largest current systemic source-family and discovery gaps before spending roadmap priority on additional UI polish or ranking complexity.
 - Keep independent ATS-family coverage lanes continuously replenished: Workday, Greenhouse, Lever, Oracle, iCIMS, SmartRecruiters, Ashby, SuccessFactors, Eightfold, Avature, Phenom, BrassRing, Jobvite, Paylocity, Breezy, Workable, ApplyToJob, Paradox, and newly fingerprinted families each use their own resource lock.
@@ -239,7 +256,7 @@ Broad beta promotion should happen only after Yartchives demonstrates that its d
 
 ### Near-term direction
 
-- Make #898's coverage comparison the immediate release-readiness priority and close the largest systemic discovery/source-family gaps it exposes.
+- Make #898's staged persona → independent external discovery → authoritative validation → frozen comparison → Yartchives comparison pipeline the immediate release-readiness priority, and close the largest systemic discovery/source-family gaps it exposes.
 - Complete #901's security/abuse-resistance gate in parallel where it does not contend with coverage resources.
 - Only after those gates are credible, run a small CS-student beta and compare whether students make better application decisions with Yartchives than with a reasonable ChatGPT/web-search workflow.
 - Review Good / Bad suggestion feedback and observed friction.
