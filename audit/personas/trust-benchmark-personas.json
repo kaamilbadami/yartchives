@@ -346,36 +346,6 @@
         "relocation_allowed": true,
         "notes": "Resume does not state a geographic preference; benchmark prioritizes home/school regions while allowing materially stronger national roles."
       }
-    },
-    {
-      "id": "BF",
-      "source_kind": "reference",
-      "student_stage": "Sophomore",
-      "graduation_options": [
-        "May 2029"
-      ],
-      "primary_area": "finance",
-      "role_intent": [
-        "finance",
-        "financial analysis",
-        "business analysis",
-        "operations analysis"
-      ],
-      "evidence": [
-        "Excel/coursework/basic analytical evidence",
-        "no prior internship"
-      ],
-      "negative_preferences": [],
-      "location": {
-        "home_region": "Bel Air, MD area",
-        "school_region": null,
-        "preference_mode": "commute_first",
-        "preferred_regions": [
-          "Bel Air / Baltimore"
-        ],
-        "relocation_allowed": true,
-        "notes": "Required reference persona preserved from the existing finance-sophomore benchmark; local strongly preferred, remote allowed, relocation eligible but penalized."
-      }
     }
   ]
 }
