@@ -130,8 +130,8 @@ def validate_document(document: dict[str, Any]) -> list[str]:
     if duplicates:
         errors.append(f"duplicate persona ids: {', '.join(duplicates)}")
 
-    if real_derived < 8:
-        errors.append(f"need at least 8 real-derived personas; found {real_derived}")
+    if real_derived < 9:
+        errors.append(f"need at least 9 real-derived personas; found {real_derived}")
 
     for required_area in ("computer_science", "engineering", "finance"):
         if area_counts[required_area] < 1:
