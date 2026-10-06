@@ -29,6 +29,26 @@ class TestExternalDiscoveryBenchmark(unittest.TestCase):
             csv_content = out_csv.read_text(encoding="utf-8")
             self.assertTrue(csv_content.startswith("persona_id,company,title,location,url,source,discovery_url,discovery_query,expected_state"))
 
+
+    def test_generates_plan_for_one_selected_persona(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_path = Path(temp_dir)
+            out_md = temp_path / "plan.md"
+            out_csv = temp_path / "plan.csv"
+
+            res = subprocess.run([
+                "python3", "scripts/external_discovery_benchmark.py",
+                "--generate-plan", str(out_md),
+                "--generate-csv", str(out_csv),
+                "--personas", "audit/personas/trust-benchmark-personas.json",
+                "--persona", "KB",
+            ], capture_output=True, text=True)
+
+            self.assertEqual(res.returncode, 0)
+            md_content = out_md.read_text(encoding="utf-8")
+            self.assertIn("## Persona: KB", md_content)
+            self.assertNotIn("## Persona: BM", md_content)
+
     def test_creates_frozen_benchmark_from_csv(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
@@ -57,8 +77,8 @@ class TestExternalDiscoveryBenchmark(unittest.TestCase):
             self.assertTrue(data["sampling_method"]["selection_independent_of_yartchives"])
             self.assertIn("benchmark_fixed_at", data)
 
-            # BM is business, KB is computer_science
-            self.assertCountEqual(data["scope"]["profiles"], ["business", "computer_science"])
+            # Persona areas are normalized to feed profile IDs.
+            self.assertCountEqual(data["scope"]["profiles"], ["cs", "tech-business"])
             self.assertCountEqual(data["scope"]["states"], ["CT", "MA"])
 
             discoveries = data["discoveries"]
@@ -66,9 +86,11 @@ class TestExternalDiscoveryBenchmark(unittest.TestCase):
 
             d1 = next(d for d in discoveries if d["persona_id"] == "KB")
             self.assertEqual(d1["url_kind"], "authoritative")
+            self.assertEqual(d1["expected_profile"], "cs")
 
             d2 = next(d for d in discoveries if d["persona_id"] == "BM")
             self.assertEqual(d2["url_kind"], "discovery_surface")
+            self.assertEqual(d2["expected_profile"], "tech-business")
 
 if __name__ == "__main__":
     unittest.main()

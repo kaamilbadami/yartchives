@@ -69,7 +69,7 @@ const workflowFiles = fs.readdirSync(".github/workflows")
   .sort();
 assert.deepEqual(
   workflowFiles,
-  ["ai-profile-benchmark.yml", "auto-merge-agent-prs.yml", "autonomous-dispatch.yml", "branch-preflight.yml", "coverage-audit.yml", "coverage-automation.yml", "deploy-analytics.yml", "deploy-pages.yml", "feed-freshness.yml", "quality.yml", "refresh-inspections.yml", "repository-housekeeping.yml", "triage-workflow-failures.yml", "update-feed-fast.yml", "update-feed.yml"],
+  ["ai-profile-benchmark.yml", "auto-merge-agent-prs.yml", "autonomous-dispatch.yml", "branch-preflight.yml", "coverage-audit.yml", "coverage-automation.yml", "deploy-analytics.yml", "deploy-pages.yml", "feed-freshness.yml", "persona-trust-benchmark.yml", "quality.yml", "refresh-inspections.yml", "repository-housekeeping.yml", "triage-workflow-failures.yml", "update-feed-fast.yml", "update-feed.yml"],
   "Production workflow set changed; update the workflow-health contract intentionally and do not leave temporary workflows on main"
 );
 

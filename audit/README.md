@@ -132,3 +132,29 @@ Location comparison normalizes superficial U.S. formatting differences such as `
 Treat one-off misses as observations, not proof that a source is bad. Recurring misses from the same employer or ATS family are the signal to add a durable direct source or improve a provider adapter. Recurring `filtered_or_misclassified` results should become regression tests before changing classification/filter logic. Recurring `configured_source_miss` results should be investigated in the ingestion/source pipeline first.
 
 The report records both the external sample's collection time and the Yartchives feed snapshot used for comparison. Coverage percentages are meaningful only for that external sample; they are not claims that Yartchives contains every internship on the internet.
+
+
+## Automated persona trust benchmark
+
+The **Persona trust benchmark** workflow runs the multi-persona external-discovery
+loop without changing production data:
+
+1. generate the bounded search plan from the sanitized persona file;
+2. use Azure OpenAI Responses API web search to discover current opportunities
+   independently of the Yartchives feed;
+3. reject discovery-platform URLs and unreachable/stale authoritative URLs;
+4. freeze the surviving employer/ATS opportunities;
+5. compare the frozen set against the hydrated Yartchives feed;
+6. upload the search plan, frozen benchmark, JSON comparison, and Markdown miss
+   report as 90-day workflow artifacts.
+
+Manual runs default to persona `KB` and may select any persona ID or `all`.
+The scheduled weekly run uses `all`. The workflow is measurement-only: it does
+not commit benchmark results, mutate the production feed, or fix misses in the
+same run. Benchmark findings should become separate bounded issues per
+`AGENTS.md`.
+
+The workflow reuses `AZURE_OPENAI_API_KEY`, `AZURE_OPENAI_ENDPOINT`, and
+`AZURE_OPENAI_DEPLOYMENT`. Azure web search must be enabled for that deployment;
+the run fails closed if the model does not actually invoke web search or if no
+authoritative opportunities survive validation.
