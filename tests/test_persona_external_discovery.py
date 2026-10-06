@@ -52,6 +52,13 @@ class PersonaExternalDiscoveryTests(unittest.TestCase):
         self.assertEqual(rows, [])
         sleep.assert_called_once_with(1.0)
 
+    def test_response_text_prefers_top_level_output_text(self):
+        payload = {
+            "output_text": '{"discoveries": []}',
+            "output": [{"type": "web_search_call", "id": "search"}],
+        }
+        self.assertEqual(mod._response_text(payload), '{"discoveries": []}')
+
     def test_response_text_reads_output_message_only(self):
         payload = {
             "output": [

@@ -37,6 +37,10 @@ def _host(url: str) -> str:
 
 
 def _response_text(payload: dict[str, Any]) -> str:
+    top_level = payload.get("output_text")
+    if isinstance(top_level, str) and top_level.strip():
+        return top_level.strip()
+
     pieces: list[str] = []
     for item in payload.get("output") or []:
         if not isinstance(item, dict) or item.get("type") != "message":
@@ -158,7 +162,18 @@ Rules:
         for item in payload.get("output") or []
     ):
         raise RuntimeError("Azure response did not perform web search")
-    parsed = _parse_json_text(_response_text(payload))
+    response_text = _response_text(payload)
+    if not response_text:
+        output_types = [
+            str(item.get("type"))
+            for item in payload.get("output") or []
+            if isinstance(item, dict)
+        ]
+        raise RuntimeError(
+            "Azure response contained no extractable output text "
+            f"(status={payload.get('status')!r}, output_types={output_types})"
+        )
+    parsed = _parse_json_text(response_text)
     rows = parsed.get("discoveries")
     if not isinstance(rows, list):
         raise ValueError("discovery response missing discoveries list")
