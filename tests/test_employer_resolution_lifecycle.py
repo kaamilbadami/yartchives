@@ -208,7 +208,7 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
         self.assertEqual(summary["requests_used"], 3)
         self.assertNotIn("careers_url", updated["employers"][0])
 
-    def test_lifecycle_attempts_fortune_before_verified_ats_before_other(self):
+    def test_lifecycle_prioritizes_benchmark_evidence_before_fortune(self):
         fortune = self.employer("fortune", 1)
         fortune["seed_sets"].append("fortune-500-2026")
         fortune["seed_metadata"]["fortune-500-2026"] = {
@@ -244,7 +244,7 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
             request_budget=3,
             resolver=resolver,
         )
-        self.assertEqual(calls, ["fortune", "other"])
+        self.assertEqual(calls, ["other", "fortune"])
         ats_row = next(row for row in updated["employers"] if row["id"] == "ats")
         self.assertEqual(ats_row["careers_resolution"]["status"], "provider_resolved")
         self.assertEqual(summary["fast_path_provider_resolved"], 1)
