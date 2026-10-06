@@ -173,6 +173,7 @@ def _run_review(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--personas", type=Path, default=Path("audit/personas/trust-benchmark-personas.json"))
+    parser.add_argument("--persona", default="all", help="Persona ID to include, or 'all'")
 
     parser.add_argument("--generate-plan", type=Path, help="Output markdown search plan")
     parser.add_argument("--generate-csv", type=Path, help="Output CSV template")
@@ -189,12 +190,18 @@ def main() -> int:
         return 1
 
     personas_doc = json.loads(args.personas.read_text(encoding="utf-8"))
+    selected_personas = personas_doc.get("personas", [])
+    if args.persona != "all":
+        selected_personas = [p for p in selected_personas if p.get("id") == args.persona]
+        if not selected_personas:
+            print(f"Error: unknown persona {args.persona!r}", file=sys.stderr)
+            return 1
 
     if args.generate_plan or args.generate_csv:
         if not args.generate_plan or not args.generate_csv:
             print("Error: Both --generate-plan and --generate-csv are required to generate a plan.", file=sys.stderr)
             return 1
-        _generate_search_plan(personas_doc.get("personas", []), args.generate_plan, args.generate_csv)
+        _generate_search_plan(selected_personas, args.generate_plan, args.generate_csv)
         return 0
 
     if args.draft_csv and args.output_json:
