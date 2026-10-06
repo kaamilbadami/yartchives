@@ -22,14 +22,14 @@ class TrustBenchmarkPersonaValidationTests(unittest.TestCase):
     def test_checked_in_fixture_is_valid(self):
         self.assertEqual(mod.validate_document(self.document), [])
 
-    def test_requires_eight_real_derived_personas(self):
+    def test_requires_nine_real_derived_personas(self):
         document = copy.deepcopy(self.document)
         document["personas"] = [
             row for row in document["personas"]
             if row["id"] not in {"AL", "GW"}
         ]
         errors = mod.validate_document(document)
-        self.assertTrue(any("at least 8 real-derived" in error for error in errors))
+        self.assertTrue(any("at least 9 real-derived" in error for error in errors))
 
     def test_requires_cs_engineering_and_finance_coverage(self):
         document = copy.deepcopy(self.document)
