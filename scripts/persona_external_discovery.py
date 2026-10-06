@@ -48,8 +48,13 @@ def _response_text(payload: dict[str, Any]) -> str:
 
 def _parse_json_text(text: str) -> dict[str, Any]:
     cleaned = text.strip()
-    cleaned = re.sub(r"^\\s*```(?:json)?\\s*", "", cleaned, flags=re.I)
-    cleaned = re.sub(r"\\s*```\\s*$", "", cleaned)
+    if cleaned.startswith("```"):
+        lines = cleaned.splitlines()
+        if lines and lines[0].strip().startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        cleaned = "\n".join(lines).strip()
     value = json.loads(cleaned)
     if not isinstance(value, dict):
         raise ValueError("discovery response must be a JSON object")
