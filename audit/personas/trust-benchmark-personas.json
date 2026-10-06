@@ -346,6 +346,36 @@
         "relocation_allowed": true,
         "notes": "Resume does not state a geographic preference; benchmark prioritizes home/school regions while allowing materially stronger national roles."
       }
+    },
+    {
+      "id": "FR",
+      "source_kind": "synthetic",
+      "student_stage": "Freshman",
+      "graduation_options": [
+        "May 2030"
+      ],
+      "primary_area": "computer_science",
+      "role_intent": [
+        "software engineering",
+        "data/analytics",
+        "testing/validation",
+        "technical operations",
+        "introductory research computing roles with realistic freshman eligibility"
+      ],
+      "evidence": [
+        "introductory computer science coursework",
+        "small programming projects",
+        "no prior technical internship"
+      ],
+      "negative_preferences": [],
+      "location": {
+        "home_region": "United States",
+        "school_region": null,
+        "preference_mode": "national",
+        "preferred_regions": [],
+        "relocation_allowed": true,
+        "notes": "Synthetic eligibility edge case. Location is intentionally non-defining; the persona exists to test May 2030 / freshman access to Summer 2027 internships."
+      }
     }
   ]
 }

@@ -135,6 +135,13 @@ def validate_document(document: dict[str, Any]) -> list[str]:
     if real_derived < 9:
         errors.append(f"need at least 9 real-derived personas; found {real_derived}")
 
+    may_2030 = [
+        row for row in personas
+        if isinstance(row, dict) and "May 2030" in (row.get("graduation_options") or [])
+    ]
+    if not may_2030:
+        errors.append("benchmark coverage missing May 2030 freshman edge case")
+
     for required_area in ("computer_science", "engineering", "finance"):
         if area_counts[required_area] < 1:
             errors.append(f"benchmark coverage missing primary area: {required_area}")
