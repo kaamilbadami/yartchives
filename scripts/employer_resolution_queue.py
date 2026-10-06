@@ -66,7 +66,12 @@ def _hint_identity_status(value: str) -> str:
         return "tenant"
     if family == "successfactors":
         return "tenant" if query.get("company") else "shared_provider"
-    # Workday, iCIMS, Oracle, Eightfold, Avature, and Phenom commonly encode
+    if family == "icims":
+        host = parsed.hostname or ""
+        if host.casefold() in {"icims.com", "www.icims.com"}:
+            return "shared_provider"
+        return "tenant"
+    # Workday, Oracle, Eightfold, Avature, and Phenom commonly encode
     # tenant identity in the hostname. Unknown hosts are employer-domain hints.
     return "tenant"
 
