@@ -48,6 +48,7 @@ FILL_FIELDS = (
     "link_origin",
     "link_status",
     "link_checked_at",
+    "link_validation_version",
     "resolved_from_url",
 )
 PROVIDERS = ("workday", "greenhouse", "icims", "oracle_hcm", "ashby")
