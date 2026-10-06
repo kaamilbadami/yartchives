@@ -1,21 +1,14 @@
-# Evidence Report: Issue #908 - Reduce unresolved provider discovery gaps
+# Evidence Report: Issue #964 - Close Applytojob provider-resolution coverage gap
 
 ## What was tested
-I investigated the coverage gap candidate `source-registry:unknown-provider-resolution`, which reports that 348 benchmark employers remain unresolved without a known ATS fingerprint in their current domain hints. I verified the metric generation logic in `scripts/coverage_gap_candidates.py` and the resolution queue logic in `scripts/employer_resolution_queue.py`. I extracted the domain hints for all 348 employers and sampled their resolution using `scripts/careers_resolver.py`.
+I investigated the reported coverage gap `ats-applytojob:provider-resolution`, which claims 1 benchmark employer has an unresolved provider record but domain evidence fingerprinting as applytojob. I ran `scripts/coverage_gap_candidates.py` to reproduce the gap from current `main` and analyzed the current `employer_universe.json` state.
 
 ## Measured before/after impact
-- **Before:** 348 unresolved benchmark employers with unknown ATS provider family.
-- **After:** 348 unresolved benchmark employers with unknown ATS provider family (no-code conclusion).
+- **Before:** 0 unresolved benchmark employers with `applytojob` domain fingerprints on current `main`. The only reported gap is `source-registry:unknown-provider-resolution`.
+- **After:** 0 unresolved benchmark employers with `applytojob` domain fingerprints (no-code conclusion).
 
 ## Why the proposed paths are insufficient
-The employers forming this gap (e.g., `apple.com`, `abm.com`, `advanceautoparts.com`) only possess generic corporate domain names in their `domain_hints` or `seed_metadata` (such as `apple.com` or `jobs.apple.com` without identifying path footprints). Since `provider_fingerprint.py` maps domain or URL segments to ATS families, it cannot deterministically assign a provider family to a bare corporate domain without crawling the site to discover the actual ATS platform (e.g., crawling `advanceautoparts.com` discovers a Phenom integration).
-
-Therefore, it is logically impossible to reduce this "unknown family" gap via static pattern matching improvements without either:
-1. Adding employer-specific exceptions (which is prohibited by the acceptance criteria).
-2. Assuming a specific ATS for generic corporate domains (which would cause massive false positives).
-3. Pre-crawling these employers and hardcoding their detected ATS URLs into the seed benchmark metadata (which is the job of the `employer_resolution_lifecycle.py` and not a code-level fix).
-
-The logic extracting `domain_hints` in `_hint_families` correctly aggregates from both the root-level employer object and `seed_metadata`. The metric functions as intended by accurately reporting that without crawling, these employers remain completely undiscoverable from their seed hints.
+The gap cannot be reproduced on current `main`. Both benchmark employers with `applytojob` domain hints (`abm-industries` and `aerotech`) have successfully resolved provider records (`"status": "resolved"`). The underlying codebase in `scripts/careers_resolver.py` and `scripts/provider_fingerprint.py` already correctly classifies and resolves `applytojob` domains. The reported gap was likely an artifact of stale data in the data store prior to the most recent automated universe refresh.
 
 ## Smallest concrete follow-up experiment
-Run `scripts/employer_resolution_lifecycle.py` with an increased employer budget (e.g., `employer_budget=500`) against the current universe to autonomously crawl and resolve these generic hints into specific ATS platforms, which will then persist the actual provider URL and decrease this gap.
+No code changes are necessary for `applytojob`. Future instances of stale resolution data causing false-positive gaps can be mitigated by ensuring `employer_resolution_lifecycle.py` is run frequently enough to keep `employer_universe.json` synchronized with the latest resolver logic before creating autonomous gap tickets.
