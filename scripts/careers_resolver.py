@@ -106,6 +106,8 @@ def has_provider_tenant_identity(url: str, family: str | None = None) -> bool:
         return bool(parts and parts[0].casefold() not in {"jobs", "careers"})
     if family == "successfactors":
         return bool(query.get("company"))
+    if family == "icims":
+        return host not in {"icims.com", "www.icims.com"}
     if family == "oracle":
         return "sites" in [part.lower() for part in parts] or bool((parsed.hostname or "").split(".")[0])
     return True

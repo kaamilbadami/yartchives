@@ -159,6 +159,12 @@ class EmployerResolutionQueueTests(unittest.TestCase):
 
 
 
+    def test_hint_identity_status(self):
+        self.assertEqual(mod._hint_identity_status("icims.com"), "shared_provider")
+        self.assertEqual(mod._hint_identity_status("www.icims.com"), "shared_provider")
+        self.assertEqual(mod._hint_identity_status("careers-acme.icims.com"), "tenant")
+        self.assertEqual(mod._hint_identity_status("https://careers-acme.icims.com/jobs"), "tenant")
+
     def test_ready_priority_with_myworkdaysite_domain(self):
         universe = self.universe()
         universe["seed_sets"].append({"key": "other", "kind": "other"})

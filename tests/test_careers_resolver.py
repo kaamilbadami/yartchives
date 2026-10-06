@@ -28,6 +28,11 @@ class FakeSession:
 
 
 class CareersResolverTests(unittest.TestCase):
+    def test_has_provider_tenant_identity_icims(self):
+        self.assertFalse(mod.has_provider_tenant_identity("https://icims.com"))
+        self.assertFalse(mod.has_provider_tenant_identity("https://www.icims.com"))
+        self.assertTrue(mod.has_provider_tenant_identity("https://careers-acme.icims.com"))
+
     def resolve(self, routes, domain="acme.example"):
         session = FakeSession(routes)
         result = mod.resolve_employer({"name": "Acme", "domain_hints": [domain]}, session)
