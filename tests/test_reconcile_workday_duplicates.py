@@ -262,6 +262,7 @@ class ReconcileWorkdayDuplicateTests(unittest.TestCase):
         )
         verified_apply["link_status"] = "ok"
         verified_apply["link_checked_at"] = "2026-09-16T12:05:00Z"
+        verified_apply["link_validation_version"] = 2
         verified_apply["link_origin"] = "workday-employer-job"
 
         reconciled, stats = mod.reconcile_jobs([employer_page, verified_apply])
@@ -273,6 +274,7 @@ class ReconcileWorkdayDuplicateTests(unittest.TestCase):
         self.assertEqual(job["link_kind"], "direct")
         self.assertEqual(job["link_status"], "ok")
         self.assertEqual(job["link_checked_at"], "2026-09-16T12:05:00Z")
+        self.assertEqual(job["link_validation_version"], 2)
 
     def test_workday_job_page_is_not_left_labeled_direct(self):
         job_url = "https://globalhr.wd5.myworkdayjobs.com/rec_rtx_ext_gateway" + RTX_PATH
