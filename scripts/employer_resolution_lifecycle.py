@@ -134,8 +134,7 @@ def _verified_provider_fast_path(employer: dict[str, Any], now: datetime) -> boo
         employer.pop("careers_platform", None)
 
     needs_completion = family in {"brassring", "ashby", "lever", "smartrecruiters"}
-    if check_url != url or not needs_completion:
-        employer["careers_url"] = check_url
+    employer["careers_url"] = check_url
 
     resolved_at = _timestamp(now)
     employer["careers_platform"] = family
@@ -173,7 +172,6 @@ def _provider_resolution_needs_completion(employer: dict[str, Any]) -> bool:
         resolution.get("status") == "provider_resolved"
         and provider.get("status") == "resolved"
         and provider.get("family") in {"brassring", "ashby", "lever", "smartrecruiters"}
-        and not str(employer.get("careers_url") or "").strip()
     )
 
 
