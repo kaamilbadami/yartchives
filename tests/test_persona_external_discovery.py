@@ -14,7 +14,7 @@ SPEC.loader.exec_module(mod)
 
 class PersonaExternalDiscoveryTests(unittest.TestCase):
     def test_parse_json_text_accepts_fenced_json(self):
-        parsed = mod._parse_json_text('```json\n{"discoveries": []}\n```')
+        parsed = mod._parse_json_text('```json\n{\"discoveries\": []}\n```')
         self.assertEqual(parsed, {"discoveries": []})
 
     def test_discovery_surface_is_never_authoritative(self):
@@ -35,7 +35,7 @@ class PersonaExternalDiscoveryTests(unittest.TestCase):
             json=lambda: {
                 "output": [
                     {"type": "web_search_call"},
-                    {"type": "message", "content": [{"type": "output_text", "text": "{\\"discoveries\\": []}"}]},
+                    {"type": "message", "content": [{"type": "output_text", "text": '{"discoveries": []}'}]},
                 ]
             },
         )
