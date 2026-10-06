@@ -31,6 +31,15 @@ class TrustBenchmarkPersonaValidationTests(unittest.TestCase):
         errors = mod.validate_document(document)
         self.assertTrue(any("at least 9 real-derived" in error for error in errors))
 
+    def test_am_is_canonical_bel_air_finance_persona(self):
+        ids = {row["id"] for row in self.document["personas"]}
+        self.assertIn("AM", ids)
+        self.assertNotIn("BF", ids)
+        am = next(row for row in self.document["personas"] if row["id"] == "AM")
+        self.assertEqual(am["primary_area"], "finance")
+        self.assertEqual(am["graduation_options"], ["May 2029"])
+        self.assertIn("Bel Air, MD area", am["location"]["home_region"])
+
     def test_requires_cs_engineering_and_finance_coverage(self):
         document = copy.deepcopy(self.document)
         document["personas"] = [
