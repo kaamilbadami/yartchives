@@ -133,14 +133,15 @@ def _verified_provider_fast_path(employer: dict[str, Any], now: datetime) -> boo
         employer.pop("careers_url", None)
         employer.pop("careers_platform", None)
 
-    if check_url != url:
+    needs_completion = family in {"brassring", "ashby", "lever", "smartrecruiters"}
+    if check_url != url or not needs_completion:
         employer["careers_url"] = check_url
 
     resolved_at = _timestamp(now)
     employer["careers_platform"] = family
     employer["provider"] = provider
     employer["careers_resolution"] = {
-        "status": "resolved" if employer.get("careers_url") else "provider_resolved",
+        "status": "provider_resolved" if needs_completion else "resolved",
         "attempt_status": "verified_seed",
         "resolved_at": resolved_at,
         "last_attempt_at": resolved_at,
@@ -171,7 +172,7 @@ def _provider_resolution_needs_completion(employer: dict[str, Any]) -> bool:
     return (
         resolution.get("status") == "provider_resolved"
         and provider.get("status") == "resolved"
-        and provider.get("family") in {"brassring", "greenhouse", "ashby", "lever", "smartrecruiters"}
+        and provider.get("family") in {"brassring", "ashby", "lever", "smartrecruiters"}
         and not str(employer.get("careers_url") or "").strip()
     )
 
