@@ -20,6 +20,7 @@ class EmployerResolutionQueueTests(unittest.TestCase):
                 {"key": "benchmark-b", "kind": "coverage_benchmark"},
                 {"key": "fortune-500-2026", "kind": "fortune_500"},
                 {"key": "state-of-ats-2026-verified-hosts", "kind": "external_ats_evidence"},
+                {"key": "catalog", "kind": "catalog"},
             ],
             "employers": [],
         }
