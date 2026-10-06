@@ -257,7 +257,7 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
         )
         self.assertEqual(calls, ["benchmark", "fortune"])
         ats_row = next(row for row in updated["employers"] if row["id"] == "ats")
-        self.assertEqual(ats_row["careers_resolution"]["status"], "provider_resolved")
+        self.assertEqual(ats_row["careers_resolution"]["status"], "resolved")
         self.assertEqual(summary["fast_path_provider_resolved"], 1)
 
     def test_verified_workday_tenant_fast_paths(self):
@@ -283,10 +283,10 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
 
         self.assertEqual(calls, [])
         row = updated["employers"][0]
-        self.assertEqual(row.get("careers_url"), None)
+        self.assertEqual(row["careers_url"], "https://verified.wd1.myworkdayjobs.com")
         self.assertEqual(row["careers_platform"], "workday")
         self.assertEqual(row["provider"]["family"], "workday")
-        self.assertEqual(row["careers_resolution"]["status"], "provider_resolved")
+        self.assertEqual(row["careers_resolution"]["status"], "resolved")
         self.assertEqual(row["careers_resolution"]["attempt_status"], "verified_seed")
         self.assertEqual(summary["fast_path_provider_resolved"], 1)
         self.assertEqual(summary["attempted_employers"], 0)
@@ -343,16 +343,16 @@ class EmployerResolutionLifecycleTests(unittest.TestCase):
             resolver=resolver,
         )
 
-        self.assertEqual(calls, ["airbnb-fast-path"])
+        self.assertEqual(calls, [])
         row = updated["employers"][0]
         self.assertEqual(row["careers_url"], "https://boards.greenhouse.io/airbnb")
         self.assertEqual(row["careers_platform"], "greenhouse")
         self.assertEqual(row["provider"]["family"], "greenhouse")
         self.assertEqual(row["careers_resolution"]["status"], "resolved")
-        self.assertEqual(row["careers_resolution"]["attempt_status"], "resolved")
+        self.assertEqual(row["careers_resolution"]["attempt_status"], "verified_seed")
         self.assertEqual(summary["fast_path_provider_resolved"], 1)
-        self.assertEqual(summary["attempted_employers"], 1)
-        self.assertEqual(summary["requests_used"], 1)
+        self.assertEqual(summary["attempted_employers"], 0)
+        self.assertEqual(summary["requests_used"], 0)
 
     def test_verified_brassring_tenant_fast_paths_then_completes_site(self):
         employer = self.employer("verified-brassring")
