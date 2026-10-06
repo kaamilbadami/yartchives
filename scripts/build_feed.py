@@ -769,6 +769,9 @@ def merge_job(target: dict[str, Any], incoming: dict[str, Any]) -> None:
     if "link_checked_at" in incoming:
         if "link_checked_at" not in target or ("link_status" in incoming and incoming["link_status"] == "ok"):
             target["link_checked_at"] = incoming["link_checked_at"]
+    if "link_validation_version" in incoming:
+        if "link_validation_version" not in target or ("link_status" in incoming and incoming["link_status"] == "ok"):
+            target["link_validation_version"] = incoming["link_validation_version"]
 
 
 
@@ -831,6 +834,8 @@ def dedupe(jobs: list[dict[str, Any]], old_jobs: dict[str, dict[str, Any]], refe
                 job["link_status"] = prior["link_status"]
             if "link_checked_at" in prior:
                 job["link_checked_at"] = prior["link_checked_at"]
+            if "link_validation_version" in prior:
+                job["link_validation_version"] = prior["link_validation_version"]
 
     def sort_key(job: dict[str, Any]) -> tuple[str, str]:
         return (job.get("posted_at") or job.get("first_seen") or "", job.get("id") or "")

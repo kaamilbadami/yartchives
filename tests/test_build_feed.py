@@ -133,11 +133,13 @@ class BuildFeedTests(unittest.TestCase):
             "source_name": "B",
             "source_url": "http://b.com",
             "link_status": "ok",
-            "link_checked_at": "2026-09-18T12:00:00Z"
+            "link_checked_at": "2026-09-18T12:00:00Z",
+            "link_validation_version": 2
         }
         mod.merge_job(target, incoming)
         self.assertEqual(target.get("link_status"), "ok")
         self.assertEqual(target.get("link_checked_at"), "2026-09-18T12:00:00Z")
+        self.assertEqual(target.get("link_validation_version"), 2)
 
         # Do not overwrite ok with unknown
         incoming2 = {
@@ -148,6 +150,7 @@ class BuildFeedTests(unittest.TestCase):
         }
         mod.merge_job(target, incoming2)
         self.assertEqual(target.get("link_status"), "ok")
+        self.assertEqual(target.get("link_validation_version"), 2)
 
     def test_state_extraction_is_exact(self):
         self.assertEqual(mod.extract_states("Acton, Massachusetts"), ["MA"])
