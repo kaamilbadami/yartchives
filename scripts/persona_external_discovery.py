@@ -13,6 +13,7 @@ import csv
 import json
 import os
 import re
+import time
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -123,17 +124,32 @@ Rules:
     base = endpoint.rstrip("/")
     if not base.endswith("/openai/v1"):
         base = base + "/openai/v1"
-    response = requests.post(
-        base + "/responses",
-        headers={"Content-Type": "application/json", "api-key": api_key},
-        json={
-            "model": deployment,
-            "tools": [{"type": "web_search"}],
-            "tool_choice": "auto",
-            "input": prompt,
-        },
-        timeout=timeout,
-    )
+    response = None
+    for attempt in range(5):
+        response = requests.post(
+            base + "/responses",
+            headers={"Content-Type": "application/json", "api-key": api_key},
+            json={
+                "model": deployment,
+                "tools": [{"type": "web_search"}],
+                "tool_choice": "auto",
+                "input": prompt,
+                "max_output_tokens": max(1800, min(4000, max_results * 280)),
+            },
+            timeout=timeout,
+        )
+        if response.status_code != 429:
+            break
+        retry_after = response.headers.get("Retry-After")
+        try:
+            delay = float(retry_after) if retry_after else 60.0
+        except ValueError:
+            delay = 60.0
+        if attempt == 4:
+            break
+        print(f"Azure rate limited persona {persona.get('id')}; retrying in {delay:.0f}s")
+        time.sleep(max(1.0, min(delay, 90.0)))
+    assert response is not None
     if response.status_code >= 400:
         raise RuntimeError(f"Azure OpenAI HTTP {response.status_code}: {response.text[:1000]}")
     payload = response.json()
@@ -182,6 +198,7 @@ def main() -> int:
     parser.add_argument("--output-csv", type=Path, required=True)
     parser.add_argument("--max-results", type=int, default=12)
     parser.add_argument("--timeout", type=float, default=120.0)
+    parser.add_argument("--persona-delay", type=float, default=12.0)
     args = parser.parse_args()
 
     api_key = os.getenv("AZURE_OPENAI_API_KEY", "").strip()
@@ -205,7 +222,9 @@ def main() -> int:
             raise SystemExit(f"Unknown persona: {args.persona}")
 
     rows: list[dict[str, str]] = []
-    for persona in personas:
+    for index, persona in enumerate(personas):
+        if index and args.persona_delay > 0:
+            time.sleep(args.persona_delay)
         rows.extend(discover(
             persona,
             endpoint=endpoint,

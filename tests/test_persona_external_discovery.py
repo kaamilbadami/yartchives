@@ -14,7 +14,7 @@ SPEC.loader.exec_module(mod)
 
 class PersonaExternalDiscoveryTests(unittest.TestCase):
     def test_parse_json_text_accepts_fenced_json(self):
-        parsed = mod._parse_json_text('```json\n{"discoveries": []}\n```')
+        parsed = mod._parse_json_text('```json\n{\"discoveries\": []}\n```')
         self.assertEqual(parsed, {"discoveries": []})
 
     def test_discovery_surface_is_never_authoritative(self):
@@ -26,6 +26,31 @@ class PersonaExternalDiscoveryTests(unittest.TestCase):
         response = mock.Mock(status_code=403)
         with mock.patch.object(mod.requests, "get", return_value=response):
             self.assertTrue(mod._validate_authoritative_url("https://careers.example.com/jobs/123", 1))
+
+    def test_rate_limit_retries_after_retry_after(self):
+        rate_limited = mock.Mock(status_code=429, headers={"Retry-After": "1"}, text="rate limited")
+        success = mock.Mock(
+            status_code=200,
+            headers={},
+            json=lambda: {
+                "output": [
+                    {"type": "web_search_call"},
+                    {"type": "message", "content": [{"type": "output_text", "text": '{"discoveries": []}'}]},
+                ]
+            },
+        )
+        persona = {"id": "KB"}
+        with mock.patch.object(mod.requests, "post", side_effect=[rate_limited, success]),              mock.patch.object(mod.time, "sleep") as sleep:
+            rows = mod.discover(
+                persona,
+                endpoint="https://example.openai.azure.com",
+                api_key="secret",
+                deployment="gpt-test",
+                max_results=1,
+                timeout=1,
+            )
+        self.assertEqual(rows, [])
+        sleep.assert_called_once_with(1.0)
 
     def test_response_text_reads_output_message_only(self):
         payload = {
