@@ -43,6 +43,18 @@ class TrustBenchmarkPersonaValidationTests(unittest.TestCase):
         self.assertIn("Excel Skills for Business certification", am["evidence"])
         self.assertIn("no prior finance internship", am["evidence"])
 
+    def test_includes_may_2030_freshman_edge_case(self):
+        fr = next(row for row in self.document["personas"] if row["id"] == "FR")
+        self.assertEqual(fr["source_kind"], "synthetic")
+        self.assertEqual(fr["graduation_options"], ["May 2030"])
+        self.assertEqual(fr["student_stage"], "Freshman")
+        self.assertIn("no prior technical internship", fr["evidence"])
+
+        document = copy.deepcopy(self.document)
+        document["personas"] = [row for row in document["personas"] if row["id"] != "FR"]
+        errors = mod.validate_document(document)
+        self.assertIn("benchmark coverage missing May 2030 freshman edge case", errors)
+
     def test_requires_cs_engineering_and_finance_coverage(self):
         document = copy.deepcopy(self.document)
         document["personas"] = [
