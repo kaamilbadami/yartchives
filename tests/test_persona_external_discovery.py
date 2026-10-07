@@ -1,4 +1,5 @@
 import importlib.util
+import json
 from pathlib import Path
 import sys
 import unittest
@@ -80,6 +81,34 @@ class PersonaExternalDiscoveryTests(unittest.TestCase):
                 max_search_calls=2,
             )
         self.assertEqual(post.call_args.kwargs["json"]["max_tool_calls"], 2)
+
+    def test_logs_billable_web_search_requests(self):
+        success = mock.Mock(
+            status_code=200,
+            headers={},
+            json=lambda: {
+                "output": [
+                    {"type": "web_search_call"},
+                    {"type": "message", "content": [{"type": "output_text", "text": '{"discoveries": []}'}]},
+                ],
+                "tool_usage": {"web_search": {"num_requests": 4}},
+                "usage": {"input_tokens": 100, "output_tokens": 20, "total_tokens": 120},
+            },
+        )
+        with mock.patch.object(mod.requests, "post", return_value=success), \
+             mock.patch("builtins.print") as printed:
+            mod.discover(
+                {"id": "KB"},
+                endpoint="https://example.openai.azure.com",
+                api_key="secret",
+                deployment="gpt-test",
+                max_results=1,
+                timeout=1,
+                max_search_calls=8,
+            )
+        metrics = [json.loads(call.args[0]) for call in printed.call_args_list if call.args]
+        self.assertTrue(any(item.get("billable_web_search_requests") == 4 for item in metrics))
+        self.assertTrue(any(item.get("total_tokens") == 120 for item in metrics))
 
     def test_response_text_prefers_top_level_output_text(self):
         payload = {
