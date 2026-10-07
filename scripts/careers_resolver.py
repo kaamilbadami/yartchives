@@ -268,6 +268,15 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
                 slug_candidates.add(token.replace(" ", ""))
                 slug_candidates.add(token.replace(" ", "-"))
 
+    # Add common corporate and regional suffixes to handle generic job board tenant URLs
+    extended_candidates = list(slug_candidates)
+    for base in extended_candidates:
+        if not base:
+            continue
+        for suffix in ("usa", "canada", "uk", "aus", "nz", "global", "inc", "hq", "corp", "co", "llc", "group"):
+            slug_candidates.add(f"{base}{suffix}")
+            slug_candidates.add(f"{base}-{suffix}")
+
     for hint in hints:
         parsed = urlparse(hint)
         origin = urlunparse((parsed.scheme, parsed.netloc, "", "", "", ""))
