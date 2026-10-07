@@ -246,8 +246,8 @@ def run_lifecycle(
     resolver: Callable[..., dict[str, Any]] = resolve_employer,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     validate_universe(universe)
-    if ttl_days <= 0 or employer_budget <= 0 or request_budget <= 0:
-        raise ValueError("ttl_days, employer_budget, and request_budget must be positive")
+    if ttl_days < 0 or employer_budget <= 0 or request_budget <= 0:
+        raise ValueError("ttl_days cannot be negative, employer_budget, and request_budget must be positive")
 
     now = now or _utc_now()
     output = json.loads(json.dumps(universe))
