@@ -91,7 +91,7 @@ def discover(
     deployment: str,
     max_results: int,
     timeout: float,
-    max_search_calls: int = 3,
+    max_search_calls: int = 8,
 ) -> list[dict[str, str]]:
     prompt = f"""You are building an independent internship benchmark for Yartchives.
 Do not use or infer anything from the Yartchives feed.
@@ -167,10 +167,22 @@ Rules:
     )
     if not search_calls:
         raise RuntimeError("Azure response did not perform web search")
+    tool_usage = payload.get("tool_usage") or {}
+    web_search_usage = tool_usage.get("web_search") if isinstance(tool_usage, dict) else {}
+    billable_requests = (
+        web_search_usage.get("num_requests")
+        if isinstance(web_search_usage, dict)
+        else None
+    )
+    usage = payload.get("usage") or {}
     print(json.dumps({
         "persona": str(persona.get("id") or ""),
-        "web_search_calls": search_calls,
+        "web_search_call_items": search_calls,
+        "billable_web_search_requests": billable_requests,
         "web_search_call_budget": max(1, min(8, max_search_calls)),
+        "input_tokens": usage.get("input_tokens") if isinstance(usage, dict) else None,
+        "output_tokens": usage.get("output_tokens") if isinstance(usage, dict) else None,
+        "total_tokens": usage.get("total_tokens") if isinstance(usage, dict) else None,
     }))
     response_text = _response_text(payload)
     if not response_text:
@@ -228,8 +240,8 @@ def main() -> int:
         "--max-search-calls",
         type=int,
         choices=range(1, 9),
-        default=3,
-        help="Maximum paid Azure web-search tool calls per persona (1-8)",
+        default=8,
+        help="Maximum Azure web-search tool calls per persona (1-8)",
     )
     parser.add_argument("--timeout", type=float, default=120.0)
     parser.add_argument("--persona-delay", type=float, default=12.0)
