@@ -12,9 +12,9 @@ on:
         required: true
         default: "12"
       max_search_calls:
-        description: Maximum paid web-search calls per persona
+        description: Maximum web-search tool calls per persona
         required: true
-        default: "3"
+        default: "8"
   schedule:
     - cron: "23 12 * * 1"
   issue_comment:
@@ -62,7 +62,7 @@ jobs:
         env:
           REQUESTED_PERSONA: ${{ github.event_name == 'workflow_dispatch' && inputs.persona || 'all' }}
           REQUESTED_MAX: ${{ github.event_name == 'workflow_dispatch' && inputs.max_results || '12' }}
-          REQUESTED_SEARCH_CALLS: ${{ github.event_name == 'workflow_dispatch' && inputs.max_search_calls || '3' }}
+          REQUESTED_SEARCH_CALLS: ${{ github.event_name == 'workflow_dispatch' && inputs.max_search_calls || '8' }}
         run: |
           echo "PERSONA=$REQUESTED_PERSONA" >> "$GITHUB_ENV"
           echo "MAX_RESULTS=$REQUESTED_MAX" >> "$GITHUB_ENV"
