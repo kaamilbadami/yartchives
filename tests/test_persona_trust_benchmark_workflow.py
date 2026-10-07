@@ -18,7 +18,7 @@ class PersonaTrustBenchmarkWorkflowTests(unittest.TestCase):
         self.assertIn("external_discovery_benchmark.py", text)
         self.assertIn("persona_external_discovery.py", text)
         self.assertIn("max_search_calls:", text)
-        self.assertIn('default: "3"', text)
+        self.assertIn('default: "8"', text)
         self.assertIn('--max-search-calls "$MAX_SEARCH_CALLS"', text)
         self.assertIn("coverage_audit.py", text)
         self.assertIn("persona-frozen-benchmark.json", text)
