@@ -47,15 +47,39 @@ class PersonaExternalDiscoveryTests(unittest.TestCase):
                 endpoint="https://example.openai.azure.com",
                 api_key="secret",
                 deployment="gpt-test",
-                max_results=1,
+                max_results=12,
                 timeout=1,
+                max_search_calls=3,
             )
         self.assertEqual(rows, [])
         sleep.assert_called_once_with(1.0)
         request_json = post.call_args_list[0].kwargs["json"]
         self.assertEqual(request_json["reasoning"], {"effort": "low"})
-        self.assertEqual(request_json["max_tool_calls"], 1)
+        self.assertEqual(request_json["max_tool_calls"], 3)
         self.assertEqual(request_json["max_output_tokens"], 6000)
+
+    def test_search_budget_is_independent_of_result_count(self):
+        success = mock.Mock(
+            status_code=200,
+            headers={},
+            json=lambda: {
+                "output": [
+                    {"type": "web_search_call"},
+                    {"type": "message", "content": [{"type": "output_text", "text": '{"discoveries": []}'}]},
+                ]
+            },
+        )
+        with mock.patch.object(mod.requests, "post", return_value=success) as post:
+            mod.discover(
+                {"id": "KB"},
+                endpoint="https://example.openai.azure.com",
+                api_key="secret",
+                deployment="gpt-test",
+                max_results=50,
+                timeout=1,
+                max_search_calls=2,
+            )
+        self.assertEqual(post.call_args.kwargs["json"]["max_tool_calls"], 2)
 
     def test_response_text_prefers_top_level_output_text(self):
         payload = {
