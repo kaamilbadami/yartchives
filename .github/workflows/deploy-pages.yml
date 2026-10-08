@@ -275,6 +275,7 @@ jobs:
             assets_match=true
             while read -r expected path; do
               [ -n "$expected" ] || continue
+              [ -n "$path" ] || continue
               name="$(basename "$path")"
               case "$name" in
                 index.html)
