@@ -19,8 +19,8 @@ def test_automerge_explicitly_dispatches_pages_from_resulting_main():
     assert 'AFTER_SHA="$(git rev-parse origin/main)"' in automerge
     assert 'git diff --name-only "$BEFORE_SHA" "$AFTER_SHA"' in automerge
     assert "scripts/build_apply_next_inspections\\.py" in automerge
-    assert 'gh workflow run deploy-pages.yml --repo "$REPOSITORY" --ref main' in automerge
-    assert automerge.index("python scripts/auto_merge_agent_prs.py") < automerge.index("gh workflow run deploy-pages.yml")
+    assert 'event_type=deploy_yartchives_site' in automerge
+    assert automerge.index("python scripts/auto_merge_agent_prs.py") < automerge.index("event_type=deploy_yartchives_site")
 
 
 def test_pages_workflow_still_deploys_and_verifies_current_main():
@@ -32,3 +32,4 @@ def test_pages_workflow_still_deploys_and_verifies_current_main():
     assert "Verify live deployment" in workflow
     assert "LIVE_SHA" in workflow
     assert 'build_sha=%s\\n' in workflow
+    assert '[ -n "$path" ] || continue' in workflow
