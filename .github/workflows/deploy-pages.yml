@@ -216,39 +216,49 @@ jobs:
           }
 
           verified=false
+          mismatch_reason="unknown"
+
           for attempt in $(seq 1 12); do
-            if curl --fail --silent --show-error \
-              -H 'Cache-Control: no-cache' \
-              "${BASE_URL}/?verify=${DEPLOYMENT_ID}" \
-              -o /tmp/live-index.html; then
-              LIVE_SHA="$(sed -n 's/.*<meta name="yartchives-build" content="\([^"]*\)".*/\1/p' /tmp/live-index.html | head -n1)"
-              LIVE_DEPLOYMENT_ID="$(sed -n 's/.*<meta name="yartchives-deployment-id" content="\([^"]*\)".*/\1/p' /tmp/live-index.html | head -n1)"
-              if [ "$LIVE_SHA" = "$BUILD_SHA" ] && [ "$LIVE_DEPLOYMENT_ID" = "$DEPLOYMENT_ID" ]; then
-                verified=true
-                break
-              fi
+            mismatch_reason=""
+
+            if ! fetch_live "${BASE_URL}/?verify=${DEPLOYMENT_ID}" /tmp/live-index.html; then
+              mismatch_reason="index.html failed to download"
+              sleep 5
+              continue
             fi
-            sleep 5
-          done
 
-          if [ "$verified" != true ]; then
-            echo "::error::Live Pages site did not expose deployment $DEPLOYMENT_ID for build $BUILD_SHA."
-            exit 1
-          fi
+            LIVE_SHA="$(sed -n 's/.*<meta name="yartchives-build" content="\([^"]*\)".*/\1/p' /tmp/live-index.html | head -n1)"
+            LIVE_DEPLOYMENT_ID="$(sed -n 's/.*<meta name="yartchives-deployment-id" content="\([^"]*\)".*/\1/p' /tmp/live-index.html | head -n1)"
+            if [ "$LIVE_SHA" != "$BUILD_SHA" ] || [ "$LIVE_DEPLOYMENT_ID" != "$DEPLOYMENT_ID" ]; then
+              mismatch_reason="index.html metadata mismatch"
+              sleep 5
+              continue
+            fi
 
-          fetch_live \
-            "${BASE_URL}/deploy-manifest.txt?verify=${DEPLOYMENT_ID}" \
-            /tmp/live-deploy-manifest.txt
-          grep -Fx "build_sha=${BUILD_SHA}" /tmp/live-deploy-manifest.txt
-          grep -Fx "deployment_id=${DEPLOYMENT_ID}" /tmp/live-deploy-manifest.txt
+            if ! fetch_live "${BASE_URL}/deploy-manifest.txt?verify=${DEPLOYMENT_ID}" /tmp/live-deploy-manifest.txt; then
+              mismatch_reason="deploy-manifest.txt failed to download"
+              sleep 5
+              continue
+            fi
+            if ! grep -qFx "build_sha=${BUILD_SHA}" /tmp/live-deploy-manifest.txt || \
+               ! grep -qFx "deployment_id=${DEPLOYMENT_ID}" /tmp/live-deploy-manifest.txt; then
+              mismatch_reason="deploy-manifest.txt content mismatch"
+              sleep 5
+              continue
+            fi
 
-          fetch_live \
-            "${BASE_URL}/deployment-status.json?verify=${DEPLOYMENT_ID}" \
-            /tmp/live-deployment-status.json
-          python - "${BUILD_SHA}" "${DEPLOYMENT_ID}" <<'PY'
+            if ! fetch_live "${BASE_URL}/deployment-status.json?verify=${DEPLOYMENT_ID}" /tmp/live-deployment-status.json; then
+              mismatch_reason="deployment-status.json failed to download"
+              sleep 5
+              continue
+            fi
+            if ! python - "${BUILD_SHA}" "${DEPLOYMENT_ID}" <<'PY'
           import json
           import sys
-          payload = json.load(open("/tmp/live-deployment-status.json", encoding="utf-8"))
+          try:
+              payload = json.load(open("/tmp/live-deployment-status.json", encoding="utf-8"))
+          except Exception as e:
+              raise SystemExit(f"Failed to load deployment-status.json: {e}")
           if payload.get("build_sha") != sys.argv[1]:
               raise SystemExit("deployment-status.json build SHA does not match live build")
           if payload.get("deployment_id") != sys.argv[2]:
@@ -256,35 +266,59 @@ jobs:
           if not isinstance(payload.get("interactive"), bool):
               raise SystemExit("deployment-status.json interactive flag is not boolean")
           PY
-
-          while read -r expected path; do
-            [ -n "$expected" ] || continue
-            name="$(basename "$path")"
-            case "$name" in
-              index.html)
-                actual="$(sha256sum /tmp/live-index.html | awk '{print $1}')"
-                ;;
-              *.js|*.css)
-                fetch_live \
-                  "${BASE_URL}/${name}?v=${VERSION}" \
-                  "/tmp/live-${name}"
-                actual="$(sha256sum "/tmp/live-${name}" | awk '{print $1}')"
-                ;;
-              listings.json)
-                fetch_live \
-                  "${BASE_URL}/data/listings.json?verify=${DEPLOYMENT_ID}" \
-                  /tmp/live-listings.json
-                actual="$(sha256sum /tmp/live-listings.json | awk '{print $1}')"
-                ;;
-              *)
-                continue
-                ;;
-            esac
-            if [ "$actual" != "$expected" ]; then
-              echo "::error::Live asset $name does not match the deployed artifact for $BUILD_SHA."
-              exit 1
+            then
+              mismatch_reason="deployment-status.json content mismatch"
+              sleep 5
+              continue
             fi
-          done < <(tail -n +2 _site/deploy-manifest.txt)
+
+            assets_match=true
+            while read -r expected path; do
+              [ -n "$expected" ] || continue
+              name="$(basename "$path")"
+              case "$name" in
+                index.html)
+                  actual="$(sha256sum /tmp/live-index.html | awk '{print $1}')"
+                  ;;
+                *.js|*.css)
+                  if ! fetch_live "${BASE_URL}/${name}?v=${VERSION}" "/tmp/live-${name}"; then
+                    mismatch_reason="${name} failed to download"
+                    assets_match=false
+                    break
+                  fi
+                  actual="$(sha256sum "/tmp/live-${name}" | awk '{print $1}')"
+                  ;;
+                listings.json)
+                  if ! fetch_live "${BASE_URL}/data/listings.json?verify=${DEPLOYMENT_ID}" /tmp/live-listings.json; then
+                    mismatch_reason="listings.json failed to download"
+                    assets_match=false
+                    break
+                  fi
+                  actual="$(sha256sum /tmp/live-listings.json | awk '{print $1}')"
+                  ;;
+                *)
+                  continue
+                  ;;
+              esac
+              if [ "$actual" != "$expected" ]; then
+                mismatch_reason="Live asset $name does not match the deployed artifact for $BUILD_SHA."
+                assets_match=false
+                break
+              fi
+            done < <(tail -n +2 _site/deploy-manifest.txt)
+
+            if [ "$assets_match" = true ]; then
+              verified=true
+              break
+            fi
+
+            sleep 5
+          done
+
+          if [ "$verified" != true ]; then
+            echo "::error::Live Pages site failed verification: ${mismatch_reason}"
+            exit 1
+          fi
 
           echo "Verified live Pages deployment for ${BUILD_SHA}."
 
