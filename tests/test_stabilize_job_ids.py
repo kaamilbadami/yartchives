@@ -23,6 +23,9 @@ class StableJobIdentityTests(unittest.TestCase):
             "location": "Sterling, VA",
             "url": "https://caci.wd1.myworkdayjobs.com/external/job/437-DENVER-CO/Role_331999",
             "first_seen": "2026-09-01T00:00:00Z",
+            "link_status": "ok",
+            "link_checked_at": "2026-09-18T12:00:00Z",
+            "link_validation_version": 2,
         }]
         refreshed = [{
             "id": "metadata-drifted-id",
@@ -35,6 +38,9 @@ class StableJobIdentityTests(unittest.TestCase):
         jobs, stats = mod.stabilize_jobs(refreshed, old)
         self.assertEqual(jobs[0]["id"], "existing-applied-id")
         self.assertEqual(jobs[0]["first_seen"], "2026-09-01T00:00:00Z")
+        self.assertEqual(jobs[0]["link_status"], "ok")
+        self.assertEqual(jobs[0]["link_checked_at"], "2026-09-18T12:00:00Z")
+        self.assertEqual(jobs[0]["link_validation_version"], 2)
         self.assertEqual(stats["preserved"], 1)
 
     def test_same_canonical_url_keeps_id_when_display_metadata_changes(self):
