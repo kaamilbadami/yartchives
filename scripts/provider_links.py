@@ -507,6 +507,7 @@ def main() -> int:
         job["link_origin"] = origin
         job["link_status"] = status
         job["link_checked_at"] = now
+        job["link_validation_version"] = links.LINK_VALIDATION_VERSION
         by_origin[origin] = by_origin.get(origin, 0) + 1
 
     path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
