@@ -830,11 +830,11 @@ def dedupe(jobs: list[dict[str, Any]], old_jobs: dict[str, dict[str, Any]], refe
         job["first_seen"] = prior.get("first_seen") if prior else iso(reference)
         job["last_seen"] = iso(reference)
         if prior:
-            if "link_status" in prior:
+            if "link_status" in prior and "link_status" not in job:
                 job["link_status"] = prior["link_status"]
-            if "link_checked_at" in prior:
+            if "link_checked_at" in prior and "link_checked_at" not in job:
                 job["link_checked_at"] = prior["link_checked_at"]
-            if "link_validation_version" in prior:
+            if "link_validation_version" in prior and "link_validation_version" not in job:
                 job["link_validation_version"] = prior["link_validation_version"]
 
     def sort_key(job: dict[str, Any]) -> tuple[str, str]:
