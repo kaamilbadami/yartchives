@@ -115,11 +115,11 @@ def stabilize_jobs(
             preserved += 1
             if prior.get("first_seen"):
                 job["first_seen"] = prior["first_seen"]
-            if prior.get("link_status"):
+            if prior.get("link_status") and "link_status" not in job:
                 job["link_status"] = prior["link_status"]
-            if prior.get("link_checked_at"):
+            if prior.get("link_checked_at") and "link_checked_at" not in job:
                 job["link_checked_at"] = prior["link_checked_at"]
-            if prior.get("link_validation_version"):
+            if prior.get("link_validation_version") and "link_validation_version" not in job:
                 job["link_validation_version"] = prior["link_validation_version"]
         else:
             generated += 1
