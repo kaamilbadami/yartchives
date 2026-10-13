@@ -709,22 +709,28 @@ def merge_job(target: dict[str, Any], incoming: dict[str, Any]) -> None:
     target_rank = link_ranks.link_kind_rank(target_kind)
     incoming_rank = link_ranks.link_kind_rank(incoming_kind)
 
+    should_update_url = False
     if not target.get("url") and incoming.get("url"):
-        target["url"] = incoming["url"]
-        if incoming_kind:
-            target["link_kind"] = incoming_kind
+        should_update_url = True
     elif incoming.get("url"):
         if incoming_rank > target_rank:
-            target["url"] = incoming["url"]
-            if incoming_kind:
-                target["link_kind"] = incoming_kind
+            should_update_url = True
         elif incoming_rank == target_rank:
             old_host = urlparse(target.get("url", "")).netloc.lower()
             new_host = urlparse(incoming["url"]).netloc.lower()
             if old_host in AGGREGATOR_HOSTS and new_host not in AGGREGATOR_HOSTS:
-                target["url"] = incoming["url"]
-                if incoming_kind:
-                    target["link_kind"] = incoming_kind
+                should_update_url = True
+
+    if should_update_url:
+        target["url"] = incoming["url"]
+        if incoming_kind:
+            target["link_kind"] = incoming_kind
+        for link_field in ("link_status", "link_checked_at", "link_validation_version", "link_origin", "resolved_from_url"):
+            if link_field in incoming:
+                target[link_field] = incoming[link_field]
+            else:
+                target.pop(link_field, None)
+
     observations = list(target.get("posted_date_observations") or [])
     seen_observations = {
         (row.get("source_key"), row.get("posted_at"), row.get("posted_raw"))
@@ -772,6 +778,12 @@ def merge_job(target: dict[str, Any], incoming: dict[str, Any]) -> None:
     if "link_validation_version" in incoming:
         if "link_validation_version" not in target or ("link_status" in incoming and incoming["link_status"] == "ok"):
             target["link_validation_version"] = incoming["link_validation_version"]
+    if "link_origin" in incoming:
+        if "link_origin" not in target or ("link_status" in incoming and incoming["link_status"] == "ok"):
+            target["link_origin"] = incoming["link_origin"]
+    if "resolved_from_url" in incoming:
+        if "resolved_from_url" not in target or ("link_status" in incoming and incoming["link_status"] == "ok"):
+            target["resolved_from_url"] = incoming["resolved_from_url"]
 
 
 
@@ -836,6 +848,10 @@ def dedupe(jobs: list[dict[str, Any]], old_jobs: dict[str, dict[str, Any]], refe
                 job["link_checked_at"] = prior["link_checked_at"]
             if "link_validation_version" in prior and "link_validation_version" not in job:
                 job["link_validation_version"] = prior["link_validation_version"]
+            if "link_origin" in prior and "link_origin" not in job:
+                job["link_origin"] = prior["link_origin"]
+            if "resolved_from_url" in prior and "resolved_from_url" not in job:
+                job["resolved_from_url"] = prior["resolved_from_url"]
 
     def sort_key(job: dict[str, Any]) -> tuple[str, str]:
         return (job.get("posted_at") or job.get("first_seen") or "", job.get("id") or "")
