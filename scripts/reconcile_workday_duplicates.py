@@ -393,6 +393,10 @@ def merge_posting_group(canonical_url: str, group: list[dict[str, Any]]) -> dict
             merged["location"] = direct["location"]
         merged["direct_employer"] = True
 
+        for link_field in ("link_status", "link_checked_at", "link_validation_version", "link_origin", "resolved_from_url"):
+            if link_field in direct:
+                merged[link_field] = copy.deepcopy(direct[link_field])
+
     first_seen = [str(job.get("first_seen")) for job in group if job.get("first_seen")]
     if first_seen:
         merged["first_seen"] = min(first_seen)
