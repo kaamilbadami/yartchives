@@ -121,6 +121,10 @@ def stabilize_jobs(
                 job["link_checked_at"] = prior["link_checked_at"]
             if prior.get("link_validation_version") and "link_validation_version" not in job:
                 job["link_validation_version"] = prior["link_validation_version"]
+            if prior.get("link_origin") and "link_origin" not in job:
+                job["link_origin"] = prior["link_origin"]
+            if prior.get("resolved_from_url") and "resolved_from_url" not in job:
+                job["resolved_from_url"] = prior["resolved_from_url"]
         else:
             generated += 1
         output.append(job)
