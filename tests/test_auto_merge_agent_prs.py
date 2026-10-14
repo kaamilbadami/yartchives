@@ -931,7 +931,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             self.assertIn("An automated workflow failed.", body)
 
     def test_replacement_does_not_duplicate_existing_metadata(self):
-        original = {"number": 1, "body": "<!-- autonomous-task -->\\npriority: P2\\narea: coverage\\nautonomous: true"}
+        original = {"number": 1, "body": "<!-- autonomous-task -->\npriority: P2\narea: coverage\nautonomous: true"}
         body = mod.replacement_issue_body(original, 5)
         self.assertEqual(body.count("<!-- autonomous-task -->"), 1)
         self.assertIn("priority: P2", body)
