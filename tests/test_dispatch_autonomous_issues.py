@@ -2700,6 +2700,23 @@ class AutonomousDispatcherTests(unittest.TestCase):
         self.assertTrue(any("501" in " ".join(call) for call in gh_calls))
         self.assertEqual(original["state"], "closed")
 
+    def test_workflow_failure_rework_preserves_dispatch_contract(self):
+        original = {
+            "number": 123,
+            "title": "[workflow failure] Quality checks",
+            "body": "An automated workflow failed.",
+            "labels": [{"name": "agent-ready"}, {"name": "workflow-failure"}],
+        }
+        body = mod.jules_rework_body(original, [])
+        replacement = {
+            "number": 124,
+            "title": "Rework from current main: Quality checks",
+            "body": body,
+            "labels": [{"name": "agent-ready"}, {"name": "autonomous-backlog"}],
+        }
+        self.assertIsNotNone(mod.task_from_issue(replacement))
+        self.assertIn("<!-- jules-rework-from: 123 -->", body)
+
     def test_failed_rework_does_not_spawn_infinite_rework_chain(self):
         failed_rework = issue(
             500,
