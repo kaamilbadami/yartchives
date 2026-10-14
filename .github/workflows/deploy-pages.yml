@@ -167,6 +167,7 @@ jobs:
           sed -i "s|__YARTCHIVES_DEPLOYMENT_ID__|${DEPLOYMENT_ID}|g" _site/index.html
           sed -i "s|__YARTCHIVES_DEPLOYED_AT__|${DEPLOYED_AT}|g" _site/index.html
           for asset in ./*.css ./*.js; do
+            [ -e "$asset" ] || continue
             name="$(basename "$asset")"
             sed -i "s|\"${name}\"|\"${name}?v=${VERSION}\"|g" _site/index.html
           done
@@ -175,6 +176,7 @@ jobs:
             printf 'deployment_id=%s\n' "$DEPLOYMENT_ID"
             sha256sum _site/index.html
             for asset in _site/*.css _site/*.js; do
+              [ -e "$asset" ] || continue
               sha256sum "$asset"
             done
             sha256sum _site/data/listings.json
