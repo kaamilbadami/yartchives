@@ -92,6 +92,7 @@ PROFILE_PATTERNS: dict[str, tuple[str, ...]] = {
         r"\bquant(?:itative)? developer\b",
         r"\b(?:test|testing|qa) automation\b",
         r"\bautomation (?:test|testing|qa)\b",
+        r"\bapplied\s+data\s+science\b",
     ),
     "tech-business": (
         r"\bproduct management\b",
@@ -130,6 +131,9 @@ PROFILE_PATTERNS: dict[str, tuple[str, ...]] = {
         r"\bcommercial analytics\b",
         r"\bproduct strategy\b",
         r"\btechnical account\b",
+        r"\b(?:quantitative|product|operations)\s+analytics\b",
+        r"\b(?:predictive)\s+modeling\b",
+        r"\bforecasting\b",
     ),
     "finance-econ": (
         r"\bfinance\b",
@@ -159,6 +163,7 @@ PROFILE_PATTERNS: dict[str, tuple[str, ...]] = {
         r"\bcommercial banking\b",
         r"\bquantitative (?:finance|research|trading|developer)\b",
         r"\bquant (?:research|trading|developer)\b",
+        r"\brisk modeling\b",
     ),
     "mechanical": (
         r"\bmechanical engineer(?:ing)?\b",
