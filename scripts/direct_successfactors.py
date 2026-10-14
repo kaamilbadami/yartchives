@@ -30,7 +30,7 @@ import build_feed as bf  # noqa: E402
 from employer_resolution_lifecycle import invalidate_resolution  # noqa: E402
 from direct_ct_workday import (  # noqa: E402
     carry_failed_source,
-    is_cs_relevant_title,
+    is_target_relevant_title,
     is_student_opportunity,
     session as retry_session,
     stable_projection,
@@ -179,7 +179,7 @@ def fetch_source(client: requests.Session, source: dict[str, Any], reference: da
                 title = title_elem.text
                 if not title:
                     continue
-                if is_student_opportunity(title) and is_cs_relevant_title(title):
+                if is_student_opportunity(title) and is_target_relevant_title(title):
                     job_urls.append(link_elem.text.strip())
                     if len(job_urls) >= MAX_RESULTS_PER_SOURCE:
                         break
@@ -210,7 +210,7 @@ def fetch_source(client: requests.Session, source: dict[str, Any], reference: da
                 continue
 
             # If we collected all urls blindly, verify it is CS student
-            if not is_rss and not (is_student_opportunity(title) and is_cs_relevant_title(title)):
+            if not is_rss and not (is_student_opportunity(title) and is_target_relevant_title(title)):
                 continue
 
             loc_elem = jp.find(itemprop="jobLocation")

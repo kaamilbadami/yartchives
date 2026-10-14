@@ -61,7 +61,7 @@ class StructuralSourceError(RuntimeError):
 # signal before assigning the CS profile. This intentionally favors precision;
 # source-specific patterns can be added when a legitimate title uses unusual
 # wording.
-CS_TITLE_PATTERNS = (
+TARGET_TITLE_PATTERNS = (
     r"\bsoftware\b",
     r"\bcomputer\s+(?:science|engineering)\b",
     r"\bcyber(?:security|\s+security)?\b",
@@ -80,6 +80,11 @@ CS_TITLE_PATTERNS = (
     r"\b(?:platform|platforms|systems?|infrastructure)\s+engineer(?:ing)?\b",
     r"(?<!food\s)\b(?:technology|security)\s+(?:intern(?:ship)?|co[- ]?op|analyst|specialist|program)\b",
     r"\b(?:intern(?:ship)?|co[- ]?op)\s+(?:-|in|for)?\s*(?:technology|security)\b",
+    r"\b(?:quantitative|product|operations|decision|marketing|customer|commercial)\s+(?:analytics|science)\b",
+    r"\b(?:predictive|risk)\s+modeling\b",
+    r"\b(?:forecasting|quantitative finance)\b",
+    r"\bbusiness intelligence\b",
+    r"\bapplied\s+data\s+science\b",
 )
 
 
@@ -115,7 +120,7 @@ def is_student_opportunity(title: str) -> bool:
     return bool(re.search(r"\b(intern(?:ship)?|co[- ]?op|student)\b", title or "", flags=re.I))
 
 
-def is_cs_relevant_title(title: str, source: dict[str, Any] | None = None) -> bool:
+def is_target_relevant_title(title: str, source: dict[str, Any] | None = None) -> bool:
     text = bf.clean_text(title)
     if not text:
         return False
@@ -124,7 +129,7 @@ def is_cs_relevant_title(title: str, source: dict[str, Any] | None = None) -> bo
     # the ordinary word "it". Match the uppercase acronym separately.
     if re.search(r"\bIT\b", text):
         return True
-    if any(re.search(pattern, text, flags=re.I) for pattern in CS_TITLE_PATTERNS):
+    if any(re.search(pattern, text, flags=re.I) for pattern in TARGET_TITLE_PATTERNS):
         return True
 
     # Some employers use stable internal program names that do not contain a
@@ -226,7 +231,7 @@ def fetch_workday_source(
                         continue
                     if not is_student_opportunity(title):
                         continue
-                    if not is_cs_relevant_title(title, source):
+                    if not is_target_relevant_title(title, source):
                         continue
                     if state:
                         if not is_target_state(location, state):
