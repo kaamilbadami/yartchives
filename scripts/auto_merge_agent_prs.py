@@ -586,7 +586,7 @@ def report_quality_state(repo: str, pr_number: int, head_sha: str, state: str,
     detail = f"Run: {url}" if url else "No run ID was returned by GitHub yet; the next scan will associate the run with this head."
     message = (
         f"{marker}\n"
-        f"Auto-merge CI recovery for commit \`{head_sha}\`: **{state}**.\n"
+        f"Auto-merge CI recovery for commit `{head_sha}`: **{state}**.\n"
         f"{detail}\n"
         "Merge stays blocked until exact-head Quality checks succeed."
     )
