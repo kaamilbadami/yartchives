@@ -919,6 +919,23 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertIn("<!-- supersedes-stale-pr: 232 original-issue: 123 -->", body)
         self.assertIn("Do not port the stale branch wholesale", body)
 
+    def test_replacements_from_label_only_issues_remain_dispatchable(self):
+        original = {"number": 1016, "title": "Quality checks failure",
+                    "body": "An automated workflow failed."}
+        for body in (mod.replacement_issue_body(original, 1021),
+                     mod.conflict_replacement_issue_body(original, 1021, "main")):
+            self.assertIn("<!-- autonomous-task -->", body)
+            self.assertIn("priority: P1", body)
+            self.assertIn("area: automation", body)
+            self.assertIn("autonomous: true", body)
+            self.assertIn("An automated workflow failed.", body)
+
+    def test_replacement_does_not_duplicate_existing_metadata(self):
+        original = {"number": 1, "body": "<!-- autonomous-task -->\\npriority: P2\\narea: coverage\\nautonomous: true"}
+        body = mod.replacement_issue_body(original, 5)
+        self.assertEqual(body.count("<!-- autonomous-task -->"), 1)
+        self.assertIn("priority: P2", body)
+
     def test_conflict_replacement_preserves_acceptance_criteria_and_is_idempotent(self):
         original = {
             "title": "Add clear Apply Next states",
