@@ -77,6 +77,7 @@ PROFILE_KEYWORDS: dict[str, tuple[str, ...]] = {
         "data scientist", "cybersecurity", "security engineer", "devops", "cloud engineer",
         "backend", "front end", "frontend", "full stack", "fullstack", "site reliability",
         "sre intern", "computer vision", "distributed systems", "platform engineer",
+        "applied data science",
     ),
     "tech-business": (
         "product manager", "product management", "product analyst", "product operations",
@@ -89,12 +90,14 @@ PROFILE_KEYWORDS: dict[str, tuple[str, ...]] = {
         "information systems", "information technology", "technology analyst",
         "operations analyst", "business operations", "revenue operations", "go-to-market", "commercial analytics",
         "strategy intern", "consulting intern", "consultant intern", "product strategy", "technical account",
+        "quantitative analytics", "forecasting", "predictive modeling", "product analytics", "operations analytics", "decision science",
     ),
     "finance-econ": (
         "finance", "financial", "accounting", "audit", "tax intern", "actuarial", "banking",
         "investment", "credit", "treasury", "wealth management", "risk intern", "risk analyst",
         "underwriting", "economics", "economist", "capital markets", "insurance intern",
         "private equity", "asset management", "commercial banking", "quantitative finance",
+        "risk modeling",
     ),
     "mechanical": (
         "mechanical engineer", "mechanical engineering", "manufacturing engineer",
