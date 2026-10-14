@@ -403,6 +403,24 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertIn("waiting for or dispatching exact-head Quality", source)
         self.assertIn("should_redispatch =", source)
 
+    def test_missing_ci_dispatch_is_bounded_per_exact_head(self):
+        from datetime import datetime, timedelta, timezone
+        now = datetime(2026, 10, 14, 20, tzinfo=timezone.utc)
+        self.assertEqual(mod.missing_ci_recovery_decision([], "abc", now), ("dispatch", 1))
+        first = {"body": "<!-- missing-ci-recovery: head=abc attempt=1 at=2026-10-14T19:50:00Z -->"}
+        self.assertEqual(mod.missing_ci_recovery_decision([first], "abc", now), ("wait", 1))
+        self.assertEqual(mod.missing_ci_recovery_decision([first], "abc", now + timedelta(minutes=6)), ("dispatch", 2))
+        second = {"body": "<!-- missing-ci-recovery: head=abc attempt=2 at=2026-10-14T20:10:00Z -->"}
+        self.assertEqual(mod.missing_ci_recovery_decision([first, second], "abc", now + timedelta(minutes=26)), ("escalate", 2))
+        self.assertEqual(mod.missing_ci_recovery_decision([first, second], "different", now), ("dispatch", 1))
+
+    def test_missing_ci_escalation_is_idempotent(self):
+        with mock.patch.object(mod, "gh_run") as gh:
+            mod.escalate_missing_ci("kaamilbadami/yartchives", 10, "abc", [{"body": "<!-- missing-ci-escalated: head=abc -->"}])
+            gh.assert_not_called()
+            mod.escalate_missing_ci("kaamilbadami/yartchives", 10, "abc", [])
+            self.assertEqual(gh.call_count, 1)
+
     def test_exact_head_quality_presence_detects_missing_run(self):
         self.assertTrue(mod.exact_head_quality_present(runs(), "abc"))
         self.assertFalse(mod.exact_head_quality_present([], "abc"))
@@ -1511,18 +1529,12 @@ class AutoMergeAgentPrTests(unittest.TestCase):
 
     def test_main_continues_past_in_flight_and_redispatched_ci(self):
         source = MODULE_PATH.read_text()
-        self.assertIn(
-            'print(f"PR #{number} already has exact-head Quality checks in flight.")\n                continue',
-            source,
-        )
-        self.assertIn(
-            '"exact-head run was missing or required manual approval."\n                )\n                continue',
-            source,
-        )
-        self.assertIn(
-            '"Quality checks because main changed overlapping paths."\n                )\n                continue',
-            source,
-        )
+        main_source = source[source.index("def main() -> int:"):]
+        self.assertIn("if exact_head_quality_in_flight(runs, head_sha):", main_source)
+        self.assertIn("if should_redispatch and head_ref:", main_source)
+        self.assertIn('"workflow", "run", "quality.yml"', main_source)
+        self.assertIn("Quality checks because main changed overlapping paths.", main_source)
+        self.assertIn("continue", main_source)
 
     def test_transient_unknown_mergeability_uses_guarded_merge_after_nonoverlap_proof(self):
         source = MODULE_PATH.read_text()
