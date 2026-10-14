@@ -29,7 +29,7 @@ if str(SCRIPT_DIR) not in sys.path:
 import build_feed as bf  # noqa: E402
 from direct_ct_workday import (  # noqa: E402
     carry_failed_source,
-    is_cs_relevant_title,
+    is_target_relevant_title,
     is_student_opportunity,
     session as retry_session,
     stable_projection,
@@ -176,7 +176,7 @@ def public_job_url(source: dict[str, Any], job_id: str) -> str:
 
 def job_from_item(source: dict[str, Any], item: dict[str, Any], reference: datetime) -> dict[str, Any] | None:
     title = _clean(item.get("Title"))
-    if not is_student_opportunity(title) or not is_cs_relevant_title(title):
+    if not is_student_opportunity(title) or not is_target_relevant_title(title):
         return None
 
     job_id = _clean(item.get("Id"))
