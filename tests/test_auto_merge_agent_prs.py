@@ -1529,18 +1529,12 @@ class AutoMergeAgentPrTests(unittest.TestCase):
 
     def test_main_continues_past_in_flight_and_redispatched_ci(self):
         source = MODULE_PATH.read_text()
-        self.assertIn(
-            'print(f"PR #{number} already has exact-head Quality checks in flight.")\n                continue',
-            source,
-        )
-        self.assertIn(
-            '"exact-head run was missing or required manual approval."\n                )\n                continue',
-            source,
-        )
-        self.assertIn(
-            '"Quality checks because main changed overlapping paths."\n                )\n                continue',
-            source,
-        )
+        main_source = source[source.index("def main() -> int:"):]
+        self.assertIn("if exact_head_quality_in_flight(runs, head_sha):", main_source)
+        self.assertIn("if should_redispatch and head_ref:", main_source)
+        self.assertIn('"workflow", "run", "quality.yml"', main_source)
+        self.assertIn("Quality checks because main changed overlapping paths.", main_source)
+        self.assertIn("continue", main_source)
 
     def test_transient_unknown_mergeability_uses_guarded_merge_after_nonoverlap_proof(self):
         source = MODULE_PATH.read_text()
