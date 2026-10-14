@@ -675,6 +675,18 @@ def jules_rework_body(
 ) -> str:
     number = int(issue["number"])
     original = str(issue.get("body") or "").rstrip()
+    # Workflow-failure issues are authorized through their labels and can lack
+    # autonomous metadata. Their reworks lose the workflow-failure label, so
+    # copy a valid dispatch contract into the new issue before dispatch.
+    if task_from_issue({**issue, "body": original, "labels": ["agent-ready", "autonomous-backlog"]}) is None:
+        metadata = (
+            "<!-- autonomous-task -->\n"
+            "priority: P1\n"
+            "area: automation\n"
+            "resources: automation\n"
+            "autonomous: true\n\n"
+        )
+        original = metadata + original
     context = exhausted_failure_context(comments)
     rework = (
         f"{jules_rework_marker(number)}\n\n"
