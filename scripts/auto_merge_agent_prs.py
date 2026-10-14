@@ -7,6 +7,7 @@ import json
 import os
 import re
 import subprocess
+from datetime import datetime, timezone
 from fnmatch import fnmatch
 from typing import Any, Callable, Iterable
 
@@ -560,6 +561,56 @@ def exact_head_quality_in_flight(
         for run in runs
     )
 
+
+MISSING_CI_RETRY_DELAY_SECONDS = 15 * 60
+MISSING_CI_MAX_DISPATCHES = 2
+MISSING_CI_MARKER = re.compile(r"<!-- missing-ci-recovery: head=([a-f0-9]+) attempt=(\\d+) at=([^ ]+) -->")
+
+
+def missing_ci_recovery_decision(comments: Iterable[dict[str, Any]], head_sha: str,
+                                 now: datetime) -> tuple[str, int]:
+    """Bound absent-run recovery per exact head; never retry indefinitely."""
+    attempts = []
+    for comment in comments:
+        for match in MISSING_CI_MARKER.finditer(str(comment.get("body") or "")):
+            if match.group(1) != head_sha:
+                continue
+            try:
+                timestamp = datetime.fromisoformat(match.group(3).replace("Z", "+00:00"))
+            except ValueError:
+                continue
+            attempts.append((int(match.group(2)), timestamp))
+    if not attempts:
+        return "dispatch", 1
+    count, last = max(attempts, key=lambda item: (item[0], item[1]))
+    if (now - last).total_seconds() < MISSING_CI_RETRY_DELAY_SECONDS:
+        return "wait", count
+    if count >= MISSING_CI_MAX_DISPATCHES:
+        return "escalate", count
+    return "dispatch", count + 1
+
+
+def record_missing_ci_recovery(repo: str, pr_number: int, head_sha: str,
+                               attempt: int, now: datetime) -> None:
+    timestamp = now.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+    marker = f"<!-- missing-ci-recovery: head={head_sha} attempt={attempt} at={timestamp} -->"
+    gh_run("issue", "comment", str(pr_number), "--repo", repo, "--body",
+           f"{marker}\\nQuality checks did not appear for exact head \`{head_sha}\`. "
+           f"Recovery dispatch {attempt}/{MISSING_CI_MAX_DISPATCHES}; "
+           "awaiting a visible run before auto-merge.")
+
+
+def escalate_missing_ci(repo: str, pr_number: int, head_sha: str,
+                        comments: Iterable[dict[str, Any]]) -> None:
+    marker = f"<!-- missing-ci-escalated: head={head_sha} -->"
+    if any(marker in str(item.get("body") or "") for item in comments):
+        return
+    gh_run("issue", "comment", str(pr_number), "--repo", repo, "--body",
+           f"{marker}\\n**CI recovery exhausted:** No Quality checks run materialized "
+           f"for exact head \`{head_sha}\` after {MISSING_CI_MAX_DISPATCHES} "
+           "dispatches and bounded waits. Investigate Actions permissions, trigger "
+           "delivery, and workflow runs. Auto-merge remains blocked.")
+    
 
 def superseded_action_required_run_ids(
     runs: Iterable[dict[str, Any]], head_sha: str
@@ -1591,16 +1642,30 @@ def main() -> int:
                 or not exact_head_quality_present(runs, head_sha)
             )
             if should_redispatch and head_ref:
-                gh_run(
-                    "workflow", "run", "quality.yml",
-                    "--repo", repo,
-                    "--ref", head_ref,
-                    "-f", "pr_recovery=true",
-                )
-                print(
-                    f"Dispatched Quality checks manually for PR #{number} because the "
-                    "exact-head run was missing or required manual approval."
-                )
+                if not exact_head_quality_present(runs, head_sha):
+                    comments = gh_paginated_json(
+                        "api", f"repos/{repo}/issues/{number}/comments?per_page=100"
+                    )
+                    now = datetime.now(timezone.utc)
+                    action, attempt = missing_ci_recovery_decision(comments, head_sha, now)
+                    if action == "wait":
+                        print(f"PR #{number}: waiting for missing CI attempt {attempt}.")
+                        continue
+                    if action == "escalate":
+                        escalate_missing_ci(repo, number, head_sha, comments)
+                        print(f"BLOCKED_CI PR #{number}: no Quality run after {attempt} dispatches.")
+                        continue
+                    gh_run(
+                        "workflow", "run", "quality.yml",
+                        "--repo", repo, "--ref", head_ref, "-f", "pr_recovery=true",
+                    )
+                    record_missing_ci_recovery(repo, number, head_sha, attempt, now)
+                else:
+                    gh_run(
+                        "workflow", "run", "quality.yml",
+                        "--repo", repo, "--ref", head_ref, "-f", "pr_recovery=true",
+                    )
+                print(f"Dispatched exact-head Quality checks for PR #{number}.")
                 continue
 
         if owner_authorized:
