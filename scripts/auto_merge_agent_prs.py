@@ -697,8 +697,26 @@ def supersession_candidate(
     return True, "broad protected-path pull request should be superseded"
 
 
-def replacement_issue_body(original_issue: dict[str, Any], pr_number: int) -> str:
+def dispatchable_replacement_body(original_issue: dict[str, Any]) -> str:
+    """Keep recovery issues eligible even when the original used label-only dispatch."""
     body = str(original_issue.get("body") or "").rstrip()
+    required = ("priority", "area", "autonomous")
+    if all(re.search(rf"(?mi)^\s*{field}\s*:\s*\S+", body) for field in required) and re.search(
+        r"(?mi)^\s*autonomous\s*:\s*true\s*$", body
+    ):
+        return body
+    header = (
+        "<!-- autonomous-task -->\n"
+        "priority: P1\n"
+        "area: automation\n"
+        "resources: automation\n"
+        "autonomous: true\n\n"
+    )
+    return header + body
+
+
+def replacement_issue_body(original_issue: dict[str, Any], pr_number: int) -> str:
+    body = dispatchable_replacement_body(original_issue)
     marker = SUPERSEDE_MARKER_TEMPLATE.format(
         pr_number=pr_number,
         issue_number=original_issue.get("number", "unknown")
@@ -717,7 +735,7 @@ def replacement_issue_body(original_issue: dict[str, Any], pr_number: int) -> st
 def conflict_replacement_issue_body(
     original_issue: dict[str, Any], pr_number: int, base_ref: str
 ) -> str:
-    body = str(original_issue.get("body") or "").rstrip()
+    body = dispatchable_replacement_body(original_issue)
     marker = SUPERSEDE_MARKER_TEMPLATE.format(
         pr_number=pr_number,
         issue_number=original_issue.get("number", "unknown")
