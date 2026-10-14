@@ -701,16 +701,16 @@ def dispatchable_replacement_body(original_issue: dict[str, Any]) -> str:
     """Keep recovery issues eligible even when the original used label-only dispatch."""
     body = str(original_issue.get("body") or "").rstrip()
     required = ("priority", "area", "autonomous")
-    if all(re.search(rf"(?mi)^\\s*{field}\\s*:\\s*\\S+", body) for field in required) and re.search(
-        r"(?mi)^\\s*autonomous\\s*:\\s*true\\s*$", body
+    if all(re.search(rf"(?mi)^\s*{field}\s*:\s*\S+", body) for field in required) and re.search(
+        r"(?mi)^\s*autonomous\s*:\s*true\s*$", body
     ):
         return body
     header = (
-        "<!-- autonomous-task -->\\n"
-        "priority: P1\\n"
-        "area: automation\\n"
-        "resources: automation\\n"
-        "autonomous: true\\n\\n"
+        "<!-- autonomous-task -->\n"
+        "priority: P1\n"
+        "area: automation\n"
+        "resources: automation\n"
+        "autonomous: true\n\n"
     )
     return header + body
 
