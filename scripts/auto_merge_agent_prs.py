@@ -564,7 +564,7 @@ def exact_head_quality_in_flight(
 
 MISSING_CI_RETRY_DELAY_SECONDS = 15 * 60
 MISSING_CI_MAX_DISPATCHES = 2
-MISSING_CI_MARKER = re.compile(r"<!-- missing-ci-recovery: head=([a-f0-9]+) attempt=(\\d+) at=([^ ]+) -->")
+MISSING_CI_MARKER = re.compile(r"<!-- missing-ci-recovery: head=([a-f0-9]+) attempt=(\d+) at=([^ ]+) -->")
 
 
 def missing_ci_recovery_decision(comments: Iterable[dict[str, Any]], head_sha: str,
@@ -595,7 +595,7 @@ def record_missing_ci_recovery(repo: str, pr_number: int, head_sha: str,
     timestamp = now.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
     marker = f"<!-- missing-ci-recovery: head={head_sha} attempt={attempt} at={timestamp} -->"
     gh_run("issue", "comment", str(pr_number), "--repo", repo, "--body",
-           f"{marker}\\nQuality checks did not appear for exact head \`{head_sha}\`. "
+           f"{marker}\nQuality checks did not appear for exact head `{head_sha}`. "
            f"Recovery dispatch {attempt}/{MISSING_CI_MAX_DISPATCHES}; "
            "awaiting a visible run before auto-merge.")
 
@@ -606,8 +606,8 @@ def escalate_missing_ci(repo: str, pr_number: int, head_sha: str,
     if any(marker in str(item.get("body") or "") for item in comments):
         return
     gh_run("issue", "comment", str(pr_number), "--repo", repo, "--body",
-           f"{marker}\\n**CI recovery exhausted:** No Quality checks run materialized "
-           f"for exact head \`{head_sha}\` after {MISSING_CI_MAX_DISPATCHES} "
+           f"{marker}\n**CI recovery exhausted:** No Quality checks run materialized "
+           f"for exact head `{head_sha}` after {MISSING_CI_MAX_DISPATCHES} "
            "dispatches and bounded waits. Investigate Actions permissions, trigger "
            "delivery, and workflow runs. Auto-merge remains blocked.")
     
