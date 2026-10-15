@@ -462,22 +462,13 @@
     const role = result?.components?.role || { score: 0, detail: "No role-preference evidence" };
     const marketScore = clamp(market.score, 0, APPLICATION_VALUE_PARTS.market);
     const roleScore = clamp(role.score, 0, APPLICATION_VALUE_PARTS.role);
-    const rawScore = clamp(roleScore + marketScore, 0, SCORE_MAXIMA.roi);
-    const fitScore = Number(qualificationFit?.score);
-    const fitCap = Number.isFinite(fitScore)
-      ? clamp(Math.round(10 + 15 * (clamp(fitScore, 0, SCORE_MAXIMA.fit) / SCORE_MAXIMA.fit)), 10, SCORE_MAXIMA.roi)
-      : SCORE_MAXIMA.roi;
-    const score = Math.min(rawScore, fitCap);
-    const constraint = score < rawScore
-      ? `; constrained to ${score}/${SCORE_MAXIMA.roi} by qualification fit ${Math.round(fitScore)}/${SCORE_MAXIMA.fit}`
-      : "";
+    const score = clamp(roleScore + marketScore, 0, SCORE_MAXIMA.roi);
     return {
       score,
       roleScore,
       marketScore,
-      rawScore,
-      fitCap,
-      detail: `Role value ${roleScore}/${APPLICATION_VALUE_PARTS.role}: ${role.detail || "No role-preference evidence"}; Market opportunity ${marketScore}/${APPLICATION_VALUE_PARTS.market}: ${market.detail || "Neutral application-value baseline"}${constraint}`,
+      rawScore: score,
+      detail: `Role value ${roleScore}/${APPLICATION_VALUE_PARTS.role}: ${role.detail || "No role-preference evidence"}; Market opportunity ${marketScore}/${APPLICATION_VALUE_PARTS.market}: ${market.detail || "Neutral application-value baseline"}`,
     };
   }
 
@@ -556,7 +547,6 @@
         role: { score: roi.roleScore, max: APPLICATION_VALUE_PARTS.role },
         market: { score: roi.marketScore, max: APPLICATION_VALUE_PARTS.market },
         rawScore: roi.rawScore,
-        fitCap: roi.fitCap,
       },
       scoringSemantics: {
         fit: "qualification evidence: exact screening evidence plus transferable capability",

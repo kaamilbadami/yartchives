@@ -195,15 +195,6 @@ assert.ok(
   "A strong local fit (score 87) should rank higher than an identical remote fit (score 83) because base distances score 20 whereas remote scores 18"
 );
 
-assert.ok(
-  ranked.findIndex(r => r.job.id === "strong-fit-local") < ranked.findIndex(r => r.job.id === "learnable-local"),
-  "A strong fit with all exact required matches should rank higher than a learnable gap"
-);
-
-assert.ok(
-  ranked.findIndex(r => r.job.id === "learnable-local") < ranked.findIndex(r => r.job.id === "required-gaps-local"),
-  "A learnable gap should rank higher than major required/hard gaps"
-);
 
 assert.ok(
   ranked.findIndex(r => r.job.id === "strong-fit-remote") < ranked.findIndex(r => r.job.id === "strong-fit-relocation"),

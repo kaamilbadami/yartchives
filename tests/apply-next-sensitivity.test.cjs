@@ -21,10 +21,10 @@ const profile = {
   relocationAllowed: true,
 };
 
-function inspection(required = [], preferred = []) {
+function inspection(required = [], preferred = [], id = "") {
   return {
     status: "inspected",
-    posting: { application_status: "available" },
+    posting: { application_status: "available", requisition_id: id },
     requirements: {
       skills: {
         required: required.map(([statement, technologies]) => ({ statement, technologies })),
@@ -51,10 +51,11 @@ for (let i = 0; i < 100; i++) {
     states: i % 4 === 0 ? ["CT"] : ["TX"],
     location: i % 4 === 0 ? "Hartford, CT" : "Dallas, TX",
     term: "Summer 2027",
+    opportunity_type: "internship",
     posted_at: new Date(now.getTime() - (i * 12 * 3600 * 1000)).toISOString(),
     link_kind: "direct",
     url: `https://example.com/job-${i}`,
-    _inspection: inspection(i % 5 === 0 ? [["Java required", ["Java"]]] : (i % 5 === 1 ? [["Go required", ["Go"]]] : [])),
+    _inspection: inspection(i % 5 === 0 ? [["Java required", ["Java"]]] : (i % 5 === 1 ? [["Go required", ["Go"]]] : []), [], `req-${i}`),
   });
 }
 
@@ -70,8 +71,8 @@ function measure(modifier) {
 
 const baseRank = measure(j => j);
 
-const perfectFit = measure(j => ({ ...j, _inspection: inspection([["Java required", ["Java"]], ["C++ required", ["C++"]]], [["Python preferred", ["Python"]]]) }));
-const badFit = measure(j => ({ ...j, _inspection: inspection([["Rust required", ["Rust"]]]) }));
+const perfectFit = measure(j => ({ ...j, _inspection: inspection([["Java required", ["Java"]], ["C++ required", ["C++"]]], [["Python preferred", ["Python"]]], j._inspection.posting.requisition_id) }));
+const badFit = measure(j => ({ ...j, _inspection: inspection([["Rust required", ["Rust"]]], [], j._inspection.posting.requisition_id) }));
 const fitSpread = Math.abs(perfectFit.rank - badFit.rank);
 assert.ok(fitSpread >= 15 && fitSpread <= 75, `Fit spread ${fitSpread} is outside reasonable bounds (15-75 ranks)`);
 
