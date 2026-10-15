@@ -141,6 +141,18 @@ class BuildFeedTests(unittest.TestCase):
         self.assertEqual(target.get("link_checked_at"), "2026-09-18T12:00:00Z")
         self.assertEqual(target.get("link_validation_version"), 2)
 
+        # Preserve status when URL changes but incoming lacks status
+        incoming_url_update = {
+            "source_key": "c",
+            "source_name": "C",
+            "source_url": "http://c.com",
+            "url": "http://example.com/new",
+            "link_kind": "direct"
+        }
+        mod.merge_job(target, incoming_url_update)
+        self.assertEqual(target.get("link_status"), "ok")
+        self.assertEqual(target.get("link_validation_version"), 2)
+
         # Do not overwrite ok with unknown
         incoming2 = {
             "source_key": "c",

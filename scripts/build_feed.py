@@ -731,7 +731,7 @@ def merge_job(target: dict[str, Any], incoming: dict[str, Any]) -> None:
         for link_field in ("link_status", "link_checked_at", "link_validation_version", "link_origin", "resolved_from_url"):
             if link_field in incoming:
                 target[link_field] = incoming[link_field]
-            else:
+            elif "link_status" in incoming:
                 target.pop(link_field, None)
 
     observations = list(target.get("posted_date_observations") or [])
