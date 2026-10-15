@@ -174,6 +174,8 @@ class ReconcileWorkdayDuplicateTests(unittest.TestCase):
             source="Simplify",
             posted="2026-09-16T11:00:00Z",
         )
+        aggregator["link_status"] = "ok"
+        aggregator["link_validation_version"] = 2
         direct = base_job(
             "direct-id",
             "RTX",
@@ -190,6 +192,8 @@ class ReconcileWorkdayDuplicateTests(unittest.TestCase):
         self.assertEqual(stats["duplicate_groups"], 1)
         self.assertEqual(stats["records_removed"], 1)
         job = reconciled[0]
+        self.assertEqual(job.get("link_status"), "ok")
+        self.assertEqual(job.get("link_validation_version"), 2)
         self.assertEqual(job["company"], "RTX")
         self.assertEqual(job["id"], "direct-id")
         self.assertTrue(job["direct_employer"])
