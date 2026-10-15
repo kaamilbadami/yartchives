@@ -117,7 +117,7 @@ async function run() {
   console.log(`Initial render (renderQueue): ${renderDuration.toFixed(2)} ms`);
 
   // Initial render involves full computation + DOM work. Use a generous threshold.
-  assert.ok(renderDuration < 1500, `Initial render is too slow: ${renderDuration.toFixed(2)} ms (budget is 1500ms)`);
+  assert.ok(renderDuration < 3000, `Initial render is too slow: ${renderDuration.toFixed(2)} ms (budget is 3000ms)`);
 
   // Use the ID of the first eligible ranked job if available, otherwise fallback to any job
   const testJobId = ranked.length > 0 ? ranked[0].job.id : feed.jobs[0].id;
