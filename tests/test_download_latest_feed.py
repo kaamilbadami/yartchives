@@ -23,9 +23,9 @@ def zip_bytes(name: str, content: bytes) -> bytes:
 
 
 class DownloadLatestFeedTests(unittest.TestCase):
-    def test_latest_artifact_accepts_validated_artifact_from_later_failed_run(self):
+    def test_latest_artifact_accepts_validated_artifact_from_later_successful_run(self):
         responses = [
-            {"workflow_runs": [{"id": 9, "status": "completed", "conclusion": "failure"}]},
+            {"workflow_runs": [{"id": 9, "status": "completed", "conclusion": "success"}]},
             {
                 "artifacts": [
                     {
@@ -43,7 +43,7 @@ class DownloadLatestFeedTests(unittest.TestCase):
             )
         self.assertEqual(artifact["id"], 99)
         self.assertIn(
-            "/actions/workflows/update-feed.yml/runs?branch=main&per_page=100&page=1",
+            "/actions/workflows/update-feed.yml/runs?branch=main&status=success&per_page=100&page=1",
             request_json.call_args_list[0].args[0],
         )
         self.assertIn(
