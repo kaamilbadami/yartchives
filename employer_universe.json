@@ -3068,6 +3068,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:14:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:42:30Z"
           }
         ]
       },
@@ -3152,6 +3157,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:14:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:42:30Z"
           }
         ]
       },
@@ -6637,6 +6647,11 @@
             "type": "invalidation",
             "reason": "StructuralSourceError: sitemap fetch failed with 403",
             "invalidated_at": "2026-10-14T21:14:31Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "StructuralSourceError: sitemap fetch failed with 403",
+            "invalidated_at": "2026-10-16T19:42:31Z"
           }
         ]
       }
@@ -7267,6 +7282,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Oracle endpoint retired (redirected to 404): https://careers.americanexpress.com/errors/404",
             "invalidated_at": "2026-10-14T21:14:37Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Oracle endpoint retired (redirected to 404): https://careers.americanexpress.com/errors/404",
+            "invalidated_at": "2026-10-16T19:42:33Z"
           }
         ]
       },
@@ -8465,6 +8485,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -9518,6 +9543,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -15798,6 +15828,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:04Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:42:38Z"
           }
         ]
       },
@@ -18384,6 +18419,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:04Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:42:38Z"
           }
         ]
       },
@@ -19221,6 +19261,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:04Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:42:38Z"
           }
         ]
       },
@@ -22206,6 +22251,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:05Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:42:38Z"
           }
         ]
       },
@@ -22539,6 +22589,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:05Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:42:39Z"
           }
         ]
       },
@@ -23726,6 +23781,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:05Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:42:39Z"
           }
         ]
       },
@@ -24325,6 +24385,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -25191,6 +25256,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:05Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:42:39Z"
           }
         ]
       },
@@ -25266,6 +25336,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:05Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:42:39Z"
           }
         ]
       },
@@ -29296,6 +29371,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:05Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:42:39Z"
           }
         ]
       },
@@ -29381,6 +29461,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:05Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:42:39Z"
           }
         ]
       },
@@ -29658,6 +29743,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:06Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:42:39Z"
           }
         ]
       },
@@ -29801,6 +29891,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:06Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:42:39Z"
           }
         ]
       },
@@ -30636,6 +30731,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:06Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:43:06Z"
           }
         ]
       },
@@ -30960,6 +31060,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -31035,6 +31140,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -33326,6 +33436,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -33524,6 +33639,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:07Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:43:07Z"
           }
         ]
       },
@@ -35010,6 +35130,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -36881,6 +37006,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:07Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:43:07Z"
           }
         ]
       },
@@ -37026,6 +37156,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:07Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:43:08Z"
           }
         ]
       },
@@ -37603,6 +37738,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -38046,6 +38186,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:07Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:43:08Z"
           }
         ]
       },
@@ -38594,6 +38739,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       }
@@ -38685,6 +38835,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -40707,6 +40862,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -40891,6 +41051,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:07Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:43:08Z"
           }
         ]
       },
@@ -41583,6 +41748,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:07Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:43:08Z"
           }
         ]
       },
@@ -41819,6 +41989,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -46239,6 +46414,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -47038,6 +47218,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -48541,6 +48726,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -49109,6 +49299,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -50494,6 +50689,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -51070,6 +51270,11 @@
             "type": "invalidation",
             "reason": "Lever board retired: 404",
             "invalidated_at": "2026-10-14T21:14:34Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "Lever board retired: 404",
+            "invalidated_at": "2026-10-16T19:42:36Z"
           }
         ]
       },
@@ -52650,6 +52855,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -52947,6 +53157,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:08Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:43:08Z"
           }
         ]
       },
@@ -53022,6 +53237,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:08Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:43:08Z"
           }
         ]
       },
@@ -53777,6 +53997,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -55800,6 +56025,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:08Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:43:08Z"
           }
         ]
       },
@@ -56716,6 +56946,11 @@
             "type": "invalidation",
             "reason": "Lever board retired: 404",
             "invalidated_at": "2026-10-14T21:14:34Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "Lever board retired: 404",
+            "invalidated_at": "2026-10-16T19:42:36Z"
           }
         ]
       },
@@ -57463,6 +57698,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:08Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:43:08Z"
           }
         ]
       },
@@ -57564,6 +57804,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-14T21:15:30Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-10-16T19:43:37Z"
           }
         ]
       },
@@ -58557,6 +58802,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:08Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:43:08Z"
           }
         ]
       },
@@ -58774,6 +59024,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:08Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:43:08Z"
           }
         ]
       }
@@ -59558,6 +59813,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:08Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:43:08Z"
           }
         ]
       },
@@ -59814,6 +60074,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-14T21:15:08Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-10-16T19:43:08Z"
           }
         ]
       },

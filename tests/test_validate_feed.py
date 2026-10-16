@@ -130,5 +130,23 @@ class ValidateFeedTests(unittest.TestCase):
             errors = vf.validate(Path(f.name), minimum_jobs=2, minimum_healthy_sources=1, strict_sources=False)
             self.assertTrue(any("job count 1 is below minimum 2" in e for e in errors))
 
+    def test_strict_sources_ignores_auto_discovered(self):
+        feed = self._create_feed(
+            [self._valid_job()],
+            sources={
+                "auto-discovered-failed": {"status": "failed", "auto_discovered": True},
+            },
+        )
+        with NamedTemporaryFile("w+", suffix=".json") as f:
+            json.dump(feed, f)
+            f.flush()
+            errors = vf.validate(
+                Path(f.name),
+                minimum_jobs=1,
+                minimum_healthy_sources=0,
+                strict_sources=True,
+            )
+            self.assertEqual(errors, [])
+
 if __name__ == '__main__':
     unittest.main()
