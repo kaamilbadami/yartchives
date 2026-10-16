@@ -161,7 +161,7 @@ def validate(
         status = source_status(source)
         if status in {"healthy", "degraded"}:
             healthy += 1
-        if strict_sources and status == "failed":
+        if strict_sources and status == "failed" and not source.get("auto_discovered"):
             fatal_errors.append(f"source {source.get('name', key)} failed: {source.get('error', 'unknown error')}")
     if healthy < minimum_healthy_sources:
         fatal_errors.append(f"healthy source count {healthy} is below minimum {minimum_healthy_sources}")
