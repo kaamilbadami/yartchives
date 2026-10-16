@@ -97,7 +97,7 @@ jobs:
               raise SystemExit("Analytics artifact must contain an absolute HTTPS URL without credentials")
           if parsed.path != "/collect" or parsed.query or parsed.fragment:
               raise SystemExit("Analytics artifact must point to the /collect endpoint")
-          PY
+PY
             fi
           fi
 
@@ -138,7 +138,7 @@ jobs:
           text = text.replace("__YARTCHIVES_ANALYTICS_ENDPOINT__", endpoint)
           text = text.replace("__YARTCHIVES_ANALYTICS_ORIGIN__", origin)
           path.write_text(text, encoding="utf-8")
-          PY
+PY
           python scripts/build_apply_next_inspections.py data/workday-inspections.json _site/data/apply-next-inspections.json
           python scripts/build_apply_next_candidates.py data/listings.json _site/data/apply-next-candidates.json
           curl --fail --silent --show-error --location \
@@ -152,7 +152,7 @@ jobs:
           payload = json.loads(path.read_text(encoding="utf-8"))
           if not payload.get("zips") or not payload.get("cities"):
               raise SystemExit("geo-index.json is empty or malformed")
-          PY
+PY
           BUILD_SHA="$(git rev-parse HEAD)"
           VERSION="$(git rev-parse --short=12 HEAD)"
           DEPLOYED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -267,7 +267,7 @@ jobs:
               raise SystemExit("deployment-status.json deployment ID does not match live deployment")
           if not isinstance(payload.get("interactive"), bool):
               raise SystemExit("deployment-status.json interactive flag is not boolean")
-          PY
+PY
             then
               mismatch_reason="deployment-status.json content mismatch"
               sleep 5
