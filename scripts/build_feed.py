@@ -889,6 +889,7 @@ def main() -> int:
             old_doc = {}
     old_jobs_list = old_doc.get("jobs", []) if isinstance(old_doc, dict) else []
     old_jobs_by_id = {j.get("id"): j for j in old_jobs_list if isinstance(j, dict) and j.get("id")}
+    old_sources = old_doc.get("sources", {}) if isinstance(old_doc, dict) else {}
 
     s = session()
     all_jobs: list[dict[str, Any]] = []
@@ -924,7 +925,7 @@ def main() -> int:
 
     # If a source is temporarily down, carry its previously generated listings forward.
     if failed_keys:
-        degraded_keys = set()
+        degraded_keys = {k for k in failed_keys if k in old_sources}
         for old in old_jobs_list:
             if failed_keys.intersection(old.get("source_keys", [])):
                 if old.get("link_status") == "dead":
