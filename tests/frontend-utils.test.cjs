@@ -205,6 +205,16 @@ assert.equal(
   "ordinary job pages should remain unchanged"
 );
 
+assert.equal(U.formatSalary({ salary_min: 35, salary_max: 35, salary_period: "hour" }), "$35/hr");
+assert.equal(U.formatSalary({ salary_min: 30, salary_max: 45, salary_period: "hour" }), "$30–$45/hr");
+assert.equal(U.formatSalary({ salary_min: 80000, salary_max: 80000, salary_period: "year" }), "$80,000/yr");
+assert.equal(U.formatSalary({ salary_min: 1500, salary_max: 1500, salary_period: "week" }), "$1,500/wk");
+assert.equal(U.formatSalary({ salary_min: 5000, salary_max: 5000, salary_period: "stipend" }), "$5,000 stipend");
+assert.equal(U.formatSalary({ salary_min: 30, salary_max: 45, salary_period: "hour", salary_currency: "CAD" }), "$30–$45/hr");
+assert.equal(U.formatSalary({ salary_min: 30, salary_max: 45, salary_period: "hour", salary_currency: "EUR" }), "€30–€45/hr");
+assert.equal(U.formatSalary(null), "");
+assert.equal(U.formatSalary({}), "");
+
 const namedRegion = {
   location: "RTP, North Carolina",
   states: ["NC"],

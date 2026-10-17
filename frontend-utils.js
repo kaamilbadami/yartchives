@@ -402,10 +402,6 @@
           continue;
         }
 
-        // Production geo artifacts may preserve display casing while the
-        // resolver works in normalized place names. Keep the shared resolver
-        // tolerant of either representation instead of requiring every loader
-        // to reproduce buildGeoIndex()'s normalization contract exactly.
         const alias = cities.find(([cityName]) => normalizePlace(cityName) === candidate)?.[1];
         if (alias) {
           found.push(alias);
@@ -584,6 +580,50 @@
     return type === filter;
   }
 
+  function formatSalaryNumber(num, currency = "USD") {
+    if (!Number.isFinite(num)) return "";
+    const symbol = currency === "USD" || currency === "CAD" ? "$" : (currency === "EUR" ? "€" : (currency === "GBP" ? "£" : `${currency} `));
+    if (Number.isInteger(num)) {
+      return `${symbol}${num.toLocaleString("en-US")}`;
+    }
+    return `${symbol}${num.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+
+  function formatSalary(job) {
+    if (!job || typeof job !== "object") return "";
+    const min = Number(job.salary_min);
+    const max = Number(job.salary_max);
+    const hasMin = Number.isFinite(min);
+    const hasMax = Number.isFinite(max);
+
+    if (!hasMin && !hasMax) return "";
+
+    const currency = job.salary_currency || "USD";
+    const period = String(job.salary_period || "year").toLowerCase();
+
+    let amountText = "";
+    if (hasMin && hasMax && min !== max) {
+      amountText = `${formatSalaryNumber(min, currency)}–${formatSalaryNumber(max, currency)}`;
+    } else {
+      const val = hasMin ? min : max;
+      amountText = formatSalaryNumber(val, currency);
+    }
+
+    if (period === "hour" || period === "hourly" || period === "hr") {
+      return `${amountText}/hr`;
+    } else if (period === "week" || period === "weekly" || period === "wk") {
+      return `${amountText}/wk`;
+    } else if (period === "month" || period === "monthly" || period === "mo") {
+      return `${amountText}/mo`;
+    } else if (period === "year" || period === "annual" || period === "yearly" || period === "yr") {
+      return `${amountText}/yr`;
+    } else if (period === "stipend" || period === "fixed") {
+      return `${amountText} stipend`;
+    }
+
+    return amountText;
+  }
+
   return {
     STATE_NAMES,
     MAX_PAINT_WAIT_MS,
@@ -614,5 +654,7 @@
     opportunityType,
     matchesEducation,
     matchesOpportunityType,
+    formatSalaryNumber,
+    formatSalary,
   };
 });

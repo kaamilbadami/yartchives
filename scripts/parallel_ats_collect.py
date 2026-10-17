@@ -67,7 +67,7 @@ def _merge_normalized_job(target: dict[str, Any], incoming: dict[str, Any]) -> N
         target["posted_raw"] = incoming.get("posted_raw", "")
 
     for field in (
-        "salary_min", "salary_max", "salary_period", "remote_type", "term",
+        "salary_min", "salary_max", "salary_period", "salary_currency", "salary_raw", "salary_provenance", "remote_type", "term",
         "education_level", "opportunity_type", "first_seen", "last_seen",
     ):
         if not target.get(field) and incoming.get(field) is not None:
