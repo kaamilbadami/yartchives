@@ -580,6 +580,12 @@ function renderJobs() {
     card.querySelector(".company").textContent = job.company || "Company not listed";
     card.querySelector(".title").textContent = job.title;
     card.querySelector(".location").textContent = job.location || "Location not listed";
+    const payText = YartchivesUtils.formatSalary(job);
+    const payEl = card.querySelector(".pay");
+    if (payEl) {
+      payEl.textContent = payText;
+      payEl.style.display = payText ? "" : "none";
+    }
     const age = card.querySelector(".age");
     const distance = currentZip() && Number.isFinite(job._distanceMiles) ? ` · ${Math.round(job._distanceMiles)} mi` : "";
     age.textContent = `${relativeAge(job)}${distance}`;
