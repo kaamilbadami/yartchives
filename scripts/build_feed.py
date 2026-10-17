@@ -77,7 +77,6 @@ PROFILE_KEYWORDS: dict[str, tuple[str, ...]] = {
         "data scientist", "cybersecurity", "security engineer", "devops", "cloud engineer",
         "backend", "front end", "frontend", "full stack", "fullstack", "site reliability",
         "sre intern", "computer vision", "distributed systems", "platform engineer",
-        "applied data science",
     ),
     "tech-business": (
         "product manager", "product management", "product analyst", "product operations",
@@ -90,14 +89,12 @@ PROFILE_KEYWORDS: dict[str, tuple[str, ...]] = {
         "information systems", "information technology", "technology analyst",
         "operations analyst", "business operations", "revenue operations", "go-to-market", "commercial analytics",
         "strategy intern", "consulting intern", "consultant intern", "product strategy", "technical account",
-        "quantitative analytics", "forecasting", "predictive modeling", "product analytics", "operations analytics", "decision science",
     ),
     "finance-econ": (
         "finance", "financial", "accounting", "audit", "tax intern", "actuarial", "banking",
         "investment", "credit", "treasury", "wealth management", "risk intern", "risk analyst",
         "underwriting", "economics", "economist", "capital markets", "insurance intern",
         "private equity", "asset management", "commercial banking", "quantitative finance",
-        "risk modeling",
     ),
     "mechanical": (
         "mechanical engineer", "mechanical engineering", "manufacturing engineer",
@@ -712,28 +709,22 @@ def merge_job(target: dict[str, Any], incoming: dict[str, Any]) -> None:
     target_rank = link_ranks.link_kind_rank(target_kind)
     incoming_rank = link_ranks.link_kind_rank(incoming_kind)
 
-    should_update_url = False
     if not target.get("url") and incoming.get("url"):
-        should_update_url = True
+        target["url"] = incoming["url"]
+        if incoming_kind:
+            target["link_kind"] = incoming_kind
     elif incoming.get("url"):
         if incoming_rank > target_rank:
-            should_update_url = True
+            target["url"] = incoming["url"]
+            if incoming_kind:
+                target["link_kind"] = incoming_kind
         elif incoming_rank == target_rank:
             old_host = urlparse(target.get("url", "")).netloc.lower()
             new_host = urlparse(incoming["url"]).netloc.lower()
             if old_host in AGGREGATOR_HOSTS and new_host not in AGGREGATOR_HOSTS:
-                should_update_url = True
-
-    if should_update_url:
-        target["url"] = incoming["url"]
-        if incoming_kind:
-            target["link_kind"] = incoming_kind
-        for link_field in ("link_status", "link_checked_at", "link_validation_version", "link_origin", "resolved_from_url"):
-            if link_field in incoming:
-                target[link_field] = incoming[link_field]
-            elif "link_status" in incoming:
-                target.pop(link_field, None)
-
+                target["url"] = incoming["url"]
+                if incoming_kind:
+                    target["link_kind"] = incoming_kind
     observations = list(target.get("posted_date_observations") or [])
     seen_observations = {
         (row.get("source_key"), row.get("posted_at"), row.get("posted_raw"))
@@ -778,15 +769,6 @@ def merge_job(target: dict[str, Any], incoming: dict[str, Any]) -> None:
     if "link_checked_at" in incoming:
         if "link_checked_at" not in target or ("link_status" in incoming and incoming["link_status"] == "ok"):
             target["link_checked_at"] = incoming["link_checked_at"]
-    if "link_validation_version" in incoming:
-        if "link_validation_version" not in target or ("link_status" in incoming and incoming["link_status"] == "ok"):
-            target["link_validation_version"] = incoming["link_validation_version"]
-    if "link_origin" in incoming:
-        if "link_origin" not in target or ("link_status" in incoming and incoming["link_status"] == "ok"):
-            target["link_origin"] = incoming["link_origin"]
-    if "resolved_from_url" in incoming:
-        if "resolved_from_url" not in target or ("link_status" in incoming and incoming["link_status"] == "ok"):
-            target["resolved_from_url"] = incoming["resolved_from_url"]
 
 
 
@@ -845,16 +827,10 @@ def dedupe(jobs: list[dict[str, Any]], old_jobs: dict[str, dict[str, Any]], refe
         job["first_seen"] = prior.get("first_seen") if prior else iso(reference)
         job["last_seen"] = iso(reference)
         if prior:
-            if "link_status" in prior and "link_status" not in job:
+            if "link_status" in prior:
                 job["link_status"] = prior["link_status"]
-            if "link_checked_at" in prior and "link_checked_at" not in job:
+            if "link_checked_at" in prior:
                 job["link_checked_at"] = prior["link_checked_at"]
-            if "link_validation_version" in prior and "link_validation_version" not in job:
-                job["link_validation_version"] = prior["link_validation_version"]
-            if "link_origin" in prior and "link_origin" not in job:
-                job["link_origin"] = prior["link_origin"]
-            if "resolved_from_url" in prior and "resolved_from_url" not in job:
-                job["resolved_from_url"] = prior["resolved_from_url"]
 
     def sort_key(job: dict[str, Any]) -> tuple[str, str]:
         return (job.get("posted_at") or job.get("first_seen") or "", job.get("id") or "")
@@ -889,7 +865,6 @@ def main() -> int:
             old_doc = {}
     old_jobs_list = old_doc.get("jobs", []) if isinstance(old_doc, dict) else []
     old_jobs_by_id = {j.get("id"): j for j in old_jobs_list if isinstance(j, dict) and j.get("id")}
-    old_sources = old_doc.get("sources", {}) if isinstance(old_doc, dict) else {}
 
     s = session()
     all_jobs: list[dict[str, Any]] = []
@@ -925,7 +900,7 @@ def main() -> int:
 
     # If a source is temporarily down, carry its previously generated listings forward.
     if failed_keys:
-        degraded_keys = {k for k in failed_keys if k in old_sources}
+        degraded_keys = set()
         for old in old_jobs_list:
             if failed_keys.intersection(old.get("source_keys", [])):
                 if old.get("link_status") == "dead":

@@ -71,7 +71,7 @@ const strongFitLocal = job({
   id: "strong-fit-local",
   company: "Local Strong",
   states: ["MD"],
-  url: "https://example.com/unique-1",
+  url: "https://example.com/1",
   location: "College Park, MD",
   _locationAnchorDistances: [{ zip: "20740", distanceMiles: 5 }],
   _inspection: inspection([
@@ -84,7 +84,7 @@ const strongFitRemote = job({
   id: "strong-fit-remote",
   company: "Remote Strong",
   states: ["Remote"],
-  url: "https://example.com/unique-2",
+  url: "https://example.com/2",
   location: "Remote",
   _inspection: inspection([
     ["Java and Python experience required.", ["Java", "Python"]],
@@ -95,9 +95,8 @@ const strongFitRemote = job({
 const learnableGapsLocal = job({
   id: "learnable-local",
   company: "Local Learnable",
-  title: "Local Learnable Intern",
   states: ["MD"],
-  url: "https://example.com/unique-3",
+  url: "https://example.com/3",
   location: "College Park, MD",
   _locationAnchorDistances: [{ zip: "20740", distanceMiles: 5 }],
   _inspection: inspection([
@@ -109,9 +108,8 @@ const learnableGapsLocal = job({
 const requiredGapsLocal = job({
   id: "required-gaps-local",
   company: "Local Required Gaps",
-  title: "Local Required Gaps Intern",
   states: ["MD"],
-  url: "https://example.com/unique-4",
+  url: "https://example.com/4",
   location: "College Park, MD",
   _locationAnchorDistances: [{ zip: "20740", distanceMiles: 5 }],
   _inspection: inspection([
@@ -123,9 +121,8 @@ const requiredGapsLocal = job({
 const metadataOnlyLocal = job({
   id: "metadata-local",
   company: "Local Metadata",
-  title: "Local Metadata Intern",
   states: ["MD"],
-  url: "https://example.com/unique-5",
+  url: "https://example.com/5",
   location: "College Park, MD",
   _locationAnchorDistances: [{ zip: "20740", distanceMiles: 5 }],
   _inspection: { status: "queued", posting: null, requirements: {} },
@@ -135,7 +132,7 @@ const strongFitRelocation = job({
   id: "strong-fit-relocation",
   company: "Relocation Strong",
   states: ["CA"],
-  url: "https://example.com/unique-6",
+  url: "https://example.com/6",
   location: "San Francisco, CA",
   _locationAnchorDistances: [{ zip: "20740", distanceMiles: 2800 }],
   _inspection: inspection([

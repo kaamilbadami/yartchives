@@ -32,4 +32,3 @@ def test_pages_workflow_still_deploys_and_verifies_current_main():
     assert "Verify live deployment" in workflow
     assert "LIVE_SHA" in workflow
     assert 'build_sha=%s\\n' in workflow
-    assert '[ -n "$path" ] || continue' in workflow

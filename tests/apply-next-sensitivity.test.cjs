@@ -53,7 +53,7 @@ for (let i = 0; i < 100; i++) {
     term: "Summer 2027",
     posted_at: new Date(now.getTime() - (i * 12 * 3600 * 1000)).toISOString(),
     link_kind: "direct",
-    url: `https://company${i}.example.com/job-${i}`,
+    url: `https://example.com/job-${i}`,
     _inspection: inspection(i % 5 === 0 ? [["Java required", ["Java"]]] : (i % 5 === 1 ? [["Go required", ["Go"]]] : [])),
   });
 }

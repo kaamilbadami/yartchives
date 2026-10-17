@@ -6,7 +6,7 @@ const uiSource = fs.readFileSync(path.join(__dirname, "..", "apply-next-ui.js"),
 
 (async () => {
   // Test states
-  assert.match(uiSource, /Finding your best matches… This usually takes a few seconds\./, "Should support loading state");
+  assert.match(uiSource, /Loading recommendations and validating current posting status\.\.\./, "Should support loading state");
   assert.match(uiSource, /Apply Next could not load the current feed/, "Should support error state");
   assert.match(uiSource, /You have saved, applied to, or hidden all eligible Apply Next candidates/, "Should support exhausted state");
   assert.match(uiSource, /No eligible Apply Next candidates are available yet/, "Should support no-recommendations state");

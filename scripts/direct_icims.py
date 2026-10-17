@@ -30,7 +30,7 @@ if str(SCRIPT_DIR) not in sys.path:
 import build_feed as bf  # noqa: E402
 from direct_ct_workday import (  # noqa: E402
     carry_failed_source,
-    is_target_relevant_title,
+    is_cs_relevant_title,
     is_student_opportunity,
     is_target_state,
     session as retry_session,
@@ -159,7 +159,7 @@ def extract_sitemap_job_links(raw_xml: str, source: dict[str, Any]) -> list[str]
         if not JOB_LINK.fullmatch(parsed.path):
             continue
         slug_text = _slug_text(raw_url)
-        if not is_student_opportunity(slug_text) or not is_target_relevant_title(slug_text):
+        if not is_student_opportunity(slug_text) or not is_cs_relevant_title(slug_text):
             continue
         canonical = urlunparse((parsed.scheme or "https", parsed.netloc, parsed.path.rstrip("/"), "", "", ""))
         try:
@@ -230,7 +230,7 @@ def job_from_inspection(source: dict[str, Any], url: str, inspection: dict[str, 
     title = _clean(posting.get("title"))
     locations = ((posting.get("locations") or {}).get("values") or [])
     location = " ".join(_clean(value) for value in locations if _clean(value)) or "Location not listed"
-    if not is_student_opportunity(title) or not is_target_relevant_title(title):
+    if not is_student_opportunity(title) or not is_cs_relevant_title(title):
         return None
     if not _looks_us(location):
         return None

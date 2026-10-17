@@ -2,14 +2,15 @@ const assert = require("node:assert/strict");
 const D = require("../apply-next-dimensions.js");
 
 assert.deepEqual(D.SCORE_MAXIMA, {
-  fit: 45,
+  fit: 40,
   eligibility: 0,
   freshness: 10,
-  roi: 25,
+  roi: 30,
+  role: 0,
   location: 20,
   link: 0,
 });
-assert.deepEqual(D.APPLICATION_VALUE_PARTS, { role: 15, market: 10 });
+assert.deepEqual(D.APPLICATION_VALUE_PARTS, { role: 15, market: 15 });
 assert.equal(Object.values(D.SCORE_MAXIMA).reduce((sum, value) => sum + value, 0), 100);
 
 const profile = {
@@ -41,11 +42,11 @@ const job = {
 const scored = D.scoreJob(job, profile, new Date("2026-09-17T16:00:00Z"));
 assert.equal(scored.components.role, undefined);
 assert.equal(scored.components.location.score, 20);
-assert.equal(scored.components.roi.score, 16);
+assert.equal(scored.components.roi.score, 23);
 assert.deepEqual(scored.applicationValue.role, { score: 15, max: 15 });
-assert.deepEqual(scored.applicationValue.market, { score: 3, max: 10 });
+assert.deepEqual(scored.applicationValue.market, { score: 8, max: 15 });
 assert.match(scored.components.roi.detail, /Role value 15\/15/);
-assert.match(scored.components.roi.detail, /Market opportunity 3\/10/);
+assert.match(scored.components.roi.detail, /Market opportunity 8\/15/);
 assert.ok(scored.total <= 100);
 
 const legacyPriorityProfile = {

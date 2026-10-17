@@ -42,7 +42,7 @@ def test_send_push_validates_and_calls_webpush():
     assert len(calls) == 1
     assert calls[0]["subscription_info"]["endpoint"].startswith("https://")
     assert calls[0]["vapid_private_key"] == "private-key"
-    assert calls[0]["vapid_claims"]["sub"].startswith("https://")
+    assert calls[0]["vapid_claims"]["sub"].startswith("mailto:")
     assert calls[0]["ttl"] == 300
 
 

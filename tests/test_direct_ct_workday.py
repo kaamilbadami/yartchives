@@ -106,16 +106,16 @@ class DirectWorkdayTests(unittest.TestCase):
         ]
         for title in accepted:
             with self.subTest(title=title):
-                self.assertTrue(mod.is_target_relevant_title(title))
+                self.assertTrue(mod.is_cs_relevant_title(title))
         for title in rejected:
             with self.subTest(title=title):
-                self.assertFalse(mod.is_target_relevant_title(title))
+                self.assertFalse(mod.is_cs_relevant_title(title))
 
     def test_source_specific_title_allow_pattern(self):
         source = dict(self.source)
         source["title_allow_patterns"] = [r"\bdigital technology\b"]
-        self.assertTrue(mod.is_target_relevant_title("Digital Technology Intern", source))
-        self.assertFalse(mod.is_target_relevant_title("Project Engineering Intern", source))
+        self.assertTrue(mod.is_cs_relevant_title("Digital Technology Intern", source))
+        self.assertFalse(mod.is_cs_relevant_title("Project Engineering Intern", source))
 
     def test_fetch_workday_filters_to_ct_student_cs_roles(self):
         ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)

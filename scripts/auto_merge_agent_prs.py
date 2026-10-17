@@ -561,38 +561,6 @@ def exact_head_quality_in_flight(
     )
 
 
-def exact_head_quality_diagnostic(runs: Iterable[dict[str, Any]], head_sha: str) -> tuple[str, int | None, str | None]:
-    """Return the latest exact-head CI state and a traceable Actions run ID."""
-    matches = [
-        run for run in runs
-        if run.get("name") == QUALITY_WORKFLOW and run.get("head_sha") == head_sha
-    ]
-    if not matches:
-        return "missing", None, None
-    latest = max(matches, key=lambda run: (str(run.get("created_at") or ""), int(run.get("id") or 0)))
-    status = str(latest.get("status") or "unknown")
-    conclusion = str(latest.get("conclusion") or "")
-    return (conclusion if status == "completed" else status, int(latest.get("id") or 0) or None, str(latest.get("html_url") or "") or None)
-
-
-def report_quality_state(repo: str, pr_number: int, head_sha: str, state: str,
-                         run_id: int | None = None, run_url: str | None = None) -> None:
-    """Persist a deduplicated CI diagnosis on the PR itself."""
-    marker = f"<!-- quality-recovery: head={head_sha} state={state} run={run_id or 'none'} -->"
-    comments = gh_paginated_json("api", f"repos/{repo}/issues/{pr_number}/comments?per_page=100")
-    if any(marker in str(comment.get("body") or "") for comment in comments):
-        return
-    url = run_url or (f"https://github.com/{repo}/actions/runs/{run_id}" if run_id else None)
-    detail = f"Run: {url}" if url else "No run ID was returned by GitHub yet; the next scan will associate the run with this head."
-    message = (
-        f"{marker}\n"
-        f"Auto-merge CI recovery for commit `{head_sha}`: **{state}**.\n"
-        f"{detail}\n"
-        "Merge stays blocked until exact-head Quality checks succeed."
-    )
-    gh_run("issue", "comment", str(pr_number), "--repo", repo, "--body", message)
-
-
 def superseded_action_required_run_ids(
     runs: Iterable[dict[str, Any]], head_sha: str
 ) -> list[int]:
@@ -729,26 +697,8 @@ def supersession_candidate(
     return True, "broad protected-path pull request should be superseded"
 
 
-def dispatchable_replacement_body(original_issue: dict[str, Any]) -> str:
-    """Keep recovery issues eligible even when the original used label-only dispatch."""
-    body = str(original_issue.get("body") or "").rstrip()
-    required = ("priority", "area", "autonomous")
-    if all(re.search(rf"(?mi)^\s*{field}\s*:\s*\S+", body) for field in required) and re.search(
-        r"(?mi)^\s*autonomous\s*:\s*true\s*$", body
-    ):
-        return body
-    header = (
-        "<!-- autonomous-task -->\n"
-        "priority: P1\n"
-        "area: automation\n"
-        "resources: automation\n"
-        "autonomous: true\n\n"
-    )
-    return header + body
-
-
 def replacement_issue_body(original_issue: dict[str, Any], pr_number: int) -> str:
-    body = dispatchable_replacement_body(original_issue)
+    body = str(original_issue.get("body") or "").rstrip()
     marker = SUPERSEDE_MARKER_TEMPLATE.format(
         pr_number=pr_number,
         issue_number=original_issue.get("number", "unknown")
@@ -767,7 +717,7 @@ def replacement_issue_body(original_issue: dict[str, Any], pr_number: int) -> st
 def conflict_replacement_issue_body(
     original_issue: dict[str, Any], pr_number: int, base_ref: str
 ) -> str:
-    body = dispatchable_replacement_body(original_issue)
+    body = str(original_issue.get("body") or "").rstrip()
     marker = SUPERSEDE_MARKER_TEMPLATE.format(
         pr_number=pr_number,
         issue_number=original_issue.get("number", "unknown")
@@ -1615,10 +1565,8 @@ def main() -> int:
             continue
 
         if not exact_head_quality_passed(runs, head_sha):
-            state, run_id, run_url = exact_head_quality_diagnostic(runs, head_sha)
             if exact_head_quality_in_flight(runs, head_sha):
-                report_quality_state(repo, number, head_sha, state, run_id, run_url)
-                print(f"PR #{number} has exact-head Quality checks {state}: run {run_id}.")
+                print(f"PR #{number} already has exact-head Quality checks in flight.")
                 continue
             should_redispatch = (
                 exact_head_quality_action_required(runs, head_sha)
@@ -1631,15 +1579,11 @@ def main() -> int:
                     "--ref", head_ref,
                     "-f", "pr_recovery=true",
                 )
-                report_quality_state(repo, number, head_sha, "recovery-dispatched")
                 print(
                     f"Dispatched Quality checks manually for PR #{number} because the "
                     "exact-head run was missing or required manual approval."
                 )
                 continue
-            if state in {"failure", "timed_out", "cancelled", "startup_failure", "skipped"}:
-                report_quality_state(repo, number, head_sha, state, run_id, run_url)
-                print(f"BLOCKED_CI PR #{number}: Quality checks {state}; run {run_id}. Fix the failed check before merging.")
 
         if owner_authorized:
             eligible, reason = (

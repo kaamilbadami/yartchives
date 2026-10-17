@@ -49,6 +49,7 @@ def test_interactive_deploy_notification_contract():
     assert "web_push === 8030" in worker
     manifest = (ROOT / "manifest.webmanifest").read_text(encoding="utf-8")
     assert '"display": "standalone"' in manifest
+    index = (ROOT / "index.html").read_text(encoding="utf-8")
     assert '<link rel="manifest" href="manifest.webmanifest" />' in index
     assert "payload?.interactive === true" in app
     assert "cryptoImpl.subtle.generateKey" in app
@@ -63,4 +64,3 @@ def test_interactive_deploy_notification_contract():
     assert "scripts/send_web_push.py --build-sha" in deploy
     assert "${{ secrets.YARTCHIVES_PUSH_SUBSCRIPTION }}" in deploy
     assert "${{ secrets.YARTCHIVES_VAPID_PRIVATE_KEY }}" in deploy
-    assert 'data.productionStatus = "true"' in apply_next

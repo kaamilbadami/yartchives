@@ -79,7 +79,7 @@ def latest_artifact(repo: str, workflow: str, artifact_name: str, token: str | N
     while page <= 10:
         runs_url = (
             f"{API_ROOT}/repos/{repo}/actions/workflows/{workflow}/runs"
-            f"?branch=main&status=success&per_page=100&page={page}"
+            f"?branch=main&per_page=100&page={page}"
         )
         runs_payload = _request_json(runs_url, token)
         runs = runs_payload.get("workflow_runs") or []

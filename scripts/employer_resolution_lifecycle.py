@@ -133,14 +133,14 @@ def _verified_provider_fast_path(employer: dict[str, Any], now: datetime) -> boo
         employer.pop("careers_url", None)
         employer.pop("careers_platform", None)
 
-    needs_completion = family in {"brassring", "ashby", "lever", "smartrecruiters"}
-    employer["careers_url"] = check_url
+    if check_url != url:
+        employer["careers_url"] = check_url
 
     resolved_at = _timestamp(now)
     employer["careers_platform"] = family
     employer["provider"] = provider
     employer["careers_resolution"] = {
-        "status": "provider_resolved" if needs_completion else "resolved",
+        "status": "resolved" if employer.get("careers_url") else "provider_resolved",
         "attempt_status": "verified_seed",
         "resolved_at": resolved_at,
         "last_attempt_at": resolved_at,
@@ -171,7 +171,8 @@ def _provider_resolution_needs_completion(employer: dict[str, Any]) -> bool:
     return (
         resolution.get("status") == "provider_resolved"
         and provider.get("status") == "resolved"
-        and provider.get("family") in {"brassring", "ashby", "lever", "smartrecruiters"}
+        and provider.get("family") in {"brassring", "greenhouse", "ashby", "lever", "smartrecruiters"}
+        and not str(employer.get("careers_url") or "").strip()
     )
 
 
@@ -246,8 +247,8 @@ def run_lifecycle(
     resolver: Callable[..., dict[str, Any]] = resolve_employer,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     validate_universe(universe)
-    if ttl_days < 0 or employer_budget <= 0 or request_budget <= 0:
-        raise ValueError("ttl_days cannot be negative, employer_budget, and request_budget must be positive")
+    if ttl_days <= 0 or employer_budget <= 0 or request_budget <= 0:
+        raise ValueError("ttl_days, employer_budget, and request_budget must be positive")
 
     now = now or _utc_now()
     output = json.loads(json.dumps(universe))

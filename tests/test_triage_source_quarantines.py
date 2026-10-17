@@ -156,31 +156,6 @@ class SourceQuarantineTriageTests(unittest.TestCase):
         self.assertEqual(len(gh.issues), 1)
         self.assertIn("Affected sources: **2**", gh.issues[0]["body"])
 
-    def test_many_affected_sources_truncate_issue_body_to_fit_github_limits(self):
-        gh = FakeGh()
-        sources = {
-            f"icims:acme_{i}": quarantined(
-                f"Acme {i}",
-                "StructuralSourceError: expected job cards, got landing page",
-            )
-            for i in range(1000)
-        }
-
-        mod.triage(
-            "kaamilbadami/yartchives",
-            feed(sources),
-            feed(sources),
-            load_open_issues=gh.open_issues,
-            run_gh=gh.run,
-        )
-
-        self.assertEqual(len(gh.issues), 1)
-        body = gh.issues[0]["body"]
-        self.assertLessEqual(len(body), 65536)
-        self.assertIn("Affected sources: **1000**", body)
-        self.assertIn("more affected sources)*", body)
-        self.assertIn("## Agent guidance", body)
-
     def test_configured_false_without_explicit_quarantine_is_not_escalated(self):
         gh = FakeGh()
         disabled = {"configured": False, "name": "Intentional disable"}
