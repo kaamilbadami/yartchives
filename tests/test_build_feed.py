@@ -141,6 +141,18 @@ class BuildFeedTests(unittest.TestCase):
         self.assertEqual(target.get("link_checked_at"), "2026-09-18T12:00:00Z")
         self.assertEqual(target.get("link_validation_version"), 2)
 
+        # Preserve status when URL changes but incoming lacks status
+        incoming_url_update = {
+            "source_key": "c",
+            "source_name": "C",
+            "source_url": "http://c.com",
+            "url": "http://example.com/new",
+            "link_kind": "direct"
+        }
+        mod.merge_job(target, incoming_url_update)
+        self.assertEqual(target.get("link_status"), "ok")
+        self.assertEqual(target.get("link_validation_version"), 2)
+
         # Do not overwrite ok with unknown
         incoming2 = {
             "source_key": "c",
@@ -279,6 +291,48 @@ class BuildFeedTests(unittest.TestCase):
         self.assertEqual(target["posted_date_provenance"], "authoritative_employer")
         self.assertEqual(len(target["posted_date_observations"]), 2)
 
+
+
+    def test_new_source_failure_is_not_downgraded(self):
+        import json
+        from unittest.mock import patch
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            sources_path = tmp_path / "sources.json"
+            output_path = tmp_path / "listings.json"
+
+            sources_path.write_text(json.dumps([
+                {
+                    "key": "new_failing_source",
+                    "name": "New Failing Source",
+                    "kind": "markdown",
+                    "url": "http://invalid.local"
+                }
+            ]))
+
+            output_path.write_text(json.dumps({
+                "sources": {
+                    "existing_source": {"status": "healthy"}
+                },
+                "jobs": [],
+                "content_hash": "dummy"
+            }))
+
+            with patch("scripts.build_feed.SOURCES_PATH", sources_path), \
+                 patch("scripts.build_feed.OUTPUT_PATH", output_path):
+                try:
+                    from scripts import build_feed
+                    build_feed.main()
+                except Exception as e:
+                    pass
+
+                output = json.loads(output_path.read_text())
+                health = output.get("sources", {})
+                self.assertIn("new_failing_source", health)
+                self.assertEqual(health["new_failing_source"]["status"], "failed")
 
     def test_main_does_not_carry_forward_confirmed_dead_listings_during_failure(self):
         # Write mock sources.json and listings.json

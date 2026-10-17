@@ -129,11 +129,11 @@ def render_source_line(key: str, source: dict[str, Any]) -> str:
     return f"- `{key}` — {name}: {error}"
 
 
-def render_issue_body(signature: str, group: dict[str, Any]) -> str:
+def render_issue_body(signature: str, group: dict[str, Any], max_length: int = 65000) -> str:
     family = group["family"]
     cause = group["cause"]
-    source_lines = "\n".join(render_source_line(key, source) for key, source in group["sources"])
-    return f"""priority: P1
+
+    header = f"""priority: P1
 area: coverage
 resources: coverage, source-collection
 autonomous: true
@@ -149,7 +149,9 @@ Persistent source quarantine detected across two consecutive published-feed gene
 
 ## Current affected sources
 
-{source_lines}
+"""
+
+    footer = """
 
 ## Agent guidance
 
@@ -161,6 +163,20 @@ Do not scrape LinkedIn or Handshake as production sources.
 
 The issue may be closed automatically once this quarantine signature is no longer persistent in the generated feed. A later regression should create a fresh issue.
 """
+
+    available_length = max_length - len(header) - len(footer)
+    source_lines: list[str] = []
+    current_length = 0
+
+    for key, source in group["sources"]:
+        line = render_source_line(key, source) + "\n"
+        if current_length + len(line) > available_length:
+            source_lines.append(f"\n*(...and {len(group['sources']) - len(source_lines)} more affected sources)*")
+            break
+        source_lines.append(line)
+        current_length += len(line)
+
+    return header + "".join(source_lines).strip() + footer
 
 
 def issue_title(group: dict[str, Any]) -> str:
