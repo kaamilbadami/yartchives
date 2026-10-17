@@ -1263,11 +1263,13 @@
     if (job?.id) card.dataset.id = job.id;
 
     const top = element("div", "apply-next-card-top");
+    const payText = (typeof YartchivesUtils !== "undefined" && YartchivesUtils.formatSalary) ? YartchivesUtils.formatSalary(job) : "";
+    const locAndPay = [cardLocationText(job), payText].filter(Boolean).join(" · ");
     const titleWrap = element("div");
     titleWrap.append(
       element("p", "apply-next-rank", `#${rank} · ${job.company || "Company not listed"}`),
       element("h3", "", job.title || "Untitled opportunity"),
-      element("p", "muted", cardLocationText(job))
+      element("p", "muted", locAndPay)
     );
     const isAuthoritative = result.inspection?.state === "inspected";
     const postedDate = formatPostedDate(job.posted_at, isAuthoritative);
@@ -1333,6 +1335,14 @@
     const details = element("details", "apply-next-why");
     const summary = element("summary", "", "Why this ranks here");
     details.append(summary, breakdown);
+
+    if (payText) {
+      const compHeading = element("p", "muted", "Compensation detail");
+      const compText = job.salary_raw
+        ? `Reported pay: ${payText} (Raw employer text: "${job.salary_raw}")`
+        : `Reported pay: ${payText}`;
+      details.append(compHeading, element("p", "apply-next-comp-detail", compText));
+    }
 
     if (result.inspection?.evidence?.length) {
       const evidenceHeading = element("p", "muted", "Authoritative posting evidence");

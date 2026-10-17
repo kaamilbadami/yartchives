@@ -769,7 +769,9 @@ def merge_job(target: dict[str, Any], incoming: dict[str, Any]) -> None:
         target["posted_date_source_key"] = incoming.get("posted_date_source_key")
         target["posted_date_source_name"] = incoming.get("posted_date_source_name")
         target["posted_date_provenance"] = incoming.get("posted_date_provenance")
-    for key in ("salary_min", "salary_max", "salary_period", "remote_type", "term"):
+    from pay_normalization import merge_salary_fields
+    merge_salary_fields(target, incoming)
+    for key in ("remote_type", "term"):
         if not target.get(key) and incoming.get(key) is not None:
             target[key] = incoming.get(key)
     if "link_status" in incoming:
