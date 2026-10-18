@@ -903,6 +903,10 @@ def main() -> int:
             jobs = fetch_source(s, source, reference)
             all_jobs.extend(jobs)
             health[source["key"]] = {"status": "healthy", "count": len(jobs), "name": source["name"]}
+            if "auto_discovered" in source:
+                health[source["key"]]["auto_discovered"] = source["auto_discovered"]
+            if "direct" in source:
+                health[source["key"]]["direct"] = source["direct"]
             print(f"{source['name']}: {len(jobs)}")
         except Exception as exc:
             failed_keys.add(source["key"])
@@ -912,6 +916,10 @@ def main() -> int:
                 "name": source["name"],
                 "error": f"{type(exc).__name__}: {exc}",
             }
+            if "auto_discovered" in source:
+                health[source["key"]]["auto_discovered"] = source["auto_discovered"]
+            if "direct" in source:
+                health[source["key"]]["direct"] = source["direct"]
             print(f"{source['name']}: FAILED: {exc}", file=sys.stderr)
 
     try:
