@@ -119,6 +119,7 @@
   {
     "key": "nsa-student-programs",
     "name": "NSA Student Programs",
+    "configured": false,
     "kind": "program_page",
     "company": "National Security Agency",
     "url": "https://www.nsa.gov/Careers/Student-Programs/",
