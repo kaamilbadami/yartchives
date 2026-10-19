@@ -17,6 +17,36 @@ validate_spec.loader.exec_module(validate_mod)
 
 
 class RepairLinksTests(unittest.TestCase):
+    def test_preserves_link_validation_version_when_url_unchanged(self):
+        job = {
+            "id": "2",
+            "company": "Test Company",
+            "title": "Software Engineer Intern",
+            "location": "Boston, MA",
+            "url": "https://test.example.com/apply",
+            "link_kind": "direct",
+        }
+        old_jobs = {
+            "2": {
+                "id": "2",
+                "url": "https://test.example.com/apply",
+                "link_status": "ok",
+                "link_checked_at": "2026-10-10T10:10:10Z",
+                "link_validation_version": 2,
+                "link_origin": "test-origin",
+                "resolved_from_url": "https://test.example.com/redirect",
+            }
+        }
+
+        with patch("repair_links.now_utc", return_value=datetime.now(timezone.utc)):
+            mod.repair_document({"jobs": [job]}, {}, None, None, None, {"jobs": [old_jobs["2"]]})
+
+        self.assertEqual(job["link_status"], "ok")
+        self.assertEqual(job["link_checked_at"], "2026-10-10T10:10:10Z")
+        self.assertEqual(job["link_validation_version"], 2)
+        self.assertEqual(job["link_origin"], "test-origin")
+        self.assertEqual(job["resolved_from_url"], "https://test.example.com/redirect")
+
     def test_applyguy_workday_job_page_upgrades_to_direct_apply(self):
         doc = {
             "jobs": [{
