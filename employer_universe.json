@@ -45,6 +45,11 @@
       "status": "active"
     },
     {
+      "key": "provider-lifecycle-overrides",
+      "kind": "provider-lifecycle",
+      "description": "Explicit provider lifecycle overrides for stale or retired ATS resolutions."
+    },
+    {
       "key": "state-of-ats-2026-verified-hosts",
       "kind": "external_ats_evidence",
       "name": "State of ATS 2026 verified apply hosts",
@@ -6515,13 +6520,22 @@
       "name": "American Airlines Group",
       "aliases": [],
       "seed_sets": [
-        "fortune-500-2026"
+        "fortune-500-2026",
+        "provider-lifecycle-overrides"
       ],
       "seed_metadata": {
         "fortune-500-2026": {
           "fortune_slug": "/company/american-airlines-group/",
           "order": 86,
           "rank": 86
+        },
+        "provider-lifecycle-overrides": {
+          "provider_lifecycle": {
+            "family": "successfactors",
+            "status": "retired",
+            "reason": "Persistent resolved SuccessFactors sitemap returns HTTP 403; retire the stale provider resolution without weakening family-wide structural validation.",
+            "observed_at": "2026-10-02"
+          }
         }
       },
       "domain_hints": [
