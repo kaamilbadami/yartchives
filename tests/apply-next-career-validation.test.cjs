@@ -111,6 +111,39 @@ const kbRanked = D.rankJobs([kbDataScienceJob, kbTestingJob], kbProfile, now);
 assert.equal(kbRanked[0].job.title, "Software Test Engineering Intern", "KB should rank the Testing job higher due to exact qualification evidence, despite a higher priority role family for Data Science");
 assert.ok(kbRanked[1].components.fit.score < kbRanked[0].components.fit.score, "Data Science job should have lower fit score due to missing/cautious required skills");
 
+// Career preference must not change qualification evidence for the same requisition.
+const strongerDataInterest = {
+  ...kbProfile,
+  roleFamilies: [
+    { id: "data", label: "Data Science", priority: 1, keywords: ["data science", "data analytics"] },
+    { id: "systems", label: "Systems", priority: 2, keywords: ["testing", "systems"] },
+  ],
+};
+const strongerTestingInterest = {
+  ...kbProfile,
+  roleFamilies: [
+    { id: "systems", label: "Systems", priority: 1, keywords: ["testing", "systems"] },
+    { id: "data", label: "Data Science", priority: 2, keywords: ["data science", "data analytics"] },
+  ],
+};
+const dsWithDataInterest = D.scoreJob(kbDataScienceJob, strongerDataInterest, now);
+const dsWithTestingInterest = D.scoreJob(kbDataScienceJob, strongerTestingInterest, now);
+assert.equal(
+  dsWithDataInterest.components.fit.score,
+  dsWithTestingInterest.components.fit.score,
+  "Changing career interest alone must not change qualification fit"
+);
+assert.equal(
+  dsWithDataInterest.components.eligibility.score,
+  dsWithTestingInterest.components.eligibility.score,
+  "Changing career interest alone must not change eligibility"
+);
+assert.doesNotMatch(
+  dsWithDataInterest.components.roi.detail,
+  /constrained .* qualification fit/i,
+  "Application value must not be capped by qualification fit"
+);
+
 // 2. FR Persona (Freshman, May 2030)
 const frProfile = {
   targetTerm: "Summer 2027",
