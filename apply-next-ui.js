@@ -427,11 +427,41 @@
     return explicitSeasons.size > 0 && !explicitSeasons.has(targetSeason);
   }
 
+  function getCanonicalKey(job) {
+    if (typeof YartchivesApplyNextLocation !== "undefined" && typeof YartchivesApplyNextLocation.canonicalPostingKey === "function") {
+      return YartchivesApplyNextLocation.canonicalPostingKey(job);
+    }
+    return job?.id ? `id:${job.id}` : null;
+  }
+
+  function hasJobState(set, job) {
+    if (!job) return false;
+    if (job.id && set.has(job.id)) return true;
+    const canonicalKey = getCanonicalKey(job);
+    if (canonicalKey && set.has(canonicalKey)) return true;
+    return false;
+  }
+
+  function addJobState(set, job) {
+    if (!job) return;
+    if (job.id) set.add(job.id);
+    const canonicalKey = getCanonicalKey(job);
+    if (canonicalKey) set.add(canonicalKey);
+  }
+
+  function removeJobState(set, job) {
+    if (!job) return;
+    if (job.id) set.delete(job.id);
+    const canonicalKey = getCanonicalKey(job);
+    if (canonicalKey) set.delete(canonicalKey);
+  }
+
   function candidatePool(jobs, profile, localState) {
     const applied = localState?.applied || new Set();
     const hidden = localState?.hidden || new Set();
     return (jobs || []).filter(job => {
-      if (!job || applied.has(job.id) || hidden.has(job.id)) return false;
+      if (!job) return false;
+      if (hasJobState(applied, job) || hasJobState(hidden, job)) return false;
       if (knownWrongTerm(job, profile)) return false;
       return true;
     });
@@ -1387,24 +1417,25 @@
       });
       actions.append(view);
     }
-    const saved = element("button", "secondary-btn", state.saved.has(job.id) ? "Saved" : "Save");
+    const saved = element("button", "secondary-btn", hasJobState(state.saved, job) ? "Saved" : "Save");
     saved.type = "button";
     saved.addEventListener("click", () => {
-      if (state.saved.has(job.id)) state.saved.delete(job.id);
-      else {
-        state.saved.add(job.id);
+      if (hasJobState(state.saved, job)) {
+        removeJobState(state.saved, job);
+      } else {
+        addJobState(state.saved, job);
         typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("saved");
       }
       persist();
-      saved.textContent = state.saved.has(job.id) ? "Saved" : "Save";
+      saved.textContent = hasJobState(state.saved, job) ? "Saved" : "Save";
       updateStats();
     });
     const applied = element("button", "secondary-btn", "Mark applied");
     applied.type = "button";
     applied.addEventListener("click", () => {
-      state.applied.add(job.id);
+      addJobState(state.applied, job);
       persist();
-      updateQueueOptimistically(document.querySelector("#applyNextPanel"), loadProfile(localStorage), job.id);
+      updateQueueOptimistically(document.querySelector("#applyNextPanel"), loadProfile(localStorage), job);
       applyFilters();
     });
     const hide = element("button", "icon-btn hide-btn", "×");
@@ -1412,10 +1443,10 @@
     hide.title = "Hide listing";
     hide.setAttribute("aria-label", "Hide listing");
     hide.addEventListener("click", () => {
-      state.hidden.add(job.id);
+      addJobState(state.hidden, job);
       typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("hidden");
       persist();
-      updateQueueOptimistically(document.querySelector("#applyNextPanel"), loadProfile(localStorage), job.id);
+      updateQueueOptimistically(document.querySelector("#applyNextPanel"), loadProfile(localStorage), job);
       applyFilters();
     });
     actions.append(saved, applied, hide);
@@ -1676,12 +1707,21 @@
     }
   }
 
-  function updateQueueOptimistically(panel, profile, appliedJobId) {
+  function updateQueueOptimistically(panel, profile, appliedJob) {
     const targetPanel = panel || (typeof document !== "undefined" ? document.querySelector("#applyNextPanel") : null);
     if (!targetPanel) return;
 
     if (Array.isArray(lastRankedResults) && lastRankedResults.length) {
-      lastRankedResults = lastRankedResults.filter(r => r.job && r.job.id !== appliedJobId && !state.applied?.has(r.job.id) && !state.hidden?.has(r.job.id));
+      const appliedId = typeof appliedJob === "object" ? appliedJob?.id : appliedJob;
+      const appliedCanonical = typeof appliedJob === "object" ? getCanonicalKey(appliedJob) : null;
+      lastRankedResults = lastRankedResults.filter(r => {
+        if (!r.job) return false;
+        if (r.job.id === appliedId) return false;
+        if (appliedCanonical && getCanonicalKey(r.job) === appliedCanonical) return false;
+        if (hasJobState(state.applied, r.job)) return false;
+        if (hasJobState(state.hidden, r.job)) return false;
+        return true;
+      });
     } else if (typeof feed !== "undefined" && Array.isArray(feed?.jobs) && profile && typeof YartchivesApplyNext !== "undefined") {
       const pool = candidatePool(feed.jobs, profile, state);
       lastRankedResults = YartchivesApplyNext.rankJobs(pool, profile, new Date());

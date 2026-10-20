@@ -24,6 +24,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from scripts.careers_resolver import provider_for
+from scripts.update_workday_inspections import inspect_posting_url
 
 REQUIRED_DRAFT_FIELDS = [
     "persona_id", "company", "title", "location", "url", "source",
@@ -75,13 +76,79 @@ def _generate_search_plan(personas: list[dict[str, Any]], out_md: Path, out_csv:
     print(f"Wrote draft CSV template to {out_csv}")
 
 
+def _verify_discovery(row: dict[str, Any], persona: dict[str, Any], url_kind: str, inspection: dict[str, Any]) -> dict[str, str]:
+    dims = {
+        "active_status": "unknown",
+        "internship_term": "unknown",
+        "paid_status": "unknown",
+        "undergraduate_eligibility": "unknown",
+        "graduation_windows": "unknown",
+        "work_authorization": "unknown"
+    }
+
+    if url_kind != "authoritative":
+        return dims
+
+    status = inspection.get("status")
+    if status == "unsupported_url":
+        return dims
+    if status in {"unavailable", "changed_response", "failed"}:
+        dims["active_status"] = "rejected"
+        return dims
+
+    posting = inspection.get("posting") or {}
+    if posting.get("application_status") == "closed":
+        dims["active_status"] = "rejected"
+        return dims
+
+    dims["active_status"] = "verified"
+
+    title = str(posting.get("title") or "").lower()
+
+    if "unpaid" in title:
+        dims["paid_status"] = "rejected"
+    else:
+        dims["paid_status"] = "verified"
+
+    if any(grad_keyword in title for grad_keyword in {"graduate", "phd", "postdoc", "master"}) and "intern" in title:
+        if persona.get("student_stage") in {"Freshman", "Sophomore", "Junior"}:
+            dims["undergraduate_eligibility"] = "rejected"
+    else:
+        dims["undergraduate_eligibility"] = "verified"
+
+    if "2026" in title or "2025" in title or "fall" in title or "spring" in title:
+        if "summer 2027" not in title:
+            dims["internship_term"] = "rejected"
+    elif "intern" in title or "co-op" in title or "coop" in title or "student" in title:
+        dims["internship_term"] = "verified"
+
+    requirements = inspection.get("requirements") or {}
+    grad_reqs = requirements.get("graduation", {}).get("required", [])
+    if grad_reqs:
+        for req in grad_reqs:
+            stmt = str(req.get("statement") or "").lower()
+            if "2026" in stmt and "2028" not in stmt and "2029" not in stmt:
+                dims["graduation_windows"] = "rejected"
+    if dims["graduation_windows"] != "rejected":
+        dims["graduation_windows"] = "verified"
+
+    dims["work_authorization"] = "verified"
+    work_auth = requirements.get("work_authorization", {}).get("required", [])
+    if work_auth:
+        for req in work_auth:
+            stmt = str(req.get("statement") or "").lower()
+            if "require" in stmt and "sponsorship" in stmt:
+                dims["work_authorization"] = "unknown"
+
+    return dims
+
 def _run_review(
     personas_doc: dict[str, Any],
     draft_csv: Path,
     out_json: Path,
     benchmark_name: str,
     skip_interactive: bool = False
-) -> None:
+) -> int:
     personas_by_id = {p["id"]: p for p in personas_doc.get("personas", []) if "id" in p}
 
     with draft_csv.open("r", encoding="utf-8-sig") as f:
@@ -115,6 +182,17 @@ def _run_review(
         print(f"Kind:    {url_kind} (Detected provider: {provider_info.get('family')})")
         print(f"Source:  {row.get('source')} (Query: {row.get('discovery_query')})")
 
+        inspection = inspect_posting_url(url)
+        dims = _verify_discovery(row, persona, url_kind, inspection)
+
+        overall = "verified"
+        if any(v == "rejected" for v in dims.values()):
+            overall = "rejected"
+        elif any(v == "unknown" for v in dims.values()):
+            overall = "unknown"
+
+        print(f"Verification: {overall.upper()} ({dims})")
+
         if not skip_interactive:
             ans = input("Include this discovery in the benchmark? [Y/n/q]: ").strip().lower()
             if ans == 'q':
@@ -135,14 +213,18 @@ def _run_review(
             "url_kind": url_kind,
             "expected_state": row.get("expected_state", "").strip(),
             "expected_profile": _feed_profile(persona),
-            "persona_id": pid
+            "persona_id": pid,
+            "verification_decision": overall,
+            "verification_dimensions": dims,
+            "verification_timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "verification_evidence": inspection,
         }
 
         discoveries.append(discovery)
 
     if not discoveries:
         print("\nNo discoveries approved. Exiting.")
-        sys.exit(0)
+        return 0
 
     now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     profiles = sorted(list(set(_feed_profile(personas_by_id[d["persona_id"]]) for d in discoveries)))
@@ -169,6 +251,13 @@ def _run_review(
         f.write("\n")
 
     print(f"\nFrozen benchmark artifact with {len(discoveries)} discoveries saved to {out_json}")
+
+    if skip_interactive and any(d.get("verification_decision") == "unknown" for d in discoveries):
+        print("\nError: Benchmark contains 'unknown' verifications and --skip-interactive is set.")
+        print("Failing workflow closed to queue for review.")
+        return 1
+
+    return 0
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
@@ -208,8 +297,7 @@ def main() -> int:
         if not args.draft_csv.exists():
             print(f"Error: Draft CSV not found at {args.draft_csv}", file=sys.stderr)
             return 1
-        _run_review(personas_doc, args.draft_csv, args.output_json, args.benchmark_name, args.skip_interactive)
-        return 0
+        return _run_review(personas_doc, args.draft_csv, args.output_json, args.benchmark_name, args.skip_interactive)
 
     print("Error: Must specify either generation flags (--generate-plan & --generate-csv) OR review flags (--draft-csv & --output-json).", file=sys.stderr)
     return 1

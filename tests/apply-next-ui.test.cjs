@@ -480,7 +480,7 @@ assert.equal(jobs[2]._inspection, undefined);
     /hide\.addEventListener\("click",\s*\(\)\s*=>\s*\{([\s\S]*?)\n\s*\}\);/
   );
   assert.ok(hideHandler, "Hide click handler should be present");
-  assert.match(hideHandler[1], /state\.hidden\.add\(job\.id\);/, "Hide should add to hidden state");
+  assert.match(hideHandler[1], /addJobState\(state\.hidden, job\);/, "Hide should add to hidden state");
   assert.match(hideHandler[1], /persist\(\);/, "Hide should persist state");
   assert.match(hideHandler[1], /updateQueueOptimistically/, "Hide should trigger optimistic queue update immediately");
   assert.match(hideHandler[1], /applyFilters\(\);/);
