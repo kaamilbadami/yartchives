@@ -57,8 +57,14 @@ def _top_share(counts: Counter[str], total: int) -> float:
 
 
 def analyze(document: dict[str, Any]) -> dict[str, Any]:
-    rows = [row for row in document.get("discoveries", []) if isinstance(row, dict)]
+    all_rows = [row for row in document.get("discoveries", []) if isinstance(row, dict)]
+    rows = [row for row in all_rows if row.get("verification_decision", "verified") == "verified"]
+    rejected_rows = [row for row in all_rows if row.get("verification_decision") == "rejected"]
+    unknown_rows = [row for row in all_rows if row.get("verification_decision") == "unknown"]
+
     total = len(rows)
+    total_draft = len(all_rows)
+
     states = _counts(rows, "expected_state")
     sources = _counts(rows, "source")
     employers = _counts(rows, "company")
@@ -119,6 +125,8 @@ def analyze(document: dict[str, Any]) -> dict[str, Any]:
         "schema_version": 1,
         "name": document.get("name"),
         "sample_size": total,
+        "unverified_count": len(unknown_rows),
+        "rejected_count": len(rejected_rows),
         "scope_states": declared_states,
         "state_distribution": _distribution(states, total),
         "discovery_source_distribution": _distribution(sources, total),
