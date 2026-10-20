@@ -17,7 +17,7 @@ except ModuleNotFoundError:
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_UNIVERSE = ROOT / "employer_universe.json"
 MIN_ATS_GAP = 1
-MIN_UNKNOWN_GAP = 10
+MIN_UNKNOWN_GAP = 1
 
 ATS_RESOURCES = {
     "workday": "ats-workday",
@@ -128,10 +128,10 @@ def build_gap_candidates(universe: dict[str, Any]) -> list[dict[str, Any]]:
     if len(unknown_with_domain) >= MIN_UNKNOWN_GAP:
         candidates.append(
             {
-                "id": "source-registry:unknown-provider-resolution",
+                "id": "employer-resolution:unknown-provider",
                 "kind": "unknown-provider-resolution",
                 "family": "unknown",
-                "resources": ["source-registry"],
+                "resources": ["employer-resolution"],
                 "affected_employers": len(unknown_with_domain),
                 "confidence": 0.7,
                 "generic_leverage": 0.8,
@@ -147,10 +147,10 @@ def build_gap_candidates(universe: dict[str, Any]) -> list[dict[str, Any]]:
     if len(unknown_no_domain) >= MIN_UNKNOWN_GAP:
         candidates.append(
             {
-                "id": "source-registry:no-domain-discovery",
+                "id": "source-discovery:no-domain-hint",
                 "kind": "no-domain-discovery",
                 "family": "unknown",
-                "resources": ["source-registry"],
+                "resources": ["source-discovery"],
                 "affected_employers": len(unknown_no_domain),
                 "confidence": 0.5,
                 "generic_leverage": 0.5,
