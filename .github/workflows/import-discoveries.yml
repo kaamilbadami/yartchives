@@ -1,0 +1,41 @@
+name: Import Independent Discoveries
+on:
+  workflow_dispatch:
+    inputs:
+      discoveries_json:
+        description: 'JSON array of discoveries (company, title, location, url, source, persona_id, etc.)'
+        required: true
+      draft_csv:
+        description: 'Path to draft CSV to update'
+        required: true
+        default: 'audit/samples/draft_discoveries.csv'
+
+jobs:
+  import-discoveries:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Write JSON to file
+        run: |
+          cat << 'JSONEOF' > /tmp/input.json
+          ${{ github.event.inputs.discoveries_json }}
+          JSONEOF
+
+      - name: Run import script
+        run: |
+          python scripts/import_external_discoveries.py --input /tmp/input.json --draft-csv ${{ github.event.inputs.draft_csv }}
+
+      - name: Diff
+        run: git diff
+
+      - name: Show status
+        run: |
+          echo "Please manually review the git diff and commit the draft CSV."
+          echo "Import complete."
