@@ -112,5 +112,40 @@ class DirectSuccessFactorsTests(unittest.TestCase):
 
         self.assertEqual(context.exception.status_codes, (403,))
 
+
+
+
+    def test_fetch_source_raises_structural_error_on_422(self):
+        import requests
+        mock_response = mock.Mock()
+        mock_response.status_code = 422
+        mock_response.raise_for_status.side_effect = requests.RequestException(response=mock_response)
+
+        mock_client = mock.Mock()
+        mock_client.get.return_value = mock_response
+
+        with self.assertRaises(mod.StructuralSourceError) as context:
+            mod.fetch_source(mock_client, {"sitemap_url": "mock://url"}, mock.Mock())
+
+        self.assertEqual(context.exception.status_codes, (422,))
+
+
+    def test_successfactors_source_returns_none_when_retired(self):
+        employer = {
+            "id": "gxo-logistics",
+            "careers_url": "https://jobs.gxo.com",
+            "provider": {"family": "successfactors", "status": "resolved"},
+            "careers_resolution": {"status": "resolved"},
+            "seed_metadata": {
+                "provider-lifecycle-overrides": {
+                    "provider_lifecycle": {
+                        "family": "successfactors",
+                        "status": "retired",
+                    }
+                }
+            }
+        }
+        self.assertIsNone(mod._successfactors_source(employer))
+
 if __name__ == "__main__":
     unittest.main()
