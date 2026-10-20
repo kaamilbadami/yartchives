@@ -148,7 +148,7 @@ class CoverageGapCandidatesTests(unittest.TestCase):
         self.assertIn("employer-resolution:unknown-provider", ids)
         self.assertIn("source-discovery:no-domain-hint", ids)
 
-        unknown_candidate = next(c for c in candidates if c["id"] == "source-registry:unknown-provider-resolution")
+        unknown_candidate = next(c for c in candidates if c["id"] == "employer-resolution:unknown-provider")
         no_domain_candidate = next(c for c in candidates if c["id"] == "source-discovery:no-domain-hint")
 
         self.assertEqual(unknown_candidate["affected_employers"], 10)
