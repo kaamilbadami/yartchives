@@ -293,6 +293,25 @@ class CareersResolverTests(unittest.TestCase):
         self.assertEqual(result["platform"], "ashby")
         self.assertEqual(result["url"], "https://jobs.ashbyhq.com/acme")
 
+    def test_ashby_generic_jobs_path_is_not_a_tenant_slug(self):
+        class RecordingSession:
+            def __init__(self):
+                self.requested = []
+
+            def get(self, url, **kwargs):
+                self.requested.append(url)
+                return FakeResponse(url, status=404)
+
+        session = RecordingSession()
+        mod.resolve_employer(
+            {"name": "Acme", "url_hint": "https://jobs.ashbyhq.com/jobs"},
+            session,
+        )
+        self.assertNotIn(
+            "https://api.ashbyhq.com/posting-api/job-board/jobs",
+            session.requested,
+        )
+
     def test_applytojob_job_detail(self):
         self.assertTrue(mod.is_job_detail("https://company.applytojob.com/apply/OevsyOHRn9/Business-Analyst"))
         self.assertFalse(mod.is_job_detail("https://company.applytojob.com/apply"))
