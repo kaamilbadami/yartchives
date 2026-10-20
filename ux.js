@@ -395,11 +395,16 @@
     els.shownCount.textContent = filtered.length.toLocaleString();
     const companies = new Set(filtered.map(job => job.company).filter(Boolean));
     els.totalCount.textContent = companies.size.toLocaleString();
-    els.newCount.textContent = filtered.filter(job => state.saved.has(job.id)).length.toLocaleString();
-    els.savedCount.textContent = filtered.filter(job => state.applied.has(job.id)).length.toLocaleString();
+    els.newCount.textContent = filtered.filter(job => globalThis.hasJobState ? globalThis.hasJobState(state.saved, job) : state.saved.has(job.id)).length.toLocaleString();
+    els.savedCount.textContent = filtered.filter(job => globalThis.hasJobState ? globalThis.hasJobState(state.applied, job) : state.applied.has(job.id)).length.toLocaleString();
     if (els.hiddenCount) {
-      const ids = new Set((feed?.jobs || []).map(job => job.id));
-      const count = [...state.hidden].filter(id => ids.has(id)).length;
+      const activeJobs = feed?.jobs || [];
+      let count = 0;
+      for (const job of activeJobs) {
+        if (globalThis.hasJobState ? globalThis.hasJobState(state.hidden, job) : state.hidden.has(job.id)) {
+          count++;
+        }
+      }
       els.hiddenCount.textContent = count.toLocaleString();
     }
     syncStatTiles();

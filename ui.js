@@ -122,8 +122,8 @@
       if (!job) return;
       const kind = isDirect(job) ? "direct" : (job.link_kind === "listing" ? "listing" : "source");
       card.dataset.linkKind = kind;
-      card.classList.toggle("is-saved", state.saved.has(job.id));
-      card.classList.toggle("is-applied", state.applied.has(job.id));
+      card.classList.toggle("is-saved", globalThis.hasJobState ? globalThis.hasJobState(state.saved, job) : state.saved.has(job.id));
+      card.classList.toggle("is-applied", globalThis.hasJobState ? globalThis.hasJobState(state.applied, job) : state.applied.has(job.id));
 
       if (!card.querySelector(".link-quality")) {
         const tag = document.createElement("span");

@@ -477,17 +477,17 @@ async function applyFilters() {
 
   filtered = feed.jobs.filter(job => {
     if (state.status === "hidden") {
-      if (!state.hidden.has(job.id)) return false;
+      if (!hasJobState(state.hidden, job)) return false;
     } else {
-      if (state.hidden.has(job.id)) return false;
+      if (hasJobState(state.hidden, job)) return false;
     }
     if (state.profile !== "all" && !(job.profiles || []).includes(state.profile)) return false;
     if (q && !searchable(job).includes(q)) return false;
     const ageDays = jobAgeDays(job);
     if (hasFreshnessLimit && ageDays === null) return false;
     if (ageDays !== null && ageDays > maxDays) return false;
-    if (state.status === "saved" && !state.saved.has(job.id)) return false;
-    if (state.status === "applied" && !state.applied.has(job.id)) return false;
+    if (state.status === "saved" && !hasJobState(state.saved, job)) return false;
+    if (state.status === "applied" && !hasJobState(state.applied, job)) return false;
 
     if (zip) {
       if (!origin) return false;
@@ -615,20 +615,20 @@ function renderJobs() {
     }
 
     const saveBtn = card.querySelector(".save-btn");
-    saveBtn.classList.toggle("active", state.saved.has(job.id));
-    saveBtn.textContent = state.saved.has(job.id) ? "Saved" : "Save";
+    saveBtn.classList.toggle("active", hasJobState(state.saved, job));
+    saveBtn.textContent = hasJobState(state.saved, job) ? "Saved" : "Save";
     saveBtn.addEventListener("click", () => {
-      toggleSet(state.saved, job.id);
-      if (state.saved.has(job.id)) typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("saved");
+      toggleJobState(state.saved, job);
+      if (hasJobState(state.saved, job)) typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("saved");
       persist();
       applyFilters();
     });
 
     const appliedBtn = card.querySelector(".applied-btn");
-    appliedBtn.classList.toggle("active", state.applied.has(job.id));
-    appliedBtn.textContent = state.applied.has(job.id) ? "Applied ✓" : "Applied";
+    appliedBtn.classList.toggle("active", hasJobState(state.applied, job));
+    appliedBtn.textContent = hasJobState(state.applied, job) ? "Applied ✓" : "Applied";
     appliedBtn.addEventListener("click", () => {
-      toggleSet(state.applied, job.id);
+      toggleJobState(state.applied, job);
       persist();
       applyFilters();
     });
@@ -646,7 +646,7 @@ function renderJobs() {
     }
 
     card.querySelector(".hide-btn").addEventListener("click", () => {
-      state.hidden.add(job.id);
+      addJobState(state.hidden, job);
       typeof YartchivesAnalytics !== "undefined" && YartchivesAnalytics.track("hidden");
       persist();
       applyFilters();
@@ -658,6 +658,48 @@ function renderJobs() {
   els.loadMoreBtn.classList.toggle("hidden", visibleLimit >= filtered.length);
   els.resultsTitle.textContent = PROFILE_TITLES[state.profile] || "Opportunities";
 }
+
+function getCanonicalKey(job) {
+  if (typeof YartchivesApplyNextLocation !== "undefined" && typeof YartchivesApplyNextLocation.canonicalPostingKey === "function") {
+    return YartchivesApplyNextLocation.canonicalPostingKey(job);
+  }
+  return job?.id ? `id:${job.id}` : null;
+}
+
+function hasJobState(set, job) {
+  if (!job) return false;
+  if (job.id && set.has(job.id)) return true;
+  const canonicalKey = getCanonicalKey(job);
+  if (canonicalKey && set.has(canonicalKey)) return true;
+  return false;
+}
+
+function addJobState(set, job) {
+  if (!job) return;
+  if (job.id) set.add(job.id);
+  const canonicalKey = getCanonicalKey(job);
+  if (canonicalKey) set.add(canonicalKey);
+}
+
+function removeJobState(set, job) {
+  if (!job) return;
+  if (job.id) set.delete(job.id);
+  const canonicalKey = getCanonicalKey(job);
+  if (canonicalKey) set.delete(canonicalKey);
+}
+
+function toggleJobState(set, job) {
+  if (hasJobState(set, job)) {
+    removeJobState(set, job);
+  } else {
+    addJobState(set, job);
+  }
+}
+
+globalThis.hasJobState = hasJobState;
+globalThis.addJobState = addJobState;
+globalThis.removeJobState = removeJobState;
+globalThis.toggleJobState = toggleJobState;
 
 function toggleSet(set, id) {
   if (set.has(id)) set.delete(id); else set.add(id);
