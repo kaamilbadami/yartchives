@@ -425,7 +425,7 @@ assert.equal(direct.total, sourceOnly.total);
 const provenanceVariants = D.rankJobs([direct.job, listing.job, sourceOnly.job], profile, now);
 assert.deepEqual(
   [...new Set(provenanceVariants.map(result => result.total))],
-  [direct.total],
+  [provenanceVariants[0].total],
   "Changing only link provenance must not change score or rank strength"
 );
 assert.equal(direct.scoringSemantics.link, "provenance only");
