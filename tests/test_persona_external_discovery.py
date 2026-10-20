@@ -57,7 +57,7 @@ class PersonaExternalDiscoveryTests(unittest.TestCase):
         request_json = post.call_args_list[0].kwargs["json"]
         self.assertEqual(request_json["reasoning"], {"effort": "low"})
         self.assertEqual(request_json["max_tool_calls"], 3)
-        self.assertEqual(request_json["max_output_tokens"], 6000)
+        self.assertEqual(request_json["max_output_tokens"], 9600)
 
     def test_search_budget_is_independent_of_result_count(self):
         success = mock.Mock(
