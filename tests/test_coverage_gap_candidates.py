@@ -112,6 +112,14 @@ class CoverageGapCandidatesTests(unittest.TestCase):
         self.assertEqual(candidates[0]["id"], "ats-workday:provider-resolution")
         self.assertEqual(candidates[0]["affected_employers"], 3) # only the 3 benchmark ones
 
+    def test_single_verified_unknown_gap_has_independent_resource_lane(self):
+        with_hint = build_gap_candidates({"employers": [self.employer(101, "unknown")]})
+        without_hint = build_gap_candidates({"employers": [self.employer(102, None)]})
+        self.assertEqual(with_hint[0]["id"], "employer-resolution:unknown-provider")
+        self.assertEqual(with_hint[0]["resources"], ["employer-resolution"])
+        self.assertEqual(without_hint[0]["id"], "source-discovery:no-domain-hint")
+        self.assertEqual(without_hint[0]["resources"], ["source-discovery"])
+
     def test_unknown_provider_gap_uses_shared_registry_resource(self):
         universe = {
             "employers": [self.employer(i, "unknown") for i in range(1, 11)]
@@ -122,9 +130,9 @@ class CoverageGapCandidatesTests(unittest.TestCase):
         self.assertEqual(len(candidates), 1)
         self.assertEqual(
             candidates[0]["id"],
-            "source-registry:unknown-provider-resolution",
+            "employer-resolution:unknown-provider",
         )
-        self.assertEqual(candidates[0]["resources"], ["source-registry"])
+        self.assertEqual(candidates[0]["resources"], ["employer-resolution"])
 
     def test_unknown_provider_gap_splits_by_domain_hint_presence(self):
         with_domain = [self.employer(i, "unknown") for i in range(1, 11)]
@@ -137,14 +145,16 @@ class CoverageGapCandidatesTests(unittest.TestCase):
         ids = [candidate["id"] for candidate in candidates]
 
         self.assertEqual(len(candidates), 2)
-        self.assertIn("source-registry:unknown-provider-resolution", ids)
-        self.assertIn("source-registry:no-domain-discovery", ids)
+        self.assertIn("employer-resolution:unknown-provider", ids)
+        self.assertIn("source-discovery:no-domain-hint", ids)
 
         unknown_candidate = next(c for c in candidates if c["id"] == "source-registry:unknown-provider-resolution")
-        no_domain_candidate = next(c for c in candidates if c["id"] == "source-registry:no-domain-discovery")
+        no_domain_candidate = next(c for c in candidates if c["id"] == "source-discovery:no-domain-hint")
 
         self.assertEqual(unknown_candidate["affected_employers"], 10)
         self.assertEqual(no_domain_candidate["affected_employers"], 10)
+        self.assertEqual(no_domain_candidate["resources"], ["source-discovery"])
+        self.assertEqual(unknown_candidate["resources"], ["employer-resolution"])
 
 if __name__ == "__main__":
     unittest.main()
