@@ -45,7 +45,7 @@ def _domain_is_plausible(domain: str, aliases: list[str]) -> bool:
             continue
         if token == alias:
             return True
-        if len(alias) >= 5 and len(token) >= 5:
+        if len(alias) >= 4 and len(token) >= 4:
             if token.startswith(alias) and token[len(alias):] in {"co", "inc"}:
                 return True
             if alias.startswith(token) and alias[len(token):] in {"co", "inc"}:
@@ -64,7 +64,7 @@ def _aliases(name: str) -> list[str]:
             aliases.append(initials)
 
         first_word = words[0].lower()
-        if len(first_word) >= 5 and first_word not in STOP_PREFIXES:
+        if len(first_word) >= 4 and first_word not in STOP_PREFIXES:
             aliases.append(normalize_company(first_word))
 
     match = re.search(r"\(([^)]+)\)", name)
@@ -118,7 +118,7 @@ def get_company_domain(name: str) -> str | None:
             title_norm = normalize_company(result["title"])
             if not any(
                 alias == title_norm
-                or (len(alias) >= 5 and len(title_norm) >= 5 and (alias in title_norm or title_norm in alias))
+                or (len(alias) >= 4 and len(title_norm) >= 4 and (alias in title_norm or title_norm in alias))
                 for alias in aliases
             ):
                 continue
@@ -164,7 +164,7 @@ def get_company_domain(name: str) -> str | None:
             continue
         if not any(
             alias == result_name
-            or (len(alias) >= 5 and len(result_name) >= 5 and (alias in result_name or result_name in alias))
+            or (len(alias) >= 4 and len(result_name) >= 4 and (alias in result_name or result_name in alias))
             for alias in aliases
         ):
             continue
@@ -175,7 +175,7 @@ def get_company_domain(name: str) -> str | None:
     words = re.findall(r"[A-Za-z0-9]+", name)
     if len(words) > 1:
         first_word = words[0].lower()
-        if len(first_word) >= 5 and first_word not in STOP_PREFIXES:
+        if len(first_word) >= 4 and first_word not in STOP_PREFIXES:
             query_cb_fallback = urllib.parse.quote(first_word)
             url_fallback = f"https://autocomplete.clearbit.com/v1/companies/suggest?query={query_cb_fallback}"
             data_fb = None
@@ -199,7 +199,7 @@ def get_company_domain(name: str) -> str | None:
                 # Ensure the result matches our original aliases (not just the first word alias)
                 if not any(
                     alias == result_name
-                    or (len(alias) >= 5 and len(result_name) >= 5 and (alias in result_name or result_name in alias))
+                    or (len(alias) >= 4 and len(result_name) >= 4 and (alias in result_name or result_name in alias))
                     for alias in aliases
                 ):
                     continue

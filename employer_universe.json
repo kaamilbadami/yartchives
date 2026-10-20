@@ -4989,6 +4989,9 @@
       "aliases": [],
       "seed_sets": [
         "finance-benchmark"
+      ],
+      "domain_hints": [
+        "allanmyers.com"
       ]
     },
     {
@@ -29484,6 +29487,9 @@
       ],
       "seed_sets": [
         "finance-benchmark"
+      ],
+      "domain_hints": [
+        "harfordmutual.com"
       ]
     },
     {
@@ -39839,6 +39845,9 @@
       "aliases": [],
       "seed_sets": [
         "finance-benchmark"
+      ],
+      "domain_hints": [
+        "mccormick.com"
       ]
     },
     {
@@ -43526,7 +43535,9 @@
           ]
         }
       },
-      "domain_hints": []
+      "domain_hints": [
+        "otis.com"
+      ]
     },
     {
       "id": "otis-worldwide",
@@ -56134,6 +56145,9 @@
       "aliases": [],
       "seed_sets": [
         "finance-benchmark"
+      ],
+      "domain_hints": [
+        "underarmour.com"
       ]
     },
     {
