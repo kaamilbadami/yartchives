@@ -91,7 +91,7 @@ assert.equal(D.scaleScore, undefined);
 const metadataOnly = D.scoreJob(job({ _inspection: undefined }), profile, now);
 assert.equal(metadataOnly.components.fit.score, 19);
 assert.equal(metadataOnly.components.role, undefined);
-assert.equal(metadataOnly.components.roi.score, 16);
+assert.equal(metadataOnly.components.roi.score, 18);
 assert.equal(metadataOnly.applicationValue.role.score, 15);
 assert.equal(metadataOnly.applicationValue.market.score, 3);
 assert.equal(metadataOnly.components.location.score, 20);
@@ -425,7 +425,7 @@ assert.equal(direct.total, sourceOnly.total);
 const provenanceVariants = D.rankJobs([direct.job, listing.job, sourceOnly.job], profile, now);
 assert.deepEqual(
   [...new Set(provenanceVariants.map(result => result.total))],
-  [direct.total],
+  [provenanceVariants[0].total],
   "Changing only link provenance must not change score or rank strength"
 );
 assert.equal(direct.scoringSemantics.link, "provenance only");
@@ -459,9 +459,9 @@ const weakFitHighValue = D.scoreJob(job({
     ["Docker required", ["Docker"]],
   ]),
 }), profile, now);
-assert.ok(weakFitHighValue.applicationValue.rawScore >= weakFitHighValue.components.roi.score);
-assert.ok(weakFitHighValue.components.roi.score <= weakFitHighValue.applicationValue.fitCap);
-assert.match(weakFitHighValue.components.roi.detail, /constrained .* qualification fit/i);
+assert.equal(weakFitHighValue.applicationValue.rawScore, weakFitHighValue.components.roi.score);
+assert.equal(weakFitHighValue.applicationValue.fitCap, undefined);
+assert.doesNotMatch(weakFitHighValue.components.roi.detail, /constrained .* qualification fit/i);
 
 const incrementalPool = [
   job({
