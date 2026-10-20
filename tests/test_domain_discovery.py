@@ -29,3 +29,7 @@ class DomainDiscoveryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+    def test_accepts_short_plausible_corporate_domains(self):
+        self.assertTrue(_domain_is_plausible("otis.com", ["otis"]))
+        self.assertTrue(_domain_is_plausible("spectrum.com", ["spectrum"]))
