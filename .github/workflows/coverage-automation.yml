@@ -16,8 +16,8 @@ permissions:
   issues: write
 
 concurrency:
-  group: coverage-automation
-  cancel-in-progress: true
+  group: coverage-issue-writers
+  cancel-in-progress: false
 
 jobs:
   coverage_gap_loop:
