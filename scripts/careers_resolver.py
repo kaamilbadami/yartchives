@@ -284,7 +284,9 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
         host = parsed.netloc.removeprefix("www.")
         if host in {"jobs.lever.co", "lever.co"}:
             if parsed.path not in {"", "/"}:
-                slug_candidates.add(parsed.path.strip("/"))
+                path_slug = parsed.path.strip("/")
+                if path_slug.casefold() not in {"jobs", "careers"} and "/" not in path_slug:
+                    slug_candidates.add(path_slug)
             for slug in slug_candidates:
                 if not slug:
                     continue
