@@ -29369,13 +29369,22 @@
       "name": "GXO Logistics",
       "aliases": [],
       "seed_sets": [
-        "fortune-500-2026"
+        "fortune-500-2026",
+        "provider-lifecycle-overrides"
       ],
       "seed_metadata": {
         "fortune-500-2026": {
           "fortune_slug": "/company/gxo-logistics/",
           "order": 336,
           "rank": 336
+        },
+        "provider-lifecycle-overrides": {
+          "provider_lifecycle": {
+            "family": "successfactors",
+            "status": "retired",
+            "reason": "Persistent resolved SuccessFactors sitemap returns HTTP 403; retire the stale provider resolution without weakening family-wide structural validation.",
+            "observed_at": "2026-10-20"
+          }
         }
       },
       "domain_hints": [
