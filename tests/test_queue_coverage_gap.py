@@ -16,6 +16,17 @@ from scripts.queue_coverage_gap import (
     resources_conflict_with_active_work,
 )
 
+class CoverageIssueWriterCoordinationTests(unittest.TestCase):
+    def test_both_issue_producers_share_non_cancelling_github_lock(self):
+        root = Path(__file__).resolve().parents[1]
+        for path in (
+            ".github/workflows/autonomous-dispatch.yml",
+            ".github/workflows/coverage-automation.yml",
+        ):
+            workflow = (root / path).read_text(encoding="utf-8")
+            self.assertIn("group: coverage-issue-writers", workflow, path)
+            self.assertIn("cancel-in-progress: false", workflow, path)
+
 class TestQueueCoverageGap(unittest.TestCase):
     def test_find_all_gaps_no_hint(self):
         universe = {

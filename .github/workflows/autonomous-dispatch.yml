@@ -24,7 +24,7 @@ permissions:
   issues: write
 
 concurrency:
-  group: autonomous-backlog-dispatch
+  group: coverage-issue-writers
   cancel-in-progress: false
 
 jobs:
