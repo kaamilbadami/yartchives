@@ -439,11 +439,9 @@ def repair_document(
             elif prior.get("url") == current and prior.get("link_origin"):
                 job["link_origin"] = prior.get("link_origin")
             if prior.get("url") == current:
-                for key in ("link_status", "link_checked_at"):
-                    if prior.get(key):
+                for key in ("link_status", "link_checked_at", "link_validation_version", "link_origin", "resolved_from_url"):
+                    if prior.get(key) and not job.get(key):
                         job[key] = prior[key]
-                if prior.get("resolved_from_url") and not job.get("resolved_from_url"):
-                    job["resolved_from_url"] = prior["resolved_from_url"]
         else:
             job["url"] = ""
             if listing:

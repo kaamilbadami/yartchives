@@ -91,6 +91,7 @@ def discover(
     deployment: str,
     max_results: int,
     timeout: float,
+    max_search_calls: int = 8,
 ) -> list[dict[str, str]]:
     prompt = f"""You are building an independent internship benchmark for Yartchives.
 Do not use or infer anything from the Yartchives feed.
@@ -100,7 +101,7 @@ opportunities for this sanitized student persona:
 {json.dumps(persona, ensure_ascii=False, sort_keys=True)}
 
 Rules:
-- Use web search extensively and tailor results to the whole profile: academics,
+- Use the available web-search calls efficiently and tailor results to the whole profile: academics,
   experience, skills, role intent, graduation timing, and preferences.
 - Graduation timing is the canonical eligibility signal.
 - Discovery surfaces such as LinkedIn, Indeed, Handshake, Glassdoor, and
@@ -138,7 +139,7 @@ Rules:
                 "tools": [{"type": "web_search"}],
                 "tool_choice": "auto",
                 "reasoning": {"effort": "low"},
-                "max_tool_calls": max(1, min(8, max_results)),
+                "max_tool_calls": max(1, min(8, max_search_calls)),
                 "input": prompt,
                 "max_output_tokens": max(6000, min(12000, max_results * 800)),
             },
@@ -159,11 +160,30 @@ Rules:
     if response.status_code >= 400:
         raise RuntimeError(f"Azure OpenAI HTTP {response.status_code}: {response.text[:1000]}")
     payload = response.json()
-    if not any(
-        isinstance(item, dict) and item.get("type") == "web_search_call"
+    search_calls = sum(
+        1
         for item in payload.get("output") or []
-    ):
+        if isinstance(item, dict) and item.get("type") == "web_search_call"
+    )
+    if not search_calls:
         raise RuntimeError("Azure response did not perform web search")
+    tool_usage = payload.get("tool_usage") or {}
+    web_search_usage = tool_usage.get("web_search") if isinstance(tool_usage, dict) else {}
+    billable_requests = (
+        web_search_usage.get("num_requests")
+        if isinstance(web_search_usage, dict)
+        else None
+    )
+    usage = payload.get("usage") or {}
+    print(json.dumps({
+        "persona": str(persona.get("id") or ""),
+        "web_search_call_items": search_calls,
+        "billable_web_search_requests": billable_requests,
+        "web_search_call_budget": max(1, min(8, max_search_calls)),
+        "input_tokens": usage.get("input_tokens") if isinstance(usage, dict) else None,
+        "output_tokens": usage.get("output_tokens") if isinstance(usage, dict) else None,
+        "total_tokens": usage.get("total_tokens") if isinstance(usage, dict) else None,
+    }))
     response_text = _response_text(payload)
     if not response_text:
         output_types = [
@@ -216,6 +236,13 @@ def main() -> int:
     parser.add_argument("--persona", default="KB", help="Persona ID or 'all'")
     parser.add_argument("--output-csv", type=Path, required=True)
     parser.add_argument("--max-results", type=int, default=12)
+    parser.add_argument(
+        "--max-search-calls",
+        type=int,
+        choices=range(1, 9),
+        default=8,
+        help="Maximum Azure web-search tool calls per persona (1-8)",
+    )
     parser.add_argument("--timeout", type=float, default=120.0)
     parser.add_argument("--persona-delay", type=float, default=12.0)
     args = parser.parse_args()
@@ -251,6 +278,7 @@ def main() -> int:
             deployment=deployment,
             max_results=args.max_results,
             timeout=args.timeout,
+            max_search_calls=args.max_search_calls,
         ))
 
     if not rows:

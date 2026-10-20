@@ -308,7 +308,7 @@ jobs:
                 assets_match=false
                 break
               fi
-            done < <(tail -n +2 _site/deploy-manifest.txt)
+            done < <(tail -n +3 _site/deploy-manifest.txt)
 
             if [ "$assets_match" = true ]; then
               verified=true
