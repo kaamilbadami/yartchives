@@ -267,7 +267,7 @@ PY
               raise SystemExit("deployment-status.json deployment ID does not match live deployment")
           if not isinstance(payload.get("interactive"), bool):
               raise SystemExit("deployment-status.json interactive flag is not boolean")
-PY
+          PY
             then
               mismatch_reason="deployment-status.json content mismatch"
               sleep 5
