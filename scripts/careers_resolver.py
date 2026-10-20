@@ -327,7 +327,7 @@ def resolve_employer(entry: dict[str, Any], session: requests.Session | None = N
         if host in {"jobs.ashbyhq.com", "ashbyhq.com"}:
             if parsed.path not in {"", "/"}:
                 slug_candidates.add(parsed.path.strip("/"))
-            for slug in slug_candidates:
+            for slug in (slug_candidates - {"jobs", "careers"}):
                 if not slug:
                     continue
                 try:
