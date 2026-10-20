@@ -596,7 +596,7 @@ def report_quality_state(repo: str, pr_number: int, head_sha: str, state: str,
 
 MISSING_CI_RETRY_DELAY_SECONDS = 15 * 60
 MISSING_CI_MAX_DISPATCHES = 2
-MISSING_CI_MARKER = re.compile(r"<!-- missing-ci-recovery: head=([a-f0-9]+) attempt=(\\d+) at=([^ ]+) -->")
+MISSING_CI_MARKER = re.compile(r"<!-- missing-ci-recovery: head=([a-f0-9]+) attempt=(\d+) at=([^ ]+) -->")
 
 
 def missing_ci_recovery_decision(comments: Iterable[dict[str, Any]], head_sha: str,
