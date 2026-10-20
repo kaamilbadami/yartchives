@@ -185,12 +185,9 @@
 
   function scoreFit(job, profile, preparedSkills = null) {
     const text = jobText(job);
-    const preferredProfiles = profile?.preferredProfiles || [];
-    const jobProfiles = new Set(job?.profiles || []);
-    const profileOverlap = preferredProfiles.filter(value => jobProfiles.has(value));
-    let score = profileOverlap.length ? 10 : 0;
+    // Career-area interest is scored in application value, not qualification readiness.
+    let score = 0;
     const reasons = [];
-    if (profileOverlap.length) reasons.push(`Career-area overlap: ${profileOverlap.join(", ")}`);
 
     const metadataSupported = [...new Set((profile?.supportedKeywords || []).map(canonicalSkill).filter(Boolean))];
     const matches = metadataSupported.filter(keyword => exactContains(text, keyword));
