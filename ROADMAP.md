@@ -137,6 +137,17 @@ Yartchives should discover a large, useful share of relevant US undergraduate CS
 - Expand coverage benchmarks beyond Fortune 500 to the employer/source categories that materially matter for CS internship search: major technology, defense/aerospace, finance, semiconductor, industrial/engineering, research labs, government, universities, strong regional employers, and high-value remote roles.
 - Fix source-family gaps generically rather than accumulating employer-specific production exceptions.
 
+### Future direction — independent discovery and continuous coverage learning
+
+Run independent AI-assisted web discovery alongside Yartchives ingestion. This extends the existing external trust benchmark into a recurring evidence-backed improvement loop, without displacing the current release-critical coverage work.
+
+- Collect externally discovered postings with run ID, date, query/persona, source provenance, and canonical employer/ATS URL. ChatGPT scheduled-task results need an explicit export/import mechanism; otherwise build a separate API-driven search. Do not assume direct scheduled-task access to GitHub.
+- Validate employer/ATS destinations and deduplicate by employer, requisition, and canonical URL before counting a miss. Measure both external-only and Yartchives-only useful opportunities.
+- Classify verified misses separately: employer discovery, provider resolution, retrieval, parsing/normalization, term or eligibility filtering, freshness/link trust, candidate selection, and ranking. A listing absent from the feed is not the same problem as one buried by ranking.
+- Convert repeatable ATS/source-family misses into bounded, generic fixes under existing issue/resource-lock policies. Do not let AI silently rewrite scrapers or change eligibility rules.
+- Measure opportunity recall on frozen, versioned multi-persona benchmarks; additionally monitor novel verified opportunities, false positives, gap closure and regressions. Freeze external results before assessing Yartchives recall, and do not claim complete market coverage.
+- Make recurring audits cost-bounded and separate from hourly feed publication. Store each externally discovered, verified job or its actionable coverage-gap diagnosis so that each run can improve future discovery.
+
 ### Non-goals
 
 - maximizing source count for its own sake;
@@ -167,6 +178,17 @@ A student with limited application time should be able to choose the next few ro
 - Continue competition/application-value work without presenting fake acceptance probabilities.
 - Improve required-vs-preferred and evidence-confidence explanations.
 - Use beta feedback to identify ranking problems before expanding the model.
+
+### Future experiment — AI-assisted structured evaluation
+
+Keep deterministic eligibility, application state, the existing 100-point ranking contract, and the full non-AI fallback. Test whether LLMs improve nuanced *evidence extraction and explanations*, not whether an opaque model should replace the ranking engine.
+
+- Filter thousands of jobs with deterministic rules first; send only a small, high-potential set for schema-validated AI assessment grounded in authoritative posting excerpts.
+- Extract nuanced work content, technical/business overlap, transferable experience, concerns, and uncertainty. Preserve required/preferred/unknown distinctions and evidence provenance.
+- Calculate final scores using deterministic code. AI-derived features or new rubric weights require an explicitly versioned scoring decision and regression tests; no silent contract changes.
+- Save model/provider, prompt/rubric version, posting snapshot, evidence, and uncertainty; cache stable work and measure cross-model disagreement.
+- Compare deterministic-only with AI-assisted recommendations against fixed cases and human judgment: usefulness, accuracy, stability, latency, cost, and graceful fallback. Ship only on measured improvement.
+- Use Save/Hide/Apply/Good/Bad feedback as qualified preference signals, not fabricated acceptance probabilities or permission to override hard eligibility.
 
 ### Non-goals
 
