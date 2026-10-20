@@ -44,6 +44,20 @@ def runs(sha="abc", conclusion="success"):
     ]
 
 
+class MissingCiRecoveryTests(unittest.TestCase):
+    def test_missing_ci_dispatches_once_then_waits_then_escalates(self):
+        from datetime import datetime, timedelta, timezone
+        now = datetime(2026, 10, 20, 12, 0, tzinfo=timezone.utc)
+        sha = "a" * 40
+        self.assertEqual(mod.missing_ci_recovery_decision([], sha, now), ("dispatch", 1))
+        marker = f"<!-- missing-ci-recovery: head={sha} attempt=1 at=2026-10-20T11:55:00Z -->"
+        self.assertEqual(mod.missing_ci_recovery_decision([{"body": marker}], sha, now), ("wait", 1))
+        self.assertEqual(mod.missing_ci_recovery_decision([{"body": marker}], sha, now + timedelta(minutes=20)), ("dispatch", 2))
+        marker2 = f"<!-- missing-ci-recovery: head={sha} attempt=2 at=2026-10-20T11:55:00Z -->"
+        self.assertEqual(mod.missing_ci_recovery_decision([{"body": marker2}], sha, now + timedelta(minutes=20)), ("escalate", 2))
+        self.assertEqual(mod.missing_ci_recovery_decision([{"body": marker2}], "b" * 40, now), ("dispatch", 1))
+
+
 class AutoMergeAgentPrTests(unittest.TestCase):
     def test_quality_dispatch_wakes_automerge_with_run_id(self):
         workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text()
