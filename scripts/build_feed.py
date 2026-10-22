@@ -937,16 +937,15 @@ def main() -> int:
     if failed_keys:
         degraded_keys = {k for k in failed_keys if k in old_sources}
         for old in old_jobs_list:
-            if failed_keys.intersection(old.get("source_keys", [])):
+            if degraded_keys.intersection(old.get("source_keys", [])):
                 if old.get("link_status") == "dead":
                     continue
                 carry = dict(old)
                 source_keys = carry.get("source_keys", [])
                 # Rehydrate a minimal pre-dedupe shape for the first failed source attached to the listing.
-                key = next((k for k in source_keys if k in failed_keys), None)
+                key = next((k for k in source_keys if k in degraded_keys), None)
                 if not key:
                     continue
-                degraded_keys.add(key)
                 carry["source_key"] = key
                 carry["source_name"] = next(iter(carry.get("source_names", [])), key)
                 carry["source_url"] = next(iter(carry.get("source_urls", [])), "")
