@@ -356,6 +356,9 @@ class BuildFeedTests(unittest.TestCase):
             ]))
 
             output_path.write_text(json.dumps({
+            "sources": {
+                "failing_source": {"status": "healthy"}
+            },
             "jobs": [
                 {
                     "id": "1",
