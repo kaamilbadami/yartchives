@@ -36,6 +36,37 @@ def task_body(priority, area, autonomous=True, resources=None, depends_on=None):
 
 
 class AutonomousDispatcherTests(unittest.TestCase):
+
+    def test_empty_backlog_dispatches_no_work(self):
+        self.assertEqual(mod.select_tasks([], max_active=2), [])
+
+    def test_stale_review_ready_issues_do_not_consume_active_slots(self):
+        issues = [
+            issue(1, "stale pr", body=task_body("P1", "feed"), labels=("jules-review-ready",)),
+            issue(2, "stale pr 2", body=task_body("P1", "quality"), labels=("jules-review-ready",)),
+            issue(3, "new task 1", body=task_body("P1", "frontend-state"), labels=("autonomous-backlog", "agent-ready")),
+            issue(4, "new task 2", body=task_body("P1", "backend"), labels=("autonomous-backlog", "agent-ready")),
+        ]
+        selected = mod.select_tasks(issues, max_active=2)
+        self.assertEqual([task.number for task in selected], [3, 4])
+
+    def test_resource_lock_conflicts_prevent_overlapping_dispatch(self):
+        issues = [
+            issue(1, "task 1", body=task_body("P1", "feed"), labels=("autonomous-backlog", "agent-ready")),
+            issue(2, "task 2", body=task_body("P1", "feed"), labels=("autonomous-backlog", "agent-ready")),
+        ]
+        selected = mod.select_tasks(issues, max_active=2)
+        self.assertEqual([task.number for task in selected], [1])
+
+    def test_evidence_generator_returning_no_work_does_not_fail(self):
+        def no_work_provider(repo, current_issues, occupied_locks):
+            return False
+
+        generated, reason = mod.generate_evidence_backed_tasks(
+            "repo", [], [], 2, providers=[no_work_provider]
+        )
+        self.assertEqual(generated, 0)
+
     def test_routine_clarification_allows_evidence_backed_no_code_conclusion(self):
         response = mod.routine_clarification_response(
             "Should I invent another provider discovery architecture?"
