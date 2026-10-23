@@ -477,6 +477,10 @@ def enrich_direct_sources(
         key=lambda job: (job.get("posted_at") or job.get("first_seen") or "", job.get("id") or ""),
         reverse=True,
     )
+    discovered_keys = {s["key"] for s in sources}
+    for key in list(health.keys()):
+        if (key.startswith("us-feed-workday-") or key.startswith("us-auto-workday-")) and key not in discovered_keys:
+            health.pop(key, None)
     return doc
 
 
