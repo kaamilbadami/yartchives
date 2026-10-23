@@ -164,6 +164,25 @@ class BuildFeedTests(unittest.TestCase):
         self.assertEqual(target.get("link_status"), "ok")
         self.assertEqual(target.get("link_validation_version"), 2)
 
+        # Unconditionally inherit status if target has none, even when URL updates
+        target_empty_status = {
+            "source_keys": ["a"],
+            "source_names": ["A"],
+            "source_urls": ["http://a.com"]
+        }
+        incoming_with_status_and_url = {
+            "source_key": "b",
+            "source_name": "B",
+            "source_url": "http://b.com",
+            "url": "http://example.com/direct",
+            "link_status": "ok",
+            "link_checked_at": "2026-09-19T12:00:00Z"
+        }
+        mod.merge_job(target_empty_status, incoming_with_status_and_url)
+        self.assertEqual(target_empty_status.get("url"), "http://example.com/direct")
+        self.assertEqual(target_empty_status.get("link_status"), "ok")
+        self.assertEqual(target_empty_status.get("link_checked_at"), "2026-09-19T12:00:00Z")
+
     def test_state_extraction_is_exact(self):
         self.assertEqual(mod.extract_states("Acton, Massachusetts"), ["MA"])
         self.assertIn("CT", mod.extract_states("Danbury, CT, US"))

@@ -396,12 +396,18 @@ def merge_posting_group(canonical_url: str, group: list[dict[str, Any]]) -> dict
             merged["location"] = direct["location"]
         merged["direct_employer"] = True
 
-        best_link = direct
+    best_link = None
+    for candidate in group:
+        if candidate.get("link_status") == "ok":
+            best_link = candidate
+            break
+    else:
         for candidate in group:
-            if candidate.get("link_status") == "ok":
+            if candidate.get("link_status"):
                 best_link = candidate
                 break
 
+    if best_link:
         for link_field in ("link_status", "link_checked_at", "link_validation_version", "link_origin", "resolved_from_url"):
             if link_field in best_link:
                 merged[link_field] = copy.deepcopy(best_link[link_field])
