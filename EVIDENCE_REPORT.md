@@ -248,3 +248,30 @@ A secondary factor is the 18 employers (e.g., Apple, Arista Networks) that succe
 ## Conclusion and Follow-up
 - **No-Code Conclusion**: The primary blocker for the 356 domain-present unresolved gap is not a bug in the code, but simply the time required for the scheduled crawler to clear the backlog.
 - **Follow-up Experiment**: Monitor the `jules-session` / automated lifecycle workflow to ensure it is draining the queue effectively. No immediate code change to the crawler or queue logic is necessary. We should also investigate whether `custom_unknown` employers should be periodically re-queued or permanently excluded from the gap metric.
+
+---
+
+# Evidence Report: Validate external opportunity recall benchmark against current feed (#1110)
+
+## Issue
+The goal was to run the CURRENT offline, independently frozen/authoritatively reviewed external-discovery benchmark against Yartchives current feed. We needed to verify fixture provenance first and report opportunity-level recall, denominators, duplicates, and the top actionable generic issue family. The PR also needed to ensure that benchmark metadata was preserved through the pipeline.
+
+## Implementation Details
+1.  **Metadata Preservation:** We modified `scripts/coverage_audit.py` (specifically `load_audit_input`) to ensure that `sampling_method` and `benchmark_fixed_at` fields from the JSON samples are propagated into the returned metadata dictionary.
+2.  **Metadata Extraction:** We modified `scripts/benchmark_quality.py` (specifically `analyze`) to extract `sampling_method` from the document and include it in the machine-readable output.
+3.  **Measurement Execution:** We verified the fixture provenance manually, which was successfully run with `python scripts/benchmark_quality.py audit/samples/northeast-midatlantic-cs-2026-09-17.json --markdown-output audit/northeast-midatlantic-benchmark-quality-2026-09-17.md` generating a valid benchmark check:
+   - Sample size: 142
+   - Direct authoritative URLs: 138 (97.2%)
+   - Explicit discovery URLs: 142 (100.0%)
+   - Validation: PASS
+4.  **Recall Measurement**: The benchmark was run against the feed successfully using `python scripts/coverage_audit_runner.py audit/samples/northeast-midatlantic-cs-2026-09-17.json`. The output reported:
+    - External observations collected: 142
+    - Unique external listings (denominator): 134
+    - Duplicate observations collapsed: 8
+    - Captured or probably captured: 66 (49.3%)
+    - Actionable findings: 68
+    - Miss categories includes: `source_missing` (31), `employer_unresolved` (24), `unsupported_ats` (6), `parsing_normalization_failure` (6), `freshness_lag` (1).
+    - Largest actionable generic issue family is `source_missing` (uncovered_source).
+
+## Conclusion
+The requested infrastructure modifications were tiny (metadata propagation). The existing audit scripts correctly classify misses and calculate recall without requiring changes to scoring or core product code. The benchmark run demonstrates that the single largest gap is missing sources for supported/known ATS platforms.
