@@ -53,6 +53,25 @@ def base_job(job_id, company, url, *, direct=False, source="Simplify", posted="2
 
 class ReconcileWorkdayDuplicateTests(unittest.TestCase):
 
+    def test_merge_posting_group_preserves_link_status(self):
+        # A group without a direct employer but with a link status should inherit it
+        job1 = base_job("j1", "Company", "https://company.wd1.myworkdayjobs.com/en-US/Careers/job/City/Role_REQ-123/apply")
+        job1["link_status"] = "unknown"
+        job1["link_checked_at"] = "2026-09-17T12:00:00Z"
+
+        job2 = base_job("j2", "Company", "https://company.wd1.myworkdayjobs.com/en-US/Careers/job/City/Role_REQ-123/apply")
+
+        merged = mod.merge_posting_group(job1["url"], [job1, job2])
+        self.assertEqual(merged.get("link_status"), "unknown")
+        self.assertEqual(merged.get("link_checked_at"), "2026-09-17T12:00:00Z")
+
+        # An 'ok' status should win over an 'unknown' status
+        job2["link_status"] = "ok"
+        job2["link_checked_at"] = "2026-09-18T12:00:00Z"
+        merged2 = mod.merge_posting_group(job1["url"], [job1, job2])
+        self.assertEqual(merged2.get("link_status"), "ok")
+        self.assertEqual(merged2.get("link_checked_at"), "2026-09-18T12:00:00Z")
+
     def test_reconcile_workday_duplicates_enforces_link_kind_precedence(self):
         direct = {
             "url": "https://company.wd1.myworkdayjobs.com/en-US/Careers/job/City/Role_REQ-123/apply",

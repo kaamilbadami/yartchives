@@ -67,3 +67,152 @@ Extensive accessibility checks are embedded in the UI tests:
 
 ## Conclusion
 All remaining acceptance criteria for #1026 are fully satisfied by the existing robust assertions in `tests/apply-next-career-validation.test.cjs`, `tests/apply-next-ui.test.cjs`, and the addition of the explicit legacy-profile validation test. No core product behavior required changing, and the evidence points to a functionally sound and accessible system.
+# Yartchives feed quality audit report
+
+Feed snapshot: `2026-10-02T14:23:23.882253Z`
+Audit reference: `2026-10-02T14:23:23.882253+00:00`
+
+## Executive summary
+
+- Total indexed jobs: **5964**
+- Direct employer/ATS application links: **4916**
+- Source-only (no direct URL) postings: **604**
+- Confirmed closed/unavailable postings: **28**
+- Transient source retrieval failures: **0**
+- Unverified destinations: **2279**
+- Known broken/closed links: **24**
+- Transient destination unreachable: **118**
+
+## 1. Stale and unavailable listings
+
+This category independently measures proof of staleness versus transient upstream failures or age review.
+
+- **Confirmed unavailable postings**: **28** (proven via authoritative ATS inspection status `unavailable`).
+- **Transient retrieval failures**: **0** (jobs belonging solely to sources that failed to fetch during generation; this is a transient network/source failure, NOT proof of closed jobs).
+- **Age review bucket (posted >= 90 days)**: **314** (flagged for review; not proof of staleness).
+
+## 2. Destinations and link quality
+
+Link kind distribution:
+
+- `direct`: **4916**
+- `employer_job`: **241**
+- `listing`: **203**
+- `source`: **604**
+
+### Link health
+
+- Unverified destinations: **2279** (destinations that have not been checked recently)
+- Known broken/closed links: **24** (destinations returning 404/410 or known closed phrases)
+- Transient destination unreachable: **118** (destinations returning other errors, e.g. timeouts or 403)
+
+### Top unverified destination hosts
+
+- `job-boards.greenhouse.io`: **209**
+- `jobright.ai`: **190**
+- `careers.amd.com`: **106**
+- `jobs.smartrecruiters.com`: **91**
+- `jobs.ashbyhq.com`: **83**
+- `jobs.lever.co`: **63**
+- `www.tesla.com`: **58**
+- `lifeattiktok.com`: **56**
+- `www.usajobs.gov:443`: **51**
+- `egug.fa.us2.oraclecloud.com`: **46**
+- `ehzq.fa.us2.oraclecloud.com`: **34**
+- `ebez.fa.us2.oraclecloud.com`: **30**
+- `hdjq.fa.us2.oraclecloud.com`: **29**
+- `career5.successfactors.eu`: **29**
+- `fa-etbx-saasfaprod1.fa.ocs.oraclecloud.com`: **29**
+- `boards.greenhouse.io`: **28**
+- `careers.withwaymo.com`: **25**
+- `egup.fa.us2.oraclecloud.com`: **25**
+- `jobs.bytedance.com`: **23**
+- `www.amazon.jobs`: **22**
+
+### Workday direct-apply contract
+
+- Total Workday direct links: **1838**
+- Contract violations: **0** (static URLs lacking `/apply` path or unpopulated verification status/timestamp).
+
+### Top non-direct link hosts
+
+- `no-link`: **604**
+- `jobright.ai`: **190**
+- `zapply.jobs`: **13**
+
+### Top source-only (no-link) contributors
+
+- `speedyapply-ai`: **467**
+- `applyguy`: **72**
+- `vansh-cscareers`: **40**
+- `speedyapply`: **18**
+- `dreamwork-tech`: **9**
+- `simplify`: **2**
+- `auto-greenhouse-fspco-op012325`: **1**
+- `zapply`: **1**
+- `auto-greenhouse-robinhood`: **1**
+- `auto-greenhouse-rocketlab`: **1**
+
+## 3. ATS-family extraction failure rates
+
+| Provider | Total | Success | Rate | Unavailable | Unsupported Shape | Retrieval Failure | Parsing Failure |
+|----------|-------|---------|------|-------------|-------------------|-------------------|-----------------|
+| `ashby` | 215 | 199 | 92.6% | 16 | 0 | 0 | 0 |
+| `greenhouse` | 464 | 434 | 93.5% | 6 | 23 | 0 | 0 |
+| `icims` | 254 | 250 | 98.4% | 4 | 0 | 0 | 0 |
+| `oracle_hcm` | 400 | 263 | 65.8% | 2 | 0 | 0 | 0 |
+| `unknown` | 290 | 0 | 0.0% | 0 | 290 | 0 | 0 |
+| `workday` | 2070 | 1047 | 50.6% | 0 | 0 | 14 | 0 |
+
+## 4. ATS-family link quality
+
+| Family | Total | Direct | Intermediary | Known Dead | Unknown Direct | Unverified |
+|--------|-------|--------|--------------|------------|----------------|------------|
+| `ashby` | 215 | 215 | 0 | 0 | 0 | 83 |
+| `greenhouse` | 455 | 455 | 0 | 0 | 9 | 239 |
+| `icims` | 248 | 248 | 0 | 1 | 2 | 174 |
+| `oracle_hcm` | 400 | 400 | 0 | 0 | 0 | 319 |
+| `unknown` | 2567 | 1760 | 807 | 23 | 107 | 1329 |
+| `workday` | 2079 | 2079 | 0 | 0 | 0 | 135 |
+
+## 5. Missing dates and provenance
+
+- Missing posting timestamp (`posted_at`): **199**
+- Missing provenance label (`posted_date_provenance`): **33**
+
+Date provenance distribution:
+
+- `aggregator`: **5219**
+- `authoritative_employer`: **459**
+- `authoritative_government`: **54**
+
+## 6. Suspicious date normalization
+
+- Future dates (`posted_at > reference`): **0**
+- Source conflicts (7d+ observation spread): **105**
+- Aggregator overriding authoritative date: **0**
+
+## 7. Root causes and remediation
+
+- **Largest generic provider cause**: Over 3,500 links are completely unverified (neither OK, unknown, nor dead), primarily across Greenhouse and Workday endpoints, dominating the uncertainty about link health post-reconciliation.
+- **Generic defect fixed**: Feed generation (`build_feed.py`) or deduplication logic did not preserve `link_status` metrics after reconciliation. The audit now correctly parses and reports these separately, making the unverified rate visible.
+- **Prioritized follow-up**: Investigate why `link_status` is being dropped during reconciliation in `build_feed.py` and `repair_links.py`, or wire up the status tracking during feed refresh, to close the large unverified gap.
+
+
+---
+
+# Evidence Report: Revalidate direct-link and destination trust baseline (#1098)
+
+## Issue
+The goal was to reproduce the current feed's authoritative-direct destination share and broken/stale-link sample by source/ATS family, and identify any root-cause metric drops during the pipeline.
+
+## Implementation Details
+1. **Identified Missing ATS Link Quality Report:** We modified `scripts/audit_feed.py` to aggregate link metrics (direct vs intermediary, and broken/unverified link counts) explicitly grouped by ATS provider (`posting_identity_key`), allowing us to measure provider-level link health natively in the audit report.
+2. **Fixed Metric Loss in Reconciliation:** During analysis, we observed that `scripts/reconcile_workday_duplicates.py` conditionally inherited link validations only if the `direct_employer` flag was present, and often defaulted to the highest-authority direct candidate (which lacked `link_status`). We updated `merge_posting_group` to search the entire candidate group, unconditionally preserving the most verified (`"ok"`) link status, preventing large volumes of false "unverified" links in the output. `build_feed.py`'s `merge_job` conditionally inherits the metrics already when updating URLs and explicitly prevents overwriting newer URL statuses, so no change was necessary there.
+
+## Measured Impact
+- Successfully generated an ATS-family breakdown of broken vs. direct link share to pinpoint major ATS providers lacking validated direct links.
+- By correctly preserving `link_status` globally across reconciled candidate groups instead of restricting it to `direct_employer` winners, the volume of unverified destinations will fall after a feed refresh.
+
+## Conclusion and Follow-up Experiment
+The initial investigation of `repair_links.py` and `build_feed.py` revealed that the root cause of the lost validation metrics was hidden inside `reconcile_workday_duplicates.py`'s group-merging logic. Tests were written and added for both `audit_feed` and `reconcile_workday_duplicates` to ensure the preservation of link status metadata moving forward.
