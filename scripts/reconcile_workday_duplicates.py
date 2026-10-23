@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import argparse
 import copy
-import link_ranks
+from scripts import link_ranks
 import json
 import urllib.parse
 import re

@@ -224,6 +224,8 @@ def load_audit_input(path: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]:
             "name": first(payload, "name", "audit_name"),
             "collected_at": first(payload, "collected_at", "collection_date", "date"),
             "notes": str(payload.get("notes") or "").strip(),
+            "sampling_method": payload.get("sampling_method"),
+            "benchmark_fixed_at": payload.get("benchmark_fixed_at"),
             "scope": {
                 "profiles": as_list(scope.get("profiles") or scope.get("profile")),
                 "states": as_list(scope.get("states") or scope.get("state")),
