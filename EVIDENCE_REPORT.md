@@ -216,3 +216,35 @@ The goal was to reproduce the current feed's authoritative-direct destination sh
 
 ## Conclusion and Follow-up Experiment
 The initial investigation of `repair_links.py` and `build_feed.py` revealed that the root cause of the lost validation metrics was hidden inside `reconcile_workday_duplicates.py`'s group-merging logic. Tests were written and added for both `audit_feed` and `reconcile_workday_duplicates` to ensure the preservation of link status metadata moving forward.
+
+---
+
+# Evidence Report: Rebaseline domain-present provider gap (#1096)
+
+## Issue
+The goal was to produce a reproducible current-main diagnosis of the domain-present unknown-provider backlog to unblock sound source-family work, capturing before/current counts and identifying the highest-impact generic root cause for unresolved employers.
+
+## Baseline Measurement
+Running `scripts/coverage_gap_candidates.py` against `employer_universe.json` on `main` reports:
+- **Total benchmark employers**: 585
+- **Unresolved employers with domain hints (the gap)**: 356
+
+## Breakdown of the 356 Unresolved Gap
+We partitioned these 356 employers by their `careers_resolution` state:
+
+- **Unattempted (`missing_resolution_object`)**: 306 (86% of the gap)
+- **Resolved careers URL, but Unknown ATS (`resolved`)**: 18
+- **Transient failures (`transient`)**: 18
+- **Blocked (`blocked_waf` / `blocked`)**: 11
+- **Unresolved (no careers page found)**: 3
+
+## Diagnosis & Root Cause
+The vast majority of the "unresolved" gap (306 employers) is simply **unattempted**. These employers have domain hints and are properly prioritized and returned as ready by `scripts/employer_resolution_queue.py`. However, they have not yet been processed by the automated `employer_resolution_lifecycle.py` action.
+
+The root cause of this backlog is the incremental processing limit. The lifecycle script enforces a budget (e.g., `DEFAULT_EMPLOYER_BUDGET = 50` and `DEFAULT_REQUEST_BUDGET = 300` per run) to respect rate limits and keep workflow durations manageable. As new benchmark seeds are added, they enter the queue and must wait their turn to be crawled.
+
+A secondary factor is the 18 employers (e.g., Apple, Arista Networks) that successfully resolved to a `careers_url` but matched a custom or unknown ATS (`custom_unknown`). Because they have a `careers_url`, they are excluded from further crawler queueing (`if not _url(employer.get("careers_url"))` in `employer_resolution_queue.py`), yet they still count toward the unresolved provider gap in `coverage_gap_candidates.py`.
+
+## Conclusion and Follow-up
+- **No-Code Conclusion**: The primary blocker for the 356 domain-present unresolved gap is not a bug in the code, but simply the time required for the scheduled crawler to clear the backlog.
+- **Follow-up Experiment**: Monitor the `jules-session` / automated lifecycle workflow to ensure it is draining the queue effectively. No immediate code change to the crawler or queue logic is necessary. We should also investigate whether `custom_unknown` employers should be periodically re-queued or permanently excluded from the gap metric.
