@@ -50,11 +50,11 @@ def valid_http_url(value: str | None) -> bool:
 
 def source_status(source: dict) -> str | None:
     """Normalize source health across the legacy and explicit status schemas."""
+    if source.get("configured") is False:
+        return "quarantined"
     status = source.get("status")
     if isinstance(status, str) and status:
         return status
-    if source.get("configured") is False:
-        return "quarantined"
     if source.get("ok") is True:
         return "healthy"
     if source.get("ok") is False:

@@ -916,6 +916,8 @@ def main() -> int:
                 "name": source["name"],
                 "error": f"{type(exc).__name__}: {exc}",
             }
+            if "configured" in source:
+                health[source["key"]]["configured"] = source["configured"]
             if "auto_discovered" in source:
                 health[source["key"]]["auto_discovered"] = source["auto_discovered"]
             if "direct" in source:
