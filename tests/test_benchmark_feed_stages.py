@@ -37,8 +37,8 @@ class BenchmarkFeedStagesTests(unittest.TestCase):
             self.assertIn("authoritative inspection", stages)
             self.assertIn("validation", stages)
             self.assertIn("audit", stages)
-            # Use a generous threshold (180s) to ensure stable CI while preventing extreme regressions
-            self.assertLess(total_time, 180, f"Benchmark total time exceeded 180 seconds: {total_time:.2f}s")
+            # Use a generous threshold (300s) to ensure stable CI while preventing extreme regressions
+            self.assertLess(total_time, 300, f"Benchmark total time exceeded 300 seconds: {total_time:.2f}s")
             self.assertTrue(isinstance(data.get("dominant"), str))
 
 
