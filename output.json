@@ -1,0 +1,13 @@
+{
+  "total": 85.24561455699995,
+  "dominant": "collection",
+  "stages": {
+    "collection": 60.43091631700008,
+    "enrichment": 0.1747446710000986,
+    "link repair": 15.723962620999828,
+    "ATS reconciliation": 1.4197645200001716,
+    "authoritative inspection": 5.763088657000026,
+    "validation": 0.0677534999999807,
+    "audit": 1.6653842709997662
+  }
+}
