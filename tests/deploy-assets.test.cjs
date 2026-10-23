@@ -225,7 +225,7 @@ for (const [name, content] of [["quality", qualityRunner], ["feed", feedWorkflow
     `${name} quality path should measure the frozen 142-role Northeast/Mid-Atlantic benchmark`
   );
   assert.equal(
-    content.includes(`python scripts/coverage_audit.py ${legacyBenchmark}`),
+    content.includes(`python scripts/coverage_audit_runner.py ${legacyBenchmark}`),
     false,
     `${name} quality path should not use the 106-role legacy panel as the primary automated benchmark`
   );

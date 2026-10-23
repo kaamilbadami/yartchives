@@ -134,7 +134,7 @@ class StaticContractTests(unittest.TestCase):
             "node tests/apply-next-ui.test.cjs",
             "YARTCHIVES_REPO_HEALTH=1 python -m unittest tests.test_direct_link_coverage -v",
             "python scripts/validate_feed.py data/listings.json --minimum-jobs 500 --minimum-healthy-sources 8",
-            "python scripts/coverage_audit.py audit/samples/northeast-midatlantic-cs-2026-09-17.json",
+            "python scripts/coverage_audit_runner.py audit/samples/northeast-midatlantic-cs-2026-09-17.json",
         ]:
             self.assertIn(command, runner)
 

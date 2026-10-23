@@ -56,7 +56,7 @@ run_feed() {
 
 run_benchmark() {
   python scripts/validate_trust_benchmark_personas.py
-  python scripts/coverage_audit.py audit/samples/northeast-midatlantic-cs-2026-09-17.json \
+  python scripts/coverage_audit_runner.py audit/samples/northeast-midatlantic-cs-2026-09-17.json \
     --feed data/listings.json
 }
 

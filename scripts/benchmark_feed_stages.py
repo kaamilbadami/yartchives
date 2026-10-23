@@ -186,7 +186,7 @@ def main() -> int:
             ],
             "audit": [
                 ["python3", "scripts/audit_feed.py", str(listings_path)],
-                ["python3", "scripts/coverage_audit.py", "audit/samples/northeast-midatlantic-cs-2026-09-17.json", "--feed", str(listings_path)]
+                ["python3", "scripts/coverage_audit_runner.py", "audit/samples/northeast-midatlantic-cs-2026-09-17.json", "--feed", str(listings_path)]
             ]
         }
 

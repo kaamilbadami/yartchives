@@ -179,7 +179,7 @@ jobs:
 
       - name: Measure frozen Northeast / Mid-Atlantic benchmark
         run: |
-          python scripts/coverage_audit.py audit/samples/northeast-midatlantic-cs-2026-09-17.json \
+          python scripts/coverage_audit_runner.py audit/samples/northeast-midatlantic-cs-2026-09-17.json \
             --feed data/listings.json
 
       - name: Refresh generated README status
