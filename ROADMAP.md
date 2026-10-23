@@ -14,6 +14,22 @@ The product combines public opportunity sources into one normalized feed, then u
 
 The first beta is intentionally focused on Computer Science students. Broader career-area support can come later without changing the underlying architecture.
 
+
+### Competitive differentiation and proof
+
+**Product target:** Given the same student, Yartchives should discover at least as many worthwhile internships as a diligent, personalized ChatGPT/web-search workflow, make recommendations of comparable decision quality, and require less ongoing effort to maintain them. The advantage should come from **broader, continuously refreshed and independently verifiable internship coverage**, combined with comparable personalized reasoning, persistent recruiting context, and convenience—not a claim to surpass a general-purpose model's intelligence.
+
+Keep **broad legitimate internship ingestion** distinct from *persona-specific relevant opportunity recall*. Do not narrow production ingestion to today's benchmark profiles or discard unrelated-but-valid roles because they do not rank for one student. Broad coverage increases the pool from which different students' relevant opportunities can be found; raw counts alone are not proof of value, so deduplicate and measure actual incremental matches and source quality.
+
+Evaluate this against identical **frozen candidate profiles, application histories, eligibility constraints, and comparable posting snapshots/time windows** using three complementary outcomes:
+
+1. **Opportunity recall (primary coverage metric):** Among independently discovered, officially verified, worthwhile opportunities for each persona, how many are present and correctly retrievable in the Yartchives candidate universe? Track ChatGPT-only and Yartchives-only strong opportunities, duplicates, false positives, and misses by ingestion/filtering/ranking stage. Do not use raw posting count as the success metric.
+2. **Recommendation quality / agreement:** On the *same verified candidate set*, compare Yartchives and a diligent ChatGPT workflow for usefulness of top recommendations, correct eligibility, evidence-grounded rationale, and actionable tradeoffs. Raw scores or exact ranking order need not agree because the ranking systems differ; use blinded or rubric-based human judgments and concrete decision outcomes to assess **comparable quality**, not score matching for its own sake.
+3. **Decision efficiency:** Measure time, interactions, and manual research required for a student to identify a worthwhile next application and keep preferences/application history current. Count incomplete/abandoned flows and errors as well as successful decisions. Do not assume AI conversation or extra UI is automatically more convenient.
+
+Keep these metrics separate in the release scorecard (#898) and recurring comparison (#1089): strong coverage must not conceal weak recommendation quality, and polished reasoning must not conceal missing candidates. Prioritize evidence-driven ATS/source-family coverage fixes before speculative ranking complexity, while retaining a path to context-aware user feedback (#1094) and AI-assisted structured evaluation after the trust gates.
+
+
 ## Roadmap operating model
 
 Use this hierarchy:
