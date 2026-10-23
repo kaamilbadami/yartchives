@@ -67,3 +67,40 @@ Extensive accessibility checks are embedded in the UI tests:
 
 ## Conclusion
 All remaining acceptance criteria for #1026 are fully satisfied by the existing robust assertions in `tests/apply-next-career-validation.test.cjs`, `tests/apply-next-ui.test.cjs`, and the addition of the explicit legacy-profile validation test. No core product behavior required changing, and the evidence points to a functionally sound and accessible system.
+
+# Link Quality Baseline Report (#1103)
+**Snapshot:** 2026-10-02
+
+## Goal
+Reproduce current-main feed's authoritative-direct destination share and broken/stale-link sample by source/ATS family. The objective is to identify baseline link-quality distributions and expose the unresolved/unverified rate per ATS family.
+
+## Baseline Evidence
+- **Total indexed jobs**: 5,964
+- **Link kind distribution**:
+  - `direct`: 4,916
+  - `employer_job`: 241
+  - `listing`: 203
+  - `source`: 604
+- **Link health overview**:
+  - Unverified destinations: 2,279 (have not been checked recently)
+  - Known broken/closed links: 24 (404/410/closed)
+  - Transient destination unreachable: 118 (timeouts/403)
+- **Workday direct-apply contract**:
+  - Total Workday direct links: 1,838
+  - Contract violations: 0
+
+### Link quality by ATS family
+
+| Provider | Sample Size | Direct | Intermediary | Unknowns | Broken |
+|----------|-------------|--------|--------------|----------|--------|
+| `ashby` | 215 | 215 | 0 | 83 | 0 |
+| `greenhouse` | 455 | 455 | 0 | 248 | 0 |
+| `icims` | 248 | 248 | 0 | 176 | 1 |
+| `oracle_hcm` | 400 | 400 | 0 | 319 | 0 |
+| `unknown` | 2567 | 1760 | 807 | 2019 | 23 |
+| `workday` | 2079 | 1838 | 0 | 208 | 0 |
+
+## Actionable Generic Remediation (Measured)
+- Over 3,000 links (combining known families and 'unknown') are categorized as *unverified* (neither `ok`, `unknown`, nor `dead`).
+- *Root Cause:* The large unverified segment persists post-reconciliation across major ATS families (especially Greenhouse, Workday, Oracle, and Ashby). This suggests that `link_status` (and other link validation fields) might be dropped or lost during deduplication, reconciliation, or rehydration processes.
+- *Proposed Follow-up Action:* The most actionable generic remediation is to investigate why `link_status` fields are being dropped or omitted during feed generation and deduplication (e.g., in `build_feed.py` and `reconcile_workday_duplicates.py`) and fix the loss of link validation metadata. The newly implemented family-level reporting directly exposes this gap.

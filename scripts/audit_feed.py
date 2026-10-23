@@ -11,6 +11,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
+import sys
+from pathlib import Path
+
+# Add scripts directory to path for imports if needed
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+try:
+    from reconcile_workday_duplicates import posting_identity_key
+except ImportError:
+    from scripts.reconcile_workday_duplicates import posting_identity_key
+
 PROFILES = ["cs", "tech-business", "finance-econ", "engineering", "policy", "health"]
 INTERNSHIP_TYPES = {"internship", "co-op", "student"}
 WORKDAY_HOST_RE = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkday(?:jobs|site)\.com$", re.I)
@@ -297,6 +308,8 @@ def destination_link_report(doc: dict) -> dict:
     source_only_links = []
     non_direct_links = []
 
+    ats_family_link_quality = {}
+
     for job in jobs:
         kind = job.get("link_kind") or "legacy"
         kinds[kind] += 1
@@ -336,6 +349,32 @@ def destination_link_report(doc: dict) -> dict:
                 zapply_providers[provider] += 1
                 zapply_companies[str(job.get("company") or "unknown")] += 1
 
+        # ATS family grouping
+        ident = posting_identity_key(effective_url)
+        provider = ident[0] if ident else "unknown"
+
+        if provider not in ats_family_link_quality:
+            ats_family_link_quality[provider] = {
+                "total": 0,
+                "direct": 0,
+                "intermediary": 0,
+                "unknowns": 0,
+                "broken": 0
+            }
+
+        ats_family_link_quality[provider]["total"] += 1
+
+        if kind == "direct":
+            ats_family_link_quality[provider]["direct"] += 1
+        elif kind in {"listing", "source", "legacy"}:
+            ats_family_link_quality[provider]["intermediary"] += 1
+
+        link_status = job.get("link_status")
+        if link_status == "dead":
+            ats_family_link_quality[provider]["broken"] += 1
+        elif link_status not in {"ok", "dead"}:
+            ats_family_link_quality[provider]["unknowns"] += 1
+
     return {
         "total_jobs": len(jobs),
         "link_kinds": dict(sorted(kinds.items())),
@@ -353,6 +392,7 @@ def destination_link_report(doc: dict) -> dict:
         "source_only_sources": dict(source_only_sources.most_common(20)),
         "zapply_providers": dict(zapply_providers.most_common(20)),
         "zapply_companies": dict(zapply_companies.most_common(20)),
+        "ats_family_link_quality": ats_family_link_quality,
     }
 
 
@@ -409,6 +449,7 @@ def build_audit_report(doc: dict, inspections: dict | None = None, reference: da
             "largest_non_direct_hosts": links["hosts"],
             "source_only_by_source_key": links["source_only_sources"],
             "unresolved_by_source_key": links["unresolved_sources"],
+            "ats_family_link_quality": links["ats_family_link_quality"],
         },
         "posting_dates": {
             "by_provenance": dates["by_provenance"],
@@ -498,6 +539,20 @@ def render_markdown_report(report: dict) -> str:
     ])
     for source_key, count in list(dest["source_only_by_source_key"].items())[:10]:
         lines.append(f"- `{source_key}`: **{count}**")
+
+    lines.extend([
+        "",
+        "### Link quality by ATS family",
+        "",
+        "| Provider | Sample Size | Direct | Intermediary | Unknowns | Broken |",
+        "|----------|-------------|--------|--------------|----------|--------|",
+    ])
+
+    for provider, stats in sorted(dest.get("ats_family_link_quality", {}).items()):
+        lines.append(
+            f"| `{provider}` | {stats['total']} | {stats['direct']} | {stats['intermediary']} | "
+            f"{stats['unknowns']} | {stats['broken']} |"
+        )
 
 
     lines.extend([

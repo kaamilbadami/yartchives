@@ -234,6 +234,59 @@ class BuildAuditReportTests(unittest.TestCase):
         self.assertIn("# Yartchives feed quality audit report", rendered)
         self.assertIn("Total indexed jobs: **2**", rendered)
         self.assertIn("Missing posting timestamp (`posted_at`): **1**", rendered)
+        self.assertIn("### Link quality by ATS family", rendered)
+        self.assertIn("| `workday` | 1 | 1 | 0 | 1 | 0 |", rendered)
+        self.assertIn("| `unknown` | 1 | 0 | 1 | 1 | 0 |", rendered)
+
+    def test_destination_link_report_ats_family_grouping(self):
+        doc = {
+            "jobs": [
+                {
+                    "url": "https://company.wd1.myworkdayjobs.com/en-US/careers/job/job-title_JR123",
+                    "link_kind": "direct",
+                    "link_status": "ok"
+                },
+                {
+                    "url": "https://boards.greenhouse.io/company/jobs/123",
+                    "link_kind": "direct",
+                    "link_status": "dead"
+                },
+                {
+                    "url": "https://jobs.lever.co/company/456",
+                    "link_kind": "direct",
+                    "link_status": "unknown"
+                },
+                {
+                    "url": "https://example.com/other-job",
+                    "link_kind": "listing",
+                    "link_status": "ok"
+                },
+                {
+                    "listing_url": "https://no-direct-link.com",
+                    "link_kind": "source"
+                }
+            ]
+        }
+        report = mod.destination_link_report(doc)
+
+        self.assertIn("ats_family_link_quality", report)
+
+        family_metrics = report["ats_family_link_quality"]
+        self.assertIn("workday", family_metrics)
+        self.assertEqual(family_metrics["workday"]["total"], 1)
+        self.assertEqual(family_metrics["workday"]["direct"], 1)
+        self.assertEqual(family_metrics["workday"]["intermediary"], 0)
+        self.assertEqual(family_metrics["workday"]["broken"], 0)
+
+        self.assertIn("greenhouse", family_metrics)
+        self.assertEqual(family_metrics["greenhouse"]["total"], 1)
+        self.assertEqual(family_metrics["greenhouse"]["direct"], 1)
+        self.assertEqual(family_metrics["greenhouse"]["broken"], 1)
+
+        self.assertIn("unknown", family_metrics)
+        self.assertEqual(family_metrics["unknown"]["total"], 3)
+        self.assertEqual(family_metrics["unknown"]["direct"], 1)
+        self.assertEqual(family_metrics["unknown"]["intermediary"], 2)
 
 
 if __name__ == "__main__":
