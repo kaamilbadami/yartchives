@@ -230,6 +230,10 @@ def load_audit_input(path: Path) -> tuple[dict[str, Any], list[dict[str, Any]]]:
             },
         }
     )
+    if "sampling_method" in payload:
+        metadata["sampling_method"] = payload["sampling_method"]
+    if "benchmark_fixed_at" in payload:
+        metadata["benchmark_fixed_at"] = payload["benchmark_fixed_at"]
     return metadata, rows
 
 
