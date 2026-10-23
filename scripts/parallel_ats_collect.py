@@ -74,6 +74,18 @@ def _merge_normalized_job(target: dict[str, Any], incoming: dict[str, Any]) -> N
             target[field] = incoming[field]
 
 
+PROVIDER_PREFIXES = {
+    "workday": ("us-auto-workday-", "us-feed-workday-"),
+    "icims": ("auto-icims-",),
+    "greenhouse": ("auto-greenhouse-",),
+    "smartrecruiters": ("auto-smartrecruiters-",),
+    "oracle": ("auto-oracle-",),
+    "successfactors": ("auto-successfactors-",),
+    "lever": ("auto-lever-",),
+    "ashby": ("auto-ashby-",),
+}
+
+
 def merge_provider_documents(
     base_doc: dict[str, Any],
     provider_docs: dict[str, dict[str, Any]],
@@ -88,9 +100,15 @@ def merge_provider_documents(
         if not isinstance(doc, dict):
             continue
 
-        for key, value in (doc.get("sources") or {}).items():
+        provider_sources = doc.get("sources") or {}
+        for key, value in provider_sources.items():
             if key not in base_sources or value != base_sources.get(key):
                 merged_sources[key] = copy.deepcopy(value)
+
+        prefixes = PROVIDER_PREFIXES.get(provider, ())
+        for key in list(merged_sources.keys()):
+            if key.startswith(prefixes) and key not in provider_sources:
+                merged_sources.pop(key, None)
 
         by_id, by_url = _job_indexes(merged_jobs)
         for incoming in doc.get("jobs") or []:
