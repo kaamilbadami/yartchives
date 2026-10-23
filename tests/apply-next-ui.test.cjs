@@ -13,6 +13,26 @@ const profile = {
   baseLabels: ["Wilton", "College Park / DC"],
 };
 
+
+// Profile backward-compatibility / migration test
+const legacyV0Profile = {
+  targetTerm: "Summer 2027",
+  roleFamilies: [{ id: "software", label: "Software engineering", priority: 1, keywords: ["software engineer"] }],
+  facts: {
+    degree: "Bachelor of Science",
+    major: "Computer Science",
+  }
+};
+assert.equal(UI.validateProfile(legacyV0Profile).ok, true, "Legacy profiles without version fields must validate successfully");
+
+const storageWithLegacy = {
+  getItem: () => JSON.stringify(legacyV0Profile),
+  setItem: () => {}
+};
+const migratedProfile = UI.loadProfile(storageWithLegacy);
+assert.equal(migratedProfile.targetTerm, "Summer 2027", "Legacy profile attributes must load correctly");
+assert.equal(migratedProfile.version, undefined, "Loaded profile should pass validation even if it strictly lacks a version field");
+
 assert.equal(UI.validateProfile(profile).ok, true);
 assert.equal(UI.validateProfile({ roleFamilies: profile.roleFamilies }).ok, false);
 assert.equal(UI.validateProfile({ targetTerm: "Summer 2027", roleFamilies: [] }).ok, false);
