@@ -418,6 +418,10 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], universe: dict[str, Any
         if carry_failed_source(jobs, old_jobs, source["key"]):
             health[source["key"]]["status"] = "degraded"
         print(f"{source['name']}: FAILED: {exc}", file=sys.stderr)
+    discovered_keys = {s["key"] for s in discover_sources(doc, universe)}
+    for key in list(health.keys()):
+        if key.startswith("auto-greenhouse-") and key not in discovered_keys:
+            health.pop(key, None)
     return doc
 
 
