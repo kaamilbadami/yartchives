@@ -21,3 +21,30 @@ By updating `employer_universe.json` to include the `provider-lifecycle-override
 3. Verified that the `direct_successfactors.py` crawler now correctly skips `gxo-logistics` and it is no longer processed or generated as a quarantined source in the feed.
 
 No codebase tests required modification since this was purely a configuration/lifecycle state resolution, confirming a no-code conclusion.
+
+---
+
+# Evidence Report: Revalidate direct-link and destination trust baseline
+
+## Issue
+The historical direct-link percentage (80.9%) was stale and didn't reflect current repository realities. A new reproducible baseline was needed to report family-level link quality and track broken/unverified direct endpoints across ATS families. Additionally, a bug dropped validation status during deduplication, causing false "unverified" spikes.
+
+## Root Cause Analysis
+- `scripts/reconcile_workday_duplicates.py`'s `merge_posting_group` only inherited `link_status` metrics if a candidate with `direct_employer=True` existed.
+- Validation states derived from aggregators were lost because the script did not search the entire candidate group for a valid `link_status`.
+
+## Solution Implemented
+- **Bug fix**: Updated `scripts/reconcile_workday_duplicates.py` to unconditionally inherit `link_status`, `link_checked_at`, etc. from any candidate in the reconciliation group that has `link_status == "ok"`.
+- **Observability**: Updated `scripts/audit_feed.py` to calculate and report link quality clustered by ATS family (using `posting_identity_key`) separating Direct, Intermediary, Known Dead, Unknown Error, and Unverified statuses.
+
+## Current Baseline (Snapshot `2026-10-02T14:23:23.882253Z`)
+| Family | Total | Direct | Intermediary/Source | Known Dead | Unknown Error | Unverified |
+|--------|-------|--------|---------------------|------------|---------------|------------|
+| `ashby` | 215 | 215 | 0 | 0 | 0 | 83 |
+| `greenhouse` | 455 | 455 | 0 | 0 | 9 | 239 |
+| `icims` | 248 | 248 | 0 | 1 | 2 | 174 |
+| `oracle_hcm` | 400 | 400 | 0 | 0 | 0 | 319 |
+| `unknown` | 2567 | 1760 | 807 | 6 | 107 | 1128 |
+| `workday` | 2079 | 1838 | 241 | 0 | 0 | 0 |
+
+This confirms Workday is 100% verified after deduplication (unverified=0 out of 2079 records, with 1838 direct urls) now that validation propagation is fixed, while other families still show unverified backlogs.

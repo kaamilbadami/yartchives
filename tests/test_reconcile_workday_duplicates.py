@@ -475,5 +475,24 @@ class ReconcileWorkdayDuplicateTests(unittest.TestCase):
         self.assertEqual(stats["direct_url_postings"], 0)
 
 
+    def test_reconcile_workday_duplicates_inherits_link_status_from_non_direct_employer(self):
+        direct_link = {
+            "url": "https://company.wd1.myworkdayjobs.com/en-US/Careers/job/City/Role_REQ-123/apply",
+            "link_kind": "direct",
+            "link_status": "ok",
+            "link_checked_at": "2026-09-17T12:00:00Z"
+        }
+        employer_job = {
+            "url": "https://company.wd1.myworkdayjobs.com/en-US/Careers/job/City/Role_REQ-123",
+            "link_kind": "employer_job",
+            "direct_employer": False
+        }
+
+        merged, dupes = mod.reconcile_jobs([direct_link.copy(), employer_job.copy()])
+        self.assertEqual(len(merged), 1)
+        self.assertEqual(merged[0]["link_status"], "ok")
+        self.assertEqual(merged[0]["link_checked_at"], "2026-09-17T12:00:00Z")
+
+
 if __name__ == "__main__":
     unittest.main()

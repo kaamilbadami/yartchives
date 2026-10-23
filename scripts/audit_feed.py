@@ -10,6 +10,7 @@ from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
+from reconcile_workday_duplicates import posting_identity_key
 
 PROFILES = ["cs", "tech-business", "finance-econ", "engineering", "policy", "health"]
 INTERNSHIP_TYPES = {"internship", "co-op", "student"}
@@ -296,6 +297,7 @@ def destination_link_report(doc: dict) -> dict:
     unverified_destinations = []
     source_only_links = []
     non_direct_links = []
+    link_quality_by_ats_family: dict[str, dict[str, int]] = {}
 
     for job in jobs:
         kind = job.get("link_kind") or "legacy"
@@ -322,6 +324,24 @@ def destination_link_report(doc: dict) -> dict:
             ):
                 workday_violations.append(job)
 
+        identity = posting_identity_key(effective_url)
+        family = identity[0] if identity else "unknown"
+
+        if family not in link_quality_by_ats_family:
+            link_quality_by_ats_family[family] = {
+                "total": 0, "direct": 0, "intermediary_source": 0,
+                "known_dead": 0, "unknown_error": 0, "unverified": 0
+            }
+        stats = link_quality_by_ats_family[family]
+        stats["total"] += 1
+        if kind == "direct":
+            stats["direct"] += 1
+            if job.get("link_status") == "dead": stats["known_dead"] += 1
+            elif job.get("link_status") == "unknown": stats["unknown_error"] += 1
+            elif job.get("link_status") != "ok": stats["unverified"] += 1
+        else:
+            stats["intermediary_source"] += 1
+
         if kind in {"listing", "source", "legacy"}:
             non_direct_links.append(job)
             hosts[host] += 1
@@ -347,6 +367,7 @@ def destination_link_report(doc: dict) -> dict:
         "workday_violations": workday_violations,
         "source_only_links": source_only_links,
         "non_direct_links": non_direct_links,
+        "link_quality_by_ats_family": link_quality_by_ats_family,
         "hosts": dict(hosts.most_common(20)),
         "unresolved_sources": dict(unresolved_sources.most_common(20)),
         "unverified_hosts": dict(unverified_hosts.most_common(20)),
@@ -409,6 +430,7 @@ def build_audit_report(doc: dict, inspections: dict | None = None, reference: da
             "largest_non_direct_hosts": links["hosts"],
             "source_only_by_source_key": links["source_only_sources"],
             "unresolved_by_source_key": links["unresolved_sources"],
+            "link_quality_by_ats_family": links.get("link_quality_by_ats_family", {}),
         },
         "posting_dates": {
             "by_provenance": dates["by_provenance"],
@@ -477,6 +499,17 @@ def render_markdown_report(report: dict) -> str:
         ])
         for host, count in s['broken_destinations']['unverified_hosts'].items():
             lines.append(f"- `{host}`: **{count}**")
+
+    if dest.get("link_quality_by_ats_family"):
+        lines.extend([
+            "",
+            "### Link quality baseline by ATS family",
+            "",
+            "| Family | Total | Direct | Intermediary/Source | Known Dead | Unknown Error | Unverified |",
+            "|--------|-------|--------|---------------------|------------|---------------|------------|",
+        ])
+        for family, stats in sorted(dest["link_quality_by_ats_family"].items()):
+            lines.append(f"| `{family}` | {stats['total']} | {stats['direct']} | {stats['intermediary_source']} | {stats['known_dead']} | {stats['unknown_error']} | {stats['unverified']} |")
 
     lines.extend([
         "",
