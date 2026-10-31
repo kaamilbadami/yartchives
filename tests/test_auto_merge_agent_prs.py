@@ -82,8 +82,12 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertIn("Publish required tests status for PR recovery", workflow)
         self.assertIn('statuses/$GITHUB_SHA', workflow)
         self.assertIn("-f context=tests", workflow)
-        self.assertIn('if [ "$PR_RECOVERY" != "true" ]', workflow)
-        self.assertNotIn("publish-recovery-required-status:", workflow)
+        publish = workflow.split("  publish-pr-recovery-status:", 1)[1].split("  live-source-smoke:", 1)[0]
+        self.assertIn("needs: [tests]", publish)
+        self.assertIn("needs.tests.result == 'success'", publish)
+        self.assertIn("inputs.pr_recovery == true", publish)
+        self.assertIn("statuses: write", publish)
+        self.assertNotIn("actions/checkout", publish)
         wake = workflow.split("  wake-automerge:", 1)[1]
         self.assertIn("- tests", wake)
         self.assertNotIn("- publish-recovery-required-status", wake)
