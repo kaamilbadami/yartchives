@@ -49,9 +49,7 @@ on:
     - cron: "37 11 * * *"
 
 permissions:
-  actions: write
   contents: read
-  statuses: write
 
 concurrency:
   group: quality-${{ github.ref }}
@@ -132,16 +130,22 @@ jobs:
         if: steps.scope.outputs.health == 'true'
         run: bash scripts/run_quality_checks.sh health
 
+  publish-pr-recovery-status:
+    # Privileged status publication never executes checked-out PR code.
+    needs: [tests]
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.pr_recovery == true &&
+      needs.tests.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: write
+    steps:
       - name: Publish required tests status for PR recovery
-        if: github.event_name == 'workflow_dispatch'
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_RECOVERY: ${{ inputs.pr_recovery }}
         run: |
-          if [ "$PR_RECOVERY" != "true" ]; then
-            echo "Not a PR-recovery dispatch; no required status publication needed."
-            exit 0
-          fi
           gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
             -f state=success \
             -f context=tests \
@@ -183,13 +187,14 @@ jobs:
           python scripts/audit_feed.py data/listings.json
 
   wake-automerge:
+    permissions:
+      actions: write
+      contents: read
     if: >-
       always() &&
       needs.tests.result == 'success' &&
-      (
-        github.event_name == 'pull_request' ||
-        github.event_name == 'workflow_dispatch'
-      )
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main'
     needs:
       - tests
     runs-on: ubuntu-latest
