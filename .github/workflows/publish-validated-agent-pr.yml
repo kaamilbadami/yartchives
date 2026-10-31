@@ -1,6 +1,7 @@
 name: Publish validated agent branch
 
 on:
+  workflow_dispatch: # Manual diagnosis only; never publish without verified workflow_run provenance.
   workflow_run:
     workflows:
       - Branch preflight
@@ -17,6 +18,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  manual-diagnostics:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Explain publisher safeguards
+        run: echo 'Manual invocation is diagnostic only; publishing requires a successful trusted Branch preflight workflow_run.'
+
   publish:
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
