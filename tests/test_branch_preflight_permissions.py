@@ -11,18 +11,17 @@ class BranchPreflightPermissionsTests(unittest.TestCase):
         self.assertIn("  contents: read", header)
         self.assertNotIn("  actions: write", header)
         self.assertNotIn("  pull-requests: write", header)
-        tests = jobs.split("  tests:", 1)[1].split("  publish-pr:", 1)[0]
+        tests = jobs.split("  tests:", 1)[1]
         self.assertNotIn("permissions:", tests)
         self.assertNotIn("secrets.", tests)
         self.assertIn("bash scripts/run_quality_checks.sh all", tests)
 
-    def test_privileged_publication_runs_only_after_success(self):
-        publish = WORKFLOW.split("  publish-pr:", 1)[1]
-        self.assertIn("needs.tests.result == 'success'", publish)
-        self.assertIn("actions: write", publish)
-        self.assertIn("pull-requests: write", publish)
-        self.assertIn("persist-credentials: false", publish)
-        self.assertNotIn("bash scripts/run_quality_checks.sh", publish)
+    def test_trusted_publisher_follows_successful_branch_check(self):
+        self.assertNotIn("  publish-pr:", WORKFLOW)
+        publisher = (Path(__file__).resolve().parents[1] / ".github/workflows/publish-validated-agent-pr.yml").read_text()
+        for expected in ("workflow_run:", "- Branch preflight", "pull-requests: write", "github.event.workflow_run.event == 'push'", '[[ "$current_sha" != "$VALIDATED_SHA" ]]'):
+            self.assertIn(expected, publisher)
+        self.assertNotIn("actions/checkout", publisher)
 
 
 if __name__ == "__main__":
