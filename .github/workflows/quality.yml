@@ -8,6 +8,11 @@ on:
         required: false
         default: false
         type: boolean
+      pr_number:
+        description: PR number whose current synthetic merge commit must pass required tests
+        required: false
+        default: ""
+        type: string
   pull_request:
   push:
     branches:
@@ -80,6 +85,8 @@ jobs:
         run: python scripts/targeted_frontend_preflight.py "$PR_BASE_SHA" "$PR_HEAD_SHA"
 
   tests:
+    outputs:
+      tested_merge_sha: ${{ steps.merge_target.outputs.merge_sha }}
     needs:
       - targeted-frontend-preflight
     if: >-
@@ -90,9 +97,26 @@ jobs:
       )
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve current PR merge commit
+        id: merge_target
+        if: github.event_name == 'workflow_dispatch' && inputs.pr_recovery == true && inputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+        run: |
+          set -euo pipefail
+          [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]] || { echo "Invalid PR number"; exit 1; }
+          pr="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER")"
+          [[ "$(jq -r '.state' <<<"$pr")" == "open" ]] || exit 1
+          [[ "$(jq -r '.base.ref' <<<"$pr")" == "main" ]] || exit 1
+          merge_sha="$(jq -r '.merge_commit_sha // empty' <<<"$pr")"
+          [[ "$merge_sha" =~ ^[a-f0-9]{40}$ ]] || { echo "No merge commit"; exit 1; }
+          echo "merge_sha=$merge_sha" >> "$GITHUB_OUTPUT"
+
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
+          ref: ${{ steps.merge_target.outputs.merge_sha || github.ref }}
           fetch-depth: 0
 
       - name: Set up Python
@@ -111,9 +135,10 @@ jobs:
           PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_RECOVERY: ${{ inputs.pr_recovery }}
+          MERGE_SHA: ${{ steps.merge_target.outputs.merge_sha }}
         run: |
           if [ "$EVENT_NAME" = "workflow_dispatch" ] && [ "$PR_RECOVERY" = "true" ]; then
-            bash scripts/quality_scope.sh "origin/main" "$GITHUB_SHA" | tail -n 1 >> "$GITHUB_OUTPUT"
+            bash scripts/quality_scope.sh "origin/main" "${MERGE_SHA:-$GITHUB_SHA}" | tail -n 1 >> "$GITHUB_OUTPUT"
           elif [ "$EVENT_NAME" = "schedule" ] || [ "$EVENT_NAME" = "workflow_dispatch" ] || [ "$GITHUB_REF_NAME" = "main" ]; then
             echo "health=true" >> "$GITHUB_OUTPUT"
           else
@@ -145,8 +170,23 @@ jobs:
       - name: Publish required tests status for PR recovery
         env:
           GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ inputs.pr_number }}
+          TESTED_MERGE_SHA: ${{ needs.tests.outputs.tested_merge_sha }}
         run: |
-          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+          set -euo pipefail
+          target="$GITHUB_SHA"
+          if [[ -n "$PR_NUMBER" ]]; then
+            [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]] || exit 1
+            current="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER")"
+            [[ "$(jq -r '.state' <<<"$current")" == "open" ]] || exit 1
+            [[ "$(jq -r '.base.ref' <<<"$current")" == "main" ]] || exit 1
+            target="$(jq -r '.merge_commit_sha // empty' <<<"$current")"
+            [[ -n "$TESTED_MERGE_SHA" && "$target" == "$TESTED_MERGE_SHA" ]] || {
+              echo "PR merge SHA moved since tests ran; refusing stale status publication."
+              exit 1
+            }
+          fi
+          gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$target" \
             -f state=success \
             -f context=tests \
             -f description="PR recovery Quality checks passed"
