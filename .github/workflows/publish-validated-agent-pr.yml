@@ -1,0 +1,68 @@
+name: Publish validated agent branch
+
+on:
+  workflow_dispatch: # Manual diagnosis only; never publish without verified workflow_run provenance.
+  workflow_run:
+    workflows:
+      - Branch preflight
+    types:
+      - completed
+
+permissions:
+  contents: read
+  actions: write
+  pull-requests: write
+
+concurrency:
+  group: trusted-preflight-publish-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  manual-diagnostics:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Explain publisher safeguards
+        run: echo 'Manual invocation is diagnostic only; publishing requires a successful trusted Branch preflight workflow_run.'
+
+  publish:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      (
+        startsWith(github.event.workflow_run.head_branch, 'agent/') ||
+        startsWith(github.event.workflow_run.head_branch, 'codex/')
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify exact validated head and publish PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          VALIDATED_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          current_sha="$(gh api "repos/$GITHUB_REPOSITORY/branches/$BRANCH" --jq '.commit.sha')"
+          if [[ "$current_sha" != "$VALIDATED_SHA" ]]; then
+            echo "Skipping stale preflight run $RUN_ID: branch advanced."
+            exit 0
+          fi
+          existing="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --state open --json number --jq '.[0].number // empty')"
+          note="<!-- trusted-preflight-auto-pr -->
+          Validated Branch preflight run $RUN_ID for exact head $VALIDATED_SHA."
+          if [[ -n "$existing" ]]; then
+            body="$(gh pr view "$existing" --repo "$GITHUB_REPOSITORY" --json body --jq '.body // ""')"
+            if ! grep -Fq '<!-- trusted-preflight-auto-pr -->' <<<"$body"; then
+              gh pr edit "$existing" --repo "$GITHUB_REPOSITORY" --body "$(printf '%s\n\n%s' "$body" "$note")"
+            fi
+          else
+            title="$(gh api "repos/$GITHUB_REPOSITORY/commits/$VALIDATED_SHA" --jq '.commit.message | split("\n")[0]')"
+            gh api --method POST "repos/$GITHUB_REPOSITORY/pulls" -f base=main -f head="$BRANCH" -f title="$title" -f body="$note" > /dev/null
+          fi
+          # Recovery checks run on the exact branch head; the merge controller verifies current SHA independently.
+          gh workflow run quality.yml --repo "$GITHUB_REPOSITORY" --ref "$BRANCH" -f pr_recovery=true
