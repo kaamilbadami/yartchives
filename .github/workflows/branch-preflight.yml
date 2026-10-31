@@ -40,9 +40,7 @@ on:
       - ".github/workflows/**"
 
 permissions:
-  actions: write
   contents: read
-  pull-requests: write
 
 concurrency:
   group: branch-preflight-${{ github.ref }}
@@ -81,6 +79,10 @@ jobs:
         run: bash scripts/run_quality_checks.sh health
 
   publish-pr:
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: write
     needs:
       - tests
     if: >-
@@ -92,6 +94,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Create trusted agent PR and dispatch authoritative CI
         env:
