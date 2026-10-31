@@ -70,7 +70,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text()
         self.assertIn("pr_recovery:", workflow)
         self.assertIn('PR_RECOVERY: ${{ inputs.pr_recovery }}', workflow)
-        self.assertIn('quality_scope.sh "origin/main" "$GITHUB_SHA"', workflow)
+        self.assertIn('quality_scope.sh "origin/main" "${MERGE_SHA:-$GITHUB_SHA}"', workflow)
         self.assertIn("inputs.pr_recovery != true", workflow)
 
         source = MODULE_PATH.read_text()
@@ -80,7 +80,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text()
         self.assertIn("statuses: write", workflow)
         self.assertIn("Publish required tests status for PR recovery", workflow)
-        self.assertIn('statuses/$GITHUB_SHA', workflow)
+        self.assertIn('statuses/$target', workflow)
         self.assertIn("-f context=tests", workflow)
         publish = workflow.split("  publish-pr-recovery-status:", 1)[1].split("  live-source-smoke:", 1)[0]
         self.assertIn("needs: [tests]", publish)
