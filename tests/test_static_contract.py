@@ -121,11 +121,13 @@ class StaticContractTests(unittest.TestCase):
         self.assertIn("startsWith(github.event.workflow_run.head_branch, 'agent/')", publisher)
         self.assertIn("startsWith(github.event.workflow_run.head_branch, 'codex/')", publisher)
         self.assertIn("<!-- trusted-preflight-auto-pr -->", publisher)
-        self.assertIn("gh pr create", preflight)
+        self.assertIn('gh api --method POST "repos/$GITHUB_REPOSITORY/pulls"', publisher)
         self.assertIn("gh workflow run quality.yml", publisher)
         self.assertIn("-f pr_recovery=true", publisher)
-        self.assertIn("actions: write", preflight)
-        self.assertIn("pull-requests: write", preflight)
+        self.assertNotIn("actions: write", preflight)
+        self.assertNotIn("pull-requests: write", preflight)
+        self.assertIn("actions: write", publisher)
+        self.assertIn("pull-requests: write", publisher)
 
         for phase in ["python", "frontend"]:
             self.assertIn(f"bash scripts/run_quality_checks.sh {phase}", quality)
