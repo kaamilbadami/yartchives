@@ -8,7 +8,7 @@ WORKFLOW = (Path(__file__).resolve().parents[1] / ".github/workflows/quality.yml
 class MergeRecoveryTests(unittest.TestCase):
     def test_exact_merge_sha_is_tested(self):
         self.assertIn("pr_number:", WORKFLOW)
-        self.assertIn("steps.merge_target.outputs.merge_sha || github.ref", WORKFLOW)
+        self.assertIn("git fetch --no-tags origin "refs/pull/$PR_NUMBER/merge"", WORKFLOW)
         self.assertIn("tested_merge_sha:", WORKFLOW)
         self.assertIn('[[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]', WORKFLOW)
 
