@@ -23,7 +23,7 @@ class MergeRecoveryTests(unittest.TestCase):
     def test_success_status_revalidates_same_merge_sha(self):
         publish = WORKFLOW.split("  publish-pr-recovery-status:", 1)[1].split("  live-source-smoke:", 1)[0]
         self.assertIn("needs.tests.result == 'success'", publish)
-        self.assertIn('target == "$TESTED_MERGE_SHA"', publish)
+        self.assertIn('"$target" == "$TESTED_MERGE_SHA"', publish)
         self.assertIn("statuses: write", publish)
         self.assertNotIn("actions/checkout", publish)
 
