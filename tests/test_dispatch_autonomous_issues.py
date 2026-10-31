@@ -325,6 +325,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
     def test_workflow_serializes_resource_lock_and_runs_dispatch_step(self):
         workflow = (ROOT / ".github" / "workflows" / "autonomous-dispatch.yml").read_text()
         self.assertIn("group: coverage-issue-writers", workflow)
+        self.assertIn("cancel-in-progress: false", workflow)
         self.assertIn("- name: Dispatch safe non-overlapping work", workflow)
         self.assertIn("run: python scripts/dispatch_autonomous_issues.py", workflow)
 
