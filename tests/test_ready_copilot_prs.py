@@ -104,6 +104,9 @@ class CopilotReadyPolicyTests(unittest.TestCase):
         self.assertFalse(ready.exact_merge_tests_green(
             {"statuses": [{"context": "other", "state": "success"}]}, merge_sha))
         self.assertFalse(ready.exact_merge_tests_green(green, "not-a-sha"))
+        self.assertFalse(ready.exact_merge_tests_green(
+            {"statuses": [{"context": "tests", "state": "failure"},
+                          {"context": "tests", "state": "success"}]}, merge_sha))
 
     def test_recovery_only_for_missing_or_approval_gated_ci(self):
         self.assertTrue(ready.recovery_allowed([], SHA))
