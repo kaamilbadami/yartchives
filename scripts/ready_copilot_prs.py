@@ -203,9 +203,16 @@ def main() -> int:
             # Never treat a status on a stale synthetic merge as current.
             merge_sha = str(fresh.get("merge_commit_sha") or "")
             merge_green = False
+            merge_failed = False
             if re.fullmatch(r"[a-f0-9]{40}", merge_sha):
                 merge_status = gh_json(f"repos/{repo}/commits/{merge_sha}/status")
                 merge_green = exact_merge_tests_green(merge_status, merge_sha)
+                latest_tests = next(
+                    (entry for entry in (merge_status.get("statuses") or [])
+                     if entry.get("context") == "tests"), None
+                )
+                merge_failed = bool(latest_tests and
+                                    latest_tests.get("state") in {"failure", "error"})
             if exact_head_quality_green(runs, sha) or merge_green:
                 current_issue = gh_json(f"repos/{repo}/issues/{issue_number}")
                 still_ok, reason = provenance_verified(
@@ -216,6 +223,9 @@ def main() -> int:
                     continue
                 gh_write("pr", "ready", str(number), "--repo", repo)
                 print(f"PR #{number}: ready for review at verified head {sha}; NOT merge approval.")
+                continue
+            if merge_failed:
+                print(f"BLOCKED_REQUIRES_DECISION PR #{number}: current synthetic merge tests failed; no automatic retry.")
                 continue
             if not recovery_allowed(runs, sha):
                 print(f"PR #{number}: CI in progress or failed; no draft transition.")
