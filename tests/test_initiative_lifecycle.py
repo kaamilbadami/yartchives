@@ -85,6 +85,34 @@ class InitiativeLifecycleTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             merger.initiative_closing_references("Closes #42", load_issue=lambda _: (_ for _ in ()).throw(RuntimeError("unavailable")))
 
+    def test_qualified_same_repository_closing_reference_blocks_initiative(self):
+        seen = []
+        def load(number):
+            seen.append(number)
+            return issue(number, labels=("initiative",) if number == 42 else ())
+        self.assertEqual(
+            merger.initiative_closing_references(
+                "Fixes #41\\nCloses test/repo#42\\nResolves TEST/REPO#42",
+                load_issue=load, repo="test/repo",
+            ),
+            [42],
+        )
+        self.assertEqual(seen, [41, 42])
+
+    def test_external_or_unverified_qualified_closing_reference_fails_closed(self):
+        load = mock.Mock(return_value=issue(42))
+        for body, repository in (
+            ("Closes other/repo#42", "test/repo"),
+            ("Fixes test/repo#42", None),
+            ("Closes #41\\nResolves other/repo#42", "test/repo"),
+        ):
+            with self.subTest(body=body, repo=repository):
+                with self.assertRaisesRegex(ValueError, "unverified closing reference"):
+                    merger.initiative_closing_references(
+                        body, load_issue=load, repo=repository,
+                    )
+        load.assert_not_called()
+
     def test_missing_issue_labels_fail_closed(self):
         with self.assertRaises(ValueError):
             merger.initiative_closing_references("Closes #42", load_issue=lambda _: {})
