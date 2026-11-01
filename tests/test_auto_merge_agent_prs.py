@@ -59,12 +59,28 @@ class MissingCiRecoveryTests(unittest.TestCase):
 
 
 class AutoMergeAgentPrTests(unittest.TestCase):
+    def test_controller_wakes_on_every_pr_change_and_periodic_reconciliation(self):
+        workflow = (ROOT / ".github/workflows/auto-merge-agent-prs.yml").read_text()
+        self.assertIn("  pull_request:", workflow)
+        for event in ("opened", "reopened", "synchronize", "ready_for_review"):
+            self.assertIn(f"      - {event}", workflow)
+        self.assertIn('*/5 * * * *', workflow)
+        self.assertIn("ref: main", workflow)
+        self.assertIn("cancel-in-progress: false", workflow)
+
     def test_quality_dispatch_wakes_automerge_with_run_id(self):
         workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text()
         self.assertIn("actions: write", workflow)
         self.assertIn("wake-automerge:", workflow)
         self.assertIn("gh workflow run auto-merge-agent-prs.yml", workflow)
         self.assertIn('-f wait_for_quality_run_id="$GITHUB_RUN_ID"', workflow)
+
+    def test_blocked_required_check_recovery_targets_pr_merge_commit(self):
+        source = MODULE_PATH.read_text()
+        block = source.split("if missing_required_tests_status(detail) and head_ref:", 1)[1]
+        self.assertIn('"--ref", "main"', block)
+        self.assertIn('f"pr_number={number}"', block)
+        self.assertIn('"pr_recovery=true"', block)
 
     def test_pr_recovery_quality_mode_matches_pr_scope_without_live_smoke(self):
         workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text()
