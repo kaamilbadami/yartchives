@@ -34,6 +34,12 @@ CI_PRIORITY_PATTERNS = (".github/workflows/**",)
 CLOSING_ISSUE_RE = re.compile(
     r"(?im)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)\b"
 )
+# GitHub also honors qualified closing references: Closes owner/repo#123.
+CLOSING_REFERENCE_RE = re.compile(
+    r"(?im)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+"
+    r"(?:(?P<repository>[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+))?"
+    r"#(?P<number>\d+)\b"
+)
 JULES_REVIEW_READY_LABEL = "jules-review-ready"
 GITHUB_ACTIONS_BOT = "github-actions[bot]"
 OWNER_AUTHORIZED_AUTOMERGE_MARKER = "<!-- owner-authorized-automerge -->"
@@ -134,14 +140,21 @@ def linked_issue_number(body: str) -> int | None:
 
 
 def initiative_closing_references(
-    body: str, *, load_issue: Callable[[int], dict[str, Any]]
+    body: str, *, load_issue: Callable[[int], dict[str, Any]], repo: str | None = None
 ) -> list[int]:
-    """Find all closing-keyword references to protected parent initiatives.
+    """Find closing references to initiatives, including owner/repo#123 syntax.
 
-    GitHub's own closing-keyword processing runs on merge, so merely skipping
-    explicit issue PATCH calls is insufficient. Fail closed on lookup errors.
+    GitHub processes closing keywords on merge, including qualified references.
+    Never silently treat an external issue number as a local one: without an
+    independently verified external issue policy, require manual review.
     """
-    numbers = sorted({int(value) for value in CLOSING_ISSUE_RE.findall(body or "")})
+    numbers: set[int] = set()
+    for match in CLOSING_REFERENCE_RE.finditer(body or ""):
+        qualified_repo = match.group("repository")
+        if qualified_repo and (not repo or qualified_repo.casefold() != repo.casefold()):
+            raise ValueError(f"external or unverified closing reference: {match.group(0)}")
+        numbers.add(int(match.group("number")))
+    numbers = sorted(numbers)
     parents: list[int] = []
     for number in numbers:
         issue = load_issue(number)
@@ -1398,6 +1411,7 @@ def main() -> int:
             parent_closers = initiative_closing_references(
                 str(pr.get("body") or ""),
                 load_issue=lambda linked: gh_json("api", f"repos/{repo}/issues/{linked}"),
+                repo=repo,
             )
         except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
             print(f"BLOCKED_REQUIRES_DECISION PR #{number}: cannot verify closing references: {exc}")
