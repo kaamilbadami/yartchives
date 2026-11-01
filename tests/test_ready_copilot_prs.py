@@ -1,5 +1,6 @@
 """Behavioral safety tests for trusted Copilot draft-to-ready reconciliation."""
 import unittest
+from unittest import mock
 
 from scripts import ready_copilot_prs as ready
 
@@ -103,6 +104,60 @@ class CopilotReadyPolicyTests(unittest.TestCase):
                                    ("completed", "success")):
             self.assertFalse(ready.recovery_allowed(
                 [dict(action[0], status=status, conclusion=conclusion)], SHA))
+
+
+class CopilotReadyReconciliationTests(unittest.TestCase):
+    def run_controller(self, *, quality=True, head_drift=False, comments=None):
+        pr, issue, files, events, links = fixtures()
+        current = dict(pr)
+        if head_drift:
+            current["head"] = dict(pr["head"], sha="b" * 40)
+        green = [{"name": "Quality checks", "head_sha": SHA,
+                  "status": "completed", "conclusion": "success"}] if quality else []
+        def pages(endpoint):
+            if "/pulls?state=open" in endpoint:
+                return [pr]
+            if "/files?" in endpoint:
+                return files
+            if "/issues/77/timeline?" in endpoint:
+                return events
+            if "/issues/76/timeline?" in endpoint:
+                return links
+            if "/issues/77/comments?" in endpoint:
+                return comments or []
+            raise AssertionError(f"Unexpected endpoint: {endpoint}")
+        def get(endpoint):
+            if "/issues/76" in endpoint:
+                return issue
+            if "/actions/runs?" in endpoint:
+                return {"workflow_runs": green}
+            if "/pulls/77" in endpoint:
+                return current
+            raise AssertionError(f"Unexpected endpoint: {endpoint}")
+        with mock.patch.dict("os.environ", {"REPOSITORY": REPO}), \
+             mock.patch.object(ready, "gh_pages", side_effect=pages), \
+             mock.patch.object(ready, "gh_json", side_effect=get), \
+             mock.patch.object(ready, "gh_write") as write:
+            self.assertEqual(ready.main(), 0)
+        return write.call_args_list
+
+    def test_green_exact_head_only_marks_ready_never_merges(self):
+        calls = self.run_controller()
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0].args, ("pr", "ready", "77", "--repo", REPO))
+
+    def test_head_drift_blocks_ready_and_recovery(self):
+        self.assertEqual(self.run_controller(head_drift=True), [])
+
+    def test_missing_ci_gets_one_durable_marked_dispatch(self):
+        calls = self.run_controller(quality=False)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[0].args[:4], ("api", "--method", "POST", f"repos/{REPO}/issues/77/comments"))
+        self.assertEqual(calls[1].args[:3], ("workflow", "run", "quality.yml"))
+        marker = ready.RECOVERY_MARKER.format(head=SHA)
+        self.assertEqual(self.run_controller(
+            quality=False, comments=[{"body": marker}]
+        ), [])
 
 
 if __name__ == "__main__":
