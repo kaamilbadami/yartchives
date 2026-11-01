@@ -92,7 +92,7 @@ class InitiativeLifecycleTests(unittest.TestCase):
             return issue(number, labels=("initiative",) if number == 42 else ())
         self.assertEqual(
             merger.initiative_closing_references(
-                "Fixes #41\\nCloses test/repo#42\\nResolves TEST/REPO#42",
+                "Fixes #41\nCloses test/repo#42\nResolves TEST/REPO#42",
                 load_issue=load, repo="test/repo",
             ),
             [42],
@@ -104,7 +104,7 @@ class InitiativeLifecycleTests(unittest.TestCase):
         for body, repository in (
             ("Closes other/repo#42", "test/repo"),
             ("Fixes test/repo#42", None),
-            ("Closes #41\\nResolves other/repo#42", "test/repo"),
+            ("Closes #41\nResolves other/repo#42", "test/repo"),
         ):
             with self.subTest(body=body, repo=repository):
                 with self.assertRaisesRegex(ValueError, "unverified closing reference"):
