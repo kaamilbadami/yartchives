@@ -5,6 +5,7 @@ from unittest import mock
 
 from scripts import auto_merge_agent_prs as merger
 from scripts import dispatch_autonomous_issues as dispatch
+from scripts import guard_jules_redispatch as guard
 from scripts import reconcile_merged_pr_issues as reconciler
 
 
@@ -37,6 +38,11 @@ class InitiativeLifecycleTests(unittest.TestCase):
         self.assertEqual(dispatch.label_names(parent), {"initiative", "jules-session"})
         dispatch.reconcile_autonomous_labels([parent], repo="test/repo", run_gh=lambda *args: calls.append(args))
         self.assertEqual(len(calls), 1)  # Idempotent; no relabel churn.
+
+    def test_legacy_guard_does_not_relabel_initiatives(self):
+        parent = issue(labels=("initiative", "agent-ready"))
+        comments = [{"body": "Jules completed session `abc`. Pull request: https://github.com/test/repo/pull/2"}]
+        self.assertIsNone(guard.should_restore_review_ready(parent, comments))
 
     def test_exhausted_parent_never_creates_rework_or_closes(self):
         parent = issue(labels=("initiative", "jules-failed", "autonomous-backlog"))
