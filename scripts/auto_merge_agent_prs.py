@@ -134,6 +134,16 @@ def trusted_preflight_auto_pr(pr: dict[str, Any], repo: str) -> bool:
         return False
     return TRUSTED_PREFLIGHT_AUTO_PR_MARKER in str(pr.get("body") or "")
 
+def copilot_merge_requires_independent_authorization(pr: dict[str, Any]) -> bool:
+    """Draft-to-ready is not a grant of automatic merge authorization.
+
+    Copilot issue-to-PR provenance and independent merge policy are not yet
+    production-verified. Block every Copilot PR from the legacy Jules/owner
+    merge lanes until a separately reviewed Copilot merge contract exists.
+    """
+    return str((pr.get("user") or {}).get("login") or "").casefold() == "copilot"
+
+
 def linked_issue_number(body: str) -> int | None:
     match = CLOSING_ISSUE_RE.search(body or "")
     return int(match.group(1)) if match else None
@@ -1418,6 +1428,13 @@ def main() -> int:
             continue
         if parent_closers:
             print(f"BLOCKED_REQUIRES_DECISION PR #{number}: closing keywords target parent initiative(s) {parent_closers}.")
+            continue
+
+        if copilot_merge_requires_independent_authorization(pr):
+            print(
+                f"BLOCKED_REQUIRES_DECISION PR #{number}: Copilot ready-for-review "
+                "is not independent merge authorization."
+            )
             continue
 
         maintenance_pre_ci, maintenance_reason = maintenance_pr_eligible(

@@ -59,14 +59,30 @@ class MissingCiRecoveryTests(unittest.TestCase):
 
 
 class AutoMergeAgentPrTests(unittest.TestCase):
-    def test_controller_wakes_on_every_pr_change_and_periodic_reconciliation(self):
+    def test_copilot_ready_state_never_authorizes_legacy_auto_merge(self):
+        self.assertTrue(mod.copilot_merge_requires_independent_authorization(
+            {"user": {"login": "Copilot"}, "draft": False}))
+        self.assertTrue(mod.copilot_merge_requires_independent_authorization(
+            {"user": {"login": "Copilot"}, "draft": True}))
+        self.assertFalse(mod.copilot_merge_requires_independent_authorization(
+            {"user": {"login": "google-labs-jules[bot]"}, "draft": False}))
+        self.assertFalse(mod.copilot_merge_requires_independent_authorization(
+            {"user": {"login": "kaamilbadami"}, "draft": False}))
+
+    def test_controller_reconciles_on_trusted_quality_completion_and_schedule(self):
         workflow = (ROOT / ".github/workflows/auto-merge-agent-prs.yml").read_text()
-        self.assertIn("  pull_request:", workflow)
-        for event in ("opened", "reopened", "synchronize", "ready_for_review"):
-            self.assertIn(f"      - {event}", workflow)
+        # Privileged pull_request runs on Copilot PRs are approval-gated;
+        # the controller checks out protected main on trusted wakeups instead.
+        self.assertNotIn("  pull_request:", workflow)
+        self.assertIn("  workflow_run:", workflow)
+        self.assertIn("      - Quality checks", workflow)
+        self.assertIn("  push:", workflow)
         self.assertIn('*/5 * * * *', workflow)
         self.assertIn("ref: main", workflow)
         self.assertIn("cancel-in-progress: false", workflow)
+        self.assertIn("run: python scripts/ready_copilot_prs.py", workflow)
+        self.assertLess(workflow.index("run: python scripts/ready_copilot_prs.py"),
+                        workflow.index("run: python scripts/auto_merge_agent_prs.py"))
 
     def test_quality_dispatch_wakes_automerge_with_run_id(self):
         workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text()
