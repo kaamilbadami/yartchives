@@ -1795,8 +1795,9 @@ def main() -> int:
                         gh_run(
                             "workflow", "run", "quality.yml",
                             "--repo", repo,
-                            "--ref", head_ref,
+                            "--ref", "main",
                             "-f", "pr_recovery=true",
+                            "-f", f"pr_number={number}",
                         )
                         print(
                             f"Dispatched PR recovery Quality for #{number} so the required "

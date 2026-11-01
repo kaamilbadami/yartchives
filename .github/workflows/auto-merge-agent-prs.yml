@@ -9,6 +9,12 @@ on:
         type: string
   schedule:
     - cron: "*/5 * * * *"
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
   issue_comment:
     types:
       - created
