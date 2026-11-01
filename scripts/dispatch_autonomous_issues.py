@@ -175,6 +175,9 @@ def autonomous_issue_authorized(issue: dict[str, Any]) -> bool:
 
 
 def task_from_issue(issue: dict[str, Any]) -> Task | None:
+    # Parent initiatives are never executable tasks, even with stale markers/labels.
+    if "initiative" in label_names(issue):
+        return None
     body = str(issue.get("body") or "")
     if not autonomous_issue_authorized(issue):
         return None
@@ -737,6 +740,9 @@ def supersede_exhausted_jules_failure(
 
     number = int(issue["number"])
     labels = label_names(issue)
+    if "initiative" in labels:
+        # Exhausted child-task recovery must never supersede/close a parent.
+        return None
     if JULES_FAILED_LABEL not in labels:
         return None
     if JULES_REWORKED_LABEL in labels:
@@ -877,7 +883,7 @@ def migrate_legacy_jules_failures(
         run_gh = gh_run
 
     for issue in issues:
-        if JULES_FAILED_LABEL not in label_names(issue):
+        if "initiative" in label_names(issue) or JULES_FAILED_LABEL not in label_names(issue):
             continue
         number = int(issue["number"])
         comments = load_comments(number)
@@ -1067,7 +1073,7 @@ def reconcile_historical_merged_jules_issues(
         run_gh = gh_run
 
     for issue in load_open_autonomous():
-        if "pull_request" in issue:
+        if "pull_request" in issue or "initiative" in label_names(issue):
             continue
         number = int(issue["number"])
         completed = completed_session_pr_from_comments(load_comments(number), repo)
@@ -1511,8 +1517,20 @@ def reconcile_autonomous_labels(
         if str(issue.get("state") or "open") != "open":
             continue
 
-        task = task_from_issue(issue)
         labels = label_names(issue)
+        if "initiative" in labels:
+            # A previously dispatched initiative may retain historical Jules labels;
+            # remove only scheduling authorization, not active-session provenance.
+            stale = sorted(labels & {"agent-ready", "autonomous-backlog"})
+            if stale:
+                args = []
+                for label in stale:
+                    args.extend(["--remove-label", label])
+                run_gh("issue", "edit", str(issue["number"]), "--repo", repo, *args)
+                replace_issue_labels_in_memory(issue, remove=set(stale))
+            continue
+
+        task = task_from_issue(issue)
         # Quarantine only issues that are actually admitted to the dispatch
         # backlog. A marker or agent-ready label alone may describe intentionally
         # non-autonomous/draft work and must not be mutated.
