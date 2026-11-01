@@ -54,6 +54,10 @@ def safe_low_risk_files(files: list[dict[str, Any]]) -> bool:
         return False
     for item in files:
         path = str(item.get("filename") or "")
+        # A rename reports only the destination in filename; the source may
+        # be a protected workflow or policy file. Deny renames by default.
+        if item.get("status") == "renamed" or item.get("previous_filename"):
+            return False
         if not path or path.startswith(".github/") or ".." in path.split("/"):
             return False
         if path.startswith(("tests/", "docs/")):
