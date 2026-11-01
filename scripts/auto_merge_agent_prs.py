@@ -133,6 +133,18 @@ def linked_issue_number(body: str) -> int | None:
     return int(match.group(1)) if match else None
 
 
+def initiative_closing_references(
+    body: str, *, load_issue: Callable[[int], dict[str, Any]]
+) -> list[int]:
+    """Find all closing-keyword references to protected parent initiatives.
+
+    GitHub's own closing-keyword processing runs on merge, so merely skipping
+    explicit issue PATCH calls is insufficient. Fail closed on lookup errors.
+    """
+    numbers = sorted({int(value) for value in CLOSING_ISSUE_RE.findall(body or "")})
+    return [number for number in numbers if "initiative" in label_names(load_issue(number))]
+
+
 def completed_jules_output(
     comments: Iterable[dict[str, Any]],
 ) -> tuple[int, str, int, str] | None:
@@ -987,6 +999,8 @@ def eligible_pr(
         return False, "pull request does not close an issue"
     if int(issue.get("number") or 0) != issue_number:
         return False, "linked issue does not match fetched issue"
+    if "initiative" in label_names(issue):
+        return False, "linked issue is a parent initiative"
     if not autonomous_issue_ready(issue):
         return False, "linked autonomous issue is not ready for merge"
 
@@ -1092,6 +1106,9 @@ def close_linked_issue_after_merge(repo: str, issue_number: int | None) -> None:
         return
 
     if str(current.get("state") or "") == "closed":
+        return
+    if "initiative" in label_names(current):
+        print(f"SKIP_INITIATIVE: linked parent #{issue_number} requires authorized closure.")
         return
 
     result = subprocess.run(
@@ -1365,6 +1382,20 @@ def main() -> int:
         generated = generated_artifact_file_paths(files)
         head_ref = str((pr.get("head") or {}).get("ref") or "")
 
+        # GitHub itself closes issues referenced by PR closing keywords.
+        # Do not automatically merge a PR that could close a parent initiative.
+        try:
+            parent_closers = initiative_closing_references(
+                str(pr.get("body") or ""),
+                load_issue=lambda linked: gh_json("api", f"repos/{repo}/issues/{linked}"),
+            )
+        except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+            print(f"BLOCKED_REQUIRES_DECISION PR #{number}: cannot verify closing references: {exc}")
+            continue
+        if parent_closers:
+            print(f"BLOCKED_REQUIRES_DECISION PR #{number}: closing keywords target parent initiative(s) {parent_closers}.")
+            continue
+
         maintenance_pre_ci, maintenance_reason = maintenance_pr_eligible(
             pr,
             repo=repo,
@@ -1406,6 +1437,9 @@ def main() -> int:
                 )
                 continue
             issue_number = int(issue["number"])
+            if "initiative" in label_names(issue):
+                print(f"BLOCKED_REQUIRES_DECISION PR #{number}: recovered issue #{issue_number} is an initiative.")
+                continue
             normalized_body = ensure_closing_link(pr, issue_number)
             gh_run(
                 "api",
