@@ -87,6 +87,17 @@ class CopilotReadyPolicyTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertFalse(allowed((p, i, [{"filename": path}], e, links)))
 
+    def test_renamed_sensitive_source_cannot_be_laundered_into_tests(self):
+        p, i, f, e, links = fixtures()
+        self.assertFalse(allowed((p, i, [{
+            "filename": "tests/test_quality.py", "status": "renamed",
+            "previous_filename": ".github/workflows/quality.yml"
+        }], e, links)))
+        self.assertFalse(allowed((p, i, [{
+            "filename": "tests/test_quality.py",
+            "previous_filename": "scripts/auto_merge_agent_prs.py"
+        }], e, links)))
+
     def test_exact_head_ci_must_be_green(self):
         green = [{"name": "Quality checks", "head_sha": SHA,
                   "status": "completed", "conclusion": "success"}]
