@@ -66,6 +66,14 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertIn("gh workflow run auto-merge-agent-prs.yml", workflow)
         self.assertIn('-f wait_for_quality_run_id="$GITHUB_RUN_ID"', workflow)
 
+    def test_blocked_required_check_recovery_targets_pr_merge_commit(self):
+        source = MODULE_PATH.read_text()
+        block = source.split("if missing_required_tests_status(detail) and head_ref:", 1)[1]
+        block = block.split("            else:", 1)[0]
+        self.assertIn('"--ref", "main"', block)
+        self.assertIn('f"pr_number={number}"', block)
+        self.assertIn('"pr_recovery=true"', block)
+
     def test_pr_recovery_quality_mode_matches_pr_scope_without_live_smoke(self):
         workflow = (ROOT / ".github" / "workflows" / "quality.yml").read_text()
         self.assertIn("pr_recovery:", workflow)
