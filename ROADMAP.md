@@ -105,34 +105,37 @@ The first implementation should optimize for reproducibility and measurement, no
 
 ---
 
-## Track 1 — Automation reliability
+## Track 1 — Automation reliability and unattended Copilot development
 
 ### Outcome
 
-GitHub issues, Jules sessions, PRs, checks, merges, retries, and cleanup should complete without the product owner acting as the workflow orchestrator.
+Yartchives should autonomously turn evidence-backed, bounded issues into verified PRs, repair routine CI and conflict failures, and merge eligible low-risk changes **without the product owner orchestrating individual steps**. The unified PR lifecycle controller should monitor every open PR regardless of author, but monitoring must never imply authorization to repair or merge it.
+
+**P0 operational deadline:** Jules becomes read-only on November 11, 2026. Replace writable Jules execution with a verified Copilot-backed executor before then, or explicitly enter a safe queue-only mode with visible escalation. Do not count successful issue assignment or PR creation as a complete migration. The overarching acceptance tracker is #1122; issue #1135 tracks repository-wide parent-initiative closure protection.
 
 ### Success signals
 
-- eligible autonomous work starts without manual dispatch;
-- completed work does not remain stuck as open PRs or stale Jules sessions;
-- transient Jules/platform failures receive bounded automatic recovery;
-- workflow-failure issues enter the same authoritative lifecycle as normal autonomous work;
-- spare Jules capacity is used for legitimate non-overlapping work when such work exists;
-- task-generation or maintenance automation can fail without blocking already-valid product work.
+- Issue selection, resource locks, agent assignment, completion records, PR creation, and CI handoff work unattended using a verified supported Copilot integration; no new work depends on writable Jules after the cutoff.
+- A single trusted controller watches **all open PRs**, using PR/check lifecycle events plus bounded periodic reconciliation; records the exact head, current required-check state, failure cause, retry budget, and next action.
+- Routine failures (missing CI, recoverable infrastructure errors, stale merge checks, and authorized code repairs/conflicts) enter a bounded diagnose → repair → revalidate cycle. Unsupported or repeatedly failing repair paths escalate instead of silently looping.
+- Only authorized, provenanced, low-risk changes proceed through protected, current required checks to automatic squash merge. Security-sensitive changes, secrets, workflow permissions, agent authorization, and deployment control changes require explicit human authorization. Never test untrusted PR code with write tokens.
+- Parent initiatives are protected from automatic closure; merging a child implementation PR closes only its independently completable task. Preserve historical Jules linkages without scheduling initiative issues as work items.
+- At least one **real unattended** issue → Copilot PR → CI → ready-for-review → protected merge cycle is recorded; validate failure repair and conflict/escalation scenarios with integration evidence, not only mocked adapters or workflow-string assertions.
 
-### Near-term direction
+### Near-term direction (blocking autonomy)
 
-- Finish the authoritative workflow-failure → Jules lifecycle work.
-- Use all otherwise-idle Jules capacity for legitimate evidence-backed work when non-overlapping current-main signals exist; existing eligible work is always selected before generating more.
-- Keep #507's evidence-backed replenishment architecture healthy and extend providers only from machine-verifiable signals; zero generated work remains valid when no strong evidence exists.
-- Keep concurrency resource-driven rather than forcing arbitrary utilization.
-- Improve diagnostics when slots remain unused.
+1. Finish the provider-neutral Jules-to-Copilot dispatcher, including verified issue assignment, capacity/quota policy, resource locks, durable state, retries, and a clear queue-only failure mode (#1122).
+2. Complete the existing trusted PR lifecycle controller: universal PR discovery, exact-head/merge-commit required checks, authorized draft-to-ready and merge transitions, duplicate-event safety, and no unexplained `action_required` backlog (#1122).
+3. Integrate supported Copilot repair mechanisms where actually available, with a bounded task-based fallback for unsupported bot PRs. Never assume GitHub's per-PR Agent Merge can be activated programmatically for every PR without verifying its API and permissions.
+4. Fix issue closure and dispatch label regressions at their source; protect initiatives and preserve normal completed-task auto-closure (#1135).
+5. Run adversarial lifecycle regression scenarios and a real end-to-end Copilot pilot. Do not mark migration or hands-off readiness complete until the acceptance evidence is attached to #1122.
 
 ### Non-goals
 
-- weakening resource locks to increase session count;
-- inventing refactors or cleanup tasks just to occupy Jules capacity;
-- letting automation make product-policy decisions silently.
+- Unrestricted merging of arbitrary PRs or permission/security changes.
+- Suppressing required checks, bypassing branch protection, or disabling approval gates before equivalent protections are verified.
+- Repeated no-op dispatches or generating issues simply to consume agent quota.
+- Maintaining separate competing controllers for Jules, Copilot, CI, and PR cleanup.
 
 ---
 
