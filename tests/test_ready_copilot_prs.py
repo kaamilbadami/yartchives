@@ -95,6 +95,16 @@ class CopilotReadyPolicyTests(unittest.TestCase):
         self.assertFalse(ready.exact_head_quality_green(
             [dict(green[0], conclusion="failure")], SHA))
 
+    def test_merge_status_requires_current_merge_sha_and_successful_tests(self):
+        merge_sha = "c" * 40
+        green = {"statuses": [{"context": "tests", "state": "success"}]}
+        self.assertTrue(ready.exact_merge_tests_green(green, merge_sha))
+        self.assertFalse(ready.exact_merge_tests_green(
+            {"statuses": [{"context": "tests", "state": "pending"}]}, merge_sha))
+        self.assertFalse(ready.exact_merge_tests_green(
+            {"statuses": [{"context": "other", "state": "success"}]}, merge_sha))
+        self.assertFalse(ready.exact_merge_tests_green(green, "not-a-sha"))
+
     def test_recovery_only_for_missing_or_approval_gated_ci(self):
         self.assertTrue(ready.recovery_allowed([], SHA))
         action = [{"name": "Quality checks", "head_sha": SHA,
@@ -107,11 +117,14 @@ class CopilotReadyPolicyTests(unittest.TestCase):
 
 
 class CopilotReadyReconciliationTests(unittest.TestCase):
-    def run_controller(self, *, quality=True, head_drift=False, comments=None):
+    def run_controller(self, *, quality=True, head_drift=False, comments=None,
+                       merge_quality=False, stale_merge=False):
         pr, issue, files, events, links = fixtures()
         current = dict(pr)
         if head_drift:
             current["head"] = dict(pr["head"], sha="b" * 40)
+        if merge_quality:
+            current["merge_commit_sha"] = "c" * 40
         green = [{"name": "Quality checks", "head_sha": SHA,
                   "status": "completed", "conclusion": "success"}] if quality else []
         def pages(endpoint):
@@ -131,6 +144,9 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
                 return issue
             if "/actions/runs?" in endpoint:
                 return {"workflow_runs": green}
+            if "/commits/" in endpoint and "/status" in endpoint:
+                return {"statuses": [{"context": "tests",
+                                      "state": "pending" if stale_merge else "success"}]}
             if "/pulls/77" in endpoint:
                 return current
             raise AssertionError(f"Unexpected endpoint: {endpoint}")
@@ -146,6 +162,16 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         self.assertEqual(len(calls), 1)
         self.assertEqual(calls[0].args, ("pr", "ready", "77", "--repo", REPO))
 
+    def test_green_current_merge_status_marks_ready_without_head_run(self):
+        calls = self.run_controller(quality=False, merge_quality=True)
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0].args, ("pr", "ready", "77", "--repo", REPO))
+
+    def test_pending_merge_status_does_not_mark_ready(self):
+        calls = self.run_controller(quality=False, merge_quality=True, stale_merge=True)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[1].args[-2:], ("-f", "pr_number=77"))
+
     def test_head_drift_blocks_ready_and_recovery(self):
         self.assertEqual(self.run_controller(head_drift=True), [])
 
@@ -153,7 +179,10 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         calls = self.run_controller(quality=False)
         self.assertEqual(len(calls), 2)
         self.assertEqual(calls[0].args[:4], ("api", "--method", "POST", f"repos/{REPO}/issues/77/comments"))
-        self.assertEqual(calls[1].args[:3], ("workflow", "run", "quality.yml"))
+        self.assertEqual(calls[1].args, (
+            "workflow", "run", "quality.yml", "--repo", REPO,
+            "--ref", "main", "-f", "pr_recovery=true", "-f", "pr_number=77"
+        ))
         marker = ready.RECOVERY_MARKER.format(head=SHA)
         self.assertEqual(self.run_controller(
             quality=False, comments=[{"body": marker}]
