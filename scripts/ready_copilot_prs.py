@@ -143,13 +143,15 @@ def exact_head_quality_green(runs: list[dict[str, Any]], sha: str) -> bool:
 
 def exact_merge_tests_green(status: dict[str, Any], merge_sha: str) -> bool:
     """Accept only the required tests context on the current synthetic merge SHA."""
-    return (
-        bool(re.fullmatch(r"[a-f0-9]{40}", merge_sha))
-        and any(
-            entry.get("context") == "tests" and entry.get("state") == "success"
-            for entry in (status.get("statuses") or [])
-        )
+    if not re.fullmatch(r"[a-f0-9]{40}", merge_sha):
+        return False
+    # GitHub returns combined-status entries newest first. An older green
+    # status must not override a newer failure/pending status in the same context.
+    latest_tests = next(
+        (entry for entry in (status.get("statuses") or [])
+         if entry.get("context") == "tests"), None
     )
+    return bool(latest_tests and latest_tests.get("state") == "success")
 
 
 def recovery_allowed(runs: list[dict[str, Any]], sha: str) -> bool:
