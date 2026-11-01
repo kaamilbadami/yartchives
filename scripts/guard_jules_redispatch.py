@@ -58,6 +58,8 @@ def should_restore_review_ready(
         return None
 
     labels = label_names(issue)
+    if "initiative" in labels:
+        return None
     if labels & {
         JULES_ACTIVE_LABEL,
         JULES_REVIEW_READY_LABEL,
