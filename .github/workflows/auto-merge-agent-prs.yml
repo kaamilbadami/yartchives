@@ -9,12 +9,6 @@ on:
         type: string
   schedule:
     - cron: "*/5 * * * *"
-  pull_request:
-    types:
-      - opened
-      - reopened
-      - synchronize
-      - ready_for_review
   issue_comment:
     types:
       - created
@@ -74,6 +68,12 @@ jobs:
       - name: Capture main before merge
         id: main_before
         run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Reconcile completed low-risk Copilot drafts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: python scripts/ready_copilot_prs.py
 
       - name: Merge one safe autonomous pull request
         env:
