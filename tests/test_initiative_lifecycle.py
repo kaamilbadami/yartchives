@@ -85,6 +85,14 @@ class InitiativeLifecycleTests(unittest.TestCase):
         with self.assertRaises(RuntimeError):
             merger.initiative_closing_references("Closes #42", load_issue=lambda _: (_ for _ in ()).throw(RuntimeError("unavailable")))
 
+    def test_missing_issue_labels_fail_closed(self):
+        with self.assertRaises(ValueError):
+            merger.initiative_closing_references("Closes #42", load_issue=lambda _: {})
+        with mock.patch.object(merger, "gh_json", return_value={"state": "open"}), \
+             mock.patch.object(merger.subprocess, "run") as run:
+            merger.close_linked_issue_after_merge("test/repo", 42)
+        run.assert_not_called()
+
     def test_automerge_eligibility_rejects_parent_even_when_green(self):
         candidate = {
             "state": "open", "draft": False,
