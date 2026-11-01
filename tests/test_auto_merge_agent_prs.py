@@ -69,7 +69,6 @@ class AutoMergeAgentPrTests(unittest.TestCase):
     def test_blocked_required_check_recovery_targets_pr_merge_commit(self):
         source = MODULE_PATH.read_text()
         block = source.split("if missing_required_tests_status(detail) and head_ref:", 1)[1]
-        block = block.split("            else:", 1)[0]
         self.assertIn('"--ref", "main"', block)
         self.assertIn('f"pr_number={number}"', block)
         self.assertIn('"pr_recovery=true"', block)
