@@ -142,7 +142,14 @@ def initiative_closing_references(
     explicit issue PATCH calls is insufficient. Fail closed on lookup errors.
     """
     numbers = sorted({int(value) for value in CLOSING_ISSUE_RE.findall(body or "")})
-    return [number for number in numbers if "initiative" in label_names(load_issue(number))]
+    parents: list[int] = []
+    for number in numbers:
+        issue = load_issue(number)
+        if not isinstance(issue, dict) or not isinstance(issue.get("labels"), list):
+            raise ValueError(f"missing labels for closing reference #{number}")
+        if "initiative" in label_names(issue):
+            parents.append(number)
+    return parents
 
 
 def completed_jules_output(
@@ -1106,6 +1113,9 @@ def close_linked_issue_after_merge(repo: str, issue_number: int | None) -> None:
         return
 
     if str(current.get("state") or "") == "closed":
+        return
+    if not isinstance(current.get("labels"), list):
+        print(f"WARNING: missing issue labels for #{issue_number}; refusing automatic closure.")
         return
     if "initiative" in label_names(current):
         print(f"SKIP_INITIATIVE: linked parent #{issue_number} requires authorized closure.")
