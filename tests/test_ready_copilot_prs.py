@@ -132,7 +132,7 @@ class CopilotReadyPolicyTests(unittest.TestCase):
 
 class CopilotReadyReconciliationTests(unittest.TestCase):
     def run_controller(self, *, quality=True, head_drift=False, comments=None,
-                       merge_quality=False, stale_merge=False):
+                       merge_quality=False, stale_merge=False, failed_merge=False):
         pr, issue, files, events, links = fixtures()
         current = dict(pr)
         if head_drift:
@@ -160,7 +160,8 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
                 return {"workflow_runs": green}
             if "/commits/" in endpoint and "/status" in endpoint:
                 return {"statuses": [{"context": "tests",
-                                      "state": "pending" if stale_merge else "success"}]}
+                                      "state": "failure" if failed_merge else (
+                                          "pending" if stale_merge else "success")}]}
             if "/pulls/77" in endpoint:
                 return current
             raise AssertionError(f"Unexpected endpoint: {endpoint}")
@@ -185,6 +186,11 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         calls = self.run_controller(quality=False, merge_quality=True, stale_merge=True)
         self.assertEqual(len(calls), 2)
         self.assertEqual(calls[1].args[-2:], ("-f", "pr_number=77"))
+
+    def test_failed_current_merge_does_not_dispatch_again(self):
+        self.assertEqual(self.run_controller(
+            quality=False, merge_quality=True, failed_merge=True
+        ), [])
 
     def test_head_drift_blocks_ready_and_recovery(self):
         self.assertEqual(self.run_controller(head_drift=True), [])
