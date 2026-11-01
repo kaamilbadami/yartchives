@@ -141,6 +141,17 @@ def exact_head_quality_green(runs: list[dict[str, Any]], sha: str) -> bool:
     )
 
 
+def exact_merge_tests_green(status: dict[str, Any], merge_sha: str) -> bool:
+    """Accept only the required tests context on the current synthetic merge SHA."""
+    return (
+        bool(re.fullmatch(r"[a-f0-9]{40}", merge_sha))
+        and any(
+            entry.get("context") == "tests" and entry.get("state") == "success"
+            for entry in (status.get("statuses") or [])
+        )
+    )
+
+
 def recovery_allowed(runs: list[dict[str, Any]], sha: str) -> bool:
     """One trusted recovery attempt only for missing or approval-gated CI."""
     current = [r for r in runs if r.get("name") == "Quality checks"
@@ -181,7 +192,15 @@ def main() -> int:
                     or (fresh.get("base") or {}).get("ref") != "main"):
                 print(f"PR #{number}: head/state changed during validation; skipping.")
                 continue
-            if exact_head_quality_green(runs, sha):
+            # A trusted main-branch recovery run tests refs/pull/N/merge and
+            # publishes the required 'tests' status on that exact merge SHA.
+            # Never treat a status on a stale synthetic merge as current.
+            merge_sha = str(fresh.get("merge_commit_sha") or "")
+            merge_green = False
+            if re.fullmatch(r"[a-f0-9]{40}", merge_sha):
+                merge_status = gh_json(f"repos/{repo}/commits/{merge_sha}/status")
+                merge_green = exact_merge_tests_green(merge_status, merge_sha)
+            if exact_head_quality_green(runs, sha) or merge_green:
                 current_issue = gh_json(f"repos/{repo}/issues/{issue_number}")
                 still_ok, reason = provenance_verified(
                     fresh, current_issue, files, pr_events, issue_events, repo
@@ -204,9 +223,13 @@ def main() -> int:
             gh_write("api", "--method", "POST",
                      f"repos/{repo}/issues/{number}/comments",
                      "-f", f"body={marker}\nOne bounded read-only Quality recovery attempt for this exact draft head.")
+            # Run the trusted workflow from main, not the untrusted PR branch.
+            # quality.yml checks out the current synthetic merge and publishes
+            # the required tests status only if its merge SHA stays unchanged.
             gh_write("workflow", "run", "quality.yml", "--repo", repo,
-                     "--ref", head["ref"], "-f", "pr_recovery=true")
-            print(f"PR #{number}: dispatched one exact-head Quality recovery; remains draft.")
+                     "--ref", "main", "-f", "pr_recovery=true",
+                     "-f", f"pr_number={number}")
+            print(f"PR #{number}: dispatched one current-merge Quality recovery; remains draft.")
         except (subprocess.CalledProcessError, ValueError, KeyError, TypeError) as exc:
             print(f"PR #{number}: blocked safely by verification/API error: {exc}")
     return 0
