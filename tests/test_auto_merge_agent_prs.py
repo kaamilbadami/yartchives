@@ -59,6 +59,16 @@ class MissingCiRecoveryTests(unittest.TestCase):
 
 
 class AutoMergeAgentPrTests(unittest.TestCase):
+    def test_copilot_ready_state_never_authorizes_legacy_auto_merge(self):
+        self.assertTrue(mod.copilot_merge_requires_independent_authorization(
+            {"user": {"login": "Copilot"}, "draft": False}))
+        self.assertTrue(mod.copilot_merge_requires_independent_authorization(
+            {"user": {"login": "Copilot"}, "draft": True}))
+        self.assertFalse(mod.copilot_merge_requires_independent_authorization(
+            {"user": {"login": "google-labs-jules[bot]"}, "draft": False}))
+        self.assertFalse(mod.copilot_merge_requires_independent_authorization(
+            {"user": {"login": "kaamilbadami"}, "draft": False}))
+
     def test_controller_reconciles_on_trusted_quality_completion_and_schedule(self):
         workflow = (ROOT / ".github/workflows/auto-merge-agent-prs.yml").read_text()
         # Privileged pull_request runs on Copilot PRs are approval-gated;
