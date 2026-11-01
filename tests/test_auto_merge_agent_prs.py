@@ -849,7 +849,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         with mock.patch.object(
             mod,
             "gh_json",
-            side_effect=[{"state": "open"}, {"state": "open"}],
+            side_effect=[{"state": "open", "labels": []}, {"state": "open", "labels": []}],
         ), mock.patch.object(
             mod.subprocess,
             "run",
@@ -874,7 +874,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         with mock.patch.object(
             mod,
             "gh_json",
-            side_effect=[{"state": "open"}, {"state": "closed"}],
+            side_effect=[{"state": "open", "labels": []}, {"state": "closed"}],
         ), mock.patch.object(mod.subprocess, "run", return_value=failed), \
              mock.patch("builtins.print") as print_mock:
             mod.close_linked_issue_after_merge("kaamilbadami/yartchives", 457)
@@ -1476,7 +1476,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             stdout="",
             stderr="",
         )
-        with mock.patch.object(mod, "gh_json", return_value={"state": "open"}), \
+        with mock.patch.object(mod, "gh_json", return_value={"state": "open", "labels": []}), \
              mock.patch.object(mod.subprocess, "run", return_value=ok) as run:
             mod.close_linked_issue_after_merge("kaamilbadami/yartchives", 417)
 
