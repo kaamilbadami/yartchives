@@ -67,7 +67,7 @@ class InitiativeLifecycleTests(unittest.TestCase):
         self.assertEqual(calls, [])
 
     def test_explicit_post_merge_closure_skips_parent(self):
-        with mock.patch.object(merger, "gh_json", return_value=issue()), \\
+        with mock.patch.object(merger, "gh_json", return_value=issue()), \
              mock.patch.object(merger.subprocess, "run") as run:
             merger.close_linked_issue_after_merge("test/repo", 42)
         run.assert_not_called()
