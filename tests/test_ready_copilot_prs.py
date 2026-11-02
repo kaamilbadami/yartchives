@@ -69,6 +69,21 @@ class CopilotReadyPolicyTests(unittest.TestCase):
         i.pop("labels")
         self.assertFalse(allowed((p, i, f, e, links)))
 
+    def test_disconnected_issue_pr_link_invalidates_historical_connection(self):
+        p, i, f, e, links = fixtures()
+        disconnected = {"event": "disconnected", "actor": {"login": "kaamilbadami"},
+                        "subject": {"number": 77,
+                                    "repository": {"full_name": REPO}}}
+        self.assertFalse(allowed((p, i, f, e, links + [disconnected])))
+        # A disconnect for a different PR does not invalidate this link.
+        other = dict(disconnected, subject={"number": 78,
+                                            "repository": {"full_name": REPO}})
+        self.assertTrue(allowed((p, i, f, e, links + [other])))
+        # A subsequent Copilot reconnection restores the current provenance.
+        self.assertTrue(allowed((p, i, f, e, links + [
+            disconnected, dict(links[0])
+        ])))
+
     def test_unfinished_or_resumed_work_never_transitions(self):
         p, i, f, e, links = fixtures()
         self.assertFalse(allowed((p, i, f, e[:1], links)))
@@ -186,7 +201,8 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
     def run_controller(self, *, quality=True, head_drift=False, comments=None,
                        merge_quality=False, stale_merge=False, failed_merge=False,
                        late_commit=False, missing_merge_status=False,
-                       head_action_required=False, merge_drift_on_recheck=False):
+                       head_action_required=False, merge_drift_on_recheck=False,
+                       late_disconnect=False):
         pr, issue, files, events, links = fixtures()
         current = dict(pr)
         if head_drift:
@@ -199,6 +215,7 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
             green = [{"name": "Quality checks", "head_sha": SHA,
                       "status": "completed", "conclusion": "action_required"}]
         timeline_reads = [0]
+        issue_timeline_reads = [0]
         pr_reads = [0]
         def pages(endpoint):
             if "/pulls?state=open" in endpoint:
@@ -211,6 +228,13 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
                     return events + [{"event": "committed", "sha": "b" * 40}]
                 return events
             if "/issues/76/timeline?" in endpoint:
+                issue_timeline_reads[0] += 1
+                if late_disconnect and issue_timeline_reads[0] > 1:
+                    return links + [{
+                        "event": "disconnected", "actor": {"login": "kaamilbadami"},
+                        "subject": {"number": 77,
+                                    "repository": {"full_name": REPO}},
+                    }]
                 return links
             if "/issues/77/comments?" in endpoint:
                 return comments or []
@@ -343,6 +367,13 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         # changing the head. The original green status is now stale.
         self.assertEqual(self.run_controller(
             quality=True, merge_quality=True, merge_drift_on_recheck=True
+        ), [])
+
+    def test_issue_pr_disconnected_during_final_recheck_blocks_ready(self):
+        # The issue was linked when the controller started, but its Copilot
+        # connection was revoked before the last trusted readiness decision.
+        self.assertEqual(self.run_controller(
+            quality=True, merge_quality=True, late_disconnect=True
         ), [])
 
     def test_new_commit_between_validation_and_ready_blocks_transition(self):
