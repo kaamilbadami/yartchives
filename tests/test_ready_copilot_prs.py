@@ -199,6 +199,29 @@ class CopilotReadyPolicyTests(unittest.TestCase):
             {"statuses": [{"context": "tests", "state": "failure"},
                           {"context": "tests", "state": "success"}]}, merge_sha))
 
+    def test_exact_head_recovery_requires_trusted_bot_and_run_url(self):
+        good = {"statuses": [{
+            "context": "copilot-head-tests", "state": "success",
+            "creator": {"login": "github-actions[bot]"},
+            "target_url": f"https://github.com/{REPO}/actions/runs/123",
+        }]}
+        self.assertTrue(ready.trusted_recovery_head_green(good, SHA, REPO))
+        for changes in (
+            {"state": "pending"},
+            {"creator": {"login": "attacker"}},
+            {"target_url": "https://example.com/actions/runs/123"},
+            {"target_url": "https://github.com/attacker/repo/actions/runs/123"},
+        ):
+            with self.subTest(changes=changes):
+                forged = dict(good["statuses"][0], **changes)
+                self.assertFalse(ready.trusted_recovery_head_green(
+                    {"statuses": [forged]}, SHA, REPO))
+        self.assertFalse(ready.trusted_recovery_head_green(good, "invalid", REPO))
+        # A newer failure must override an old trusted success.
+        failed = dict(good["statuses"][0], state="failure")
+        self.assertFalse(ready.trusted_recovery_head_green(
+            {"statuses": [failed, good["statuses"][0]]}, SHA, REPO))
+
     def test_recovery_only_for_missing_or_approval_gated_ci(self):
         self.assertTrue(ready.recovery_allowed([], SHA))
         action = [{"name": "Quality checks", "head_sha": SHA,
@@ -217,7 +240,8 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
                        head_action_required=False, merge_drift_on_recheck=False,
                        late_disconnect=False, body_drift_on_recheck=False,
                        head_ref_drift_on_recheck=False, author_drift_on_recheck=False,
-                       base_sha_drift_on_recheck=False, missing_base_sha_on_recheck=False):
+                       base_sha_drift_on_recheck=False, missing_base_sha_on_recheck=False,
+                       trusted_head_recovery=False):
         pr, issue, files, events, links = fixtures()
         current = dict(pr)
         if head_drift:
@@ -259,6 +283,14 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
                 return issue
             if "/actions/runs?" in endpoint:
                 return {"workflow_runs": green}
+            if f"/commits/{SHA}/status" in endpoint:
+                if trusted_head_recovery:
+                    return {"statuses": [{
+                        "context": "copilot-head-tests", "state": "success",
+                        "creator": {"login": "github-actions[bot]"},
+                        "target_url": f"https://github.com/{REPO}/actions/runs/123",
+                    }]}
+                return {"statuses": []}
             if "/commits/" in endpoint and "/status" in endpoint:
                 return {"statuses": [] if missing_merge_status else [{
                     "context": "tests",
@@ -307,7 +339,8 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         ))
         self.assertEqual(calls[1].args, (
             "workflow", "run", "quality.yml", "--repo", REPO,
-            "--ref", "main", "-f", "pr_recovery=true", "-f", "pr_number=77"
+            "--ref", "main", "-f", "pr_recovery=true", "-f", "pr_number=77",
+            "-f", f"pr_head_sha={SHA}"
         ))
         marker = ready.RECOVERY_MARKER.format(head=SHA, merge="c" * 40)
         self.assertEqual(self.run_controller(
@@ -373,15 +406,37 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         ))
 
     def test_green_merge_status_without_executed_head_ci_stays_draft(self):
-        # A merge-commit status does not substitute for an exact-head CI run.
-        # No recovery is necessary when the merge is already green; wait for
-        # read-only head CI instead of silently transitioning the draft.
-        self.assertEqual(self.run_controller(quality=False, merge_quality=True), [])
+        # A green merge cannot authorize ready. Recover the exact head in an
+        # isolated read-only job, without executing untrusted code with write.
+        calls = self.run_controller(quality=False, merge_quality=True)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[1].args[-2:], ("-f", f"pr_head_sha={SHA}"))
 
     def test_approval_gated_head_ci_cannot_be_bypassed_by_green_merge(self):
-        self.assertEqual(self.run_controller(
+        calls = self.run_controller(
             quality=False, merge_quality=True, head_action_required=True
-        ), [])
+        )
+        self.assertEqual(len(calls), 2)
+        self.assertNotIn(("pr", "ready"), [call.args[:2] for call in calls])
+        # Only an actual trusted read-only exact-head success may authorize ready.
+        calls = self.run_controller(
+            quality=False, merge_quality=True, head_action_required=True,
+            trusted_head_recovery=True,
+        )
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0].args[:2], ("pr", "ready"))
+
+    def test_executed_head_failure_vetoes_trusted_recovery(self):
+        # A real failed head run is not approval-gated and cannot be bypassed.
+        calls = self.run_controller(
+            quality=False, merge_quality=True, trusted_head_recovery=True
+        )
+        self.assertEqual(calls[0].args[:2], ("pr", "ready"))
+        # Unit-level decision explicitly rejects an executed failure.
+        failed = [{"name": "Quality checks", "head_sha": SHA,
+                   "status": "completed", "conclusion": "failure"}]
+        self.assertFalse(ready.exact_head_quality_green(failed, SHA))
+        self.assertFalse(ready.recovery_allowed(failed, SHA))
 
     def test_failed_merge_blocks_ready_even_when_head_ci_is_green(self):
         self.assertEqual(self.run_controller(
@@ -427,7 +482,7 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
     def test_pending_merge_status_does_not_mark_ready(self):
         calls = self.run_controller(quality=False, merge_quality=True, stale_merge=True)
         self.assertEqual(len(calls), 2)
-        self.assertEqual(calls[1].args[-2:], ("-f", "pr_number=77"))
+        self.assertEqual(calls[1].args[-2:], ("-f", f"pr_head_sha={SHA}"))
 
     def test_failed_current_merge_does_not_dispatch_again(self):
         self.assertEqual(self.run_controller(
@@ -445,7 +500,8 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         self.assertEqual(calls[0].args[:4], ("api", "--method", "POST", f"repos/{REPO}/issues/77/comments"))
         self.assertEqual(calls[1].args, (
             "workflow", "run", "quality.yml", "--repo", REPO,
-            "--ref", "main", "-f", "pr_recovery=true", "-f", "pr_number=77"
+            "--ref", "main", "-f", "pr_recovery=true", "-f", "pr_number=77",
+            "-f", f"pr_head_sha={SHA}"
         ))
         marker = ready.RECOVERY_MARKER.format(head=SHA, merge="c" * 40)
         self.assertEqual(self.run_controller(
