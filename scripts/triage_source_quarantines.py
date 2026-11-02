@@ -220,12 +220,32 @@ def triage(
         if (signature := issue_signature(issue))
     }
 
+    def current_owned_issue(number: int, signature: str) -> dict[str, Any] | None:
+        # A triage snapshot is not closure authorization. Re-read the open issue
+        # collection before each mutation; missing metadata fails closed.
+        for candidate in load_open_issues():
+            if candidate.get("number") != number or candidate.get("state") != "open":
+                continue
+            labels = candidate.get("labels")
+            if not isinstance(labels, list) or "initiative" in label_names(candidate):
+                return None
+            if ISSUE_LABEL not in label_names(candidate):
+                return None
+            if issue_signature(candidate) != signature:
+                return None
+            return candidate
+        return None
+
     for signature, group in groups.items():
         body = render_issue_body(signature, group)
         existing = by_signature.get(signature)
         if existing:
             number = str(existing["number"])
-            labels = label_names(existing)
+            current = current_owned_issue(int(number), signature)
+            if current is None:
+                print(f"Skipping stale or protected quarantine issue #{number}.")
+                continue
+            labels = label_names(current)
             edit_args = ["issue", "edit", number, "--repo", repo, "--body", body]
             if AGENT_LABEL not in labels:
                 edit_args += ["--add-label", AGENT_LABEL]
@@ -250,7 +270,11 @@ def triage(
         if not signature or signature in active_signatures:
             continue
         number = str(issue["number"])
-        labels = label_names(issue)
+        current = current_owned_issue(int(number), signature)
+        if current is None:
+            print(f"Skipping stale or protected quarantine issue #{number}.")
+            continue
+        labels = label_names(current)
         edit_args = ["issue", "edit", number, "--repo", repo]
         for label in ("jules", "jules-session", AGENT_LABEL, BACKLOG_LABEL):
             if label in labels:
@@ -266,6 +290,11 @@ def triage(
                 "again across two future feed generations, triage will create a fresh issue."
             ),
         )
+        # Recheck immediately before closure: another controller may have
+        # relabeled this issue as an initiative after the first snapshot.
+        if current_owned_issue(int(number), signature) is None:
+            print(f"Skipping closure of changed quarantine issue #{number}.")
+            continue
         run_gh("issue", "close", number, "--repo", repo)
 
     return groups
