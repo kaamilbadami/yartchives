@@ -374,10 +374,7 @@ Treat the current repository as the source of truth. Diagnose the root cause bef
             if _current_owned_failure_issue(ctx, gh_json, int(number), prefix) is None:
                 print(f"Skipping closure of changed workflow issue #{number}.")
                 continue
-            if _current_owned_failure_issue(ctx, gh_json, int(number), prefix) is None:
-            print(f"Skipping closure of changed workflow issue #{number}.")
-            continue
-        gh_run("issue", "close", number, "--repo", ctx.repo)
+            gh_run("issue", "close", number, "--repo", ctx.repo)
 
     existing = next((issue for issue in issues if marker in (issue.get("body") or "")), None)
 
@@ -468,6 +465,9 @@ def handle_success(ctx: Context, gh_json: GhJson, gh_run: GhRun) -> None:
                 "triage will create a fresh issue so the dispatcher can start a fresh task."
             ),
         )
+        if _current_owned_failure_issue(ctx, gh_json, int(number), prefix) is None:
+            print(f"Skipping closure of changed workflow issue #{number}.")
+            continue
         gh_run("issue", "close", number, "--repo", ctx.repo)
 
 
