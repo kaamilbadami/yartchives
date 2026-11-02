@@ -284,6 +284,15 @@ def main() -> int:
                         or (latest_pr.get("head") or {}).get("sha") != sha
                         or (latest_pr.get("base") or {}).get("ref") != "main"
                         or latest_pr.get("merge_commit_sha") != merge_sha
+                        # A new main commit can advance base.sha before GitHub
+                        # recomputes refs/pull/N/merge. The old merge SHA may
+                        # still appear green, so pin the verified base commit.
+                        or not re.fullmatch(
+                            r"[a-f0-9]{40}",
+                            str((fresh.get("base") or {}).get("sha") or ""),
+                        )
+                        or (latest_pr.get("base") or {}).get("sha") != (
+                            fresh.get("base") or {}).get("sha")
                         # The PR body is an authorization input: a late edit
                         # could replace the verified child issue with an
                         # initiative-closing keyword without changing its head.
