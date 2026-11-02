@@ -122,14 +122,19 @@ def provenance_verified(
     if not safe_low_risk_files(files):
         return False, "sensitive or unallowlisted files"
     pr_number = pr.get("number")
-    if not any(
-        e.get("event") == "connected"
-        and str((e.get("actor") or {}).get("login") or "").casefold() == COPILOT
+    # A historical Copilot connection is not sufficient: the issue can be
+    # disconnected from this PR after the agent finishes. GitHub timelines are
+    # chronological, so require the latest matching link event to be a
+    # Copilot-authored connection (and not a later disconnection).
+    link_events = [
+        e for e in issue_events
+        if e.get("event") in {"connected", "disconnected"}
         and (e.get("subject") or {}).get("number") == pr_number
         and ((e.get("subject") or {}).get("repository") or {}).get("full_name") == repo
-        for e in issue_events
-    ):
-        return False, "missing Copilot issue-to-PR connection"
+    ]
+    if (not link_events or link_events[-1].get("event") != "connected"
+            or str((link_events[-1].get("actor") or {}).get("login") or "").casefold() != COPILOT):
+        return False, "missing or disconnected Copilot issue-to-PR connection"
     # GitHub's PR timeline is ordered and includes 'committed' events without
     # created_at. Compare event positions, not only timestamps: a push after
     # Copilot finished invalidates completion even if the head later passes CI.
@@ -261,8 +266,11 @@ def main() -> int:
             if merge_green and head_green:
                 current_issue = gh_json(f"repos/{repo}/issues/{issue_number}")
                 current_events = gh_pages(f"repos/{repo}/issues/{number}/timeline?per_page=100")
+                current_issue_events = gh_pages(
+                    f"repos/{repo}/issues/{issue_number}/timeline?per_page=100"
+                )
                 still_ok, reason = provenance_verified(
-                    fresh, current_issue, files, current_events, issue_events, repo
+                    fresh, current_issue, files, current_events, current_issue_events, repo
                 )
                 if not still_ok:
                     print(f"PR #{number}: {reason} on recheck; keeping draft.")
