@@ -75,6 +75,24 @@ class CopilotReadyPolicyTests(unittest.TestCase):
         e.append({"event": "copilot_work_started", "created_at": "2026-11-01T01:03:00Z"})
         self.assertFalse(allowed((p, i, f, e, links)))
 
+    def test_commits_or_force_push_after_completion_invalidate_readiness(self):
+        for event in ("committed", "head_ref_force_pushed", "synchronize"):
+            p, i, f, e, links = fixtures()
+            e.append({"event": event, "sha": "b" * 40})
+            with self.subTest(event=event):
+                self.assertFalse(allowed((p, i, f, e, links)))
+
+    def test_new_completion_after_commit_restores_eligibility(self):
+        p, i, f, e, links = fixtures()
+        e.extend([
+            {"event": "committed", "sha": "b" * 40},
+            {"event": "copilot_work_finished", "created_at": "2026-11-01T01:04:00Z",
+             "performed_via_github_app": {"slug": "copilot-swe-agent"}},
+            {"event": "review_requested", "created_at": "2026-11-01T01:04:00Z",
+             "actor": {"login": "Copilot"}},
+        ])
+        self.assertTrue(allowed((p, i, f, e, links)))
+
     def test_review_request_is_required_after_completion(self):
         p, i, f, e, links = fixtures()
         self.assertFalse(allowed((p, i, f, e[:2], links)))
@@ -106,6 +124,17 @@ class CopilotReadyPolicyTests(unittest.TestCase):
         self.assertFalse(ready.exact_head_quality_green(
             [dict(green[0], conclusion="failure")], SHA))
 
+    def test_newer_failed_or_pending_head_run_overrides_old_success(self):
+        older = {"name": "Quality checks", "head_sha": SHA,
+                 "status": "completed", "conclusion": "success",
+                 "created_at": "2026-11-01T01:00:00Z", "id": 1}
+        for status, conclusion in (("completed", "failure"), ("in_progress", None)):
+            newer = dict(older, status=status, conclusion=conclusion,
+                         created_at="2026-11-01T01:05:00Z", id=2)
+            with self.subTest(status=status):
+                self.assertFalse(ready.exact_head_quality_green([older, newer], SHA))
+        self.assertTrue(ready.exact_head_quality_green([older], SHA))
+
     def test_merge_status_requires_current_merge_sha_and_successful_tests(self):
         merge_sha = "c" * 40
         green = {"statuses": [{"context": "tests", "state": "success"}]}
@@ -132,7 +161,8 @@ class CopilotReadyPolicyTests(unittest.TestCase):
 
 class CopilotReadyReconciliationTests(unittest.TestCase):
     def run_controller(self, *, quality=True, head_drift=False, comments=None,
-                       merge_quality=False, stale_merge=False, failed_merge=False):
+                       merge_quality=False, stale_merge=False, failed_merge=False,
+                       late_commit=False):
         pr, issue, files, events, links = fixtures()
         current = dict(pr)
         if head_drift:
@@ -141,12 +171,16 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
             current["merge_commit_sha"] = "c" * 40
         green = [{"name": "Quality checks", "head_sha": SHA,
                   "status": "completed", "conclusion": "success"}] if quality else []
+        timeline_reads = [0]
         def pages(endpoint):
             if "/pulls?state=open" in endpoint:
                 return [pr]
             if "/files?" in endpoint:
                 return files
             if "/issues/77/timeline?" in endpoint:
+                timeline_reads[0] += 1
+                if late_commit and timeline_reads[0] > 1:
+                    return events + [{"event": "committed", "sha": "b" * 40}]
                 return events
             if "/issues/76/timeline?" in endpoint:
                 return links
@@ -181,6 +215,14 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         calls = self.run_controller(quality=False, merge_quality=True)
         self.assertEqual(len(calls), 1)
         self.assertEqual(calls[0].args, ("pr", "ready", "77", "--repo", REPO))
+
+    def test_failed_merge_blocks_ready_even_when_head_ci_is_green(self):
+        self.assertEqual(self.run_controller(
+            quality=True, merge_quality=True, failed_merge=True
+        ), [])
+
+    def test_new_commit_between_validation_and_ready_blocks_transition(self):
+        self.assertEqual(self.run_controller(late_commit=True), [])
 
     def test_pending_merge_status_does_not_mark_ready(self):
         calls = self.run_controller(quality=False, merge_quality=True, stale_merge=True)
