@@ -92,7 +92,7 @@ class Tests(unittest.TestCase):
             calls.append(args)
             if args[:3] == ("pr", "view", "70"):
                 return json.dumps({"mergedAt": "2026-11-02T00:00:00Z",
-                                   "body": "Updates #42\\nCompletes acceptance criteria for #42"})
+                                   "body": "Updates #42\nCompletes acceptance criteria for #42"})
             if args[:3] == ("issue", "view", "42"):
                 return json.dumps({"state": "OPEN", "labels": [{"name": x} for x in labels], "body": ""})
             if args[:3] == ("issue", "comment", "42"):
@@ -139,7 +139,7 @@ class Tests(unittest.TestCase):
             calls.append(args)
             if args[:3] == ("pr", "view", "70"):
                 return json.dumps({"mergedAt": "2026-11-02T00:00:00Z",
-                                   "body": "Updates #42\\nCompletes acceptance criteria for #42"})
+                                   "body": "Updates #42\nCompletes acceptance criteria for #42"})
             if args[:3] == ("issue", "view", "42"):
                 return json.dumps({"state": "OPEN", "body": ""})
             return "{}"
@@ -160,7 +160,7 @@ class Tests(unittest.TestCase):
             calls.append(args)
             if args[:3] == ("pr", "view", "70"):
                 return json.dumps({"mergedAt": "2026-11-02T00:00:00Z",
-                                   "body": "Updates #42\\nCompletes acceptance criteria for #42"})
+                                   "body": "Updates #42\nCompletes acceptance criteria for #42"})
             if args[:3] == ("issue", "view", "42"):
                 return json.dumps({"state": state[0], "labels": [], "body": ""})
             if args[:3] == ("issue", "comment", "42"):
