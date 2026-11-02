@@ -1206,6 +1206,7 @@ def cleanup_merged_jules_sessions(
     load_review_ready: Callable[[], list[dict[str, Any]]] | None = None,
     load_comments: Callable[[int], list[dict[str, Any]]] | None = None,
     get_pr: Callable[[int], dict[str, Any]] | None = None,
+    get_issue: Callable[[int], dict[str, Any]] | None = None,
     delete_session: Callable[[str], None] | None = None,
     run_gh: Callable[..., None] | None = None,
 ) -> None:
@@ -1222,6 +1223,8 @@ def cleanup_merged_jules_sessions(
         )
     if get_pr is None:
         get_pr = lambda number: gh_json("api", f"repos/{repo}/pulls/{number}")
+    if get_issue is None:
+        get_issue = lambda number: gh_json("api", f"repos/{repo}/issues/{number}")
     if delete_session is None:
         delete_session = lambda session_id: delete_jules_session(api_key, session_id)
     if run_gh is None:
@@ -1237,6 +1240,16 @@ def cleanup_merged_jules_sessions(
         session_id, pr_number = completed
         pr = get_pr(pr_number)
         if pr.get("merged") is not True:
+            continue
+
+        # The review-ready snapshot may be stale or include a parent initiative.
+        # Recheck authorization before deleting the completed session.
+        current = get_issue(number)
+        labels = current.get("labels")
+        if (not isinstance(labels, list)
+                or "initiative" in label_names(current)
+                or JULES_REVIEW_READY_LABEL not in label_names(current)
+                or current.get("state") not in {"open", "closed"}):
             continue
 
         try:
@@ -1257,10 +1270,24 @@ def cleanup_merged_jules_sessions(
                 f"PR #{pr_number}; marking cleanup complete."
             )
 
-        run_gh(
-            "api", "--method", "PATCH", f"repos/{repo}/issues/{number}",
-            "-f", "state=closed", "-f", "state_reason=completed",
-        )
+        # Session deletion may take time. Recheck again before closing.
+        current = get_issue(number)
+        labels = current.get("labels")
+        if (not isinstance(labels, list)
+                or "initiative" in label_names(current)
+                or JULES_REVIEW_READY_LABEL not in label_names(current)
+                or current.get("state") not in {"open", "closed"}):
+            continue
+        if current["state"] == "open":
+            try:
+                run_gh(
+                    "api", "--method", "PATCH", f"repos/{repo}/issues/{number}",
+                    "-f", "state=closed", "-f", "state_reason=completed",
+                )
+            except subprocess.CalledProcessError:
+                # GitHub's native closing keyword may win the race.
+                if get_issue(number).get("state") != "closed":
+                    raise
         run_gh(
             "issue", "edit", str(number), "--repo", repo,
             "--remove-label", JULES_REVIEW_READY_LABEL,
