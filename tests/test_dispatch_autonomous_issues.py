@@ -3440,7 +3440,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
     def test_merged_cleanup_refuses_initiative_and_missing_metadata(self):
         comment = [{
             "body": (
-                "Jules completed session `done1` and released this automation slot.\\n\\n"
+                "Jules completed session `done1` and released this automation slot.\n\n"
                 "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
             )
         }]
@@ -3466,7 +3466,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
     def test_merged_cleanup_skips_closure_for_already_closed_issue(self):
         comment = [{
             "body": (
-                "Jules completed session `done1` and released this automation slot.\\n\\n"
+                "Jules completed session `done1` and released this automation slot.\n\n"
                 "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
             )
         }]
@@ -3487,7 +3487,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
     def test_merged_cleanup_rechecks_initiative_after_session_delete(self):
         comment = [{
             "body": (
-                "Jules completed session `done1` and released this automation slot.\\n\\n"
+                "Jules completed session `done1` and released this automation slot.\n\n"
                 "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
             )
         }]
@@ -3510,7 +3510,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
     def test_merged_cleanup_tolerates_only_verified_concurrent_closure(self):
         comment = [{
             "body": (
-                "Jules completed session `done1` and released this automation slot.\\n\\n"
+                "Jules completed session `done1` and released this automation slot.\n\n"
                 "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
             )
         }]
