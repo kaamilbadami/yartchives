@@ -404,5 +404,48 @@ class TriageWorkflowFailuresTests(unittest.TestCase):
         labels = {label["name"] for label in gh.issues[0]["labels"]}
         self.assertEqual(labels, {"workflow-failure", "agent-ready", "autonomous-backlog"})
 
+    def test_initiative_relabel_blocks_workflow_success_closure(self):
+        gh = FakeGh()
+        gh.jobs_by_run["1"] = failed_jobs()
+        mod.triage(ctx(run_id="1", conclusion="failure"), gh.json, gh.run)
+        gh.issues[0]["labels"].append({"name": "initiative"})
+        before = len(gh.calls)
+
+        mod.triage(ctx(run_id="2", conclusion="success"), gh.json, gh.run)
+
+        self.assertEqual(gh.issues[0]["state"], "open")
+        self.assertEqual(gh.calls[before:], [])
+
+    def test_initiative_relabel_blocks_workflow_failure_requeue(self):
+        gh = FakeGh()
+        gh.jobs_by_run["1"] = failed_jobs()
+        gh.jobs_by_run["3"] = failed_jobs()
+        mod.triage(ctx(run_id="1", conclusion="failure"), gh.json, gh.run)
+        gh.issues[0]["labels"].append({"name": "initiative"})
+        before = len(gh.calls)
+
+        mod.triage(ctx(run_id="3", conclusion="failure"), gh.json, gh.run)
+
+        self.assertEqual(gh.issues[0]["state"], "open")
+        self.assertFalse(any(c[:2] in {("issue", "edit"), ("issue", "comment")}
+                             for c in gh.calls[before:]))
+
+    def test_initiative_relabel_during_resolution_comment_prevents_close(self):
+        gh = FakeGh()
+        gh.jobs_by_run["1"] = failed_jobs()
+        mod.triage(ctx(run_id="1", conclusion="failure"), gh.json, gh.run)
+
+        def relabel_on_comment(*args):
+            gh.run(*args)
+            if args[:2] == ("issue", "comment"):
+                gh.issues[0]["labels"].append({"name": "initiative"})
+
+        mod.triage(ctx(run_id="2", conclusion="success"),
+                   gh.json, relabel_on_comment)
+
+        self.assertEqual(gh.issues[0]["state"], "open")
+        self.assertFalse(any(c[:2] == ("issue", "close") for c in gh.calls))
+
+
 if __name__ == "__main__":
     unittest.main()
