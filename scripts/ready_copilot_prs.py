@@ -237,7 +237,11 @@ def main() -> int:
             # status. Recover the current merge even when the head is green;
             # otherwise a Copilot draft can become ready with no path to
             # publishing the required 'tests' status before safe merge.
-            if merge_green and (head_green or head_recoverable):
+            # A synthetic merge result validates integration, but cannot stand in
+            # for an executed exact-head Quality run. Approval-gated or absent
+            # head CI is not evidence of a passing head; never mark ready on
+            # merge status alone.
+            if merge_green and head_green:
                 current_issue = gh_json(f"repos/{repo}/issues/{issue_number}")
                 current_events = gh_pages(f"repos/{repo}/issues/{number}/timeline?per_page=100")
                 still_ok, reason = provenance_verified(
