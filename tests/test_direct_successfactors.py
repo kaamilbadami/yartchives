@@ -199,6 +199,69 @@ class DirectSuccessFactorsTests(unittest.TestCase):
         self.assertEqual(source["homepage"], "https://jobs.halliburton.com")
         self.assertEqual(source["sitemap_url"], "https://jobs.halliburton.com/sitemap.xml")
 
+    def test_fetch_source_sanitizes_unescaped_ampersands(self):
+        import requests
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        mock_response.content = b"""<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0">
+<channel>
+<item>
+<title>Software & Data Intern (Student)</title>
+<description><![CDATA[Some desc with A & B unescaped]]></description>
+<link>https://jobs.test.com/job/1</link>
+</item>
+<item>
+<title>Software Intern (Student)</title>
+<description><![CDATA[Valid desc]]></description>
+<link>https://jobs.test.com/job/2</link>
+</item>
+</channel>
+</rss>"""
+        mock_client = mock.Mock()
+        mock_client.get.return_value = mock_response
+
+        # Need to mock the inner request for job details to just return a valid HTML job posting
+        def mock_get(url, *args, **kwargs):
+            if url == "https://jobs.test.com/job/1":
+                html_mock = mock.Mock()
+                html_mock.status_code = 200
+                html_mock.text = """
+                <div itemtype="http://schema.org/JobPosting">
+                    <div itemprop="title">Software &amp; Data Intern (Student)</div>
+                    <div itemprop="jobLocation"><span itemprop="addressRegion">NY</span></div>
+                    <div itemprop="datePosted">2026-01-01</div>
+                </div>
+                """
+                return html_mock
+            if url == "https://jobs.test.com/job/2":
+                html_mock = mock.Mock()
+                html_mock.status_code = 200
+                html_mock.text = """
+                <div itemtype="http://schema.org/JobPosting">
+                    <div itemprop="title">Software Intern (Student)</div>
+                    <div itemprop="jobLocation"><span itemprop="addressRegion">NY</span></div>
+                    <div itemprop="datePosted">2026-01-01</div>
+                </div>
+                """
+                return html_mock
+            return mock_response
+
+        mock_client.get.side_effect = mock_get
+
+        source = {
+            "key": "auto-successfactors-test",
+            "name": "Test Co",
+            "company": "Test Co",
+            "employer_id": "test",
+            "homepage": "https://jobs.test.com",
+            "sitemap_url": "https://jobs.test.com/sitemap.xml",
+        }
+
+        jobs = mod.fetch_source(mock_client, source, datetime.now(timezone.utc))
+        self.assertEqual(len(jobs), 2)
+        self.assertEqual(jobs[0]["title"], "Software & Data Intern (Student)")
+        self.assertEqual(jobs[1]["title"], "Software Intern (Student)")
 
 if __name__ == "__main__":
     unittest.main()
