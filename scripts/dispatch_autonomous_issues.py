@@ -1037,7 +1037,7 @@ def completed_session_pr_from_comments(
     """Return the newest completed Jules session tied to a PR in this repository."""
     owner, name = (re.escape(part) for part in repo.split("/", 1))
     pattern = re.compile(
-        rf"Jules completed session \`([^\`]+)\`.*?"
+        rf"Jules completed session `([^`]+)`.*?"
         rf"Pull request:\s*https://github\.com/{owner}/{name}/pull/(\d+)",
         re.IGNORECASE | re.DOTALL,
     )
@@ -2751,16 +2751,16 @@ autonomous: true
 {evidence}
 
 Current benchmark impact: **{affected} employers**.
-Gap family: \`{family}\`.
+Gap family: `{family}`.
 
 ## Goal
 Fix the highest-leverage generic source-family cause behind this measured gap. Prefer reusable ATS-family, aggregator, provider-resolution, classification, or normalization improvements over employer-by-employer exceptions.
 
 ## Acceptance criteria
-- Reproduce the gap from current \`main\` before changing code.
+- Reproduce the gap from current `main` before changing code.
 - Implement the smallest root-cause fix that improves the affected source family generically.
 - Add regression coverage for the failure mode.
-- Re-run \`python scripts/coverage_gap_candidates.py\` and report the before/after affected-employer count for this gap.
+- Re-run `python scripts/coverage_gap_candidates.py` and report the before/after affected-employer count for this gap.
 - Do not add employer-specific production exceptions solely to improve the benchmark.
 - Do not scrape LinkedIn or Handshake as production sources.
 - Keep unrelated source families unchanged.
