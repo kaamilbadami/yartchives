@@ -1725,10 +1725,16 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             )
         )
         self.assertIn(
-            'Dispatched PR recovery Quality for #{number} so the required ',
-            source,
+            'dispatched bounded merge-CI recovery for {merge_sha}.', source
         )
+        self.assertIn('merge_ci_recovery_decision(comments, head_sha, merge_sha)', source)
         self.assertIn('"pr_recovery=true"', source)
+        self.assertIn('f"pr_head_sha={head_sha}"', source)
+        # Durable attempt recording must precede dispatch so repeated scans
+        # cannot create an unbounded CI loop after a skipped status publisher.
+        block = source.split('action = merge_ci_recovery_decision(', 1)[1]
+        self.assertLess(block.index('"issue", "comment"'),
+                        block.index('"workflow", "run", "quality.yml"'))
 
     def test_main_drains_all_eligible_prs_instead_of_returning_after_first_merge(self):
         source = MODULE_PATH.read_text()
