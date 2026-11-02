@@ -114,6 +114,9 @@ def _successfactors_source(employer: dict[str, Any]) -> dict[str, Any] | None:
                 parsed = ev_parsed
                 break
 
+    if parsed.hostname and _is_sso_or_base_domain(parsed.hostname):
+        return None
+
     origin = urlunparse((parsed.scheme or "https", parsed.netloc, "", "", "", ""))
     homepage = urlunparse((parsed.scheme or "https", parsed.netloc, parsed.path.rstrip("/"), "", "", ""))
     slug = re.sub(r"[^a-z0-9]+", "-", employer["id"].casefold()).strip("-")
