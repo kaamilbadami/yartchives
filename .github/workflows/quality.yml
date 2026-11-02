@@ -231,7 +231,10 @@ jobs:
   publish-pr-recovery-status:
     # Privileged status publication never executes checked-out PR code.
     needs: [tests, head-tests]
+    # Without always(), a skipped optional head job suppresses legacy
+    # merge-only recovery even when tests passed.
     if: >-
+      always() &&
       github.event_name == 'workflow_dispatch' &&
       inputs.pr_recovery == true &&
       needs.tests.result == 'success' &&
