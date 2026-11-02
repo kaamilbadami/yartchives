@@ -112,6 +112,19 @@ class CopilotReadyPolicyTests(unittest.TestCase):
         p, i, f, e, links = fixtures()
         self.assertFalse(allowed((p, i, f, e[:2], links)))
 
+    def test_removed_review_request_blocks_ready_until_copilot_requests_again(self):
+        p, i, f, e, links = fixtures()
+        removed = {"event": "review_request_removed",
+                   "actor": {"login": "kaamilbadami"},
+                   "requested_reviewer": {"login": "kaamilbadami"}}
+        self.assertFalse(allowed((p, i, f, e + [removed], links)))
+        renewed = {"event": "review_requested", "actor": {"login": "Copilot"},
+                   "requested_reviewer": {"login": "kaamilbadami"}}
+        self.assertTrue(allowed((p, i, f, e + [removed, renewed], links)))
+        # A later owner request alone is not proof that Copilot requested review.
+        renewed["actor"] = {"login": "kaamilbadami"}
+        self.assertFalse(allowed((p, i, f, e + [removed, renewed], links)))
+
     def test_privileged_paths_and_unknown_paths_are_rejected(self):
         p, i, f, e, links = fixtures()
         for path in (".github/workflows/quality.yml", "scripts/auto_merge_agent_prs.py",
