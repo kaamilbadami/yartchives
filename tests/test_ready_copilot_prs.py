@@ -1,5 +1,6 @@
 """Behavioral safety tests for trusted Copilot draft-to-ready reconciliation."""
 import unittest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest import mock
 
@@ -387,6 +388,55 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         self.assertEqual(self.run_controller(
             quality=True, merge_quality=True, missing_merge_status=True,
             comments=[bot(legacy)],
+        ), [])
+
+    def test_settled_legacy_pilot_marker_allows_exactly_one_recovery(self):
+        # Existing live pilot #1159 has a bot-authored head-only marker from
+        # the pre-upgrade controller. It must not remain permanently stranded.
+        legacy = f"<!-- copilot-draft-ci-recovery: head={SHA} -->"
+        settled = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+        bot = lambda body, created: {
+            "body": body, "user": {"login": "github-actions[bot]"},
+            "created_at": created,
+        }
+        first = bot(legacy, settled)
+        calls = self.run_controller(
+            quality=False, merge_quality=True, missing_merge_status=True,
+            head_action_required=True, comments=[first],
+        )
+        self.assertEqual(len(calls), 2)
+        new_marker = ready.RECOVERY_MARKER.format(head=SHA, merge="c" * 40)
+        self.assertIn(new_marker, calls[0].args[-1])
+        self.assertEqual(self.run_controller(
+            quality=False, merge_quality=True, missing_merge_status=True,
+            head_action_required=True,
+            comments=[first, bot(new_marker, settled)],
+        ), [])
+
+    def test_unsettled_or_unverifiable_legacy_recovery_does_not_duplicate(self):
+        legacy = f"<!-- copilot-draft-ci-recovery: head={SHA} -->"
+        recent = (datetime.now(timezone.utc) - timedelta(minutes=2)).isoformat()
+        for created in (recent, "invalid-date", None):
+            with self.subTest(created=created):
+                marker = {"body": legacy, "user": {"login": "github-actions[bot]"}}
+                if created is not None:
+                    marker["created_at"] = created
+                self.assertEqual(self.run_controller(
+                    quality=False, merge_quality=True, missing_merge_status=True,
+                    head_action_required=True, comments=[marker],
+                ), [])
+
+    def test_legacy_plus_one_current_attempt_exhausts_recovery_budget(self):
+        legacy = f"<!-- copilot-draft-ci-recovery: head={SHA} -->"
+        old = ready.RECOVERY_MARKER.format(head=SHA, merge="d" * 40)
+        settled = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+        comments = [{
+            "body": marker, "created_at": settled,
+            "user": {"login": "github-actions[bot]"},
+        } for marker in (legacy, old)]
+        self.assertEqual(self.run_controller(
+            quality=False, merge_quality=True, missing_merge_status=True,
+            head_action_required=True, comments=comments,
         ), [])
 
     def test_untrusted_comment_cannot_exhaust_recovery_budget(self):
