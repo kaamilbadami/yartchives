@@ -255,11 +255,54 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
             "workflow", "run", "quality.yml", "--repo", REPO,
             "--ref", "main", "-f", "pr_recovery=true", "-f", "pr_number=77"
         ))
-        marker = ready.RECOVERY_MARKER.format(head=SHA)
+        marker = ready.RECOVERY_MARKER.format(head=SHA, merge="c" * 40)
         self.assertEqual(self.run_controller(
             quality=True, merge_quality=True, missing_merge_status=True,
-            comments=[{"body": marker}]
+            comments=[{"body": marker, "user": {"login": "github-actions[bot]"}}]
         ), [])
+
+    def test_changed_merge_sha_allows_one_bounded_new_recovery(self):
+        # A successful earlier dispatch cannot publish a stale merge status
+        # after main moves. The new merge may be tested once without replaying
+        # the old merge or allowing unbounded attempts for one head.
+        old = ready.RECOVERY_MARKER.format(head=SHA, merge="d" * 40)
+        comments = [{"body": old, "user": {"login": "github-actions[bot]"}}]
+        calls = self.run_controller(
+            quality=True, merge_quality=True, missing_merge_status=True,
+            comments=comments,
+        )
+        self.assertEqual(len(calls), 2)
+        self.assertIn(
+            ready.RECOVERY_MARKER.format(head=SHA, merge="c" * 40),
+            calls[0].args[-1],
+        )
+        new = ready.RECOVERY_MARKER.format(head=SHA, merge="c" * 40)
+        self.assertEqual(self.run_controller(
+            quality=True, merge_quality=True, missing_merge_status=True,
+            comments=comments + [{"body": new, "user": {"login": "github-actions[bot]"}}],
+        ), [])
+
+    def test_recovery_budget_and_legacy_marker_fail_closed(self):
+        old = ready.RECOVERY_MARKER.format(head=SHA, merge="d" * 40)
+        other = ready.RECOVERY_MARKER.format(head=SHA, merge="e" * 40)
+        bot = lambda body: {"body": body, "user": {"login": "github-actions[bot]"}}
+        self.assertEqual(self.run_controller(
+            quality=True, merge_quality=True, missing_merge_status=True,
+            comments=[bot(old), bot(other)],
+        ), [])
+        legacy = f"<!-- copilot-draft-ci-recovery: head={SHA} -->"
+        self.assertEqual(self.run_controller(
+            quality=True, merge_quality=True, missing_merge_status=True,
+            comments=[bot(legacy)],
+        ), [])
+
+    def test_untrusted_comment_cannot_exhaust_recovery_budget(self):
+        marker = ready.RECOVERY_MARKER.format(head=SHA, merge="c" * 40)
+        calls = self.run_controller(
+            quality=True, merge_quality=True, missing_merge_status=True,
+            comments=[{"body": marker, "user": {"login": "untrusted-contributor"}}],
+        )
+        self.assertEqual(len(calls), 2)
 
     def test_newer_head_failure_blocks_even_with_green_merge(self):
         pr, issue, files, events, links = fixtures()
@@ -317,10 +360,10 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
             "workflow", "run", "quality.yml", "--repo", REPO,
             "--ref", "main", "-f", "pr_recovery=true", "-f", "pr_number=77"
         ))
-        marker = ready.RECOVERY_MARKER.format(head=SHA)
+        marker = ready.RECOVERY_MARKER.format(head=SHA, merge="c" * 40)
         self.assertEqual(self.run_controller(
             quality=False, merge_quality=True, missing_merge_status=True,
-            comments=[{"body": marker}]
+            comments=[{"body": marker, "user": {"login": "github-actions[bot]"}}]
         ), [])
 
 
