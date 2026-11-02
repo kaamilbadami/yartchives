@@ -58,6 +58,35 @@ class MissingCiRecoveryTests(unittest.TestCase):
         self.assertEqual(mod.missing_ci_recovery_decision([{"body": marker2}], "b" * 40, now), ("dispatch", 1))
 
 
+class MergeCiRecoveryBudgetTests(unittest.TestCase):
+    def test_one_recovery_per_exact_synthetic_merge(self):
+        head, merge = "a" * 40, "b" * 40
+        self.assertEqual(mod.merge_ci_recovery_decision([], head, merge), "dispatch")
+        marker = f"<!-- merge-ci-recovery: head={head} merge={merge} -->"
+        bot = {"user": {"login": "github-actions[bot]"}, "body": marker}
+        self.assertEqual(mod.merge_ci_recovery_decision([bot], head, merge), "wait")
+        self.assertEqual(mod.merge_ci_recovery_decision([bot], head, "c" * 40), "dispatch")
+
+    def test_recovery_budget_is_bounded_across_main_advances(self):
+        head = "a" * 40
+        comments = [
+            {"user": {"login": "github-actions[bot]"},
+             "body": f"<!-- merge-ci-recovery: head={head} merge={merge} -->"}
+            for merge in ("b" * 40, "c" * 40)
+        ]
+        self.assertEqual(mod.merge_ci_recovery_decision(comments, head, "d" * 40), "escalate")
+        self.assertEqual(mod.merge_ci_recovery_decision(comments, head, "b" * 40), "wait")
+        self.assertEqual(mod.merge_ci_recovery_decision(comments, "e" * 40, "d" * 40), "dispatch")
+
+    def test_untrusted_markers_and_invalid_identity_fail_safely(self):
+        head, merge = "a" * 40, "b" * 40
+        fake = {"user": {"login": "random-user"},
+                "body": f"<!-- merge-ci-recovery: head={head} merge={merge} -->"}
+        self.assertEqual(mod.merge_ci_recovery_decision([fake], head, merge), "dispatch")
+        self.assertEqual(mod.merge_ci_recovery_decision([], "bad", merge), "block")
+        self.assertEqual(mod.merge_ci_recovery_decision([], head, ""), "block")
+
+
 class AutoMergeAgentPrTests(unittest.TestCase):
     def test_copilot_ready_state_never_authorizes_legacy_auto_merge(self):
         self.assertTrue(mod.copilot_merge_requires_independent_authorization(
