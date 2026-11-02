@@ -231,7 +231,13 @@ def main() -> int:
             if merge_failed:
                 print(f"BLOCKED_REQUIRES_DECISION PR #{number}: current synthetic merge tests failed; no automatic retry.")
                 continue
-            if exact_head_quality_green(runs, sha) or merge_green:
+            head_green = exact_head_quality_green(runs, sha)
+            head_recoverable = recovery_allowed(runs, sha)
+            # Head-only green CI is not the required synthetic merge-commit
+            # status. Recover the current merge even when the head is green;
+            # otherwise a Copilot draft can become ready with no path to
+            # publishing the required 'tests' status before safe merge.
+            if merge_green and (head_green or head_recoverable):
                 current_issue = gh_json(f"repos/{repo}/issues/{issue_number}")
                 current_events = gh_pages(f"repos/{repo}/issues/{number}/timeline?per_page=100")
                 still_ok, reason = provenance_verified(
@@ -241,10 +247,16 @@ def main() -> int:
                     print(f"PR #{number}: {reason} on recheck; keeping draft.")
                     continue
                 gh_write("pr", "ready", str(number), "--repo", repo)
-                print(f"PR #{number}: ready for review at verified head {sha}; NOT merge approval.")
+                print(f"PR #{number}: ready for review at verified head {sha} and merge {merge_sha}; NOT merge approval.")
                 continue
-            if not recovery_allowed(runs, sha):
-                print(f"PR #{number}: CI in progress or failed; no draft transition.")
+            if not (head_green or head_recoverable):
+                print(f"PR #{number}: head CI in progress or failed; no draft transition or recovery.")
+                continue
+            if not re.fullmatch(r"[a-f0-9]{40}", merge_sha):
+                print(f"PR #{number}: current synthetic merge SHA unavailable; keeping draft.")
+                continue
+            if merge_green:
+                print(f"PR #{number}: head CI must finish successfully before draft transition.")
                 continue
             comments = gh_pages(f"repos/{repo}/issues/{number}/comments?per_page=100")
             marker = RECOVERY_MARKER.format(head=sha)
