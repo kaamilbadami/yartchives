@@ -587,6 +587,27 @@ class CopilotRecoveryWorkflowSecurityTests(unittest.TestCase):
         self.assertFalse(any("uses" in step for step in publisher["steps"]))
 
 
+    def test_recovery_wake_requires_successful_trusted_status_publication(self):
+        # A successful read-only tests job alone is not enough to wake the
+        # controller: the required synthetic-merge status must be published
+        # first, or the wake can race the publisher and redispatch recovery.
+        path = Path(__file__).resolve().parents[1] / ".github/workflows/quality.yml"
+        jobs = yaml.safe_load(path.read_text(encoding="utf-8"))["jobs"]
+        wake = jobs["wake-automerge"]
+        publisher = jobs["publish-pr-recovery-status"]
+        self.assertEqual(wake["needs"], ["tests", "publish-pr-recovery-status"])
+        self.assertIn("always()", wake["if"])
+        self.assertIn("inputs.pr_recovery == true", wake["if"])
+        self.assertIn(
+            "needs.publish-pr-recovery-status.result == 'success'", wake["if"]
+        )
+        self.assertIn("needs.tests.result == 'success'", wake["if"])
+        self.assertIn("statuses/$target", publisher["steps"][0]["run"])
+        self.assertIn(
+            "gh workflow run auto-merge-agent-prs.yml", wake["steps"][0]["run"]
+        )
+
+
 
 if __name__ == "__main__":
     unittest.main()
