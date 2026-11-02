@@ -171,13 +171,13 @@ def main():
             continue
         if number in completed:
             if not guarded_issue_write(number, "issue", "comment", str(number), "--body",
-                    f"Post-merge reconciliation: PR #{PR_NUMBER} merged and explicitly records that it completes this issue's acceptance criteria. Closing as completed."), require_open=True):
+                    f"Post-merge reconciliation: PR #{PR_NUMBER} merged and explicitly records that it completes this issue's acceptance criteria. Closing as completed.", require_open=True):
                 continue
             guarded_issue_write(number, "issue", "close", str(number), "--reason", "completed", require_open=True)
         else:
             marker = f"<!-- post-merge-reconciliation: pr={PR_NUMBER} issue={number} -->"
             guarded_issue_write(number, "issue", "comment", str(number), "--body",
-                marker + f"\nPost-merge reconciliation: PR #{PR_NUMBER} merged and references this issue, but does not explicitly state that all acceptance criteria are complete. Leaving it open."), require_open=True)
+                marker + f"\nPost-merge reconciliation: PR #{PR_NUMBER} merged and references this issue, but does not explicitly state that all acceptance criteria are complete. Leaving it open.", require_open=True)
     return 0
 
 if __name__ == "__main__":
