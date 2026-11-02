@@ -147,6 +147,27 @@ class DirectSuccessFactorsTests(unittest.TestCase):
         }
         self.assertIsNone(mod._successfactors_source(employer))
 
+    def test_successfactors_source_returns_none_when_sso_without_fallback(self):
+        employer = {
+            "id": "aflac",
+            "name": "Aflac",
+            "careers_url": "https://career4.successfactors.com/career?company=aflac",
+            "provider": {"family": "successfactors", "status": "resolved"},
+            "careers_resolution": {
+                "status": "resolved",
+                "evidence": [
+                    {
+                        "type": "seed",
+                        "seed_key": "state-of-ats-2026-verified-hosts",
+                        "domain_hint": "career4.successfactors.com/career?company=aflac",
+                        "ats_system": "SuccessFactors",
+                        "source_url": "https://withresumeai.com/ats-checker/aflac"
+                    }
+                ]
+            }
+        }
+        self.assertIsNone(mod._successfactors_source(employer))
+
     def test_successfactors_source_falls_back_from_sso_domain(self):
         employer = {
             "id": "halliburton",
