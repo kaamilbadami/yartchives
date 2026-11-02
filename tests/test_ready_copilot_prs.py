@@ -186,7 +186,7 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
     def run_controller(self, *, quality=True, head_drift=False, comments=None,
                        merge_quality=False, stale_merge=False, failed_merge=False,
                        late_commit=False, missing_merge_status=False,
-                       head_action_required=False):
+                       head_action_required=False, merge_drift_on_recheck=False):
         pr, issue, files, events, links = fixtures()
         current = dict(pr)
         if head_drift:
@@ -199,6 +199,7 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
             green = [{"name": "Quality checks", "head_sha": SHA,
                       "status": "completed", "conclusion": "action_required"}]
         timeline_reads = [0]
+        pr_reads = [0]
         def pages(endpoint):
             if "/pulls?state=open" in endpoint:
                 return [pr]
@@ -226,6 +227,9 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
                         "pending" if stale_merge else "success")
                 }]}
             if "/pulls/77" in endpoint:
+                pr_reads[0] += 1
+                if merge_drift_on_recheck and pr_reads[0] > 1:
+                    return dict(current, merge_commit_sha="d" * 40)
                 return current
             raise AssertionError(f"Unexpected endpoint: {endpoint}")
         with mock.patch.dict("os.environ", {"REPOSITORY": REPO}), \
@@ -332,6 +336,13 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
     def test_failed_merge_blocks_ready_even_when_head_ci_is_green(self):
         self.assertEqual(self.run_controller(
             quality=True, merge_quality=True, failed_merge=True
+        ), [])
+
+    def test_merge_sha_changes_during_final_recheck_blocks_ready(self):
+        # A main-branch advancement changes refs/pull/N/merge without
+        # changing the head. The original green status is now stale.
+        self.assertEqual(self.run_controller(
+            quality=True, merge_quality=True, merge_drift_on_recheck=True
         ), [])
 
     def test_new_commit_between_validation_and_ready_blocks_transition(self):
