@@ -69,6 +69,55 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertFalse(mod.copilot_merge_requires_independent_authorization(
             {"user": {"login": "kaamilbadami"}, "draft": False}))
 
+    def test_security_sensitive_paths_require_manual_merge_even_for_owner(self):
+        for path in (
+            ".github/workflows/auto-merge-agent-prs.yml",
+            ".github/workflows/quality.yml",
+            "scripts/auto_merge_agent_prs.py",
+            "scripts/ready_copilot_prs.py",
+            "scripts/dispatch_autonomous_issues.py",
+            "scripts/run_quality_checks.sh",
+            "requirements.txt",
+        ):
+            with self.subTest(path=path):
+                self.assertEqual(
+                    mod.sensitive_auto_merge_paths([{"filename": path}]), [path]
+                )
+        self.assertEqual(mod.sensitive_auto_merge_paths([
+            {"filename": "tests/test_quality.py", "status": "renamed",
+             "previous_filename": ".github/workflows/quality.yml"}
+        ]), [".github/workflows/quality.yml"])
+        self.assertEqual(mod.sensitive_auto_merge_paths([
+            {"filename": "tests/test_quality.py", "status": "renamed"}
+        ]), ["<unverifiable rename source>"])
+        self.assertEqual(mod.sensitive_auto_merge_paths([
+            {"filename": "tests/test_quality.py"}, {"filename": "app.js"}
+        ]), [])
+
+    @mock.patch.object(mod, "gh_run")
+    @mock.patch.object(mod, "close_linked_issue_after_merge")
+    @mock.patch.object(mod, "try_guarded_squash_merge")
+    @mock.patch.object(mod, "gh_json")
+    @mock.patch.object(mod, "gh_paginated_json")
+    def test_green_owner_workflow_pr_cannot_auto_merge(
+        self, mock_paginated, mock_json, mock_merge, mock_close, mock_run
+    ):
+        candidate = pr(body="", head_sha="a" * 40, user="kaamilbadami")
+        candidate["number"] = 881
+        def pages(api, path, *args, **kwargs):
+            if "pulls?state=open" in path:
+                return [candidate]
+            if "pulls/881/files" in path:
+                return [{"filename": ".github/workflows/quality.yml"}]
+            return []
+        mock_paginated.side_effect = pages
+        mock_json.return_value = {"workflow_runs": runs(sha="a" * 40)}
+        with mock.patch.dict(mod.os.environ, {"REPOSITORY": "kaamilbadami/yartchives"}):
+            self.assertEqual(mod.main(), 0)
+        mock_merge.assert_not_called()
+        mock_close.assert_not_called()
+        mock_run.assert_not_called()
+
     def test_controller_reconciles_on_trusted_quality_completion_and_schedule(self):
         workflow = (ROOT / ".github/workflows/auto-merge-agent-prs.yml").read_text()
         # Privileged pull_request runs on Copilot PRs are approval-gated;
