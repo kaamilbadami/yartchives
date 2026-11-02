@@ -101,6 +101,44 @@ class AutonomousDispatcherTests(unittest.TestCase):
         labels = {l["name"] for l in issues[0]["labels"]}
         self.assertEqual(labels, {"bug", "agent-ready", "autonomous-backlog"})
 
+    def test_initiative_stale_jules_labels_never_consume_dispatch_slot(self):
+        # An initiative can retain Jules session/failure history and even
+        # obsolete dispatch labels. None of these may reserve a worker slot.
+        parent = issue(
+            1122, "Copilot migration", body=task_body("P0", "automation"),
+            labels=("initiative", "agent-ready", "autonomous-backlog",
+                    "jules-session", "jules-failed"),
+        )
+        child = issue(
+            1200, "Independent low-risk task", body=task_body("P1", "quality"),
+            labels=("agent-ready", "autonomous-backlog"),
+        )
+        self.assertIsNone(mod.task_from_issue(parent))
+        self.assertEqual(
+            [task.number for task in mod.select_tasks([parent, child], max_active=1)],
+            [1200],
+        )
+
+    def test_initiative_reconciliation_removes_dispatch_labels_not_history(self):
+        parent = issue(
+            1122, "Copilot migration", body=task_body("P0", "automation"),
+            labels=("initiative", "agent-ready", "autonomous-backlog",
+                    "jules-session", "jules-failed"),
+        )
+        calls = []
+        self.original_reconcile_labels(
+            [parent], repo="test/repo", run_gh=lambda *args: calls.append(args)
+        )
+        self.assertEqual(calls, [
+            ("issue", "edit", "1122", "--repo", "test/repo",
+             "--remove-label", "agent-ready",
+             "--remove-label", "autonomous-backlog"),
+        ])
+        self.assertEqual(
+            {label["name"] for label in parent["labels"]},
+            {"initiative", "jules-session", "jules-failed"},
+        )
+
     def test_reconcile_autonomous_labels_unchanged_if_autonomous_false(self):
         issues = [
             issue(
