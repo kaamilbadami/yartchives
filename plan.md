@@ -1,5 +1,16 @@
-1. **Understand the problem**: Auto-discovered sources that fail (like `auto-successfactors-gxo-logistics`) can persist indefinitely in the `health` (i.e. `sources`) dictionary of `data/listings.json` if they are no longer yielded by `discover_sources()`, due to their provider status changing (e.g. `retired`). This causes persistent source quarantine alerts.
-2. **Apply the fix**: In each of the 8 `scripts/direct_*.py` files (ashby, ct_workday, greenhouse, icims, lever, oracle, smartrecruiters, successfactors), at the end of the `enrich` (or `enrich_direct_sources`) function, we must collect all keys that were discovered in the current run (`discovered_keys`). We then iterate over the `health` dictionary and delete any key that starts with the provider's specific prefix (e.g., `auto-ashby-`) but is not present in `discovered_keys`. This removes stale quarantine entries.
-3. **Add regression tests**: Create a test (`tests/test_auto_discovered_health_pruning.py`) to verify that a stale key is indeed removed from the `health` dictionary and an active one is preserved.
-4. **Complete pre-commit steps**: Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.
-5. **Submit the PR**: Commit the changes and open a pull request with 'Closes #1106'.
+1. **Update `scripts/direct_successfactors.py`**
+   - Add a helper function `_is_sso_or_base_domain` that checks if a hostname is an SSO or base SAP domain (e.g. `.accounts.ondemand.com`, `.accounts.cloud.sap`, `.sapsf.com`, etc).
+   - In `_successfactors_source`, if the resolved `careers_url` is an SSO or base domain, scan `employer["careers_resolution"]["evidence"]` for the best alternative URL (prioritizing `successfactors provider fingerprint` and score) that is not an SSO or base domain, and use it as the `sitemap_url` and `homepage` origin.
+
+2. **Update `employer_universe.json`**
+   - Remove the `provider-lifecycle-overrides` for `gxo-logistics` to restore it to the resolution pool, correctly handling it with the new generic logic without weakening validation. This was done in the previous step during discovery, and the state was already modified.
+
+3. **Update `tests/test_direct_successfactors.py`**
+   - Add a test `test_successfactors_source_falls_back_from_sso_domain` that verifies the fallback logic correctly prefers a valid ATS domain from evidence over a 403-inducing SSO base domain.
+   - Update `test_successfactors_source_returns_none_when_retired` to use a generic dummy employer ID instead of `gxo-logistics` to prevent collisions.
+
+4. **Complete pre-commit steps to ensure proper testing, verification, review, and reflection are done.**
+   - Run `run_quality_checks.sh` and make sure it passes.
+
+5. **Submit the change.**
+   - Once all tests pass, submit the fix.

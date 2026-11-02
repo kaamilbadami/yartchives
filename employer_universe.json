@@ -2327,8 +2327,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -3098,6 +3098,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:12Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:06Z"
           }
         ]
       },
@@ -3207,6 +3212,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:13Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:06Z"
           }
         ]
       },
@@ -3259,8 +3269,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -7369,6 +7379,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Oracle endpoint retired (redirected to 404): https://careers.americanexpress.com/errors/404",
             "invalidated_at": "2026-10-30T18:06:16Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Oracle endpoint retired (redirected to 404): https://careers.americanexpress.com/errors/404",
+            "invalidated_at": "2026-11-02T01:12:14Z"
           }
         ]
       },
@@ -8024,8 +8039,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -8362,7 +8377,7 @@
         "status": "resolved",
         "attempt_status": "resolved",
         "resolved_at": "2000-01-01T00:00:00Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -8434,7 +8449,7 @@
             "type": "http",
             "source": "conventional-subdomain",
             "requested_url": "https://careers.anduril.com/",
-            "error": "ConnectTimeout: HTTPSConnectionPool(host='careers.anduril.com', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='careers.anduril.com', port=443) at 0x7f7a829949e0>, 'Connection to careers.anduril.com timed out. (connect timeout=15)'))"
+            "error": "ConnectTimeout: HTTPSConnectionPool(host='careers.anduril.com', port=443): Max retries exceeded with url: / (Caused by ConnectTimeoutError(<HTTPSConnection(host='careers.anduril.com', port=443) at 0x7fa4db91c680>, 'Connection to careers.anduril.com timed out. (connect timeout=15)'))"
           },
           {
             "type": "http",
@@ -8546,52 +8561,7 @@
           {
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-07T01:07:34Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-08T20:11:52Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-13T02:10:24Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-13T02:14:41Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-14T21:15:30Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-16T19:43:37Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-17T18:31:33Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-23T00:15:47Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-30T18:04:58Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-10-30T18:07:27Z"
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -9025,8 +8995,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -9670,6 +9640,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:27Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -11445,8 +11420,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -15398,8 +15373,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -16025,8 +16000,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -16426,8 +16401,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -16821,8 +16796,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -16841,9 +16816,10 @@
             "final_url": "https://www.cencora.com/",
             "status": 200,
             "signals": [
+              "careers page content",
               "employer domain"
             ],
-            "score": 2
+            "score": 4
           },
           {
             "type": "http",
@@ -17946,8 +17922,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -18111,19 +18087,19 @@
                 "status": 302
               },
               {
-                "url": "https://idcs-176b7ea2ebc44b34beedaf783e76df58.identity.oraclecloud.com/oauth2/v1/authorize?response_mode=form_post&response_type=id_token&scope=openid&IDCS_CG_ENC_VER=v2&state=kEPHVbMZEiRtxdmmzng-kejnNXX43y2dbZ5cKYSz4Jw&nonce=56AhWKWEBRFmldKqij5ZcVi3fUKAN6J0G0It4iv6F00&IDCS_IS_CLOUDGATE=true&X-HOST-IDENTIFIER-NAME=hcgn.fa.us2.oraclecloud.com%3A443&idcs_app_name=FAAppResource_11-13-26-07-0-08000_APPID&idcs_app_resource_url=https%3A%2F%2Fhcgn.fa.us2.oraclecloud.com%3A443%2FhcmUI%2Fhcm%2Fvp%2Fopportunitymarketplace%2Fsearch&client_id=02aac816e1c74d988bb1593a54ff3f27_APPID&IDCS_CG_ENC=true&enc=aOhPpVm8TThlAgAAKwIAABAgKwIAABECAAAQAKlf1tM8ztP9ZcujQrUwtp1nEX_ZhBgBIQhMvabTrjUPut7lFbHJL7_lYC-wdUtnyzZL93uCy2Ctw7bobFWSMWcy4zqlLgXdN51z11u5pBJrO2gaVM0nUgQcvZwWfEkRIa55Jf4Gu4uxVa3D8wWoAsKytelPTUpLtZpK5ujL9eS7VOdDkuY8f6wI0t1FvnuLxMVDTV3CMsNv1vXLdnwDtrsG3fBP_nzQXG9PwwNvR-sP9jJ2uWyponVLkhqSqs_aIe9om7BEYK0SXT3rbbI4UH-T4wbP9GiwysiyLLPEVFf9KpBa5ooKDb1eO3ODLQ2blUmhbt6-3UaBnCN933YQ6MuOAe9kastDNTL9H64hQf5Y3ZJlBMXsCgUay__jC2XkaHslmaq_G8xWZOMgf3Zbu_Lj_DKmsZA7BYfHy6_me-5iA0-0mQfiHIwGOxH1kmb0Cw075I_In7bZ8CKHuoVJ1nmRpE5nIGY0Cto-PHFGKe9NZNUWreMSbSE5Ch-tl7ZLbrs9vz_mxeD5KZ7Db-cnW5j9jvy8CS_P041_-W8rMq6NOXWy2XeOYX6XwWAEWgz0-iD-2HgAAMwWB1apU4y8bo1vhPNhkfWkh6_Uxk-ln630wzUTobf7l9I-v4wFU8bf6BJb7C5wxS7B8Z32j7RmKeyNmf8HvxTJ-rUQAGo4JrBwoUU9jYmtfG0d5dSwEZuYUZYb9UfgyaXLxSt_c3eu3lBShxvyiJPOdoT4J8eCSUzyNoAcWkHvyfG743Mct9p-Q6EiRBUe1Yz3zZsJBTv9-VrN",
+                "url": "https://idcs-1c97334dad524af8aa3601941d4ed8a7.identity.oraclecloud.com/oauth2/v1/authorize?response_mode=form_post&response_type=id_token&scope=openid&IDCS_CG_ENC_VER=v2&state=82rPWpOivKewKXVKiLw1BK5sOIkSRKw-xJr9B2VdrAg&nonce=E5cpomEcMKLiRDzFuZ4atFkN6pOJXpnkYrmT0VQ9Wdc&IDCS_IS_CLOUDGATE=true&X-HOST-IDENTIFIER-NAME=hcgn.fa.us2.oraclecloud.com%3A443&idcs_app_name=FAAppResource_11-13-26-07-0-08000-Patching-00e80b1b428946ac81e3e1a2e6b3db3e_APPID&idcs_app_resource_url=https%3A%2F%2Fhcgn.fa.us2.oraclecloud.com%3A443%2FhcmUI%2Fhcm%2Fvp%2Fopportunitymarketplace%2Fsearch&client_id=82c9426c5ed64b13bee11fce07986aa6_APPID&IDCS_CG_ENC=true&enc=PosTW2e45z2PAgAAVQIAABAgVQIAADsCAAAQAPUPJKQWJEOYGvCuTMGY3nQkWMn5A9XI20zpEJss5D2mttwFsMtsgbiOoX9guDcpjd5v1BkEktn8QqLluNOCI-ktHRUaJDG1xP7igReJJTyUI0hVwHAHAd9eH5KBmqQ_Osl4g5G4N4iU9KniBTS66xb0As1oD1iiPHlxmABNqNkSPsd1bQ8oyv7bEngLrKOabF9rOItSHTQNPFmpP9I1arrz2M3DMmnV8zLFldB-Vu2e7B2V0sqA1EDw8aLWBZwCgMRpDXLlwGXwXajSmeKgYCc4nGutfzpbYoPLrHr73pnvNJvrhft8A4AC4_NFS25ubo7wDGVW9Idxiyhh41ibt4EI6CU9uMBkb2F_mWhV4boojp9iwtQHLx0uMbRr0jIrPuxhhH_45OfbGww_FyGvxAmC0PmThXWDYyC0K_4JXho36k9epOq2btlqBiKL6rd_-AiMsHcjrWxib3cC0_P4aK2O_pwj0rbNmk56d5ymRENjeeuv_S3rx-V6DAwVEdyRV9ygGOq_bWRipvH9tR04cURHjRfihSTzzx48tXlkz44oeQdNrdF6Wtixffb4cnabkj70DKUySg34l5I61kaJ2AkfYhlftWh6I0M84hG1C9pUJ0DZe_jEMtr-d4lZCrO1r8gn02N3RFMifMUuccWraDK9WgqsR5nw-YxzdRc-PZOIQ-If4ogEc4SCDnwN-CJHZNglhIydhBl3I7kVBSca_Y8cJkWBJETLs1yl06nCdQ6J0OQ-R8kX4_vCtlCO6zSuc04Xpxnbe12P5VAg14O_ISxS-0HqgCT5Q7Ft-dTKoXSot_4c_nmmKi3MPhVHouejFjzRXGiFVlTMB9GC",
                 "status": 303
               },
               {
-                "url": "https://idcs-176b7ea2ebc44b34beedaf783e76df58.identity.oraclecloud.com:443/fed/v1/user/request/login",
+                "url": "https://idcs-1c97334dad524af8aa3601941d4ed8a7.identity.oraclecloud.com:443/fed/v1/user/request/login",
                 "status": 302
               },
               {
-                "url": "https://citizensbank.okta.com/app/citizensbank_oraclehcmcloudsaml_1/exk13fletqoozEwCv298/sso/saml?SAMLRequest=hVPbbuIwEP2VyH1O7IRwqUWoWGi1aNsuAhZVvFSOMwGLxE5jh0u%2Ffp2wkdqVSt%2Bs8ZmZM%2BfMDO9OeeYcoNRCyQj5HkEOSK4SIbcR%2BrN6cAfI0YbJhGVKQoTOoNHdaKhZnhV0XJmdXMBbBdo4tpDU9NQlJEJVKaliWmgqWQ6aGk6X46dHGniEFqVKRWaDzJhSxJUB%2BmKTUFtAiwjtjCkoxsfj0Tt2PFVucUCIj1%2BeHpd8BzlzhaxJcWizaj7X2zKtoTR2yjbFjvllIxJiC7KImxadaLH9Ak4wua3hNeTmI6HiWyGM4ipDzvzf64eQF%2BGvpcUXkKY%2FV6u5O%2F%2B9XCHnQZUcGjcilLJMW12m1hMhmWl8rXlrS5wLI95B6pjJvaf2hnlc5ZgVxaefV1UynsGO5zxTVVKP8upjOO39TpqBeVPq%2Ff44OQS3A6y1wvU%2FcmZaVzBrbDERCkjQc33ikv6K%2BJQQGoQb5KzbPQvqPZtNIyQSd36%2F2OwOVbquhLtYF7%2F66%2B5kGaxXm0C76LJptCle1mPmzFyXp47YqmkDtSYbYc5o1AogEq5dv9%2BL%2B8ACiHkYxp0wBkhY2h90oN9L0u7AE8klz7sI0ahQK0XDsINTSIb4A6v2GJ5t49l0rjLBz844y9RxUgIz9mZMWQH6lrzv%2Bf%2BRr6QugItUQILw6NL089GN%2FgI%3D&RelayState=YjyK&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=JZW3ShcESL%2BfIvf%2B2ICamv4yM%2BEf6td%2FUBGJZwpip37S8CHy0L4G5woaoPDOYIHs3E8yq%2B9KFSzK3o%2FGpuU%2B%2F%2BnXwqDXYvJCUCECZrj0aGshTPwmlbaYzhObjYkO50XACZoe8FqXCEoNQA2TWY9PUl6elgv1pZOyv%2FWbqWKxdlYaJlLNqA1Mm%2BiXYr8bEfJKLdAtg0438I49N%2Fw%2BLmJJTaQkfe7STH%2B4Eys0nnDN2%2FkpUra%2BOphw0Hwwe4O217pdFEIpJc3h4PXdyCXIvMrs46c0969zsOIoIu0fBwhszAmFe9d880%2BdHaWOrZNT%2B2cEJS3xCZm8zPv9BVJby0YC2w%3D%3D",
+                "url": "https://citizensbank.okta.com/app/citizensbank_oraclehcmcloudsaml_1/exk13fletqoozEwCv298/sso/saml?SAMLRequest=hVNdU9swEPwrHvFsS%2F4gJJo4TEpgmpbQDEk7lBdGkeRERZaCJOOEX1%2FZrmfggfRNc9q929u7G18eShm8cmOFVjmIIwQCrqhmQm1z8HN9Ew5BYB1RjEiteA6O3ILLydiSUu7xtHI7dc9fKm5d4BMpiw%2FnCOWgMgprYoXFipTcYkfxarq4xUmE8N7oQkgfJM4Zsakcxw%2BeBPoEVuRg59weQ1jXdVSnkTZbmCAUw4fF7YrueElCoRpRlPesRs%2FpssRabpzvsqf4Nj8thDLoQR5x1qOZFdtP4AiiUQNvIGfvBe3%2Fa4TTVEsQLP%2B9vgjVGX%2BKtulAFn9dr5fh8sdqDYIbbShvp5GDgkjrfZn5mQhFXDvXRrf1wqlw4o0ruyHqOdLPjkRUl5Ds9x9%2BnrQhVPIdLanUFWtaeYohPzzHaSG5e9H67bq%2Bek1GQ2iths0%2FCObWVnzejsXlIEHJIIzjECVrFGOU4jR9BMGvfs%2BSZs%2FmsxwIFt67qR6ESXg9TzfV6PesfIy%2FLVbfzZ9Uh6DbNNwmN02bJXGn7WkiPmvRQv2QnXBHMOkNEIzaMKajizTNGGHnSUaKISHpAMWjLGYZZ0NyEQnW8aLOiNaFximcZSksOBvDd6r6Y7jzheezpZaCHoOplLq%2BMpw4fzPOVBzAScf6eDWTvw%3D%3D&RelayState=uZEe&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=h474txU04BtKYKjTkzAADYL3K4XmkAJIRY2WiRw2J%2BwuXle41jbp2Lk2I6tfu20HEZbIopkcbY0nFzYv2nLtsU9m%2F%2BcsXcsObpVEqAM6c22Ji8erXr%2Fh4vGGnHJETL%2BZugV3qicPdoGJ%2BAfsbva6hdJ95a%2FynNYnvTIkxr1ezg2LIBDNfbae4FnTNfx7hiwXw5CbAGyKNQWOK%2FoLRd5%2BWkM9DFhHZXOA3cXuhUgoND%2BvgHS7dvdAbzeJ12rkcwhknrQS%2BIbHK4ly0vjNOR%2BHYr%2FeWUXWotXQvwmmPRKLf2yhc3mhQAVz12rQqbojohJR8aYQN6IoVJogUr5Tj5Jgeg%3D%3D",
                 "status": 200
               }
             ],
-            "final_url": "https://citizensbank.okta.com/app/citizensbank_oraclehcmcloudsaml_1/exk13fletqoozEwCv298/sso/saml?SAMLRequest=hVPbbuIwEP2VyH1O7IRwqUWoWGi1aNsuAhZVvFSOMwGLxE5jh0u%2Ffp2wkdqVSt%2Bs8ZmZM%2BfMDO9OeeYcoNRCyQj5HkEOSK4SIbcR%2BrN6cAfI0YbJhGVKQoTOoNHdaKhZnhV0XJmdXMBbBdo4tpDU9NQlJEJVKaliWmgqWQ6aGk6X46dHGniEFqVKRWaDzJhSxJUB%2BmKTUFtAiwjtjCkoxsfj0Tt2PFVucUCIj1%2BeHpd8BzlzhaxJcWizaj7X2zKtoTR2yjbFjvllIxJiC7KImxadaLH9Ak4wua3hNeTmI6HiWyGM4ipDzvzf64eQF%2BGvpcUXkKY%2FV6u5O%2F%2B9XCHnQZUcGjcilLJMW12m1hMhmWl8rXlrS5wLI95B6pjJvaf2hnlc5ZgVxaefV1UynsGO5zxTVVKP8upjOO39TpqBeVPq%2Ff44OQS3A6y1wvU%2FcmZaVzBrbDERCkjQc33ikv6K%2BJQQGoQb5KzbPQvqPZtNIyQSd36%2F2OwOVbquhLtYF7%2F66%2B5kGaxXm0C76LJptCle1mPmzFyXp47YqmkDtSYbYc5o1AogEq5dv9%2BL%2B8ACiHkYxp0wBkhY2h90oN9L0u7AE8klz7sI0ahQK0XDsINTSIb4A6v2GJ5t49l0rjLBz844y9RxUgIz9mZMWQH6lrzv%2Bf%2BRr6QugItUQILw6NL089GN%2FgI%3D&RelayState=YjyK&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=JZW3ShcESL%2BfIvf%2B2ICamv4yM%2BEf6td%2FUBGJZwpip37S8CHy0L4G5woaoPDOYIHs3E8yq%2B9KFSzK3o%2FGpuU%2B%2F%2BnXwqDXYvJCUCECZrj0aGshTPwmlbaYzhObjYkO50XACZoe8FqXCEoNQA2TWY9PUl6elgv1pZOyv%2FWbqWKxdlYaJlLNqA1Mm%2BiXYr8bEfJKLdAtg0438I49N%2Fw%2BLmJJTaQkfe7STH%2B4Eys0nnDN2%2FkpUra%2BOphw0Hwwe4O217pdFEIpJc3h4PXdyCXIvMrs46c0969zsOIoIu0fBwhszAmFe9d880%2BdHaWOrZNT%2B2cEJS3xCZm8zPv9BVJby0YC2w%3D%3D",
+            "final_url": "https://citizensbank.okta.com/app/citizensbank_oraclehcmcloudsaml_1/exk13fletqoozEwCv298/sso/saml?SAMLRequest=hVNdU9swEPwrHvFsS%2F4gJJo4TEpgmpbQDEk7lBdGkeRERZaCJOOEX1%2FZrmfggfRNc9q929u7G18eShm8cmOFVjmIIwQCrqhmQm1z8HN9Ew5BYB1RjEiteA6O3ILLydiSUu7xtHI7dc9fKm5d4BMpiw%2FnCOWgMgprYoXFipTcYkfxarq4xUmE8N7oQkgfJM4Zsakcxw%2BeBPoEVuRg59weQ1jXdVSnkTZbmCAUw4fF7YrueElCoRpRlPesRs%2FpssRabpzvsqf4Nj8thDLoQR5x1qOZFdtP4AiiUQNvIGfvBe3%2Fa4TTVEsQLP%2B9vgjVGX%2BKtulAFn9dr5fh8sdqDYIbbShvp5GDgkjrfZn5mQhFXDvXRrf1wqlw4o0ruyHqOdLPjkRUl5Ds9x9%2BnrQhVPIdLanUFWtaeYohPzzHaSG5e9H67bq%2Bek1GQ2iths0%2FCObWVnzejsXlIEHJIIzjECVrFGOU4jR9BMGvfs%2BSZs%2FmsxwIFt67qR6ESXg9TzfV6PesfIy%2FLVbfzZ9Uh6DbNNwmN02bJXGn7WkiPmvRQv2QnXBHMOkNEIzaMKajizTNGGHnSUaKISHpAMWjLGYZZ0NyEQnW8aLOiNaFximcZSksOBvDd6r6Y7jzheezpZaCHoOplLq%2BMpw4fzPOVBzAScf6eDWTvw%3D%3D&RelayState=uZEe&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=h474txU04BtKYKjTkzAADYL3K4XmkAJIRY2WiRw2J%2BwuXle41jbp2Lk2I6tfu20HEZbIopkcbY0nFzYv2nLtsU9m%2F%2BcsXcsObpVEqAM6c22Ji8erXr%2Fh4vGGnHJETL%2BZugV3qicPdoGJ%2BAfsbva6hdJ95a%2FynNYnvTIkxr1ezg2LIBDNfbae4FnTNfx7hiwXw5CbAGyKNQWOK%2FoLRd5%2BWkM9DFhHZXOA3cXuhUgoND%2BvgHS7dvdAbzeJ12rkcwhknrQS%2BIbHK4ly0vjNOR%2BHYr%2FeWUXWotXQvwmmPRKLf2yhc3mhQAVz12rQqbojohJR8aYQN6IoVJogUr5Tj5Jgeg%3D%3D",
             "status": 200,
             "signals": [
               "oracle provider fingerprint",
@@ -18586,6 +18562,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:15Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:15Z"
           }
         ]
       },
@@ -19448,6 +19429,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:15Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:15Z"
           }
         ]
       },
@@ -19921,8 +19907,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -20479,8 +20465,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -20522,10 +20508,9 @@
             "final_url": "https://cyvl.com/",
             "status": 200,
             "signals": [
-              "ashby provider fingerprint",
               "careers page content"
             ],
-            "score": 7
+            "score": 2
           },
           {
             "type": "http",
@@ -20542,21 +20527,16 @@
               },
               {
                 "url": "https://cyvl.com/careers/",
-                "status": 301
-              },
-              {
-                "url": "https://jobs.ashbyhq.com/cyvl",
                 "status": 200
               }
             ],
-            "final_url": "https://jobs.ashbyhq.com/cyvl",
+            "final_url": "https://cyvl.com/careers/",
             "status": 200,
             "signals": [
-              "ashby provider fingerprint",
-              "careers page content",
-              "employer domain"
+              "careers path",
+              "careers page content"
             ],
-            "score": 9
+            "score": 5
           },
           {
             "type": "http",
@@ -20616,11 +20596,11 @@
             "redirect_chain": [
               {
                 "url": "https://jobs.ashbyhq.com/careers",
-                "status": 200
+                "status": 404
               }
             ],
             "final_url": "https://jobs.ashbyhq.com/careers",
-            "status": 200,
+            "status": 404,
             "signals": [
               "shared provider host lacks employer tenant identity"
             ],
@@ -20956,8 +20936,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -22458,6 +22438,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:15Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:42Z"
           }
         ]
       },
@@ -22546,20 +22531,20 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
             "source": "auto-discovered-tenant",
-            "requested_url": "https://job-boards.greenhouse.io/doordashusa",
+            "requested_url": "https://job-boards.greenhouse.io/doordashcanada",
             "redirect_chain": [
               {
-                "url": "https://job-boards.greenhouse.io/doordashusa",
+                "url": "https://job-boards.greenhouse.io/doordashcanada",
                 "status": 200
               }
             ],
-            "final_url": "https://job-boards.greenhouse.io/doordashusa",
+            "final_url": "https://job-boards.greenhouse.io/doordashcanada",
             "status": 200,
             "signals": [
               "greenhouse provider fingerprint",
@@ -22696,6 +22681,35 @@
               "shared provider host lacks employer tenant identity"
             ],
             "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://job-boards.greenhouse.io/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://job-boards.greenhouse.io/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://job-boards.greenhouse.io/jobs",
+            "status": 404,
+            "signals": [
+              "shared provider host lacks employer tenant identity"
+            ],
+            "score": -50
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.job-boards.greenhouse.io/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='careers.job-boards.greenhouse.io', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='careers.job-boards.greenhouse.io', port=443): Failed to resolve 'careers.job-boards.greenhouse.io' ([Errno -2] Name or service not known)\"))"
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.job-boards.greenhouse.io/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='jobs.job-boards.greenhouse.io', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='jobs.job-boards.greenhouse.io', port=443): Failed to resolve 'jobs.job-boards.greenhouse.io' ([Errno -2] Name or service not known)\"))"
           }
         ]
       },
@@ -22703,7 +22717,7 @@
         "doordash.com",
         "job-boards.greenhouse.io"
       ],
-      "careers_url": "https://job-boards.greenhouse.io/doordashusa",
+      "careers_url": "https://job-boards.greenhouse.io/doordashcanada",
       "careers_platform": "greenhouse",
       "provider": {
         "family": "greenhouse",
@@ -22816,6 +22830,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:16Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:42Z"
           }
         ]
       },
@@ -23221,16 +23240,183 @@
       },
       "careers_resolution": {
         "status": "resolved",
-        "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-06T20:23:01Z",
-        "last_attempt_at": "2026-10-06T20:23:01Z",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
-            "type": "seed",
-            "seed_key": "state-of-ats-2026-verified-hosts",
-            "domain_hint": "job-boards.greenhouse.io/duolingo",
-            "ats_system": "Greenhouse",
-            "source_url": "https://withresumeai.com/ats-checker/duolingo"
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://careers.duolingo.com/",
+            "redirect_chain": [
+              {
+                "url": "https://careers.duolingo.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.duolingo.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.duolingo.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://careers.duolingo.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.duolingo.com/careers",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://careers.duolingo.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://careers.duolingo.com/jobs",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.duolingo.com/jobs",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://duolingo.com/",
+            "redirect_chain": [
+              {
+                "url": "https://duolingo.com/",
+                "status": 302
+              },
+              {
+                "url": "https://www.duolingo.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.duolingo.com/",
+            "status": 200,
+            "signals": [
+              "employer domain"
+            ],
+            "score": 2
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://duolingo.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://duolingo.com/careers",
+                "status": 302
+              },
+              {
+                "url": "https://www.duolingo.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://careers.duolingo.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.duolingo.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://duolingo.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://duolingo.com/jobs",
+                "status": 302
+              },
+              {
+                "url": "https://www.duolingo.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://careers.duolingo.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.duolingo.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.duolingo.com/",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.duolingo.com/",
+                "status": 301
+              },
+              {
+                "url": "https://careers.duolingo.com",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.duolingo.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://job-boards.greenhouse.io/duolingo",
+            "redirect_chain": [
+              {
+                "url": "https://job-boards.greenhouse.io/duolingo",
+                "status": 302
+              },
+              {
+                "url": "https://careers.duolingo.com/#careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://careers.duolingo.com/",
+            "status": 200,
+            "signals": [
+              "greenhouse provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
           }
         ]
       },
@@ -23246,7 +23432,7 @@
         "duolingo.com",
         "job-boards.greenhouse.io/duolingo"
       ],
-      "careers_url": "https://job-boards.greenhouse.io/duolingo",
+      "careers_url": "https://careers.duolingo.com/",
       "careers_platform": "greenhouse"
     },
     {
@@ -23343,8 +23529,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -24652,6 +24838,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -25543,6 +25734,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:17Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:48Z"
           }
         ]
       },
@@ -25643,6 +25839,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:17Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:48Z"
           }
         ]
       },
@@ -26216,8 +26417,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -27417,8 +27618,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:51:27Z",
-        "last_attempt_at": "2026-10-07T00:51:27Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -27672,7 +27873,7 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "blocked",
-        "last_attempt_at": "2026-10-07T00:51:27Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -28228,8 +28429,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-06T00:18:52Z",
-        "last_attempt_at": "2026-10-06T00:18:52Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -28433,8 +28634,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-06T00:18:52Z",
-        "last_attempt_at": "2026-10-06T00:18:52Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -28608,8 +28809,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -29582,27 +29783,169 @@
       "name": "GXO Logistics",
       "aliases": [],
       "seed_sets": [
-        "fortune-500-2026",
-        "provider-lifecycle-overrides"
+        "fortune-500-2026"
       ],
       "seed_metadata": {
         "fortune-500-2026": {
           "fortune_slug": "/company/gxo-logistics/",
           "order": 336,
           "rank": 336
-        },
-        "provider-lifecycle-overrides": {
-          "provider_lifecycle": {
-            "family": "successfactors",
-            "status": "retired",
-            "reason": "Persistent resolved SuccessFactors sitemap returns HTTP 403; retire the stale provider resolution without weakening family-wide structural validation.",
-            "observed_at": "2026-10-20"
-          }
         }
       },
       "domain_hints": [
         "gxo.com"
-      ]
+      ],
+      "careers_url": "https://accnp7l6w.accounts.cloud.sap/saml2/idp/sso/accnp7l6w.accounts.ondemand.com",
+      "careers_platform": "successfactors",
+      "provider": {
+        "family": "successfactors",
+        "status": "resolved",
+        "evidence": "url_or_page_marker",
+        "marker": "sapsf.com",
+        "host": "hcm41.sapsf.com"
+      },
+      "careers_resolution": {
+        "status": "resolved",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-11-02T01:07:47Z",
+        "last_attempt_at": "2026-11-02T01:07:47Z",
+        "evidence": [
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://gxo.com/",
+            "redirect_chain": [
+              {
+                "url": "https://gxo.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://gxo.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://gxo.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://gxo.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://gxo.com/careers/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://gxo.com/careers/",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://gxo.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://gxo.com/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://gxo.com/jobs",
+            "status": 404,
+            "signals": [
+              "careers path",
+              "employer domain"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.gxo.com/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='careers.gxo.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='careers.gxo.com', port=443): Failed to resolve 'careers.gxo.com' ([Errno -2] Name or service not known)\"))"
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.gxo.com/",
+            "redirect_chain": [
+              {
+                "url": "https://jobs.gxo.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://jobs.gxo.com/",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 9
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://gxo.com/careers/",
+            "linked_from": "https://gxo.com/",
+            "redirect_chain": [
+              {
+                "url": "https://gxo.com/careers/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://gxo.com/careers/",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers link text",
+              "careers page content",
+              "employer domain",
+              "linked from employer site"
+            ],
+            "score": 14
+          },
+          {
+            "type": "http",
+            "source": "employer-link",
+            "requested_url": "https://hcm41.sapsf.com/sf/careers/jobsearch?bplte_company=xpologisti",
+            "linked_from": "https://jobs.gxo.com/",
+            "redirect_chain": [
+              {
+                "url": "https://hcm41.sapsf.com/sf/careers/jobsearch?bplte_company=xpologisti",
+                "status": 302
+              },
+              {
+                "url": "https://hcm41.sapsf.com/saml2/Login?company=xpologisti&RelayState=%2Fsf%2Fcareers%2Fjobsearch%3Fbplte_company%3Dxpologisti&_s.crb=E9PKix%252fH%252bwhmGX98tuPqxOD15g0n3%252f91HVoag3NkKRY%253d",
+                "status": 302
+              },
+              {
+                "url": "https://accnp7l6w.accounts.cloud.sap/saml2/idp/sso/accnp7l6w.accounts.ondemand.com?SAMLRequest=nZJNb9swDIb%2FiqC7ZMlrlUWIU2QLigXYR9B6O%2BwyKDLTCpAlT5Tm7t%2FPddKhA7YediOkl%2BTLh1xdPfSe%2FICELoaGSi4ogWBj58JdQz%2B31%2Bw1vVqv0PS%2BHvSm5PtwA98LYCZTYkB9%2BmloSUFHgw51MD2gzlbfbj681zUXekgxRxs9Jdsp0QWT52b3OQ%2Boq8pYG4aFVyOfolhCRm59LB1HM1Rz%2Fcp1U4Txb9IYOuhN6LiNPSXXMVmYbTb0aDwCJbttQ7%2BJpVQglwcm1WHBLkBdMlOrJbNKdBJAvbJwmKSIBXYBswm5obWoFZOSiboVUouFvhRcXcivlOzPA71x4QTqpekPJxHqd227Z%2FtPty0lX56ATwJ6xqvn7uk515cLG0RIjyjp%2BgnlOI4ci7WAeDQ2x4SPWKqHIfp45yb2q%2Bp5r9%2BL%2FTgV32330Tv7k2y8j%2BPbBCZDQ3MqMGPtTf63Hcnl%2FOI6dpylugQcwLqjg47%2Bz6lU67PVP69u%2FQs%3D&RelayState=%2Fsf%2Fcareers%2Fjobsearch%3Fbplte_company%3Dxpologisti&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=WfF9XjEZoUqIJQH8Pjl9Wix0rxtPSHoT%2FZI2gS0VfJa2bh8VVLkjyGre7JNtmcq6C7unwnY9cZnmqKZzhWeRho3JDr7kAAOIiE5g20KfVZOPMdcIwiUHw%2BwSbF5BdL5MpD44JQdGdh0OXvKBO4GIKt3p2WXO6y6Kl9WD5IM%2Bw4ODsA%2BLONJyCbyk6vTIpi6IuBPeVUBG41Pt9H0l6mQN0qTKsUuawx2lpzT4nU3wDCOIcYieeDsHSAu6Wg1S30nnwa7ITeKZvTeT7WK%2BORb0d0ExK9S0mO1BHl40UfwD%2B1ADTsMttCzXmWixxHEfOPxknDbcnp2Mvq%2FiUi0Z7tKMTFfO%2Ft6Jq2zUmridMDvzij0O7bAEK6VMVMw32dRtvoY0cDts81oouBzlPkRDe%2FWKjQ0Qn6XbuZyXihA0XJWfqzfiGYGqu87PTiuA1E0j0olMFzCnlC6kXa81Zx6tuTeoXosyivzbMpcKOFMmTrVVWpTPnCdC5%2Bc74YVxkAPcwwaW",
+                "status": 200
+              }
+            ],
+            "final_url": "https://accnp7l6w.accounts.cloud.sap/saml2/idp/sso/accnp7l6w.accounts.ondemand.com?SAMLRequest=nZJNb9swDIb%2FiqC7ZMlrlUWIU2QLigXYR9B6O%2BwyKDLTCpAlT5Tm7t%2FPddKhA7YediOkl%2BTLh1xdPfSe%2FICELoaGSi4ogWBj58JdQz%2B31%2Bw1vVqv0PS%2BHvSm5PtwA98LYCZTYkB9%2BmloSUFHgw51MD2gzlbfbj681zUXekgxRxs9Jdsp0QWT52b3OQ%2Boq8pYG4aFVyOfolhCRm59LB1HM1Rz%2Fcp1U4Txb9IYOuhN6LiNPSXXMVmYbTb0aDwCJbttQ7%2BJpVQglwcm1WHBLkBdMlOrJbNKdBJAvbJwmKSIBXYBswm5obWoFZOSiboVUouFvhRcXcivlOzPA71x4QTqpekPJxHqd227Z%2FtPty0lX56ATwJ6xqvn7uk515cLG0RIjyjp%2BgnlOI4ci7WAeDQ2x4SPWKqHIfp45yb2q%2Bp5r9%2BL%2FTgV32330Tv7k2y8j%2BPbBCZDQ3MqMGPtTf63Hcnl%2FOI6dpylugQcwLqjg47%2Bz6lU67PVP69u%2FQs%3D&RelayState=%2Fsf%2Fcareers%2Fjobsearch%3Fbplte_company%3Dxpologisti&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=WfF9XjEZoUqIJQH8Pjl9Wix0rxtPSHoT%2FZI2gS0VfJa2bh8VVLkjyGre7JNtmcq6C7unwnY9cZnmqKZzhWeRho3JDr7kAAOIiE5g20KfVZOPMdcIwiUHw%2BwSbF5BdL5MpD44JQdGdh0OXvKBO4GIKt3p2WXO6y6Kl9WD5IM%2Bw4ODsA%2BLONJyCbyk6vTIpi6IuBPeVUBG41Pt9H0l6mQN0qTKsUuawx2lpzT4nU3wDCOIcYieeDsHSAu6Wg1S30nnwa7ITeKZvTeT7WK%2BORb0d0ExK9S0mO1BHl40UfwD%2B1ADTsMttCzXmWixxHEfOPxknDbcnp2Mvq%2FiUi0Z7tKMTFfO%2Ft6Jq2zUmridMDvzij0O7bAEK6VMVMw32dRtvoY0cDts81oouBzlPkRDe%2FWKjQ0Qn6XbuZyXihA0XJWfqzfiGYGqu87PTiuA1E0j0olMFzCnlC6kXa81Zx6tuTeoXosyivzbMpcKOFMmTrVVWpTPnCdC5%2Bc74YVxkAPcwwaW",
+            "status": 200,
+            "signals": [
+              "successfactors provider fingerprint",
+              "careers link text",
+              "linked from employer site"
+            ],
+            "score": 12
+          }
+        ]
+      }
     },
     {
       "id": "halliburton",
@@ -29707,6 +30050,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:17Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:49Z"
           }
         ]
       },
@@ -29820,6 +30168,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:17Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:49Z"
           }
         ]
       },
@@ -30122,6 +30475,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:17Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:49Z"
           }
         ]
       },
@@ -30290,6 +30648,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:17Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:49Z"
           }
         ]
       },
@@ -30383,8 +30746,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:51:27Z",
-        "last_attempt_at": "2026-10-07T00:51:27Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -30594,8 +30957,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-06T00:22:47Z",
-        "last_attempt_at": "2026-10-06T00:22:47Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -31150,6 +31513,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:18Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:49Z"
           }
         ]
       },
@@ -31319,9 +31687,8 @@
       },
       "careers_resolution": {
         "status": "resolved",
-        "attempt_status": "resolved",
-        "resolved_at": "2026-10-06T00:22:47Z",
-        "last_attempt_at": "2026-10-06T00:22:47Z",
+        "attempt_status": "unresolved",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -31340,11 +31707,10 @@
             "final_url": "https://careers.munichre.com/en",
             "status": 200,
             "signals": [
-              "greenhouse provider fingerprint",
               "careers page content",
               "employer domain"
             ],
-            "score": 9
+            "score": 4
           },
           {
             "type": "http",
@@ -31390,7 +31756,8 @@
             ],
             "score": 5
           }
-        ]
+        ],
+        "resolved_at": "2026-10-06T00:22:47Z"
       },
       "domain_hints": [
         "careers.munichre.com"
@@ -31499,6 +31866,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -31599,6 +31971,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -31763,8 +32140,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:51:27Z",
-        "last_attempt_at": "2026-10-07T00:51:27Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -32121,8 +32498,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -32415,8 +32792,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-06T00:22:47Z",
-        "last_attempt_at": "2026-10-06T00:22:47Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -33106,7 +33483,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-10-06T00:22:47Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -33915,6 +34292,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -34138,6 +34520,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:18Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:50Z"
           }
         ]
       },
@@ -34297,8 +34684,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -34444,19 +34831,19 @@
           "upstream_slug": "johnson-and-johnson"
         }
       },
-      "careers_platform": "workday",
+      "careers_platform": "beamery",
       "provider": {
-        "family": "workday",
+        "family": "beamery",
         "status": "resolved",
         "evidence": "url_or_page_marker",
-        "marker": "myworkdayjobs.com",
-        "host": "jj.wd5.myworkdayjobs.com"
+        "marker": "beamery.com",
+        "host": "www.jnj.com"
       },
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-03T10:50:14Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -34608,10 +34995,11 @@
             "final_url": "https://www.jnj.com/",
             "status": 200,
             "signals": [
+              "beamery provider fingerprint",
               "careers page content",
               "employer domain"
             ],
-            "score": 4
+            "score": 9
           },
           {
             "type": "http",
@@ -34680,7 +35068,7 @@
           }
         ]
       },
-      "careers_url": "https://jj.wd5.myworkdayjobs.com/",
+      "careers_url": "https://www.jnj.com/",
       "domain_hints": [
         "careers.jnj.com",
         "jj.wd5.myworkdayjobs.com",
@@ -35207,8 +35595,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-03T10:50:14Z",
-        "last_attempt_at": "2026-10-03T10:50:14Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -35370,11 +35758,11 @@
                 "status": 302
               },
               {
-                "url": "https://kdrp.okta.com/app/kdrp_eightfold_1/exk1d49lz0rkOReOc358/sso/saml?SAMLRequest=fVLBctowEL3zFR7fsWXAidFgOjQkKTMUe4D00AsjpHXQYEuuVk7Tfn0tpUmbzCS6afe9t2%2BfNEPW1C1ddPaktvCjA7SDIHhsaoXUt%2FKwM4pqhhKpYg0gtZzuFl%2FXdBQR2hptNdd1%2BIr0MYchgrFSK0daLfOw2Fyvi9vV5jAe8UtCxhyyKkvJlLE0vTgykXJIp0RcVjBhx4xlmSN%2BA4O9Rh72ku4eBKXRD1KA2fQT8%2FBa3p9spWvhpyB2sFJombI9g4wuhgkZkvE%2BITRNKJl8d6hlv7xUzHrZk7Ut0jg%2BC9NG%2BmxZxHUTs7b1lQM8yx%2BSGB7PiZhM69%2FEnIstFHycZjGijl0WTrj8m9JnqYRU9x%2FHc3wCIf2y35fDstjtncTiObQrrbBrwOzAPEgOd9v1G68vziImnYsD69%2F2E%2BOY%2B3a%2FRTj3ec2cPeqjMfN3JWbx%2F7B%2FxJa6nFfLUteS%2F%2FJ1d260aZh9f8MkSnxFimHlobRT2AKXlQQRvsgs6lr%2FvDLAbP%2BU1nQQBvF8MHgy8%2Fq7zv8A&RelayState=https%3A%2F%2Fkdrp.eightfold.ai%2Fcareerhub",
+                "url": "https://kdrp.okta.com/app/kdrp_eightfold_1/exk1d49lz0rkOReOc358/sso/saml?SAMLRequest=fVJdc9owEHznV3j8ji0ZAliD6dCQtsxQ7AGSh7wwQj6CBltydXKa9tfXUprPmURvutvd21tpiryuGjZv7Ult4FcLaHtB8FBXCplvZWFrFNMcJTLFa0BmBdvOf65YEhHWGG210FX4hvQ5hyOCsVIrR1ousjBfX63y78v1fkipGKUXhzE%2FTgjlKSWjNEnHJKGDwYSSw4GMS8qH4Ig3YLDTyMJO0t2DoDD6XpZg1t3ELLySdyd71FXppyC2sFRoubIdgySjPqV9kuwIZWTEBumtQy265aXi1suerG2QxfG5NE2kz5ZHQtcxbxpf2cOT%2FJ7G8HCm5TCt%2FhJzzjeQi8HFJEbUscvCCRf%2FU%2FoqVSnV3efxHB5ByH7sdkW%2FyLc7JzF%2FCu1SK2xrMFsw91LA9Wb1zuuzs4hL52LPu7f9wgVmvt1tEc58XlNnj%2FlozOxDiWn8GvZCbJjLebkodCXFH19355s2Nbcfb0gj6iuy7B89lLUKGxDyKKEMn2XmVaV%2FXxrgtntKa1oIg3jW6z2aeftdZ%2F8A&RelayState=https%3A%2F%2Fkdrp.eightfold.ai%2Fcareerhub",
                 "status": 200
               }
             ],
-            "final_url": "https://kdrp.okta.com/app/kdrp_eightfold_1/exk1d49lz0rkOReOc358/sso/saml?SAMLRequest=fVLBctowEL3zFR7fsWXAidFgOjQkKTMUe4D00AsjpHXQYEuuVk7Tfn0tpUmbzCS6afe9t2%2BfNEPW1C1ddPaktvCjA7SDIHhsaoXUt%2FKwM4pqhhKpYg0gtZzuFl%2FXdBQR2hptNdd1%2BIr0MYchgrFSK0daLfOw2Fyvi9vV5jAe8UtCxhyyKkvJlLE0vTgykXJIp0RcVjBhx4xlmSN%2BA4O9Rh72ku4eBKXRD1KA2fQT8%2FBa3p9spWvhpyB2sFJombI9g4wuhgkZkvE%2BITRNKJl8d6hlv7xUzHrZk7Ut0jg%2BC9NG%2BmxZxHUTs7b1lQM8yx%2BSGB7PiZhM69%2FEnIstFHycZjGijl0WTrj8m9JnqYRU9x%2FHc3wCIf2y35fDstjtncTiObQrrbBrwOzAPEgOd9v1G68vziImnYsD69%2F2E%2BOY%2B3a%2FRTj3ec2cPeqjMfN3JWbx%2F7B%2FxJa6nFfLUteS%2F%2FJ1d260aZh9f8MkSnxFimHlobRT2AKXlQQRvsgs6lr%2FvDLAbP%2BU1nQQBvF8MHgy8%2Fq7zv8A&RelayState=https%3A%2F%2Fkdrp.eightfold.ai%2Fcareerhub",
+            "final_url": "https://kdrp.okta.com/app/kdrp_eightfold_1/exk1d49lz0rkOReOc358/sso/saml?SAMLRequest=fVJdc9owEHznV3j8ji0ZAliD6dCQtsxQ7AGSh7wwQj6CBltydXKa9tfXUprPmURvutvd21tpiryuGjZv7Ult4FcLaHtB8FBXCplvZWFrFNMcJTLFa0BmBdvOf65YEhHWGG210FX4hvQ5hyOCsVIrR1ousjBfX63y78v1fkipGKUXhzE%2FTgjlKSWjNEnHJKGDwYSSw4GMS8qH4Ig3YLDTyMJO0t2DoDD6XpZg1t3ELLySdyd71FXppyC2sFRoubIdgySjPqV9kuwIZWTEBumtQy265aXi1suerG2QxfG5NE2kz5ZHQtcxbxpf2cOT%2FJ7G8HCm5TCt%2FhJzzjeQi8HFJEbUscvCCRf%2FU%2FoqVSnV3efxHB5ByH7sdkW%2FyLc7JzF%2FCu1SK2xrMFsw91LA9Wb1zuuzs4hL52LPu7f9wgVmvt1tEc58XlNnj%2FlozOxDiWn8GvZCbJjLebkodCXFH19355s2Nbcfb0gj6iuy7B89lLUKGxDyKKEMn2XmVaV%2FXxrgtntKa1oIg3jW6z2aeftdZ%2F8A&RelayState=https%3A%2F%2Fkdrp.eightfold.ai%2Fcareerhub",
             "status": 200,
             "signals": [
               "eightfold provider fingerprint",
@@ -35649,6 +36037,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -36697,8 +37090,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -37025,8 +37418,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:51:27Z",
-        "last_attempt_at": "2026-10-07T00:51:27Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -37215,16 +37608,207 @@
       },
       "careers_resolution": {
         "status": "resolved",
-        "attempt_status": "verified_seed",
-        "resolved_at": "2026-10-06T20:23:01Z",
-        "last_attempt_at": "2026-10-06T20:23:01Z",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
-            "type": "seed",
-            "seed_key": "state-of-ats-2026-verified-hosts",
-            "domain_hint": "libertymutual.eightfold.ai",
-            "ats_system": "Eightfold",
-            "source_url": "https://withresumeai.com/ats-checker/liberty-mutual"
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://libertymutual.com/",
+            "redirect_chain": [
+              {
+                "url": "https://libertymutual.com/",
+                "status": 301
+              },
+              {
+                "url": "https://www.libertymutual.com/",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.libertymutual.com/",
+            "status": 200,
+            "signals": [
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 4
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://libertymutual.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://libertymutual.com/careers",
+                "status": 301
+              },
+              {
+                "url": "https://www.libertymutualgroup.com/about-lm/careers/overview",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.libertymutualgroup.com/about-lm/careers/overview",
+            "status": 200,
+            "signals": [
+              "careers path"
+            ],
+            "score": 3
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://libertymutual.com/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://libertymutual.com/jobs",
+                "status": 301
+              },
+              {
+                "url": "https://www.libertymutualgroup.com/about-lm/careers/overview",
+                "status": 200
+              }
+            ],
+            "final_url": "https://www.libertymutualgroup.com/about-lm/careers/overview",
+            "status": 200,
+            "signals": [
+              "careers path"
+            ],
+            "score": 3
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.libertymutual.com/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='careers.libertymutual.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='careers.libertymutual.com', port=443): Failed to resolve 'careers.libertymutual.com' ([Errno -5] No address associated with hostname)\"))"
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.libertymutual.com/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='jobs.libertymutual.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='jobs.libertymutual.com', port=443): Failed to resolve 'jobs.libertymutual.com' ([Errno -2] Name or service not known)\"))"
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://libertymutual.eightfold.ai/",
+            "redirect_chain": [
+              {
+                "url": "https://libertymutual.eightfold.ai/",
+                "status": 302
+              },
+              {
+                "url": "https://libertymutual.eightfold.ai/home",
+                "status": 302
+              },
+              {
+                "url": "https://libertymutual.eightfold.ai/login?domain=libertymutual.com&hl=en&microsite=libertymutual.com&next=https%3A%2F%2Flibertymutual.eightfold.ai%2Fhome",
+                "status": 302
+              },
+              {
+                "url": "https://login.microsoftonline.com/08a83339-90e7-49bf-9075-957ccd561bf1/saml2?SAMLRequest=hZJBc5swEIXv%2FhUMd0AYjEFjnHHjtPWMazOxk0MuGSGErRkhUa1Im39fiTRtfEjCSUjvfdp9qwWQTvR4NZizvGU%2FBwZm4nm%2FOyEBj0elP2iJFQEOWJKOATYUH1Y%2FtngaItxrZRRVwr8wfewhAEwbrqQzbdalv9%2FdbPffNrvHGUNpmsR1kaM6yXPakLqeZ0ma0pRkeZGgvE1QUmTOeM80WEbpW6T797xKqyfeML2zN5b%2BDT%2BdTatEM94CMLCNBEOksQ40zYI4DtD0iGKMMpwWD061ts1zScyIPRvTA44ioU5chh2nWoFqjZKCSxZS1UUoJ3mSJEVQIDYP0qJu7Wo%2BC4rZnNJmlsV1G0cujqmDV3%2BT%2BsJlw%2BXp44jqFxHg78djFVT7w9EhVq%2FBXSsJQ8f0geknTtnd7fZNvby2ouduMAMRIXtNISQ8AlCPxA76ilAoL3W2H385prhwFeMxML38HLqI3ur%2FE3rsxrBZV0pw%2Bjzuu%2B%2Br0h0x7zcfh%2FG4w5ugHaV4kNAzylvOGv8fZiWE%2BnWtGTF20kYPzPei5WTyUszla17%2BAQ%3D%3D&RelayState=https%3A%2F%2Flibertymutual.eightfold.ai%2Fhome",
+                "status": 200
+              }
+            ],
+            "final_url": "https://login.microsoftonline.com/08a83339-90e7-49bf-9075-957ccd561bf1/saml2?SAMLRequest=hZJBc5swEIXv%2FhUMd0AYjEFjnHHjtPWMazOxk0MuGSGErRkhUa1Im39fiTRtfEjCSUjvfdp9qwWQTvR4NZizvGU%2FBwZm4nm%2FOyEBj0elP2iJFQEOWJKOATYUH1Y%2FtngaItxrZRRVwr8wfewhAEwbrqQzbdalv9%2FdbPffNrvHGUNpmsR1kaM6yXPakLqeZ0ma0pRkeZGgvE1QUmTOeM80WEbpW6T797xKqyfeML2zN5b%2BDT%2BdTatEM94CMLCNBEOksQ40zYI4DtD0iGKMMpwWD061ts1zScyIPRvTA44ioU5chh2nWoFqjZKCSxZS1UUoJ3mSJEVQIDYP0qJu7Wo%2BC4rZnNJmlsV1G0cujqmDV3%2BT%2BsJlw%2BXp44jqFxHg78djFVT7w9EhVq%2FBXSsJQ8f0geknTtnd7fZNvby2ouduMAMRIXtNISQ8AlCPxA76ilAoL3W2H385prhwFeMxML38HLqI3ur%2FE3rsxrBZV0pw%2Bjzuu%2B%2Br0h0x7zcfh%2FG4w5ugHaV4kNAzylvOGv8fZiWE%2BnWtGTF20kYPzPei5WTyUszla17%2BAQ%3D%3D&RelayState=https%3A%2F%2Flibertymutual.eightfold.ai%2Fhome",
+            "status": 200,
+            "signals": [
+              "eightfold provider fingerprint"
+            ],
+            "score": 5
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://libertymutual.eightfold.ai/careers",
+            "redirect_chain": [
+              {
+                "url": "https://libertymutual.eightfold.ai/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://libertymutual.eightfold.ai/careers",
+            "status": 200,
+            "signals": [
+              "eightfold provider fingerprint",
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 12
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://libertymutual.eightfold.ai/jobs",
+            "redirect_chain": [
+              {
+                "url": "https://libertymutual.eightfold.ai/jobs",
+                "status": 404
+              }
+            ],
+            "final_url": "https://libertymutual.eightfold.ai/jobs",
+            "status": 404,
+            "signals": [
+              "eightfold provider fingerprint",
+              "careers path",
+              "employer domain"
+            ],
+            "score": 10
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://careers.libertymutual.eightfold.ai/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='careers.libertymutual.eightfold.ai', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='careers.libertymutual.eightfold.ai', port=443): Failed to resolve 'careers.libertymutual.eightfold.ai' ([Errno -5] No address associated with hostname)\"))"
+          },
+          {
+            "type": "http",
+            "source": "conventional-subdomain",
+            "requested_url": "https://jobs.libertymutual.eightfold.ai/",
+            "error": "ConnectionError: HTTPSConnectionPool(host='jobs.libertymutual.eightfold.ai', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='jobs.libertymutual.eightfold.ai', port=443): Failed to resolve 'jobs.libertymutual.eightfold.ai' ([Errno -5] No address associated with hostname)\"))"
+          },
+          {
+            "type": "http",
+            "source": "input-hint",
+            "requested_url": "https://searchjobs.libertymutualgroup.com/",
+            "redirect_chain": [
+              {
+                "url": "https://searchjobs.libertymutualgroup.com/",
+                "status": 302
+              },
+              {
+                "url": "https://searchjobs.libertymutualgroup.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://searchjobs.libertymutualgroup.com/careers",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
+          },
+          {
+            "type": "http",
+            "source": "conventional-path",
+            "requested_url": "https://searchjobs.libertymutualgroup.com/careers",
+            "redirect_chain": [
+              {
+                "url": "https://searchjobs.libertymutualgroup.com/careers",
+                "status": 200
+              }
+            ],
+            "final_url": "https://searchjobs.libertymutualgroup.com/careers",
+            "status": 200,
+            "signals": [
+              "careers path",
+              "careers page content",
+              "employer domain"
+            ],
+            "score": 7
           }
         ]
       },
@@ -37233,7 +37817,7 @@
         "libertymutual.eightfold.ai",
         "searchjobs.libertymutualgroup.com"
       ],
-      "careers_url": "https://libertymutual.eightfold.ai",
+      "careers_url": "https://libertymutual.eightfold.ai/careers",
       "careers_platform": "eightfold"
     },
     {
@@ -37545,6 +38129,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:19Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:51Z"
           }
         ]
       },
@@ -37715,6 +38304,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:19Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:51Z"
           }
         ]
       },
@@ -38317,6 +38911,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -38476,8 +39075,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -38603,16 +39202,17 @@
               },
               {
                 "url": "https://www.lyft.com/careers",
-                "status": 429
+                "status": 200
               }
             ],
             "final_url": "https://www.lyft.com/careers",
-            "status": 429,
+            "status": 200,
             "signals": [
               "careers path",
+              "careers page content",
               "employer domain"
             ],
-            "score": 5
+            "score": 7
           },
           {
             "type": "http",
@@ -38629,16 +39229,17 @@
               },
               {
                 "url": "https://www.lyft.com/careers",
-                "status": 429
+                "status": 200
               }
             ],
             "final_url": "https://www.lyft.com/careers",
-            "status": 429,
+            "status": 200,
             "signals": [
               "careers path",
+              "careers page content",
               "employer domain"
             ],
-            "score": 5
+            "score": 7
           },
           {
             "type": "http",
@@ -38785,6 +39386,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:19Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:51Z"
           }
         ]
       },
@@ -39003,8 +39609,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-06T00:22:47Z",
-        "last_attempt_at": "2026-10-06T00:22:47Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -39358,6 +39964,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       }
@@ -39474,6 +40085,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -39765,33 +40381,13 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-10-06T00:22:47Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
             "source": "input-hint",
             "requested_url": "https://jobapscloud.com/",
-            "redirect_chain": [
-              {
-                "url": "https://jobapscloud.com/",
-                "status": 301
-              },
-              {
-                "url": "http://corp.jobapscloud.com",
-                "status": 301
-              },
-              {
-                "url": "https://corp.jobapscloud.com/",
-                "status": 200
-              }
-            ],
-            "final_url": "https://corp.jobapscloud.com/",
-            "status": 200,
-            "signals": [
-              "careers page content",
-              "employer domain"
-            ],
-            "score": 4
+            "error": "ReadTimeout: HTTPSConnectionPool(host='jobapscloud.com', port=443): Read timed out. (read timeout=15)"
           },
           {
             "type": "http",
@@ -41524,6 +42120,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -41733,6 +42334,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:19Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:51Z"
           }
         ]
       },
@@ -42450,6 +43056,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:19Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:51Z"
           }
         ]
       },
@@ -42711,6 +43322,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -44320,8 +44936,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -45011,8 +45627,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-06T00:22:47Z",
-        "last_attempt_at": "2026-10-06T00:22:47Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -45031,11 +45647,10 @@
             "final_url": "https://www.careers.peraton.com/",
             "status": 200,
             "signals": [
-              "icims provider fingerprint",
               "careers page content",
               "employer domain"
             ],
-            "score": 9
+            "score": 4
           },
           {
             "type": "http",
@@ -45129,11 +45744,10 @@
             "final_url": "https://www.careers.peraton.com/",
             "status": 200,
             "signals": [
-              "icims provider fingerprint",
               "careers page content",
               "employer domain"
             ],
-            "score": 9
+            "score": 4
           },
           {
             "type": "http",
@@ -45156,11 +45770,10 @@
             "final_url": "https://www.careers.peraton.com/",
             "status": 200,
             "signals": [
-              "icims provider fingerprint",
               "careers page content",
               "employer domain"
             ],
-            "score": 9
+            "score": 4
           },
           {
             "type": "http",
@@ -45285,8 +45898,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-06T00:22:47Z",
-        "last_attempt_at": "2026-10-06T00:22:47Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -45305,11 +45918,10 @@
             "final_url": "https://www.careers.peraton.com/",
             "status": 200,
             "signals": [
-              "icims provider fingerprint",
               "careers page content",
               "employer domain"
             ],
-            "score": 9
+            "score": 4
           },
           {
             "type": "http",
@@ -45573,8 +46185,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:51:27Z",
-        "last_attempt_at": "2026-10-07T00:51:27Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -45986,9 +46598,9 @@
       },
       "careers_resolution": {
         "status": "resolved",
-        "attempt_status": "verified_crawler",
-        "resolved_at": "2026-10-05T22:15:34Z",
-        "last_attempt_at": "2026-10-05T22:15:34Z",
+        "attempt_status": "resolved",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -46014,11 +46626,11 @@
             "redirect_chain": [
               {
                 "url": "https://jobs.ashbyhq.com/careers",
-                "status": 200
+                "status": 404
               }
             ],
             "final_url": "https://jobs.ashbyhq.com/careers",
-            "status": 200,
+            "status": 404,
             "signals": [
               "shared provider host lacks employer tenant identity"
             ],
@@ -46366,8 +46978,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -47158,6 +47770,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -47982,6 +48599,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -49065,8 +49687,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -49510,6 +50132,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -49601,8 +50228,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -50103,6 +50730,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -51513,6 +52145,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -51722,7 +52359,7 @@
       "careers_resolution": {
         "status": "transient",
         "attempt_status": "transient",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -52114,6 +52751,11 @@
             "type": "invalidation",
             "reason": "Lever board retired: 404",
             "invalidated_at": "2026-10-30T18:06:19Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "Lever board retired: 404",
+            "invalidated_at": "2026-11-02T01:12:12Z"
           }
         ]
       },
@@ -53719,6 +54361,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -54041,6 +54688,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:19Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:51Z"
           }
         ]
       },
@@ -54141,6 +54793,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:19Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:51Z"
           }
         ]
       },
@@ -54710,8 +55367,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -54921,6 +55578,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -54961,8 +55623,8 @@
       "careers_resolution": {
         "status": "resolved",
         "attempt_status": "resolved",
-        "resolved_at": "2026-10-07T00:59:37Z",
-        "last_attempt_at": "2026-10-07T00:59:37Z",
+        "resolved_at": "2026-11-02T01:02:55Z",
+        "last_attempt_at": "2026-11-02T01:02:55Z",
         "evidence": [
           {
             "type": "http",
@@ -56972,6 +57634,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:19Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:51Z"
           }
         ]
       },
@@ -57913,6 +58580,11 @@
             "type": "invalidation",
             "reason": "Lever board retired: 404",
             "invalidated_at": "2026-10-30T18:06:19Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "Lever board retired: 404",
+            "invalidated_at": "2026-11-02T01:12:12Z"
           }
         ]
       },
@@ -58685,6 +59357,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:20Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:52Z"
           }
         ]
       },
@@ -58811,6 +59488,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-10-30T18:07:28Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
+            "invalidated_at": "2026-11-02T01:13:13Z"
           }
         ]
       },
@@ -59829,6 +60511,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:20Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:52Z"
           }
         ]
       },
@@ -60880,6 +61567,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:20Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:52Z"
           }
         ]
       },
@@ -61161,6 +61853,11 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: sitemap fetch failed with 404",
             "invalidated_at": "2026-10-30T18:06:20Z"
+          },
+          {
+            "type": "invalidation",
+            "reason": "EndpointRetiredError: sitemap fetch failed with 404",
+            "invalidated_at": "2026-11-02T01:12:52Z"
           }
         ]
       },
