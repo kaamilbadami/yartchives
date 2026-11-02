@@ -252,5 +252,77 @@ class SourceQuarantineTriageTests(unittest.TestCase):
         self.assertEqual(len(creates), 1)
 
 
+    def test_initiative_relabel_prevents_quarantine_auto_closure(self):
+        gh = FakeGh()
+        source = quarantined("Acme", "StructuralSourceError: missing job cards")
+        active = feed({"icims:acme": source})
+        mod.triage("kaamilbadami/yartchives", active, active,
+                   load_open_issues=gh.open_issues, run_gh=gh.run)
+        gh.issues[0]["labels"].append({"name": "initiative"})
+        before = len(gh.calls)
+
+        mod.triage("kaamilbadami/yartchives", active, feed({}),
+                   load_open_issues=gh.open_issues, run_gh=gh.run)
+
+        self.assertEqual(gh.issues[0]["state"], "open")
+        self.assertEqual(gh.calls[before:], [])
+
+    def test_stale_signature_cannot_close_repurposed_quarantine_issue(self):
+        gh = FakeGh()
+        source = quarantined("Acme", "StructuralSourceError: missing job cards")
+        active = feed({"icims:acme": source})
+        mod.triage("kaamilbadami/yartchives", active, active,
+                   load_open_issues=gh.open_issues, run_gh=gh.run)
+        calls = 0
+
+        def drifted_open_issues():
+            nonlocal calls
+            snapshot = gh.open_issues()
+            calls += 1
+            if calls == 1:
+                gh.issues[0]["body"] = "Repurposed issue, no quarantine signature"
+            return snapshot
+
+        mod.triage("kaamilbadami/yartchives", active, feed({}),
+                   load_open_issues=drifted_open_issues, run_gh=gh.run)
+
+        self.assertEqual(gh.issues[0]["state"], "open")
+        self.assertFalse(any(c[:2] == ("issue", "close") for c in gh.calls))
+
+    def test_initiative_relabel_after_resolution_comment_prevents_close(self):
+        gh = FakeGh()
+        source = quarantined("Acme", "StructuralSourceError: missing job cards")
+        active = feed({"icims:acme": source})
+        mod.triage("kaamilbadami/yartchives", active, active,
+                   load_open_issues=gh.open_issues, run_gh=gh.run)
+
+        def relabel_on_comment(*args):
+            gh.run(*args)
+            if args[:2] == ("issue", "comment"):
+                gh.issues[0]["labels"].append({"name": "initiative"})
+
+        mod.triage("kaamilbadami/yartchives", active, feed({}),
+                   load_open_issues=gh.open_issues, run_gh=relabel_on_comment)
+
+        self.assertEqual(gh.issues[0]["state"], "open")
+        self.assertFalse(any(c[:2] == ("issue", "close") for c in gh.calls))
+
+    def test_initiative_quarantine_issue_body_is_not_overwritten(self):
+        gh = FakeGh()
+        source = quarantined("Acme", "StructuralSourceError: missing job cards")
+        active = feed({"icims:acme": source})
+        mod.triage("kaamilbadami/yartchives", active, active,
+                   load_open_issues=gh.open_issues, run_gh=gh.run)
+        gh.issues[0]["labels"].append({"name": "initiative"})
+        original = gh.issues[0]["body"]
+        before = len(gh.calls)
+
+        mod.triage("kaamilbadami/yartchives", active, active,
+                   load_open_issues=gh.open_issues, run_gh=gh.run)
+
+        self.assertEqual(gh.issues[0]["body"], original)
+        self.assertEqual(gh.calls[before:], [])
+
+
 if __name__ == "__main__":
     unittest.main()
