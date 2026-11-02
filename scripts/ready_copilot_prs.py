@@ -267,6 +267,17 @@ def main() -> int:
                 if not still_ok:
                     print(f"PR #{number}: {reason} on recheck; keeping draft.")
                     continue
+                # Main can advance while timeline/provenance is rechecked,
+                # changing refs/pull/N/merge without changing the PR head.
+                # Never transition on a stale merge-status result.
+                latest_pr = gh_json(f"repos/{repo}/pulls/{number}")
+                if (latest_pr.get("state") != "open"
+                        or latest_pr.get("draft") is not True
+                        or (latest_pr.get("head") or {}).get("sha") != sha
+                        or (latest_pr.get("base") or {}).get("ref") != "main"
+                        or latest_pr.get("merge_commit_sha") != merge_sha):
+                    print(f"PR #{number}: head/merge/state drift before ready; keeping draft.")
+                    continue
                 gh_write("pr", "ready", str(number), "--repo", repo)
                 print(f"PR #{number}: ready for review at verified head {sha} and merge {merge_sha}; NOT merge approval.")
                 continue
