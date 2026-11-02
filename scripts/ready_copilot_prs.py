@@ -18,7 +18,24 @@ CLOSING_REF = re.compile(
     r"(?im)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+"
     r"(?:(?P<repo>[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+))?#(?P<number>\d+)\b"
 )
-RECOVERY_MARKER = "<!-- copilot-draft-ci-recovery: head={head} -->"
+RECOVERY_MARKER = "<!-- copilot-draft-ci-recovery: head={head} merge={merge} -->"
+RECOVERY_RE = re.compile(
+    r"<!-- copilot-draft-ci-recovery: head=([a-f0-9]{40})(?: merge=([a-f0-9]{40}))? -->"
+)
+MAX_RECOVERY_ATTEMPTS_PER_HEAD = 2
+
+
+def recovery_attempts(comments: list[dict[str, Any]], head: str) -> list[str | None]:
+    """Count only trusted controller attempts, including legacy head-only markers."""
+    attempts: list[str | None] = []
+    for comment in comments:
+        author = str((comment.get("user") or {}).get("login") or "").casefold()
+        if author != "github-actions[bot]":
+            continue
+        for match in RECOVERY_RE.finditer(str(comment.get("body") or "")):
+            if match.group(1) == head:
+                attempts.append(match.group(2))
+    return attempts
 
 
 def gh_json(endpoint: str) -> Any:
@@ -263,14 +280,23 @@ def main() -> int:
                 print(f"PR #{number}: head CI must finish successfully before draft transition.")
                 continue
             comments = gh_pages(f"repos/{repo}/issues/{number}/comments?per_page=100")
-            marker = RECOVERY_MARKER.format(head=sha)
-            if any(marker in str(c.get("body") or "") for c in comments):
-                print(f"PR #{number}: CI recovery already attempted for {sha}; bounded wait.")
+            attempts = recovery_attempts(comments, sha)
+            if merge_sha in attempts or None in attempts:
+                # Legacy head-only markers lack a merge identity; fail closed
+                # rather than silently replay an already dispatched recovery.
+                print(f"PR #{number}: CI recovery already attempted for this merge/head; bounded wait.")
                 continue
-            # Durable attempt marker before dispatch prevents duplicate costly runs.
+            if len(attempts) >= MAX_RECOVERY_ATTEMPTS_PER_HEAD:
+                print(f"BLOCKED_REQUIRES_DECISION PR #{number}: exhausted "
+                      f"{MAX_RECOVERY_ATTEMPTS_PER_HEAD} trusted merge-CI attempts for head {sha}.")
+                continue
+            marker = RECOVERY_MARKER.format(head=sha, merge=merge_sha)
+            # Durable marker before dispatch prevents duplicate costly runs.
+            # One additional attempt is allowed if main advances and changes
+            # the synthetic merge SHA, but the per-head budget stays bounded.
             gh_write("api", "--method", "POST",
                      f"repos/{repo}/issues/{number}/comments",
-                     "-f", f"body={marker}\nOne bounded read-only Quality recovery attempt for this exact draft head.")
+                     "-f", f"body={marker}\nBounded read-only Quality recovery for this exact draft head and merge.")
             # Run the trusted workflow from main, not the untrusted PR branch.
             # quality.yml checks out the current synthetic merge and publishes
             # the required tests status only if its merge SHA stays unchanged.
