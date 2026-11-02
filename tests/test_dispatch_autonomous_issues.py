@@ -3146,6 +3146,9 @@ class AutonomousDispatcherTests(unittest.TestCase):
             load_open_autonomous=lambda: issues,
             load_comments=lambda number: comments[number],
             get_pr=lambda number: {"number": number, "merged": number == 234},
+            get_issue=lambda number: {
+                "state": "open", "labels": [{"name": "autonomous-backlog"}],
+            },
             run_gh=lambda *args: gh_calls.append(args),
         )
 
@@ -3158,6 +3161,63 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 )
             ],
         )
+
+    def test_historical_reconciliation_rechecks_issue_before_closure(self):
+        comment = [{
+            "body": (
+                "Jules completed session `done187` and released this automation slot.\\n\\n"
+                "Pull request: https://github.com/kaamilbadami/yartchives/pull/234"
+            )
+        }]
+        for current in (
+            {"state": "closed", "labels": [{"name": "autonomous-backlog"}]},
+            {"state": "open", "labels": [{"name": "initiative"}, {"name": "autonomous-backlog"}]},
+            {"state": "open", "labels": [{"name": "agent-ready"}]},
+            {"state": "open"},
+        ):
+            with self.subTest(current=current):
+                calls = []
+                mod.reconcile_historical_merged_jules_issues(
+                    "kaamilbadami/yartchives",
+                    load_open_autonomous=lambda: [{"number": 187}],
+                    load_comments=lambda number: comment,
+                    get_pr=lambda number: {"merged": True},
+                    get_issue=lambda number: current,
+                    run_gh=lambda *args: calls.append(args),
+                )
+                self.assertEqual(calls, [])
+
+    def test_historical_reconciliation_tolerates_only_verified_concurrent_closure(self):
+        comment = [{
+            "body": (
+                "Jules completed session `done187` and released this automation slot.\\n\\n"
+                "Pull request: https://github.com/kaamilbadami/yartchives/pull/234"
+            )
+        }]
+        open_issue = {"state": "open", "labels": [{"name": "autonomous-backlog"}]}
+        closed_issue = {"state": "closed", "labels": [{"name": "autonomous-backlog"}]}
+        def failing_patch(*args):
+            raise mod.subprocess.CalledProcessError(1, ["gh", "api"])
+
+        for second, should_raise in ((closed_issue, False), (open_issue, True)):
+            with self.subTest(second=second):
+                snapshots = iter((open_issue, second))
+                kwargs = dict(
+                    load_open_autonomous=lambda: [{"number": 187}],
+                    load_comments=lambda number: comment,
+                    get_pr=lambda number: {"merged": True},
+                    get_issue=lambda number: next(snapshots),
+                    run_gh=failing_patch,
+                )
+                if should_raise:
+                    with self.assertRaises(mod.subprocess.CalledProcessError):
+                        mod.reconcile_historical_merged_jules_issues(
+                            "kaamilbadami/yartchives", **kwargs
+                        )
+                else:
+                    mod.reconcile_historical_merged_jules_issues(
+                        "kaamilbadami/yartchives", **kwargs
+                    )
 
     def test_historical_reconciliation_default_loader_uses_autonomous_backlog_label(self):
         calls = []
