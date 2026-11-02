@@ -185,7 +185,8 @@ class CopilotReadyPolicyTests(unittest.TestCase):
 class CopilotReadyReconciliationTests(unittest.TestCase):
     def run_controller(self, *, quality=True, head_drift=False, comments=None,
                        merge_quality=False, stale_merge=False, failed_merge=False,
-                       late_commit=False, missing_merge_status=False):
+                       late_commit=False, missing_merge_status=False,
+                       head_action_required=False):
         pr, issue, files, events, links = fixtures()
         current = dict(pr)
         if head_drift:
@@ -194,6 +195,9 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
             current["merge_commit_sha"] = "c" * 40
         green = [{"name": "Quality checks", "head_sha": SHA,
                   "status": "completed", "conclusion": "success"}] if quality else []
+        if head_action_required:
+            green = [{"name": "Quality checks", "head_sha": SHA,
+                      "status": "completed", "conclusion": "action_required"}]
         timeline_reads = [0]
         def pages(endpoint):
             if "/pulls?state=open" in endpoint:
@@ -271,10 +275,16 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
             {"statuses": [{"context": "tests", "state": "success"}]}, "c" * 40
         ))
 
-    def test_green_current_merge_status_marks_ready_without_head_run(self):
-        calls = self.run_controller(quality=False, merge_quality=True)
-        self.assertEqual(len(calls), 1)
-        self.assertEqual(calls[0].args, ("pr", "ready", "77", "--repo", REPO))
+    def test_green_merge_status_without_executed_head_ci_stays_draft(self):
+        # A merge-commit status does not substitute for an exact-head CI run.
+        # No recovery is necessary when the merge is already green; wait for
+        # read-only head CI instead of silently transitioning the draft.
+        self.assertEqual(self.run_controller(quality=False, merge_quality=True), [])
+
+    def test_approval_gated_head_ci_cannot_be_bypassed_by_green_merge(self):
+        self.assertEqual(self.run_controller(
+            quality=False, merge_quality=True, head_action_required=True
+        ), [])
 
     def test_failed_merge_blocks_ready_even_when_head_ci_is_green(self):
         self.assertEqual(self.run_controller(
