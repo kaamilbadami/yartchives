@@ -151,12 +151,18 @@ def provenance_verified(
         "copilot_work_started", "committed", "head_ref_force_pushed", "synchronize"
     } for event in later_events):
         return False, "PR head changed or Copilot resumed after completion"
-    if not any(
-        event.get("event") == "review_requested"
-        and str((event.get("actor") or {}).get("login") or "").casefold() == COPILOT
-        for event in later_events
-    ):
-        return False, "Copilot has not requested review after completion"
+    # A request that was subsequently withdrawn is not an outstanding
+    # Copilot review request. GitHub records review_request_removed separately
+    # from review_requested; treat later removals as revoking readiness until
+    # Copilot explicitly requests review again. Conservative for multiple
+    # reviewers: an ambiguous removal blocks rather than inferring consent.
+    review_events = [
+        event for event in later_events
+        if event.get("event") in {"review_requested", "review_request_removed"}
+    ]
+    if (not review_events or review_events[-1].get("event") != "review_requested"
+            or str((review_events[-1].get("actor") or {}).get("login") or "").casefold() != COPILOT):
+        return False, "no outstanding Copilot review request after completion"
     return True, "completed low-risk Copilot draft"
 
 
