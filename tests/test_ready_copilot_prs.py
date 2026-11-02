@@ -241,7 +241,7 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
                        late_disconnect=False, body_drift_on_recheck=False,
                        head_ref_drift_on_recheck=False, author_drift_on_recheck=False,
                        base_sha_drift_on_recheck=False, missing_base_sha_on_recheck=False,
-                       trusted_head_recovery=False):
+                       trusted_head_recovery=False, head_failed=False):
         pr, issue, files, events, links = fixtures()
         current = dict(pr)
         if head_drift:
@@ -253,6 +253,9 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         if head_action_required:
             green = [{"name": "Quality checks", "head_sha": SHA,
                       "status": "completed", "conclusion": "action_required"}]
+        if head_failed:
+            green = [{"name": "Quality checks", "head_sha": SHA,
+                      "status": "completed", "conclusion": "failure"}]
         timeline_reads = [0]
         issue_timeline_reads = [0]
         pr_reads = [0]
@@ -427,16 +430,12 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         self.assertEqual(calls[0].args[:2], ("pr", "ready"))
 
     def test_executed_head_failure_vetoes_trusted_recovery(self):
-        # A real failed head run is not approval-gated and cannot be bypassed.
-        calls = self.run_controller(
-            quality=False, merge_quality=True, trusted_head_recovery=True
-        )
-        self.assertEqual(calls[0].args[:2], ("pr", "ready"))
-        # Unit-level decision explicitly rejects an executed failure.
-        failed = [{"name": "Quality checks", "head_sha": SHA,
-                   "status": "completed", "conclusion": "failure"}]
-        self.assertFalse(ready.exact_head_quality_green(failed, SHA))
-        self.assertFalse(ready.recovery_allowed(failed, SHA))
+        # A real failed head run is not approval-gated and cannot be bypassed
+        # by a previously green trusted recovery status.
+        self.assertEqual(self.run_controller(
+            quality=False, merge_quality=True, trusted_head_recovery=True,
+            head_failed=True,
+        ), [])
 
     def test_failed_merge_blocks_ready_even_when_head_ci_is_green(self):
         self.assertEqual(self.run_controller(
