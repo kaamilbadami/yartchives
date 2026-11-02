@@ -13,6 +13,11 @@ on:
         required: false
         default: ""
         type: string
+      pr_head_sha:
+        description: Immutable PR head SHA for read-only recovery when Copilot CI is approval-gated
+        required: false
+        default: ""
+        type: string
   pull_request:
   push:
     branches:
@@ -153,13 +158,84 @@ jobs:
         if: steps.scope.outputs.health == 'true'
         run: bash scripts/run_quality_checks.sh health
 
-  publish-pr-recovery-status:
-    # Privileged status publication never executes checked-out PR code.
-    needs: [tests]
+  head-tests:
+    # The untrusted Copilot head is executed ONLY in this read-only job.
+    # No secrets, write-capable token, status publication, or deployment.
     if: >-
       github.event_name == 'workflow_dispatch' &&
       inputs.pr_recovery == true &&
-      needs.tests.result == 'success'
+      inputs.pr_number != '' &&
+      inputs.pr_head_sha != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      tested_head_sha: ${{ steps.head.outputs.sha }}
+    steps:
+      - name: Check out trusted workflow baseline without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Pin and check out exact untrusted PR head
+        id: head
+        env:
+          PR_NUMBER: ${{ inputs.pr_number }}
+          EXPECTED_HEAD_SHA: ${{ inputs.pr_head_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]] || exit 1
+          [[ "$EXPECTED_HEAD_SHA" =~ ^[a-f0-9]{40}$ ]] || exit 1
+          git fetch --no-tags origin "refs/pull/$PR_NUMBER/head"
+          head_sha="$(git rev-parse FETCH_HEAD)"
+          [[ "$head_sha" == "$EXPECTED_HEAD_SHA" ]] || {
+            echo "Copilot PR head moved before validation; refusing stale result."
+            exit 1
+          }
+          git checkout --detach "$head_sha"
+          echo "sha=$head_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies without restoring a privileged cache
+        run: pip install -r requirements.txt
+
+      - name: Run exact-head Python and frontend tests
+        run: |
+          bash scripts/run_quality_checks.sh python
+          bash scripts/run_quality_checks.sh frontend
+
+      - name: Run exact-head targeted frontend preflight
+        env:
+          PR_BASE_SHA: ${{ github.sha }}
+          PR_HEAD_SHA: ${{ steps.head.outputs.sha }}
+        run: |
+          python -m unittest tests.test_targeted_frontend_preflight -v
+          python scripts/targeted_frontend_preflight.py "$PR_BASE_SHA" "$PR_HEAD_SHA"
+
+      - name: Decide repository-health scope
+        id: scope
+        env:
+          PR_HEAD_SHA: ${{ steps.head.outputs.sha }}
+        run: bash scripts/quality_scope.sh origin/main "$PR_HEAD_SHA" | tail -n 1 >> "$GITHUB_OUTPUT"
+
+      - name: Run relevant repository-health checks
+        if: steps.scope.outputs.health == 'true'
+        run: bash scripts/run_quality_checks.sh health
+
+  publish-pr-recovery-status:
+    # Privileged status publication never executes checked-out PR code.
+    needs: [tests, head-tests]
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      inputs.pr_recovery == true &&
+      needs.tests.result == 'success' &&
+      (needs.head-tests.result == 'success' || needs.head-tests.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -170,6 +246,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ inputs.pr_number }}
           TESTED_MERGE_SHA: ${{ needs.tests.outputs.tested_merge_sha }}
+          TESTED_HEAD_SHA: ${{ needs.head-tests.outputs.tested_head_sha }}
+          EXPECTED_HEAD_SHA: ${{ inputs.pr_head_sha }}
         run: |
           set -euo pipefail
           target="$GITHUB_SHA"
@@ -178,11 +256,26 @@ jobs:
             current="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER")"
             [[ "$(jq -r '.state' <<<"$current")" == "open" ]] || exit 1
             [[ "$(jq -r '.base.ref' <<<"$current")" == "main" ]] || exit 1
+            if [[ -n "$EXPECTED_HEAD_SHA" ]]; then
+              [[ "$EXPECTED_HEAD_SHA" =~ ^[a-f0-9]{40}$ ]] || exit 1
+              [[ "$TESTED_HEAD_SHA" == "$EXPECTED_HEAD_SHA" ]] || exit 1
+              [[ "$(jq -r '.head.sha' <<<"$current")" == "$TESTED_HEAD_SHA" ]] || {
+                echo "PR head moved since exact-head tests ran; refusing status publication."
+                exit 1
+              }
+            fi
             target="$(jq -r '.merge_commit_sha // empty' <<<"$current")"
             [[ -n "$TESTED_MERGE_SHA" && "$target" == "$TESTED_MERGE_SHA" ]] || {
               echo "PR merge SHA moved since tests ran; refusing stale status publication."
               exit 1
             }
+          fi
+          if [[ -n "$TESTED_HEAD_SHA" ]]; then
+            gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$TESTED_HEAD_SHA" \
+              -f state=success \
+              -f context=copilot-head-tests \
+              -f "target_url=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+              -f description="Read-only exact-head Copilot recovery tests passed"
           fi
           gh api --method POST "repos/$GITHUB_REPOSITORY/statuses/$target" \
             -f state=success \
