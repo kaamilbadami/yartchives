@@ -113,36 +113,43 @@ def provenance_verified(
         for e in issue_events
     ):
         return False, "missing Copilot issue-to-PR connection"
-    finished = [
-        str(e.get("created_at") or "") for e in pr_events
-        if e.get("event") == "copilot_work_finished"
-        and (e.get("performed_via_github_app") or {}).get("slug") == COPILOT_APP
+    # GitHub's PR timeline is ordered and includes 'committed' events without
+    # created_at. Compare event positions, not only timestamps: a push after
+    # Copilot finished invalidates completion even if the head later passes CI.
+    finished_positions = [
+        idx for idx, event in enumerate(pr_events)
+        if event.get("event") == "copilot_work_finished"
+        and (event.get("performed_via_github_app") or {}).get("slug") == COPILOT_APP
     ]
-    if not finished:
+    if not finished_positions:
         return False, "Copilot has not reported work finished"
-    last_finished = max(finished)
-    if any(
-        e.get("event") == "copilot_work_started"
-        and str(e.get("created_at") or "") > last_finished
-        for e in pr_events
-    ):
-        return False, "Copilot resumed work after last completion"
+    last_finished_pos = finished_positions[-1]
+    later_events = pr_events[last_finished_pos + 1:]
+    if any(event.get("event") in {
+        "copilot_work_started", "committed", "head_ref_force_pushed", "synchronize"
+    } for event in later_events):
+        return False, "PR head changed or Copilot resumed after completion"
     if not any(
-        e.get("event") == "review_requested"
-        and str((e.get("actor") or {}).get("login") or "").casefold() == COPILOT
-        and str(e.get("created_at") or "") >= last_finished
-        for e in pr_events
+        event.get("event") == "review_requested"
+        and str((event.get("actor") or {}).get("login") or "").casefold() == COPILOT
+        for event in later_events
     ):
         return False, "Copilot has not requested review after completion"
     return True, "completed low-risk Copilot draft"
 
 
 def exact_head_quality_green(runs: list[dict[str, Any]], sha: str) -> bool:
-    return any(
-        r.get("name") == "Quality checks" and r.get("head_sha") == sha
-        and r.get("status") == "completed" and r.get("conclusion") == "success"
-        for r in runs
-    )
+    # A previous success must not override a newer failure or pending run for
+    # the same head. GitHub returns newest runs first; timestamps/IDs make the
+    # choice explicit when available, preserving API order on exact ties.
+    current = [r for r in runs if r.get("name") == "Quality checks"
+               and r.get("head_sha") == sha]
+    if not current:
+        return False
+    latest = max(current, key=lambda r: (
+        str(r.get("created_at") or ""), int(r.get("id") or 0)
+    ))
+    return latest.get("status") == "completed" and latest.get("conclusion") == "success"
 
 
 def exact_merge_tests_green(status: dict[str, Any], merge_sha: str) -> bool:
@@ -213,19 +220,20 @@ def main() -> int:
                 )
                 merge_failed = bool(latest_tests and
                                     latest_tests.get("state") in {"failure", "error"})
+            if merge_failed:
+                print(f"BLOCKED_REQUIRES_DECISION PR #{number}: current synthetic merge tests failed; no automatic retry.")
+                continue
             if exact_head_quality_green(runs, sha) or merge_green:
                 current_issue = gh_json(f"repos/{repo}/issues/{issue_number}")
+                current_events = gh_pages(f"repos/{repo}/issues/{number}/timeline?per_page=100")
                 still_ok, reason = provenance_verified(
-                    fresh, current_issue, files, pr_events, issue_events, repo
+                    fresh, current_issue, files, current_events, issue_events, repo
                 )
                 if not still_ok:
                     print(f"PR #{number}: {reason} on recheck; keeping draft.")
                     continue
                 gh_write("pr", "ready", str(number), "--repo", repo)
                 print(f"PR #{number}: ready for review at verified head {sha}; NOT merge approval.")
-                continue
-            if merge_failed:
-                print(f"BLOCKED_REQUIRES_DECISION PR #{number}: current synthetic merge tests failed; no automatic retry.")
                 continue
             if not recovery_allowed(runs, sha):
                 print(f"PR #{number}: CI in progress or failed; no draft transition.")
