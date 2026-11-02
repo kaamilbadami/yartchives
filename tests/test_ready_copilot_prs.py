@@ -135,6 +135,29 @@ class CopilotReadyPolicyTests(unittest.TestCase):
                 self.assertFalse(ready.exact_head_quality_green([older, newer], SHA))
         self.assertTrue(ready.exact_head_quality_green([older], SHA))
 
+    def test_newer_approval_gate_does_not_erase_executed_green_head_ci(self):
+        # Live #1126 evidence: a successful workflow_dispatch for an exact
+        # head was followed by a pull_request run blocked as action_required.
+        # The latter never executed tests and must not erase the former.
+        green = {"name": "Quality checks", "head_sha": SHA,
+                 "event": "workflow_dispatch", "status": "completed",
+                 "conclusion": "success", "created_at": "2026-11-02T01:23:38Z",
+                 "id": 41372256098}
+        gated = {"name": "Quality checks", "head_sha": SHA,
+                 "event": "pull_request", "status": "completed",
+                 "conclusion": "action_required",
+                 "created_at": "2026-11-02T01:23:42Z", "id": 41372261951}
+        self.assertTrue(ready.exact_head_quality_green([gated, green], SHA))
+        self.assertFalse(ready.exact_head_quality_green([gated], SHA))
+        self.assertFalse(ready.exact_head_quality_green([gated, green], "b" * 40))
+        # A newer actual failing or pending execution still overrides green.
+        for status, conclusion in (("completed", "failure"), ("in_progress", None)):
+            real_failure = dict(green, status=status, conclusion=conclusion,
+                                created_at="2026-11-02T01:24:00Z", id=41372262000)
+            with self.subTest(status=status):
+                self.assertFalse(ready.exact_head_quality_green(
+                    [green, gated, real_failure], SHA))
+
     def test_merge_status_requires_current_merge_sha_and_successful_tests(self):
         merge_sha = "c" * 40
         green = {"statuses": [{"context": "tests", "state": "success"}]}
