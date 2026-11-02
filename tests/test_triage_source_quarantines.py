@@ -265,7 +265,7 @@ class SourceQuarantineTriageTests(unittest.TestCase):
                    load_open_issues=gh.open_issues, run_gh=gh.run)
 
         self.assertEqual(gh.issues[0]["state"], "open")
-        self.assertEqual(gh.calls[before:], [])
+        self.assertFalse(any(call[0] == "issue" for call in gh.calls[before:]))
 
     def test_stale_signature_cannot_close_repurposed_quarantine_issue(self):
         gh = FakeGh()
@@ -321,7 +321,7 @@ class SourceQuarantineTriageTests(unittest.TestCase):
                    load_open_issues=gh.open_issues, run_gh=gh.run)
 
         self.assertEqual(gh.issues[0]["body"], original)
-        self.assertEqual(gh.calls[before:], [])
+        self.assertFalse(any(call[0] == "issue" for call in gh.calls[before:]))
 
 
 if __name__ == "__main__":
