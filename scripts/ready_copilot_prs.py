@@ -283,7 +283,14 @@ def main() -> int:
                         or latest_pr.get("draft") is not True
                         or (latest_pr.get("head") or {}).get("sha") != sha
                         or (latest_pr.get("base") or {}).get("ref") != "main"
-                        or latest_pr.get("merge_commit_sha") != merge_sha):
+                        or latest_pr.get("merge_commit_sha") != merge_sha
+                        # The PR body is an authorization input: a late edit
+                        # could replace the verified child issue with an
+                        # initiative-closing keyword without changing its head.
+                        or latest_pr.get("body") != fresh.get("body")
+                        or (latest_pr.get("user") or {}).get("login") != (fresh.get("user") or {}).get("login")
+                        or (latest_pr.get("head") or {}).get("ref") != head.get("ref")
+                        or ((latest_pr.get("head") or {}).get("repo") or {}).get("full_name") != ((head.get("repo") or {}).get("full_name"))):
                     print(f"PR #{number}: head/merge/state drift before ready; keeping draft.")
                     continue
                 gh_write("pr", "ready", str(number), "--repo", repo)
