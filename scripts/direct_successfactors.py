@@ -67,6 +67,18 @@ def _clean(value: Any) -> str:
     return bf.clean_text(value).strip()
 
 
+def _is_sso_or_base_domain(hostname: str) -> bool:
+    return any(hostname.endswith(suffix) for suffix in (
+        ".accounts.ondemand.com",
+        ".accounts.cloud.sap",
+        ".sapsf.com",
+        ".sapsf.eu",
+        ".sapsf.cn",
+        ".successfactors.com",
+        ".successfactors.eu"
+    ))
+
+
 def _successfactors_source(employer: dict[str, Any]) -> dict[str, Any] | None:
     lifecycle = ((employer.get("seed_metadata") or {}).get(PROVIDER_LIFECYCLE_SEED_KEY) or {}).get("provider_lifecycle") or {}
     if lifecycle.get("family") == "successfactors" and lifecycle.get("status") == "retired":
@@ -85,6 +97,22 @@ def _successfactors_source(employer: dict[str, Any]) -> dict[str, Any] | None:
     parsed = urlparse(careers_url)
     if not parsed.hostname:
         return None
+
+    if _is_sso_or_base_domain(parsed.hostname):
+        evidence_list = resolution.get("evidence") or []
+        sorted_evidence = sorted(
+            [ev for ev in evidence_list if ev.get("type") == "http" and ev.get("status") == 200],
+            key=lambda x: (
+                1 if "successfactors provider fingerprint" in x.get("signals", []) else 0,
+                x.get("score") or 0
+            ),
+            reverse=True
+        )
+        for ev in sorted_evidence:
+            ev_parsed = urlparse(ev.get("final_url", ""))
+            if ev_parsed.hostname and not _is_sso_or_base_domain(ev_parsed.hostname):
+                parsed = ev_parsed
+                break
 
     origin = urlunparse((parsed.scheme or "https", parsed.netloc, "", "", "", ""))
     homepage = urlunparse((parsed.scheme or "https", parsed.netloc, parsed.path.rstrip("/"), "", "", ""))
