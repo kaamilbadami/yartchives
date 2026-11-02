@@ -27,6 +27,23 @@ def is_initiative(issue):
 def gh(*args):
     return subprocess.check_output(["gh", *args, "--repo", REPO], text=True)
 
+
+def guarded_issue_write(number, *args, require_open=False):
+    """Revalidate live issue authorization before every housekeeping mutation.
+
+    Missing metadata, a parent initiative, or a stale closed issue fail closed.
+    GitHub has no atomic label compare-and-swap; this narrows the race window.
+    """
+    current = json.loads(gh("issue", "view", str(number), "--json", "state,labels"))
+    if not isinstance(current.get("labels"), list) or is_initiative(current):
+        return False
+    if current.get("state") not in {"OPEN", "CLOSED"}:
+        return False
+    if require_open and current["state"] != "OPEN":
+        return False
+    gh(*args)
+    return True
+
 def main():
     pr = json.loads(gh("pr", "view", str(PR_NUMBER), "--json", "body,mergedAt,url"))
     if not pr.get("mergedAt"):
@@ -114,7 +131,8 @@ def main():
                 args = ["issue", "edit", str(orig_issue)]
                 for lbl in labels_to_remove:
                     args.extend(["--remove-label", lbl])
-                gh(*args)
+                if not guarded_issue_write(orig_issue, *args):
+                    continue
 
             marker = f"<!-- post-merge-reconciliation: pr={PR_NUMBER} issue={orig_issue} -->"
             old_body = orig_data.get("body") or ""
@@ -122,21 +140,27 @@ def main():
             if is_completed:
                 if marker not in old_body and orig_data.get("stateReason") != "COMPLETED":
                     if orig_data.get("state") != "OPEN":
-                        gh("issue", "reopen", str(orig_issue))
+                        if not guarded_issue_write(orig_issue, "issue", "reopen", str(orig_issue)):
+                            continue
                     new_body = old_body + f"\n\n{marker}"
-                    gh("issue", "comment", str(orig_issue), "--body",
-                       f"Post-merge reconciliation: Recovery PR #{PR_NUMBER} merged and completes the acceptance criteria originally attempted in stale PR #{stale_pr}. Closing as completed.")
-                    gh("issue", "edit", str(orig_issue), "--body", new_body)
-                    gh("issue", "close", str(orig_issue), "--reason", "completed")
+                    if not guarded_issue_write(orig_issue, "issue", "comment", str(orig_issue), "--body",
+                            f"Post-merge reconciliation: Recovery PR #{PR_NUMBER} merged and completes the acceptance criteria originally attempted in stale PR #{stale_pr}. Closing as completed."):
+                        continue
+                    if not guarded_issue_write(orig_issue, "issue", "edit", str(orig_issue), "--body", new_body):
+                        continue
+                    guarded_issue_write(orig_issue, "issue", "close", str(orig_issue), "--reason", "completed", require_open=True)
             else:
                 if orig_data.get("state") != "OPEN" and marker not in old_body:
-                    gh("issue", "reopen", str(orig_issue))
+                    if not guarded_issue_write(orig_issue, "issue", "reopen", str(orig_issue)):
+                        continue
 
                 if marker not in old_body:
                     new_body = old_body + f"\n\n## Partial Recovery\n{marker}\nSome work was recovered and merged in PR #{PR_NUMBER}. The remaining acceptance criteria should be evaluated from current main."
-                    gh("issue", "comment", str(orig_issue), "--body",
-                       f"{marker}\nPost-merge reconciliation: Recovery PR #{PR_NUMBER} merged and partially subsumed work originally attempted in stale PR #{stale_pr}. The remaining acceptance criteria should be evaluated from current main. Leaving it open.")
-                    gh("issue", "edit", str(orig_issue), "--body", new_body)
+                    if not guarded_issue_write(orig_issue, "issue", "comment", str(orig_issue), "--body",
+                            f"{marker}\nPost-merge reconciliation: Recovery PR #{PR_NUMBER} merged and partially subsumed work originally attempted in stale PR #{stale_pr}. The remaining acceptance criteria should be evaluated from current main. Leaving it open."):
+                        continue
+                    if not guarded_issue_write(orig_issue, "issue", "edit", str(orig_issue), "--body", new_body):
+                        continue
 
         except Exception as e:
             pass
@@ -146,13 +170,14 @@ def main():
         if is_initiative(issue) or issue.get("state") != "OPEN":
             continue
         if number in completed:
-            gh("issue", "comment", str(number), "--body",
-               f"Post-merge reconciliation: PR #{PR_NUMBER} merged and explicitly records that it completes this issue's acceptance criteria. Closing as completed.")
-            gh("issue", "close", str(number), "--reason", "completed")
+            if not guarded_issue_write(number, "issue", "comment", str(number), "--body",
+                    f"Post-merge reconciliation: PR #{PR_NUMBER} merged and explicitly records that it completes this issue's acceptance criteria. Closing as completed."), require_open=True):
+                continue
+            guarded_issue_write(number, "issue", "close", str(number), "--reason", "completed", require_open=True)
         else:
             marker = f"<!-- post-merge-reconciliation: pr={PR_NUMBER} issue={number} -->"
-            gh("issue", "comment", str(number), "--body",
-               marker + f"\nPost-merge reconciliation: PR #{PR_NUMBER} merged and references this issue, but does not explicitly state that all acceptance criteria are complete. Leaving it open.")
+            guarded_issue_write(number, "issue", "comment", str(number), "--body",
+                marker + f"\nPost-merge reconciliation: PR #{PR_NUMBER} merged and references this issue, but does not explicitly state that all acceptance criteria are complete. Leaving it open."), require_open=True)
     return 0
 
 if __name__ == "__main__":
