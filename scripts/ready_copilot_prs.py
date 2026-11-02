@@ -10,6 +10,7 @@ import json
 import os
 import re
 import subprocess
+from datetime import datetime, timezone
 from typing import Any
 
 COPILOT = "copilot"
@@ -23,6 +24,7 @@ RECOVERY_RE = re.compile(
     r"<!-- copilot-draft-ci-recovery: head=([a-f0-9]{40})(?: merge=([a-f0-9]{40}))? -->"
 )
 MAX_RECOVERY_ATTEMPTS_PER_HEAD = 2
+LEGACY_RECOVERY_SETTLE_SECONDS = 15 * 60
 
 
 def recovery_attempts(comments: list[dict[str, Any]], head: str) -> list[str | None]:
@@ -36,6 +38,39 @@ def recovery_attempts(comments: list[dict[str, Any]], head: str) -> list[str | N
             if match.group(1) == head:
                 attempts.append(match.group(2))
     return attempts
+
+
+def legacy_recovery_settled(comments: list[dict[str, Any]], head: str,
+                            now: datetime | None = None) -> bool:
+    """Allow at most one replacement for a historical head-only dispatch.
+
+    The old marker proves a dispatch was attempted but not which synthetic
+    merge was tested. Wait for that attempt to finish before consuming the
+    second (and final) per-head recovery slot. Missing/invalid timestamps
+    fail closed rather than permitting a premature duplicate dispatch.
+    """
+    now = now or datetime.now(timezone.utc)
+    for comment in comments:
+        if str((comment.get("user") or {}).get("login") or "").casefold() != "github-actions[bot]":
+            continue
+        legacy = any(
+            match.group(1) == head and match.group(2) is None
+            for match in RECOVERY_RE.finditer(str(comment.get("body") or ""))
+        )
+        if not legacy:
+            continue
+        created = comment.get("created_at")
+        if not isinstance(created, str):
+            return False
+        try:
+            timestamp = datetime.fromisoformat(created.replace("Z", "+00:00"))
+        except ValueError:
+            return False
+        if timestamp.tzinfo is None or (
+            now - timestamp
+        ).total_seconds() < LEGACY_RECOVERY_SETTLE_SECONDS:
+            return False
+    return True
 
 
 def gh_json(endpoint: str) -> Any:
@@ -349,15 +384,19 @@ def main() -> int:
             # recovery to validate the immutable head in a read-only job.
             comments = gh_pages(f"repos/{repo}/issues/{number}/comments?per_page=100")
             attempts = recovery_attempts(comments, sha)
-            if merge_sha in attempts or None in attempts:
-                # Legacy head-only markers lack a merge identity; fail closed
-                # rather than silently replay an already dispatched recovery.
-                print(f"PR #{number}: CI recovery already attempted for this merge/head; bounded wait.")
+            if merge_sha in attempts:
+                print(f"PR #{number}: CI recovery already attempted for this exact merge; bounded wait.")
                 continue
             if len(attempts) >= MAX_RECOVERY_ATTEMPTS_PER_HEAD:
                 print(f"BLOCKED_REQUIRES_DECISION PR #{number}: exhausted "
                       f"{MAX_RECOVERY_ATTEMPTS_PER_HEAD} trusted merge-CI attempts for head {sha}.")
                 continue
+            if None in attempts and not legacy_recovery_settled(comments, sha):
+                print(f"PR #{number}: legacy head-only CI recovery still settling or unverified; bounded wait.")
+                continue
+            # One historical head-only marker consumes one of two slots.
+            # Once settled, permit exactly one current-merge recovery; a
+            # second marker exhausts the budget, preventing replay storms.
             marker = RECOVERY_MARKER.format(head=sha, merge=merge_sha)
             # Durable marker before dispatch prevents duplicate costly runs.
             # One additional attempt is allowed if main advances and changes
