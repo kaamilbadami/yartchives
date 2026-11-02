@@ -342,12 +342,14 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             "owner_name/repo", 881, "66c62217c3e7cd6eeda9ee6d5fc35ab59fb00afe"
         )
 
-    def test_owner_authorized_lane_bypasses_issue_link_and_protected_paths_but_not_ci(self):
+    def test_owner_authorized_lane_bypasses_issue_link_but_not_sensitive_paths_or_ci(self):
         source = MODULE_PATH.read_text()
         self.assertIn(
             "if issue_number is None and not maintenance_pre_ci and not owner_authorized:",
             source,
         )
+        self.assertIn("sensitive_paths = sensitive_auto_merge_paths(files)", source)
+        self.assertIn("if sensitive_paths:", source)
         self.assertIn(
             'pre_ci_eligible, reason = True, "owner-authorized"',
             source,
