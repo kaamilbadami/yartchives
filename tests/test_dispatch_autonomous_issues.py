@@ -3343,6 +3343,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
             load_review_ready=lambda: issues,
             load_comments=lambda number: comments[number],
             get_pr=lambda number: {"number": number, "merged": True},
+            get_issue=lambda number: {"state": "open", "labels": [{"name": "jules-review-ready"}]},
             delete_session=lambda session_id: deleted.append(session_id),
             run_gh=lambda *args: gh_calls.append(args),
         )
@@ -3378,6 +3379,7 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 }
             ],
             get_pr=lambda number: {"number": number, "merged": True},
+            get_issue=lambda number: {"state": "open", "labels": [{"name": "jules-review-ready"}]},
             delete_session=lambda session_id: None,
             run_gh=lambda *args: gh_calls.append(args),
         )
@@ -3429,11 +3431,120 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 }
             ],
             get_pr=lambda number: {"number": number, "merged": True},
+            get_issue=lambda number: {"state": "open", "labels": [{"name": "jules-review-ready"}]},
             delete_session=fail_delete,
             run_gh=lambda *args: gh_calls.append(args),
         )
 
         self.assertEqual(gh_calls, [])
+    def test_merged_cleanup_refuses_initiative_and_missing_metadata(self):
+        comment = [{
+            "body": (
+                "Jules completed session `done1` and released this automation slot.\\n\\n"
+                "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
+            )
+        }]
+        for current in (
+            {"state": "open", "labels": [{"name": "initiative"}, {"name": "jules-review-ready"}]},
+            {"state": "open", "labels": [{"name": "autonomous-backlog"}]},
+            {"state": "open"},
+        ):
+            with self.subTest(current=current):
+                deleted, calls = [], []
+                mod.cleanup_merged_jules_sessions(
+                    "kaamilbadami/yartchives", "secret",
+                    load_review_ready=lambda: [{"number": 211}],
+                    load_comments=lambda number: comment,
+                    get_pr=lambda number: {"merged": True},
+                    get_issue=lambda number: current,
+                    delete_session=lambda session_id: deleted.append(session_id),
+                    run_gh=lambda *args: calls.append(args),
+                )
+                self.assertEqual(deleted, [])
+                self.assertEqual(calls, [])
+
+    def test_merged_cleanup_skips_closure_for_already_closed_issue(self):
+        comment = [{
+            "body": (
+                "Jules completed session `done1` and released this automation slot.\\n\\n"
+                "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
+            )
+        }]
+        deleted, calls = [], []
+        mod.cleanup_merged_jules_sessions(
+            "kaamilbadami/yartchives", "secret",
+            load_review_ready=lambda: [{"number": 211}],
+            load_comments=lambda number: comment,
+            get_pr=lambda number: {"merged": True},
+            get_issue=lambda number: {"state": "closed", "labels": [{"name": "jules-review-ready"}]},
+            delete_session=lambda session_id: deleted.append(session_id),
+            run_gh=lambda *args: calls.append(args),
+        )
+        self.assertEqual(deleted, ["done1"])
+        self.assertEqual(len(calls), 1)
+        self.assertEqual(calls[0][:2], ("issue", "edit"))
+
+    def test_merged_cleanup_rechecks_initiative_after_session_delete(self):
+        comment = [{
+            "body": (
+                "Jules completed session `done1` and released this automation slot.\\n\\n"
+                "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
+            )
+        }]
+        snapshots = iter((
+            {"state": "open", "labels": [{"name": "jules-review-ready"}]},
+            {"state": "open", "labels": [{"name": "jules-review-ready"}, {"name": "initiative"}]},
+        ))
+        calls = []
+        mod.cleanup_merged_jules_sessions(
+            "kaamilbadami/yartchives", "secret",
+            load_review_ready=lambda: [{"number": 211}],
+            load_comments=lambda number: comment,
+            get_pr=lambda number: {"merged": True},
+            get_issue=lambda number: next(snapshots),
+            delete_session=lambda session_id: None,
+            run_gh=lambda *args: calls.append(args),
+        )
+        self.assertEqual(calls, [])
+
+    def test_merged_cleanup_tolerates_only_verified_concurrent_closure(self):
+        comment = [{
+            "body": (
+                "Jules completed session `done1` and released this automation slot.\\n\\n"
+                "Pull request: https://github.com/kaamilbadami/yartchives/pull/254"
+            )
+        }]
+        opened = {"state": "open", "labels": [{"name": "jules-review-ready"}]}
+        closed = {"state": "closed", "labels": [{"name": "jules-review-ready"}]}
+        def failing_patch(*args):
+            if args[:2] == ("api", "--method"):
+                raise mod.subprocess.CalledProcessError(1, ["gh", "api"])
+            calls.append(args)
+        for after, should_raise in ((closed, False), (opened, True)):
+            with self.subTest(after=after):
+                calls = []
+                snapshots = iter((opened, opened, after))
+                kwargs = dict(
+                    load_review_ready=lambda: [{"number": 211}],
+                    load_comments=lambda number: comment,
+                    get_pr=lambda number: {"merged": True},
+                    get_issue=lambda number: next(snapshots),
+                    delete_session=lambda session_id: None,
+                    run_gh=failing_patch,
+                )
+                if should_raise:
+                    with self.assertRaises(mod.subprocess.CalledProcessError):
+                        mod.cleanup_merged_jules_sessions(
+                            "kaamilbadami/yartchives", "secret", **kwargs
+                        )
+                    self.assertEqual(calls, [])
+                else:
+                    mod.cleanup_merged_jules_sessions(
+                        "kaamilbadami/yartchives", "secret", **kwargs
+                    )
+                    self.assertEqual(len(calls), 1)
+                    self.assertEqual(calls[0][:2], ("issue", "edit"))
+
     def test_modern_infrastructure_retry_comment_is_matched_by_latest_retryable_failed_session(self):
         comments = [
             {
