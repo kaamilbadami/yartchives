@@ -40,6 +40,27 @@ CLOSING_REFERENCE_RE = re.compile(
     r"(?:(?P<repository>[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+))?"
     r"#(?P<number>\d+)\b"
 )
+# Independent authorization is required for code that could change the trust
+# boundary itself, even when the PR is owner-authored or bot-authored. Merely
+# opening a PR or marking it ready is not independent security approval.
+SENSITIVE_AUTO_MERGE_PATHS = (
+    ".github/**",
+    "requirements.txt",
+    "scripts/auto_merge_agent_prs.py",
+    "scripts/ready_copilot_prs.py",
+    "scripts/dispatch_autonomous_issues.py",
+    "scripts/guard_jules_redispatch.py",
+    "scripts/reconcile_merged_pr_issues.py",
+    "scripts/triage_workflow_failures.py",
+    "scripts/triage_source_quarantines.py",
+    "scripts/quality_scope.sh",
+    "scripts/run_quality_checks.sh",
+    "scripts/targeted_frontend_preflight.py",
+    "scripts/*copilot*controller*.py",
+    "scripts/*automerge*.py",
+)
+
+
 JULES_REVIEW_READY_LABEL = "jules-review-ready"
 GITHUB_ACTIONS_BOT = "github-actions[bot]"
 OWNER_AUTHORIZED_AUTOMERGE_MARKER = "<!-- owner-authorized-automerge -->"
@@ -133,6 +154,36 @@ def trusted_preflight_auto_pr(pr: dict[str, Any], repo: str) -> bool:
     if not any(head_ref.startswith(prefix) for prefix in TRUSTED_PREFLIGHT_BRANCH_PREFIXES):
         return False
     return TRUSTED_PREFLIGHT_AUTO_PR_MARKER in str(pr.get("body") or "")
+
+def sensitive_auto_merge_paths(files: Iterable[dict[str, Any]]) -> list[str]:
+    """Fail closed for privileged paths, including rename sources.
+
+    This is a mandatory pre-merge veto, not an alternate eligibility lane.
+    A human must independently review and manually merge these PRs.
+    """
+    blocked: set[str] = set()
+    for row in files:
+        filename = str(row.get("filename") or "")
+        previous = str(row.get("previous_filename") or "")
+        if not filename:
+            blocked.add("<missing filename>")
+        if row.get("status") == "renamed" and not previous:
+            blocked.add("<unverifiable rename source>")
+        for path in (filename, previous):
+            if path and any(fnmatch(path, pattern) for pattern in SENSITIVE_AUTO_MERGE_PATHS):
+                blocked.add(path)
+    return sorted(blocked)
+
+
+def copilot_merge_requires_independent_authorization(pr: dict[str, Any]) -> bool:
+    """Draft-to-ready is not a grant of automatic merge authorization.
+
+    Copilot issue-to-PR provenance and independent merge policy are not yet
+    production-verified. Block every Copilot PR from the legacy Jules/owner
+    merge lanes until a separately reviewed Copilot merge contract exists.
+    """
+    return str((pr.get("user") or {}).get("login") or "").casefold() == "copilot"
+
 
 def linked_issue_number(body: str) -> int | None:
     match = CLOSING_ISSUE_RE.search(body or "")
@@ -1418,6 +1469,21 @@ def main() -> int:
             continue
         if parent_closers:
             print(f"BLOCKED_REQUIRES_DECISION PR #{number}: closing keywords target parent initiative(s) {parent_closers}.")
+            continue
+
+        if copilot_merge_requires_independent_authorization(pr):
+            print(
+                f"BLOCKED_REQUIRES_DECISION PR #{number}: Copilot ready-for-review "
+                "is not independent merge authorization."
+            )
+            continue
+
+        sensitive_paths = sensitive_auto_merge_paths(files)
+        if sensitive_paths:
+            print(
+                f"BLOCKED_REQUIRES_DECISION PR #{number}: security-sensitive paths "
+                f"{sensitive_paths} require independent review and manual merge."
+            )
             continue
 
         maintenance_pre_ci, maintenance_reason = maintenance_pr_eligible(
