@@ -12,7 +12,7 @@ def fixtures():
     pr = {
         "number": 77, "state": "open", "draft": True,
         "user": {"login": "Copilot"}, "body": "Fixes #76",
-        "base": {"ref": "main"},
+        "base": {"ref": "main", "sha": "e" * 40},
         "head": {"repo": {"full_name": REPO}, "ref": "copilot/issue-76", "sha": SHA},
     }
     issue = {"number": 76, "state": "open", "labels": [],
@@ -203,7 +203,8 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
                        late_commit=False, missing_merge_status=False,
                        head_action_required=False, merge_drift_on_recheck=False,
                        late_disconnect=False, body_drift_on_recheck=False,
-                       head_ref_drift_on_recheck=False, author_drift_on_recheck=False):
+                       head_ref_drift_on_recheck=False, author_drift_on_recheck=False,
+                       base_sha_drift_on_recheck=False, missing_base_sha_on_recheck=False):
         pr, issue, files, events, links = fixtures()
         current = dict(pr)
         if head_drift:
@@ -256,6 +257,10 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
                 if pr_reads[0] > 1:
                     if merge_drift_on_recheck:
                         return dict(current, merge_commit_sha="d" * 40)
+                    if base_sha_drift_on_recheck:
+                        return dict(current, base=dict(current["base"], sha="f" * 40))
+                    if missing_base_sha_on_recheck:
+                        return dict(current, base={"ref": "main"})
                     if body_drift_on_recheck:
                         return dict(current, body="Closes #1122")
                     if head_ref_drift_on_recheck:
@@ -376,6 +381,15 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         self.assertEqual(self.run_controller(
             quality=True, merge_quality=True, merge_drift_on_recheck=True
         ), [])
+
+    def test_base_sha_drift_or_missing_metadata_blocks_ready_even_if_merge_sha_stays_green(self):
+        # GitHub can lag in regenerating refs/pull/N/merge after main moves.
+        # A green status on the old synthetic merge must not authorize ready.
+        for drift in ("base_sha_drift_on_recheck", "missing_base_sha_on_recheck"):
+            with self.subTest(drift=drift):
+                self.assertEqual(self.run_controller(
+                    quality=True, merge_quality=True, **{drift: True}
+                ), [])
 
     def test_authorization_metadata_drift_during_final_recheck_blocks_ready(self):
         # A late body edit can replace the verified child with an initiative
