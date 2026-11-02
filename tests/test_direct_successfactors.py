@@ -132,8 +132,8 @@ class DirectSuccessFactorsTests(unittest.TestCase):
 
     def test_successfactors_source_returns_none_when_retired(self):
         employer = {
-            "id": "gxo-logistics",
-            "careers_url": "https://jobs.gxo.com",
+            "id": "dummy-retired-employer",
+            "careers_url": "https://jobs.dummy.com",
             "provider": {"family": "successfactors", "status": "resolved"},
             "careers_resolution": {"status": "resolved"},
             "seed_metadata": {
@@ -146,6 +146,38 @@ class DirectSuccessFactorsTests(unittest.TestCase):
             }
         }
         self.assertIsNone(mod._successfactors_source(employer))
+
+    def test_successfactors_source_falls_back_from_sso_domain(self):
+        employer = {
+            "id": "halliburton",
+            "name": "Halliburton",
+            "careers_url": "https://career4.successfactors.com/career?company=halliburton",
+            "provider": {"family": "successfactors", "status": "resolved"},
+            "careers_resolution": {
+                "status": "resolved",
+                "evidence": [
+                    {
+                        "type": "http",
+                        "status": 200,
+                        "final_url": "https://gxo.com/careers/",
+                        "score": 14,
+                        "signals": ["careers path"]
+                    },
+                    {
+                        "type": "http",
+                        "status": 200,
+                        "final_url": "https://jobs.halliburton.com/",
+                        "score": 9,
+                        "signals": ["successfactors provider fingerprint"]
+                    }
+                ]
+            }
+        }
+        source = mod._successfactors_source(employer)
+        self.assertIsNotNone(source)
+        self.assertEqual(source["homepage"], "https://jobs.halliburton.com")
+        self.assertEqual(source["sitemap_url"], "https://jobs.halliburton.com/sitemap.xml")
+
 
 if __name__ == "__main__":
     unittest.main()
