@@ -164,7 +164,10 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertIn('statuses/$target', workflow)
         self.assertIn("-f context=tests", workflow)
         publish = workflow.split("  publish-pr-recovery-status:", 1)[1].split("  live-source-smoke:", 1)[0]
-        self.assertIn("needs: [tests]", publish)
+        self.assertIn("needs: [tests, head-tests]", publish)
+        self.assertIn("needs.head-tests.result == 'success'", publish)
+        self.assertIn('statuses/$TESTED_HEAD_SHA', publish)
+        self.assertIn("-f context=copilot-head-tests", publish)
         self.assertIn("needs.tests.result == 'success'", publish)
         self.assertIn("inputs.pr_recovery == true", publish)
         self.assertIn("statuses: write", publish)
