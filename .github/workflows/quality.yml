@@ -321,16 +321,22 @@ jobs:
           python scripts/audit_feed.py data/listings.json
 
   wake-automerge:
+    # Never wake the merge controller before the trusted publisher has
+    # recorded the required status on the tested synthetic merge commit.
+    # A failed/skipped publication must not cause another premature scan.
     permissions:
       actions: write
       contents: read
     if: >-
       always() &&
-      needs.tests.result == 'success' &&
       github.event_name == 'workflow_dispatch' &&
-      github.ref == 'refs/heads/main'
+      github.ref == 'refs/heads/main' &&
+      inputs.pr_recovery == true &&
+      needs.tests.result == 'success' &&
+      needs.publish-pr-recovery-status.result == 'success'
     needs:
       - tests
+      - publish-pr-recovery-status
     runs-on: ubuntu-latest
     steps:
       - name: Wake auto-merge controller
