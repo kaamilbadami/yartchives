@@ -1,6 +1,9 @@
 """Behavioral safety tests for trusted Copilot draft-to-ready reconciliation."""
 import unittest
+from pathlib import Path
 from unittest import mock
+
+import yaml
 
 from scripts import ready_copilot_prs as ready
 
@@ -507,6 +510,32 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
             quality=False, merge_quality=True, missing_merge_status=True,
             comments=[{"body": marker, "user": {"login": "github-actions[bot]"}}]
         ), [])
+
+
+class CopilotRecoveryWorkflowSecurityTests(unittest.TestCase):
+    def test_exact_head_recovery_keeps_untrusted_code_read_only(self):
+        path = Path(__file__).resolve().parents[1] / ".github/workflows/quality.yml"
+        jobs = yaml.safe_load(path.read_text(encoding="utf-8"))["jobs"]
+        head = jobs["head-tests"]
+        publisher = jobs["publish-pr-recovery-status"]
+        self.assertEqual(head["permissions"], {"contents": "read"})
+        self.assertIn("workflow_dispatch", head["if"])
+        self.assertIn("pr_head_sha", head["if"])
+        self.assertEqual(
+            head["steps"][0]["with"]["persist-credentials"], False
+        )
+        # No secret references or privileged token in any step that checks out
+        # or executes untrusted Copilot code.
+        untrusted_steps = yaml.safe_dump(head["steps"])
+        self.assertNotIn("secrets.", untrusted_steps)
+        self.assertNotIn("statuses: write", untrusted_steps)
+        self.assertNotIn("actions: write", untrusted_steps)
+        self.assertEqual(publisher["permissions"], {
+            "contents": "read", "statuses": "write",
+        })
+        self.assertEqual(publisher["needs"], ["tests", "head-tests"])
+        self.assertFalse(any("uses" in step for step in publisher["steps"]))
+
 
 
 if __name__ == "__main__":
