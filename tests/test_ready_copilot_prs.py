@@ -202,7 +202,8 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
                        merge_quality=False, stale_merge=False, failed_merge=False,
                        late_commit=False, missing_merge_status=False,
                        head_action_required=False, merge_drift_on_recheck=False,
-                       late_disconnect=False):
+                       late_disconnect=False, body_drift_on_recheck=False,
+                       head_ref_drift_on_recheck=False, author_drift_on_recheck=False):
         pr, issue, files, events, links = fixtures()
         current = dict(pr)
         if head_drift:
@@ -252,8 +253,15 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
                 }]}
             if "/pulls/77" in endpoint:
                 pr_reads[0] += 1
-                if merge_drift_on_recheck and pr_reads[0] > 1:
-                    return dict(current, merge_commit_sha="d" * 40)
+                if pr_reads[0] > 1:
+                    if merge_drift_on_recheck:
+                        return dict(current, merge_commit_sha="d" * 40)
+                    if body_drift_on_recheck:
+                        return dict(current, body="Closes #1122")
+                    if head_ref_drift_on_recheck:
+                        return dict(current, head=dict(current["head"], ref="copilot/other"))
+                    if author_drift_on_recheck:
+                        return dict(current, user={"login": "untrusted-contributor"})
                 return current
             raise AssertionError(f"Unexpected endpoint: {endpoint}")
         with mock.patch.dict("os.environ", {"REPOSITORY": REPO}), \
@@ -368,6 +376,16 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         self.assertEqual(self.run_controller(
             quality=True, merge_quality=True, merge_drift_on_recheck=True
         ), [])
+
+    def test_authorization_metadata_drift_during_final_recheck_blocks_ready(self):
+        # A late body edit can replace the verified child with an initiative
+        # closing reference without changing either the head or merge SHA.
+        for drift in ("body_drift_on_recheck", "head_ref_drift_on_recheck",
+                      "author_drift_on_recheck"):
+            with self.subTest(drift=drift):
+                self.assertEqual(self.run_controller(
+                    quality=True, merge_quality=True, **{drift: True}
+                ), [])
 
     def test_issue_pr_disconnected_during_final_recheck_blocks_ready(self):
         # The issue was linked when the controller started, but its Copilot
