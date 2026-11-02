@@ -185,7 +185,7 @@ class CopilotReadyPolicyTests(unittest.TestCase):
 class CopilotReadyReconciliationTests(unittest.TestCase):
     def run_controller(self, *, quality=True, head_drift=False, comments=None,
                        merge_quality=False, stale_merge=False, failed_merge=False,
-                       late_commit=False):
+                       late_commit=False, missing_merge_status=False):
         pr, issue, files, events, links = fixtures()
         current = dict(pr)
         if head_drift:
@@ -216,9 +216,11 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
             if "/actions/runs?" in endpoint:
                 return {"workflow_runs": green}
             if "/commits/" in endpoint and "/status" in endpoint:
-                return {"statuses": [{"context": "tests",
-                                      "state": "failure" if failed_merge else (
-                                          "pending" if stale_merge else "success")}]}
+                return {"statuses": [] if missing_merge_status else [{
+                    "context": "tests",
+                    "state": "failure" if failed_merge else (
+                        "pending" if stale_merge else "success")
+                }]}
             if "/pulls/77" in endpoint:
                 return current
             raise AssertionError(f"Unexpected endpoint: {endpoint}")
@@ -229,10 +231,45 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
             self.assertEqual(ready.main(), 0)
         return write.call_args_list
 
-    def test_green_exact_head_only_marks_ready_never_merges(self):
-        calls = self.run_controller()
+    def test_green_head_and_current_merge_marks_ready_never_merges(self):
+        calls = self.run_controller(merge_quality=True)
         self.assertEqual(len(calls), 1)
         self.assertEqual(calls[0].args, ("pr", "ready", "77", "--repo", REPO))
+
+    def test_head_green_without_merge_sha_never_marks_ready(self):
+        self.assertEqual(self.run_controller(quality=True), [])
+
+    def test_head_green_missing_merge_status_dispatches_once_before_ready(self):
+        calls = self.run_controller(
+            quality=True, merge_quality=True, missing_merge_status=True
+        )
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[0].args[:4], (
+            "api", "--method", "POST", f"repos/{REPO}/issues/77/comments"
+        ))
+        self.assertEqual(calls[1].args, (
+            "workflow", "run", "quality.yml", "--repo", REPO,
+            "--ref", "main", "-f", "pr_recovery=true", "-f", "pr_number=77"
+        ))
+        marker = ready.RECOVERY_MARKER.format(head=SHA)
+        self.assertEqual(self.run_controller(
+            quality=True, merge_quality=True, missing_merge_status=True,
+            comments=[{"body": marker}]
+        ), [])
+
+    def test_newer_head_failure_blocks_even_with_green_merge(self):
+        pr, issue, files, events, links = fixtures()
+        runs = [
+            {"name": "Quality checks", "head_sha": SHA, "status": "completed",
+             "conclusion": "failure"}
+        ]
+        self.assertFalse(ready.exact_head_quality_green(runs, SHA))
+        self.assertFalse(ready.recovery_allowed(runs, SHA))
+        # The controller requires both a trustworthy head outcome (or a
+        # recovery-only approval gate) and current merge success.
+        self.assertTrue(ready.exact_merge_tests_green(
+            {"statuses": [{"context": "tests", "state": "success"}]}, "c" * 40
+        ))
 
     def test_green_current_merge_status_marks_ready_without_head_run(self):
         calls = self.run_controller(quality=False, merge_quality=True)
@@ -245,7 +282,7 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         ), [])
 
     def test_new_commit_between_validation_and_ready_blocks_transition(self):
-        self.assertEqual(self.run_controller(late_commit=True), [])
+        self.assertEqual(self.run_controller(late_commit=True, merge_quality=True), [])
 
     def test_pending_merge_status_does_not_mark_ready(self):
         calls = self.run_controller(quality=False, merge_quality=True, stale_merge=True)
@@ -261,7 +298,9 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         self.assertEqual(self.run_controller(head_drift=True), [])
 
     def test_missing_ci_gets_one_durable_marked_dispatch(self):
-        calls = self.run_controller(quality=False)
+        calls = self.run_controller(
+            quality=False, merge_quality=True, missing_merge_status=True
+        )
         self.assertEqual(len(calls), 2)
         self.assertEqual(calls[0].args[:4], ("api", "--method", "POST", f"repos/{REPO}/issues/77/comments"))
         self.assertEqual(calls[1].args, (
@@ -270,7 +309,8 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         ))
         marker = ready.RECOVERY_MARKER.format(head=SHA)
         self.assertEqual(self.run_controller(
-            quality=False, comments=[{"body": marker}]
+            quality=False, merge_quality=True, missing_merge_status=True,
+            comments=[{"body": marker}]
         ), [])
 
 
