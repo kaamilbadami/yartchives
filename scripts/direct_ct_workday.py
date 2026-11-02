@@ -39,6 +39,10 @@ WORKDAY_PAGE_SIZE = 20
 MAX_RESULTS_PER_QUERY = 500
 STRUCTURAL_SOURCE_STATUSES = {422}
 
+KNOWN_TENANT_ALIASES = {
+    "gf": "globalfoundries",
+}
+
 
 class EndpointRetiredError(RuntimeError):
     """An auto-discovered provider endpoint has been explicitly retired."""
@@ -206,13 +210,18 @@ def fetch_workday_source(
                     match = re.search(r'/wday/cxs/([^/]+)/', api_url)
                     if match:
                         tenant = match.group(1)
+                        fallback_tenants = []
                         if "-" in tenant:
-                            fallback_tenant = tenant.replace("-", "_")
+                            fallback_tenants.append(tenant.replace("-", "_"))
+                        if tenant in KNOWN_TENANT_ALIASES:
+                            fallback_tenants.append(KNOWN_TENANT_ALIASES[tenant])
+                        for fallback_tenant in fallback_tenants:
                             fallback_url = api_url.replace(f"/wday/cxs/{tenant}/", f"/wday/cxs/{fallback_tenant}/")
                             fallback_response = s.post(fallback_url, json=payload, timeout=TIMEOUT)
                             if fallback_response.status_code == 200:
                                 response = fallback_response
                                 source["api_url"] = fallback_url
+                                break
 
                 response.raise_for_status()
                 data = response.json()
