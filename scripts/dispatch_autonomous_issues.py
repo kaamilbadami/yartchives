@@ -1054,6 +1054,7 @@ def reconcile_historical_merged_jules_issues(
     load_open_autonomous: Callable[[], list[dict[str, Any]]] | None = None,
     load_comments: Callable[[int], list[dict[str, Any]]] | None = None,
     get_pr: Callable[[int], dict[str, Any]] | None = None,
+    get_issue: Callable[[int], dict[str, Any]] | None = None,
     run_gh: Callable[..., None] | None = None,
 ) -> None:
     """Close historical open autonomous issues whose exact Jules PR already merged."""
@@ -1069,6 +1070,8 @@ def reconcile_historical_merged_jules_issues(
         )
     if get_pr is None:
         get_pr = lambda number: gh_json("api", f"repos/{repo}/pulls/{number}")
+    if get_issue is None:
+        get_issue = lambda number: gh_json("api", f"repos/{repo}/issues/{number}")
     if run_gh is None:
         run_gh = gh_run
 
@@ -1084,10 +1087,32 @@ def reconcile_historical_merged_jules_issues(
         if pr.get("merged") is not True:
             continue
 
-        run_gh(
-            "api", "--method", "PATCH", f"repos/{repo}/issues/{number}",
-            "-f", "state=closed", "-f", "state_reason=completed",
-        )
+        # The paginated open-issue snapshot may be stale by the time we close.
+        # Recheck authorization and state immediately before the write.
+        current = get_issue(number)
+        labels = current.get("labels")
+        if (
+            current.get("state") != "open"
+            or not isinstance(labels, list)
+            or "initiative" in label_names(current)
+            or "autonomous-backlog" not in label_names(current)
+        ):
+            continue
+
+        try:
+            run_gh(
+                "api", "--method", "PATCH", f"repos/{repo}/issues/{number}",
+                "-f", "state=closed", "-f", "state_reason=completed",
+            )
+        except subprocess.CalledProcessError:
+            # Another workflow or GitHub's native PR keyword closure may have
+            # closed this issue between our read and PATCH (HTTP 422).
+            # Swallow only when the desired terminal state is independently
+            # verified; all other API failures must remain visible.
+            if get_issue(number).get("state") == "closed":
+                print(f"Historical autonomous issue #{number} was closed concurrently.")
+                continue
+            raise
         print(
             f"Closed historical autonomous issue #{number} after verifying merged "
             f"Jules PR #{pr_number}."
