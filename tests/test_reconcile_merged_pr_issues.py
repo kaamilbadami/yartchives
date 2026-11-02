@@ -81,5 +81,96 @@ class Tests(unittest.TestCase):
         self.assertTrue(any(c[:3] == ("issue", "close", "802") and "completed" in c for c in calls))
 
 
+    def test_initiative_relabel_after_completion_comment_prevents_close(self):
+        import json
+        from unittest import mock
+        from scripts import reconcile_merged_pr_issues as mod
+
+        labels = []
+        calls = []
+        def fake_gh(*args):
+            calls.append(args)
+            if args[:3] == ("pr", "view", "70"):
+                return json.dumps({"mergedAt": "2026-11-02T00:00:00Z",
+                                   "body": "Updates #42\\nCompletes acceptance criteria for #42"})
+            if args[:3] == ("issue", "view", "42"):
+                return json.dumps({"state": "OPEN", "labels": [{"name": x} for x in labels], "body": ""})
+            if args[:3] == ("issue", "comment", "42"):
+                labels.append("initiative")
+            return "{}"
+
+        with mock.patch.object(mod, "PR_NUMBER", 70), mock.patch.object(mod, "gh", side_effect=fake_gh):
+            mod.main()
+        self.assertTrue(any(c[:3] == ("issue", "comment", "42") for c in calls))
+        self.assertFalse(any(c[:3] == ("issue", "close", "42") for c in calls))
+
+    def test_initiative_relabel_during_supersede_label_cleanup_blocks_followup(self):
+        import json
+        from unittest import mock
+        from scripts import reconcile_merged_pr_issues as mod
+
+        labels = ["jules-review-ready"]
+        calls = []
+        def fake_gh(*args):
+            calls.append(args)
+            if args[:3] == ("pr", "view", "70"):
+                return json.dumps({"mergedAt": "2026-11-02T00:00:00Z",
+                    "body": "<!-- supersedes-stale-pr: 7 original-issue: 42 -->"})
+            if args[:3] == ("issue", "view", "42"):
+                return json.dumps({"state": "OPEN", "labels": [{"name": x} for x in labels], "body": ""})
+            if args[:3] == ("issue", "edit", "42") and "--remove-label" in args:
+                labels.append("initiative")
+            return "{}"
+
+        with mock.patch.object(mod, "PR_NUMBER", 70), mock.patch.object(mod, "gh", side_effect=fake_gh):
+            mod.main()
+        self.assertTrue(any(c[:3] == ("issue", "edit", "42") for c in calls))
+        self.assertFalse(any(c[:3] in {("issue", "comment", "42"), ("issue", "close", "42")}
+                             or (c[:3] == ("issue", "edit", "42") and "--body" in c)
+                             for c in calls))
+
+    def test_missing_live_issue_labels_blocks_reconciliation_writes(self):
+        import json
+        from unittest import mock
+        from scripts import reconcile_merged_pr_issues as mod
+
+        calls = []
+        def fake_gh(*args):
+            calls.append(args)
+            if args[:3] == ("pr", "view", "70"):
+                return json.dumps({"mergedAt": "2026-11-02T00:00:00Z",
+                                   "body": "Updates #42\\nCompletes acceptance criteria for #42"})
+            if args[:3] == ("issue", "view", "42"):
+                return json.dumps({"state": "OPEN", "body": ""})
+            return "{}"
+
+        with mock.patch.object(mod, "PR_NUMBER", 70), mock.patch.object(mod, "gh", side_effect=fake_gh):
+            mod.main()
+        self.assertFalse(any(c[:3] in {("issue", "comment", "42"), ("issue", "close", "42")}
+                             for c in calls))
+
+    def test_concurrent_issue_closure_after_comment_does_not_close_twice(self):
+        import json
+        from unittest import mock
+        from scripts import reconcile_merged_pr_issues as mod
+
+        state = ["OPEN"]
+        calls = []
+        def fake_gh(*args):
+            calls.append(args)
+            if args[:3] == ("pr", "view", "70"):
+                return json.dumps({"mergedAt": "2026-11-02T00:00:00Z",
+                                   "body": "Updates #42\\nCompletes acceptance criteria for #42"})
+            if args[:3] == ("issue", "view", "42"):
+                return json.dumps({"state": state[0], "labels": [], "body": ""})
+            if args[:3] == ("issue", "comment", "42"):
+                state[0] = "CLOSED"
+            return "{}"
+
+        with mock.patch.object(mod, "PR_NUMBER", 70), mock.patch.object(mod, "gh", side_effect=fake_gh):
+            mod.main()
+        self.assertFalse(any(c[:3] == ("issue", "close", "42") for c in calls))
+
+
 if __name__ == "__main__":
     unittest.main()
