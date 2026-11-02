@@ -201,6 +201,27 @@ def exact_merge_tests_green(status: dict[str, Any], merge_sha: str) -> bool:
     return bool(latest_tests and latest_tests.get("state") == "success")
 
 
+def trusted_recovery_head_green(status: dict[str, Any], sha: str, repo: str) -> bool:
+    """Accept an exact-head result only from a trusted-main recovery run.
+
+    The read-only head job cannot publish statuses. A separate trusted job
+    publishes this context after verifying the tested immutable head still
+    belongs to the open PR. An untrusted or stale context is not evidence.
+    """
+    if not re.fullmatch(r"[a-f0-9]{40}", sha):
+        return False
+    latest = next((entry for entry in status.get("statuses") or []
+                   if entry.get("context") == "copilot-head-tests"), None)
+    if not latest or latest.get("state") != "success":
+        return False
+    if str((latest.get("creator") or {}).get("login") or "").casefold() != "github-actions[bot]":
+        return False
+    target = str(latest.get("target_url") or "")
+    return bool(re.fullmatch(
+        rf"https://github\\.com/{re.escape(repo)}/actions/runs/[0-9]+", target
+    ))
+
+
 def recovery_allowed(runs: list[dict[str, Any]], sha: str) -> bool:
     """One trusted recovery attempt only for missing or approval-gated CI."""
     current = [r for r in runs if r.get("name") == "Quality checks"
@@ -261,6 +282,12 @@ def main() -> int:
                 continue
             head_green = exact_head_quality_green(runs, sha)
             head_recoverable = recovery_allowed(runs, sha)
+            if not head_green and head_recoverable:
+                # GitHub approval-gates Copilot pull_request workflows. A
+                # trusted-main, read-only exact-head recovery can independently
+                # verify that immutable head without approving untrusted CI.
+                head_status = gh_json(f"repos/{repo}/commits/{sha}/status")
+                head_green = trusted_recovery_head_green(head_status, sha, repo)
             # Head-only green CI is not the required synthetic merge-commit
             # status. Recover the current merge even when the head is green;
             # otherwise a Copilot draft can become ready with no path to
@@ -317,9 +344,9 @@ def main() -> int:
             if not re.fullmatch(r"[a-f0-9]{40}", merge_sha):
                 print(f"PR #{number}: current synthetic merge SHA unavailable; keeping draft.")
                 continue
-            if merge_green:
-                print(f"PR #{number}: head CI must finish successfully before draft transition.")
-                continue
+            # Even a green merge is insufficient when Copilot's exact-head
+            # pull_request run was approval-gated. Dispatch the same bounded
+            # recovery to validate the immutable head in a read-only job.
             comments = gh_pages(f"repos/{repo}/issues/{number}/comments?per_page=100")
             attempts = recovery_attempts(comments, sha)
             if merge_sha in attempts or None in attempts:
@@ -343,7 +370,7 @@ def main() -> int:
             # the required tests status only if its merge SHA stays unchanged.
             gh_write("workflow", "run", "quality.yml", "--repo", repo,
                      "--ref", "main", "-f", "pr_recovery=true",
-                     "-f", f"pr_number={number}")
+                     "-f", f"pr_number={number}", "-f", f"pr_head_sha={sha}")
             print(f"PR #{number}: dispatched one current-merge Quality recovery; remains draft.")
         except (subprocess.CalledProcessError, ValueError, KeyError, TypeError) as exc:
             print(f"PR #{number}: blocked safely by verification/API error: {exc}")
