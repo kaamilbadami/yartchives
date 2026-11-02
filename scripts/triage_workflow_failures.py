@@ -238,6 +238,25 @@ def _open_failure_issues(ctx: Context, gh_json: GhJson) -> list[dict[str, Any]]:
     return [issue for issue in issues if "pull_request" not in issue]
 
 
+def _current_owned_failure_issue(
+    ctx: Context, gh_json: GhJson, number: int, prefix: str,
+) -> dict[str, Any] | None:
+    """Revalidate a failure issue before changing or closing it."""
+    for issue in _open_failure_issues(ctx, gh_json):
+        if issue.get("number") != number or issue.get("state") != "open":
+            continue
+        labels = issue.get("labels")
+        if not isinstance(labels, list):
+            return None
+        names = _label_names(issue)
+        if "initiative" in names or "workflow-failure" not in names:
+            return None
+        if prefix not in str(issue.get("body") or ""):
+            return None
+        return issue
+    return None
+
+
 def _ensure_labels(ctx: Context, gh_run: GhRun) -> None:
     labels = (
         ("workflow-failure", "D73A4A", "Created automatically from a failed GitHub Actions workflow"),
@@ -327,7 +346,11 @@ Treat the current repository as the source of truth. Diagnose the root cause bef
         body_text = issue.get("body") or ""
         if prefix in body_text and not any(sig in body_text for sig in failed_signatures):
             number = str(issue["number"])
-            labels = _label_names(issue)
+            current = _current_owned_failure_issue(ctx, gh_json, int(number), prefix)
+            if current is None:
+                print(f"Skipping stale or protected workflow issue #{number}.")
+                continue
+            labels = _label_names(current)
             edit_args = ["issue", "edit", number, "--repo", ctx.repo]
             for label in ("jules", "jules-session", "agent-ready", "autonomous-backlog"):
                 if label in labels:
@@ -348,12 +371,22 @@ Treat the current repository as the source of truth. Diagnose the root cause bef
                     "If the same failure returns later, triage will create a fresh issue."
                 ),
             )
-            gh_run("issue", "close", number, "--repo", ctx.repo)
+            if _current_owned_failure_issue(ctx, gh_json, int(number), prefix) is None:
+                print(f"Skipping closure of changed workflow issue #{number}.")
+                continue
+            if _current_owned_failure_issue(ctx, gh_json, int(number), prefix) is None:
+            print(f"Skipping closure of changed workflow issue #{number}.")
+            continue
+        gh_run("issue", "close", number, "--repo", ctx.repo)
 
     existing = next((issue for issue in issues if marker in (issue.get("body") or "")), None)
 
     if existing:
-        labels = _label_names(existing)
+        current = _current_owned_failure_issue(ctx, gh_json, int(existing["number"]), prefix)
+        if current is None:
+            print(f"Skipping stale or protected workflow issue #{existing['number']}.")
+            return
+        labels = _label_names(current)
         edit_args = [
             "issue",
             "edit",
@@ -409,7 +442,11 @@ def handle_success(ctx: Context, gh_json: GhJson, gh_run: GhRun) -> None:
             continue
 
         number = str(issue["number"])
-        labels = _label_names(issue)
+        current = _current_owned_failure_issue(ctx, gh_json, int(number), prefix)
+        if current is None:
+            print(f"Skipping stale or protected workflow issue #{number}.")
+            continue
+        labels = _label_names(current)
         edit_args = ["issue", "edit", number, "--repo", ctx.repo]
         for label in ("jules", "jules-session", "agent-ready", "autonomous-backlog"):
             if label in labels:
