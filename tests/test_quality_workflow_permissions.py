@@ -39,6 +39,7 @@ class QualityWorkflowPermissionsTests(unittest.TestCase):
     def test_status_publication_is_separate_trusted_job(self):
         section = job_section("publish-pr-recovery-status")
         self.assertIn("needs: [tests, head-tests]", section)
+        self.assertIn("always() &&", section)
         self.assertIn("needs.head-tests.result == 'success'", section)
         self.assertIn("copilot-head-tests", section)
         self.assertIn("github.event_name == 'workflow_dispatch'", section)
