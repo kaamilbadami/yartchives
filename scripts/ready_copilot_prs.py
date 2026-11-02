@@ -144,9 +144,17 @@ def exact_head_quality_green(runs: list[dict[str, Any]], sha: str) -> bool:
     # choice explicit when available, preserving API order on exact ties.
     current = [r for r in runs if r.get("name") == "Quality checks"
                and r.get("head_sha") == sha]
-    if not current:
+    # GitHub may emit a newer approval-gated pull_request run even after an
+    # independently executed read-only Quality run succeeded for this *same*
+    # immutable head. action_required did not execute tests, so it must not
+    # invalidate real CI evidence. A newer *executed* failure or pending run
+    # still blocks readiness. With only gated runs, readiness remains blocked.
+    executed = [r for r in current if not (
+        r.get("status") == "completed" and r.get("conclusion") == "action_required"
+    )]
+    if not executed:
         return False
-    latest = max(current, key=lambda r: (
+    latest = max(executed, key=lambda r: (
         str(r.get("created_at") or ""), int(r.get("id") or 0)
     ))
     return latest.get("status") == "completed" and latest.get("conclusion") == "success"
