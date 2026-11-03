@@ -262,8 +262,15 @@ def trusted_recovery_head_green(status: dict[str, Any], sha: str, repo: str) -> 
     # This does not by itself prove the status was posted by that run; status
     # publishing permissions must remain restricted to the trusted workflow.
     run = gh_json(f"repos/{repo}/actions/runs/{match.group(1)}")
+    # A successful workflow can omit the optional head job. Verify the
+    # exact-head validator and trusted status publisher actually succeeded.
+    # A synthetic-merge-only legacy recovery must never satisfy head CI.
+    jobs = gh_pages(f"repos/{repo}/actions/runs/{match.group(1)}/jobs?per_page=100")
+    completed = {str(job.get("name") or "") for job in jobs
+                 if job.get("status") == "completed" and job.get("conclusion") == "success"}
     return (
-        run.get("name") == "Quality checks"
+        {"head-tests", "publish-pr-recovery-status"} <= completed
+        and run.get("name") == "Quality checks"
         and run.get("event") == "workflow_dispatch"
         and run.get("head_branch") == "main"
         and run.get("status") == "completed"
