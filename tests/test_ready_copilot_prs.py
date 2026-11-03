@@ -215,6 +215,14 @@ class CopilotReadyPolicyTests(unittest.TestCase):
             "path": ".github/workflows/quality.yml",
             "repository": {"full_name": REPO},
         }
+        successful_jobs = [
+            {"name": name, "status": "completed", "conclusion": "success"}
+            for name in ("head-tests", "publish-pr-recovery-status")
+        ]
+        # Default successful jobs for run-provenance checks in this test.
+        jobs_patch = mock.patch.object(ready, "gh_pages", return_value=successful_jobs)
+        jobs_patch.start()
+        self.addCleanup(jobs_patch.stop)
         with mock.patch.object(ready, "gh_json", return_value=valid_run):
             self.assertTrue(ready.trusted_recovery_head_green(good, SHA, REPO))
         # Regression: an actual github.com Actions URL must match; a double-escaped
@@ -222,6 +230,20 @@ class CopilotReadyPolicyTests(unittest.TestCase):
         with mock.patch.object(ready, "gh_json", return_value=valid_run) as fetch:
             self.assertTrue(ready.trusted_recovery_head_green(good, SHA, REPO))
             fetch.assert_called_once_with(f"repos/{REPO}/actions/runs/123")
+        # A green legacy merge-only recovery is not exact-head evidence.
+        for missing in ("head-tests", "publish-pr-recovery-status"):
+            with self.subTest(missing_job=missing):
+                with mock.patch.object(ready, "gh_json", return_value=valid_run):
+                    with mock.patch.object(ready, "gh_pages", return_value=[
+                        job for job in successful_jobs if job["name"] != missing
+                    ]):
+                        self.assertFalse(ready.trusted_recovery_head_green(good, SHA, REPO))
+        with mock.patch.object(ready, "gh_json", return_value=valid_run):
+            with mock.patch.object(ready, "gh_pages", return_value=[
+                {"name": "head-tests", "status": "completed", "conclusion": "failure"},
+                successful_jobs[1],
+            ]):
+                self.assertFalse(ready.trusted_recovery_head_green(good, SHA, REPO))
         for changes in (
             {"event": "pull_request"}, {"head_branch": "copilot/untrusted"},
             {"conclusion": "failure"}, {"status": "in_progress"},
