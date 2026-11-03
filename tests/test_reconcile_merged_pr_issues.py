@@ -172,5 +172,49 @@ class Tests(unittest.TestCase):
         self.assertFalse(any(c[:3] == ("issue", "close", "42") for c in calls))
 
 
+
+    def test_guarded_body_update_refuses_stale_snapshot(self):
+        import json
+        from unittest import mock
+        from scripts import reconcile_merged_pr_issues as mod
+
+        calls = []
+        def fake_gh(*args):
+            calls.append(args)
+            if args[:3] == ("issue", "view", "42"):
+                return json.dumps({"state": "OPEN", "labels": [],
+                                   "body": "New concurrent user edit"})
+            return "{}"
+
+        with mock.patch.object(mod, "gh", side_effect=fake_gh):
+            updated = mod.guarded_issue_write(
+                42, "issue", "edit", "42", "--body", "Old snapshot\\nmarker",
+                expected_body="Old snapshot",
+            )
+        self.assertFalse(updated)
+        self.assertFalse(any(c[:3] == ("issue", "edit", "42") for c in calls))
+
+    def test_guarded_body_update_allows_matching_snapshot(self):
+        import json
+        from unittest import mock
+        from scripts import reconcile_merged_pr_issues as mod
+
+        calls = []
+        def fake_gh(*args):
+            calls.append(args)
+            if args[:3] == ("issue", "view", "42"):
+                return json.dumps({"state": "OPEN", "labels": [],
+                                   "body": "Original"})
+            return "{}"
+
+        with mock.patch.object(mod, "gh", side_effect=fake_gh):
+            updated = mod.guarded_issue_write(
+                42, "issue", "edit", "42", "--body", "Original\\nmarker",
+                expected_body="Original",
+            )
+        self.assertTrue(updated)
+        self.assertTrue(any(c[:3] == ("issue", "edit", "42") for c in calls))
+
+
 if __name__ == "__main__":
     unittest.main()
