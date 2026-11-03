@@ -217,6 +217,11 @@ class CopilotReadyPolicyTests(unittest.TestCase):
         }
         with mock.patch.object(ready, "gh_json", return_value=valid_run):
             self.assertTrue(ready.trusted_recovery_head_green(good, SHA, REPO))
+        # Regression: an actual github.com Actions URL must match; a double-escaped
+        # dot in the verifier regex silently rejected all legitimate runs.
+        with mock.patch.object(ready, "gh_json", return_value=valid_run) as fetch:
+            self.assertTrue(ready.trusted_recovery_head_green(good, SHA, REPO))
+            fetch.assert_called_once_with(f"repos/{REPO}/actions/runs/123")
         for changes in (
             {"event": "pull_request"}, {"head_branch": "copilot/untrusted"},
             {"conclusion": "failure"}, {"status": "in_progress"},
