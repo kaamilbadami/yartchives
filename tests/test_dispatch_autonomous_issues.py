@@ -2,6 +2,7 @@ import importlib.util
 from pathlib import Path
 from datetime import datetime, timezone
 import unittest
+import warnings
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,6 +37,15 @@ def task_body(priority, area, autonomous=True, resources=None, depends_on=None):
 
 
 class AutonomousDispatcherTests(unittest.TestCase):
+    def test_dispatch_script_compiles_without_escape_warnings(self):
+        # Invalid escapes become SyntaxWarning on Python 3.12 and must not
+        # break strict CI or hide a regression in Jules history parsing.
+        source = MODULE_PATH.read_text(encoding="utf-8")
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", SyntaxWarning)
+            warnings.simplefilter("error", DeprecationWarning)
+            compile(source, str(MODULE_PATH), "exec")
+
     def test_routine_clarification_allows_evidence_backed_no_code_conclusion(self):
         response = mod.routine_clarification_response(
             "Should I invent another provider discovery architecture?"
