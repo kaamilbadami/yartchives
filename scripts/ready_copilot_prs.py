@@ -252,9 +252,25 @@ def trusted_recovery_head_green(status: dict[str, Any], sha: str, repo: str) -> 
     if str((latest.get("creator") or {}).get("login") or "").casefold() != "github-actions[bot]":
         return False
     target = str(latest.get("target_url") or "")
-    return bool(re.fullmatch(
-        rf"https://github\.com/{re.escape(repo)}/actions/runs/[0-9]+", target
-    ))
+    match = re.fullmatch(
+        rf"https://github\\.com/{re.escape(repo)}/actions/runs/([0-9]+)", target
+    )
+    if not match:
+        return False
+    # A bot-authored status with a plausible URL is not sufficient evidence.
+    # Confirm the linked run really is a successful trusted-main Quality run.
+    # This does not by itself prove the status was posted by that run; status
+    # publishing permissions must remain restricted to the trusted workflow.
+    run = gh_json(f"repos/{repo}/actions/runs/{match.group(1)}")
+    return (
+        run.get("name") == "Quality checks"
+        and run.get("event") == "workflow_dispatch"
+        and run.get("head_branch") == "main"
+        and run.get("status") == "completed"
+        and run.get("conclusion") == "success"
+        and str(run.get("path") or "").split("@")[0] == ".github/workflows/quality.yml"
+        and (run.get("repository") or {}).get("full_name") == repo
+    )
 
 
 def recovery_allowed(runs: list[dict[str, Any]], sha: str) -> bool:
