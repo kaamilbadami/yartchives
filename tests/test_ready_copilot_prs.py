@@ -351,8 +351,8 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
                 }
             if endpoint == f"repos/{REPO}/actions/runs/123/jobs?per_page=100":
                 return {"total_count": 2, "jobs": [
-                    {"name": "head-tests", "conclusion": "success"},
-                    {"name": "publish-pr-recovery-status", "conclusion": "success"},
+                    {"name": "head-tests", "status": "completed", "conclusion": "success"},
+                    {"name": "publish-pr-recovery-status", "status": "completed", "conclusion": "success"},
                 ]}
             if "/actions/runs?" in endpoint:
                 return {"workflow_runs": green}
