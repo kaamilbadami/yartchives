@@ -58,9 +58,9 @@ class Tests(unittest.TestCase):
             if args[:3] == ("pr", "view", "805"):
                 return json.dumps({"body": "Closes #802"})
             if args[:3] == ("issue", "view", "793"):
-                return json.dumps({"state": "OPEN", "labels": [{"name": "jules-review-ready"}]})
+                return json.dumps({"state": "OPEN", "labels": [{"name": "jules-review-ready"}], "body": ""})
             if args[:3] == ("issue", "view", "802"):
-                return json.dumps({"state": "OPEN", "labels": [{"name": "jules"}]})
+                return json.dumps({"state": "OPEN", "labels": [{"name": "jules"}], "body": ""})
             return ""
 
         calls = []
