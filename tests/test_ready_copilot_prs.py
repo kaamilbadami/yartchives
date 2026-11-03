@@ -233,20 +233,23 @@ class CopilotReadyPolicyTests(unittest.TestCase):
         # A green legacy merge-only recovery is not exact-head evidence.
         for missing in ("head-tests", "publish-pr-recovery-status"):
             with self.subTest(missing_job=missing):
-                with mock.patch.object(ready, "gh_json", side_effect=api):
-                    with mock.patch.object(ready, "gh_json", side_effect=lambda endpoint: (
-                        {"total_count": 1, "jobs": [job for job in successful_jobs if job["name"] != missing]}
-                        if "/jobs?" in endpoint else valid_run
-                    )):
-                        self.assertFalse(ready.trusted_recovery_head_green(good, SHA, REPO))
-        with mock.patch.object(ready, "gh_json", side_effect=api):
-            with mock.patch.object(ready, "gh_json", side_effect=lambda endpoint: (
-                {"total_count": 2, "jobs": [
-                    {"name": "head-tests", "status": "completed", "conclusion": "failure"},
-                    successful_jobs[1],
-                ]} if "/jobs?" in endpoint else valid_run
-            )):
-                self.assertFalse(ready.trusted_recovery_head_green(good, SHA, REPO))
+                with mock.patch.object(ready, "gh_json", side_effect=lambda endpoint: (
+                    {"total_count": 1, "jobs": [job for job in successful_jobs if job["name"] != missing]}
+                    if "/jobs?" in endpoint else valid_run
+                )):
+                    self.assertFalse(ready.trusted_recovery_head_green(good, SHA, REPO))
+        with mock.patch.object(ready, "gh_json", side_effect=lambda endpoint: (
+            {"total_count": 2, "jobs": [
+                {"name": "head-tests", "status": "completed", "conclusion": "failure"},
+                successful_jobs[1],
+            ]} if "/jobs?" in endpoint else valid_run
+        )):
+            self.assertFalse(ready.trusted_recovery_head_green(good, SHA, REPO))
+        with mock.patch.object(ready, "gh_json", side_effect=lambda endpoint: (
+            {"total_count": 3, "jobs": successful_jobs}
+            if "/jobs?" in endpoint else valid_run
+        )):
+            self.assertFalse(ready.trusted_recovery_head_green(good, SHA, REPO))
         for changes in (
             {"event": "pull_request"}, {"head_branch": "copilot/untrusted"},
             {"conclusion": "failure"}, {"status": "in_progress"},
