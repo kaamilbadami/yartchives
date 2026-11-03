@@ -209,7 +209,26 @@ class CopilotReadyPolicyTests(unittest.TestCase):
             "creator": {"login": "github-actions[bot]"},
             "target_url": f"https://github.com/{REPO}/actions/runs/123",
         }]}
-        self.assertTrue(ready.trusted_recovery_head_green(good, SHA, REPO))
+        valid_run = {
+            "name": "Quality checks", "event": "workflow_dispatch",
+            "head_branch": "main", "status": "completed", "conclusion": "success",
+            "path": ".github/workflows/quality.yml",
+            "repository": {"full_name": REPO},
+        }
+        with mock.patch.object(ready, "gh_json", return_value=valid_run):
+            self.assertTrue(ready.trusted_recovery_head_green(good, SHA, REPO))
+        for changes in (
+            {"event": "pull_request"}, {"head_branch": "copilot/untrusted"},
+            {"conclusion": "failure"}, {"status": "in_progress"},
+            {"path": ".github/workflows/untrusted.yml"},
+            {"repository": {"full_name": "attacker/repo"}},
+        ):
+            with self.subTest(run_changes=changes):
+                with mock.patch.object(ready, "gh_json", return_value=dict(valid_run, **changes)):
+                    self.assertFalse(ready.trusted_recovery_head_green(good, SHA, REPO))
+        with mock.patch.object(ready, "gh_json", side_effect=RuntimeError("unavailable")):
+            with self.assertRaises(RuntimeError):
+                ready.trusted_recovery_head_green(good, SHA, REPO)
         for changes in (
             {"state": "pending"},
             {"creator": {"login": "attacker"}},
@@ -288,6 +307,13 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         def get(endpoint):
             if "/issues/76" in endpoint:
                 return issue
+            if endpoint == f"repos/{REPO}/actions/runs/123":
+                return {
+                    "name": "Quality checks", "event": "workflow_dispatch",
+                    "head_branch": "main", "status": "completed",
+                    "conclusion": "success", "path": ".github/workflows/quality.yml",
+                    "repository": {"full_name": REPO},
+                }
             if "/actions/runs?" in endpoint:
                 return {"workflow_runs": green}
             if f"/commits/{SHA}/status" in endpoint:
