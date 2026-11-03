@@ -37,6 +37,31 @@ def task_body(priority, area, autonomous=True, resources=None, depends_on=None):
 
 
 class AutonomousDispatcherTests(unittest.TestCase):
+    def test_jules_read_only_cutoff_is_utc_and_fail_closed(self):
+        self.assertTrue(mod.jules_writes_enabled(datetime(2026, 11, 10, 23, 59, 59, tzinfo=timezone.utc)))
+        self.assertFalse(mod.jules_writes_enabled(datetime(2026, 11, 11, 0, 0, tzinfo=timezone.utc)))
+        self.assertFalse(mod.jules_writes_enabled(datetime(2027, 1, 1, tzinfo=timezone.utc)))
+        with self.assertRaisesRegex(ValueError, "timezone-aware"):
+            mod.jules_writes_enabled(datetime(2026, 11, 10))
+
+    def test_jules_cutoff_denies_session_creation_before_api_call(self):
+        post = mock.Mock()
+        with mock.patch.object(mod, "jules_writes_enabled", return_value=False):
+            with self.assertRaisesRegex(RuntimeError, "read-only"):
+                mod.create_jules_session("key", "source", "owner/repo", object(), api_post=post)
+        post.assert_not_called()
+
+    def test_jules_cutoff_run_cycle_does_not_fetch_or_mutate(self):
+        with mock.patch.object(mod, "jules_writes_enabled", return_value=False), \\
+             mock.patch.object(mod, "fetch_active_issues", side_effect=AssertionError("no fetch")):
+            self.assertEqual(mod.run_dispatch_cycle("owner/repo", "key"), (False, None))
+
+    def test_jules_cutoff_main_works_without_secret_and_skips_writes(self):
+        with mock.patch.object(mod, "jules_writes_enabled", return_value=False), \\
+             mock.patch.object(mod, "ensure_labels", side_effect=AssertionError("no writes")), \\
+             mock.patch.dict(mod.os.environ, {"REPOSITORY": "owner/repo"}, clear=True):
+            self.assertEqual(mod.main(), 0)
+
     def test_dispatch_script_compiles_without_escape_warnings(self):
         # Invalid escapes become SyntaxWarning on Python 3.12 and must not
         # break strict CI or hide a regression in Jules history parsing.
