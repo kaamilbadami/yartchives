@@ -349,6 +349,11 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
                     "conclusion": "success", "path": ".github/workflows/quality.yml",
                     "repository": {"full_name": REPO},
                 }
+            if endpoint == f"repos/{REPO}/actions/runs/123/jobs?per_page=100":
+                return {"total_count": 2, "jobs": [
+                    {"name": "head-tests", "conclusion": "success"},
+                    {"name": "publish-pr-recovery-status", "conclusion": "success"},
+                ]}
             if "/actions/runs?" in endpoint:
                 return {"workflow_runs": green}
             if f"/commits/{SHA}/status" in endpoint:
