@@ -52,13 +52,13 @@ class AutonomousDispatcherTests(unittest.TestCase):
         post.assert_not_called()
 
     def test_jules_cutoff_run_cycle_does_not_fetch_or_mutate(self):
-        with mock.patch.object(mod, "jules_writes_enabled", return_value=False), \\
+        with mock.patch.object(mod, "jules_writes_enabled", return_value=False), \
              mock.patch.object(mod, "fetch_active_issues", side_effect=AssertionError("no fetch")):
             self.assertEqual(mod.run_dispatch_cycle("owner/repo", "key"), (False, None))
 
     def test_jules_cutoff_main_works_without_secret_and_skips_writes(self):
-        with mock.patch.object(mod, "jules_writes_enabled", return_value=False), \\
-             mock.patch.object(mod, "ensure_labels", side_effect=AssertionError("no writes")), \\
+        with mock.patch.object(mod, "jules_writes_enabled", return_value=False), \
+             mock.patch.object(mod, "ensure_labels", side_effect=AssertionError("no writes")), \
              mock.patch.dict(mod.os.environ, {"REPOSITORY": "owner/repo"}, clear=True):
             self.assertEqual(mod.main(), 0)
 
