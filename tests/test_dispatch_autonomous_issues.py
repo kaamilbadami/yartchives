@@ -38,11 +38,11 @@ def task_body(priority, area, autonomous=True, resources=None, depends_on=None):
 
 class AutonomousDispatcherTests(unittest.TestCase):
     def test_jules_read_only_cutoff_is_utc_and_fail_closed(self):
-        self.assertTrue(mod.jules_writes_enabled(datetime(2026, 11, 10, 23, 59, 59, tzinfo=timezone.utc)))
-        self.assertFalse(mod.jules_writes_enabled(datetime(2026, 11, 11, 0, 0, tzinfo=timezone.utc)))
-        self.assertFalse(mod.jules_writes_enabled(datetime(2027, 1, 1, tzinfo=timezone.utc)))
+        self.assertTrue(self.original_jules_writes_enabled(datetime(2026, 11, 10, 23, 59, 59, tzinfo=timezone.utc)))
+        self.assertFalse(self.original_jules_writes_enabled(datetime(2026, 11, 11, 0, 0, tzinfo=timezone.utc)))
+        self.assertFalse(self.original_jules_writes_enabled(datetime(2027, 1, 1, tzinfo=timezone.utc)))
         with self.assertRaisesRegex(ValueError, "timezone-aware"):
-            mod.jules_writes_enabled(datetime(2026, 11, 10))
+            self.original_jules_writes_enabled(datetime(2026, 11, 10))
 
     def test_jules_cutoff_denies_session_creation_before_api_call(self):
         post = mock.Mock()
@@ -89,9 +89,14 @@ class AutonomousDispatcherTests(unittest.TestCase):
     def setUp(self):
         self.original_reconcile_labels = mod.reconcile_autonomous_labels
         mod.reconcile_autonomous_labels = lambda *args, **kwargs: None
+        # Existing dispatcher behavior tests must stay deterministic after the
+        # real November 11 cutoff; dedicated tests below exercise the gate.
+        self.original_jules_writes_enabled = mod.jules_writes_enabled
+        mod.jules_writes_enabled = lambda *args, **kwargs: True
 
     def tearDown(self):
         mod.reconcile_autonomous_labels = self.original_reconcile_labels
+        mod.jules_writes_enabled = self.original_jules_writes_enabled
 
 
     def test_reconcile_autonomous_labels_adds_missing_labels(self):
