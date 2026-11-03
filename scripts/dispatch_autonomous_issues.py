@@ -15,6 +15,17 @@ from urllib import parse, request
 
 PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
 MAX_ACTIVE = 15
+# Jules becomes read-only November 11, 2026. Fail closed at 00:00 UTC
+# rather than risking a late write across unknown provider-local timezones.
+JULES_WRITE_CUTOFF_UTC = datetime(2026, 11, 11, tzinfo=timezone.utc)
+
+
+def jules_writes_enabled(now: datetime | None = None) -> bool:
+    current = now if now is not None else datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        raise ValueError("Jules cutoff requires timezone-aware UTC time")
+    return current.astimezone(timezone.utc) < JULES_WRITE_CUTOFF_UTC
+
 MAX_EVIDENCE_GENERATED_PER_CYCLE = MAX_ACTIVE
 COVERAGE_AREAS = frozenset({
     "coverage",
@@ -2499,6 +2510,8 @@ def create_jules_session(
     *,
     retry_context: str | None = None,
 ) -> dict[str, Any]:
+    if not jules_writes_enabled():
+        raise RuntimeError("Jules is read-only: new sessions disabled after 2026-11-11 00:00 UTC")
     return api_post(
         api_key,
         "/sessions",
@@ -3046,6 +3059,9 @@ def run_dispatch_cycle(
     source_name: str | None = None,
 ) -> tuple[bool, str | None]:
     """Reconcile finished work, dispatch available work, and report whether Jules stays active."""
+    if not jules_writes_enabled():
+        print("Jules read-only cutoff reached; queue-only mode, no new sessions or Jules mutations.")
+        return False, source_name
     issues = fetch_active_issues(repo)
 
     def load_comments(number: int) -> list[dict[str, Any]]:
@@ -3197,6 +3213,13 @@ def watch_jules_backlog(
 
 def main() -> int:
     repo = os.environ["REPOSITORY"]
+    if not jules_writes_enabled():
+        print(
+            "Jules read-only cutoff reached (2026-11-11 00:00 UTC): "
+            "safe queue-only mode; no new sessions, Jules writes, or cleanup. "
+            "Existing issue/PR history is preserved for provider-neutral reconciliation."
+        )
+        return 0
     api_key = os.environ["JULES_API_KEY"]
     ensure_labels(repo)
     cleanup_merged_jules_sessions(repo, api_key)
