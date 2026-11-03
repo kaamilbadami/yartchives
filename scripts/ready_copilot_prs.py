@@ -253,7 +253,7 @@ def trusted_recovery_head_green(status: dict[str, Any], sha: str, repo: str) -> 
         return False
     target = str(latest.get("target_url") or "")
     match = re.fullmatch(
-        rf"https://github\\.com/{re.escape(repo)}/actions/runs/([0-9]+)", target
+        rf"https://github\.com/{re.escape(repo)}/actions/runs/([0-9]+)", target
     )
     if not match:
         return False
