@@ -219,30 +219,33 @@ class CopilotReadyPolicyTests(unittest.TestCase):
             {"name": name, "status": "completed", "conclusion": "success"}
             for name in ("head-tests", "publish-pr-recovery-status")
         ]
-        # Default successful jobs for run-provenance checks in this test.
-        jobs_patch = mock.patch.object(ready, "gh_pages", return_value=successful_jobs)
-        jobs_patch.start()
-        self.addCleanup(jobs_patch.stop)
-        with mock.patch.object(ready, "gh_json", return_value=valid_run):
+        jobs_payload = {"total_count": 2, "jobs": successful_jobs}
+        def api(endpoint):
+            return jobs_payload if "/jobs?" in endpoint else valid_run
+        with mock.patch.object(ready, "gh_json", side_effect=api):
             self.assertTrue(ready.trusted_recovery_head_green(good, SHA, REPO))
         # Regression: an actual github.com Actions URL must match; a double-escaped
         # dot in the verifier regex silently rejected all legitimate runs.
-        with mock.patch.object(ready, "gh_json", return_value=valid_run) as fetch:
+        with mock.patch.object(ready, "gh_json", side_effect=api) as fetch:
             self.assertTrue(ready.trusted_recovery_head_green(good, SHA, REPO))
-            fetch.assert_called_once_with(f"repos/{REPO}/actions/runs/123")
+            self.assertEqual(fetch.call_args_list[0].args[0], f"repos/{REPO}/actions/runs/123")
+            self.assertEqual(fetch.call_args_list[1].args[0], f"repos/{REPO}/actions/runs/123/jobs?per_page=100")
         # A green legacy merge-only recovery is not exact-head evidence.
         for missing in ("head-tests", "publish-pr-recovery-status"):
             with self.subTest(missing_job=missing):
-                with mock.patch.object(ready, "gh_json", return_value=valid_run):
-                    with mock.patch.object(ready, "gh_pages", return_value=[
-                        job for job in successful_jobs if job["name"] != missing
-                    ]):
+                with mock.patch.object(ready, "gh_json", side_effect=api):
+                    with mock.patch.object(ready, "gh_json", side_effect=lambda endpoint: (
+                        {"total_count": 1, "jobs": [job for job in successful_jobs if job["name"] != missing]}
+                        if "/jobs?" in endpoint else valid_run
+                    )):
                         self.assertFalse(ready.trusted_recovery_head_green(good, SHA, REPO))
-        with mock.patch.object(ready, "gh_json", return_value=valid_run):
-            with mock.patch.object(ready, "gh_pages", return_value=[
-                {"name": "head-tests", "status": "completed", "conclusion": "failure"},
-                successful_jobs[1],
-            ]):
+        with mock.patch.object(ready, "gh_json", side_effect=api):
+            with mock.patch.object(ready, "gh_json", side_effect=lambda endpoint: (
+                {"total_count": 2, "jobs": [
+                    {"name": "head-tests", "status": "completed", "conclusion": "failure"},
+                    successful_jobs[1],
+                ]} if "/jobs?" in endpoint else valid_run
+            )):
                 self.assertFalse(ready.trusted_recovery_head_green(good, SHA, REPO))
         for changes in (
             {"event": "pull_request"}, {"head_branch": "copilot/untrusted"},
@@ -251,7 +254,9 @@ class CopilotReadyPolicyTests(unittest.TestCase):
             {"repository": {"full_name": "attacker/repo"}},
         ):
             with self.subTest(run_changes=changes):
-                with mock.patch.object(ready, "gh_json", return_value=dict(valid_run, **changes)):
+                with mock.patch.object(ready, "gh_json", side_effect=lambda endpoint: (
+                    jobs_payload if "/jobs?" in endpoint else dict(valid_run, **changes)
+                )):
                     self.assertFalse(ready.trusted_recovery_head_green(good, SHA, REPO))
         with mock.patch.object(ready, "gh_json", side_effect=RuntimeError("unavailable")):
             with self.assertRaises(RuntimeError):
