@@ -28,18 +28,21 @@ def gh(*args):
     return subprocess.check_output(["gh", *args, "--repo", REPO], text=True)
 
 
-def guarded_issue_write(number, *args, require_open=False):
+def guarded_issue_write(number, *args, require_open=False, expected_body=None):
     """Revalidate live issue authorization before every housekeeping mutation.
 
     Missing metadata, a parent initiative, or a stale closed issue fail closed.
     GitHub has no atomic label compare-and-swap; this narrows the race window.
     """
-    current = json.loads(gh("issue", "view", str(number), "--json", "state,labels"))
+    current = json.loads(gh("issue", "view", str(number), "--json", "state,labels,body"))
     if not isinstance(current.get("labels"), list) or is_initiative(current):
         return False
     if current.get("state") not in {"OPEN", "CLOSED"}:
         return False
     if require_open and current["state"] != "OPEN":
+        return False
+    # Refuse to overwrite a body changed since the original snapshot.
+    if expected_body is not None and current.get("body") != expected_body:
         return False
     gh(*args)
     return True
@@ -146,7 +149,7 @@ def main():
                     if not guarded_issue_write(orig_issue, "issue", "comment", str(orig_issue), "--body",
                             f"Post-merge reconciliation: Recovery PR #{PR_NUMBER} merged and completes the acceptance criteria originally attempted in stale PR #{stale_pr}. Closing as completed."):
                         continue
-                    if not guarded_issue_write(orig_issue, "issue", "edit", str(orig_issue), "--body", new_body):
+                    if not guarded_issue_write(orig_issue, "issue", "edit", str(orig_issue), "--body", new_body, expected_body=old_body):
                         continue
                     guarded_issue_write(orig_issue, "issue", "close", str(orig_issue), "--reason", "completed", require_open=True)
             else:
