@@ -265,7 +265,11 @@ def trusted_recovery_head_green(status: dict[str, Any], sha: str, repo: str) -> 
     # A successful workflow can omit the optional head job. Verify the
     # exact-head validator and trusted status publisher actually succeeded.
     # A synthetic-merge-only legacy recovery must never satisfy head CI.
-    jobs = gh_pages(f"repos/{repo}/actions/runs/{match.group(1)}/jobs?per_page=100")
+    jobs_payload = gh_json(f"repos/{repo}/actions/runs/{match.group(1)}/jobs?per_page=100")
+    jobs = jobs_payload.get("jobs") or []
+    # A truncated response cannot establish which jobs actually ran.
+    if jobs_payload.get("total_count", 0) > len(jobs):
+        return False
     completed = {str(job.get("name") or "") for job in jobs
                  if job.get("status") == "completed" and job.get("conclusion") == "success"}
     return (
