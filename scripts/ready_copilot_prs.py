@@ -100,24 +100,57 @@ def linked_issue(pr: dict[str, Any], repo: str) -> int | None:
     return next(iter(numbers)) if len(numbers) == 1 else None
 
 
+# Shares the Jules controller's ordinary-change scope but never grants
+# Copilot authority over automation, CI, dependency or trust-boundary files.
+COPILOT_PROTECTED_PATHS = frozenset({
+    "requirements.txt", "package.json", "package-lock.json",
+    "pyproject.toml", "setup.py", "setup.cfg",
+    "scripts/dispatch_autonomous_issues.py",
+    "scripts/triage_workflow_failures.py",
+    "scripts/auto_merge_agent_prs.py",
+    "scripts/ready_copilot_prs.py",
+    "scripts/guard_jules_redispatch.py",
+    "scripts/reconcile_merged_pr_issues.py",
+    "scripts/triage_source_quarantines.py",
+    "scripts/quality_scope.sh",
+    "scripts/run_quality_checks.sh",
+    "scripts/targeted_frontend_preflight.py",
+})
+
+
 def safe_low_risk_files(files: list[dict[str, Any]]) -> bool:
-    """Deliberately narrow: expand only after independent security review."""
+    """Allow ordinary product/data improvements; reject privileged changes.
+
+    Approval is based on GitHub's actual diff, never PR prose or labels.
+    Renames, hidden paths, config and executable automation boundaries fail closed.
+    """
     if not files:
         return False
     for item in files:
         path = str(item.get("filename") or "")
-        # A rename reports only the destination in filename; the source may
-        # be a protected workflow or policy file. Deny renames by default.
         if item.get("status") == "renamed" or item.get("previous_filename"):
             return False
-        if not path or path.startswith(".github/") or ".." in path.split("/"):
+        parts = path.split("/")
+        if (not path or any(not part or part in {".", ".."} or part.startswith(".")
+                            for part in parts)
+                or path in COPILOT_PROTECTED_PATHS
+                or path.startswith(("audit/samples/", "__pycache__/"))
+                or path.endswith((".pyc", ".orig"))
+                or path.startswith("patch_")):
             return False
         if path.startswith(("tests/", "docs/")):
             continue
-        if "/" not in path and (
+        if len(parts) == 1 and (
             path in {"README.md", "index.html"}
             or path.endswith((".js", ".css", ".html"))
         ):
+            continue
+        if len(parts) == 2 and parts[0] == "scripts" and path.endswith(".py"):
+            # Avoid broadening to dispatch, authorization or lifecycle helpers.
+            if any(token in path for token in ("copilot", "automerge", "workflow", "dispatch", "triage", "quality", "auth", "merge", "secret")):
+                return False
+            continue
+        if len(parts) >= 2 and parts[0] == "data" and path.endswith((".json", ".csv")):
             continue
         return False
     return True
