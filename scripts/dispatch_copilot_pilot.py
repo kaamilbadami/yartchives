@@ -12,7 +12,8 @@ import re
 import subprocess
 from typing import Any, Callable
 
-from dispatch_autonomous_issues import (
+try:
+    from scripts.dispatch_autonomous_issues import (
     JULES_ACTIVE_LABEL,
     JULES_FEEDBACK_LABEL,
     JULES_REVIEW_READY_LABEL,
@@ -22,7 +23,13 @@ from dispatch_autonomous_issues import (
     label_names,
     task_from_issue,
     task_lock_keys,
-)
+    )
+except ModuleNotFoundError:
+    from dispatch_autonomous_issues import (
+        JULES_ACTIVE_LABEL, JULES_FEEDBACK_LABEL, JULES_REVIEW_READY_LABEL,
+        JULES_FAILED_LABEL, JULES_RETRY_LABEL, has_codex_reservation,
+        label_names, task_from_issue, task_lock_keys,
+    )
 
 PILOT_LABEL = "copilot-pilot"
 ATTEMPT_MARKER = "<!-- copilot-dispatch-attempt:v1 -->"
