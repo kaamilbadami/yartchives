@@ -87,6 +87,41 @@ class MergeCiRecoveryBudgetTests(unittest.TestCase):
         self.assertEqual(mod.merge_ci_recovery_decision([], head, ""), "block")
 
 
+class ExactHeadCiFreshnessSecurityTests(unittest.TestCase):
+    def test_newer_executed_failure_vetoes_older_success(self):
+        sha = "a" * 40
+        history = [
+            {"name": "Quality checks", "head_sha": sha, "status": "completed",
+             "conclusion": "failure", "created_at": "2026-11-03T12:05:00Z", "id": 21},
+            {"name": "Quality checks", "head_sha": sha, "status": "completed",
+             "conclusion": "success", "created_at": "2026-11-03T12:00:00Z", "id": 20},
+        ]
+        self.assertFalse(mod.exact_head_quality_passed(history, sha))
+        self.assertFalse(mod.exact_head_quality_passed(list(reversed(history)), sha))
+
+    def test_newer_pending_run_vetoes_older_success(self):
+        sha = "a" * 40
+        history = [
+            {"name": "Quality checks", "head_sha": sha, "status": "in_progress",
+             "conclusion": None, "created_at": "2026-11-03T12:05:00Z", "id": 21},
+            {"name": "Quality checks", "head_sha": sha, "status": "completed",
+             "conclusion": "success", "created_at": "2026-11-03T12:00:00Z", "id": 20},
+        ]
+        self.assertFalse(mod.exact_head_quality_passed(history, sha))
+
+    def test_gated_run_does_not_invalidate_real_green_same_head(self):
+        sha = "a" * 40
+        history = [
+            {"name": "Quality checks", "head_sha": sha, "status": "completed",
+             "conclusion": "action_required", "created_at": "2026-11-03T12:05:00Z", "id": 21},
+            {"name": "Quality checks", "head_sha": sha, "status": "completed",
+             "conclusion": "success", "created_at": "2026-11-03T12:00:00Z", "id": 20},
+        ]
+        self.assertTrue(mod.exact_head_quality_passed(history, sha))
+        self.assertFalse(mod.exact_head_quality_passed(history, "b" * 40))
+        self.assertFalse(mod.exact_head_quality_passed([history[0]], sha))
+
+
 class AutoMergeAgentPrTests(unittest.TestCase):
     def test_copilot_ready_state_never_authorizes_legacy_auto_merge(self):
         self.assertTrue(mod.copilot_merge_requires_independent_authorization(
