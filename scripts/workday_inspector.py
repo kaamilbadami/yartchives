@@ -36,6 +36,10 @@ INTERFACE = "workday_cxs_json"
 WORKDAY_HOST = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkday(?:jobs|site)\.com$", re.I)
 LOCALE = re.compile(r"^[a-z]{2}(?:-[A-Z]{2})?$")
 
+KNOWN_TENANT_ALIASES = {
+    "gf": "globalfoundries",
+}
+
 
 class UnsupportedWorkdayUrl(ValueError):
     """Raised when a URL cannot identify a public Workday CXS job endpoint."""
@@ -216,6 +220,26 @@ def inspect_workday_url(
             headers={"Accept": "application/json", "User-Agent": "Yartchives/1.0 (+public job inspection)"},
             timeout=timeout,
         )
+        if response.status_code in (400, 422):
+            tenant = endpoint["tenant"]
+            fallback_tenants = []
+            if "-" in tenant:
+                fallback_tenants.append(tenant.replace("-", "_"))
+            if tenant in KNOWN_TENANT_ALIASES:
+                fallback_tenants.append(KNOWN_TENANT_ALIASES[tenant])
+            for fallback_tenant in fallback_tenants:
+                fallback_url = endpoint["endpoint_url"].replace(f"/wday/cxs/{tenant}/", f"/wday/cxs/{fallback_tenant}/")
+                fallback_response = client.get(
+                    fallback_url,
+                    headers={"Accept": "application/json", "User-Agent": "Yartchives/1.0 (+public job inspection)"},
+                    timeout=timeout,
+                )
+                if fallback_response.status_code == 200:
+                    response = fallback_response
+                    endpoint["endpoint_url"] = fallback_url
+                    result["provenance"]["endpoint_url"] = fallback_url
+                    result["provenance"]["tenant"] = fallback_tenant
+                    break
         if response.status_code in {404, 410}:
             result["status"] = "unavailable"
             result["error"] = None

@@ -36,6 +36,13 @@ def task_body(priority, area, autonomous=True, resources=None, depends_on=None):
 
 
 class AutonomousDispatcherTests(unittest.TestCase):
+    def test_workflow_serializes_resource_lock_and_runs_dispatch_step(self):
+        workflow = (ROOT / ".github" / "workflows" / "autonomous-dispatch.yml").read_text()
+        self.assertIn("group: coverage-issue-writers", workflow)
+        self.assertIn("cancel-in-progress: false", workflow)
+        self.assertIn("- name: Dispatch safe non-overlapping work", workflow)
+        self.assertIn("run: python scripts/dispatch_autonomous_issues.py", workflow)
+
     def test_routine_clarification_allows_evidence_backed_no_code_conclusion(self):
         response = mod.routine_clarification_response(
             "Should I invent another provider discovery architecture?"
@@ -321,13 +328,6 @@ class AutonomousDispatcherTests(unittest.TestCase):
         workflow = (ROOT / ".github" / "workflows" / "autonomous-dispatch.yml").read_text()
         self.assertIn('JULES_WATCH_SECONDS: "780"', workflow)
         self.assertIn("cancel-in-progress: false", workflow)
-
-    def test_workflow_serializes_resource_lock_and_runs_dispatch_step(self):
-        workflow = (ROOT / ".github" / "workflows" / "autonomous-dispatch.yml").read_text()
-        self.assertIn("group: coverage-issue-writers", workflow)
-        self.assertIn("cancel-in-progress: false", workflow)
-        self.assertIn("- name: Dispatch safe non-overlapping work", workflow)
-        self.assertIn("run: python scripts/dispatch_autonomous_issues.py", workflow)
 
     def test_dispatch_capacity_summary_reports_unfilled_locked_slots(self):
         issues = [

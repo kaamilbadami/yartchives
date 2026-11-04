@@ -114,6 +114,9 @@ def _successfactors_source(employer: dict[str, Any]) -> dict[str, Any] | None:
                 parsed = ev_parsed
                 break
 
+    if parsed.hostname and _is_sso_or_base_domain(parsed.hostname):
+        return None
+
     origin = urlunparse((parsed.scheme or "https", parsed.netloc, "", "", "", ""))
     homepage = urlunparse((parsed.scheme or "https", parsed.netloc, parsed.path.rstrip("/"), "", "", ""))
     slug = re.sub(r"[^a-z0-9]+", "-", employer["id"].casefold()).strip("-")
@@ -189,7 +192,9 @@ def fetch_source(client: requests.Session, source: dict[str, Any], reference: da
         raise RuntimeError(f"sitemap fetch failed: {exc}")
 
     try:
-        root = ET.fromstring(response.content)
+        content_str = response.content.decode("utf-8", errors="replace")
+        escaped_content = re.sub(r'&(?!(?:[a-zA-Z]+|#\d+|#x[0-9a-fA-F]+);)', '&amp;', content_str)
+        root = ET.fromstring(escaped_content)
     except ET.ParseError as exc:
          raise StructuralSourceError(f"sitemap XML parse failed: {exc}", [406])
 
