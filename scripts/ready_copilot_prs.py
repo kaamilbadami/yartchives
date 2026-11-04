@@ -126,6 +126,12 @@ def safe_low_risk_files(files: list[dict[str, Any]]) -> bool:
     """
     if not files:
         return False
+    paths = {str(item.get("filename") or "") for item in files}
+    # A narrowly permitted operational repair must include its regression
+    # test; arbitrary 'triage' scripts remain protected.
+    if ("scripts/triage_source_quarantines.py" in paths
+            and "tests/test_triage_source_quarantines.py" not in paths):
+        return False
     for item in files:
         path = str(item.get("filename") or "")
         if item.get("status") == "renamed" or item.get("previous_filename"):
@@ -139,6 +145,8 @@ def safe_low_risk_files(files: list[dict[str, Any]]) -> bool:
                 or path.startswith("patch_")):
             return False
         if path.startswith(("tests/", "docs/")):
+            continue
+        if path == "scripts/triage_source_quarantines.py":
             continue
         if len(parts) == 1 and (
             path in {"README.md", "index.html"}
