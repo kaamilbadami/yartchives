@@ -192,7 +192,18 @@ def fetch_source(client: requests.Session, source: dict[str, Any], reference: da
         raise RuntimeError(f"sitemap fetch failed: {exc}")
 
     try:
-        root = ET.fromstring(response.content)
+        content = response.content.decode("utf-8", errors="replace")
+
+        # Replace unescaped ampersands outside of CDATA blocks
+        def sanitize_cdata(match):
+            return match.group(0)
+
+        def sanitize_outside(match):
+            return re.sub(r"&(?!amp;|lt;|gt;|apos;|quot;|#x[0-9a-fA-F]+;|#[0-9]+;)", "&amp;", match.group(0))
+
+        content = re.sub(r'<!\[CDATA\[.*?\]\]>|[^<]+', lambda m: sanitize_cdata(m) if m.group(0).startswith("<![CDATA[") else sanitize_outside(m), content, flags=re.DOTALL)
+
+        root = ET.fromstring(content.encode("utf-8"))
     except ET.ParseError as exc:
          raise StructuralSourceError(f"sitemap XML parse failed: {exc}", [406])
 
