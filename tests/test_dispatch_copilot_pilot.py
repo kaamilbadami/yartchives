@@ -59,6 +59,63 @@ class CopilotPilotDispatcherTests(unittest.TestCase):
         self.assertEqual(posts[1][1]["assignees"], ["copilot-swe-agent[bot]"])
         self.assertEqual(posts[1][1]["agent_assignment"]["base_branch"], "main")
 
+    def test_low_cost_model_is_sent_only_when_explicitly_configured(self):
+        item = issue()
+        posts = []
+        def api(path, *, method="GET", payload=None, token=None):
+            if method == "POST":
+                posts.append((path, payload))
+                if path.endswith("/assignees"):
+                    return {"assignees": [{"login": "Copilot"}]}
+                return {"id": 1}
+            if path.endswith("/issues?state=open&per_page=100"):
+                return [item]
+            if path.endswith("/pulls?state=open&per_page=100"):
+                return []
+            if path.endswith("/comments?per_page=100"):
+                return []
+            if path.endswith("/issues/900"):
+                return item
+            raise AssertionError(path)
+        self.assertIn("assigned Copilot", mod.run_cycle(
+            REPO, "user-token", api=api, model="gpt-6-luna"))
+        self.assertEqual(
+            posts[-1][1]["agent_assignment"]["model"], "gpt-6-luna")
+        self.assertEqual(posts[-1][1]["assignees"], ["copilot-swe-agent[bot]"])
+
+    def test_auto_and_unset_model_preserve_student_compatible_payload(self):
+        for requested in ("", "auto", " AUTO "):
+            with self.subTest(requested=requested):
+                item = issue()
+                assignments = []
+                def api(path, *, method="GET", payload=None, token=None):
+                    if method == "POST":
+                        if path.endswith("/assignees"):
+                            assignments.append(payload["agent_assignment"])
+                            return {"assignees": [{"login": "Copilot"}]}
+                        return {"id": 1}
+                    if path.endswith("/issues?state=open&per_page=100"):
+                        return [item]
+                    if path.endswith("/pulls?state=open&per_page=100"):
+                        return []
+                    if path.endswith("/comments?per_page=100"):
+                        return []
+                    if path.endswith("/issues/900"):
+                        return item
+                    raise AssertionError(path)
+                self.assertIn("assigned Copilot", mod.run_cycle(
+                    REPO, "user-token", api=api, model=requested))
+                self.assertEqual(assignments, [{
+                    "target_repo": REPO, "base_branch": "main"}])
+
+    def test_unsupported_model_rejected_before_any_api_or_attempt_marker(self):
+        api = mock.Mock(side_effect=AssertionError("must not make calls"))
+        for requested in ("gpt-6-astra", "gpt-6-luna;bad", "unknown"):
+            with self.subTest(requested=requested):
+                with self.assertRaisesRegex(ValueError, "unsupported"):
+                    mod.run_cycle(REPO, "user-token", api=api, model=requested)
+        api.assert_not_called()
+
     def test_durable_marker_prevents_retry_after_ambiguous_failure(self):
         item = issue()
         posts = []
