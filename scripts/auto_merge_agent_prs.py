@@ -875,16 +875,24 @@ def recover_sensitive_pr_merge_ci(
     if exact_head_quality_in_flight(runs, head_sha):
         return "wait: head Quality in flight"
 
-    # A checked commit status is only meaningful on the exact current merge.
-    status = gh_json("api", f"repos/{repo}/commits/{merge_sha}/status")
-    latest_tests = next(
-        (row for row in status.get("statuses", [])
-         if row.get("context") == "tests"), None
+    # GitHub branch protection requires an Actions-app-owned *check run*.
+    # A legacy green commit status named tests is not proof of that check.
+    checks = gh_json("api", f"repos/{repo}/commits/{merge_sha}/check-runs?per_page=100")
+    required_checks = sorted(
+        (row for row in checks.get("check_runs", [])
+         if row.get("name") == "tests" and (row.get("app") or {}).get("id") == 15368),
+        key=lambda row: str(row.get("completed_at") or row.get("started_at") or ""),
+        reverse=True,
     )
-    if latest_tests and latest_tests.get("state") == "success":
-        return "verified: merge tests status already green"
-    if latest_tests and latest_tests.get("state") in {"failure", "error"}:
-        return "block: latest merge tests status failed"
+    if required_checks:
+        latest_tests = required_checks[0]
+        if (latest_tests.get("status") == "completed"
+                and latest_tests.get("conclusion") == "success"):
+            return "verified: current merge has Actions-owned tests check"
+        if (latest_tests.get("status") == "completed"
+                and latest_tests.get("conclusion") in {"failure", "timed_out", "cancelled"}):
+            return "block: current merge Actions-owned tests check failed"
+        return "wait: current merge Actions-owned tests check pending"
 
     # Recheck the live PR immediately before recording a bounded dispatch.
     current = gh_json("api", f"repos/{repo}/pulls/{number}")
