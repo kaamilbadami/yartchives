@@ -1609,6 +1609,19 @@ def main() -> int:
                     or not github_reports_safe_mergeability(latest)):
                 print(f"BLOCKED_COPILOT PR #{number}: final state/base/mergeability changed.")
                 continue
+            # Re-read issue authorization immediately before merge. The issue
+            # can be closed, initiative-labeled or reassigned after the earlier
+            # provenance check, independently of PR head/base stability.
+            latest_issue = gh_json("api", f"repos/{repo}/issues/{copilot_issue}")
+            if (latest_issue.get("number") != copilot_issue
+                    or latest_issue.get("state") != "open"
+                    or not isinstance(latest_issue.get("labels"), list)
+                    or not isinstance(latest_issue.get("assignees"), list)
+                    or "initiative" in label_names(latest_issue)
+                    or not any(str(a.get("login") or "").casefold() == "copilot"
+                               for a in latest_issue["assignees"] if isinstance(a, dict))):
+                print(f"BLOCKED_COPILOT PR #{number}: linked issue authorization changed.")
+                continue
             merged, detail = try_guarded_squash_merge(repo, number, head_sha)
             if not merged:
                 print(f"BLOCKED_COPILOT PR #{number}: protected merge rejected: {detail}")
