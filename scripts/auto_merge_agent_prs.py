@@ -1352,8 +1352,53 @@ def gh_run(*args: str) -> None:
     subprocess.run(["gh", *args], check=True)
 
 
+def protected_merge_freshness(repo: str, number: int, head_sha: str) -> tuple[bool, str]:
+    """Fail closed if CI evidence does not belong to the current protected base.
+
+    This is a final admission check, not an alternative source of merge authority.
+    GitHub's protected merge endpoint remains the ultimate enforcement gate.
+    """
+    pr = gh_json("api", f"repos/{repo}/pulls/{number}")
+    base = pr.get("base") or {}
+    head = pr.get("head") or {}
+    merge_sha = str(pr.get("merge_commit_sha") or "")
+    if (pr.get("state") != "open" or pr.get("draft") is not False
+            or base.get("ref") != "main"
+            or head.get("sha") != head_sha
+            or not all(re.fullmatch(r"[a-f0-9]{40}", str(value or ""))
+                       for value in (base.get("sha"), head_sha, merge_sha))):
+        return False, "stale or unverified PR identity"
+    live_main = gh_json("api", f"repos/{repo}/git/ref/heads/main")
+    if (live_main.get("object") or {}).get("sha") != base.get("sha"):
+        return False, "main advanced since PR base snapshot; revalidate"
+    checks = gh_json("api", f"repos/{repo}/commits/{merge_sha}/check-runs?per_page=100")
+    if not isinstance(checks.get("check_runs"), list):
+        return False, "required merge check runs unavailable"
+    required = [
+        row for row in checks["check_runs"]
+        if row.get("name") == "tests"
+        and (row.get("app") or {}).get("id") == 15368
+    ]
+    if not required or required[0].get("status") != "completed" or required[0].get("conclusion") != "success":
+        return False, "current merge SHA lacks successful Actions-owned tests check"
+    # Keep the final observable freshness check close to the protected API call.
+    current = gh_json("api", f"repos/{repo}/pulls/{number}")
+    if (current.get("state") != "open"
+            or (current.get("head") or {}).get("sha") != head_sha
+            or (current.get("base") or {}).get("sha") != base.get("sha")
+            or current.get("merge_commit_sha") != merge_sha):
+        return False, "PR changed while validating protected merge"
+    return True, ""
+
+
 def try_guarded_squash_merge(repo: str, number: int, head_sha: str) -> tuple[bool, str]:
-    """Let GitHub's merge endpoint be the final authority for a proven-safe stale PR."""
+    """Only attempt GitHub's protected merge for current, verified commit state."""
+    try:
+        fresh, reason = protected_merge_freshness(repo, number, head_sha)
+    except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+        return False, f"protected-merge freshness unavailable: {exc}"
+    if not fresh:
+        return False, reason
     result = subprocess.run(
         [
             "gh", "api", "--method", "PUT",
