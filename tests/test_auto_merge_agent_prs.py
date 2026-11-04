@@ -49,7 +49,8 @@ class SerializedProtectedMergeControllerTests(unittest.TestCase):
     def test_one_merge_per_fresh_inventory_and_follow_up_scan(self):
         source = MODULE_PATH.read_text()
         main = source.split("def main() -> int:", 1)[1]
-        loop = main.split("for pr in pull_requests:", 1)[1]
+        admission = main.split("merged_count = 0", 1)[1]
+        loop = admission.split("for pr in pull_requests:", 1)[1]
         # A successful merge of any eligible lane must stop admission of a
         # second PR whose base/merge identity came from the old inventory.
         self.assertIn("if merged_count:", loop)
@@ -139,10 +140,10 @@ class MergeCiRecoveryBudgetTests(unittest.TestCase):
         self.assertEqual(mod.merge_ci_recovery_decision(comments, "e" * 40, "d" * 40), "dispatch")
         exhausted = comments + [
             {"user": {"login": "github-actions[bot]"},
-             "body": f"<!-- merge-ci-recovery: head={head} merge={chr(letter) * 40} -->"}
-            for letter in range(ord("d"), ord("j"))
+             "body": f"<!-- merge-ci-recovery: head={head} merge={merge} -->"}
+            for merge in ("d" * 40, "e" * 40, "f" * 40, "0" * 40, "1" * 40, "2" * 40)
         ]
-        self.assertEqual(mod.merge_ci_recovery_decision(exhausted, head, "k" * 40), "escalate")
+        self.assertEqual(mod.merge_ci_recovery_decision(exhausted, head, "3" * 40), "escalate")
         self.assertEqual(mod.merge_ci_recovery_decision([comments[0]], head, "b" * 40,
                         retry_current_merge=True), "dispatch")
         self.assertEqual(mod.merge_ci_recovery_decision([comments[0], comments[0]], head,
