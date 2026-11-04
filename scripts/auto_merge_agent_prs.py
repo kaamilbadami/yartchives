@@ -1604,6 +1604,7 @@ def main() -> int:
             if (latest.get("state") != "open" or latest.get("draft") is not False
                     or (latest.get("head") or {}).get("sha") != head_sha
                     or (latest.get("base") or {}).get("sha") != (pr.get("base") or {}).get("sha")
+                    or latest.get("merge_commit_sha") != pr.get("merge_commit_sha")
                     or latest.get("body") != pr.get("body")
                     or not github_reports_safe_mergeability(latest)):
                 print(f"BLOCKED_COPILOT PR #{number}: final state/base/mergeability changed.")
