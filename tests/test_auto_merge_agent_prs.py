@@ -122,6 +122,28 @@ class ExactHeadCiFreshnessSecurityTests(unittest.TestCase):
         self.assertFalse(mod.exact_head_quality_passed([history[0]], sha))
 
 
+class RequiredAppOwnedCheckRunTests(unittest.TestCase):
+    def test_trusted_recovery_publishes_app_owned_tests_check_on_merge(self):
+        import yaml
+        workflow = yaml.safe_load((ROOT / ".github/workflows/quality.yml").read_text())
+        job = workflow["jobs"]["publish-pr-recovery-status"]
+        self.assertEqual(job["permissions"]["checks"], "write")
+        self.assertEqual(job["permissions"]["statuses"], "write")
+        self.assertEqual(job["permissions"]["contents"], "read")
+        step = next(step for step in job["steps"] if "Publish required tests" in step["name"])
+        shell = step["run"]
+        # The ruleset requires checks by GitHub Actions App, not status API alone.
+        self.assertIn('repos/$GITHUB_REPOSITORY/check-runs', shell)
+        self.assertIn('-f name=tests', shell)
+        self.assertIn('-f "head_sha=$target"', shell)
+        self.assertIn('-f conclusion=success', shell)
+        self.assertIn('repos/$GITHUB_REPOSITORY/statuses/$target', shell)
+        # No check-run publication after head or synthetic merge drift.
+        self.assertIn('"$target" == "$TESTED_MERGE_SHA"', shell)
+        self.assertIn('.merge_commit_sha // empty', shell)
+        self.assertIn('"$PR_NUMBER"', shell)
+        self.assertIn('"$EXPECTED_HEAD_SHA"', shell)
+
 class SensitivePrCiRecoveryTests(unittest.TestCase):
     def candidate(self):
         result = pr(head_sha="a" * 40, user="Copilot", draft=False)
