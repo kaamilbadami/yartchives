@@ -188,7 +188,7 @@ def main() -> int:
     repo = os.environ["REPOSITORY"]
     token = os.environ.get("COPILOT_ASSIGNMENT_TOKEN", "")
     print(run_cycle(repo, token, model=os.environ.get("COPILOT_PILOT_MODEL", ""),
-                    mode=os.environ.get("COPILOT_DISPATCH_MODE", "pilot")) )
+                    mode=os.environ.get("COPILOT_DISPATCH_MODE") or "pilot"))
     return 0
 
 
