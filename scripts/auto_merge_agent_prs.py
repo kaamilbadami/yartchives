@@ -1486,7 +1486,10 @@ def rearm_owner_native_auto_merge(
             "input:{pullRequestId:$id,mergeMethod:SQUASH})"
             "{clientMutationId}}"
         )
-        gh_json("api", "graphql", "-f", f"query={mutation}", "-F", f"id={node_id}")
+        response = gh_json("api", "graphql", "-f", f"query={mutation}", "-F", f"id={node_id}")
+        if (response.get("errors") or not isinstance((response.get("data") or {}).get(
+                "enablePullRequestAutoMerge"), dict)):
+            return "unknown: GitHub did not confirm native auto-merge re-arming"
         return "native auto-merge re-armed for current verified owner head"
     except (subprocess.CalledProcessError, ValueError, KeyError, TypeError) as exc:
         # Permission failures and clean-status races are diagnostic, never
