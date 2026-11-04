@@ -33,7 +33,7 @@ except ModuleNotFoundError:
 
 PILOT_LABEL = "copilot-pilot"
 ATTEMPT_MARKER = "<!-- copilot-dispatch-attempt:v1 -->"
-BOT = "copilot-swe-agent"
+COPILOT_LOGINS = frozenset({"copilot", "copilot-swe-agent", "copilot-swe-agent[bot]"})
 BLOCKING_LABELS = frozenset({
     JULES_ACTIVE_LABEL, JULES_FEEDBACK_LABEL, JULES_REVIEW_READY_LABEL,
     JULES_FAILED_LABEL, JULES_RETRY_LABEL, "blocked",
@@ -92,10 +92,10 @@ def run_cycle(repo: str, assignment_token: str,
     for issue in issues:
         labels = label_names(issue)
         if (labels & {JULES_ACTIVE_LABEL, JULES_FEEDBACK_LABEL, JULES_REVIEW_READY_LABEL}
-                or has_codex_reservation(labels) or BOT in [
+                or has_codex_reservation(labels) or COPILOT_LOGINS.intersection([
                     str(a.get("login") or "").casefold()
                     for a in issue.get("assignees") or [] if isinstance(a, dict)
-                ]):
+                ])):
             task = task_from_issue(issue)
             if task:
                 occupied.update(task_lock_keys(task))
@@ -136,7 +136,7 @@ def run_cycle(repo: str, assignment_token: str,
         )
         assigned = [str(x.get("login") or "").casefold()
                     for x in result.get("assignees") or [] if isinstance(x, dict)]
-        if BOT not in assigned:
+        if not COPILOT_LOGINS.intersection(assigned):
             raise RuntimeError(
                 f"Copilot assignment for #{number} was not confirmed; "
                 "do not retry without examining the durable attempt"
