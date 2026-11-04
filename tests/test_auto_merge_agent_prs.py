@@ -208,12 +208,15 @@ class SensitivePrCiRecoveryTests(unittest.TestCase):
                 "kaamilbadami/yartchives", candidate, runs("a" * 40)))
             write.assert_not_called()
 
-    def test_sensitive_ci_recovery_is_before_copilot_merge_authorization(self):
+    def test_sensitive_paths_are_not_a_blanket_manual_review_veto(self):
         source = MODULE_PATH.read_text()
-        self.assertLess(source.index("sensitive_paths = sensitive_auto_merge_paths(files)", source.index("def main()")),
-                        source.index("if copilot_merge_requires_independent_authorization(pr):", source.index("def main()")))
-        block = source.split("if sensitive_paths:", 1)[-1]
-        self.assertIn("recover_sensitive_pr_merge_ci(repo, pr, runs)", block)
+        controller = source.split("def main()", 1)[1]
+        diagnostic = controller.split("sensitive_paths = sensitive_auto_merge_paths(files)", 1)[1]
+        before_copilot = diagnostic.split("if copilot_merge_requires_independent_authorization(pr):", 1)[0]
+        self.assertIn("privileged paths", before_copilot)
+        self.assertNotIn("continue", before_copilot)
+        self.assertIn("if not exact_head_quality_passed(runs, head_sha):", controller)
+        self.assertIn("try_guarded_squash_merge(", controller)
 
 
 class CopilotLowRiskMergePolicyTests(unittest.TestCase):
@@ -412,7 +415,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
     @mock.patch.object(mod, "try_guarded_squash_merge")
     @mock.patch.object(mod, "gh_json")
     @mock.patch.object(mod, "gh_paginated_json")
-    def test_green_owner_workflow_pr_cannot_auto_merge(
+    def test_owner_workflow_pr_without_verified_merge_evidence_cannot_merge(
         self, mock_paginated, mock_json, mock_merge, mock_close, mock_run
     ):
         candidate = pr(body="", head_sha="a" * 40, user="kaamilbadami")
@@ -658,14 +661,14 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             "owner_name/repo", 881, "66c62217c3e7cd6eeda9ee6d5fc35ab59fb00afe"
         )
 
-    def test_owner_authorized_lane_bypasses_issue_link_but_not_sensitive_paths_or_ci(self):
+    def test_owner_authorized_lane_requires_ci_without_manual_sensitive_hold(self):
         source = MODULE_PATH.read_text()
         self.assertIn(
             "if issue_number is None and not maintenance_pre_ci and not owner_authorized:",
             source,
         )
         self.assertIn("sensitive_paths = sensitive_auto_merge_paths(files)", source)
-        self.assertIn("if sensitive_paths:", source)
+        self.assertNotIn("require independent review/manual merge", source)
         self.assertIn(
             'pre_ci_eligible, reason = True, "owner-authorized"',
             source,
