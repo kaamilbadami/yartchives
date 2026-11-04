@@ -225,6 +225,14 @@ def copilot_low_risk_merge_eligible(
         return False, "PR must be open and ready", None
     if str((pr.get("user") or {}).get("login") or "").casefold() != "copilot":
         return False, "not a Copilot PR", None
+    # Missing base identity must never compare equal to another missing value.
+    # A real 40-hex base SHA is required to detect main advancing before merge.
+    if ((pr.get("base") or {}).get("ref") != "main"
+            or not re.fullmatch(r"[a-f0-9]{40}",
+                                str((pr.get("base") or {}).get("sha") or ""))
+            or not re.fullmatch(r"[a-f0-9]{40}",
+                                str((pr.get("head") or {}).get("sha") or ""))):
+        return False, "missing or invalid main/head commit identity", None
     if not 0 < len(files) <= COPILOT_AUTOMERGE_MAX_FILES:
         return False, "file count exceeds pilot scope", None
     total = 0
@@ -245,6 +253,10 @@ def copilot_low_risk_merge_eligible(
     fresh = gh_json("api", f"repos/{repo}/pulls/{number}")
     if (fresh.get("state") != "open" or fresh.get("draft") is not False
             or (fresh.get("head") or {}).get("sha") != (pr.get("head") or {}).get("sha")
+            or (fresh.get("head") or {}).get("ref") != (pr.get("head") or {}).get("ref")
+            or ((fresh.get("head") or {}).get("repo") or {}).get("full_name")
+                != ((pr.get("head") or {}).get("repo") or {}).get("full_name")
+            or (fresh.get("base") or {}).get("ref") != "main"
             or (fresh.get("base") or {}).get("sha") != (pr.get("base") or {}).get("sha")
             or fresh.get("body") != pr.get("body")
             or (fresh.get("user") or {}).get("login") != (pr.get("user") or {}).get("login")):
@@ -1614,6 +1626,10 @@ def main() -> int:
             latest = gh_json("api", f"repos/{repo}/pulls/{number}")
             if (latest.get("state") != "open" or latest.get("draft") is not False
                     or (latest.get("head") or {}).get("sha") != head_sha
+                    or (latest.get("head") or {}).get("ref") != (pr.get("head") or {}).get("ref")
+                    or ((latest.get("head") or {}).get("repo") or {}).get("full_name")
+                        != ((pr.get("head") or {}).get("repo") or {}).get("full_name")
+                    or (latest.get("base") or {}).get("ref") != "main"
                     or (latest.get("base") or {}).get("sha") != (pr.get("base") or {}).get("sha")
                     or latest.get("merge_commit_sha") != pr.get("merge_commit_sha")
                     or latest.get("body") != pr.get("body")
