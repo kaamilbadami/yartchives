@@ -82,7 +82,7 @@ class CopilotPilotDispatcherTests(unittest.TestCase):
             raise AssertionError(path)
         with self.assertRaisesRegex(RuntimeError, "network timeout"):
             mod.run_cycle(REPO, "user-token", api=api)
-        self.assertIn("no authorized", mod.run_cycle(REPO, "user-token", api=api))
+        self.assertIn("already attempted", mod.run_cycle(REPO, "user-token", api=api))
         self.assertEqual(len(posts), 2)
 
     def test_existing_pr_or_owner_assignee_blocks_assignment(self):
@@ -95,6 +95,8 @@ class CopilotPilotDispatcherTests(unittest.TestCase):
                         return [candidate]
                     if path.endswith("/pulls?state=open&per_page=100"):
                         return [{"body": "Closes #900"}] if option == "pr" else []
+                    if path.endswith("/comments?per_page=100"):
+                        return []
                     raise AssertionError("Unexpected read/write: " + path)
                 self.assertIn("no authorized", mod.run_cycle(REPO, "user-token", api=api))
 
@@ -105,6 +107,8 @@ class CopilotPilotDispatcherTests(unittest.TestCase):
             if path.endswith("/issues?state=open&per_page=100"):
                 return [active, candidate]
             if path.endswith("/pulls?state=open&per_page=100"):
+                return []
+            if path.endswith("/comments?per_page=100"):
                 return []
             raise AssertionError(path)
         self.assertIn("no authorized", mod.run_cycle(REPO, "user-token", api=api))
