@@ -1443,6 +1443,57 @@ def try_guarded_squash_merge(repo: str, number: int, head_sha: str) -> tuple[boo
     return result.returncode == 0, detail
 
 
+def rearm_owner_native_auto_merge(
+    repo: str, pr: dict[str, Any], current: dict[str, Any],
+    *, head_quality_passed: bool,
+) -> str:
+    """Re-arm GitHub auto-merge after non-writer Copilot repair pushes.
+
+    Only the verified owner lane can call this. Never trust a PR-authored
+    comment or marker; native auto-merge still enforces GitHub branch rules.
+    A clean PR cannot enable auto-merge because it can merge immediately;
+    the existing guarded protected-merge path handles that case.
+    """
+    if (not owner_authorized_pr(pr, repo) or not head_quality_passed
+            or not owner_authorized_pr(current, repo)
+            or (current.get("head") or {}).get("sha") !=
+               (pr.get("head") or {}).get("sha")
+            or (current.get("base") or {}).get("sha") !=
+               (pr.get("base") or {}).get("sha")):
+        return "not eligible for native auto-merge recovery"
+    if current.get("mergeable_state") in {"clean", "has_hooks"}:
+        return "clean: protected merge handled by controller"
+    if current.get("mergeable") is False:
+        return "conflict: native auto-merge not re-armed"
+    node_id = current.get("node_id")
+    if not isinstance(node_id, str) or not node_id:
+        return "unknown: missing pull request node ID"
+    query = (
+        "query($id:ID!){node(id:$id){... on PullRequest"
+        "{autoMergeRequest{enabledAt} mergeStateStatus}}}"
+    )
+    try:
+        data = gh_json("api", "graphql", "-f", f"query={query}", "-F", f"id={node_id}")
+        record = (data.get("data") or {}).get("node") or {}
+        if not isinstance(record, dict) or data.get("errors"):
+            return "unknown: native merge state unavailable"
+        if record.get("autoMergeRequest"):
+            return "already armed"
+        if record.get("mergeStateStatus") == "CLEAN":
+            return "clean: protected merge handled by controller"
+        mutation = (
+            "mutation($id:ID!){enablePullRequestAutoMerge("
+            "input:{pullRequestId:$id,mergeMethod:SQUASH})"
+            "{clientMutationId}}"
+        )
+        gh_json("api", "graphql", "-f", f"query={mutation}", "-F", f"id={node_id}")
+        return "native auto-merge re-armed for current verified owner head"
+    except (subprocess.CalledProcessError, ValueError, KeyError, TypeError) as exc:
+        # Permission failures and clean-status races are diagnostic, never
+        # reasons to weaken checks or retry without the next controller scan.
+        return f"native auto-merge unavailable: {exc}"
+
+
 def close_linked_issue_after_merge(repo: str, issue_number: int | None) -> None:
     """Best-effort, idempotent issue closure after a successful merge.
 
@@ -2196,6 +2247,11 @@ def main() -> int:
             continue
 
         fresh = gh_json("api", f"repos/{repo}/pulls/{number}")
+        if owner_lane:
+            native_state = rearm_owner_native_auto_merge(
+                repo, pr, fresh, head_quality_passed=exact_head_quality_passed(runs, head_sha)
+            )
+            print(f"PR #{number}: {native_state}.")
         if not github_reports_safe_mergeability(fresh):
             mergeable = fresh.get("mergeable")
             mergeable_state = str(fresh.get("mergeable_state") or "")
