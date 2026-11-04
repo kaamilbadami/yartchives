@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from scripts.merge_risk_policy import classify_merge_risk
+
 import json
 import os
 import re
@@ -1738,6 +1740,8 @@ def main() -> int:
             print(f"BLOCKED_REQUIRES_DECISION PR #{number}: closing keywords target parent initiative(s) {parent_closers}.")
             continue
 
+        risk_level, risk_reason = classify_merge_risk(files)
+        print(f"PR #{number}: merge risk level {risk_level} ({risk_reason}).")
         sensitive_paths = sensitive_auto_merge_paths(files)
         if sensitive_paths:
             # CI verification is not merge authorization. Perform bounded
