@@ -413,7 +413,7 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         self.assertEqual(calls[1].args, (
             "workflow", "run", "quality.yml", "--repo", REPO,
             "--ref", "main", "-f", "pr_recovery=true", "-f", "pr_number=77",
-            "-f", f"pr_head_sha={SHA}"
+            "-f", f"pr_head_sha={SHA}", "-f", "pr_merge_sha=" + "c" * 40
         ))
         marker = ready.RECOVERY_MARKER.format(head=SHA, merge="c" * 40)
         self.assertEqual(self.run_controller(
@@ -532,7 +532,7 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         # isolated read-only job, without executing untrusted code with write.
         calls = self.run_controller(quality=False, merge_quality=True)
         self.assertEqual(len(calls), 2)
-        self.assertEqual(calls[1].args[-2:], ("-f", f"pr_head_sha={SHA}"))
+        self.assertEqual(calls[1].args[-2:], ("-f", "pr_merge_sha=" + "c" * 40))
 
     def test_approval_gated_head_ci_cannot_be_bypassed_by_green_merge(self):
         calls = self.run_controller(
@@ -600,7 +600,7 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
     def test_pending_merge_status_does_not_mark_ready(self):
         calls = self.run_controller(quality=False, merge_quality=True, stale_merge=True)
         self.assertEqual(len(calls), 2)
-        self.assertEqual(calls[1].args[-2:], ("-f", f"pr_head_sha={SHA}"))
+        self.assertEqual(calls[1].args[-2:], ("-f", "pr_merge_sha=" + "c" * 40))
 
     def test_failed_current_merge_does_not_dispatch_again(self):
         self.assertEqual(self.run_controller(
@@ -619,7 +619,7 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         self.assertEqual(calls[1].args, (
             "workflow", "run", "quality.yml", "--repo", REPO,
             "--ref", "main", "-f", "pr_recovery=true", "-f", "pr_number=77",
-            "-f", f"pr_head_sha={SHA}"
+            "-f", f"pr_head_sha={SHA}", "-f", "pr_merge_sha=" + "c" * 40
         ))
         marker = ready.RECOVERY_MARKER.format(head=SHA, merge="c" * 40)
         self.assertEqual(self.run_controller(
