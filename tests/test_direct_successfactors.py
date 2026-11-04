@@ -200,5 +200,19 @@ class DirectSuccessFactorsTests(unittest.TestCase):
         self.assertEqual(source["sitemap_url"], "https://jobs.halliburton.com/sitemap.xml")
 
 
+
+
+    def test_fetch_source_escapes_ampersands_before_parsing(self):
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        mock_response.content = b'<?xml version="1.0" encoding="UTF-8"?><urlset><url><loc>https://careers.example.com/job/Risk-&-Compliance/1/</loc></url></urlset>'
+
+        mock_client = mock.Mock()
+        mock_client.get.return_value = mock_response
+
+        # This should not raise a StructuralSourceError from XML parsing
+        jobs = mod.fetch_source(mock_client, {"key": "test", "name": "test", "company": "test", "employer_id": "test", "homepage": "test", "sitemap_url": "mock://url"}, mock.Mock())
+        self.assertEqual(jobs, [])
+
 if __name__ == "__main__":
     unittest.main()
