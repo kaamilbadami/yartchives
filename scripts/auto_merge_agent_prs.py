@@ -190,6 +190,80 @@ def copilot_merge_requires_independent_authorization(pr: dict[str, Any]) -> bool
     return str((pr.get("user") or {}).get("login") or "").casefold() == "copilot"
 
 
+COPILOT_AUTOMERGE_MAX_FILES = 4
+COPILOT_AUTOMERGE_MAX_CHANGES = 250
+
+
+def copilot_low_risk_merge_eligible(
+    pr: dict[str, Any], files: list[dict[str, Any]], repo: str,
+    runs: list[dict[str, Any]],
+) -> tuple[bool, str, int | None]:
+    """Independent fail-closed contract for completed Copilot tests/docs PRs.
+
+    No PR-authored labels, comments or body claims grant merge authority.
+    Exact-head execution, the current synthetic merge status, trusted main
+    readiness provenance, and GitHub's protected merge API are all required.
+    This first pilot intentionally excludes application and privileged code.
+    """
+    import ready_copilot_prs as copilot
+
+    if pr.get("state") != "open" or pr.get("draft") is not False:
+        return False, "PR must be open and ready", None
+    if str((pr.get("user") or {}).get("login") or "").casefold() != "copilot":
+        return False, "not a Copilot PR", None
+    if not 0 < len(files) <= COPILOT_AUTOMERGE_MAX_FILES:
+        return False, "file count exceeds pilot scope", None
+    total = 0
+    for item in files:
+        path = str(item.get("filename") or "")
+        if (item.get("status") == "renamed" or item.get("previous_filename")
+                or not path.startswith(("tests/", "docs/"))
+                or not copilot.safe_low_risk_files([item])):
+            return False, "path outside tests/docs-only pilot", None
+        added, deleted = item.get("additions"), item.get("deletions")
+        if not isinstance(added, int) or not isinstance(deleted, int) or min(added, deleted) < 0:
+            return False, "missing verified diff size", None
+        total += added + deleted
+    if total > COPILOT_AUTOMERGE_MAX_CHANGES:
+        return False, "diff exceeds bounded pilot", None
+
+    number = int(pr["number"])
+    fresh = gh_json("api", f"repos/{repo}/pulls/{number}")
+    if (fresh.get("state") != "open" or fresh.get("draft") is not False
+            or (fresh.get("head") or {}).get("sha") != (pr.get("head") or {}).get("sha")
+            or (fresh.get("base") or {}).get("sha") != (pr.get("base") or {}).get("sha")
+            or fresh.get("body") != pr.get("body")
+            or (fresh.get("user") or {}).get("login") != (pr.get("user") or {}).get("login")):
+        return False, "PR identity or authorization metadata drifted", None
+    issue_num = copilot.linked_issue(fresh, repo)
+    if issue_num is None:
+        return False, "no unique local Copilot issue", None
+    issue = gh_json("api", f"repos/{repo}/issues/{issue_num}")
+    pr_events = gh_paginated_json("api", f"repos/{repo}/issues/{number}/timeline?per_page=100")
+    issue_events = gh_paginated_json("api", f"repos/{repo}/issues/{issue_num}/timeline?per_page=100")
+    ok, reason = copilot.provenance_verified(
+        fresh, issue, files, pr_events, issue_events, repo, allow_ready=True,
+    )
+    if not ok:
+        return False, reason, None
+
+    head_sha = str((fresh.get("head") or {}).get("sha") or "")
+    merge_sha = str(fresh.get("merge_commit_sha") or "")
+    if not (re.fullmatch(r"[a-f0-9]{40}", head_sha)
+            and re.fullmatch(r"[a-f0-9]{40}", merge_sha)):
+        return False, "missing exact head/merge identities", None
+    head_green = copilot.exact_head_quality_green(runs, head_sha)
+    if not head_green and copilot.recovery_allowed(runs, head_sha):
+        head_status = gh_json("api", f"repos/{repo}/commits/{head_sha}/status")
+        head_green = copilot.trusted_recovery_head_green(head_status, head_sha, repo)
+    if not head_green:
+        return False, "no verified current exact-head Quality success", None
+    merge_status = gh_json("api", f"repos/{repo}/commits/{merge_sha}/status")
+    if not copilot.exact_merge_tests_green(merge_status, merge_sha):
+        return False, "required current synthetic-merge tests status not green", None
+    return True, "verified low-risk Copilot pilot", issue_num
+
+
 def linked_issue_number(body: str) -> int | None:
     match = CLOSING_ISSUE_RE.search(body or "")
     return int(match.group(1)) if match else None
@@ -1515,10 +1589,29 @@ def main() -> int:
             continue
 
         if copilot_merge_requires_independent_authorization(pr):
-            print(
-                f"BLOCKED_REQUIRES_DECISION PR #{number}: Copilot ready-for-review "
-                "is not independent merge authorization."
+            # Separate from Jules and owner merge lanes. Only controller-verified
+            # tests/docs Copilot PRs may enter this guarded pilot path.
+            eligible, reason, copilot_issue = copilot_low_risk_merge_eligible(
+                pr, files, repo, runs,
             )
+            if not eligible:
+                print(f"BLOCKED_COPILOT PR #{number}: {reason}.")
+                continue
+            latest = gh_json("api", f"repos/{repo}/pulls/{number}")
+            if (latest.get("state") != "open" or latest.get("draft") is not False
+                    or (latest.get("head") or {}).get("sha") != head_sha
+                    or (latest.get("base") or {}).get("sha") != (pr.get("base") or {}).get("sha")
+                    or latest.get("body") != pr.get("body")
+                    or not github_reports_safe_mergeability(latest)):
+                print(f"BLOCKED_COPILOT PR #{number}: final state/base/mergeability changed.")
+                continue
+            merged, detail = try_guarded_squash_merge(repo, number, head_sha)
+            if not merged:
+                print(f"BLOCKED_COPILOT PR #{number}: protected merge rejected: {detail}")
+                continue
+            close_linked_issue_after_merge(repo, copilot_issue)
+            print(f"Squash-merged independently verified low-risk Copilot PR #{number}.")
+            merged_count += 1
             continue
 
         sensitive_paths = sensitive_auto_merge_paths(files)
