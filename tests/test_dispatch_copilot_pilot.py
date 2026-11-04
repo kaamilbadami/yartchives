@@ -85,6 +85,21 @@ class CopilotPilotDispatcherTests(unittest.TestCase):
         self.assertIn("already attempted", mod.run_cycle(REPO, "user-token", api=api))
         self.assertEqual(len(posts), 2)
 
+    def test_prior_attempted_pilot_blocks_new_assignment(self):
+        attempted = issue(900)
+        candidate = issue(901)
+        def api(path, *, method="GET", payload=None, token=None):
+            if method == "POST":
+                raise AssertionError("should not attempt new assignment")
+            if path.endswith("/issues?state=open&per_page=100"):
+                return [attempted, candidate]
+            if path.endswith("/pulls?state=open&per_page=100"):
+                return []
+            if path.endswith("/issues/900/comments?per_page=100"):
+                return [{"body": "note\n" + mod.ATTEMPT_MARKER}]
+            raise AssertionError(path)
+        self.assertIn("already attempted", mod.run_cycle(REPO, "user-token", api=api))
+
     def test_existing_pr_or_owner_assignee_blocks_assignment(self):
         item = issue()
         for option in ("pr", "assigned"):
