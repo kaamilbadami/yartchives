@@ -196,13 +196,14 @@ def bounded_level_two_exception(files: Iterable[dict[str, Any]]) -> bool:
     paths = {str(row.get("filename") or "") for row in rows}
     allowed = {"scripts/triage_source_quarantines.py",
                "tests/test_triage_source_quarantines.py"}
-    if (not paths <= allowed or paths != allowed or len(rows) != 2
-            or sum(int(row.get("changes") or 0) for row in rows) > 100):
+    if (not paths <= allowed or paths != allowed or len(rows) != 2):
         return False
     if any(row.get("previous_filename")
            or row.get("status") not in {"modified", "added"}
-           or not isinstance(row.get("changes"), int)
+           or type(row.get("changes")) is not int
            or row.get("changes") < 0 for row in rows):
+        return False
+    if sum(row["changes"] for row in rows) > 100:
         return False
     risk, _ = classify_merge_risk(rows)
     return risk == 2
