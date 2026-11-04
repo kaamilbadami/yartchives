@@ -647,7 +647,7 @@ class CopilotRecoveryWorkflowSecurityTests(unittest.TestCase):
         self.assertNotIn("statuses: write", untrusted_steps)
         self.assertNotIn("actions: write", untrusted_steps)
         self.assertEqual(publisher["permissions"], {
-            "contents": "read", "statuses": "write",
+            "contents": "read", "statuses": "write", "checks": "write",
         })
         self.assertEqual(publisher["needs"], ["tests", "head-tests"])
         self.assertFalse(any("uses" in step for step in publisher["steps"]))
