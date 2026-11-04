@@ -203,8 +203,8 @@ class SensitivePrCiRecoveryTests(unittest.TestCase):
         calls = []
         def api(*args):
             path = args[-1]
-            if path.endswith("/commits/" + "c" * 40 + "/status"):
-                return {"statuses": []}
+            if path.endswith("/commits/" + "c" * 40 + "/check-runs?per_page=100"):
+                return {"check_runs": []}
             if path.endswith("/pulls/20"):
                 return candidate
             raise AssertionError(path)
@@ -229,8 +229,8 @@ class SensitivePrCiRecoveryTests(unittest.TestCase):
         comment = {"user": {"login": "github-actions[bot]"}, "body": marker}
         def api(*args):
             path = args[-1]
-            if path.endswith("/commits/" + "c" * 40 + "/status"):
-                return {"statuses": []}
+            if path.endswith("/commits/" + "c" * 40 + "/check-runs?per_page=100"):
+                return {"check_runs": []}
             if path.endswith("/pulls/20"):
                 return candidate
             raise AssertionError(path)
@@ -249,11 +249,34 @@ class SensitivePrCiRecoveryTests(unittest.TestCase):
                 "kaamilbadami/yartchives", bad, runs("a" * 40)))
             api.assert_not_called()
         with mock.patch.object(mod, "gh_json", return_value={
-            "statuses": [{"context": "tests", "state": "failure"}]
+            "check_runs": [{"name": "tests", "status": "completed",
+                            "conclusion": "failure", "app": {"id": 15368}}]
         }), mock.patch.object(mod, "gh_run") as write:
             self.assertIn("failed", mod.recover_sensitive_pr_merge_ci(
                 "kaamilbadami/yartchives", candidate, runs("a" * 40)))
             write.assert_not_called()
+
+    def test_legacy_green_status_does_not_suppress_required_recovery(self):
+        candidate = self.candidate()
+        calls = []
+
+        def api(*args):
+            path = args[-1]
+            if path.endswith("/check-runs?per_page=100"):
+                return {"check_runs": [{"name": "tests", "conclusion": "success",
+                                        "status": "completed", "app": {"id": 99999}}]}
+            if path.endswith("/pulls/20"):
+                return candidate
+            raise AssertionError(path)
+
+        with mock.patch.object(mod, "gh_json", side_effect=api), \
+             mock.patch.object(mod, "gh_paginated_json", return_value=[]), \
+             mock.patch.object(mod, "gh_run", side_effect=lambda *args: calls.append(args)):
+            result = mod.recover_sensitive_pr_merge_ci(
+                "kaamilbadami/yartchives", candidate, runs("a" * 40)
+            )
+        self.assertTrue(result.startswith("dispatched:"), result)
+        self.assertEqual(len(calls), 2)
 
     def test_sensitive_ci_recovery_is_before_copilot_merge_authorization(self):
         source = MODULE_PATH.read_text()
