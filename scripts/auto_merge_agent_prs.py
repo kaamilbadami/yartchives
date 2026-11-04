@@ -190,6 +190,109 @@ def copilot_merge_requires_independent_authorization(pr: dict[str, Any]) -> bool
     return str((pr.get("user") or {}).get("login") or "").casefold() == "copilot"
 
 
+def copilot_issue_still_authorized(issue: dict[str, Any], expected_number: int) -> bool:
+    """Reject issue closure, parent promotion, reassignment or missing metadata."""
+    if (issue.get("number") != expected_number or issue.get("state") != "open"
+            or not isinstance(issue.get("labels"), list)
+            or not isinstance(issue.get("assignees"), list)
+            or "initiative" in label_names(issue)):
+        return False
+    return any(str(a.get("login") or "").casefold() == "copilot"
+               for a in issue["assignees"] if isinstance(a, dict))
+
+
+COPILOT_AUTOMERGE_MAX_FILES = 12
+COPILOT_AUTOMERGE_MAX_CHANGES = 1000
+
+
+def copilot_low_risk_merge_eligible(
+    pr: dict[str, Any], files: list[dict[str, Any]], repo: str,
+    runs: list[dict[str, Any]],
+) -> tuple[bool, str, int | None]:
+    """Independent fail-closed contract for completed ordinary Copilot PRs.
+
+    No PR-authored labels, comments or body claims grant merge authority.
+    Exact-head execution, the current synthetic merge status, trusted main
+    readiness provenance, and GitHub's protected merge API are all required.
+    Use the existing Jules product-change scope with extra Copilot provenance,
+    but continue to exclude privileged code and mutable dependency configuration.
+    """
+    try:
+        from scripts import ready_copilot_prs as copilot
+    except ModuleNotFoundError:
+        import ready_copilot_prs as copilot
+
+    if pr.get("state") != "open" or pr.get("draft") is not False:
+        return False, "PR must be open and ready", None
+    if str((pr.get("user") or {}).get("login") or "").casefold() != "copilot":
+        return False, "not a Copilot PR", None
+    # Missing base identity must never compare equal to another missing value.
+    # A real 40-hex base SHA is required to detect main advancing before merge.
+    if ((pr.get("base") or {}).get("ref") != "main"
+            or not re.fullmatch(r"[a-f0-9]{40}",
+                                str((pr.get("base") or {}).get("sha") or ""))
+            or not re.fullmatch(r"[a-f0-9]{40}",
+                                str((pr.get("head") or {}).get("sha") or ""))):
+        return False, "missing or invalid main/head commit identity", None
+    if not 0 < len(files) <= COPILOT_AUTOMERGE_MAX_FILES:
+        return False, "file count exceeds pilot scope", None
+    total = 0
+    for item in files:
+        path = str(item.get("filename") or "")
+        if (item.get("status") == "renamed" or item.get("previous_filename")
+                or sensitive_auto_merge_paths([item])
+                or blocked_changed_paths([path])
+                or generated_artifact_file_paths([item])
+                or not copilot.safe_low_risk_files([item])):
+            return False, "protected or non-product path", None
+        added, deleted = item.get("additions"), item.get("deletions")
+        if not isinstance(added, int) or not isinstance(deleted, int) or min(added, deleted) < 0:
+            return False, "missing verified diff size", None
+        total += added + deleted
+    if total > COPILOT_AUTOMERGE_MAX_CHANGES:
+        return False, "diff exceeds bounded policy", None
+
+    number = int(pr["number"])
+    fresh = gh_json("api", f"repos/{repo}/pulls/{number}")
+    if (fresh.get("state") != "open" or fresh.get("draft") is not False
+            or (fresh.get("head") or {}).get("sha") != (pr.get("head") or {}).get("sha")
+            or (fresh.get("head") or {}).get("ref") != (pr.get("head") or {}).get("ref")
+            or ((fresh.get("head") or {}).get("repo") or {}).get("full_name")
+                != ((pr.get("head") or {}).get("repo") or {}).get("full_name")
+            or (fresh.get("base") or {}).get("ref") != "main"
+            or (fresh.get("base") or {}).get("sha") != (pr.get("base") or {}).get("sha")
+            or fresh.get("body") != pr.get("body")
+            or (fresh.get("user") or {}).get("login") != (pr.get("user") or {}).get("login")):
+        return False, "PR identity or authorization metadata drifted", None
+    issue_num = copilot.linked_issue(fresh, repo)
+    if issue_num is None:
+        return False, "no unique local Copilot issue", None
+    issue = gh_json("api", f"repos/{repo}/issues/{issue_num}")
+    pr_events = gh_paginated_json("api", f"repos/{repo}/issues/{number}/timeline?per_page=100")
+    issue_events = gh_paginated_json("api", f"repos/{repo}/issues/{issue_num}/timeline?per_page=100")
+    ok, reason = copilot.provenance_verified(
+        fresh, issue, files, pr_events, issue_events, repo, allow_ready=True,
+    )
+    if not ok:
+        return False, reason, None
+
+    head_sha = str((fresh.get("head") or {}).get("sha") or "")
+    merge_sha = str(fresh.get("merge_commit_sha") or "")
+    if not (re.fullmatch(r"[a-f0-9]{40}", head_sha)
+            and re.fullmatch(r"[a-f0-9]{40}", merge_sha)):
+        return False, "missing exact head/merge identities", None
+    head_green = copilot.exact_head_quality_green(runs, head_sha)
+    if not head_green and copilot.recovery_allowed(runs, head_sha):
+        head_status = gh_json("api", f"repos/{repo}/commits/{head_sha}/status")
+        head_green = copilot.trusted_recovery_head_green(head_status, head_sha, repo)
+    if not head_green:
+        return False, "no verified current exact-head Quality success", None
+    merge_status = gh_json("api", f"repos/{repo}/commits/{merge_sha}/status")
+    if not copilot.exact_merge_tests_green(merge_status, merge_sha):
+        return False, "required current synthetic-merge tests status not green", None
+    return True, "verified low-risk Copilot pilot", issue_num
+
+
 def linked_issue_number(body: str) -> int | None:
     match = CLOSING_ISSUE_RE.search(body or "")
     return int(match.group(1)) if match else None
@@ -746,6 +849,72 @@ def merge_ci_recovery_decision(
     if len(attempts) >= MAX_MERGE_CI_RECOVERIES_PER_HEAD:
         return "escalate"
     return "dispatch"
+
+
+def recover_sensitive_pr_merge_ci(
+    repo: str, pr: dict[str, Any], runs: Iterable[dict[str, Any]],
+) -> str:
+    """Recover verification for sensitive PRs WITHOUT authorizing their merge.
+
+    Only trusted main dispatches this read-only validation workflow. It never
+    marks a PR ready, approves it, edits its files or invokes the merge endpoint.
+    The per-head retry budget is shared with ordinary merge-CI recovery.
+    """
+    number = int(pr.get("number") or 0)
+    head = pr.get("head") or {}
+    base = pr.get("base") or {}
+    head_sha = str(head.get("sha") or "")
+    base_sha = str(base.get("sha") or "")
+    merge_sha = str(pr.get("merge_commit_sha") or "")
+    if (number <= 0 or pr.get("state") != "open"
+            or base.get("ref") != "main"
+            or ((head.get("repo") or {}).get("full_name") != repo)
+            or not all(re.fullmatch(r"[a-f0-9]{40}", sha)
+                       for sha in (head_sha, base_sha, merge_sha))):
+        return "block: missing trusted PR identity"
+    if exact_head_quality_in_flight(runs, head_sha):
+        return "wait: head Quality in flight"
+
+    # A checked commit status is only meaningful on the exact current merge.
+    status = gh_json("api", f"repos/{repo}/commits/{merge_sha}/status")
+    latest_tests = next(
+        (row for row in status.get("statuses", [])
+         if row.get("context") == "tests"), None
+    )
+    if latest_tests and latest_tests.get("state") == "success":
+        return "verified: merge tests status already green"
+    if latest_tests and latest_tests.get("state") in {"failure", "error"}:
+        return "block: latest merge tests status failed"
+
+    # Recheck the live PR immediately before recording a bounded dispatch.
+    current = gh_json("api", f"repos/{repo}/pulls/{number}")
+    if (current.get("state") != "open"
+            or (current.get("head") or {}).get("sha") != head_sha
+            or (current.get("base") or {}).get("sha") != base_sha
+            or current.get("merge_commit_sha") != merge_sha
+            or (current.get("base") or {}).get("ref") != "main"
+            or ((current.get("head") or {}).get("repo") or {}).get("full_name") != repo):
+        return "block: PR head/base/merge identity changed"
+    comments = gh_paginated_json(
+        "api", f"repos/{repo}/issues/{number}/comments?per_page=100",
+    )
+    decision = merge_ci_recovery_decision(comments, head_sha, merge_sha)
+    if decision != "dispatch":
+        return f"{decision}: bounded merge-CI recovery"
+    marker = f"<!-- merge-ci-recovery: head={head_sha} merge={merge_sha} -->"
+    gh_run(
+        "issue", "comment", str(number), "--repo", repo, "--body",
+        f"{marker}\\nTrusted-main CI recovery for a sensitive PR. "
+        "Verification only; manual authorization is still required to merge.",
+    )
+    gh_run(
+        "workflow", "run", "quality.yml", "--repo", repo,
+        "--ref", "main",
+        "-f", "pr_recovery=true",
+        "-f", f"pr_number={number}",
+        "-f", f"pr_head_sha={head_sha}",
+    )
+    return f"dispatched: read-only merge-CI recovery for {merge_sha}"
 
 
 def record_missing_ci_recovery(repo: str, pr_number: int, head_sha: str,
@@ -1514,19 +1683,53 @@ def main() -> int:
             print(f"BLOCKED_REQUIRES_DECISION PR #{number}: closing keywords target parent initiative(s) {parent_closers}.")
             continue
 
-        if copilot_merge_requires_independent_authorization(pr):
+        sensitive_paths = sensitive_auto_merge_paths(files)
+        if sensitive_paths:
+            # CI verification is not merge authorization. Perform bounded
+            # trusted-main recovery even for controller/workflow PRs, then stop.
+            result = recover_sensitive_pr_merge_ci(repo, pr, runs)
             print(
-                f"BLOCKED_REQUIRES_DECISION PR #{number}: Copilot ready-for-review "
-                "is not independent merge authorization."
+                f"BLOCKED_REQUIRES_DECISION PR #{number}: security-sensitive paths "
+                f"{sensitive_paths} require independent review/manual merge; CI {result}."
             )
             continue
 
-        sensitive_paths = sensitive_auto_merge_paths(files)
-        if sensitive_paths:
-            print(
-                f"BLOCKED_REQUIRES_DECISION PR #{number}: security-sensitive paths "
-                f"{sensitive_paths} require independent review and manual merge."
+        if copilot_merge_requires_independent_authorization(pr):
+            # Separate from Jules and owner merge lanes. Only controller-verified
+            # tests/docs Copilot PRs may enter this guarded pilot path.
+            eligible, reason, copilot_issue = copilot_low_risk_merge_eligible(
+                pr, files, repo, runs,
             )
+            if not eligible:
+                print(f"BLOCKED_COPILOT PR #{number}: {reason}.")
+                continue
+            latest = gh_json("api", f"repos/{repo}/pulls/{number}")
+            if (latest.get("state") != "open" or latest.get("draft") is not False
+                    or (latest.get("head") or {}).get("sha") != head_sha
+                    or (latest.get("head") or {}).get("ref") != (pr.get("head") or {}).get("ref")
+                    or ((latest.get("head") or {}).get("repo") or {}).get("full_name")
+                        != ((pr.get("head") or {}).get("repo") or {}).get("full_name")
+                    or (latest.get("base") or {}).get("ref") != "main"
+                    or (latest.get("base") or {}).get("sha") != (pr.get("base") or {}).get("sha")
+                    or latest.get("merge_commit_sha") != pr.get("merge_commit_sha")
+                    or latest.get("body") != pr.get("body")
+                    or not github_reports_safe_mergeability(latest)):
+                print(f"BLOCKED_COPILOT PR #{number}: final state/base/mergeability changed.")
+                continue
+            # Re-read issue authorization immediately before merge. The issue
+            # can be closed, initiative-labeled or reassigned after the earlier
+            # provenance check, independently of PR head/base stability.
+            latest_issue = gh_json("api", f"repos/{repo}/issues/{copilot_issue}")
+            if not copilot_issue_still_authorized(latest_issue, copilot_issue):
+                print(f"BLOCKED_COPILOT PR #{number}: linked issue authorization changed.")
+                continue
+            merged, detail = try_guarded_squash_merge(repo, number, head_sha)
+            if not merged:
+                print(f"BLOCKED_COPILOT PR #{number}: protected merge rejected: {detail}")
+                continue
+            close_linked_issue_after_merge(repo, copilot_issue)
+            print(f"Squash-merged independently verified low-risk Copilot PR #{number}.")
+            merged_count += 1
             continue
 
         maintenance_pre_ci, maintenance_reason = maintenance_pr_eligible(

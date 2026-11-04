@@ -122,6 +122,255 @@ class ExactHeadCiFreshnessSecurityTests(unittest.TestCase):
         self.assertFalse(mod.exact_head_quality_passed([history[0]], sha))
 
 
+class RequiredAppOwnedCheckRunTests(unittest.TestCase):
+    def test_trusted_recovery_publishes_app_owned_tests_check_on_merge(self):
+        import yaml
+        workflow = yaml.safe_load((ROOT / ".github/workflows/quality.yml").read_text())
+        job = workflow["jobs"]["publish-pr-recovery-status"]
+        self.assertEqual(job["permissions"]["checks"], "write")
+        self.assertEqual(job["permissions"]["statuses"], "write")
+        self.assertEqual(job["permissions"]["contents"], "read")
+        step = next(step for step in job["steps"] if "Publish required tests" in step["name"])
+        shell = step["run"]
+        # The ruleset requires checks by GitHub Actions App, not status API alone.
+        self.assertIn('repos/$GITHUB_REPOSITORY/check-runs', shell)
+        self.assertIn('-f name=tests', shell)
+        self.assertIn('-f "head_sha=$target"', shell)
+        self.assertIn('-f conclusion=success', shell)
+        self.assertIn('repos/$GITHUB_REPOSITORY/statuses/$target', shell)
+        # No check-run publication after head or synthetic merge drift.
+        self.assertIn('"$target" == "$TESTED_MERGE_SHA"', shell)
+        self.assertIn('.merge_commit_sha // empty', shell)
+        self.assertIn('"$PR_NUMBER"', shell)
+        self.assertIn('"$EXPECTED_HEAD_SHA"', shell)
+
+class SensitivePrCiRecoveryTests(unittest.TestCase):
+    def candidate(self):
+        result = pr(head_sha="a" * 40, user="Copilot", draft=False)
+        result["base"]["sha"] = "b" * 40
+        result["merge_commit_sha"] = "c" * 40
+        return result
+
+    def test_sensitive_ci_recovery_is_verification_only_and_bounded(self):
+        candidate = self.candidate()
+        calls = []
+        def api(*args):
+            path = args[-1]
+            if path.endswith("/commits/" + "c" * 40 + "/status"):
+                return {"statuses": []}
+            if path.endswith("/pulls/20"):
+                return candidate
+            raise AssertionError(path)
+        with mock.patch.object(mod, "gh_json", side_effect=api), \
+             mock.patch.object(mod, "gh_paginated_json", return_value=[]), \
+             mock.patch.object(mod, "gh_run", side_effect=lambda *args: calls.append(args)):
+            result = mod.recover_sensitive_pr_merge_ci(
+                "kaamilbadami/yartchives", candidate, runs("a" * 40)
+            )
+        self.assertTrue(result.startswith("dispatched:"), result)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[0][:2], ("issue", "comment"))
+        self.assertEqual(calls[1][:3], ("workflow", "run", "quality.yml"))
+        self.assertIn("pr_recovery=true", calls[1])
+        self.assertIn("pr_number=20", calls[1])
+        self.assertIn("pr_head_sha=" + "a" * 40, calls[1])
+        self.assertFalse(any("merge" in call[:2] for call in calls))
+
+    def test_sensitive_ci_recovery_deduplicates_and_rejects_exhausted_budget(self):
+        candidate = self.candidate()
+        marker = "<!-- merge-ci-recovery: head=" + "a" * 40 + " merge=" + "c" * 40 + " -->"
+        comment = {"user": {"login": "github-actions[bot]"}, "body": marker}
+        def api(*args):
+            path = args[-1]
+            if path.endswith("/commits/" + "c" * 40 + "/status"):
+                return {"statuses": []}
+            if path.endswith("/pulls/20"):
+                return candidate
+            raise AssertionError(path)
+        with mock.patch.object(mod, "gh_json", side_effect=api), \
+             mock.patch.object(mod, "gh_run") as write, \
+             mock.patch.object(mod, "gh_paginated_json", return_value=[comment]):
+            self.assertIn("wait:", mod.recover_sensitive_pr_merge_ci(
+                "kaamilbadami/yartchives", candidate, runs("a" * 40)))
+            write.assert_not_called()
+
+    def test_sensitive_ci_recovery_rejects_stale_identity_and_failed_status(self):
+        candidate = self.candidate()
+        bad = dict(candidate, base={"ref": "main"})
+        with mock.patch.object(mod, "gh_json") as api:
+            self.assertIn("block:", mod.recover_sensitive_pr_merge_ci(
+                "kaamilbadami/yartchives", bad, runs("a" * 40)))
+            api.assert_not_called()
+        with mock.patch.object(mod, "gh_json", return_value={
+            "statuses": [{"context": "tests", "state": "failure"}]
+        }), mock.patch.object(mod, "gh_run") as write:
+            self.assertIn("failed", mod.recover_sensitive_pr_merge_ci(
+                "kaamilbadami/yartchives", candidate, runs("a" * 40)))
+            write.assert_not_called()
+
+    def test_sensitive_ci_recovery_is_before_copilot_merge_authorization(self):
+        source = MODULE_PATH.read_text()
+        self.assertLess(source.index("sensitive_paths = sensitive_auto_merge_paths(files)", source.index("def main()")),
+                        source.index("if copilot_merge_requires_independent_authorization(pr):", source.index("def main()")))
+        block = source.split("if sensitive_paths:", 1)[-1]
+        self.assertIn("recover_sensitive_pr_merge_ci(repo, pr, runs)", block)
+
+
+class CopilotLowRiskMergePolicyTests(unittest.TestCase):
+    def candidate(self):
+        result = pr(head_sha="a" * 40, head_ref="copilot/verified-regression", user="Copilot")
+        result["base"]["sha"] = "b" * 40
+        result["merge_commit_sha"] = "c" * 40
+        return result
+
+    def test_drafts_privileged_paths_and_oversize_fail_without_api(self):
+        candidate = self.candidate()
+        files = [{"filename": "tests/test_a.py", "additions": 3, "deletions": 1}]
+        with mock.patch.object(mod, "gh_json") as api:
+            for malformed in [dict(candidate, draft=True), dict(candidate, user={"login": "intruder"})]:
+                self.assertFalse(mod.copilot_low_risk_merge_eligible(malformed, files, "kaamilbadami/yartchives", runs("a" * 40))[0])
+            for bad in [
+                [{"filename": ".github/workflows/quality.yml", "additions": 1, "deletions": 0}],
+                [{"filename": "scripts/auto_merge_agent_prs.py", "additions": 1, "deletions": 0}],
+                [{"filename": "tests/safe.py", "status": "renamed", "previous_filename": "scripts/ready_copilot_prs.py", "additions": 1, "deletions": 0}],
+                [{"filename": "tests/safe.py", "additions": 1001, "deletions": 0}],
+                [{"filename": "tests/safe.py", "additions": None, "deletions": 0}],
+            ]:
+                with self.subTest(bad=bad):
+                    self.assertFalse(mod.copilot_low_risk_merge_eligible(candidate, bad, "kaamilbadami/yartchives", runs("a" * 40))[0])
+            api.assert_not_called()
+
+    def test_jules_parity_scope_allows_product_data_and_ordinary_script_files(self):
+        from scripts import ready_copilot_prs as ready
+        allowed = (
+            "app.js", "styles.css", "index.html", "README.md",
+            "docs/guide.md", "tests/test_a.py",
+            "scripts/audit_feed.py", "scripts/build_feed.py",
+            "data/employer-seeds/sample.json", "data/sample.csv",
+        )
+        for path in allowed:
+            with self.subTest(path=path):
+                self.assertTrue(ready.safe_low_risk_files([{"filename": path}]))
+                self.assertFalse(mod.sensitive_auto_merge_paths([{"filename": path}]))
+                self.assertFalse(mod.blocked_changed_paths([path]))
+
+    def test_privileged_and_generated_paths_remain_excluded(self):
+        from scripts import ready_copilot_prs as ready
+        blocked = (
+            ".github/workflows/quality.yml", ".github/CODEOWNERS",
+            "requirements.txt", "package.json", "package-lock.json",
+            "scripts/ready_copilot_prs.py", "scripts/auto_merge_agent_prs.py",
+            "scripts/dispatch_autonomous_issues.py",
+            "scripts/quality_scope.sh", "scripts/run_quality_checks.sh",
+            "scripts/triage_workflow_failures.py", "scripts/merge_recovery.py",
+            "data/.secrets.json", "data/../app.js",
+            "scripts/__pycache__/safe.pyc",
+        )
+        for path in blocked:
+            with self.subTest(path=path):
+                self.assertFalse(ready.safe_low_risk_files([{"filename": path}]))
+
+    def test_bounded_policy_extends_beyond_tests_docs(self):
+        self.assertEqual(mod.COPILOT_AUTOMERGE_MAX_FILES, 12)
+        self.assertEqual(mod.COPILOT_AUTOMERGE_MAX_CHANGES, 1000)
+
+    def test_missing_or_invalid_base_and_head_identity_fail_closed(self):
+        candidate = self.candidate()
+        files = [{"filename": "tests/test_a.py", "additions": 2, "deletions": 1}]
+        with mock.patch.object(mod, "gh_json") as api:
+            for bad in (
+                dict(candidate, base={"ref": "main"}),
+                dict(candidate, base={"ref": "main", "sha": ""}),
+                dict(candidate, base={"ref": "main", "sha": "not-a-sha"}),
+                dict(candidate, base={"ref": "untrusted", "sha": "b" * 40}),
+                dict(candidate, head=dict(candidate["head"], sha="invalid")),
+            ):
+                with self.subTest(base=bad.get("base"), head=bad.get("head")):
+                    eligible, reason, _ = mod.copilot_low_risk_merge_eligible(
+                        bad, files, "kaamilbadami/yartchives", runs("a" * 40)
+                    )
+                    self.assertFalse(eligible, reason)
+            api.assert_not_called()
+
+    def test_reject_changed_head_branch_or_repository_before_ci(self):
+        from scripts import ready_copilot_prs as ready
+        candidate = self.candidate()
+        candidate["head"]["repo"] = {"full_name": "kaamilbadami/yartchives"}
+        repo = "kaamilbadami/yartchives"
+        files = [{"filename": "tests/test_a.py", "additions": 2, "deletions": 1}]
+        for drift in (
+            {"head": dict(candidate["head"], ref="copilot/other-branch")},
+            {"head": dict(candidate["head"], repo={"full_name": "attacker/fork"})},
+            {"base": {"ref": "other", "sha": "b" * 40}},
+        ):
+            with self.subTest(drift=drift):
+                fresh = dict(candidate, **drift)
+                with mock.patch.object(mod, "gh_json", return_value=fresh), \
+                     mock.patch.object(ready, "provenance_verified") as provenance:
+                    eligible, _, _ = mod.copilot_low_risk_merge_eligible(
+                        candidate, files, repo, runs("a" * 40)
+                    )
+                    self.assertFalse(eligible)
+                    provenance.assert_not_called()
+
+    def test_trusted_provenance_and_current_merge_ci_are_mandatory(self):
+        from scripts import ready_copilot_prs as ready
+        candidate = self.candidate()
+        repo = "kaamilbadami/yartchives"
+        files = [{"filename": "tests/test_ready_copilot_prs.py", "additions": 10, "deletions": 2}]
+        def api(*args):
+            path = args[-1]
+            if path.endswith("/pulls/20"):
+                return candidate
+            if path.endswith("/issues/10"):
+                return issue()
+            if path.endswith("/commits/" + "c" * 40 + "/status"):
+                return {"statuses": [{"context": "tests", "state": "success"}]}
+            raise AssertionError(path)
+        with mock.patch.object(mod, "gh_json", side_effect=api), \
+             mock.patch.object(mod, "gh_paginated_json", return_value=[]), \
+             mock.patch.object(ready, "linked_issue", return_value=10), \
+             mock.patch.object(ready, "provenance_verified", return_value=(True, "ok")) as provenance:
+            eligible, _, linked = mod.copilot_low_risk_merge_eligible(candidate, files, repo, runs("a" * 40))
+            self.assertTrue(eligible)
+            self.assertEqual(linked, 10)
+            self.assertTrue(provenance.call_args.kwargs["allow_ready"])
+            with mock.patch.object(ready, "provenance_verified", return_value=(False, "disconnected")):
+                self.assertFalse(mod.copilot_low_risk_merge_eligible(candidate, files, repo, runs("a" * 40))[0])
+            with mock.patch.object(ready, "exact_merge_tests_green", return_value=False):
+                self.assertFalse(mod.copilot_low_risk_merge_eligible(candidate, files, repo, runs("a" * 40))[0])
+            self.assertFalse(mod.copilot_low_risk_merge_eligible(candidate, files, repo, runs("a" * 40, conclusion="failure"))[0])
+
+    def test_last_moment_copilot_issue_authorization_fail_closed(self):
+        authorized = {
+            "number": 10, "state": "open", "labels": [],
+            "assignees": [{"login": "Copilot"}],
+        }
+        self.assertTrue(mod.copilot_issue_still_authorized(authorized, 10))
+        for drift in (
+            {"state": "closed"},
+            {"number": 11},
+            {"labels": [{"name": "initiative"}]},
+            {"labels": None},
+            {"assignees": None},
+            {"assignees": [{"login": "another-bot"}]},
+        ):
+            with self.subTest(drift=drift):
+                self.assertFalse(mod.copilot_issue_still_authorized(
+                    dict(authorized, **drift), 10,
+                ))
+
+    def test_merge_path_keeps_github_protection_as_final_authority(self):
+        source = MODULE_PATH.read_text()
+        block = source.split("if copilot_merge_requires_independent_authorization(pr):", 1)[1].split("        sensitive_paths =", 1)[0]
+        self.assertIn("copilot_low_risk_merge_eligible(", block)
+        self.assertIn("github_reports_safe_mergeability(latest)", block)
+        self.assertIn('latest.get("merge_commit_sha") != pr.get("merge_commit_sha")', block)
+        self.assertIn("try_guarded_squash_merge(repo, number, head_sha)", block)
+        self.assertIn("if not merged:", block)
+        self.assertNotIn("bypass", block)
+
+
 class AutoMergeAgentPrTests(unittest.TestCase):
     def test_copilot_ready_state_never_authorizes_legacy_auto_merge(self):
         self.assertTrue(mod.copilot_merge_requires_independent_authorization(
