@@ -2330,5 +2330,77 @@ class OwnerProtectedMergePolicyTests(unittest.TestCase):
         self.assertIn("try_guarded_squash_merge(", source)
 
 
+
+class NativeOwnerAutoMergeRecoveryTests(unittest.TestCase):
+    def owner_pr(self, *, head="a" * 40, base="b" * 40):
+        return {
+            "state": "open", "draft": False,
+            "user": {"login": "kaamilbadami"},
+            "head": {"sha": head, "repo": {"full_name": "kaamilbadami/yartchives"}},
+            "base": {"ref": "main", "sha": base},
+            "node_id": "PR_123",
+            "mergeable": True, "mergeable_state": "blocked",
+        }
+
+    def test_copilot_repair_disabled_auto_merge_is_rearmed(self):
+        pr = self.owner_pr()
+        calls = []
+        def graphql(*args):
+            calls.append(args)
+            if "mutation(" in args[3]:
+                return {"data": {"enablePullRequestAutoMerge": {"clientMutationId": None}}}
+            return {"data": {"node": {
+                "autoMergeRequest": None, "mergeStateStatus": "BLOCKED"}}}
+        with mock.patch.object(mod, "gh_json", side_effect=graphql):
+            result = mod.rearm_owner_native_auto_merge(
+                "kaamilbadami/yartchives", pr, dict(pr), head_quality_passed=True)
+        self.assertIn("re-armed", result)
+        self.assertEqual(len(calls), 2)
+        self.assertIn("enablePullRequestAutoMerge", calls[1][3])
+
+    def test_already_armed_and_clean_do_not_duplicate_requests(self):
+        pr = self.owner_pr()
+        with mock.patch.object(mod, "gh_json", return_value={"data": {"node": {
+            "autoMergeRequest": {"enabledAt": "2026-11-04T18:00:00Z"},
+            "mergeStateStatus": "BLOCKED"}}}) as api:
+            self.assertEqual(mod.rearm_owner_native_auto_merge(
+                "kaamilbadami/yartchives", pr, dict(pr),
+                head_quality_passed=True), "already armed")
+            api.assert_called_once()
+        clean = {**pr, "mergeable_state": "clean"}
+        with mock.patch.object(mod, "gh_json") as api:
+            self.assertIn("clean", mod.rearm_owner_native_auto_merge(
+                "kaamilbadami/yartchives", pr, clean, head_quality_passed=True))
+            api.assert_not_called()
+
+    def test_rejects_nonowners_failed_ci_and_drift_before_api(self):
+        pr = self.owner_pr()
+        bad = [
+            (pr, dict(pr), False),
+            ({**pr, "user": {"login": "copilot"}}, dict(pr), True),
+            (pr, {**pr, "head": {**pr["head"], "sha": "c" * 40}}, True),
+            (pr, {**pr, "base": {**pr["base"], "sha": "d" * 40}}, True),
+            (pr, {**pr, "draft": True}, True),
+        ]
+        with mock.patch.object(mod, "gh_json") as api:
+            for original, current, passed in bad:
+                with self.subTest(original=original, current=current, passed=passed):
+                    self.assertIn("not eligible", mod.rearm_owner_native_auto_merge(
+                        "kaamilbadami/yartchives", original, current,
+                        head_quality_passed=passed))
+            api.assert_not_called()
+
+    def test_conflicts_graphql_failure_and_missing_identity_fail_closed(self):
+        pr = self.owner_pr()
+        conflict = {**pr, "mergeable": False}
+        with mock.patch.object(mod, "gh_json") as api:
+            self.assertIn("conflict", mod.rearm_owner_native_auto_merge(
+                "kaamilbadami/yartchives", pr, conflict, head_quality_passed=True))
+            api.assert_not_called()
+        with mock.patch.object(mod, "gh_json", side_effect=ValueError("bad response")):
+            self.assertIn("unavailable", mod.rearm_owner_native_auto_merge(
+                "kaamilbadami/yartchives", pr, dict(pr), head_quality_passed=True))
+
+
 if __name__ == "__main__":
     unittest.main()
