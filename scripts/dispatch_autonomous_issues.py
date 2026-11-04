@@ -2330,6 +2330,8 @@ def select_tasks(issues: Iterable[dict[str, Any]], max_active: int = MAX_ACTIVE)
                 "needs-product-decision",
             }
             or has_codex_reservation(task.labels)
+            # A specifically authorized Copilot pilot must never also dispatch to Jules.
+            or "copilot-pilot" in task.labels
         ):
             continue
         if task.dependencies & open_issue_numbers:
