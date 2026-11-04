@@ -1771,13 +1771,14 @@ def main() -> int:
         risk_level, risk_reason = classify_merge_risk(files)
         print(f"PR #{number}: merge risk level {risk_level} ({risk_reason}).")
         sensitive_paths = sensitive_auto_merge_paths(files)
-        if sensitive_paths and not bounded_level_two_exception(files):
+        owner_lane = owner_authorized_pr(pr, repo)
+        if sensitive_paths and not owner_lane and not bounded_level_two_exception(files):
             # CI verification is not merge authorization. Perform bounded
             # trusted-main recovery even for controller/workflow PRs, then stop.
             result = recover_sensitive_pr_merge_ci(repo, pr, runs)
             print(
                 f"BLOCKED_REQUIRES_DECISION PR #{number}: security-sensitive paths "
-                f"{sensitive_paths} require independent review/manual merge; CI {result}."
+                f"{sensitive_paths} require independent review/manual merge for non-owner PRs; CI {result}."
             )
             continue
 
@@ -1834,7 +1835,7 @@ def main() -> int:
             require_quality=False,
         )
 
-        owner_authorized = owner_authorized_pr(pr, repo) or trusted_preflight_auto_pr(pr, repo)
+        owner_authorized = owner_lane or trusted_preflight_auto_pr(pr, repo)
         issue_number = linked_issue_number(str(pr.get("body") or ""))
         issue = None
         if issue_number is not None:
