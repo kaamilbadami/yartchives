@@ -122,6 +122,78 @@ class ExactHeadCiFreshnessSecurityTests(unittest.TestCase):
         self.assertFalse(mod.exact_head_quality_passed([history[0]], sha))
 
 
+class SensitivePrCiRecoveryTests(unittest.TestCase):
+    def candidate(self):
+        result = pr(head_sha="a" * 40, user="Copilot", draft=False)
+        result["base"]["sha"] = "b" * 40
+        result["merge_commit_sha"] = "c" * 40
+        return result
+
+    def test_sensitive_ci_recovery_is_verification_only_and_bounded(self):
+        candidate = self.candidate()
+        calls = []
+        def api(*args):
+            path = args[-1]
+            if path.endswith("/commits/" + "c" * 40 + "/status"):
+                return {"statuses": []}
+            if path.endswith("/pulls/20"):
+                return candidate
+            raise AssertionError(path)
+        with mock.patch.object(mod, "gh_json", side_effect=api), \
+             mock.patch.object(mod, "gh_paginated_json", return_value=[]), \
+             mock.patch.object(mod, "gh_run", side_effect=lambda *args: calls.append(args)):
+            result = mod.recover_sensitive_pr_merge_ci(
+                "kaamilbadami/yartchives", candidate, runs("a" * 40)
+            )
+        self.assertTrue(result.startswith("dispatched:"), result)
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(calls[0][:2], ("issue", "comment"))
+        self.assertEqual(calls[1][:3], ("workflow", "run", "quality.yml"))
+        self.assertIn("pr_recovery=true", calls[1])
+        self.assertIn("pr_number=20", calls[1])
+        self.assertIn("pr_head_sha=" + "a" * 40, calls[1])
+        self.assertFalse(any("merge" in call[:2] for call in calls))
+
+    def test_sensitive_ci_recovery_deduplicates_and_rejects_exhausted_budget(self):
+        candidate = self.candidate()
+        marker = "<!-- merge-ci-recovery: head=" + "a" * 40 + " merge=" + "c" * 40 + " -->"
+        comment = {"user": {"login": "github-actions[bot]"}, "body": marker}
+        def api(*args):
+            path = args[-1]
+            if path.endswith("/commits/" + "c" * 40 + "/status"):
+                return {"statuses": []}
+            if path.endswith("/pulls/20"):
+                return candidate
+            raise AssertionError(path)
+        with mock.patch.object(mod, "gh_json", side_effect=api), \
+             mock.patch.object(mod, "gh_run") as write, \
+             mock.patch.object(mod, "gh_paginated_json", return_value=[comment]):
+            self.assertIn("wait:", mod.recover_sensitive_pr_merge_ci(
+                "kaamilbadami/yartchives", candidate, runs("a" * 40)))
+            write.assert_not_called()
+
+    def test_sensitive_ci_recovery_rejects_stale_identity_and_failed_status(self):
+        candidate = self.candidate()
+        bad = dict(candidate, base={"ref": "main"})
+        with mock.patch.object(mod, "gh_json") as api:
+            self.assertIn("block:", mod.recover_sensitive_pr_merge_ci(
+                "kaamilbadami/yartchives", bad, runs("a" * 40)))
+            api.assert_not_called()
+        with mock.patch.object(mod, "gh_json", return_value={
+            "statuses": [{"context": "tests", "state": "failure"}]
+        }), mock.patch.object(mod, "gh_run") as write:
+            self.assertIn("failed", mod.recover_sensitive_pr_merge_ci(
+                "kaamilbadami/yartchives", candidate, runs("a" * 40)))
+            write.assert_not_called()
+
+    def test_sensitive_ci_recovery_is_before_copilot_merge_authorization(self):
+        source = MODULE_PATH.read_text()
+        self.assertLess(source.index("sensitive_paths = sensitive_auto_merge_paths(files)", source.index("def main()")),
+                        source.index("if copilot_merge_requires_independent_authorization(pr):", source.index("def main()")))
+        block = source.split("if sensitive_paths:", 1)[-1]
+        self.assertIn("recover_sensitive_pr_merge_ci(repo, pr, runs)", block)
+
+
 class CopilotLowRiskMergePolicyTests(unittest.TestCase):
     def candidate(self):
         result = pr(head_sha="a" * 40, head_ref="copilot/verified-regression", user="Copilot")
