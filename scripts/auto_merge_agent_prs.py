@@ -1388,6 +1388,12 @@ def protected_merge_freshness(repo: str, number: int, head_sha: str) -> tuple[bo
             or (current.get("base") or {}).get("sha") != base.get("sha")
             or current.get("merge_commit_sha") != merge_sha):
         return False, "PR changed while validating protected merge"
+    # Another trusted writer can advance main independently of this controller's
+    # workflow-level concurrency lock. Check the protected ref again as the last
+    # preflight step; GitHub's merge endpoint remains the final arbiter.
+    latest_main = gh_json("api", f"repos/{repo}/git/ref/heads/main")
+    if (latest_main.get("object") or {}).get("sha") != base.get("sha"):
+        return False, "main advanced during protected merge validation"
     return True, ""
 
 
