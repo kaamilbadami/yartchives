@@ -2287,5 +2287,47 @@ class BoundedLevelTwoAdmissionTests(unittest.TestCase):
                     self.row(path), self.row("tests/test_auto_merge_agent_prs.py")]))
 
 
+
+class OwnerProtectedMergePolicyTests(unittest.TestCase):
+    def test_owner_is_authorized_only_for_ready_same_repository_pr(self):
+        repo = "kaamilbadami/yartchives"
+        pr = {
+            "state": "open", "draft": False,
+            "user": {"login": "kaamilbadami"},
+            "head": {"repo": {"full_name": repo}},
+        }
+        self.assertTrue(mod.owner_authorized_pr(pr, repo))
+        for mutation in (
+            {"draft": True},
+            {"state": "closed"},
+            {"user": {"login": "copilot"}},
+            {"head": {"repo": {"full_name": "outside/fork"}}},
+        ):
+            with self.subTest(mutation=mutation):
+                self.assertFalse(mod.owner_authorized_pr({**pr, **mutation}, repo))
+
+    def test_protected_paths_remain_sensitive_for_nonowners(self):
+        protected_files = [
+            {"filename": "scripts/auto_merge_agent_prs.py", "changes": 5, "status": "modified"},
+            {"filename": ".github/workflows/quality.yml", "changes": 5, "status": "modified"},
+        ]
+        self.assertTrue(mod.sensitive_auto_merge_paths(protected_files))
+        self.assertFalse(mod.bounded_level_two_exception(protected_files))
+        self.assertEqual(mod.classify_merge_risk(protected_files)[0], 3)
+
+    def test_owner_merge_still_uses_freshness_and_required_checks(self):
+        # Source regression: the owner exemption is only at the path veto,
+        # not at protected-merge freshness or exact-head Quality checks.
+        source = MODULE_PATH.read_text(encoding="utf-8")
+        self.assertIn(
+            "if sensitive_paths and not owner_lane and not bounded_level_two_exception(files):",
+            source,
+        )
+        self.assertIn("owner_lane = owner_authorized_pr(pr, repo)", source)
+        self.assertIn("exact_head_quality_passed(runs, head_sha)", source)
+        self.assertIn("fresh, reason = protected_merge_freshness(repo, number, head_sha)", source)
+        self.assertIn("try_guarded_squash_merge(", source)
+
+
 if __name__ == "__main__":
     unittest.main()
