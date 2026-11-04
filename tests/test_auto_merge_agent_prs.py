@@ -1825,7 +1825,8 @@ class AutoMergeAgentPrTests(unittest.TestCase):
 
     def test_guarded_squash_merge_uses_expected_head_sha(self):
         ok = mock.Mock(returncode=0, stdout='{"merged":true}', stderr="", args=["gh"])
-        with mock.patch.object(mod.subprocess, "run", return_value=ok) as run:
+        with mock.patch.object(mod, "protected_merge_freshness", return_value=(True, "")), \
+             mock.patch.object(mod.subprocess, "run", return_value=ok) as run:
             merged, detail = mod.try_guarded_squash_merge(
                 "kaamilbadami/yartchives",
                 400,
@@ -1850,7 +1851,8 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             stderr="HTTP 409: Head branch was modified",
             args=["gh"],
         )
-        with mock.patch.object(mod.subprocess, "run", return_value=rejected):
+        with mock.patch.object(mod, "protected_merge_freshness", return_value=(True, "")), \
+             mock.patch.object(mod.subprocess, "run", return_value=rejected):
             merged, detail = mod.try_guarded_squash_merge(
                 "kaamilbadami/yartchives",
                 400,
@@ -1858,6 +1860,86 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             )
         self.assertFalse(merged)
         self.assertIn("409", detail)
+
+    def test_guarded_merge_rejects_stale_main_without_put(self):
+        with mock.patch.object(mod, "protected_merge_freshness",
+                               return_value=(False, "main advanced")), \
+             mock.patch.object(mod.subprocess, "run") as run:
+            merged, detail = mod.try_guarded_squash_merge(
+                "kaamilbadami/yartchives", 400, "a" * 40,
+            )
+        self.assertFalse(merged)
+        self.assertIn("main advanced", detail)
+        run.assert_not_called()
+
+    def test_guarded_merge_requires_current_actions_owned_merge_check(self):
+        repo = "kaamilbadami/yartchives"
+        head = "a" * 40
+        base = "b" * 40
+        merge = "c" * 40
+        candidate = {
+            "state": "open", "draft": False,
+            "base": {"ref": "main", "sha": base},
+            "head": {"sha": head},
+            "merge_commit_sha": merge,
+        }
+        def run_api(*args):
+            path = args[-1]
+            if path.endswith("/pulls/400"):
+                return candidate
+            if path.endswith("/git/ref/heads/main"):
+                return {"object": {"sha": base}}
+            if path.endswith("/check-runs?per_page=100"):
+                return {"check_runs": [
+                    {"name": "tests", "status": "completed", "conclusion": "success",
+                     "app": {"id": 99999}}
+                ]}
+            raise AssertionError(path)
+
+        with mock.patch.object(mod, "gh_json", side_effect=run_api):
+            accepted, reason = mod.protected_merge_freshness(repo, 400, head)
+        self.assertFalse(accepted)
+        self.assertIn("Actions-owned", reason)
+
+        def correct_api(*args):
+            result = run_api(*args)
+            if args[-1].endswith("/check-runs?per_page=100"):
+                result["check_runs"][0]["app"]["id"] = 15368
+            return result
+        with mock.patch.object(mod, "gh_json", side_effect=correct_api):
+            accepted, reason = mod.protected_merge_freshness(repo, 400, head)
+        self.assertTrue(accepted, reason)
+
+    def test_guarded_merge_rejects_base_advance_and_identity_drift(self):
+        repo = "kaamilbadami/yartchives"
+        head = "a" * 40
+        base = "b" * 40
+        merge = "c" * 40
+        pr = {"state": "open", "draft": False,
+              "base": {"ref": "main", "sha": base},
+              "head": {"sha": head}, "merge_commit_sha": merge}
+        for changed in ("main", "head", "merge"):
+            with self.subTest(changed=changed):
+                calls = {"pull": 0}
+                def api(*args):
+                    path = args[-1]
+                    if path.endswith("/pulls/400"):
+                        calls["pull"] += 1
+                        if changed == "head" and calls["pull"] == 2:
+                            return dict(pr, head={"sha": "d" * 40})
+                        if changed == "merge" and calls["pull"] == 2:
+                            return dict(pr, merge_commit_sha="d" * 40)
+                        return pr
+                    if path.endswith("/git/ref/heads/main"):
+                        return {"object": {"sha": "d" * 40 if changed == "main" else base}}
+                    if path.endswith("/check-runs?per_page=100"):
+                        return {"check_runs": [{"name": "tests", "status": "completed",
+                                                "conclusion": "success", "app": {"id": 15368}}]}
+                    raise AssertionError(path)
+                with mock.patch.object(mod, "gh_json", side_effect=api):
+                    accepted, reason = mod.protected_merge_freshness(repo, 400, head)
+                self.assertFalse(accepted)
+                self.assertTrue(reason)
 
     def test_close_linked_issue_after_merge_is_explicit_and_completed(self):
         ok = subprocess.CompletedProcess(
