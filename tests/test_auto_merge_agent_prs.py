@@ -1636,7 +1636,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         with mock.patch.object(
             mod.subprocess,
             "run",
-            side_effect=[ok, rev_parse, ok, ok, ok],
+            side_effect=[ok, rev_parse, ok, ok, ok, ok],
         ) as run:
             updated, detail = mod.update_pull_request_branch(
                 "kaamilbadami/yartchives",
@@ -1648,6 +1648,8 @@ class AutoMergeAgentPrTests(unittest.TestCase):
 
         self.assertTrue(updated)
         self.assertEqual(detail, "")
+        self.assertEqual(run.call_args_list[-1].args[0],
+                         ["git", "checkout", "--detach", "refs/remotes/origin/main"])
         commands = [call.args[0] for call in run.call_args_list]
         self.assertFalse(
             any(
@@ -1689,7 +1691,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         with mock.patch.object(
             mod.subprocess,
             "run",
-            side_effect=[ok, rev_parse, ok, ok, push_failed, api_ok],
+            side_effect=[ok, rev_parse, ok, ok, push_failed, api_ok, ok],
         ) as run:
             updated, detail = mod.update_pull_request_branch(
                 "kaamilbadami/yartchives",
@@ -1734,7 +1736,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         with mock.patch.object(
             mod.subprocess,
             "run",
-            side_effect=[ok, rev_parse, ok, ok, push_failed, api_failed],
+            side_effect=[ok, rev_parse, ok, ok, push_failed, api_failed, ok],
         ):
             updated, detail = mod.update_pull_request_branch(
                 "kaamilbadami/yartchives",
@@ -1765,8 +1767,8 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         with mock.patch.object(
             mod.subprocess,
             "run",
-            side_effect=[ok, rev_parse, ok, conflict, ok],
-        ):
+            side_effect=[ok, rev_parse, ok, conflict, ok, ok],
+        ) as run:
             updated, detail = mod.update_pull_request_branch(
                 "kaamilbadami/yartchives",
                 196,
@@ -1776,6 +1778,11 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             )
         self.assertFalse(updated)
         self.assertIn("Merge conflict", detail)
+        # A conflicted PR must not strand later PRs on the old checkout.
+        self.assertEqual(
+            run.call_args_list[-1].args[0],
+            ["git", "checkout", "--detach", "refs/remotes/origin/main"],
+        )
 
     def test_update_branch_non_conflict_error_still_fails_loudly(self):
         fetch_error = mock.Mock(

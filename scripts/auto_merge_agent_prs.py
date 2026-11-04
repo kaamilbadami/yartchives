@@ -1522,84 +1522,94 @@ def update_pull_request_branch(
             f"PR #{number} in {repo} moved from {head_sha} to {remote_head} during branch sync"
         )
 
-    subprocess.run(
-        ["git", "checkout", "--detach", head_sha],
-        check=True,
-        text=True,
-        capture_output=True,
-    )
-    merge = subprocess.run(
-        [
-            "git",
-            "-c",
-            "user.name=github-actions[bot]",
-            "-c",
-            "user.email=41898282+github-actions[bot]@users.noreply.github.com",
-            "merge",
-            "--no-edit",
-            f"refs/remotes/origin/{base_ref}",
-        ],
-        text=True,
-        capture_output=True,
-    )
-    if merge.returncode != 0:
-        detail = "\n".join(
-            part for part in (merge.stdout, merge.stderr) if part
-        ).strip()
+    # Never leave this trusted controller running from an untrusted PR checkout.
+    # The PR may lack controller modules; restoring main also isolates conflicts.
+    try:
         subprocess.run(
-            ["git", "merge", "--abort"],
+            ["git", "checkout", "--detach", head_sha],
+            check=True,
             text=True,
             capture_output=True,
         )
-        lowered = detail.casefold()
-        if "conflict" in lowered or "automatic merge failed" in lowered:
-            return False, detail
-        raise subprocess.CalledProcessError(
-            merge.returncode,
-            merge.args,
-            output=merge.stdout,
-            stderr=merge.stderr,
-        )
-
-    push = subprocess.run(
-        [
-            "git",
-            "push",
-            "origin",
-            f"HEAD:refs/heads/{head_ref}",
-            f"--force-with-lease=refs/heads/{head_ref}:{head_sha}",
-        ],
-        text=True,
-        capture_output=True,
-    )
-    if push.returncode != 0:
-        push_detail = "\n".join(
-            part for part in (push.stdout, push.stderr) if part
-        ).strip()
-        fallback = subprocess.run(
+        merge = subprocess.run(
             [
-                "gh", "api", "--method", "PUT",
-                f"repos/{repo}/pulls/{number}/update-branch",
-                "-f", f"expected_head_sha={head_sha}",
+                "git",
+                "-c",
+                "user.name=github-actions[bot]",
+                "-c",
+                "user.email=41898282+github-actions[bot]@users.noreply.github.com",
+                "merge",
+                "--no-edit",
+                f"refs/remotes/origin/{base_ref}",
             ],
             text=True,
             capture_output=True,
         )
-        if fallback.returncode == 0:
-            return True, push_detail
-        fallback_detail = "\n".join(
-            part for part in (fallback.stdout, fallback.stderr) if part
-        ).strip()
-        detail = "\n".join(
-            part for part in (
-                f"direct branch push failed: {push_detail}" if push_detail else "direct branch push failed",
-                f"GitHub update-branch fallback failed: {fallback_detail}" if fallback_detail else "GitHub update-branch fallback failed",
+        if merge.returncode != 0:
+            detail = "\n".join(
+                part for part in (merge.stdout, merge.stderr) if part
+            ).strip()
+            subprocess.run(
+                ["git", "merge", "--abort"],
+                text=True,
+                capture_output=True,
             )
-            if part
+            lowered = detail.casefold()
+            if "conflict" in lowered or "automatic merge failed" in lowered:
+                return False, detail
+            raise subprocess.CalledProcessError(
+                merge.returncode,
+                merge.args,
+                output=merge.stdout,
+                stderr=merge.stderr,
+            )
+    
+        push = subprocess.run(
+            [
+                "git",
+                "push",
+                "origin",
+                f"HEAD:refs/heads/{head_ref}",
+                f"--force-with-lease=refs/heads/{head_ref}:{head_sha}",
+            ],
+            text=True,
+            capture_output=True,
         )
-        return False, detail
-    return True, ""
-
+        if push.returncode != 0:
+            push_detail = "\n".join(
+                part for part in (push.stdout, push.stderr) if part
+            ).strip()
+            fallback = subprocess.run(
+                [
+                    "gh", "api", "--method", "PUT",
+                    f"repos/{repo}/pulls/{number}/update-branch",
+                    "-f", f"expected_head_sha={head_sha}",
+                ],
+                text=True,
+                capture_output=True,
+            )
+            if fallback.returncode == 0:
+                return True, push_detail
+            fallback_detail = "\n".join(
+                part for part in (fallback.stdout, fallback.stderr) if part
+            ).strip()
+            detail = "\n".join(
+                part for part in (
+                    f"direct branch push failed: {push_detail}" if push_detail else "direct branch push failed",
+                    f"GitHub update-branch fallback failed: {fallback_detail}" if fallback_detail else "GitHub update-branch fallback failed",
+                )
+                if part
+            )
+            return False, detail
+        return True, ""
+    
+    finally:
+        subprocess.run(
+            ["git", "checkout", "--detach", f"refs/remotes/origin/{base_ref}"],
+            check=True,
+            text=True,
+            capture_output=True,
+        )
 
 def flatten_pages(pages: Any) -> list[Any]:
     if not isinstance(pages, list):
