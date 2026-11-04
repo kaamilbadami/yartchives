@@ -27,6 +27,17 @@ Evaluate this against identical **frozen candidate profiles, application histori
 2. **Recommendation quality / agreement:** On the *same verified candidate set*, compare Yartchives and a diligent ChatGPT workflow for usefulness of top recommendations, correct eligibility, evidence-grounded rationale, and actionable tradeoffs. Raw scores or exact ranking order need not agree because the ranking systems differ; use blinded or rubric-based human judgments and concrete decision outcomes to assess **comparable quality**, not score matching for its own sake.
 3. **Decision efficiency:** Measure time, interactions, and manual research required for a student to identify a worthwhile next application and keep preferences/application history current. Count incomplete/abandoned flows and errors as well as successful decisions. Do not assume AI conversation or extra UI is automatically more convenient.
 
+### Proposed measurable coverage thresholds
+
+These are **proposed targets, not achieved results or approved release gates**. Before broad promotion, version and freeze a representative independent discovery benchmark, including persona profiles, posting windows, verification criteria, and the definition of a worthwhile eligible opportunity.
+
+- Target **at least 90% opportunity-level recall** of independently verified worthwhile benchmark opportunities in the Yartchives candidate universe; publish numerator, denominator, and results by persona and important ATS/source family.
+- Target **zero unresolved major systemic source-family holes**; classify each miss by employer discovery, provider resolution, retrieval, normalization, eligibility/term filtering, freshness/link quality, candidate selection, or ranking.
+- Track **authoritative link validity, stale/dead listings, Yartchives-only discoveries, and false positives** separately; retain #898's top-10 usefulness and zero-major-eligibility-failure requirements.
+- Report uncertainty for small cohort samples and do not allow high aggregate recall to hide a major persona or source-family gap. Retain a versioned list of non-blocking exceptions.
+
+Calibrate the final overall target and minimum per-persona/family floors against the initial baseline and false-negative costs; explicitly approve the gates in #898 before applying them. Do not move the frozen comparison set or lower a threshold merely to pass it. Re-measure after generic fixes rather than treating listing volume as success.
+
 Keep these metrics separate in the release scorecard (#898) and recurring comparison (#1089): strong coverage must not conceal weak recommendation quality, and polished reasoning must not conceal missing candidates. Prioritize evidence-driven ATS/source-family coverage fixes before speculative ranking complexity, while retaining a path to context-aware user feedback (#1094) and AI-assisted structured evaluation after the trust gates.
 
 
@@ -94,34 +105,37 @@ The first implementation should optimize for reproducibility and measurement, no
 
 ---
 
-## Track 1 — Automation reliability
+## Track 1 — Automation reliability and unattended Copilot development
 
 ### Outcome
 
-GitHub issues, Jules sessions, PRs, checks, merges, retries, and cleanup should complete without the product owner acting as the workflow orchestrator.
+Yartchives should autonomously turn evidence-backed, bounded issues into verified PRs, repair routine CI and conflict failures, and merge eligible low-risk changes **without the product owner orchestrating individual steps**. The unified PR lifecycle controller should monitor every open PR regardless of author, but monitoring must never imply authorization to repair or merge it.
+
+**P0 operational deadline:** Jules becomes read-only on November 11, 2026. Replace writable Jules execution with a verified Copilot-backed executor before then, or explicitly enter a safe queue-only mode with visible escalation. Do not count successful issue assignment or PR creation as a complete migration. The overarching acceptance tracker is #1122; issue #1135 tracks repository-wide parent-initiative closure protection.
 
 ### Success signals
 
-- eligible autonomous work starts without manual dispatch;
-- completed work does not remain stuck as open PRs or stale Jules sessions;
-- transient Jules/platform failures receive bounded automatic recovery;
-- workflow-failure issues enter the same authoritative lifecycle as normal autonomous work;
-- spare Jules capacity is used for legitimate non-overlapping work when such work exists;
-- task-generation or maintenance automation can fail without blocking already-valid product work.
+- Issue selection, resource locks, agent assignment, completion records, PR creation, and CI handoff work unattended using a verified supported Copilot integration; no new work depends on writable Jules after the cutoff.
+- A single trusted controller watches **all open PRs**, using PR/check lifecycle events plus bounded periodic reconciliation; records the exact head, current required-check state, failure cause, retry budget, and next action.
+- Routine failures (missing CI, recoverable infrastructure errors, stale merge checks, and authorized code repairs/conflicts) enter a bounded diagnose → repair → revalidate cycle. Unsupported or repeatedly failing repair paths escalate instead of silently looping.
+- Only authorized, provenanced, low-risk changes proceed through protected, current required checks to automatic squash merge. Security-sensitive changes, secrets, workflow permissions, agent authorization, and deployment control changes require explicit human authorization. Never test untrusted PR code with write tokens.
+- Parent initiatives are protected from automatic closure; merging a child implementation PR closes only its independently completable task. Preserve historical Jules linkages without scheduling initiative issues as work items.
+- At least one **real unattended** issue → Copilot PR → CI → ready-for-review → protected merge cycle is recorded; validate failure repair and conflict/escalation scenarios with integration evidence, not only mocked adapters or workflow-string assertions.
 
-### Near-term direction
+### Near-term direction (blocking autonomy)
 
-- Finish the authoritative workflow-failure → Jules lifecycle work.
-- Use all otherwise-idle Jules capacity for legitimate evidence-backed work when non-overlapping current-main signals exist; existing eligible work is always selected before generating more.
-- Keep #507's evidence-backed replenishment architecture healthy and extend providers only from machine-verifiable signals; zero generated work remains valid when no strong evidence exists.
-- Keep concurrency resource-driven rather than forcing arbitrary utilization.
-- Improve diagnostics when slots remain unused.
+1. Finish the provider-neutral Jules-to-Copilot dispatcher, including verified issue assignment, capacity/quota policy, resource locks, durable state, retries, and a clear queue-only failure mode (#1122).
+2. Complete the existing trusted PR lifecycle controller: universal PR discovery, exact-head/merge-commit required checks, authorized draft-to-ready and merge transitions, duplicate-event safety, and no unexplained `action_required` backlog (#1122).
+3. Integrate supported Copilot repair mechanisms where actually available, with a bounded task-based fallback for unsupported bot PRs. Never assume GitHub's per-PR Agent Merge can be activated programmatically for every PR without verifying its API and permissions.
+4. Fix issue closure and dispatch label regressions at their source; protect initiatives and preserve normal completed-task auto-closure (#1135).
+5. Run adversarial lifecycle regression scenarios and a real end-to-end Copilot pilot. Do not mark migration or hands-off readiness complete until the acceptance evidence is attached to #1122.
 
 ### Non-goals
 
-- weakening resource locks to increase session count;
-- inventing refactors or cleanup tasks just to occupy Jules capacity;
-- letting automation make product-policy decisions silently.
+- Unrestricted merging of arbitrary PRs or permission/security changes.
+- Suppressing required checks, bypassing branch protection, or disabling approval gates before equivalent protections are verified.
+- Repeated no-op dispatches or generating issues simply to consume agent quota.
+- Maintaining separate competing controllers for Jules, Copilot, CI, and PR cleanup.
 
 ---
 
@@ -291,6 +305,18 @@ Broad beta promotion should happen only after Yartchives demonstrates that its d
 - recommendation feedback is captured with minimal private data;
 - recurring complaints become measurable product gaps;
 - roadmap priorities change when real usage contradicts assumptions.
+
+### Student-value and retention experiments
+
+Run a small, consented CS-student pilot against each student's normal internship-search method or a consistent ChatGPT/web-search baseline. Predefine the metrics, cohort, timeframe, and denominators; report aggregate privacy-minimized outcomes, negative findings, and uncertainty.
+
+1. **Incremental opportunity value:** Count verified worthwhile opportunities a student discovers through Yartchives that were not already known or found using the baseline; distinguish genuinely useful unique discoveries from duplicates.
+2. **Application follow-through:** Measure the fraction of reviewed recommendations students judge worth applying to and the share leading to *voluntarily confirmed exact-requisition applications*. Never equate more applications with better decisions.
+3. **Retention:** Measure unprompted 7-day and 30-day return during active recruiting, distinguishing voluntary use from reminders, class requirements, and recruiting seasonality.
+4. **Workflow preference:** Ask which method students would choose for their next real application search, why, and when they switched away. Capture recurring coverage, ranking, trust, or convenience complaints.
+5. **Decision efficiency:** Compare time, interactions, abandonment, and off-platform verification needed to identify a worthwhile next application.
+
+Calibrate any retention, incremental-discovery, or workflow-preference targets after pilot evidence; these are hypotheses, not established product facts. Do not infer causality from a small uncontrolled beta. Convert repeated, verified failures into bounded roadmap-linked issues under #898 and do not commit personal profiles or application histories.
 
 ### Near-term direction
 

@@ -124,6 +124,7 @@ def analyze(document: dict[str, Any]) -> dict[str, Any]:
     return {
         "schema_version": 1,
         "name": document.get("name"),
+        "sampling_method": method,
         "sample_size": total,
         "unverified_count": len(unknown_rows),
         "rejected_count": len(rejected_rows),

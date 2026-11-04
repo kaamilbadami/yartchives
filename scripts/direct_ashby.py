@@ -318,6 +318,10 @@ def enrich(doc: dict[str, Any], old_doc: dict[str, Any], universe: dict[str, Any
 
         print(f"{source['name']}: FAILED: {exc}", file=sys.stderr)
 
+    discovered_keys = {s["key"] for s in discover_sources(universe)}
+    for key in list(health.keys()):
+        if key.startswith("auto-ashby-") and key not in discovered_keys:
+            health.pop(key, None)
     return doc
 
 

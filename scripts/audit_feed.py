@@ -11,6 +11,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
+from reconcile_workday_duplicates import posting_identity_key
+
 PROFILES = ["cs", "tech-business", "finance-econ", "engineering", "policy", "health"]
 INTERNSHIP_TYPES = {"internship", "co-op", "student"}
 WORKDAY_HOST_RE = re.compile(r"^[a-z0-9-]+\.wd\d+\.myworkday(?:jobs|site)\.com$", re.I)
@@ -296,6 +298,7 @@ def destination_link_report(doc: dict) -> dict:
     unverified_destinations = []
     source_only_links = []
     non_direct_links = []
+    ats_link_quality = {}
 
     for job in jobs:
         kind = job.get("link_kind") or "legacy"
@@ -304,6 +307,31 @@ def destination_link_report(doc: dict) -> dict:
         listing_url_val = str(job.get("listing_url") or "")
         effective_url = url_val or listing_url_val
         host = urlparse(effective_url).netloc.lower() if effective_url else "no-link"
+
+        identity = posting_identity_key(url_val)
+        family = identity[0] if identity else "unknown"
+        if family not in ats_link_quality:
+            ats_link_quality[family] = {
+                "total": 0,
+                "direct": 0,
+                "intermediary": 0,
+                "broken_known_dead": 0,
+                "broken_unknown_direct": 0,
+                "unverified": 0,
+            }
+
+        ats_link_quality[family]["total"] += 1
+        if kind in {"direct", "employer_job"}:
+            ats_link_quality[family]["direct"] += 1
+        else:
+            ats_link_quality[family]["intermediary"] += 1
+
+        if job.get("link_status") == "dead":
+            ats_link_quality[family]["broken_known_dead"] += 1
+        elif kind == "direct" and job.get("link_status") == "unknown":
+            ats_link_quality[family]["broken_unknown_direct"] += 1
+        elif kind in {"direct", "employer_job", "listing"} and job.get("link_status") not in {"ok", "dead", "unknown"}:
+            ats_link_quality[family]["unverified"] += 1
 
         if job.get("link_status") == "dead":
             known_dead_links.append(job)
@@ -353,6 +381,7 @@ def destination_link_report(doc: dict) -> dict:
         "source_only_sources": dict(source_only_sources.most_common(20)),
         "zapply_providers": dict(zapply_providers.most_common(20)),
         "zapply_companies": dict(zapply_companies.most_common(20)),
+        "ats_link_quality": ats_link_quality,
     }
 
 
@@ -409,6 +438,7 @@ def build_audit_report(doc: dict, inspections: dict | None = None, reference: da
             "largest_non_direct_hosts": links["hosts"],
             "source_only_by_source_key": links["source_only_sources"],
             "unresolved_by_source_key": links["unresolved_sources"],
+            "ats_link_quality": links["ats_link_quality"],
         },
         "posting_dates": {
             "by_provenance": dates["by_provenance"],
@@ -519,7 +549,21 @@ def render_markdown_report(report: dict) -> str:
 
     lines.extend([
         "",
-        "## 4. Missing dates and provenance",
+        "## 4. ATS-family link quality",
+        "",
+        "| Family | Total | Direct | Intermediary | Known Dead | Unknown Direct | Unverified |",
+        "|--------|-------|--------|--------------|------------|----------------|------------|",
+    ])
+
+    for family, metrics in sorted(dest.get("ats_link_quality", {}).items()):
+        lines.append(
+            f"| `{family}` | {metrics['total']} | {metrics['direct']} | {metrics['intermediary']} | "
+            f"{metrics['broken_known_dead']} | {metrics['broken_unknown_direct']} | {metrics['unverified']} |"
+        )
+
+    lines.extend([
+        "",
+        "## 5. Missing dates and provenance",
         "",
         f"- Missing posting timestamp (`posted_at`): **{dates['missing_date_count']}**",
         f"- Missing provenance label (`posted_date_provenance`): **{dates['missing_provenance_count']}**",
@@ -535,13 +579,13 @@ def render_markdown_report(report: dict) -> str:
 
     lines.extend([
         "",
-        "## 5. Suspicious date normalization",
+        "## 6. Suspicious date normalization",
         "",
         f"- Future dates (`posted_at > reference`): **{dates['future_date_count']}**",
         f"- Source conflicts (7d+ observation spread): **{dates['conflicting_observations_count']}**",
         f"- Aggregator overriding authoritative date: **{dates['aggregator_overrides_authoritative_count']}**",
         "",
-        "## 6. Root causes and remediation",
+        "## 7. Root causes and remediation",
         "",
         "- **Largest generic provider cause**: Over 3,500 links are completely unverified (neither OK, unknown, nor dead), primarily across Greenhouse and Workday endpoints, dominating the uncertainty about link health post-reconciliation.",
         "- **Generic defect fixed**: Feed generation (`build_feed.py`) or deduplication logic did not preserve `link_status` metrics after reconciliation. The audit now correctly parses and reports these separately, making the unverified rate visible.",

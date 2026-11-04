@@ -190,6 +190,55 @@ class PostingDateAuditTests(unittest.TestCase):
         self.assertEqual([j["id"] for j in report["aggregator_overrides_authoritative"]], ["override"])
 
 
+class DestinationLinkReportTests(unittest.TestCase):
+    def test_reports_ats_family_link_quality(self):
+        doc = {
+            "jobs": [
+                {
+                    "url": "https://company.wd1.myworkdayjobs.com/en-US/Careers/job/City/Role/apply",
+                    "link_kind": "direct",
+                    "link_status": "ok"
+                },
+                {
+                    "url": "https://company.wd1.myworkdayjobs.com/en-US/Careers/job/City/Role",
+                    "link_kind": "employer_job",
+                    "link_status": "unknown"
+                },
+                {
+                    "url": "https://boards.greenhouse.io/company/jobs/123",
+                    "link_kind": "direct",
+                    "link_status": "dead"
+                },
+                {
+                    "url": "https://company-name.icims.com/jobs/123/job",
+                    "link_kind": "listing",
+                    "link_status": "ok"
+                },
+                {
+                    "url": "https://company-name.icims.com/jobs/123/login",
+                    "link_kind": "listing"
+                }
+            ]
+        }
+        report = mod.destination_link_report(doc)
+        ats_link_quality = report.get("ats_link_quality", {})
+
+        self.assertIn("workday", ats_link_quality)
+        self.assertEqual(ats_link_quality["workday"]["total"], 2)
+        self.assertEqual(ats_link_quality["workday"]["direct"], 2)
+        self.assertEqual(ats_link_quality["workday"]["intermediary"], 0)
+        self.assertEqual(ats_link_quality["workday"]["broken_unknown_direct"], 0) # only 'direct' kinds are checked for broken_unknown_direct
+        self.assertEqual(ats_link_quality["workday"]["unverified"], 0)
+
+        self.assertIn("greenhouse", ats_link_quality)
+        self.assertEqual(ats_link_quality["greenhouse"]["total"], 1)
+        self.assertEqual(ats_link_quality["greenhouse"]["broken_known_dead"], 1)
+
+        self.assertIn("icims", ats_link_quality)
+        self.assertEqual(ats_link_quality["icims"]["total"], 2)
+        self.assertEqual(ats_link_quality["icims"]["intermediary"], 2)
+        self.assertEqual(ats_link_quality["icims"]["unverified"], 1)
+
 class BuildAuditReportTests(unittest.TestCase):
     def test_builds_and_renders_comprehensive_audit_report(self):
         doc = {

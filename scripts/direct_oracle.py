@@ -376,6 +376,10 @@ def enrich(
             if carry_failed_source(jobs, old_jobs, source["key"]):
                 health[source["key"]]["status"] = "degraded"
             print(f"{source['name']}: FAILED: {exc}", file=sys.stderr)
+    discovered_keys = {s["key"] for s in discover_sources(universe)}
+    for key in list(health.keys()):
+        if key.startswith("auto-oracle-") and key not in discovered_keys:
+            health.pop(key, None)
     return doc
 
 

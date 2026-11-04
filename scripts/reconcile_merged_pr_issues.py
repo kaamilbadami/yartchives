@@ -17,6 +17,13 @@ COMPLETE_RE = re.compile(r"(?im)^\s*Completes acceptance criteria for #(\d+)\s*$
 CLOSING_RE = re.compile(r"(?im)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)\b")
 SUPERSEDE_RE = re.compile(r"<!--\s*supersedes-stale-pr:\s*(\d+)(?:\s+original-issue:\s*(\d+))?\s*-->")
 
+def is_initiative(issue):
+    return any(
+        (label.get("name") if isinstance(label, dict) else label) == "initiative"
+        for label in (issue.get("labels") or [])
+    )
+
+
 def gh(*args):
     return subprocess.check_output(["gh", *args, "--repo", REPO], text=True)
 
@@ -93,6 +100,8 @@ def main():
     for orig_issue, (stale_pr, is_completed) in sorted(superseded_by_this_pr.items()):
         try:
             orig_data = json.loads(gh("issue", "view", str(orig_issue), "--json", "state,stateReason,labels,body"))
+            if is_initiative(orig_data):
+                continue
 
             labels_to_remove = [
                 l["name"] for l in orig_data.get("labels", [])
@@ -133,8 +142,8 @@ def main():
             pass
 
     for number in sorted(referenced - closing):
-        issue = json.loads(gh("issue", "view", str(number), "--json", "state,url"))
-        if issue.get("state") != "OPEN":
+        issue = json.loads(gh("issue", "view", str(number), "--json", "state,url,labels"))
+        if is_initiative(issue) or issue.get("state") != "OPEN":
             continue
         if number in completed:
             gh("issue", "comment", str(number), "--body",

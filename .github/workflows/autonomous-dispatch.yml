@@ -35,6 +35,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main # Never execute PR-head code with the dispatcher write token.
+          persist-credentials: false
 
       - name: Guard against blind Jules redispatch
         env:

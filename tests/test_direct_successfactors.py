@@ -132,8 +132,8 @@ class DirectSuccessFactorsTests(unittest.TestCase):
 
     def test_successfactors_source_returns_none_when_retired(self):
         employer = {
-            "id": "gxo-logistics",
-            "careers_url": "https://jobs.gxo.com",
+            "id": "dummy-retired-employer",
+            "careers_url": "https://jobs.dummy.com",
             "provider": {"family": "successfactors", "status": "resolved"},
             "careers_resolution": {"status": "resolved"},
             "seed_metadata": {
@@ -146,6 +146,73 @@ class DirectSuccessFactorsTests(unittest.TestCase):
             }
         }
         self.assertIsNone(mod._successfactors_source(employer))
+
+    def test_successfactors_source_returns_none_when_sso_without_fallback(self):
+        employer = {
+            "id": "aflac",
+            "name": "Aflac",
+            "careers_url": "https://career4.successfactors.com/career?company=aflac",
+            "provider": {"family": "successfactors", "status": "resolved"},
+            "careers_resolution": {
+                "status": "resolved",
+                "evidence": [
+                    {
+                        "type": "seed",
+                        "seed_key": "state-of-ats-2026-verified-hosts",
+                        "domain_hint": "career4.successfactors.com/career?company=aflac",
+                        "ats_system": "SuccessFactors",
+                        "source_url": "https://withresumeai.com/ats-checker/aflac"
+                    }
+                ]
+            }
+        }
+        self.assertIsNone(mod._successfactors_source(employer))
+
+    def test_successfactors_source_falls_back_from_sso_domain(self):
+        employer = {
+            "id": "halliburton",
+            "name": "Halliburton",
+            "careers_url": "https://career4.successfactors.com/career?company=halliburton",
+            "provider": {"family": "successfactors", "status": "resolved"},
+            "careers_resolution": {
+                "status": "resolved",
+                "evidence": [
+                    {
+                        "type": "http",
+                        "status": 200,
+                        "final_url": "https://gxo.com/careers/",
+                        "score": 14,
+                        "signals": ["careers path"]
+                    },
+                    {
+                        "type": "http",
+                        "status": 200,
+                        "final_url": "https://jobs.halliburton.com/",
+                        "score": 9,
+                        "signals": ["successfactors provider fingerprint"]
+                    }
+                ]
+            }
+        }
+        source = mod._successfactors_source(employer)
+        self.assertIsNotNone(source)
+        self.assertEqual(source["homepage"], "https://jobs.halliburton.com")
+        self.assertEqual(source["sitemap_url"], "https://jobs.halliburton.com/sitemap.xml")
+
+
+
+
+    def test_fetch_source_escapes_ampersands_before_parsing(self):
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        mock_response.content = b'<?xml version="1.0" encoding="UTF-8"?><urlset><url><loc>https://careers.example.com/job/Risk-&-Compliance/1/</loc></url></urlset>'
+
+        mock_client = mock.Mock()
+        mock_client.get.return_value = mock_response
+
+        # This should not raise a StructuralSourceError from XML parsing
+        jobs = mod.fetch_source(mock_client, {"key": "test", "name": "test", "company": "test", "employer_id": "test", "homepage": "test", "sitemap_url": "mock://url"}, mock.Mock())
+        self.assertEqual(jobs, [])
 
 if __name__ == "__main__":
     unittest.main()

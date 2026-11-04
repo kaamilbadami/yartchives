@@ -67,6 +67,18 @@ def _clean(value: Any) -> str:
     return bf.clean_text(value).strip()
 
 
+def _is_sso_or_base_domain(hostname: str) -> bool:
+    return any(hostname.endswith(suffix) for suffix in (
+        ".accounts.ondemand.com",
+        ".accounts.cloud.sap",
+        ".sapsf.com",
+        ".sapsf.eu",
+        ".sapsf.cn",
+        ".successfactors.com",
+        ".successfactors.eu"
+    ))
+
+
 def _successfactors_source(employer: dict[str, Any]) -> dict[str, Any] | None:
     lifecycle = ((employer.get("seed_metadata") or {}).get(PROVIDER_LIFECYCLE_SEED_KEY) or {}).get("provider_lifecycle") or {}
     if lifecycle.get("family") == "successfactors" and lifecycle.get("status") == "retired":
@@ -84,6 +96,25 @@ def _successfactors_source(employer: dict[str, Any]) -> dict[str, Any] | None:
         return None
     parsed = urlparse(careers_url)
     if not parsed.hostname:
+        return None
+
+    if _is_sso_or_base_domain(parsed.hostname):
+        evidence_list = resolution.get("evidence") or []
+        sorted_evidence = sorted(
+            [ev for ev in evidence_list if ev.get("type") == "http" and ev.get("status") == 200],
+            key=lambda x: (
+                1 if "successfactors provider fingerprint" in x.get("signals", []) else 0,
+                x.get("score") or 0
+            ),
+            reverse=True
+        )
+        for ev in sorted_evidence:
+            ev_parsed = urlparse(ev.get("final_url", ""))
+            if ev_parsed.hostname and not _is_sso_or_base_domain(ev_parsed.hostname):
+                parsed = ev_parsed
+                break
+
+    if parsed.hostname and _is_sso_or_base_domain(parsed.hostname):
         return None
 
     origin = urlunparse((parsed.scheme or "https", parsed.netloc, "", "", "", ""))
@@ -161,7 +192,9 @@ def fetch_source(client: requests.Session, source: dict[str, Any], reference: da
         raise RuntimeError(f"sitemap fetch failed: {exc}")
 
     try:
-        root = ET.fromstring(response.content)
+        content_str = response.content.decode("utf-8", errors="replace")
+        escaped_content = re.sub(r'&(?!(?:[a-zA-Z]+|#\d+|#x[0-9a-fA-F]+);)', '&amp;', content_str)
+        root = ET.fromstring(escaped_content)
     except ET.ParseError as exc:
          raise StructuralSourceError(f"sitemap XML parse failed: {exc}", [406])
 
@@ -348,6 +381,10 @@ def enrich(
             if carry_failed_source(jobs, old_jobs, source["key"]):
                 health[source["key"]]["status"] = "degraded"
             print(f"{source['name']}: FAILED: {exc}", file=sys.stderr)
+    discovered_keys = {s["key"] for s in discover_sources(universe)}
+    for key in list(health.keys()):
+        if key.startswith("auto-successfactors-") and key not in discovered_keys:
+            health.pop(key, None)
     return doc
 
 def main() -> int:

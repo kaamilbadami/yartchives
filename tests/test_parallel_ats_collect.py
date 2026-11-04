@@ -119,5 +119,28 @@ class ParallelAtsCollectTests(unittest.TestCase):
         self.assertEqual(set(merged["sources"]), set(mod.PROVIDER_ORDER))
 
 
+    def test_merge_prunes_deleted_auto_discovered_sources(self):
+        base = {
+            "jobs": [],
+            "sources": {
+                "auto-successfactors-gxo-logistics": {"status": "quarantined", "auto_discovered": True},
+                "auto-icims-other": {"status": "quarantined", "auto_discovered": True},
+            }
+        }
+        successfactors_doc = {
+            "jobs": [],
+            "sources": {
+                "auto-icims-other": {"status": "quarantined", "auto_discovered": True},
+            }
+        }
+        merged = mod.merge_provider_documents(
+            base,
+            {
+                "successfactors": successfactors_doc,
+            }
+        )
+        self.assertNotIn("auto-successfactors-gxo-logistics", merged["sources"])
+        self.assertIn("auto-icims-other", merged["sources"])
+
 if __name__ == "__main__":
     unittest.main()
