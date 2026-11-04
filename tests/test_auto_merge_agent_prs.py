@@ -212,7 +212,9 @@ class SensitivePrCiRecoveryTests(unittest.TestCase):
         source = MODULE_PATH.read_text()
         self.assertLess(source.index("sensitive_paths = sensitive_auto_merge_paths(files)", source.index("def main()")),
                         source.index("if copilot_merge_requires_independent_authorization(pr):", source.index("def main()")))
-        block = source.split("if sensitive_paths:", 1)[-1]
+        block = source.split(
+            "if sensitive_paths and not bounded_level_two_exception(files):", 1
+        )[-1]
         self.assertIn("recover_sensitive_pr_merge_ci(repo, pr, runs)", block)
 
 
@@ -665,7 +667,10 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             source,
         )
         self.assertIn("sensitive_paths = sensitive_auto_merge_paths(files)", source)
-        self.assertIn("if sensitive_paths:", source)
+        self.assertIn(
+            "if sensitive_paths and not bounded_level_two_exception(files):",
+            source,
+        )
         self.assertIn(
             'pre_ci_eligible, reason = True, "owner-authorized"',
             source,

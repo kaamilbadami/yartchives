@@ -265,14 +265,15 @@ def copilot_low_risk_merge_eligible(
         return False, "missing or invalid main/head commit identity", None
     if not 0 < len(files) <= COPILOT_AUTOMERGE_MAX_FILES:
         return False, "file count exceeds pilot scope", None
+    if not copilot.safe_low_risk_files(files):
+        return False, "protected or non-product path", None
     total = 0
     for item in files:
         path = str(item.get("filename") or "")
         if (item.get("status") == "renamed" or item.get("previous_filename")
                 or (sensitive_auto_merge_paths([item]) and not bounded_level_two_exception(files))
                 or blocked_changed_paths([path])
-                or generated_artifact_file_paths([item])
-                or not copilot.safe_low_risk_files([item])):
+                or generated_artifact_file_paths([item])):
             return False, "protected or non-product path", None
         added, deleted = item.get("additions"), item.get("deletions")
         if not isinstance(added, int) or not isinstance(deleted, int) or min(added, deleted) < 0:

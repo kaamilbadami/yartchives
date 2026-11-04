@@ -111,7 +111,6 @@ COPILOT_PROTECTED_PATHS = frozenset({
     "scripts/ready_copilot_prs.py",
     "scripts/guard_jules_redispatch.py",
     "scripts/reconcile_merged_pr_issues.py",
-    "scripts/triage_source_quarantines.py",
     "scripts/quality_scope.sh",
     "scripts/run_quality_checks.sh",
     "scripts/targeted_frontend_preflight.py",
