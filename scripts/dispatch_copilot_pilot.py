@@ -32,6 +32,10 @@ except ModuleNotFoundError:
     )
 
 PILOT_LABEL = "copilot-pilot"
+# Student supports Auto only. After upgrading to Pro, set the repository
+# COPILOT_PILOT_MODEL variable to gpt-6-luna for low-cost pilot dispatch.
+# Restrict selections until their API spelling and account eligibility are tested.
+ALLOWED_MODELS = frozenset({"auto", "gpt-6-luna"})
 ATTEMPT_MARKER = "<!-- copilot-dispatch-attempt:v1 -->"
 COPILOT_LOGINS = frozenset({"copilot", "copilot-swe-agent", "copilot-swe-agent[bot]"})
 BLOCKING_LABELS = frozenset({
@@ -79,9 +83,12 @@ def preexisting_pr(prs: list[dict[str, Any]], issue_number: int) -> bool:
 
 
 def run_cycle(repo: str, assignment_token: str,
-              api: Callable[..., Any] = gh_api) -> str:
+              api: Callable[..., Any] = gh_api, *, model: str = "") -> str:
     if not assignment_token:
         return "disabled: COPILOT_ASSIGNMENT_TOKEN is not configured"
+    selected_model = model.strip().casefold()
+    if selected_model and selected_model not in ALLOWED_MODELS:
+        raise ValueError("unsupported COPILOT_PILOT_MODEL; refusing assignment")
     issues = api(f"repos/{repo}/issues?state=open&per_page=100")
     prs = api(f"repos/{repo}/pulls?state=open&per_page=100")
     if not isinstance(issues, list) or not isinstance(prs, list):
@@ -140,11 +147,14 @@ def run_cycle(repo: str, assignment_token: str,
         })
         # Per GitHub documentation this call requires an authorized *user*
         # token; ordinary workflow GITHUB_TOKEN is not sufficient.
+        assignment = {"target_repo": repo, "base_branch": "main"}
+        if selected_model and selected_model != "auto":
+            assignment["model"] = selected_model
         result = api(
             f"repos/{repo}/issues/{number}/assignees", method="POST",
             payload={
                 "assignees": ["copilot-swe-agent[bot]"],
-                "agent_assignment": {"target_repo": repo, "base_branch": "main"},
+                "agent_assignment": assignment,
             },
             token=assignment_token,
         )
@@ -162,7 +172,7 @@ def run_cycle(repo: str, assignment_token: str,
 def main() -> int:
     repo = os.environ["REPOSITORY"]
     token = os.environ.get("COPILOT_ASSIGNMENT_TOKEN", "")
-    print(run_cycle(repo, token))
+    print(run_cycle(repo, token, model=os.environ.get("COPILOT_PILOT_MODEL", "")))
     return 0
 
 
