@@ -35,3 +35,8 @@ The most appropriate path is to implement a purely non-destructive configuration
 
 **Concrete Follow-up**:
 - The acceptance criteria ("The issue may be closed automatically once this quarantine signature is no longer persistent in the generated feed") is met. Close issue #1156.
+
+
+## Autonomous dispatcher reconciliation audit (#1100)
+
+The proposed dispatcher-edge regression coverage checks that an empty backlog selects no tasks, stale `jules-review-ready` issues do not consume dispatch slots, shared resource locks prevent overlapping selection, and evidence providers returning no work do not create tasks. These are expected existing contracts; this PR adds regression tests without altering privileged dispatcher behavior.
