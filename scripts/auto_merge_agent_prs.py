@@ -205,7 +205,10 @@ def copilot_low_risk_merge_eligible(
     readiness provenance, and GitHub's protected merge API are all required.
     This first pilot intentionally excludes application and privileged code.
     """
-    import ready_copilot_prs as copilot
+    try:
+        from scripts import ready_copilot_prs as copilot
+    except ModuleNotFoundError:
+        import ready_copilot_prs as copilot
 
     if pr.get("state") != "open" or pr.get("draft") is not False:
         return False, "PR must be open and ready", None
