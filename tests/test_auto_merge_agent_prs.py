@@ -146,6 +146,45 @@ class CopilotLowRiskMergePolicyTests(unittest.TestCase):
                     self.assertFalse(mod.copilot_low_risk_merge_eligible(candidate, bad, "kaamilbadami/yartchives", runs("a" * 40))[0])
             api.assert_not_called()
 
+    def test_missing_or_invalid_base_and_head_identity_fail_closed(self):
+        candidate = self.candidate()
+        files = [{"filename": "tests/test_a.py", "additions": 2, "deletions": 1}]
+        with mock.patch.object(mod, "gh_json") as api:
+            for bad in (
+                dict(candidate, base={"ref": "main"}),
+                dict(candidate, base={"ref": "main", "sha": ""}),
+                dict(candidate, base={"ref": "main", "sha": "not-a-sha"}),
+                dict(candidate, base={"ref": "untrusted", "sha": "b" * 40}),
+                dict(candidate, head=dict(candidate["head"], sha="invalid")),
+            ):
+                with self.subTest(base=bad.get("base"), head=bad.get("head")):
+                    eligible, reason, _ = mod.copilot_low_risk_merge_eligible(
+                        bad, files, "kaamilbadami/yartchives", runs("a" * 40)
+                    )
+                    self.assertFalse(eligible, reason)
+            api.assert_not_called()
+
+    def test_reject_changed_head_branch_or_repository_before_ci(self):
+        from scripts import ready_copilot_prs as ready
+        candidate = self.candidate()
+        candidate["head"]["repo"] = {"full_name": "kaamilbadami/yartchives"}
+        repo = "kaamilbadami/yartchives"
+        files = [{"filename": "tests/test_a.py", "additions": 2, "deletions": 1}]
+        for drift in (
+            {"head": dict(candidate["head"], ref="copilot/other-branch")},
+            {"head": dict(candidate["head"], repo={"full_name": "attacker/fork"})},
+            {"base": {"ref": "other", "sha": "b" * 40}},
+        ):
+            with self.subTest(drift=drift):
+                fresh = dict(candidate, **drift)
+                with mock.patch.object(mod, "gh_json", return_value=fresh), \
+                     mock.patch.object(ready, "provenance_verified") as provenance:
+                    eligible, _, _ = mod.copilot_low_risk_merge_eligible(
+                        candidate, files, repo, runs("a" * 40)
+                    )
+                    self.assertFalse(eligible)
+                    provenance.assert_not_called()
+
     def test_trusted_provenance_and_current_merge_ci_are_mandatory(self):
         from scripts import ready_copilot_prs as ready
         candidate = self.candidate()
