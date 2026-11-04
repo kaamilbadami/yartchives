@@ -188,6 +188,16 @@ class MergeCiRecoveryRunReconciliationTests(unittest.TestCase):
                     self.assertEqual(state, expected)
                     self.assertIn("123", detail)
 
+    def test_actions_api_outage_waits_without_duplicate_dispatch(self):
+        import subprocess
+        now, head, merge, comments = self.make_comment()
+        error = subprocess.CalledProcessError(403, ["gh", "api"])
+        with mock.patch.object(mod, "gh_json", side_effect=error):
+            state, detail = mod.merge_ci_recovery_run_state(
+                "kaamilbadami/yartchives", 20, head, merge, comments, now=now)
+        self.assertEqual(state, "wait")
+        self.assertIn("unavailable", detail)
+
     def test_unrelated_run_does_not_satisfy_recovery(self):
         now, head, merge, comments = self.make_comment()
         unrelated = {"id": 500, "event": "workflow_dispatch",
@@ -2058,6 +2068,33 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         with mock.patch.object(mod, "gh_json", side_effect=correct_api):
             accepted, reason = mod.protected_merge_freshness(repo, 400, head)
         self.assertTrue(accepted, reason)
+
+    def test_newer_required_check_failure_vetoes_older_success(self):
+        repo = "kaamilbadami/yartchives"
+        head, base, merge = "a" * 40, "b" * 40, "c" * 40
+        candidate = {"state": "open", "draft": False,
+                     "base": {"ref": "main", "sha": base},
+                     "head": {"sha": head}, "merge_commit_sha": merge}
+
+        def api(*args):
+            path = args[-1]
+            if path.endswith("/pulls/400"):
+                return candidate
+            if path.endswith("/git/ref/heads/main"):
+                return {"object": {"sha": base}}
+            if path.endswith("/check-runs?per_page=100"):
+                return {"check_runs": [
+                    {"id": 100, "name": "tests", "status": "completed", "conclusion": "success",
+                     "completed_at": "2026-11-04T12:00:00Z", "app": {"id": 15368}},
+                    {"id": 101, "name": "tests", "status": "completed", "conclusion": "failure",
+                     "completed_at": "2026-11-04T12:05:00Z", "app": {"id": 15368}},
+                ]}
+            raise AssertionError(path)
+
+        with mock.patch.object(mod, "gh_json", side_effect=api):
+            accepted, reason = mod.protected_merge_freshness(repo, 400, head)
+        self.assertFalse(accepted)
+        self.assertIn("latest", reason)
 
     def test_guarded_merge_rejects_base_advance_and_identity_drift(self):
         repo = "kaamilbadami/yartchives"
