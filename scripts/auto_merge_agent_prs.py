@@ -201,20 +201,21 @@ def copilot_issue_still_authorized(issue: dict[str, Any], expected_number: int) 
                for a in issue["assignees"] if isinstance(a, dict))
 
 
-COPILOT_AUTOMERGE_MAX_FILES = 4
-COPILOT_AUTOMERGE_MAX_CHANGES = 250
+COPILOT_AUTOMERGE_MAX_FILES = 12
+COPILOT_AUTOMERGE_MAX_CHANGES = 1000
 
 
 def copilot_low_risk_merge_eligible(
     pr: dict[str, Any], files: list[dict[str, Any]], repo: str,
     runs: list[dict[str, Any]],
 ) -> tuple[bool, str, int | None]:
-    """Independent fail-closed contract for completed Copilot tests/docs PRs.
+    """Independent fail-closed contract for completed ordinary Copilot PRs.
 
     No PR-authored labels, comments or body claims grant merge authority.
     Exact-head execution, the current synthetic merge status, trusted main
     readiness provenance, and GitHub's protected merge API are all required.
-    This first pilot intentionally excludes application and privileged code.
+    Use the existing Jules product-change scope with extra Copilot provenance,
+    but continue to exclude privileged code and mutable dependency configuration.
     """
     try:
         from scripts import ready_copilot_prs as copilot
@@ -239,15 +240,17 @@ def copilot_low_risk_merge_eligible(
     for item in files:
         path = str(item.get("filename") or "")
         if (item.get("status") == "renamed" or item.get("previous_filename")
-                or not path.startswith(("tests/", "docs/"))
+                or sensitive_auto_merge_paths([item])
+                or blocked_changed_paths([path])
+                or generated_artifact_file_paths([item])
                 or not copilot.safe_low_risk_files([item])):
-            return False, "path outside tests/docs-only pilot", None
+            return False, "protected or non-product path", None
         added, deleted = item.get("additions"), item.get("deletions")
         if not isinstance(added, int) or not isinstance(deleted, int) or min(added, deleted) < 0:
             return False, "missing verified diff size", None
         total += added + deleted
     if total > COPILOT_AUTOMERGE_MAX_CHANGES:
-        return False, "diff exceeds bounded pilot", None
+        return False, "diff exceeds bounded policy", None
 
     number = int(pr["number"])
     fresh = gh_json("api", f"repos/{repo}/pulls/{number}")
