@@ -45,6 +45,13 @@ jobs:
           REPOSITORY: ${{ github.repository }}
         run: python scripts/guard_jules_redispatch.py
 
+      - name: Dispatch one explicitly opted-in Copilot pilot
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COPILOT_ASSIGNMENT_TOKEN: ${{ secrets.COPILOT_ASSIGNMENT_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+        run: python scripts/dispatch_copilot_pilot.py
+
       - name: Dispatch safe non-overlapping work
         env:
           GH_TOKEN: ${{ github.token }}
