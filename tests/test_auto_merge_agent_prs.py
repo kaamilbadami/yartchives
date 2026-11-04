@@ -174,6 +174,25 @@ class CopilotLowRiskMergePolicyTests(unittest.TestCase):
                 self.assertFalse(mod.copilot_low_risk_merge_eligible(candidate, files, repo, runs("a" * 40))[0])
             self.assertFalse(mod.copilot_low_risk_merge_eligible(candidate, files, repo, runs("a" * 40, conclusion="failure"))[0])
 
+    def test_last_moment_copilot_issue_authorization_fail_closed(self):
+        authorized = {
+            "number": 10, "state": "open", "labels": [],
+            "assignees": [{"login": "Copilot"}],
+        }
+        self.assertTrue(mod.copilot_issue_still_authorized(authorized, 10))
+        for drift in (
+            {"state": "closed"},
+            {"number": 11},
+            {"labels": [{"name": "initiative"}]},
+            {"labels": None},
+            {"assignees": None},
+            {"assignees": [{"login": "another-bot"}]},
+        ):
+            with self.subTest(drift=drift):
+                self.assertFalse(mod.copilot_issue_still_authorized(
+                    dict(authorized, **drift), 10,
+                ))
+
     def test_merge_path_keeps_github_protection_as_final_authority(self):
         source = MODULE_PATH.read_text()
         block = source.split("if copilot_merge_requires_independent_authorization(pr):", 1)[1].split("        sensitive_paths =", 1)[0]
