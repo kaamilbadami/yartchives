@@ -553,13 +553,25 @@ def prioritize_pull_requests(
 
 
 def exact_head_quality_passed(runs: Iterable[dict[str, Any]], head_sha: str) -> bool:
-    return any(
-        str(run.get("name") or "") == QUALITY_WORKFLOW
-        and str(run.get("head_sha") or "") == head_sha
-        and str(run.get("status") or "") == "completed"
-        and str(run.get("conclusion") or "") == "success"
-        for run in runs
-    )
+    """Only the newest executed exact-head Quality result can authorize merge.
+
+    A historical green run must not mask a newer failed or pending run.
+    Approval-gated action_required runs did not execute tests; ignore them
+    rather than overriding a real successful result for the same immutable SHA.
+    GitHub returns newest runs first; preserve that order if metadata ties.
+    """
+    matching = [run for run in runs
+                if str(run.get("name") or "") == QUALITY_WORKFLOW
+                and str(run.get("head_sha") or "") == head_sha
+                and not (run.get("status") == "completed"
+                         and run.get("conclusion") == "action_required")]
+    if not matching:
+        return False
+    latest = max(matching, key=lambda run: (
+        str(run.get("created_at") or ""), int(run.get("id") or 0)
+    ))
+    return (latest.get("status") == "completed"
+            and latest.get("conclusion") == "success")
 
 
 def trusted_repair_lineage_allowed(
