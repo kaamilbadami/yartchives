@@ -851,6 +851,72 @@ def merge_ci_recovery_decision(
     return "dispatch"
 
 
+def recover_sensitive_pr_merge_ci(
+    repo: str, pr: dict[str, Any], runs: Iterable[dict[str, Any]],
+) -> str:
+    """Recover verification for sensitive PRs WITHOUT authorizing their merge.
+
+    Only trusted main dispatches this read-only validation workflow. It never
+    marks a PR ready, approves it, edits its files or invokes the merge endpoint.
+    The per-head retry budget is shared with ordinary merge-CI recovery.
+    """
+    number = int(pr.get("number") or 0)
+    head = pr.get("head") or {}
+    base = pr.get("base") or {}
+    head_sha = str(head.get("sha") or "")
+    base_sha = str(base.get("sha") or "")
+    merge_sha = str(pr.get("merge_commit_sha") or "")
+    if (number <= 0 or pr.get("state") != "open"
+            or base.get("ref") != "main"
+            or ((head.get("repo") or {}).get("full_name") != repo)
+            or not all(re.fullmatch(r"[a-f0-9]{40}", sha)
+                       for sha in (head_sha, base_sha, merge_sha))):
+        return "block: missing trusted PR identity"
+    if exact_head_quality_in_flight(runs, head_sha):
+        return "wait: head Quality in flight"
+
+    # A checked commit status is only meaningful on the exact current merge.
+    status = gh_json("api", f"repos/{repo}/commits/{merge_sha}/status")
+    latest_tests = next(
+        (row for row in status.get("statuses", [])
+         if row.get("context") == "tests"), None
+    )
+    if latest_tests and latest_tests.get("state") == "success":
+        return "verified: merge tests status already green"
+    if latest_tests and latest_tests.get("state") in {"failure", "error"}:
+        return "block: latest merge tests status failed"
+
+    # Recheck the live PR immediately before recording a bounded dispatch.
+    current = gh_json("api", f"repos/{repo}/pulls/{number}")
+    if (current.get("state") != "open"
+            or (current.get("head") or {}).get("sha") != head_sha
+            or (current.get("base") or {}).get("sha") != base_sha
+            or current.get("merge_commit_sha") != merge_sha
+            or (current.get("base") or {}).get("ref") != "main"
+            or ((current.get("head") or {}).get("repo") or {}).get("full_name") != repo):
+        return "block: PR head/base/merge identity changed"
+    comments = gh_paginated_json(
+        "api", f"repos/{repo}/issues/{number}/comments?per_page=100",
+    )
+    decision = merge_ci_recovery_decision(comments, head_sha, merge_sha)
+    if decision != "dispatch":
+        return f"{decision}: bounded merge-CI recovery"
+    marker = f"<!-- merge-ci-recovery: head={head_sha} merge={merge_sha} -->"
+    gh_run(
+        "issue", "comment", str(number), "--repo", repo, "--body",
+        f"{marker}\\nTrusted-main CI recovery for a sensitive PR. "
+        "Verification only; manual authorization is still required to merge.",
+    )
+    gh_run(
+        "workflow", "run", "quality.yml", "--repo", repo,
+        "--ref", "main",
+        "-f", "pr_recovery=true",
+        "-f", f"pr_number={number}",
+        "-f", f"pr_head_sha={head_sha}",
+    )
+    return f"dispatched: read-only merge-CI recovery for {merge_sha}"
+
+
 def record_missing_ci_recovery(repo: str, pr_number: int, head_sha: str,
                                attempt: int, now: datetime) -> None:
     timestamp = now.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -1617,6 +1683,17 @@ def main() -> int:
             print(f"BLOCKED_REQUIRES_DECISION PR #{number}: closing keywords target parent initiative(s) {parent_closers}.")
             continue
 
+        sensitive_paths = sensitive_auto_merge_paths(files)
+        if sensitive_paths:
+            # CI verification is not merge authorization. Perform bounded
+            # trusted-main recovery even for controller/workflow PRs, then stop.
+            result = recover_sensitive_pr_merge_ci(repo, pr, runs)
+            print(
+                f"BLOCKED_REQUIRES_DECISION PR #{number}: security-sensitive paths "
+                f"{sensitive_paths} require independent review/manual merge; CI {result}."
+            )
+            continue
+
         if copilot_merge_requires_independent_authorization(pr):
             # Separate from Jules and owner merge lanes. Only controller-verified
             # tests/docs Copilot PRs may enter this guarded pilot path.
@@ -1653,14 +1730,6 @@ def main() -> int:
             close_linked_issue_after_merge(repo, copilot_issue)
             print(f"Squash-merged independently verified low-risk Copilot PR #{number}.")
             merged_count += 1
-            continue
-
-        sensitive_paths = sensitive_auto_merge_paths(files)
-        if sensitive_paths:
-            print(
-                f"BLOCKED_REQUIRES_DECISION PR #{number}: security-sensitive paths "
-                f"{sensitive_paths} require independent review and manual merge."
-            )
             continue
 
         maintenance_pre_ci, maintenance_reason = maintenance_pr_eligible(
