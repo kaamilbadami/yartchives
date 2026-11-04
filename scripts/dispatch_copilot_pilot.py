@@ -101,6 +101,20 @@ def run_cycle(repo: str, assignment_token: str,
                 occupied.update(task_lock_keys(task))
     open_numbers = {int(i["number"]) for i in issues if i.get("state") == "open"
                     and "pull_request" not in i}
+    # Keep exactly one outstanding pilot across *multiple* scheduled runs.
+    # An attempted assignment may still be working even if Copilot has
+    # temporarily removed its assignee; only an issue closure releases it.
+    for other in issues:
+        if "pull_request" in other or PILOT_LABEL not in label_names(other):
+            continue
+        if any(str(a.get("login") or "").casefold() in COPILOT_LOGINS
+               for a in other.get("assignees") or [] if isinstance(a, dict)):
+            return f"Copilot pilot #{other['number']} is already assigned"
+        history = api(f"repos/{repo}/issues/{other['number']}/comments?per_page=100")
+        if not isinstance(history, list):
+            raise ValueError("cannot verify existing pilot history")
+        if any(ATTEMPT_MARKER in str(c.get("body") or "") for c in history):
+            return f"Copilot pilot #{other['number']} already attempted; awaiting outcome"
     # One explicit pilot at a time, so that the live result is interpretable.
     for issue in sorted(issues, key=lambda i: int(i["number"])):
         if not issue_is_eligible(issue, open_numbers, occupied):
