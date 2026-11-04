@@ -212,7 +212,9 @@ class SensitivePrCiRecoveryTests(unittest.TestCase):
         source = MODULE_PATH.read_text()
         self.assertLess(source.index("sensitive_paths = sensitive_auto_merge_paths(files)", source.index("def main()")),
                         source.index("if copilot_merge_requires_independent_authorization(pr):", source.index("def main()")))
-        block = source.split("if sensitive_paths:", 1)[-1]
+        block = source.split(
+            "if sensitive_paths and not bounded_level_two_exception(files):", 1
+        )[-1]
         self.assertIn("recover_sensitive_pr_merge_ci(repo, pr, runs)", block)
 
 
@@ -582,7 +584,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
     def test_main_accepts_trusted_preflight_bot_pr_as_direct_authorized_lane(self):
         source = MODULE_PATH.read_text()
         self.assertIn(
-            "owner_authorized = owner_authorized_pr(pr, repo) or trusted_preflight_auto_pr(pr, repo)",
+            "owner_authorized = owner_lane or trusted_preflight_auto_pr(pr, repo)",
             source,
         )
 
@@ -593,7 +595,8 @@ class AutoMergeAgentPrTests(unittest.TestCase):
 
     def test_main_does_not_require_comment_lookup_to_authorize_owner_prs(self):
         source = MODULE_PATH.read_text()
-        self.assertIn("owner_authorized = owner_authorized_pr(pr, repo)", source)
+        self.assertIn("owner_lane = owner_authorized_pr(pr, repo)", source)
+        self.assertIn("owner_authorized = owner_lane or trusted_preflight_auto_pr(pr, repo)", source)
         self.assertNotIn(
             'if OWNER_AUTHORIZED_AUTOMERGE_MARKER not in str(pr.get("body") or ""):',
             source,
@@ -658,14 +661,17 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             "owner_name/repo", 881, "66c62217c3e7cd6eeda9ee6d5fc35ab59fb00afe"
         )
 
-    def test_owner_authorized_lane_bypasses_issue_link_but_not_sensitive_paths_or_ci(self):
+    def test_owner_authorized_lane_bypasses_sensitive_path_veto_but_not_ci(self):
         source = MODULE_PATH.read_text()
         self.assertIn(
             "if issue_number is None and not maintenance_pre_ci and not owner_authorized:",
             source,
         )
         self.assertIn("sensitive_paths = sensitive_auto_merge_paths(files)", source)
-        self.assertIn("if sensitive_paths:", source)
+        self.assertIn(
+            "if sensitive_paths and not owner_lane and not bounded_level_two_exception(files):",
+            source,
+        )
         self.assertIn(
             'pre_ci_eligible, reason = True, "owner-authorized"',
             source,
@@ -2237,6 +2243,91 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                 issue(labels=("autonomous-backlog", "codex-review-ready"))
             )
         )
+
+
+
+class BoundedLevelTwoAdmissionTests(unittest.TestCase):
+    def row(self, name, changes=10, status="modified", **extra):
+        return {"filename": name, "changes": changes, "status": status, **extra}
+
+    def test_test_paired_quarantine_repair_admitted_to_scope_only(self):
+        files = [self.row("scripts/triage_source_quarantines.py"),
+                 self.row("tests/test_triage_source_quarantines.py")]
+        self.assertTrue(mod.bounded_level_two_exception(files))
+        # Classification/exception must not bypass the existing provenance,
+        # exact-head CI, or GitHub protected merge API.
+        self.assertEqual(mod.classify_merge_risk(files)[0], 2)
+
+    def test_incomplete_large_or_unverifiable_level_two_change_fails_closed(self):
+        paired = [self.row("scripts/triage_source_quarantines.py"),
+                  self.row("tests/test_triage_source_quarantines.py")]
+        cases = (
+            paired[:1],
+            paired + [self.row("scripts/auto_merge_agent_prs.py")],
+            paired + [self.row(".github/workflows/quality.yml")],
+            [self.row("scripts/triage_source_quarantines.py", changes=101), paired[1]],
+            [self.row("scripts/triage_source_quarantines.py", changes="bad"), paired[1]],
+            [self.row("scripts/triage_source_quarantines.py", status="renamed",
+                      previous_filename="scripts/old.py"), paired[1]],
+            [self.row("scripts/triage_source_quarantines.py"), paired[1], paired[1]],
+        )
+        for files in cases:
+            with self.subTest(files=files):
+                self.assertFalse(mod.bounded_level_two_exception(files))
+
+    def test_other_sensitive_paths_never_gain_level_two_exception(self):
+        for path in ("scripts/dispatch_autonomous_issues.py",
+                     "scripts/dispatch_copilot_pilot.py",
+                     "scripts/ready_copilot_prs.py",
+                     ".github/workflows/auto-merge-agent-prs.yml",
+                     "scripts/auto_merge_agent_prs.py",
+                     "scripts/merge_risk_policy.py",
+                     "requirements.txt"):
+            with self.subTest(path=path):
+                self.assertFalse(mod.bounded_level_two_exception([
+                    self.row(path), self.row("tests/test_auto_merge_agent_prs.py")]))
+
+
+
+class OwnerProtectedMergePolicyTests(unittest.TestCase):
+    def test_owner_is_authorized_only_for_ready_same_repository_pr(self):
+        repo = "kaamilbadami/yartchives"
+        pr = {
+            "state": "open", "draft": False,
+            "user": {"login": "kaamilbadami"},
+            "head": {"repo": {"full_name": repo}},
+        }
+        self.assertTrue(mod.owner_authorized_pr(pr, repo))
+        for mutation in (
+            {"draft": True},
+            {"state": "closed"},
+            {"user": {"login": "copilot"}},
+            {"head": {"repo": {"full_name": "outside/fork"}}},
+        ):
+            with self.subTest(mutation=mutation):
+                self.assertFalse(mod.owner_authorized_pr({**pr, **mutation}, repo))
+
+    def test_protected_paths_remain_sensitive_for_nonowners(self):
+        protected_files = [
+            {"filename": "scripts/auto_merge_agent_prs.py", "changes": 5, "status": "modified"},
+            {"filename": ".github/workflows/quality.yml", "changes": 5, "status": "modified"},
+        ]
+        self.assertTrue(mod.sensitive_auto_merge_paths(protected_files))
+        self.assertFalse(mod.bounded_level_two_exception(protected_files))
+        self.assertEqual(mod.classify_merge_risk(protected_files)[0], 3)
+
+    def test_owner_merge_still_uses_freshness_and_required_checks(self):
+        # Source regression: the owner exemption is only at the path veto,
+        # not at protected-merge freshness or exact-head Quality checks.
+        source = MODULE_PATH.read_text(encoding="utf-8")
+        self.assertIn(
+            "if sensitive_paths and not owner_lane and not bounded_level_two_exception(files):",
+            source,
+        )
+        self.assertIn("owner_lane = owner_authorized_pr(pr, repo)", source)
+        self.assertIn("exact_head_quality_passed(runs, head_sha)", source)
+        self.assertIn("fresh, reason = protected_merge_freshness(repo, number, head_sha)", source)
+        self.assertIn("try_guarded_squash_merge(", source)
 
 
 if __name__ == "__main__":

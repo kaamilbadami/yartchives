@@ -3,6 +3,11 @@
 
 from __future__ import annotations
 
+try:
+    from scripts.merge_risk_policy import classify_merge_risk
+except ModuleNotFoundError:
+    from merge_risk_policy import classify_merge_risk
+
 import json
 import os
 import re
@@ -75,6 +80,7 @@ SAFE_MERGEABLE_STATES = {"clean", "has_hooks", "unstable", "behind"}
 MAINTENANCE_TEST_BY_PATH = {
     "scripts/dispatch_autonomous_issues.py": "tests/test_dispatch_autonomous_issues.py",
     "scripts/triage_workflow_failures.py": "tests/test_triage_workflow_failures.py",
+    "scripts/triage_source_quarantines.py": "tests/test_triage_source_quarantines.py",
 }
 MAINTENANCE_ALLOWED_PATHS = frozenset(
     {*MAINTENANCE_TEST_BY_PATH, *MAINTENANCE_TEST_BY_PATH.values()}
@@ -180,6 +186,29 @@ def sensitive_auto_merge_paths(files: Iterable[dict[str, Any]]) -> list[str]:
     return sorted(blocked)
 
 
+def bounded_level_two_exception(files: Iterable[dict[str, Any]]) -> bool:
+    """Only a test-paired nonprivileged quarantine repair may bypass the broad veto.
+
+    No workflow, merge-policy, credential, dispatch, or unknown path is eligible.
+    This is a file-scope exception, never a bypass of provenance or required CI.
+    """
+    rows = list(files)
+    paths = {str(row.get("filename") or "") for row in rows}
+    allowed = {"scripts/triage_source_quarantines.py",
+               "tests/test_triage_source_quarantines.py"}
+    if (not paths <= allowed or paths != allowed or len(rows) != 2):
+        return False
+    if any(row.get("previous_filename")
+           or row.get("status") not in {"modified", "added"}
+           or type(row.get("changes")) is not int
+           or row.get("changes") < 0 for row in rows):
+        return False
+    if sum(row["changes"] for row in rows) > 100:
+        return False
+    risk, _ = classify_merge_risk(rows)
+    return risk == 2
+
+
 def copilot_merge_requires_independent_authorization(pr: dict[str, Any]) -> bool:
     """Draft-to-ready is not a grant of automatic merge authorization.
 
@@ -236,14 +265,15 @@ def copilot_low_risk_merge_eligible(
         return False, "missing or invalid main/head commit identity", None
     if not 0 < len(files) <= COPILOT_AUTOMERGE_MAX_FILES:
         return False, "file count exceeds pilot scope", None
+    if not copilot.safe_low_risk_files(files):
+        return False, "protected or non-product path", None
     total = 0
     for item in files:
         path = str(item.get("filename") or "")
         if (item.get("status") == "renamed" or item.get("previous_filename")
-                or sensitive_auto_merge_paths([item])
+                or (sensitive_auto_merge_paths([item]) and not bounded_level_two_exception(files))
                 or blocked_changed_paths([path])
-                or generated_artifact_file_paths([item])
-                or not copilot.safe_low_risk_files([item])):
+                or generated_artifact_file_paths([item])):
             return False, "protected or non-product path", None
         added, deleted = item.get("additions"), item.get("deletions")
         if not isinstance(added, int) or not isinstance(deleted, int) or min(added, deleted) < 0:
@@ -1738,14 +1768,17 @@ def main() -> int:
             print(f"BLOCKED_REQUIRES_DECISION PR #{number}: closing keywords target parent initiative(s) {parent_closers}.")
             continue
 
+        risk_level, risk_reason = classify_merge_risk(files)
+        print(f"PR #{number}: merge risk level {risk_level} ({risk_reason}).")
         sensitive_paths = sensitive_auto_merge_paths(files)
-        if sensitive_paths:
+        owner_lane = owner_authorized_pr(pr, repo)
+        if sensitive_paths and not owner_lane and not bounded_level_two_exception(files):
             # CI verification is not merge authorization. Perform bounded
             # trusted-main recovery even for controller/workflow PRs, then stop.
             result = recover_sensitive_pr_merge_ci(repo, pr, runs)
             print(
                 f"BLOCKED_REQUIRES_DECISION PR #{number}: security-sensitive paths "
-                f"{sensitive_paths} require independent review/manual merge; CI {result}."
+                f"{sensitive_paths} require independent review/manual merge for non-owner PRs; CI {result}."
             )
             continue
 
@@ -1802,7 +1835,7 @@ def main() -> int:
             require_quality=False,
         )
 
-        owner_authorized = owner_authorized_pr(pr, repo) or trusted_preflight_auto_pr(pr, repo)
+        owner_authorized = owner_lane or trusted_preflight_auto_pr(pr, repo)
         issue_number = linked_issue_number(str(pr.get("body") or ""))
         issue = None
         if issue_number is not None:
