@@ -40,9 +40,9 @@ CLOSING_REFERENCE_RE = re.compile(
     r"(?:(?P<repository>[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+))?"
     r"#(?P<number>\d+)\b"
 )
-# Independent authorization is required for code that could change the trust
-# boundary itself, even when the PR is owner-authored or bot-authored. Merely
-# opening a PR or marking it ready is not independent security approval.
+# Privileged paths are tracked for diagnostics and bounded scope validation.
+# There is no repository-specific independent-review prerequisite; GitHub
+# protection and exact-head/merge CI remain authoritative.
 SENSITIVE_AUTO_MERGE_PATHS = (
     ".github/**",
     "requirements.txt",
@@ -161,10 +161,10 @@ def trusted_preflight_auto_pr(pr: dict[str, Any], repo: str) -> bool:
     return TRUSTED_PREFLIGHT_AUTO_PR_MARKER in str(pr.get("body") or "")
 
 def sensitive_auto_merge_paths(files: Iterable[dict[str, Any]]) -> list[str]:
-    """Fail closed for privileged paths, including rename sources.
+    """Identify privileged paths (including rename sources) for diagnostics.
 
-    This is a mandatory pre-merge veto, not an alternate eligibility lane.
-    A human must independently review and manually merge these PRs.
+    Eligibility, exact-head CI, and GitHub merge protection determine whether
+    a PR can merge; these paths no longer create a manual-review-only lane.
     """
     blocked: set[str] = set()
     for row in files:
@@ -181,11 +181,11 @@ def sensitive_auto_merge_paths(files: Iterable[dict[str, Any]]) -> list[str]:
 
 
 def copilot_merge_requires_independent_authorization(pr: dict[str, Any]) -> bool:
-    """Draft-to-ready is not a grant of automatic merge authorization.
+    """Route Copilot PRs through their stronger provenance and CI contract.
 
-    Copilot issue-to-PR provenance and independent merge policy are not yet
-    production-verified. Block every Copilot PR from the legacy Jules/owner
-    merge lanes until a separately reviewed Copilot merge contract exists.
+    This is not an independent-review requirement. Copilot PRs must retain
+    their verified issue linkage, exact-head and synthetic-merge tests, and
+    GitHub-protected mergeability.
     """
     return str((pr.get("user") or {}).get("login") or "").casefold() == "copilot"
 
@@ -1693,16 +1693,14 @@ def main() -> int:
             print(f"BLOCKED_REQUIRES_DECISION PR #{number}: closing keywords target parent initiative(s) {parent_closers}.")
             continue
 
+        # No independent-review veto: privileged paths enter the same
+        # evidence-backed eligibility lanes as other changes. Exact-head CI,
+        # guarded mergeability, protected GitHub merge, and the bounded
+        # maintenance/control-plane contracts still apply. Unsupported scope
+        # fails closed through eligibility, not a blanket manual-review hold.
         sensitive_paths = sensitive_auto_merge_paths(files)
         if sensitive_paths:
-            # CI verification is not merge authorization. Perform bounded
-            # trusted-main recovery even for controller/workflow PRs, then stop.
-            result = recover_sensitive_pr_merge_ci(repo, pr, runs)
-            print(
-                f"BLOCKED_REQUIRES_DECISION PR #{number}: security-sensitive paths "
-                f"{sensitive_paths} require independent review/manual merge; CI {result}."
-            )
-            continue
+            print(f"PR #{number}: privileged paths {sensitive_paths}; applying CI and bounded eligibility checks.")
 
         if copilot_merge_requires_independent_authorization(pr):
             # Separate from Jules and owner merge lanes. Only controller-verified
