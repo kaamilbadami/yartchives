@@ -44,6 +44,53 @@ def runs(sha="abc", conclusion="success"):
     ]
 
 
+
+class RecoveryConcurrencyAndMainDriftRegressionTests(unittest.TestCase):
+    def test_recovery_dispatch_is_not_canceled_by_unrelated_main_quality_runs(self):
+        # Recovery is dispatched from main but verifies a specific PR head and
+        # merge identity. It must not share main's cancel-in-progress group.
+        import yaml
+        workflow = yaml.safe_load((ROOT / ".github/workflows/quality.yml").read_text())
+        group = workflow["concurrency"]["group"]
+        cancellation = workflow["concurrency"]["cancel-in-progress"]
+        self.assertIn("inputs.pr_recovery", group)
+        self.assertIn("github.run_id", group)
+        self.assertIn("quality-recovery-", group)
+        self.assertIn("inputs.pr_recovery", cancellation)
+        self.assertIn("run-name", workflow)
+        self.assertIn("inputs.pr_number", workflow["run-name"])
+
+    def test_main_advancing_after_check_validation_blocks_merge_admission(self):
+        repo = "kaamilbadami/yartchives"
+        head, base, merge = "a" * 40, "b" * 40, "c" * 40
+        candidate = {
+            "state": "open", "draft": False,
+            "head": {"sha": head},
+            "base": {"sha": base, "ref": "main"},
+            "merge_commit_sha": merge,
+        }
+        seen = {"refs": 0}
+
+        def api(*args):
+            path = args[-1]
+            if path.endswith("/pulls/400"):
+                return candidate
+            if path.endswith("/git/ref/heads/main"):
+                seen["refs"] += 1
+                return {"object": {"sha": base if seen["refs"] == 1 else "d" * 40}}
+            if path.endswith("/check-runs?per_page=100"):
+                return {"check_runs": [
+                    {"name": "tests", "status": "completed", "conclusion": "success",
+                     "app": {"id": 15368}}
+                ]}
+            raise AssertionError(path)
+
+        with mock.patch.object(mod, "gh_json", side_effect=api):
+            allowed, reason = mod.protected_merge_freshness(repo, 400, head)
+        self.assertFalse(allowed)
+        self.assertIn("main advanced", reason)
+        self.assertEqual(seen["refs"], 2)
+
 class MissingCiRecoveryTests(unittest.TestCase):
     def test_missing_ci_dispatches_once_then_waits_then_escalates(self):
         from datetime import datetime, timedelta, timezone
