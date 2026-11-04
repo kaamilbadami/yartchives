@@ -1,6 +1,6 @@
 name: Quality checks
 # Include the recovery PR identity in Actions run metadata for dispatch/run reconciliation.
-run-name: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_recovery == true && format('Recovery PR #{0} head {1} merge {2}', inputs.pr_number, inputs.pr_head_sha, inputs.pr_merge_sha) || 'Quality checks' }}
+run-name: "${{ github.event_name == 'workflow_dispatch' && inputs.pr_recovery == true && format('Recovery PR #{0} head {1} merge {2}', inputs.pr_number, inputs.pr_head_sha, inputs.pr_merge_sha) || 'Quality checks' }}"
 
 on:
   workflow_dispatch:
