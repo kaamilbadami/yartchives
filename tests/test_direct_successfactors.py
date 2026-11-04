@@ -86,6 +86,24 @@ class DirectSuccessFactorsTests(unittest.TestCase):
         }
         self.assertEqual(mod.discover_sources(universe), [])
 
+    def test_fetch_source_passes_accept_header(self):
+        import requests
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        mock_response.content = b'<?xml version="1.0" encoding="UTF-8"?><urlset><url><loc>https://careers.example.com/job/Risk-&-Compliance/1/</loc></url></urlset>'
+
+        mock_client = mock.Mock()
+        mock_client.get.return_value = mock_response
+
+        source = {"key": "test", "name": "test", "company": "test", "employer_id": "test", "homepage": "test", "sitemap_url": "https://example.com/sitemap.xml"}
+        mod.fetch_source(mock_client, source, mock.Mock())
+
+        mock_client.get.assert_any_call(
+            "https://example.com/sitemap.xml",
+            headers={"User-Agent": mock.ANY, "Accept": "*/*"},
+            timeout=mock.ANY,
+        )
+
     def test_fetch_source_raises_endpoint_retired_on_404(self):
         import requests
         mock_response = mock.Mock()
