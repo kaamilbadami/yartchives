@@ -139,12 +139,46 @@ class CopilotLowRiskMergePolicyTests(unittest.TestCase):
                 [{"filename": ".github/workflows/quality.yml", "additions": 1, "deletions": 0}],
                 [{"filename": "scripts/auto_merge_agent_prs.py", "additions": 1, "deletions": 0}],
                 [{"filename": "tests/safe.py", "status": "renamed", "previous_filename": "scripts/ready_copilot_prs.py", "additions": 1, "deletions": 0}],
-                [{"filename": "tests/safe.py", "additions": 251, "deletions": 0}],
+                [{"filename": "tests/safe.py", "additions": 1001, "deletions": 0}],
                 [{"filename": "tests/safe.py", "additions": None, "deletions": 0}],
             ]:
                 with self.subTest(bad=bad):
                     self.assertFalse(mod.copilot_low_risk_merge_eligible(candidate, bad, "kaamilbadami/yartchives", runs("a" * 40))[0])
             api.assert_not_called()
+
+    def test_jules_parity_scope_allows_product_data_and_ordinary_script_files(self):
+        from scripts import ready_copilot_prs as ready
+        allowed = (
+            "app.js", "styles.css", "index.html", "README.md",
+            "docs/guide.md", "tests/test_a.py",
+            "scripts/audit_feed.py", "scripts/build_feed.py",
+            "data/employer-seeds/sample.json", "data/sample.csv",
+        )
+        for path in allowed:
+            with self.subTest(path=path):
+                self.assertTrue(ready.safe_low_risk_files([{"filename": path}]))
+                self.assertFalse(mod.sensitive_auto_merge_paths([{"filename": path}]))
+                self.assertFalse(mod.blocked_changed_paths([path]))
+
+    def test_privileged_and_generated_paths_remain_excluded(self):
+        from scripts import ready_copilot_prs as ready
+        blocked = (
+            ".github/workflows/quality.yml", ".github/CODEOWNERS",
+            "requirements.txt", "package.json", "package-lock.json",
+            "scripts/ready_copilot_prs.py", "scripts/auto_merge_agent_prs.py",
+            "scripts/dispatch_autonomous_issues.py",
+            "scripts/quality_scope.sh", "scripts/run_quality_checks.sh",
+            "scripts/triage_workflow_failures.py", "scripts/merge_recovery.py",
+            "data/.secrets.json", "data/../app.js",
+            "scripts/__pycache__/safe.pyc",
+        )
+        for path in blocked:
+            with self.subTest(path=path):
+                self.assertFalse(ready.safe_low_risk_files([{"filename": path}]))
+
+    def test_bounded_policy_extends_beyond_tests_docs(self):
+        self.assertEqual(mod.COPILOT_AUTOMERGE_MAX_FILES, 12)
+        self.assertEqual(mod.COPILOT_AUTOMERGE_MAX_CHANGES, 1000)
 
     def test_missing_or_invalid_base_and_head_identity_fail_closed(self):
         candidate = self.candidate()
