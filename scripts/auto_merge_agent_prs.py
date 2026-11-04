@@ -887,9 +887,14 @@ def merge_ci_recovery_run_state(
     except ValueError:
         # Unknown marker age must not authorize a second dispatch.
         return "wait", "recovery marker has no reliable creation timestamp"
-    response = gh_json(
-        "api", f"repos/{repo}/actions/workflows/quality.yml/runs?event=workflow_dispatch&per_page=100",
-    )
+    try:
+        response = gh_json(
+            "api", f"repos/{repo}/actions/workflows/quality.yml/runs?event=workflow_dispatch&per_page=100",
+        )
+    except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+        # A temporary Actions API failure must not crash the whole PR scan or
+        # authorize another dispatch with uncertain prior state.
+        return "wait", f"recovery Actions run metadata unavailable: {exc}"
     expected = f"Recovery PR #{number} head {head_sha} merge {merge_sha}"
     matched = [
         item for item in response.get("workflow_runs", [])
@@ -1458,13 +1463,16 @@ def protected_merge_freshness(repo: str, number: int, head_sha: str) -> tuple[bo
     checks = gh_json("api", f"repos/{repo}/commits/{merge_sha}/check-runs?per_page=100")
     if not isinstance(checks.get("check_runs"), list):
         return False, "required merge check runs unavailable"
-    required = [
-        row for row in checks["check_runs"]
-        if row.get("name") == "tests"
-        and (row.get("app") or {}).get("id") == 15368
-    ]
-    if not required or required[0].get("status") != "completed" or required[0].get("conclusion") != "success":
-        return False, "current merge SHA lacks successful Actions-owned tests check"
+    required = sorted(
+        (row for row in checks["check_runs"]
+         if row.get("name") == "tests" and (row.get("app") or {}).get("id") == 15368),
+        key=lambda row: (str(row.get("completed_at") or row.get("started_at") or ""),
+                         int(row.get("id") or 0)),
+        reverse=True,
+    )
+    if (not required or required[0].get("status") != "completed"
+            or required[0].get("conclusion") != "success"):
+        return False, "current merge SHA lacks latest successful Actions-owned tests check"
     # Keep the final observable freshness check close to the protected API call.
     current = gh_json("api", f"repos/{repo}/pulls/{number}")
     if (current.get("state") != "open"
