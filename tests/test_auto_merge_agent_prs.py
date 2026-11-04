@@ -584,7 +584,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
     def test_main_accepts_trusted_preflight_bot_pr_as_direct_authorized_lane(self):
         source = MODULE_PATH.read_text()
         self.assertIn(
-            "owner_authorized = owner_authorized_pr(pr, repo) or trusted_preflight_auto_pr(pr, repo)",
+            "owner_authorized = owner_lane or trusted_preflight_auto_pr(pr, repo)",
             source,
         )
 
@@ -595,7 +595,8 @@ class AutoMergeAgentPrTests(unittest.TestCase):
 
     def test_main_does_not_require_comment_lookup_to_authorize_owner_prs(self):
         source = MODULE_PATH.read_text()
-        self.assertIn("owner_authorized = owner_authorized_pr(pr, repo)", source)
+        self.assertIn("owner_lane = owner_authorized_pr(pr, repo)", source)
+        self.assertIn("owner_authorized = owner_lane or trusted_preflight_auto_pr(pr, repo)", source)
         self.assertNotIn(
             'if OWNER_AUTHORIZED_AUTOMERGE_MARKER not in str(pr.get("body") or ""):',
             source,
@@ -660,7 +661,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             "owner_name/repo", 881, "66c62217c3e7cd6eeda9ee6d5fc35ab59fb00afe"
         )
 
-    def test_owner_authorized_lane_bypasses_issue_link_but_not_sensitive_paths_or_ci(self):
+    def test_owner_authorized_lane_bypasses_sensitive_path_veto_but_not_ci(self):
         source = MODULE_PATH.read_text()
         self.assertIn(
             "if issue_number is None and not maintenance_pre_ci and not owner_authorized:",
@@ -668,7 +669,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         )
         self.assertIn("sensitive_paths = sensitive_auto_merge_paths(files)", source)
         self.assertIn(
-            "if sensitive_paths and not bounded_level_two_exception(files):",
+            "if sensitive_paths and not owner_lane and not bounded_level_two_exception(files):",
             source,
         )
         self.assertIn(
