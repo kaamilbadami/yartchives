@@ -121,9 +121,20 @@ class MergeCiRecoveryBudgetTests(unittest.TestCase):
              "body": f"<!-- merge-ci-recovery: head={head} merge={merge} -->"}
             for merge in ("b" * 40, "c" * 40)
         ]
-        self.assertEqual(mod.merge_ci_recovery_decision(comments, head, "d" * 40), "escalate")
+        # Two obsolete synthetic merges must not exhaust the next current merge.
+        self.assertEqual(mod.merge_ci_recovery_decision(comments, head, "d" * 40), "dispatch")
         self.assertEqual(mod.merge_ci_recovery_decision(comments, head, "b" * 40), "wait")
         self.assertEqual(mod.merge_ci_recovery_decision(comments, "e" * 40, "d" * 40), "dispatch")
+        exhausted = comments + [
+            {"user": {"login": "github-actions[bot]"},
+             "body": f"<!-- merge-ci-recovery: head={head} merge={chr(letter) * 40} -->"}
+            for letter in range(ord("d"), ord("j"))
+        ]
+        self.assertEqual(mod.merge_ci_recovery_decision(exhausted, head, "k" * 40), "escalate")
+        self.assertEqual(mod.merge_ci_recovery_decision([comments[0]], head, "b" * 40,
+                        retry_current_merge=True), "dispatch")
+        self.assertEqual(mod.merge_ci_recovery_decision([comments[0], comments[0]], head,
+                        "b" * 40, retry_current_merge=True), "escalate")
 
     def test_untrusted_markers_and_invalid_identity_fail_safely(self):
         head, merge = "a" * 40, "b" * 40
@@ -132,6 +143,74 @@ class MergeCiRecoveryBudgetTests(unittest.TestCase):
         self.assertEqual(mod.merge_ci_recovery_decision([fake], head, merge), "dispatch")
         self.assertEqual(mod.merge_ci_recovery_decision([], "bad", merge), "block")
         self.assertEqual(mod.merge_ci_recovery_decision([], head, ""), "block")
+
+
+class MergeCiRecoveryRunReconciliationTests(unittest.TestCase):
+    def make_comment(self, age_minutes=10):
+        from datetime import datetime, timedelta, timezone
+        now = datetime(2026, 11, 4, 18, 0, tzinfo=timezone.utc)
+        head, merge = "a" * 40, "b" * 40
+        marker = f"<!-- merge-ci-recovery: head={head} merge={merge} -->"
+        comment = {"user": {"login": "github-actions[bot]"},
+                   "created_at": (now - timedelta(minutes=age_minutes)).isoformat(),
+                   "body": marker}
+        return now, head, merge, [comment]
+
+    def test_never_created_workflow_retries_only_after_grace(self):
+        now, head, merge, comments = self.make_comment()
+        with mock.patch.object(mod, "gh_json", return_value={"workflow_runs": []}):
+            state, detail = mod.merge_ci_recovery_run_state(
+                "kaamilbadami/yartchives", 20, head, merge, comments, now=now)
+            self.assertEqual(state, "retry")
+            self.assertIn("did not materialize", detail)
+            early, _ = mod.merge_ci_recovery_run_state(
+                "kaamilbadami/yartchives", 20, head, merge,
+                [dict(comments[0], created_at=now.isoformat())], now=now)
+            self.assertEqual(early, "wait")
+
+    def test_queued_failed_and_success_without_check_are_classified(self):
+        now, head, merge, comments = self.make_comment()
+        run = {"id": 123, "event": "workflow_dispatch",
+               "display_title": f"Recovery PR #20 head {head} merge {merge}",
+               "head_branch": "main", "status": "queued", "conclusion": None}
+        for status, conclusion, expected in [
+            ("queued", None, "wait"),
+            ("in_progress", None, "wait"),
+            ("completed", "failure", "retry"),
+            ("completed", "cancelled", "retry"),
+            ("completed", "success", "retry"),
+        ]:
+            with self.subTest(status=status, conclusion=conclusion):
+                run["status"], run["conclusion"] = status, conclusion
+                with mock.patch.object(mod, "gh_json", return_value={"workflow_runs": [dict(run)]}):
+                    state, detail = mod.merge_ci_recovery_run_state(
+                        "kaamilbadami/yartchives", 20, head, merge, comments, now=now)
+                    self.assertEqual(state, expected)
+                    self.assertIn("123", detail)
+
+    def test_unrelated_run_does_not_satisfy_recovery(self):
+        now, head, merge, comments = self.make_comment()
+        unrelated = {"id": 500, "event": "workflow_dispatch",
+                     "display_title": f"Recovery PR #20 head {head} merge {'c' * 40}",
+                     "head_branch": "main", "status": "completed",
+                     "conclusion": "success"}
+        with mock.patch.object(mod, "gh_json", return_value={"workflow_runs": [unrelated]}):
+            state, detail = mod.merge_ci_recovery_run_state(
+                "kaamilbadami/yartchives", 20, head, merge, comments, now=now)
+        self.assertEqual(state, "retry")
+        self.assertIn("did not materialize", detail)
+
+    def test_pinned_recovery_workflow_rejects_merge_sha_drift(self):
+        import yaml
+        workflow = yaml.safe_load((ROOT / ".github/workflows/quality.yml").read_text())
+        self.assertIn("pr_merge_sha", workflow["on"]["workflow_dispatch"]["inputs"] if "on" in workflow
+                      else workflow[True]["workflow_dispatch"]["inputs"])
+        steps = workflow["jobs"]["tests"]["steps"]
+        merge_target = next(step for step in steps if step.get("id") == "merge_target")
+        self.assertIn('"$merge_sha" == "$EXPECTED_MERGE_SHA"', merge_target["run"])
+        publisher = workflow["jobs"]["publish-pr-recovery-status"]["steps"]
+        publish = next(step for step in publisher if "Publish required tests" in step["name"])
+        self.assertIn('"$TESTED_MERGE_SHA" == "$EXPECTED_MERGE_SHA"', publish["run"])
 
 
 class ExactHeadCiFreshnessSecurityTests(unittest.TestCase):
