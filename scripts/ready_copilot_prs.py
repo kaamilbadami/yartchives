@@ -130,9 +130,11 @@ def provenance_verified(
     pr_events: list[dict[str, Any]],
     issue_events: list[dict[str, Any]],
     repo: str,
+    *,
+    allow_ready: bool = False,
 ) -> tuple[bool, str]:
-    if pr.get("state") != "open" or pr.get("draft") is not True:
-        return False, "not an open draft"
+    if pr.get("state") != "open" or (pr.get("draft") is not True and not allow_ready):
+        return False, "not an open draft or eligible ready PR"
     if str((pr.get("user") or {}).get("login") or "").casefold() != COPILOT:
         return False, "not authored by Copilot"
     head = pr.get("head") or {}
@@ -182,6 +184,15 @@ def provenance_verified(
         return False, "Copilot has not reported work finished"
     last_finished_pos = finished_positions[-1]
     later_events = pr_events[last_finished_pos + 1:]
+    if allow_ready and pr.get("draft") is False:
+        # Only the trusted-main controller may transition this Copilot draft.
+        # A manual ready-for-review click is not merge authorization.
+        ready_events = [event for event in later_events
+                        if event.get("event") == "ready_for_review"]
+        if (not ready_events
+                or str((ready_events[-1].get("actor") or {}).get("login") or "").casefold()
+                != "github-actions[bot]"):
+            return False, "no trusted controller draft-to-ready transition"
     if any(event.get("event") in {
         "copilot_work_started", "committed", "head_ref_force_pushed", "synchronize"
     } for event in later_events):
