@@ -2390,6 +2390,18 @@ class NativeOwnerAutoMergeRecoveryTests(unittest.TestCase):
                         head_quality_passed=passed))
             api.assert_not_called()
 
+    def test_graphql_mutation_errors_are_not_reported_as_success(self):
+        pr = self.owner_pr()
+        def graphql(*args):
+            if "mutation(" in args[3]:
+                return {"errors": [{"message": "not permitted"}]}
+            return {"data": {"node": {
+                "autoMergeRequest": None, "mergeStateStatus": "BLOCKED"}}}
+        with mock.patch.object(mod, "gh_json", side_effect=graphql):
+            self.assertIn("did not confirm", mod.rearm_owner_native_auto_merge(
+                "kaamilbadami/yartchives", pr, dict(pr),
+                head_quality_passed=True))
+
     def test_conflicts_graphql_failure_and_missing_identity_fail_closed(self):
         pr = self.owner_pr()
         conflict = {**pr, "mergeable": False}
