@@ -3,7 +3,10 @@
 
 from __future__ import annotations
 
-from scripts.merge_risk_policy import classify_merge_risk
+try:
+    from scripts.merge_risk_policy import classify_merge_risk
+except ModuleNotFoundError:
+    from merge_risk_policy import classify_merge_risk
 
 import json
 import os
