@@ -122,6 +122,68 @@ class ExactHeadCiFreshnessSecurityTests(unittest.TestCase):
         self.assertFalse(mod.exact_head_quality_passed([history[0]], sha))
 
 
+class CopilotLowRiskMergePolicyTests(unittest.TestCase):
+    def candidate(self):
+        result = pr(head_sha="a" * 40, head_ref="copilot/verified-regression", user="Copilot")
+        result["base"]["sha"] = "b" * 40
+        result["merge_commit_sha"] = "c" * 40
+        return result
+
+    def test_drafts_privileged_paths_and_oversize_fail_without_api(self):
+        candidate = self.candidate()
+        files = [{"filename": "tests/test_a.py", "additions": 3, "deletions": 1}]
+        with mock.patch.object(mod, "gh_json") as api:
+            for malformed in [dict(candidate, draft=True), dict(candidate, user={"login": "intruder"})]:
+                self.assertFalse(mod.copilot_low_risk_merge_eligible(malformed, files, "kaamilbadami/yartchives", runs("a" * 40))[0])
+            for bad in [
+                [{"filename": ".github/workflows/quality.yml", "additions": 1, "deletions": 0}],
+                [{"filename": "scripts/auto_merge_agent_prs.py", "additions": 1, "deletions": 0}],
+                [{"filename": "tests/safe.py", "status": "renamed", "previous_filename": "scripts/ready_copilot_prs.py", "additions": 1, "deletions": 0}],
+                [{"filename": "tests/safe.py", "additions": 251, "deletions": 0}],
+                [{"filename": "tests/safe.py", "additions": None, "deletions": 0}],
+            ]:
+                with self.subTest(bad=bad):
+                    self.assertFalse(mod.copilot_low_risk_merge_eligible(candidate, bad, "kaamilbadami/yartchives", runs("a" * 40))[0])
+            api.assert_not_called()
+
+    def test_trusted_provenance_and_current_merge_ci_are_mandatory(self):
+        from scripts import ready_copilot_prs as ready
+        candidate = self.candidate()
+        repo = "kaamilbadami/yartchives"
+        files = [{"filename": "tests/test_ready_copilot_prs.py", "additions": 10, "deletions": 2}]
+        def api(*args):
+            path = args[-1]
+            if path.endswith("/pulls/20"):
+                return candidate
+            if path.endswith("/issues/10"):
+                return issue()
+            if path.endswith("/commits/" + "c" * 40 + "/status"):
+                return {"statuses": [{"context": "tests", "state": "success"}]}
+            raise AssertionError(path)
+        with mock.patch.object(mod, "gh_json", side_effect=api), \\
+             mock.patch.object(mod, "gh_paginated_json", return_value=[]), \\
+             mock.patch.object(ready, "linked_issue", return_value=10), \\
+             mock.patch.object(ready, "provenance_verified", return_value=(True, "ok")) as provenance:
+            eligible, _, linked = mod.copilot_low_risk_merge_eligible(candidate, files, repo, runs("a" * 40))
+            self.assertTrue(eligible)
+            self.assertEqual(linked, 10)
+            self.assertTrue(provenance.call_args.kwargs["allow_ready"])
+            with mock.patch.object(ready, "provenance_verified", return_value=(False, "disconnected")):
+                self.assertFalse(mod.copilot_low_risk_merge_eligible(candidate, files, repo, runs("a" * 40))[0])
+            with mock.patch.object(ready, "exact_merge_tests_green", return_value=False):
+                self.assertFalse(mod.copilot_low_risk_merge_eligible(candidate, files, repo, runs("a" * 40))[0])
+            self.assertFalse(mod.copilot_low_risk_merge_eligible(candidate, files, repo, runs("a" * 40, conclusion="failure"))[0])
+
+    def test_merge_path_keeps_github_protection_as_final_authority(self):
+        source = MODULE_PATH.read_text()
+        block = source.split("if copilot_merge_requires_independent_authorization(pr):", 1)[1].split("        sensitive_paths =", 1)[0]
+        self.assertIn("copilot_low_risk_merge_eligible(", block)
+        self.assertIn("github_reports_safe_mergeability(latest)", block)
+        self.assertIn("try_guarded_squash_merge(repo, number, head_sha)", block)
+        self.assertIn("if not merged:", block)
+        self.assertNotIn("bypass", block)
+
+
 class AutoMergeAgentPrTests(unittest.TestCase):
     def test_copilot_ready_state_never_authorizes_legacy_auto_merge(self):
         self.assertTrue(mod.copilot_merge_requires_independent_authorization(
