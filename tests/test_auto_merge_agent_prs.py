@@ -45,6 +45,18 @@ def runs(sha="abc", conclusion="success"):
 
 
 
+class SerializedProtectedMergeControllerTests(unittest.TestCase):
+    def test_one_merge_per_fresh_inventory_and_follow_up_scan(self):
+        source = MODULE_PATH.read_text()
+        main = source.split("def main() -> int:", 1)[1]
+        loop = main.split("for pr in pull_requests:", 1)[1]
+        # A successful merge of any eligible lane must stop admission of a
+        # second PR whose base/merge identity came from the old inventory.
+        self.assertIn("if merged_count:", loop)
+        self.assertLess(loop.index("if merged_count:"), loop.index('number = int(pr["number"])'))
+        self.assertIn('gh_run(\n            "workflow", "run", "auto-merge-agent-prs.yml"', main)
+
+
 class RecoveryConcurrencyAndMainDriftRegressionTests(unittest.TestCase):
     def test_recovery_dispatch_is_not_canceled_by_unrelated_main_quality_runs(self):
         # Recovery is dispatched from main but verifies a specific PR head and
