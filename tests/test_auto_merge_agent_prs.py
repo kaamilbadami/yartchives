@@ -179,6 +179,7 @@ class CopilotLowRiskMergePolicyTests(unittest.TestCase):
         block = source.split("if copilot_merge_requires_independent_authorization(pr):", 1)[1].split("        sensitive_paths =", 1)[0]
         self.assertIn("copilot_low_risk_merge_eligible(", block)
         self.assertIn("github_reports_safe_mergeability(latest)", block)
+        self.assertIn('latest.get("merge_commit_sha") != pr.get("merge_commit_sha")', block)
         self.assertIn("try_guarded_squash_merge(repo, number, head_sha)", block)
         self.assertIn("if not merged:", block)
         self.assertNotIn("bypass", block)
