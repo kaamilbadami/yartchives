@@ -1811,6 +1811,11 @@ def main() -> int:
     merged_count = 0
 
     for pr in pull_requests:
+        # Admit at most one protected merge per controller cycle. Subsequent PRs
+        # need a fresh inventory/current-base verification after main advances.
+        # The existing post-merge workflow dispatch schedules that next scan.
+        if merged_count:
+            break
         number = int(pr["number"])
         files = files_by_pr[number]
         head_sha = str((pr.get("head") or {}).get("sha") or "")
