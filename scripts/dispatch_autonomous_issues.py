@@ -2403,6 +2403,10 @@ def jules_json(
     method: str = "GET",
     payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    # Enforce the cutoff at the provider boundary, including helper callers
+    # outside the normal dispatcher cycle. Reads remain available for history.
+    if method.upper() != "GET" and not jules_writes_enabled():
+        raise RuntimeError("Jules is read-only: mutating API requests disabled after 2026-11-11 00:00 UTC")
     data = None if payload is None else json.dumps(payload).encode("utf-8")
     req = request.Request(
         f"{JULES_API_ROOT}{path}",

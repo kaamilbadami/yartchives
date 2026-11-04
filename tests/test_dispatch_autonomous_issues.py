@@ -51,6 +51,32 @@ class AutonomousDispatcherTests(unittest.TestCase):
                 mod.create_jules_session("key", "source", "owner/repo", object(), api_post=post)
         post.assert_not_called()
 
+    def test_jules_api_boundary_blocks_mutations_after_cutoff(self):
+        with mock.patch.object(mod, "jules_writes_enabled", return_value=False), \
+             mock.patch.object(mod.request, "urlopen") as urlopen:
+            for method in ("POST", "DELETE", "PATCH", "PUT", "post"):
+                with self.subTest(method=method):
+                    with self.assertRaisesRegex(RuntimeError, "read-only"):
+                        mod.jules_json("key", "/sessions/test", method=method)
+            urlopen.assert_not_called()
+
+    def test_jules_message_and_delete_denied_at_api_boundary(self):
+        with mock.patch.object(mod, "jules_writes_enabled", return_value=False), \
+             mock.patch.object(mod.request, "urlopen") as urlopen:
+            with self.assertRaisesRegex(RuntimeError, "read-only"):
+                mod.send_jules_message("key", "session", "feedback")
+            with self.assertRaisesRegex(RuntimeError, "read-only"):
+                mod.delete_jules_session("key", "session")
+            urlopen.assert_not_called()
+
+    def test_jules_api_boundary_keeps_read_only_get_available(self):
+        response = mock.MagicMock()
+        response.__enter__.return_value.read.return_value = b'{"sessions":[]}'
+        with mock.patch.object(mod, "jules_writes_enabled", return_value=False), \
+             mock.patch.object(mod.request, "urlopen", return_value=response) as urlopen:
+            self.assertEqual(mod.jules_json("key", "/sessions", method="GET"), {"sessions": []})
+            urlopen.assert_called_once()
+
     def test_jules_cutoff_run_cycle_does_not_fetch_or_mutate(self):
         with mock.patch.object(mod, "jules_writes_enabled", return_value=False), \
              mock.patch.object(mod, "fetch_active_issues", side_effect=AssertionError("no fetch")):
