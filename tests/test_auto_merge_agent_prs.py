@@ -58,6 +58,70 @@ class MissingCiRecoveryTests(unittest.TestCase):
         self.assertEqual(mod.missing_ci_recovery_decision([{"body": marker2}], "b" * 40, now), ("dispatch", 1))
 
 
+class MergeCiRecoveryBudgetTests(unittest.TestCase):
+    def test_one_recovery_per_exact_synthetic_merge(self):
+        head, merge = "a" * 40, "b" * 40
+        self.assertEqual(mod.merge_ci_recovery_decision([], head, merge), "dispatch")
+        marker = f"<!-- merge-ci-recovery: head={head} merge={merge} -->"
+        bot = {"user": {"login": "github-actions[bot]"}, "body": marker}
+        self.assertEqual(mod.merge_ci_recovery_decision([bot], head, merge), "wait")
+        self.assertEqual(mod.merge_ci_recovery_decision([bot], head, "c" * 40), "dispatch")
+
+    def test_recovery_budget_is_bounded_across_main_advances(self):
+        head = "a" * 40
+        comments = [
+            {"user": {"login": "github-actions[bot]"},
+             "body": f"<!-- merge-ci-recovery: head={head} merge={merge} -->"}
+            for merge in ("b" * 40, "c" * 40)
+        ]
+        self.assertEqual(mod.merge_ci_recovery_decision(comments, head, "d" * 40), "escalate")
+        self.assertEqual(mod.merge_ci_recovery_decision(comments, head, "b" * 40), "wait")
+        self.assertEqual(mod.merge_ci_recovery_decision(comments, "e" * 40, "d" * 40), "dispatch")
+
+    def test_untrusted_markers_and_invalid_identity_fail_safely(self):
+        head, merge = "a" * 40, "b" * 40
+        fake = {"user": {"login": "random-user"},
+                "body": f"<!-- merge-ci-recovery: head={head} merge={merge} -->"}
+        self.assertEqual(mod.merge_ci_recovery_decision([fake], head, merge), "dispatch")
+        self.assertEqual(mod.merge_ci_recovery_decision([], "bad", merge), "block")
+        self.assertEqual(mod.merge_ci_recovery_decision([], head, ""), "block")
+
+
+class ExactHeadCiFreshnessSecurityTests(unittest.TestCase):
+    def test_newer_executed_failure_vetoes_older_success(self):
+        sha = "a" * 40
+        history = [
+            {"name": "Quality checks", "head_sha": sha, "status": "completed",
+             "conclusion": "failure", "created_at": "2026-11-03T12:05:00Z", "id": 21},
+            {"name": "Quality checks", "head_sha": sha, "status": "completed",
+             "conclusion": "success", "created_at": "2026-11-03T12:00:00Z", "id": 20},
+        ]
+        self.assertFalse(mod.exact_head_quality_passed(history, sha))
+        self.assertFalse(mod.exact_head_quality_passed(list(reversed(history)), sha))
+
+    def test_newer_pending_run_vetoes_older_success(self):
+        sha = "a" * 40
+        history = [
+            {"name": "Quality checks", "head_sha": sha, "status": "in_progress",
+             "conclusion": None, "created_at": "2026-11-03T12:05:00Z", "id": 21},
+            {"name": "Quality checks", "head_sha": sha, "status": "completed",
+             "conclusion": "success", "created_at": "2026-11-03T12:00:00Z", "id": 20},
+        ]
+        self.assertFalse(mod.exact_head_quality_passed(history, sha))
+
+    def test_gated_run_does_not_invalidate_real_green_same_head(self):
+        sha = "a" * 40
+        history = [
+            {"name": "Quality checks", "head_sha": sha, "status": "completed",
+             "conclusion": "action_required", "created_at": "2026-11-03T12:05:00Z", "id": 21},
+            {"name": "Quality checks", "head_sha": sha, "status": "completed",
+             "conclusion": "success", "created_at": "2026-11-03T12:00:00Z", "id": 20},
+        ]
+        self.assertTrue(mod.exact_head_quality_passed(history, sha))
+        self.assertFalse(mod.exact_head_quality_passed(history, "b" * 40))
+        self.assertFalse(mod.exact_head_quality_passed([history[0]], sha))
+
+
 class AutoMergeAgentPrTests(unittest.TestCase):
     def test_copilot_ready_state_never_authorizes_legacy_auto_merge(self):
         self.assertTrue(mod.copilot_merge_requires_independent_authorization(
@@ -164,7 +228,10 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         self.assertIn('statuses/$target', workflow)
         self.assertIn("-f context=tests", workflow)
         publish = workflow.split("  publish-pr-recovery-status:", 1)[1].split("  live-source-smoke:", 1)[0]
-        self.assertIn("needs: [tests]", publish)
+        self.assertIn("needs: [tests, head-tests]", publish)
+        self.assertIn("needs.head-tests.result == 'success'", publish)
+        self.assertIn('statuses/$TESTED_HEAD_SHA', publish)
+        self.assertIn("-f context=copilot-head-tests", publish)
         self.assertIn("needs.tests.result == 'success'", publish)
         self.assertIn("inputs.pr_recovery == true", publish)
         self.assertIn("statuses: write", publish)
@@ -1693,10 +1760,16 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             )
         )
         self.assertIn(
-            'Dispatched PR recovery Quality for #{number} so the required ',
-            source,
+            'dispatched bounded merge-CI recovery for {merge_sha}.', source
         )
+        self.assertIn('merge_ci_recovery_decision(comments, head_sha, merge_sha)', source)
         self.assertIn('"pr_recovery=true"', source)
+        self.assertIn('f"pr_head_sha={head_sha}"', source)
+        # Durable attempt recording must precede dispatch so repeated scans
+        # cannot create an unbounded CI loop after a skipped status publisher.
+        block = source.split('action = merge_ci_recovery_decision(', 1)[1]
+        self.assertLess(block.index('"issue", "comment"'),
+                        block.index('"workflow", "run", "quality.yml"'))
 
     def test_main_drains_all_eligible_prs_instead_of_returning_after_first_merge(self):
         source = MODULE_PATH.read_text()

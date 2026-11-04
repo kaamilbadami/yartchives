@@ -26,9 +26,22 @@ class QualityWorkflowPermissionsTests(unittest.TestCase):
                 self.assertNotIn("github.token", section)
         self.assertIn("run: bash scripts/run_quality_checks.sh python", job_section("tests"))
 
+    def test_copilot_head_recovery_executes_without_write_or_secrets(self):
+        section = job_section("head-tests")
+        self.assertIn("contents: read", section)
+        self.assertIn("persist-credentials: false", section)
+        self.assertIn("refs/pull/$PR_NUMBER/head", section)
+        self.assertIn('head_sha" == "$EXPECTED_HEAD_SHA', section)
+        self.assertNotIn("secrets.", section)
+        self.assertNotIn("statuses: write", section)
+        self.assertNotIn("github.token", section)
+
     def test_status_publication_is_separate_trusted_job(self):
         section = job_section("publish-pr-recovery-status")
-        self.assertIn("needs: [tests]", section)
+        self.assertIn("needs: [tests, head-tests]", section)
+        self.assertIn("always() &&", section)
+        self.assertIn("needs.head-tests.result == 'success'", section)
+        self.assertIn("copilot-head-tests", section)
         self.assertIn("github.event_name == 'workflow_dispatch'", section)
         self.assertIn("inputs.pr_recovery == true", section)
         self.assertIn("needs.tests.result == 'success'", section)

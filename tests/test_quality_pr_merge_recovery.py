@@ -20,6 +20,17 @@ class MergeRecoveryTests(unittest.TestCase):
         self.assertNotIn("actions: write", tests)
         self.assertNotIn("secrets.", tests)
 
+    def test_skipped_optional_preflight_cannot_suppress_status_publisher(self):
+        # Live trusted-main recovery passed tests but skipped status publication:
+        # GitHub's implicit success() skips downstream jobs if an optional
+        # upstream preflight was skipped. Explicit always() is essential.
+        publish = WORKFLOW.split("  publish-pr-recovery-status:", 1)[1].split(
+            "  live-source-smoke:", 1
+        )[0]
+        self.assertIn("always() &&", publish)
+        self.assertIn("needs.tests.result == 'success'", publish)
+        self.assertIn("needs.head-tests.result == 'success'", publish)
+
     def test_success_status_revalidates_same_merge_sha(self):
         publish = WORKFLOW.split("  publish-pr-recovery-status:", 1)[1].split("  live-source-smoke:", 1)[0]
         self.assertIn("needs.tests.result == 'success'", publish)

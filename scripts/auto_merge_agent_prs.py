@@ -61,6 +61,11 @@ SENSITIVE_AUTO_MERGE_PATHS = (
 )
 
 
+MERGE_CI_RECOVERY_MARKER = re.compile(
+    r"<!-- merge-ci-recovery: head=([a-f0-9]{40}) merge=([a-f0-9]{40}) -->"
+)
+MAX_MERGE_CI_RECOVERIES_PER_HEAD = 2
+
 JULES_REVIEW_READY_LABEL = "jules-review-ready"
 GITHUB_ACTIONS_BOT = "github-actions[bot]"
 OWNER_AUTHORIZED_AUTOMERGE_MARKER = "<!-- owner-authorized-automerge -->"
@@ -548,13 +553,25 @@ def prioritize_pull_requests(
 
 
 def exact_head_quality_passed(runs: Iterable[dict[str, Any]], head_sha: str) -> bool:
-    return any(
-        str(run.get("name") or "") == QUALITY_WORKFLOW
-        and str(run.get("head_sha") or "") == head_sha
-        and str(run.get("status") or "") == "completed"
-        and str(run.get("conclusion") or "") == "success"
-        for run in runs
-    )
+    """Only the newest executed exact-head Quality result can authorize merge.
+
+    A historical green run must not mask a newer failed or pending run.
+    Approval-gated action_required runs did not execute tests; ignore them
+    rather than overriding a real successful result for the same immutable SHA.
+    GitHub returns newest runs first; preserve that order if metadata ties.
+    """
+    matching = [run for run in runs
+                if str(run.get("name") or "") == QUALITY_WORKFLOW
+                and str(run.get("head_sha") or "") == head_sha
+                and not (run.get("status") == "completed"
+                         and run.get("conclusion") == "action_required")]
+    if not matching:
+        return False
+    latest = max(matching, key=lambda run: (
+        str(run.get("created_at") or ""), int(run.get("id") or 0)
+    ))
+    return (latest.get("status") == "completed"
+            and latest.get("conclusion") == "success")
 
 
 def trusted_repair_lineage_allowed(
@@ -703,6 +720,32 @@ def missing_ci_recovery_decision(comments: Iterable[dict[str, Any]], head_sha: s
     if count >= MISSING_CI_MAX_DISPATCHES:
         return "escalate", count
     return "dispatch", count + 1
+
+
+def merge_ci_recovery_decision(
+    comments: Iterable[dict[str, Any]], head_sha: str, merge_sha: str
+) -> str:
+    """Bound trusted-main synthetic-merge recovery to one attempt per merge.
+
+    A merge-SHA change permits a second attempt for the same head, but no
+    additional dispatches after the per-head budget. Only trusted bot
+    comments count as attempts; a user cannot forge a consumed budget.
+    """
+    if not (re.fullmatch(r"[a-f0-9]{40}", head_sha)
+            and re.fullmatch(r"[a-f0-9]{40}", merge_sha)):
+        return "block"
+    attempts: list[str] = []
+    for comment in comments:
+        if str((comment.get("user") or {}).get("login") or "") != GITHUB_ACTIONS_BOT:
+            continue
+        for match in MERGE_CI_RECOVERY_MARKER.finditer(str(comment.get("body") or "")):
+            if match.group(1) == head_sha:
+                attempts.append(match.group(2))
+    if merge_sha in attempts:
+        return "wait"
+    if len(attempts) >= MAX_MERGE_CI_RECOVERIES_PER_HEAD:
+        return "escalate"
+    return "dispatch"
 
 
 def record_missing_ci_recovery(repo: str, pr_number: int, head_sha: str,
@@ -1916,17 +1959,44 @@ def main() -> int:
                             f"PR #{number} already has exact-head recovery Quality checks in flight."
                         )
                     else:
+                        # The old loop redispatched the same merge recovery
+                        # every scan (~5 min), even after green tests, because
+                        # a skipped publisher never created the required status.
+                        # Pin the current base/head/merge and persist a durable
+                        # budget marker BEFORE dispatch to prevent CI storms.
+                        current = gh_json("api", f"repos/{repo}/pulls/{number}")
+                        merge_sha = str(current.get("merge_commit_sha") or "")
+                        if (current.get("state") != "open"
+                                or (current.get("head") or {}).get("sha") != head_sha
+                                or (current.get("base") or {}).get("sha") !=
+                                (pr.get("base") or {}).get("sha")):
+                            print(f"PR #{number}: PR head/base drifted; no recovery dispatch.")
+                            continue
+                        comments = gh_paginated_json(
+                            "api", f"repos/{repo}/issues/{number}/comments?per_page=100"
+                        )
+                        action = merge_ci_recovery_decision(comments, head_sha, merge_sha)
+                        if action != "dispatch":
+                            print(f"PR #{number}: merge CI recovery {action} for {merge_sha}; "
+                                  "no repeated dispatch.")
+                            continue
+                        marker = (
+                            f"<!-- merge-ci-recovery: head={head_sha} merge={merge_sha} -->"
+                        )
+                        gh_run(
+                            "issue", "comment", str(number), "--repo", repo, "--body",
+                            f"{marker}\\nOne bounded trusted-main Quality recovery for "
+                            f"synthetic merge `{merge_sha}`."
+                        )
                         gh_run(
                             "workflow", "run", "quality.yml",
                             "--repo", repo,
                             "--ref", "main",
                             "-f", "pr_recovery=true",
                             "-f", f"pr_number={number}",
+                            "-f", f"pr_head_sha={head_sha}",
                         )
-                        print(
-                            f"Dispatched PR recovery Quality for #{number} so the required "
-                            "tests status can be published after green exact-head CI."
-                        )
+                        print(f"PR #{number}: dispatched bounded merge-CI recovery for {merge_sha}.")
             else:
                 print(
                     f"BLOCKED_REQUIRES_DECISION PR #{number}: GitHub reports mergeable={mergeable} "

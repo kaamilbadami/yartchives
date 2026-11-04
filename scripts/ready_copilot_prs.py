@@ -10,6 +10,7 @@ import json
 import os
 import re
 import subprocess
+from datetime import datetime, timezone
 from typing import Any
 
 COPILOT = "copilot"
@@ -18,7 +19,58 @@ CLOSING_REF = re.compile(
     r"(?im)\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+"
     r"(?:(?P<repo>[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+))?#(?P<number>\d+)\b"
 )
-RECOVERY_MARKER = "<!-- copilot-draft-ci-recovery: head={head} -->"
+RECOVERY_MARKER = "<!-- copilot-draft-ci-recovery: head={head} merge={merge} -->"
+RECOVERY_RE = re.compile(
+    r"<!-- copilot-draft-ci-recovery: head=([a-f0-9]{40})(?: merge=([a-f0-9]{40}))? -->"
+)
+MAX_RECOVERY_ATTEMPTS_PER_HEAD = 2
+LEGACY_RECOVERY_SETTLE_SECONDS = 15 * 60
+
+
+def recovery_attempts(comments: list[dict[str, Any]], head: str) -> list[str | None]:
+    """Count only trusted controller attempts, including legacy head-only markers."""
+    attempts: list[str | None] = []
+    for comment in comments:
+        author = str((comment.get("user") or {}).get("login") or "").casefold()
+        if author != "github-actions[bot]":
+            continue
+        for match in RECOVERY_RE.finditer(str(comment.get("body") or "")):
+            if match.group(1) == head:
+                attempts.append(match.group(2))
+    return attempts
+
+
+def legacy_recovery_settled(comments: list[dict[str, Any]], head: str,
+                            now: datetime | None = None) -> bool:
+    """Allow at most one replacement for a historical head-only dispatch.
+
+    The old marker proves a dispatch was attempted but not which synthetic
+    merge was tested. Wait for that attempt to finish before consuming the
+    second (and final) per-head recovery slot. Missing/invalid timestamps
+    fail closed rather than permitting a premature duplicate dispatch.
+    """
+    now = now or datetime.now(timezone.utc)
+    for comment in comments:
+        if str((comment.get("user") or {}).get("login") or "").casefold() != "github-actions[bot]":
+            continue
+        legacy = any(
+            match.group(1) == head and match.group(2) is None
+            for match in RECOVERY_RE.finditer(str(comment.get("body") or ""))
+        )
+        if not legacy:
+            continue
+        created = comment.get("created_at")
+        if not isinstance(created, str):
+            return False
+        try:
+            timestamp = datetime.fromisoformat(created.replace("Z", "+00:00"))
+        except ValueError:
+            return False
+        if timestamp.tzinfo is None or (
+            now - timestamp
+        ).total_seconds() < LEGACY_RECOVERY_SETTLE_SECONDS:
+            return False
+    return True
 
 
 def gh_json(endpoint: str) -> Any:
@@ -105,14 +157,19 @@ def provenance_verified(
     if not safe_low_risk_files(files):
         return False, "sensitive or unallowlisted files"
     pr_number = pr.get("number")
-    if not any(
-        e.get("event") == "connected"
-        and str((e.get("actor") or {}).get("login") or "").casefold() == COPILOT
+    # A historical Copilot connection is not sufficient: the issue can be
+    # disconnected from this PR after the agent finishes. GitHub timelines are
+    # chronological, so require the latest matching link event to be a
+    # Copilot-authored connection (and not a later disconnection).
+    link_events = [
+        e for e in issue_events
+        if e.get("event") in {"connected", "disconnected"}
         and (e.get("subject") or {}).get("number") == pr_number
         and ((e.get("subject") or {}).get("repository") or {}).get("full_name") == repo
-        for e in issue_events
-    ):
-        return False, "missing Copilot issue-to-PR connection"
+    ]
+    if (not link_events or link_events[-1].get("event") != "connected"
+            or str((link_events[-1].get("actor") or {}).get("login") or "").casefold() != COPILOT):
+        return False, "missing or disconnected Copilot issue-to-PR connection"
     # GitHub's PR timeline is ordered and includes 'committed' events without
     # created_at. Compare event positions, not only timestamps: a push after
     # Copilot finished invalidates completion even if the head later passes CI.
@@ -129,12 +186,18 @@ def provenance_verified(
         "copilot_work_started", "committed", "head_ref_force_pushed", "synchronize"
     } for event in later_events):
         return False, "PR head changed or Copilot resumed after completion"
-    if not any(
-        event.get("event") == "review_requested"
-        and str((event.get("actor") or {}).get("login") or "").casefold() == COPILOT
-        for event in later_events
-    ):
-        return False, "Copilot has not requested review after completion"
+    # A request that was subsequently withdrawn is not an outstanding
+    # Copilot review request. GitHub records review_request_removed separately
+    # from review_requested; treat later removals as revoking readiness until
+    # Copilot explicitly requests review again. Conservative for multiple
+    # reviewers: an ambiguous removal blocks rather than inferring consent.
+    review_events = [
+        event for event in later_events
+        if event.get("event") in {"review_requested", "review_request_removed"}
+    ]
+    if (not review_events or review_events[-1].get("event") != "review_requested"
+            or str((review_events[-1].get("actor") or {}).get("login") or "").casefold() != COPILOT):
+        return False, "no outstanding Copilot review request after completion"
     return True, "completed low-risk Copilot draft"
 
 
@@ -171,6 +234,54 @@ def exact_merge_tests_green(status: dict[str, Any], merge_sha: str) -> bool:
          if entry.get("context") == "tests"), None
     )
     return bool(latest_tests and latest_tests.get("state") == "success")
+
+
+def trusted_recovery_head_green(status: dict[str, Any], sha: str, repo: str) -> bool:
+    """Accept an exact-head result only from a trusted-main recovery run.
+
+    The read-only head job cannot publish statuses. A separate trusted job
+    publishes this context after verifying the tested immutable head still
+    belongs to the open PR. An untrusted or stale context is not evidence.
+    """
+    if not re.fullmatch(r"[a-f0-9]{40}", sha):
+        return False
+    latest = next((entry for entry in status.get("statuses") or []
+                   if entry.get("context") == "copilot-head-tests"), None)
+    if not latest or latest.get("state") != "success":
+        return False
+    if str((latest.get("creator") or {}).get("login") or "").casefold() != "github-actions[bot]":
+        return False
+    target = str(latest.get("target_url") or "")
+    match = re.fullmatch(
+        rf"https://github\.com/{re.escape(repo)}/actions/runs/([0-9]+)", target
+    )
+    if not match:
+        return False
+    # A bot-authored status with a plausible URL is not sufficient evidence.
+    # Confirm the linked run really is a successful trusted-main Quality run.
+    # This does not by itself prove the status was posted by that run; status
+    # publishing permissions must remain restricted to the trusted workflow.
+    run = gh_json(f"repos/{repo}/actions/runs/{match.group(1)}")
+    # A successful workflow can omit the optional head job. Verify the
+    # exact-head validator and trusted status publisher actually succeeded.
+    # A synthetic-merge-only legacy recovery must never satisfy head CI.
+    jobs_payload = gh_json(f"repos/{repo}/actions/runs/{match.group(1)}/jobs?per_page=100")
+    jobs = jobs_payload.get("jobs") or []
+    # A truncated response cannot establish which jobs actually ran.
+    if jobs_payload.get("total_count", 0) > len(jobs):
+        return False
+    completed = {str(job.get("name") or "") for job in jobs
+                 if job.get("status") == "completed" and job.get("conclusion") == "success"}
+    return (
+        {"head-tests", "publish-pr-recovery-status"} <= completed
+        and run.get("name") == "Quality checks"
+        and run.get("event") == "workflow_dispatch"
+        and run.get("head_branch") == "main"
+        and run.get("status") == "completed"
+        and run.get("conclusion") == "success"
+        and str(run.get("path") or "").split("@")[0] == ".github/workflows/quality.yml"
+        and (run.get("repository") or {}).get("full_name") == repo
+    )
 
 
 def recovery_allowed(runs: list[dict[str, Any]], sha: str) -> bool:
@@ -233,18 +344,58 @@ def main() -> int:
                 continue
             head_green = exact_head_quality_green(runs, sha)
             head_recoverable = recovery_allowed(runs, sha)
+            if not head_green and head_recoverable:
+                # GitHub approval-gates Copilot pull_request workflows. A
+                # trusted-main, read-only exact-head recovery can independently
+                # verify that immutable head without approving untrusted CI.
+                head_status = gh_json(f"repos/{repo}/commits/{sha}/status")
+                head_green = trusted_recovery_head_green(head_status, sha, repo)
             # Head-only green CI is not the required synthetic merge-commit
             # status. Recover the current merge even when the head is green;
             # otherwise a Copilot draft can become ready with no path to
             # publishing the required 'tests' status before safe merge.
-            if merge_green and (head_green or head_recoverable):
+            # A synthetic merge result validates integration, but cannot stand in
+            # for an executed exact-head Quality run. Approval-gated or absent
+            # head CI is not evidence of a passing head; never mark ready on
+            # merge status alone.
+            if merge_green and head_green:
                 current_issue = gh_json(f"repos/{repo}/issues/{issue_number}")
                 current_events = gh_pages(f"repos/{repo}/issues/{number}/timeline?per_page=100")
+                current_issue_events = gh_pages(
+                    f"repos/{repo}/issues/{issue_number}/timeline?per_page=100"
+                )
                 still_ok, reason = provenance_verified(
-                    fresh, current_issue, files, current_events, issue_events, repo
+                    fresh, current_issue, files, current_events, current_issue_events, repo
                 )
                 if not still_ok:
                     print(f"PR #{number}: {reason} on recheck; keeping draft.")
+                    continue
+                # Main can advance while timeline/provenance is rechecked,
+                # changing refs/pull/N/merge without changing the PR head.
+                # Never transition on a stale merge-status result.
+                latest_pr = gh_json(f"repos/{repo}/pulls/{number}")
+                if (latest_pr.get("state") != "open"
+                        or latest_pr.get("draft") is not True
+                        or (latest_pr.get("head") or {}).get("sha") != sha
+                        or (latest_pr.get("base") or {}).get("ref") != "main"
+                        or latest_pr.get("merge_commit_sha") != merge_sha
+                        # A new main commit can advance base.sha before GitHub
+                        # recomputes refs/pull/N/merge. The old merge SHA may
+                        # still appear green, so pin the verified base commit.
+                        or not re.fullmatch(
+                            r"[a-f0-9]{40}",
+                            str((fresh.get("base") or {}).get("sha") or ""),
+                        )
+                        or (latest_pr.get("base") or {}).get("sha") != (
+                            fresh.get("base") or {}).get("sha")
+                        # The PR body is an authorization input: a late edit
+                        # could replace the verified child issue with an
+                        # initiative-closing keyword without changing its head.
+                        or latest_pr.get("body") != fresh.get("body")
+                        or (latest_pr.get("user") or {}).get("login") != (fresh.get("user") or {}).get("login")
+                        or (latest_pr.get("head") or {}).get("ref") != head.get("ref")
+                        or ((latest_pr.get("head") or {}).get("repo") or {}).get("full_name") != ((head.get("repo") or {}).get("full_name"))):
+                    print(f"PR #{number}: head/merge/state drift before ready; keeping draft.")
                     continue
                 gh_write("pr", "ready", str(number), "--repo", repo)
                 print(f"PR #{number}: ready for review at verified head {sha} and merge {merge_sha}; NOT merge approval.")
@@ -255,24 +406,37 @@ def main() -> int:
             if not re.fullmatch(r"[a-f0-9]{40}", merge_sha):
                 print(f"PR #{number}: current synthetic merge SHA unavailable; keeping draft.")
                 continue
-            if merge_green:
-                print(f"PR #{number}: head CI must finish successfully before draft transition.")
-                continue
+            # Even a green merge is insufficient when Copilot's exact-head
+            # pull_request run was approval-gated. Dispatch the same bounded
+            # recovery to validate the immutable head in a read-only job.
             comments = gh_pages(f"repos/{repo}/issues/{number}/comments?per_page=100")
-            marker = RECOVERY_MARKER.format(head=sha)
-            if any(marker in str(c.get("body") or "") for c in comments):
-                print(f"PR #{number}: CI recovery already attempted for {sha}; bounded wait.")
+            attempts = recovery_attempts(comments, sha)
+            if merge_sha in attempts:
+                print(f"PR #{number}: CI recovery already attempted for this exact merge; bounded wait.")
                 continue
-            # Durable attempt marker before dispatch prevents duplicate costly runs.
+            if len(attempts) >= MAX_RECOVERY_ATTEMPTS_PER_HEAD:
+                print(f"BLOCKED_REQUIRES_DECISION PR #{number}: exhausted "
+                      f"{MAX_RECOVERY_ATTEMPTS_PER_HEAD} trusted merge-CI attempts for head {sha}.")
+                continue
+            if None in attempts and not legacy_recovery_settled(comments, sha):
+                print(f"PR #{number}: legacy head-only CI recovery still settling or unverified; bounded wait.")
+                continue
+            # One historical head-only marker consumes one of two slots.
+            # Once settled, permit exactly one current-merge recovery; a
+            # second marker exhausts the budget, preventing replay storms.
+            marker = RECOVERY_MARKER.format(head=sha, merge=merge_sha)
+            # Durable marker before dispatch prevents duplicate costly runs.
+            # One additional attempt is allowed if main advances and changes
+            # the synthetic merge SHA, but the per-head budget stays bounded.
             gh_write("api", "--method", "POST",
                      f"repos/{repo}/issues/{number}/comments",
-                     "-f", f"body={marker}\nOne bounded read-only Quality recovery attempt for this exact draft head.")
+                     "-f", f"body={marker}\nBounded read-only Quality recovery for this exact draft head and merge.")
             # Run the trusted workflow from main, not the untrusted PR branch.
             # quality.yml checks out the current synthetic merge and publishes
             # the required tests status only if its merge SHA stays unchanged.
             gh_write("workflow", "run", "quality.yml", "--repo", repo,
                      "--ref", "main", "-f", "pr_recovery=true",
-                     "-f", f"pr_number={number}")
+                     "-f", f"pr_number={number}", "-f", f"pr_head_sha={sha}")
             print(f"PR #{number}: dispatched one current-merge Quality recovery; remains draft.")
         except (subprocess.CalledProcessError, ValueError, KeyError, TypeError) as exc:
             print(f"PR #{number}: blocked safely by verification/API error: {exc}")
