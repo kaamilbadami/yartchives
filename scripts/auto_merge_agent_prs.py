@@ -190,6 +190,17 @@ def copilot_merge_requires_independent_authorization(pr: dict[str, Any]) -> bool
     return str((pr.get("user") or {}).get("login") or "").casefold() == "copilot"
 
 
+def copilot_issue_still_authorized(issue: dict[str, Any], expected_number: int) -> bool:
+    """Reject issue closure, parent promotion, reassignment or missing metadata."""
+    if (issue.get("number") != expected_number or issue.get("state") != "open"
+            or not isinstance(issue.get("labels"), list)
+            or not isinstance(issue.get("assignees"), list)
+            or "initiative" in label_names(issue)):
+        return False
+    return any(str(a.get("login") or "").casefold() == "copilot"
+               for a in issue["assignees"] if isinstance(a, dict))
+
+
 COPILOT_AUTOMERGE_MAX_FILES = 4
 COPILOT_AUTOMERGE_MAX_CHANGES = 250
 
@@ -1613,13 +1624,7 @@ def main() -> int:
             # can be closed, initiative-labeled or reassigned after the earlier
             # provenance check, independently of PR head/base stability.
             latest_issue = gh_json("api", f"repos/{repo}/issues/{copilot_issue}")
-            if (latest_issue.get("number") != copilot_issue
-                    or latest_issue.get("state") != "open"
-                    or not isinstance(latest_issue.get("labels"), list)
-                    or not isinstance(latest_issue.get("assignees"), list)
-                    or "initiative" in label_names(latest_issue)
-                    or not any(str(a.get("login") or "").casefold() == "copilot"
-                               for a in latest_issue["assignees"] if isinstance(a, dict))):
+            if not copilot_issue_still_authorized(latest_issue, copilot_issue):
                 print(f"BLOCKED_COPILOT PR #{number}: linked issue authorization changed.")
                 continue
             merged, detail = try_guarded_squash_merge(repo, number, head_sha)
