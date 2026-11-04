@@ -2239,5 +2239,48 @@ class AutoMergeAgentPrTests(unittest.TestCase):
         )
 
 
+
+class BoundedLevelTwoAdmissionTests(unittest.TestCase):
+    def row(self, name, changes=10, status="modified", **extra):
+        return {"filename": name, "changes": changes, "status": status, **extra}
+
+    def test_test_paired_quarantine_repair_admitted_to_scope_only(self):
+        files = [self.row("scripts/triage_source_quarantines.py"),
+                 self.row("tests/test_triage_source_quarantines.py")]
+        self.assertTrue(mod.bounded_level_two_exception(files))
+        # Classification/exception must not bypass the existing provenance,
+        # exact-head CI, or GitHub protected merge API.
+        self.assertEqual(mod.classify_merge_risk(files)[0], 2)
+
+    def test_incomplete_large_or_unverifiable_level_two_change_fails_closed(self):
+        paired = [self.row("scripts/triage_source_quarantines.py"),
+                  self.row("tests/test_triage_source_quarantines.py")]
+        cases = (
+            paired[:1],
+            paired + [self.row("scripts/auto_merge_agent_prs.py")],
+            paired + [self.row(".github/workflows/quality.yml")],
+            [self.row("scripts/triage_source_quarantines.py", changes=101), paired[1]],
+            [self.row("scripts/triage_source_quarantines.py", changes="bad"), paired[1]],
+            [self.row("scripts/triage_source_quarantines.py", status="renamed",
+                      previous_filename="scripts/old.py"), paired[1]],
+            [self.row("scripts/triage_source_quarantines.py"), paired[1], paired[1]],
+        )
+        for files in cases:
+            with self.subTest(files=files):
+                self.assertFalse(mod.bounded_level_two_exception(files))
+
+    def test_other_sensitive_paths_never_gain_level_two_exception(self):
+        for path in ("scripts/dispatch_autonomous_issues.py",
+                     "scripts/dispatch_copilot_pilot.py",
+                     "scripts/ready_copilot_prs.py",
+                     ".github/workflows/auto-merge-agent-prs.yml",
+                     "scripts/auto_merge_agent_prs.py",
+                     "scripts/merge_risk_policy.py",
+                     "requirements.txt"):
+            with self.subTest(path=path):
+                self.assertFalse(mod.bounded_level_two_exception([
+                    self.row(path), self.row("tests/test_auto_merge_agent_prs.py")]))
+
+
 if __name__ == "__main__":
     unittest.main()
