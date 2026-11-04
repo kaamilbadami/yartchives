@@ -1,4 +1,6 @@
 name: Quality checks
+# Include the recovery PR identity in Actions run metadata for dispatch/run reconciliation.
+run-name: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_recovery == true && format('Recovery PR #{0} head {1}', inputs.pr_number, inputs.pr_head_sha) || 'Quality checks' }}
 
 on:
   workflow_dispatch:
@@ -61,9 +63,12 @@ on:
 permissions:
   contents: read
 
+# Recovery runs always execute trusted main, but target *different* PR/merge SHAs.
+# A global quality-main cancellation group caused unrelated recoveries to cancel
+# one another before they could publish the required merge check run.
 concurrency:
-  group: quality-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_recovery == true && format('quality-recovery-{0}-{1}-{2}', inputs.pr_number, inputs.pr_head_sha, github.run_id) || format('quality-{0}', github.ref) }}
+  cancel-in-progress: ${{ !(github.event_name == 'workflow_dispatch' && inputs.pr_recovery == true) }}
 
 jobs:
   targeted-frontend-preflight:
