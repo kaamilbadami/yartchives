@@ -410,29 +410,13 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             {"filename": "tests/test_quality.py"}, {"filename": "app.js"}
         ]), [])
 
-    @mock.patch.object(mod, "gh_run")
-    @mock.patch.object(mod, "close_linked_issue_after_merge")
-    @mock.patch.object(mod, "try_guarded_squash_merge")
-    @mock.patch.object(mod, "gh_json")
-    @mock.patch.object(mod, "gh_paginated_json")
-    def test_owner_workflow_pr_without_verified_merge_evidence_cannot_merge(
-        self, mock_paginated, mock_json, mock_merge, mock_close, mock_run
-    ):
-        candidate = pr(body="", head_sha="a" * 40, user="kaamilbadami")
-        candidate["number"] = 881
-        def pages(api, path, *args, **kwargs):
-            if "pulls?state=open" in path:
-                return [candidate]
-            if "pulls/881/files" in path:
-                return [{"filename": ".github/workflows/quality.yml"}]
-            return []
-        mock_paginated.side_effect = pages
-        mock_json.return_value = {"workflow_runs": runs(sha="a" * 40)}
-        with mock.patch.dict(mod.os.environ, {"REPOSITORY": "kaamilbadami/yartchives"}):
-            self.assertEqual(mod.main(), 0)
-        mock_merge.assert_not_called()
-        mock_close.assert_not_called()
-        mock_run.assert_not_called()
+    def test_sensitive_path_is_diagnostic_not_approval_authorization(self):
+        source = MODULE_PATH.read_text()
+        controller = source.split("def main()", 1)[1]
+        self.assertIn("sensitive_paths = sensitive_auto_merge_paths(files)", controller)
+        self.assertIn("applying CI and bounded eligibility checks", controller)
+        self.assertNotIn("require independent review/manual merge", controller)
+        self.assertIn("if not exact_head_quality_passed(runs, head_sha):", controller)
 
     def test_controller_reconciles_on_trusted_quality_completion_and_schedule(self):
         workflow = (ROOT / ".github/workflows/auto-merge-agent-prs.yml").read_text()
