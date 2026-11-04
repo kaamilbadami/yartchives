@@ -160,9 +160,9 @@ class CopilotLowRiskMergePolicyTests(unittest.TestCase):
             if path.endswith("/commits/" + "c" * 40 + "/status"):
                 return {"statuses": [{"context": "tests", "state": "success"}]}
             raise AssertionError(path)
-        with mock.patch.object(mod, "gh_json", side_effect=api), \\
-             mock.patch.object(mod, "gh_paginated_json", return_value=[]), \\
-             mock.patch.object(ready, "linked_issue", return_value=10), \\
+        with mock.patch.object(mod, "gh_json", side_effect=api), \
+             mock.patch.object(mod, "gh_paginated_json", return_value=[]), \
+             mock.patch.object(ready, "linked_issue", return_value=10), \
              mock.patch.object(ready, "provenance_verified", return_value=(True, "ok")) as provenance:
             eligible, _, linked = mod.copilot_low_risk_merge_eligible(candidate, files, repo, runs("a" * 40))
             self.assertTrue(eligible)
