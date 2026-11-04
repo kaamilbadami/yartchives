@@ -41,7 +41,8 @@ COPILOT_LOGINS = frozenset({"copilot", "copilot-swe-agent", "copilot-swe-agent[b
 BLOCKING_LABELS = frozenset({
     JULES_ACTIVE_LABEL, JULES_FEEDBACK_LABEL, JULES_REVIEW_READY_LABEL,
     JULES_FAILED_LABEL, JULES_RETRY_LABEL, "blocked",
-    "needs-product-decision", "initiative",
+    "needs-product-decision", "needs-human-decision", "agent-excluded",
+    "invalid-autonomous-task", "initiative",
 })
 
 
