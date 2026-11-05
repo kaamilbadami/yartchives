@@ -2123,6 +2123,65 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             accepted, reason = mod.protected_merge_freshness(repo, 400, head)
         self.assertTrue(accepted, reason)
 
+    def test_up_to_date_head_check_fallback_requires_exact_base_and_trusted_latest(self):
+        repo = "kaamilbadami/yartchives"
+        head, base, merge = "a" * 40, "b" * 40, "c" * 40
+        candidate = {"state": "open", "draft": False,
+                     "base": {"ref": "main", "sha": base},
+                     "head": {"sha": head}, "merge_commit_sha": merge}
+        for case in ("valid", "behind", "untrusted", "failed", "pending", "main_drift"):
+            with self.subTest(case=case):
+                refs = {"count": 0}
+                def api(*args):
+                    path = args[-1]
+                    if path.endswith("/pulls/400"):
+                        return candidate
+                    if path.endswith("/git/ref/heads/main"):
+                        refs["count"] += 1
+                        sha = "d" * 40 if case == "main_drift" and refs["count"] == 2 else base
+                        return {"object": {"sha": sha}}
+                    if path.endswith(f"/commits/{merge}/check-runs?per_page=100"):
+                        return {"check_runs": []}
+                    if path.endswith(f"/compare/{base}...{head}"):
+                        return {"behind_by": 1 if case == "behind" else 0,
+                                "status": "diverged" if case == "behind" else "ahead"}
+                    if path.endswith(f"/commits/{head}/check-runs?per_page=100"):
+                        return {"check_runs": [
+                            {"id": 1, "name": "tests", "status": "completed",
+                             "conclusion": "success", "app": {"id": 15368},
+                             "completed_at": "2026-11-05T10:00:00Z"},
+                            {"id": 2, "name": "tests",
+                             "status": "queued" if case == "pending" else "completed",
+                             "conclusion": "failure" if case == "failed" else "success",
+                             "app": {"id": 999 if case == "untrusted" else 15368},
+                             "completed_at": "2026-11-05T11:00:00Z"},
+                        ]}
+                    raise AssertionError(path)
+                with mock.patch.object(mod, "gh_json", side_effect=api):
+                    allowed, reason = mod.protected_merge_freshness(repo, 400, head)
+                self.assertEqual(allowed, case in ("valid", "untrusted"), reason)
+
+    def test_merge_failure_never_falls_back_to_green_head(self):
+        repo = "kaamilbadami/yartchives"
+        head, base, merge = "a" * 40, "b" * 40, "c" * 40
+        candidate = {"state": "open", "draft": False,
+                     "base": {"ref": "main", "sha": base},
+                     "head": {"sha": head}, "merge_commit_sha": merge}
+        def api(*args):
+            path = args[-1]
+            if path.endswith("/pulls/400"):
+                return candidate
+            if path.endswith("/git/ref/heads/main"):
+                return {"object": {"sha": base}}
+            if path.endswith(f"/commits/{merge}/check-runs?per_page=100"):
+                return {"check_runs": [{"name": "tests", "status": "completed",
+                                        "conclusion": "failure", "app": {"id": 15368}}]}
+            raise AssertionError("fallback should not be queried: " + path)
+        with mock.patch.object(mod, "gh_json", side_effect=api):
+            allowed, reason = mod.protected_merge_freshness(repo, 400, head)
+        self.assertFalse(allowed)
+        self.assertIn("merge SHA", reason)
+
     def test_newer_required_check_failure_vetoes_older_success(self):
         repo = "kaamilbadami/yartchives"
         head, base, merge = "a" * 40, "b" * 40, "c" * 40
