@@ -1,4 +1,6 @@
 name: Quality checks
+# Include the recovery PR identity in Actions run metadata for dispatch/run reconciliation.
+run-name: "${{ github.event_name == 'workflow_dispatch' && inputs.pr_recovery == true && format('Recovery PR #{0} head {1} merge {2}', inputs.pr_number, inputs.pr_head_sha, inputs.pr_merge_sha) || 'Quality checks' }}"
 
 on:
   workflow_dispatch:
@@ -15,6 +17,11 @@ on:
         type: string
       pr_head_sha:
         description: Immutable PR head SHA for read-only recovery when Copilot CI is approval-gated
+        required: false
+        default: ""
+        type: string
+      pr_merge_sha:
+        description: Expected synthetic merge SHA for exactly pinned PR recovery
         required: false
         default: ""
         type: string
@@ -61,9 +68,12 @@ on:
 permissions:
   contents: read
 
+# Recovery runs always execute trusted main, but target *different* PR/merge SHAs.
+# A global quality-main cancellation group caused unrelated recoveries to cancel
+# one another before they could publish the required merge check run.
 concurrency:
-  group: quality-${{ github.ref }}
-  cancel-in-progress: true
+  group: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_recovery == true && format('quality-recovery-{0}-{1}-{2}', inputs.pr_number, inputs.pr_head_sha, github.run_id) || format('quality-{0}', github.ref) }}
+  cancel-in-progress: ${{ !(github.event_name == 'workflow_dispatch' && inputs.pr_recovery == true) }}
 
 jobs:
   targeted-frontend-preflight:
@@ -113,12 +123,14 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && inputs.pr_recovery == true && inputs.pr_number != ''
         env:
           PR_NUMBER: ${{ inputs.pr_number }}
+          EXPECTED_MERGE_SHA: ${{ inputs.pr_merge_sha }}
         run: |
           set -euo pipefail
+          [[ "$EXPECTED_MERGE_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "Missing expected merge identity"; exit 1; }
           [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]] || { echo "Invalid PR number"; exit 1; }
           git fetch --no-tags origin "refs/pull/$PR_NUMBER/merge"
           merge_sha="$(git rev-parse FETCH_HEAD)"
-          [[ "$merge_sha" =~ ^[a-f0-9]{40}$ ]] || exit 1
+          [[ "$merge_sha" == "$EXPECTED_MERGE_SHA" ]] || { echo "Synthetic merge changed before testing"; exit 1; }
           git checkout --detach "$merge_sha"
           echo "merge_sha=$merge_sha" >> "$GITHUB_OUTPUT"
 
@@ -252,12 +264,22 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ inputs.pr_number }}
           TESTED_MERGE_SHA: ${{ needs.tests.outputs.tested_merge_sha }}
+          EXPECTED_MERGE_SHA: ${{ inputs.pr_merge_sha }}
           TESTED_HEAD_SHA: ${{ needs.head-tests.outputs.tested_head_sha }}
           EXPECTED_HEAD_SHA: ${{ inputs.pr_head_sha }}
         run: |
           set -euo pipefail
+          # Recovery must never silently fall back to publishing success on main.
+          # A missing PR identity is a failed recovery, not a successful test.
+          [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]] || { echo "Missing recovery PR identity"; exit 1; }
+          [[ "$EXPECTED_HEAD_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "Missing recovery head identity"; exit 1; }
+          [[ "$EXPECTED_MERGE_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "Missing recovery merge identity"; exit 1; }
+          [[ "$TESTED_HEAD_SHA" == "$EXPECTED_HEAD_SHA" ]] || { echo "Exact-head recovery did not run"; exit 1; }
+          [[ "$TESTED_MERGE_SHA" == "$EXPECTED_MERGE_SHA" ]] || { echo "Exact-merge recovery did not run"; exit 1; }
           target="$GITHUB_SHA"
           if [[ -n "$PR_NUMBER" ]]; then
+            [[ "$EXPECTED_MERGE_SHA" =~ ^[a-f0-9]{40}$ ]] || exit 1
+            [[ "$TESTED_MERGE_SHA" == "$EXPECTED_MERGE_SHA" ]] || exit 1
             [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]] || exit 1
             current="$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER")"
             [[ "$(jq -r '.state' <<<"$current")" == "open" ]] || exit 1
