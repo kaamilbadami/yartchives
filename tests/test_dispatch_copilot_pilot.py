@@ -197,5 +197,86 @@ class CopilotPilotDispatcherTests(unittest.TestCase):
             mod.run_cycle(REPO, "user-token", api=lambda *a, **k: {"error": "invalid"})
 
 
+    def test_default_mode_accepts_unlabeled_but_authorized_issue(self):
+        candidate = issue()
+        candidate["labels"] = [
+            label for label in candidate["labels"]
+            if label["name"] != mod.PILOT_LABEL
+        ]
+        self.assertFalse(mod.issue_is_eligible(candidate, set(), set()))
+        self.assertTrue(mod.issue_is_eligible(
+            candidate, set(), set(), mode="default"))
+        assignments = []
+        def api(path, *, method="GET", payload=None, token=None):
+            if method == "POST":
+                if path.endswith("/assignees"):
+                    assignments.append(payload)
+                    return {"assignees": [{"login": "Copilot"}]}
+                return {"id": 1}
+            if path.endswith("/issues?state=open&per_page=100"):
+                return [candidate]
+            if path.endswith("/pulls?state=open&per_page=100"):
+                return []
+            if path.endswith("/comments?per_page=100"):
+                return []
+            if path.endswith("/issues/900"):
+                return candidate
+            raise AssertionError(path)
+        self.assertIn("assigned Copilot", mod.run_cycle(
+            REPO, "token", api=api, mode="default"))
+        self.assertEqual(len(assignments), 1)
+
+    def test_default_mode_respects_optouts_and_invalid_metadata(self):
+        for label in (
+            "agent-excluded", "needs-human-decision",
+            "invalid-autonomous-task", "initiative", "blocked",
+        ):
+            with self.subTest(label=label):
+                self.assertFalse(mod.issue_is_eligible(
+                    issue(extra=(label,)), set(), set(), mode="default"))
+        unsigned = issue()
+        unsigned["labels"] = []
+        self.assertFalse(mod.issue_is_eligible(
+            unsigned, set(), set(), mode="default"))
+        self.assertFalse(mod.issue_is_eligible(
+            issue(), {900}, {"resource:test-pilot"}, mode="default"))
+        self.assertFalse(mod.issue_is_eligible(
+            issue(assignees=("Copilot",)), set(), set(), mode="default"))
+
+    def test_modes_fail_closed_before_external_mutations(self):
+        api = mock.Mock(side_effect=AssertionError("no API permitted"))
+        self.assertIn("queue-only", mod.run_cycle(
+            REPO, "token", api=api, mode="queue-only"))
+        with self.assertRaisesRegex(ValueError, "unsupported COPILOT_DISPATCH_MODE"):
+            mod.run_cycle(REPO, "token", api=api, mode="unexpected")
+        api.assert_not_called()
+
+    def test_truncated_inventory_fails_closed(self):
+        many = [issue(i) for i in range(100, 200)]
+        api = mock.Mock(side_effect=[many, []])
+        with self.assertRaisesRegex(RuntimeError, "incomplete"):
+            mod.run_cycle(REPO, "token", api=api, mode="default")
+        self.assertEqual(api.call_count, 2)
+
+    def test_default_mode_preserves_at_most_once_attempt(self):
+        candidate = issue()
+        candidate["labels"] = [
+            label for label in candidate["labels"]
+            if label["name"] != mod.PILOT_LABEL
+        ]
+        def api(path, *, method="GET", payload=None, token=None):
+            if method == "POST":
+                raise AssertionError("must not duplicate assignment")
+            if path.endswith("/issues?state=open&per_page=100"):
+                return [candidate]
+            if path.endswith("/pulls?state=open&per_page=100"):
+                return []
+            if path.endswith("/comments?per_page=100"):
+                return [{"body": mod.ATTEMPT_MARKER}]
+            raise AssertionError(path)
+        self.assertIn("already attempted", mod.run_cycle(
+            REPO, "token", api=api, mode="default"))
+
+
 if __name__ == "__main__":
     unittest.main()

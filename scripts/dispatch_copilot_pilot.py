@@ -32,6 +32,7 @@ except ModuleNotFoundError:
     )
 
 PILOT_LABEL = "copilot-pilot"
+DISPATCH_MODES = frozenset({"pilot", "default", "queue-only"})
 # Student supports Auto only. After upgrading to Pro, set the repository
 # COPILOT_PILOT_MODEL variable to gpt-6-luna for low-cost pilot dispatch.
 # Restrict selections until their API spelling and account eligibility are tested.
@@ -41,7 +42,8 @@ COPILOT_LOGINS = frozenset({"copilot", "copilot-swe-agent", "copilot-swe-agent[b
 BLOCKING_LABELS = frozenset({
     JULES_ACTIVE_LABEL, JULES_FEEDBACK_LABEL, JULES_REVIEW_READY_LABEL,
     JULES_FAILED_LABEL, JULES_RETRY_LABEL, "blocked",
-    "needs-product-decision", "initiative",
+    "needs-product-decision", "needs-human-decision", "agent-excluded",
+    "invalid-autonomous-task", "initiative",
 })
 
 
@@ -61,11 +63,13 @@ def gh_api(path: str, *, method: str = "GET", payload: dict[str, Any] | None = N
 
 
 def issue_is_eligible(issue: dict[str, Any], open_numbers: set[int],
-                      occupied: set[str]) -> bool:
+                      occupied: set[str], *, mode: str = "pilot") -> bool:
     if issue.get("state") != "open" or "pull_request" in issue:
         return False
     labels = label_names(issue)
-    if PILOT_LABEL not in labels or labels & BLOCKING_LABELS or has_codex_reservation(labels):
+    if (mode not in DISPATCH_MODES or mode == "queue-only"
+            or (mode == "pilot" and PILOT_LABEL not in labels)
+            or labels & BLOCKING_LABELS or has_codex_reservation(labels)):
         return False
     if issue.get("assignees"):
         return False
@@ -83,7 +87,12 @@ def preexisting_pr(prs: list[dict[str, Any]], issue_number: int) -> bool:
 
 
 def run_cycle(repo: str, assignment_token: str,
-              api: Callable[..., Any] = gh_api, *, model: str = "") -> str:
+              api: Callable[..., Any] = gh_api, *, model: str = "",
+              mode: str = "pilot") -> str:
+    if mode not in DISPATCH_MODES:
+        raise ValueError("unsupported COPILOT_DISPATCH_MODE; refusing assignment")
+    if mode == "queue-only":
+        return "queue-only: no Copilot assignments permitted"
     if not assignment_token:
         return "disabled: COPILOT_ASSIGNMENT_TOKEN is not configured"
     selected_model = model.strip().casefold()
@@ -93,6 +102,10 @@ def run_cycle(repo: str, assignment_token: str,
     prs = api(f"repos/{repo}/pulls?state=open&per_page=100")
     if not isinstance(issues, list) or not isinstance(prs, list):
         raise ValueError("unexpected GitHub API response; refusing dispatch")
+    # A truncated inventory could conceal locks, open PRs or earlier attempts.
+    # Fail closed rather than dispatch against incomplete repository state.
+    if len(issues) >= 100 or len(prs) >= 100:
+        raise RuntimeError("incomplete issue/PR inventory; refusing Copilot dispatch")
     # The existing workflow has one serialized writer group with Jules.
     # A conservative global occupied set prevents overlapping resource work.
     occupied: set[str] = set()
@@ -112,7 +125,9 @@ def run_cycle(repo: str, assignment_token: str,
     # An attempted assignment may still be working even if Copilot has
     # temporarily removed its assignee; only an issue closure releases it.
     for other in issues:
-        if "pull_request" in other or PILOT_LABEL not in label_names(other):
+        if "pull_request" in other or (mode == "pilot" and PILOT_LABEL not in label_names(other)):
+            continue
+        if task_from_issue(other) is None:
             continue
         if any(str(a.get("login") or "").casefold() in COPILOT_LOGINS
                for a in other.get("assignees") or [] if isinstance(a, dict)):
@@ -124,7 +139,7 @@ def run_cycle(repo: str, assignment_token: str,
             return f"Copilot pilot #{other['number']} already attempted; awaiting outcome"
     # One explicit pilot at a time, so that the live result is interpretable.
     for issue in sorted(issues, key=lambda i: int(i["number"])):
-        if not issue_is_eligible(issue, open_numbers, occupied):
+        if not issue_is_eligible(issue, open_numbers, occupied, mode=mode):
             continue
         number = int(issue["number"])
         if preexisting_pr(prs, number):
@@ -135,7 +150,7 @@ def run_cycle(repo: str, assignment_token: str,
         if any(ATTEMPT_MARKER in str(c.get("body") or "") for c in comments):
             continue
         latest = api(f"repos/{repo}/issues/{number}")
-        if (not issue_is_eligible(latest, open_numbers, occupied)
+        if (not issue_is_eligible(latest, open_numbers, occupied, mode=mode)
                 or latest.get("body") != issue.get("body")
                 or label_names(latest) != label_names(issue)):
             continue
@@ -172,7 +187,8 @@ def run_cycle(repo: str, assignment_token: str,
 def main() -> int:
     repo = os.environ["REPOSITORY"]
     token = os.environ.get("COPILOT_ASSIGNMENT_TOKEN", "")
-    print(run_cycle(repo, token, model=os.environ.get("COPILOT_PILOT_MODEL", "")))
+    print(run_cycle(repo, token, model=os.environ.get("COPILOT_PILOT_MODEL", ""),
+                    mode=os.environ.get("COPILOT_DISPATCH_MODE") or "pilot"))
     return 0
 
 
