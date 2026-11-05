@@ -44,6 +44,101 @@ def runs(sha="abc", conclusion="success"):
     ]
 
 
+
+class RecoveryPublisherFailClosedRegressionTests(unittest.TestCase):
+    def test_missing_or_mismatched_recovery_identity_never_publishes_success(self):
+        import os
+        import yaml
+        workflow = yaml.safe_load((ROOT / ".github/workflows/quality.yml").read_text())
+        steps = workflow["jobs"]["publish-pr-recovery-status"]["steps"]
+        script = next(step["run"] for step in steps
+                      if step.get("name") == "Publish required tests status for PR recovery")
+        valid = {
+            "PR_NUMBER": "1176",
+            "EXPECTED_HEAD_SHA": "a" * 40,
+            "EXPECTED_MERGE_SHA": "b" * 40,
+            "TESTED_HEAD_SHA": "a" * 40,
+            "TESTED_MERGE_SHA": "b" * 40,
+            "GITHUB_SHA": "c" * 40,
+        }
+        # These inputs previously fell through to a green status on main.
+        for key, value in (
+            ("PR_NUMBER", ""),
+            ("EXPECTED_HEAD_SHA", ""),
+            ("EXPECTED_MERGE_SHA", ""),
+            ("TESTED_HEAD_SHA", ""),
+            ("TESTED_MERGE_SHA", ""),
+            ("TESTED_MERGE_SHA", "d" * 40),
+        ):
+            with self.subTest(key=key, value=value):
+                env = {**os.environ, **valid, key: value}
+                result = subprocess.run(
+                    ["bash", "-e", "-c", script], env=env,
+                    capture_output=True, text=True, timeout=10,
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("recovery", (result.stdout + result.stderr).lower())
+
+
+class SerializedProtectedMergeControllerTests(unittest.TestCase):
+    def test_one_merge_per_fresh_inventory_and_follow_up_scan(self):
+        source = MODULE_PATH.read_text()
+        main = source.split("def main() -> int:", 1)[1]
+        admission = main.split("merged_count = 0", 1)[1]
+        loop = admission.split("for pr in pull_requests:", 1)[1]
+        # A successful merge of any eligible lane must stop admission of a
+        # second PR whose base/merge identity came from the old inventory.
+        self.assertIn("if merged_count:", loop)
+        self.assertLess(loop.index("if merged_count:"), loop.index('number = int(pr["number"])'))
+        self.assertIn('gh_run(\n            "workflow", "run", "auto-merge-agent-prs.yml"', main)
+
+
+class RecoveryConcurrencyAndMainDriftRegressionTests(unittest.TestCase):
+    def test_recovery_dispatch_is_not_canceled_by_unrelated_main_quality_runs(self):
+        # Recovery is dispatched from main but verifies a specific PR head and
+        # merge identity. It must not share main's cancel-in-progress group.
+        import yaml
+        workflow = yaml.safe_load((ROOT / ".github/workflows/quality.yml").read_text())
+        group = workflow["concurrency"]["group"]
+        cancellation = workflow["concurrency"]["cancel-in-progress"]
+        self.assertIn("inputs.pr_recovery", group)
+        self.assertIn("github.run_id", group)
+        self.assertIn("quality-recovery-", group)
+        self.assertIn("inputs.pr_recovery", cancellation)
+        self.assertIn("run-name", workflow)
+        self.assertIn("inputs.pr_number", workflow["run-name"])
+
+    def test_main_advancing_after_check_validation_blocks_merge_admission(self):
+        repo = "kaamilbadami/yartchives"
+        head, base, merge = "a" * 40, "b" * 40, "c" * 40
+        candidate = {
+            "state": "open", "draft": False,
+            "head": {"sha": head},
+            "base": {"sha": base, "ref": "main"},
+            "merge_commit_sha": merge,
+        }
+        seen = {"refs": 0}
+
+        def api(*args):
+            path = args[-1]
+            if path.endswith("/pulls/400"):
+                return candidate
+            if path.endswith("/git/ref/heads/main"):
+                seen["refs"] += 1
+                return {"object": {"sha": base if seen["refs"] == 1 else "d" * 40}}
+            if path.endswith("/check-runs?per_page=100"):
+                return {"check_runs": [
+                    {"name": "tests", "status": "completed", "conclusion": "success",
+                     "app": {"id": 15368}}
+                ]}
+            raise AssertionError(path)
+
+        with mock.patch.object(mod, "gh_json", side_effect=api):
+            allowed, reason = mod.protected_merge_freshness(repo, 400, head)
+        self.assertFalse(allowed)
+        self.assertIn("main advanced", reason)
+        self.assertEqual(seen["refs"], 2)
+
 class MissingCiRecoveryTests(unittest.TestCase):
     def test_missing_ci_dispatches_once_then_waits_then_escalates(self):
         from datetime import datetime, timedelta, timezone
@@ -74,9 +169,20 @@ class MergeCiRecoveryBudgetTests(unittest.TestCase):
              "body": f"<!-- merge-ci-recovery: head={head} merge={merge} -->"}
             for merge in ("b" * 40, "c" * 40)
         ]
-        self.assertEqual(mod.merge_ci_recovery_decision(comments, head, "d" * 40), "escalate")
+        # Two obsolete synthetic merges must not exhaust the next current merge.
+        self.assertEqual(mod.merge_ci_recovery_decision(comments, head, "d" * 40), "dispatch")
         self.assertEqual(mod.merge_ci_recovery_decision(comments, head, "b" * 40), "wait")
         self.assertEqual(mod.merge_ci_recovery_decision(comments, "e" * 40, "d" * 40), "dispatch")
+        exhausted = comments + [
+            {"user": {"login": "github-actions[bot]"},
+             "body": f"<!-- merge-ci-recovery: head={head} merge={merge} -->"}
+            for merge in ("d" * 40, "e" * 40, "f" * 40, "0" * 40, "1" * 40, "2" * 40)
+        ]
+        self.assertEqual(mod.merge_ci_recovery_decision(exhausted, head, "3" * 40), "escalate")
+        self.assertEqual(mod.merge_ci_recovery_decision([comments[0]], head, "b" * 40,
+                        retry_current_merge=True), "dispatch")
+        self.assertEqual(mod.merge_ci_recovery_decision([comments[0], comments[0]], head,
+                        "b" * 40, retry_current_merge=True), "escalate")
 
     def test_untrusted_markers_and_invalid_identity_fail_safely(self):
         head, merge = "a" * 40, "b" * 40
@@ -85,6 +191,84 @@ class MergeCiRecoveryBudgetTests(unittest.TestCase):
         self.assertEqual(mod.merge_ci_recovery_decision([fake], head, merge), "dispatch")
         self.assertEqual(mod.merge_ci_recovery_decision([], "bad", merge), "block")
         self.assertEqual(mod.merge_ci_recovery_decision([], head, ""), "block")
+
+
+class MergeCiRecoveryRunReconciliationTests(unittest.TestCase):
+    def make_comment(self, age_minutes=10):
+        from datetime import datetime, timedelta, timezone
+        now = datetime(2026, 11, 4, 18, 0, tzinfo=timezone.utc)
+        head, merge = "a" * 40, "b" * 40
+        marker = f"<!-- merge-ci-recovery: head={head} merge={merge} -->"
+        comment = {"user": {"login": "github-actions[bot]"},
+                   "created_at": (now - timedelta(minutes=age_minutes)).isoformat(),
+                   "body": marker}
+        return now, head, merge, [comment]
+
+    def test_never_created_workflow_retries_only_after_grace(self):
+        now, head, merge, comments = self.make_comment()
+        with mock.patch.object(mod, "gh_json", return_value={"workflow_runs": []}):
+            state, detail = mod.merge_ci_recovery_run_state(
+                "kaamilbadami/yartchives", 20, head, merge, comments, now=now)
+            self.assertEqual(state, "retry")
+            self.assertIn("did not materialize", detail)
+            early, _ = mod.merge_ci_recovery_run_state(
+                "kaamilbadami/yartchives", 20, head, merge,
+                [dict(comments[0], created_at=now.isoformat())], now=now)
+            self.assertEqual(early, "wait")
+
+    def test_queued_failed_and_success_without_check_are_classified(self):
+        now, head, merge, comments = self.make_comment()
+        run = {"id": 123, "event": "workflow_dispatch",
+               "display_title": f"Recovery PR #20 head {head} merge {merge}",
+               "head_branch": "main", "status": "queued", "conclusion": None}
+        for status, conclusion, expected in [
+            ("queued", None, "wait"),
+            ("in_progress", None, "wait"),
+            ("completed", "failure", "retry"),
+            ("completed", "cancelled", "retry"),
+            ("completed", "success", "retry"),
+        ]:
+            with self.subTest(status=status, conclusion=conclusion):
+                run["status"], run["conclusion"] = status, conclusion
+                with mock.patch.object(mod, "gh_json", return_value={"workflow_runs": [dict(run)]}):
+                    state, detail = mod.merge_ci_recovery_run_state(
+                        "kaamilbadami/yartchives", 20, head, merge, comments, now=now)
+                    self.assertEqual(state, expected)
+                    self.assertIn("123", detail)
+
+    def test_actions_api_outage_waits_without_duplicate_dispatch(self):
+        import subprocess
+        now, head, merge, comments = self.make_comment()
+        error = subprocess.CalledProcessError(403, ["gh", "api"])
+        with mock.patch.object(mod, "gh_json", side_effect=error):
+            state, detail = mod.merge_ci_recovery_run_state(
+                "kaamilbadami/yartchives", 20, head, merge, comments, now=now)
+        self.assertEqual(state, "wait")
+        self.assertIn("unavailable", detail)
+
+    def test_unrelated_run_does_not_satisfy_recovery(self):
+        now, head, merge, comments = self.make_comment()
+        unrelated = {"id": 500, "event": "workflow_dispatch",
+                     "display_title": f"Recovery PR #20 head {head} merge {'c' * 40}",
+                     "head_branch": "main", "status": "completed",
+                     "conclusion": "success"}
+        with mock.patch.object(mod, "gh_json", return_value={"workflow_runs": [unrelated]}):
+            state, detail = mod.merge_ci_recovery_run_state(
+                "kaamilbadami/yartchives", 20, head, merge, comments, now=now)
+        self.assertEqual(state, "retry")
+        self.assertIn("did not materialize", detail)
+
+    def test_pinned_recovery_workflow_rejects_merge_sha_drift(self):
+        import yaml
+        workflow = yaml.safe_load((ROOT / ".github/workflows/quality.yml").read_text())
+        self.assertIn("pr_merge_sha", workflow["on"]["workflow_dispatch"]["inputs"] if "on" in workflow
+                      else workflow[True]["workflow_dispatch"]["inputs"])
+        steps = workflow["jobs"]["tests"]["steps"]
+        merge_target = next(step for step in steps if step.get("id") == "merge_target")
+        self.assertIn('"$merge_sha" == "$EXPECTED_MERGE_SHA"', merge_target["run"])
+        publisher = workflow["jobs"]["publish-pr-recovery-status"]["steps"]
+        publish = next(step for step in publisher if "Publish required tests" in step["name"])
+        self.assertIn('"$TESTED_MERGE_SHA" == "$EXPECTED_MERGE_SHA"', publish["run"])
 
 
 class ExactHeadCiFreshnessSecurityTests(unittest.TestCase):
@@ -156,8 +340,8 @@ class SensitivePrCiRecoveryTests(unittest.TestCase):
         calls = []
         def api(*args):
             path = args[-1]
-            if path.endswith("/commits/" + "c" * 40 + "/status"):
-                return {"statuses": []}
+            if path.endswith("/commits/" + "c" * 40 + "/check-runs?per_page=100"):
+                return {"check_runs": []}
             if path.endswith("/pulls/20"):
                 return candidate
             raise AssertionError(path)
@@ -182,8 +366,8 @@ class SensitivePrCiRecoveryTests(unittest.TestCase):
         comment = {"user": {"login": "github-actions[bot]"}, "body": marker}
         def api(*args):
             path = args[-1]
-            if path.endswith("/commits/" + "c" * 40 + "/status"):
-                return {"statuses": []}
+            if path.endswith("/commits/" + "c" * 40 + "/check-runs?per_page=100"):
+                return {"check_runs": []}
             if path.endswith("/pulls/20"):
                 return candidate
             raise AssertionError(path)
@@ -202,11 +386,34 @@ class SensitivePrCiRecoveryTests(unittest.TestCase):
                 "kaamilbadami/yartchives", bad, runs("a" * 40)))
             api.assert_not_called()
         with mock.patch.object(mod, "gh_json", return_value={
-            "statuses": [{"context": "tests", "state": "failure"}]
+            "check_runs": [{"name": "tests", "status": "completed",
+                            "conclusion": "failure", "app": {"id": 15368}}]
         }), mock.patch.object(mod, "gh_run") as write:
             self.assertIn("failed", mod.recover_sensitive_pr_merge_ci(
                 "kaamilbadami/yartchives", candidate, runs("a" * 40)))
             write.assert_not_called()
+
+    def test_legacy_green_status_does_not_suppress_required_recovery(self):
+        candidate = self.candidate()
+        calls = []
+
+        def api(*args):
+            path = args[-1]
+            if path.endswith("/check-runs?per_page=100"):
+                return {"check_runs": [{"name": "tests", "conclusion": "success",
+                                        "status": "completed", "app": {"id": 99999}}]}
+            if path.endswith("/pulls/20"):
+                return candidate
+            raise AssertionError(path)
+
+        with mock.patch.object(mod, "gh_json", side_effect=api), \
+             mock.patch.object(mod, "gh_paginated_json", return_value=[]), \
+             mock.patch.object(mod, "gh_run", side_effect=lambda *args: calls.append(args)):
+            result = mod.recover_sensitive_pr_merge_ci(
+                "kaamilbadami/yartchives", candidate, runs("a" * 40)
+            )
+        self.assertTrue(result.startswith("dispatched:"), result)
+        self.assertEqual(len(calls), 2)
 
     def test_sensitive_ci_recovery_is_before_copilot_merge_authorization(self):
         source = MODULE_PATH.read_text()
@@ -1895,11 +2102,15 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                 return candidate
             if path.endswith("/git/ref/heads/main"):
                 return {"object": {"sha": base}}
-            if path.endswith("/check-runs?per_page=100"):
+            if path.endswith(f"/commits/{merge}/check-runs?per_page=100"):
                 return {"check_runs": [
                     {"name": "tests", "status": "completed", "conclusion": "success",
                      "app": {"id": 99999}}
                 ]}
+            if path.endswith(f"/compare/{base}...{head}"):
+                return {"behind_by": 0, "status": "ahead"}
+            if path.endswith(f"/commits/{head}/check-runs?per_page=100"):
+                return {"check_runs": []}
             raise AssertionError(path)
 
         with mock.patch.object(mod, "gh_json", side_effect=run_api):
@@ -1909,12 +2120,98 @@ class AutoMergeAgentPrTests(unittest.TestCase):
 
         def correct_api(*args):
             result = run_api(*args)
-            if args[-1].endswith("/check-runs?per_page=100"):
+            if args[-1].endswith(f"/commits/{merge}/check-runs?per_page=100"):
                 result["check_runs"][0]["app"]["id"] = 15368
             return result
         with mock.patch.object(mod, "gh_json", side_effect=correct_api):
             accepted, reason = mod.protected_merge_freshness(repo, 400, head)
         self.assertTrue(accepted, reason)
+
+    def test_up_to_date_head_check_fallback_requires_exact_base_and_trusted_latest(self):
+        repo = "kaamilbadami/yartchives"
+        head, base, merge = "a" * 40, "b" * 40, "c" * 40
+        candidate = {"state": "open", "draft": False,
+                     "base": {"ref": "main", "sha": base},
+                     "head": {"sha": head}, "merge_commit_sha": merge}
+        for case in ("valid", "behind", "untrusted", "failed", "pending", "main_drift"):
+            with self.subTest(case=case):
+                refs = {"count": 0}
+                def api(*args):
+                    path = args[-1]
+                    if path.endswith("/pulls/400"):
+                        return candidate
+                    if path.endswith("/git/ref/heads/main"):
+                        refs["count"] += 1
+                        sha = "d" * 40 if case == "main_drift" and refs["count"] == 2 else base
+                        return {"object": {"sha": sha}}
+                    if path.endswith(f"/commits/{merge}/check-runs?per_page=100"):
+                        return {"check_runs": []}
+                    if path.endswith(f"/compare/{base}...{head}"):
+                        return {"behind_by": 1 if case == "behind" else 0,
+                                "status": "diverged" if case == "behind" else "ahead"}
+                    if path.endswith(f"/commits/{head}/check-runs?per_page=100"):
+                        return {"check_runs": [
+                            {"id": 1, "name": "tests", "status": "completed",
+                             "conclusion": "success", "app": {"id": 15368},
+                             "completed_at": "2026-11-05T10:00:00Z"},
+                            {"id": 2, "name": "tests",
+                             "status": "queued" if case == "pending" else "completed",
+                             "conclusion": "failure" if case == "failed" else "success",
+                             "app": {"id": 999 if case == "untrusted" else 15368},
+                             "completed_at": "2026-11-05T11:00:00Z"},
+                        ]}
+                    raise AssertionError(path)
+                with mock.patch.object(mod, "gh_json", side_effect=api):
+                    allowed, reason = mod.protected_merge_freshness(repo, 400, head)
+                self.assertEqual(allowed, case in ("valid", "untrusted"), reason)
+
+    def test_merge_failure_never_falls_back_to_green_head(self):
+        repo = "kaamilbadami/yartchives"
+        head, base, merge = "a" * 40, "b" * 40, "c" * 40
+        candidate = {"state": "open", "draft": False,
+                     "base": {"ref": "main", "sha": base},
+                     "head": {"sha": head}, "merge_commit_sha": merge}
+        def api(*args):
+            path = args[-1]
+            if path.endswith("/pulls/400"):
+                return candidate
+            if path.endswith("/git/ref/heads/main"):
+                return {"object": {"sha": base}}
+            if path.endswith(f"/commits/{merge}/check-runs?per_page=100"):
+                return {"check_runs": [{"name": "tests", "status": "completed",
+                                        "conclusion": "failure", "app": {"id": 15368}}]}
+            raise AssertionError("fallback should not be queried: " + path)
+        with mock.patch.object(mod, "gh_json", side_effect=api):
+            allowed, reason = mod.protected_merge_freshness(repo, 400, head)
+        self.assertFalse(allowed)
+        self.assertIn("merge SHA", reason)
+
+    def test_newer_required_check_failure_vetoes_older_success(self):
+        repo = "kaamilbadami/yartchives"
+        head, base, merge = "a" * 40, "b" * 40, "c" * 40
+        candidate = {"state": "open", "draft": False,
+                     "base": {"ref": "main", "sha": base},
+                     "head": {"sha": head}, "merge_commit_sha": merge}
+
+        def api(*args):
+            path = args[-1]
+            if path.endswith("/pulls/400"):
+                return candidate
+            if path.endswith("/git/ref/heads/main"):
+                return {"object": {"sha": base}}
+            if path.endswith("/check-runs?per_page=100"):
+                return {"check_runs": [
+                    {"id": 100, "name": "tests", "status": "completed", "conclusion": "success",
+                     "completed_at": "2026-11-04T12:00:00Z", "app": {"id": 15368}},
+                    {"id": 101, "name": "tests", "status": "completed", "conclusion": "failure",
+                     "completed_at": "2026-11-04T12:05:00Z", "app": {"id": 15368}},
+                ]}
+            raise AssertionError(path)
+
+        with mock.patch.object(mod, "gh_json", side_effect=api):
+            accepted, reason = mod.protected_merge_freshness(repo, 400, head)
+        self.assertFalse(accepted)
+        self.assertIn("latest", reason)
 
     def test_guarded_merge_rejects_base_advance_and_identity_drift(self):
         repo = "kaamilbadami/yartchives"
