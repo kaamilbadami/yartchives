@@ -1500,8 +1500,36 @@ def protected_merge_freshness(repo: str, number: int, head_sha: str) -> tuple[bo
                          int(row.get("id") or 0)),
         reverse=True,
     )
-    if (not required or required[0].get("status") != "completed"
-            or required[0].get("conclusion") != "success"):
+    if not required:
+        # GitHub strict required checks also accept a successful head check when
+        # the PR head incorporates the exact current base. This fallback must
+        # never admit a behind-base head or override a failing merge check.
+        comparison = gh_json(
+            "api", f"repos/{repo}/compare/{base['sha']}...{head_sha}",
+        )
+        if (comparison.get("behind_by") != 0
+                or comparison.get("status") not in {"ahead", "identical"}):
+            return False, "head is not verified up to date with current main"
+        head_checks = gh_json(
+            "api", f"repos/{repo}/commits/{head_sha}/check-runs?per_page=100",
+        )
+        if not isinstance(head_checks.get("check_runs"), list):
+            return False, "required exact-head check runs unavailable"
+        head_required = sorted(
+            (row for row in head_checks["check_runs"]
+             if row.get("name") == "tests"
+             and (row.get("app") or {}).get("id") == 15368),
+            key=lambda row: (
+                str(row.get("completed_at") or row.get("started_at") or ""),
+                int(row.get("id") or 0),
+            ),
+            reverse=True,
+        )
+        if (not head_required or head_required[0].get("status") != "completed"
+                or head_required[0].get("conclusion") != "success"):
+            return False, "up-to-date head lacks latest successful Actions-owned tests check"
+    elif (required[0].get("status") != "completed"
+          or required[0].get("conclusion") != "success"):
         return False, "current merge SHA lacks latest successful Actions-owned tests check"
     # Keep the final observable freshness check close to the protected API call.
     current = gh_json("api", f"repos/{repo}/pulls/{number}")
