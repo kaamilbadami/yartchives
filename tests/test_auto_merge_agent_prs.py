@@ -2102,11 +2102,15 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                 return candidate
             if path.endswith("/git/ref/heads/main"):
                 return {"object": {"sha": base}}
-            if path.endswith("/check-runs?per_page=100"):
+            if path.endswith(f"/commits/{merge}/check-runs?per_page=100"):
                 return {"check_runs": [
                     {"name": "tests", "status": "completed", "conclusion": "success",
                      "app": {"id": 99999}}
                 ]}
+            if path.endswith(f"/compare/{base}...{head}"):
+                return {"behind_by": 0, "status": "ahead"}
+            if path.endswith(f"/commits/{head}/check-runs?per_page=100"):
+                return {"check_runs": []}
             raise AssertionError(path)
 
         with mock.patch.object(mod, "gh_json", side_effect=run_api):
@@ -2116,7 +2120,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
 
         def correct_api(*args):
             result = run_api(*args)
-            if args[-1].endswith("/check-runs?per_page=100"):
+            if args[-1].endswith(f"/commits/{merge}/check-runs?per_page=100"):
                 result["check_runs"][0]["app"]["id"] = 15368
             return result
         with mock.patch.object(mod, "gh_json", side_effect=correct_api):
