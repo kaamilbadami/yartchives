@@ -45,6 +45,41 @@ def runs(sha="abc", conclusion="success"):
 
 
 
+class RecoveryPublisherFailClosedRegressionTests(unittest.TestCase):
+    def test_missing_or_mismatched_recovery_identity_never_publishes_success(self):
+        import os
+        import yaml
+        workflow = yaml.safe_load((ROOT / ".github/workflows/quality.yml").read_text())
+        steps = workflow["jobs"]["publish-pr-recovery-status"]["steps"]
+        script = next(step["run"] for step in steps
+                      if step.get("name") == "Publish required tests status for PR recovery")
+        valid = {
+            "PR_NUMBER": "1176",
+            "EXPECTED_HEAD_SHA": "a" * 40,
+            "EXPECTED_MERGE_SHA": "b" * 40,
+            "TESTED_HEAD_SHA": "a" * 40,
+            "TESTED_MERGE_SHA": "b" * 40,
+            "GITHUB_SHA": "c" * 40,
+        }
+        # These inputs previously fell through to a green status on main.
+        for key, value in (
+            ("PR_NUMBER", ""),
+            ("EXPECTED_HEAD_SHA", ""),
+            ("EXPECTED_MERGE_SHA", ""),
+            ("TESTED_HEAD_SHA", ""),
+            ("TESTED_MERGE_SHA", ""),
+            ("TESTED_MERGE_SHA", "d" * 40),
+        ):
+            with self.subTest(key=key, value=value):
+                env = {**os.environ, **valid, key: value}
+                result = subprocess.run(
+                    ["bash", "-e", "-c", script], env=env,
+                    capture_output=True, text=True, timeout=10,
+                )
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("recovery", (result.stdout + result.stderr).lower())
+
+
 class SerializedProtectedMergeControllerTests(unittest.TestCase):
     def test_one_merge_per_fresh_inventory_and_follow_up_scan(self):
         source = MODULE_PATH.read_text()
