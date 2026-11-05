@@ -127,7 +127,7 @@ def dispatch(event: dict, repo: str, token: str,
     # No raw untrusted log text is sent as agent instructions. The run is linked
     # so Copilot can inspect exact failures; protected files remain out of scope.
     message = ("@copilot Please repair the failing ordinary test checks on this PR "
-               f"for head \`{head_sha}\`. Failed steps: {names}. "
+               f"for head `{head_sha}`. Failed steps: {names}. "
                f"Run: {run_url}. Investigate the logs and fix the root cause with "
                "regression coverage. Only modify existing low-risk product/test "
                "files; do not edit workflows, secrets, CI/merge/dispatch policy, "
