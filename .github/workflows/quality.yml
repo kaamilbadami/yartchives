@@ -269,6 +269,13 @@ jobs:
           EXPECTED_HEAD_SHA: ${{ inputs.pr_head_sha }}
         run: |
           set -euo pipefail
+          # Recovery must never silently fall back to publishing success on main.
+          # A missing PR identity is a failed recovery, not a successful test.
+          [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]] || { echo "Missing recovery PR identity"; exit 1; }
+          [[ "$EXPECTED_HEAD_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "Missing recovery head identity"; exit 1; }
+          [[ "$EXPECTED_MERGE_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "Missing recovery merge identity"; exit 1; }
+          [[ "$TESTED_HEAD_SHA" == "$EXPECTED_HEAD_SHA" ]] || { echo "Exact-head recovery did not run"; exit 1; }
+          [[ "$TESTED_MERGE_SHA" == "$EXPECTED_MERGE_SHA" ]] || { echo "Exact-merge recovery did not run"; exit 1; }
           target="$GITHUB_SHA"
           if [[ -n "$PR_NUMBER" ]]; then
             [[ "$EXPECTED_MERGE_SHA" =~ ^[a-f0-9]{40}$ ]] || exit 1
