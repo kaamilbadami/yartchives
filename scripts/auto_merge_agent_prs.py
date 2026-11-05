@@ -3,6 +3,11 @@
 
 from __future__ import annotations
 
+try:
+    from scripts.merge_risk_policy import classify_merge_risk
+except ModuleNotFoundError:
+    from merge_risk_policy import classify_merge_risk
+
 import json
 import os
 import re
@@ -75,6 +80,7 @@ SAFE_MERGEABLE_STATES = {"clean", "has_hooks", "unstable", "behind"}
 MAINTENANCE_TEST_BY_PATH = {
     "scripts/dispatch_autonomous_issues.py": "tests/test_dispatch_autonomous_issues.py",
     "scripts/triage_workflow_failures.py": "tests/test_triage_workflow_failures.py",
+    "scripts/triage_source_quarantines.py": "tests/test_triage_source_quarantines.py",
 }
 MAINTENANCE_ALLOWED_PATHS = frozenset(
     {*MAINTENANCE_TEST_BY_PATH, *MAINTENANCE_TEST_BY_PATH.values()}
@@ -180,6 +186,29 @@ def sensitive_auto_merge_paths(files: Iterable[dict[str, Any]]) -> list[str]:
     return sorted(blocked)
 
 
+def bounded_level_two_exception(files: Iterable[dict[str, Any]]) -> bool:
+    """Only a test-paired nonprivileged quarantine repair may bypass the broad veto.
+
+    No workflow, merge-policy, credential, dispatch, or unknown path is eligible.
+    This is a file-scope exception, never a bypass of provenance or required CI.
+    """
+    rows = list(files)
+    paths = {str(row.get("filename") or "") for row in rows}
+    allowed = {"scripts/triage_source_quarantines.py",
+               "tests/test_triage_source_quarantines.py"}
+    if (not paths <= allowed or paths != allowed or len(rows) != 2):
+        return False
+    if any(row.get("previous_filename")
+           or row.get("status") not in {"modified", "added"}
+           or type(row.get("changes")) is not int
+           or row.get("changes") < 0 for row in rows):
+        return False
+    if sum(row["changes"] for row in rows) > 100:
+        return False
+    risk, _ = classify_merge_risk(rows)
+    return risk == 2
+
+
 def copilot_merge_requires_independent_authorization(pr: dict[str, Any]) -> bool:
     """Draft-to-ready is not a grant of automatic merge authorization.
 
@@ -236,14 +265,15 @@ def copilot_low_risk_merge_eligible(
         return False, "missing or invalid main/head commit identity", None
     if not 0 < len(files) <= COPILOT_AUTOMERGE_MAX_FILES:
         return False, "file count exceeds pilot scope", None
+    if not copilot.safe_low_risk_files(files):
+        return False, "protected or non-product path", None
     total = 0
     for item in files:
         path = str(item.get("filename") or "")
         if (item.get("status") == "renamed" or item.get("previous_filename")
-                or sensitive_auto_merge_paths([item])
+                or (sensitive_auto_merge_paths([item]) and not bounded_level_two_exception(files))
                 or blocked_changed_paths([path])
-                or generated_artifact_file_paths([item])
-                or not copilot.safe_low_risk_files([item])):
+                or generated_artifact_file_paths([item])):
             return False, "protected or non-product path", None
         added, deleted = item.get("additions"), item.get("deletions")
         if not isinstance(added, int) or not isinstance(deleted, int) or min(added, deleted) < 0:
@@ -1352,8 +1382,53 @@ def gh_run(*args: str) -> None:
     subprocess.run(["gh", *args], check=True)
 
 
+def protected_merge_freshness(repo: str, number: int, head_sha: str) -> tuple[bool, str]:
+    """Fail closed if CI evidence does not belong to the current protected base.
+
+    This is a final admission check, not an alternative source of merge authority.
+    GitHub's protected merge endpoint remains the ultimate enforcement gate.
+    """
+    pr = gh_json("api", f"repos/{repo}/pulls/{number}")
+    base = pr.get("base") or {}
+    head = pr.get("head") or {}
+    merge_sha = str(pr.get("merge_commit_sha") or "")
+    if (pr.get("state") != "open" or pr.get("draft") is not False
+            or base.get("ref") != "main"
+            or head.get("sha") != head_sha
+            or not all(re.fullmatch(r"[a-f0-9]{40}", str(value or ""))
+                       for value in (base.get("sha"), head_sha, merge_sha))):
+        return False, "stale or unverified PR identity"
+    live_main = gh_json("api", f"repos/{repo}/git/ref/heads/main")
+    if (live_main.get("object") or {}).get("sha") != base.get("sha"):
+        return False, "main advanced since PR base snapshot; revalidate"
+    checks = gh_json("api", f"repos/{repo}/commits/{merge_sha}/check-runs?per_page=100")
+    if not isinstance(checks.get("check_runs"), list):
+        return False, "required merge check runs unavailable"
+    required = [
+        row for row in checks["check_runs"]
+        if row.get("name") == "tests"
+        and (row.get("app") or {}).get("id") == 15368
+    ]
+    if not required or required[0].get("status") != "completed" or required[0].get("conclusion") != "success":
+        return False, "current merge SHA lacks successful Actions-owned tests check"
+    # Keep the final observable freshness check close to the protected API call.
+    current = gh_json("api", f"repos/{repo}/pulls/{number}")
+    if (current.get("state") != "open"
+            or (current.get("head") or {}).get("sha") != head_sha
+            or (current.get("base") or {}).get("sha") != base.get("sha")
+            or current.get("merge_commit_sha") != merge_sha):
+        return False, "PR changed while validating protected merge"
+    return True, ""
+
+
 def try_guarded_squash_merge(repo: str, number: int, head_sha: str) -> tuple[bool, str]:
-    """Let GitHub's merge endpoint be the final authority for a proven-safe stale PR."""
+    """Only attempt GitHub's protected merge for current, verified commit state."""
+    try:
+        fresh, reason = protected_merge_freshness(repo, number, head_sha)
+    except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+        return False, f"protected-merge freshness unavailable: {exc}"
+    if not fresh:
+        return False, reason
     result = subprocess.run(
         [
             "gh", "api", "--method", "PUT",
@@ -1366,6 +1441,60 @@ def try_guarded_squash_merge(repo: str, number: int, head_sha: str) -> tuple[boo
     )
     detail = (result.stderr or result.stdout or "").strip()
     return result.returncode == 0, detail
+
+
+def rearm_owner_native_auto_merge(
+    repo: str, pr: dict[str, Any], current: dict[str, Any],
+    *, head_quality_passed: bool,
+) -> str:
+    """Re-arm GitHub auto-merge after non-writer Copilot repair pushes.
+
+    Only the verified owner lane can call this. Never trust a PR-authored
+    comment or marker; native auto-merge still enforces GitHub branch rules.
+    A clean PR cannot enable auto-merge because it can merge immediately;
+    the existing guarded protected-merge path handles that case.
+    """
+    if (not owner_authorized_pr(pr, repo) or not head_quality_passed
+            or not owner_authorized_pr(current, repo)
+            or (current.get("head") or {}).get("sha") !=
+               (pr.get("head") or {}).get("sha")
+            or (current.get("base") or {}).get("sha") !=
+               (pr.get("base") or {}).get("sha")):
+        return "not eligible for native auto-merge recovery"
+    if current.get("mergeable_state") in {"clean", "has_hooks"}:
+        return "clean: protected merge handled by controller"
+    if current.get("mergeable") is False:
+        return "conflict: native auto-merge not re-armed"
+    node_id = current.get("node_id")
+    if not isinstance(node_id, str) or not node_id:
+        return "unknown: missing pull request node ID"
+    query = (
+        "query($id:ID!){node(id:$id){... on PullRequest"
+        "{autoMergeRequest{enabledAt} mergeStateStatus}}}"
+    )
+    try:
+        data = gh_json("api", "graphql", "-f", f"query={query}", "-F", f"id={node_id}")
+        record = (data.get("data") or {}).get("node") or {}
+        if not isinstance(record, dict) or data.get("errors"):
+            return "unknown: native merge state unavailable"
+        if record.get("autoMergeRequest"):
+            return "already armed"
+        if record.get("mergeStateStatus") == "CLEAN":
+            return "clean: protected merge handled by controller"
+        mutation = (
+            "mutation($id:ID!){enablePullRequestAutoMerge("
+            "input:{pullRequestId:$id,mergeMethod:SQUASH})"
+            "{clientMutationId}}"
+        )
+        response = gh_json("api", "graphql", "-f", f"query={mutation}", "-F", f"id={node_id}")
+        if (response.get("errors") or not isinstance((response.get("data") or {}).get(
+                "enablePullRequestAutoMerge"), dict)):
+            return "unknown: GitHub did not confirm native auto-merge re-arming"
+        return "native auto-merge re-armed for current verified owner head"
+    except (subprocess.CalledProcessError, ValueError, KeyError, TypeError) as exc:
+        # Permission failures and clean-status races are diagnostic, never
+        # reasons to weaken checks or retry without the next controller scan.
+        return f"native auto-merge unavailable: {exc}"
 
 
 def close_linked_issue_after_merge(repo: str, issue_number: int | None) -> None:
@@ -1693,14 +1822,17 @@ def main() -> int:
             print(f"BLOCKED_REQUIRES_DECISION PR #{number}: closing keywords target parent initiative(s) {parent_closers}.")
             continue
 
+        risk_level, risk_reason = classify_merge_risk(files)
+        print(f"PR #{number}: merge risk level {risk_level} ({risk_reason}).")
         sensitive_paths = sensitive_auto_merge_paths(files)
-        if sensitive_paths:
+        owner_lane = owner_authorized_pr(pr, repo)
+        if sensitive_paths and not owner_lane and not bounded_level_two_exception(files):
             # CI verification is not merge authorization. Perform bounded
             # trusted-main recovery even for controller/workflow PRs, then stop.
             result = recover_sensitive_pr_merge_ci(repo, pr, runs)
             print(
                 f"BLOCKED_REQUIRES_DECISION PR #{number}: security-sensitive paths "
-                f"{sensitive_paths} require independent review/manual merge; CI {result}."
+                f"{sensitive_paths} require independent review/manual merge for non-owner PRs; CI {result}."
             )
             continue
 
@@ -1757,7 +1889,7 @@ def main() -> int:
             require_quality=False,
         )
 
-        owner_authorized = owner_authorized_pr(pr, repo) or trusted_preflight_auto_pr(pr, repo)
+        owner_authorized = owner_lane or trusted_preflight_auto_pr(pr, repo)
         issue_number = linked_issue_number(str(pr.get("body") or ""))
         issue = None
         if issue_number is not None:
@@ -2118,6 +2250,11 @@ def main() -> int:
             continue
 
         fresh = gh_json("api", f"repos/{repo}/pulls/{number}")
+        if owner_lane:
+            native_state = rearm_owner_native_auto_merge(
+                repo, pr, fresh, head_quality_passed=exact_head_quality_passed(runs, head_sha)
+            )
+            print(f"PR #{number}: {native_state}.")
         if not github_reports_safe_mergeability(fresh):
             mergeable = fresh.get("mergeable")
             mergeable_state = str(fresh.get("mergeable_state") or "")

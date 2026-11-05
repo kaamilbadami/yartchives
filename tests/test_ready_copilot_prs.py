@@ -675,5 +675,31 @@ class CopilotRecoveryWorkflowSecurityTests(unittest.TestCase):
 
 
 
+
+class NarrowOperationalReadinessTests(unittest.TestCase):
+    def test_paired_quarantine_change_is_low_risk(self):
+        files = [
+            {"filename": "scripts/triage_source_quarantines.py", "status": "modified"},
+            {"filename": "tests/test_triage_source_quarantines.py", "status": "modified"},
+        ]
+        self.assertTrue(ready.safe_low_risk_files(files))
+
+    def test_unpaired_quarantine_change_is_rejected(self):
+        self.assertFalse(ready.safe_low_risk_files([
+            {"filename": "scripts/triage_source_quarantines.py", "status": "modified"}
+        ]))
+
+    def test_other_privileged_scripts_and_workflows_remain_blocked(self):
+        for path in ("scripts/auto_merge_agent_prs.py",
+                     "scripts/dispatch_copilot_pilot.py",
+                     "scripts/triage_workflow_failures.py",
+                     ".github/workflows/quality.yml"):
+            with self.subTest(path=path):
+                self.assertFalse(ready.safe_low_risk_files([
+                    {"filename": path, "status": "modified"},
+                    {"filename": "tests/test_triage_source_quarantines.py", "status": "modified"}
+                ]))
+
+
 if __name__ == "__main__":
     unittest.main()

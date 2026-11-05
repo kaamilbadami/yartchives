@@ -212,7 +212,9 @@ class SensitivePrCiRecoveryTests(unittest.TestCase):
         source = MODULE_PATH.read_text()
         self.assertLess(source.index("sensitive_paths = sensitive_auto_merge_paths(files)", source.index("def main()")),
                         source.index("if copilot_merge_requires_independent_authorization(pr):", source.index("def main()")))
-        block = source.split("if sensitive_paths:", 1)[-1]
+        block = source.split(
+            "if sensitive_paths and not bounded_level_two_exception(files):", 1
+        )[-1]
         self.assertIn("recover_sensitive_pr_merge_ci(repo, pr, runs)", block)
 
 
@@ -582,7 +584,7 @@ class AutoMergeAgentPrTests(unittest.TestCase):
     def test_main_accepts_trusted_preflight_bot_pr_as_direct_authorized_lane(self):
         source = MODULE_PATH.read_text()
         self.assertIn(
-            "owner_authorized = owner_authorized_pr(pr, repo) or trusted_preflight_auto_pr(pr, repo)",
+            "owner_authorized = owner_lane or trusted_preflight_auto_pr(pr, repo)",
             source,
         )
 
@@ -593,7 +595,8 @@ class AutoMergeAgentPrTests(unittest.TestCase):
 
     def test_main_does_not_require_comment_lookup_to_authorize_owner_prs(self):
         source = MODULE_PATH.read_text()
-        self.assertIn("owner_authorized = owner_authorized_pr(pr, repo)", source)
+        self.assertIn("owner_lane = owner_authorized_pr(pr, repo)", source)
+        self.assertIn("owner_authorized = owner_lane or trusted_preflight_auto_pr(pr, repo)", source)
         self.assertNotIn(
             'if OWNER_AUTHORIZED_AUTOMERGE_MARKER not in str(pr.get("body") or ""):',
             source,
@@ -658,14 +661,17 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             "owner_name/repo", 881, "66c62217c3e7cd6eeda9ee6d5fc35ab59fb00afe"
         )
 
-    def test_owner_authorized_lane_bypasses_issue_link_but_not_sensitive_paths_or_ci(self):
+    def test_owner_authorized_lane_bypasses_sensitive_path_veto_but_not_ci(self):
         source = MODULE_PATH.read_text()
         self.assertIn(
             "if issue_number is None and not maintenance_pre_ci and not owner_authorized:",
             source,
         )
         self.assertIn("sensitive_paths = sensitive_auto_merge_paths(files)", source)
-        self.assertIn("if sensitive_paths:", source)
+        self.assertIn(
+            "if sensitive_paths and not owner_lane and not bounded_level_two_exception(files):",
+            source,
+        )
         self.assertIn(
             'pre_ci_eligible, reason = True, "owner-authorized"',
             source,
@@ -1825,7 +1831,8 @@ class AutoMergeAgentPrTests(unittest.TestCase):
 
     def test_guarded_squash_merge_uses_expected_head_sha(self):
         ok = mock.Mock(returncode=0, stdout='{"merged":true}', stderr="", args=["gh"])
-        with mock.patch.object(mod.subprocess, "run", return_value=ok) as run:
+        with mock.patch.object(mod, "protected_merge_freshness", return_value=(True, "")), \
+             mock.patch.object(mod.subprocess, "run", return_value=ok) as run:
             merged, detail = mod.try_guarded_squash_merge(
                 "kaamilbadami/yartchives",
                 400,
@@ -1850,7 +1857,8 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             stderr="HTTP 409: Head branch was modified",
             args=["gh"],
         )
-        with mock.patch.object(mod.subprocess, "run", return_value=rejected):
+        with mock.patch.object(mod, "protected_merge_freshness", return_value=(True, "")), \
+             mock.patch.object(mod.subprocess, "run", return_value=rejected):
             merged, detail = mod.try_guarded_squash_merge(
                 "kaamilbadami/yartchives",
                 400,
@@ -1858,6 +1866,86 @@ class AutoMergeAgentPrTests(unittest.TestCase):
             )
         self.assertFalse(merged)
         self.assertIn("409", detail)
+
+    def test_guarded_merge_rejects_stale_main_without_put(self):
+        with mock.patch.object(mod, "protected_merge_freshness",
+                               return_value=(False, "main advanced")), \
+             mock.patch.object(mod.subprocess, "run") as run:
+            merged, detail = mod.try_guarded_squash_merge(
+                "kaamilbadami/yartchives", 400, "a" * 40,
+            )
+        self.assertFalse(merged)
+        self.assertIn("main advanced", detail)
+        run.assert_not_called()
+
+    def test_guarded_merge_requires_current_actions_owned_merge_check(self):
+        repo = "kaamilbadami/yartchives"
+        head = "a" * 40
+        base = "b" * 40
+        merge = "c" * 40
+        candidate = {
+            "state": "open", "draft": False,
+            "base": {"ref": "main", "sha": base},
+            "head": {"sha": head},
+            "merge_commit_sha": merge,
+        }
+        def run_api(*args):
+            path = args[-1]
+            if path.endswith("/pulls/400"):
+                return candidate
+            if path.endswith("/git/ref/heads/main"):
+                return {"object": {"sha": base}}
+            if path.endswith("/check-runs?per_page=100"):
+                return {"check_runs": [
+                    {"name": "tests", "status": "completed", "conclusion": "success",
+                     "app": {"id": 99999}}
+                ]}
+            raise AssertionError(path)
+
+        with mock.patch.object(mod, "gh_json", side_effect=run_api):
+            accepted, reason = mod.protected_merge_freshness(repo, 400, head)
+        self.assertFalse(accepted)
+        self.assertIn("Actions-owned", reason)
+
+        def correct_api(*args):
+            result = run_api(*args)
+            if args[-1].endswith("/check-runs?per_page=100"):
+                result["check_runs"][0]["app"]["id"] = 15368
+            return result
+        with mock.patch.object(mod, "gh_json", side_effect=correct_api):
+            accepted, reason = mod.protected_merge_freshness(repo, 400, head)
+        self.assertTrue(accepted, reason)
+
+    def test_guarded_merge_rejects_base_advance_and_identity_drift(self):
+        repo = "kaamilbadami/yartchives"
+        head = "a" * 40
+        base = "b" * 40
+        merge = "c" * 40
+        pr = {"state": "open", "draft": False,
+              "base": {"ref": "main", "sha": base},
+              "head": {"sha": head}, "merge_commit_sha": merge}
+        for changed in ("main", "head", "merge"):
+            with self.subTest(changed=changed):
+                calls = {"pull": 0}
+                def api(*args):
+                    path = args[-1]
+                    if path.endswith("/pulls/400"):
+                        calls["pull"] += 1
+                        if changed == "head" and calls["pull"] == 2:
+                            return dict(pr, head={"sha": "d" * 40})
+                        if changed == "merge" and calls["pull"] == 2:
+                            return dict(pr, merge_commit_sha="d" * 40)
+                        return pr
+                    if path.endswith("/git/ref/heads/main"):
+                        return {"object": {"sha": "d" * 40 if changed == "main" else base}}
+                    if path.endswith("/check-runs?per_page=100"):
+                        return {"check_runs": [{"name": "tests", "status": "completed",
+                                                "conclusion": "success", "app": {"id": 15368}}]}
+                    raise AssertionError(path)
+                with mock.patch.object(mod, "gh_json", side_effect=api):
+                    accepted, reason = mod.protected_merge_freshness(repo, 400, head)
+                self.assertFalse(accepted)
+                self.assertTrue(reason)
 
     def test_close_linked_issue_after_merge_is_explicit_and_completed(self):
         ok = subprocess.CompletedProcess(
@@ -2155,6 +2243,175 @@ class AutoMergeAgentPrTests(unittest.TestCase):
                 issue(labels=("autonomous-backlog", "codex-review-ready"))
             )
         )
+
+
+
+class BoundedLevelTwoAdmissionTests(unittest.TestCase):
+    def row(self, name, changes=10, status="modified", **extra):
+        return {"filename": name, "changes": changes, "status": status, **extra}
+
+    def test_test_paired_quarantine_repair_admitted_to_scope_only(self):
+        files = [self.row("scripts/triage_source_quarantines.py"),
+                 self.row("tests/test_triage_source_quarantines.py")]
+        self.assertTrue(mod.bounded_level_two_exception(files))
+        # Classification/exception must not bypass the existing provenance,
+        # exact-head CI, or GitHub protected merge API.
+        self.assertEqual(mod.classify_merge_risk(files)[0], 2)
+
+    def test_incomplete_large_or_unverifiable_level_two_change_fails_closed(self):
+        paired = [self.row("scripts/triage_source_quarantines.py"),
+                  self.row("tests/test_triage_source_quarantines.py")]
+        cases = (
+            paired[:1],
+            paired + [self.row("scripts/auto_merge_agent_prs.py")],
+            paired + [self.row(".github/workflows/quality.yml")],
+            [self.row("scripts/triage_source_quarantines.py", changes=101), paired[1]],
+            [self.row("scripts/triage_source_quarantines.py", changes="bad"), paired[1]],
+            [self.row("scripts/triage_source_quarantines.py", status="renamed",
+                      previous_filename="scripts/old.py"), paired[1]],
+            [self.row("scripts/triage_source_quarantines.py"), paired[1], paired[1]],
+        )
+        for files in cases:
+            with self.subTest(files=files):
+                self.assertFalse(mod.bounded_level_two_exception(files))
+
+    def test_other_sensitive_paths_never_gain_level_two_exception(self):
+        for path in ("scripts/dispatch_autonomous_issues.py",
+                     "scripts/dispatch_copilot_pilot.py",
+                     "scripts/ready_copilot_prs.py",
+                     ".github/workflows/auto-merge-agent-prs.yml",
+                     "scripts/auto_merge_agent_prs.py",
+                     "scripts/merge_risk_policy.py",
+                     "requirements.txt"):
+            with self.subTest(path=path):
+                self.assertFalse(mod.bounded_level_two_exception([
+                    self.row(path), self.row("tests/test_auto_merge_agent_prs.py")]))
+
+
+
+class OwnerProtectedMergePolicyTests(unittest.TestCase):
+    def test_owner_is_authorized_only_for_ready_same_repository_pr(self):
+        repo = "kaamilbadami/yartchives"
+        pr = {
+            "state": "open", "draft": False,
+            "user": {"login": "kaamilbadami"},
+            "head": {"repo": {"full_name": repo}},
+        }
+        self.assertTrue(mod.owner_authorized_pr(pr, repo))
+        for mutation in (
+            {"draft": True},
+            {"state": "closed"},
+            {"user": {"login": "copilot"}},
+            {"head": {"repo": {"full_name": "outside/fork"}}},
+        ):
+            with self.subTest(mutation=mutation):
+                self.assertFalse(mod.owner_authorized_pr({**pr, **mutation}, repo))
+
+    def test_protected_paths_remain_sensitive_for_nonowners(self):
+        protected_files = [
+            {"filename": "scripts/auto_merge_agent_prs.py", "changes": 5, "status": "modified"},
+            {"filename": ".github/workflows/quality.yml", "changes": 5, "status": "modified"},
+        ]
+        self.assertTrue(mod.sensitive_auto_merge_paths(protected_files))
+        self.assertFalse(mod.bounded_level_two_exception(protected_files))
+        self.assertEqual(mod.classify_merge_risk(protected_files)[0], 3)
+
+    def test_owner_merge_still_uses_freshness_and_required_checks(self):
+        # Source regression: the owner exemption is only at the path veto,
+        # not at protected-merge freshness or exact-head Quality checks.
+        source = MODULE_PATH.read_text(encoding="utf-8")
+        self.assertIn(
+            "if sensitive_paths and not owner_lane and not bounded_level_two_exception(files):",
+            source,
+        )
+        self.assertIn("owner_lane = owner_authorized_pr(pr, repo)", source)
+        self.assertIn("exact_head_quality_passed(runs, head_sha)", source)
+        self.assertIn("fresh, reason = protected_merge_freshness(repo, number, head_sha)", source)
+        self.assertIn("try_guarded_squash_merge(", source)
+
+
+
+class NativeOwnerAutoMergeRecoveryTests(unittest.TestCase):
+    def owner_pr(self, *, head="a" * 40, base="b" * 40):
+        return {
+            "state": "open", "draft": False,
+            "user": {"login": "kaamilbadami"},
+            "head": {"sha": head, "repo": {"full_name": "kaamilbadami/yartchives"}},
+            "base": {"ref": "main", "sha": base},
+            "node_id": "PR_123",
+            "mergeable": True, "mergeable_state": "blocked",
+        }
+
+    def test_copilot_repair_disabled_auto_merge_is_rearmed(self):
+        pr = self.owner_pr()
+        calls = []
+        def graphql(*args):
+            calls.append(args)
+            if "mutation(" in args[3]:
+                return {"data": {"enablePullRequestAutoMerge": {"clientMutationId": None}}}
+            return {"data": {"node": {
+                "autoMergeRequest": None, "mergeStateStatus": "BLOCKED"}}}
+        with mock.patch.object(mod, "gh_json", side_effect=graphql):
+            result = mod.rearm_owner_native_auto_merge(
+                "kaamilbadami/yartchives", pr, dict(pr), head_quality_passed=True)
+        self.assertIn("re-armed", result)
+        self.assertEqual(len(calls), 2)
+        self.assertIn("enablePullRequestAutoMerge", calls[1][3])
+
+    def test_already_armed_and_clean_do_not_duplicate_requests(self):
+        pr = self.owner_pr()
+        with mock.patch.object(mod, "gh_json", return_value={"data": {"node": {
+            "autoMergeRequest": {"enabledAt": "2026-11-04T18:00:00Z"},
+            "mergeStateStatus": "BLOCKED"}}}) as api:
+            self.assertEqual(mod.rearm_owner_native_auto_merge(
+                "kaamilbadami/yartchives", pr, dict(pr),
+                head_quality_passed=True), "already armed")
+            api.assert_called_once()
+        clean = {**pr, "mergeable_state": "clean"}
+        with mock.patch.object(mod, "gh_json") as api:
+            self.assertIn("clean", mod.rearm_owner_native_auto_merge(
+                "kaamilbadami/yartchives", pr, clean, head_quality_passed=True))
+            api.assert_not_called()
+
+    def test_rejects_nonowners_failed_ci_and_drift_before_api(self):
+        pr = self.owner_pr()
+        bad = [
+            (pr, dict(pr), False),
+            ({**pr, "user": {"login": "copilot"}}, dict(pr), True),
+            (pr, {**pr, "head": {**pr["head"], "sha": "c" * 40}}, True),
+            (pr, {**pr, "base": {**pr["base"], "sha": "d" * 40}}, True),
+            (pr, {**pr, "draft": True}, True),
+        ]
+        with mock.patch.object(mod, "gh_json") as api:
+            for original, current, passed in bad:
+                with self.subTest(original=original, current=current, passed=passed):
+                    self.assertIn("not eligible", mod.rearm_owner_native_auto_merge(
+                        "kaamilbadami/yartchives", original, current,
+                        head_quality_passed=passed))
+            api.assert_not_called()
+
+    def test_graphql_mutation_errors_are_not_reported_as_success(self):
+        pr = self.owner_pr()
+        def graphql(*args):
+            if "mutation(" in args[3]:
+                return {"errors": [{"message": "not permitted"}]}
+            return {"data": {"node": {
+                "autoMergeRequest": None, "mergeStateStatus": "BLOCKED"}}}
+        with mock.patch.object(mod, "gh_json", side_effect=graphql):
+            self.assertIn("did not confirm", mod.rearm_owner_native_auto_merge(
+                "kaamilbadami/yartchives", pr, dict(pr),
+                head_quality_passed=True))
+
+    def test_conflicts_graphql_failure_and_missing_identity_fail_closed(self):
+        pr = self.owner_pr()
+        conflict = {**pr, "mergeable": False}
+        with mock.patch.object(mod, "gh_json") as api:
+            self.assertIn("conflict", mod.rearm_owner_native_auto_merge(
+                "kaamilbadami/yartchives", pr, conflict, head_quality_passed=True))
+            api.assert_not_called()
+        with mock.patch.object(mod, "gh_json", side_effect=ValueError("bad response")):
+            self.assertIn("unavailable", mod.rearm_owner_native_auto_merge(
+                "kaamilbadami/yartchives", pr, dict(pr), head_quality_passed=True))
 
 
 if __name__ == "__main__":

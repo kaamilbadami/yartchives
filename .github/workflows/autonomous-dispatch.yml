@@ -40,12 +40,27 @@ jobs:
           persist-credentials: false
 
       - name: Guard against blind Jules redispatch
+        if: vars.COPILOT_DISPATCH_MODE == '' || vars.COPILOT_DISPATCH_MODE == 'pilot'
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
         run: python scripts/guard_jules_redispatch.py
 
+      - name: Dispatch one bounded Copilot task
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COPILOT_ASSIGNMENT_TOKEN: ${{ secrets.COPILOT_ASSIGNMENT_TOKEN }}
+          # Optional: configure to gpt-6-luna after switching from Student to Pro.
+          # Unset remains Auto (Student-compatible); never silently escalate.
+          COPILOT_PILOT_MODEL: ${{ vars.COPILOT_PILOT_MODEL }}
+          # pilot is the safe default. Set default only after a verified live pilot.
+          # queue-only disables both providers without losing the issue backlog.
+          COPILOT_DISPATCH_MODE: ${{ vars.COPILOT_DISPATCH_MODE }}
+          REPOSITORY: ${{ github.repository }}
+        run: python scripts/dispatch_copilot_pilot.py
+
       - name: Dispatch safe non-overlapping work
+        if: vars.COPILOT_DISPATCH_MODE == '' || vars.COPILOT_DISPATCH_MODE == 'pilot'
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
