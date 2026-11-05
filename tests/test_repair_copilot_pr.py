@@ -88,7 +88,11 @@ class CopilotRepairTests(unittest.TestCase):
                         {"user": {"login": mod.BOT},
                          "body": mod.REPAIR_MARKER + "head=" + ("c" * 40) + " run=2 -->"}]
         self.assertIn("budget exhausted", mod.dispatch(api.event, REPO, "user-token", api))
-        self.assertFalse(api.posts)
+        self.assertEqual(len(api.posts), 1)
+        self.assertIn("copilot-ci-repair-exhausted", api.posts[0][0])
+        self.assertNotIn("@copilot", api.posts[0][0])
+        self.assertIn("budget exhausted", mod.dispatch(api.event, REPO, "user-token", api))
+        self.assertEqual(len(api.posts), 1)
 
     def test_marker_precedes_ambiguous_copilot_failure(self):
         api = FakeApi()
