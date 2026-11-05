@@ -182,17 +182,17 @@ assert.match(
 // independent PR/merge identities must never cancel each other.
 assert.match(
   qualityWorkflow,
-  /format\\('quality-\\{0\\}', github\\.ref\\)/,
+  /format\('quality-\{0\}', github\.ref\)/,
   "Ordinary quality runs should retain ref-based concurrency"
 );
 assert.match(
   qualityWorkflow,
-  /format\\('quality-recovery-\\{0\\}-\\{1\\}-\\{2\\}', inputs\\.pr_number, inputs\\.pr_head_sha, github\\.run_id\\)/,
+  /format\('quality-recovery-\{0\}-\{1\}-\{2\}', inputs\.pr_number, inputs\.pr_head_sha, github\.run_id\)/,
   "Recovery runs must have unique PR/run concurrency identities"
 );
 assert.match(
   qualityWorkflow,
-  /cancel-in-progress:\\s*\\$\\{\\{ !\\(github\\.event_name == 'workflow_dispatch' && inputs\\.pr_recovery == true\\) \\}\\}/,
+  /cancel-in-progress:\s*\$\{\{ !\(github\.event_name == 'workflow_dispatch' && inputs\.pr_recovery == true\) \}\}/,
   "PR recovery must not cancel independently running checks"
 );
 
