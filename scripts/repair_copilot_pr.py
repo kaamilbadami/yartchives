@@ -110,7 +110,17 @@ def dispatch(event: dict, repo: str, token: str,
     if any(f"head={head_sha} " in str(c.get("body") or "") for c in attempts):
         return "repair already requested for this head"
     if len(attempts) >= MAX_REPAIRS_PER_PR:
-        return f"repair budget exhausted ({MAX_REPAIRS_PER_PR}); escalation required"
+        exhausted_marker = "<!-- copilot-ci-repair-exhausted:v1 -->"
+        if not any(exhausted_marker in str(c.get("body") or "")
+                   and (c.get("user") or {}).get("login", "").casefold() == BOT
+                   for c in comments):
+            api(f"repos/{repo}/issues/{number}/comments", method="POST",
+                body={"body": exhausted_marker + "\\n"
+                      + f"Automatic Copilot CI repair exhausted its {MAX_REPAIRS_PER_PR} "
+                      + "attempts. No further automatic repair requests will be sent. "
+                      + "Investigate the current Quality run and authorize the next "
+                      + "step explicitly."})
+        return f"repair budget exhausted ({MAX_REPAIRS_PER_PR}); escalation recorded"
     # Final head check immediately before the first write. A marker is persisted
     # BEFORE mentioning Copilot so ambiguous delivery never causes a retry storm.
     latest = api(f"repos/{repo}/pulls/{number}")
