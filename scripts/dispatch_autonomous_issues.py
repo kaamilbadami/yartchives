@@ -15,6 +15,17 @@ from urllib import parse, request
 
 PRIORITY_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3}
 MAX_ACTIVE = 15
+# Jules becomes read-only November 11, 2026. Fail closed at 00:00 UTC
+# rather than risking a late write across unknown provider-local timezones.
+JULES_WRITE_CUTOFF_UTC = datetime(2026, 11, 11, tzinfo=timezone.utc)
+
+
+def jules_writes_enabled(now: datetime | None = None) -> bool:
+    current = now if now is not None else datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        raise ValueError("Jules cutoff requires timezone-aware UTC time")
+    return current.astimezone(timezone.utc) < JULES_WRITE_CUTOFF_UTC
+
 MAX_EVIDENCE_GENERATED_PER_CYCLE = MAX_ACTIVE
 COVERAGE_AREAS = frozenset({
     "coverage",
@@ -1037,7 +1048,7 @@ def completed_session_pr_from_comments(
     """Return the newest completed Jules session tied to a PR in this repository."""
     owner, name = (re.escape(part) for part in repo.split("/", 1))
     pattern = re.compile(
-        rf"Jules completed session \`([^\`]+)\`.*?"
+        rf"Jules completed session `([^`]+)`.*?"
         rf"Pull request:\s*https://github\.com/{owner}/{name}/pull/(\d+)",
         re.IGNORECASE | re.DOTALL,
     )
@@ -2394,6 +2405,10 @@ def jules_json(
     method: str = "GET",
     payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    # Enforce the cutoff at the provider boundary, including helper callers
+    # outside the normal dispatcher cycle. Reads remain available for history.
+    if method.upper() != "GET" and not jules_writes_enabled():
+        raise RuntimeError("Jules is read-only: mutating API requests disabled after 2026-11-11 00:00 UTC")
     data = None if payload is None else json.dumps(payload).encode("utf-8")
     req = request.Request(
         f"{JULES_API_ROOT}{path}",
@@ -2501,6 +2516,8 @@ def create_jules_session(
     *,
     retry_context: str | None = None,
 ) -> dict[str, Any]:
+    if not jules_writes_enabled():
+        raise RuntimeError("Jules is read-only: new sessions disabled after 2026-11-11 00:00 UTC")
     return api_post(
         api_key,
         "/sessions",
@@ -2753,16 +2770,16 @@ autonomous: true
 {evidence}
 
 Current benchmark impact: **{affected} employers**.
-Gap family: \`{family}\`.
+Gap family: `{family}`.
 
 ## Goal
 Fix the highest-leverage generic source-family cause behind this measured gap. Prefer reusable ATS-family, aggregator, provider-resolution, classification, or normalization improvements over employer-by-employer exceptions.
 
 ## Acceptance criteria
-- Reproduce the gap from current \`main\` before changing code.
+- Reproduce the gap from current `main` before changing code.
 - Implement the smallest root-cause fix that improves the affected source family generically.
 - Add regression coverage for the failure mode.
-- Re-run \`python scripts/coverage_gap_candidates.py\` and report the before/after affected-employer count for this gap.
+- Re-run `python scripts/coverage_gap_candidates.py` and report the before/after affected-employer count for this gap.
 - Do not add employer-specific production exceptions solely to improve the benchmark.
 - Do not scrape LinkedIn or Handshake as production sources.
 - Keep unrelated source families unchanged.
@@ -3048,6 +3065,9 @@ def run_dispatch_cycle(
     source_name: str | None = None,
 ) -> tuple[bool, str | None]:
     """Reconcile finished work, dispatch available work, and report whether Jules stays active."""
+    if not jules_writes_enabled():
+        print("Jules read-only cutoff reached; queue-only mode, no new sessions or Jules mutations.")
+        return False, source_name
     issues = fetch_active_issues(repo)
 
     def load_comments(number: int) -> list[dict[str, Any]]:
@@ -3199,6 +3219,13 @@ def watch_jules_backlog(
 
 def main() -> int:
     repo = os.environ["REPOSITORY"]
+    if not jules_writes_enabled():
+        print(
+            "Jules read-only cutoff reached (2026-11-11 00:00 UTC): "
+            "safe queue-only mode; no new sessions, Jules writes, or cleanup. "
+            "Existing issue/PR history is preserved for provider-neutral reconciliation."
+        )
+        return 0
     api_key = os.environ["JULES_API_KEY"]
     ensure_labels(repo)
     cleanup_merged_jules_sessions(repo, api_key)
