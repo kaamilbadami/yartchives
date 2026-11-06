@@ -23,6 +23,20 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          persist-credentials: false
+
+      # Trusted-main controller only. Never execute PR-head code with this token.
+      # Explicit opt-in until a real Copilot response to bot-triggered repair is proven.
+      - name: Request bounded Copilot repair for eligible failed PR CI
+        if: github.event.workflow_run.name == 'Quality checks' && github.event.workflow_run.conclusion == 'failure' && vars.COPILOT_REPAIR_ENABLED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COPILOT_ASSIGNMENT_TOKEN: ${{ secrets.COPILOT_ASSIGNMENT_TOKEN }}
+          COPILOT_REPAIR_ENABLED: ${{ vars.COPILOT_REPAIR_ENABLED }}
+          REPOSITORY: ${{ github.repository }}
+        run: python scripts/repair_copilot_pr.py
 
       - name: Create, update, or resolve failure issue
         env:
