@@ -232,5 +232,20 @@ class DirectSuccessFactorsTests(unittest.TestCase):
         jobs = mod.fetch_source(mock_client, {"key": "test", "name": "test", "company": "test", "employer_id": "test", "homepage": "test", "sitemap_url": "mock://url"}, mock.Mock())
         self.assertEqual(jobs, [])
 
+    def test_fetch_source_raises_structural_error_on_xml_parse_failure(self):
+        import requests
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        mock_response.content = b'{"error": "not found"}'
+
+        mock_client = mock.Mock()
+        mock_client.get.return_value = mock_response
+
+        with self.assertRaises(mod.StructuralSourceError) as context:
+            mod.fetch_source(mock_client, {"key": "test", "name": "test", "company": "test", "employer_id": "test", "homepage": "test", "sitemap_url": "mock://url"}, mock.Mock())
+
+        self.assertEqual(context.exception.status_codes, (406,))
+        self.assertIn("sitemap XML parse failed", str(context.exception))
+
 if __name__ == "__main__":
     unittest.main()

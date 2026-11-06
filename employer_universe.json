@@ -18487,6 +18487,14 @@
           "hq_country_code": "US",
           "source_url": "https://withresumeai.com/ats-checker/colgate-palmolive",
           "upstream_slug": "colgate-palmolive"
+        },
+        "provider-lifecycle-overrides": {
+          "provider_lifecycle": {
+            "family": "successfactors",
+            "status": "retired",
+            "reason": "Persistent StructuralSourceError (sitemap XML parse failed) on auto-discovered source; endpoint permanently retired.",
+            "observed_at": "2026-11-06"
+          }
         }
       },
       "domain_hints": [
