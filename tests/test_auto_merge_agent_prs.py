@@ -2428,7 +2428,7 @@ class PinnedQualityRecoveryTests(unittest.TestCase):
             "base": {"ref": "main"},
             "merge_commit_sha": merge,
         }
-        with mock.patch.object(mod, "gh_json", return_value=live) as lookup, \\
+        with mock.patch.object(mod, "gh_json", return_value=live) as lookup, \
              mock.patch.object(mod, "gh_run") as dispatch:
             self.assertTrue(mod.dispatch_pinned_quality_recovery_for_updated_head(
                 repo, 77, "copilot-work", old))
@@ -2448,8 +2448,8 @@ class PinnedQualityRecoveryTests(unittest.TestCase):
             {**live, "merge_commit_sha": None},
         ]
         for row in invalid:
-            with self.subTest(row=row), \\
-                 mock.patch.object(mod, "gh_json", return_value=row), \\
+            with self.subTest(row=row), \
+                 mock.patch.object(mod, "gh_json", return_value=row), \
                  mock.patch.object(mod, "gh_run") as dispatch:
                 self.assertFalse(mod.dispatch_pinned_quality_recovery_for_updated_head(
                     repo, 77, "copilot-work", old))
