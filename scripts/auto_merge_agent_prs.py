@@ -943,6 +943,7 @@ def recover_sensitive_pr_merge_ci(
         "-f", "pr_recovery=true",
         "-f", f"pr_number={number}",
         "-f", f"pr_head_sha={head_sha}",
+        "-f", f"pr_merge_sha={merge_sha}",
     )
     return f"dispatched: read-only merge-CI recovery for {merge_sha}"
 
@@ -2345,6 +2346,7 @@ def main() -> int:
                             "-f", "pr_recovery=true",
                             "-f", f"pr_number={number}",
                             "-f", f"pr_head_sha={head_sha}",
+                            "-f", f"pr_merge_sha={merge_sha}",
                         )
                         print(f"PR #{number}: dispatched bounded merge-CI recovery for {merge_sha}.")
             else:
