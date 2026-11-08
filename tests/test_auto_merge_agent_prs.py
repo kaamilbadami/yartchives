@@ -2416,5 +2416,40 @@ class NativeOwnerAutoMergeRecoveryTests(unittest.TestCase):
                 "kaamilbadami/yartchives", pr, dict(pr), head_quality_passed=True))
 
 
+
+class PinnedQualityRecoveryTests(unittest.TestCase):
+    def test_dispatch_requires_stable_live_identity(self):
+        repo = "kaamilbadami/yartchives"
+        head, merge = "a" * 40, "b" * 40
+        valid = {
+            "state": "open",
+            "head": {"sha": head},
+            "base": {"ref": "main"},
+            "merge_commit_sha": merge,
+        }
+        with mock.patch.object(mod, "gh_json", return_value=valid), \
+             mock.patch.object(mod, "gh_run") as dispatch:
+            self.assertTrue(mod.dispatch_pinned_quality_recovery(repo, 77, head))
+            self.assertEqual(dispatch.call_args.args, (
+                "workflow", "run", "quality.yml", "--repo", repo,
+                "--ref", "main", "-f", "pr_recovery=true",
+                "-f", "pr_number=77", "-f", f"pr_head_sha={head}",
+                "-f", f"pr_merge_sha={merge}",
+            ))
+
+        invalid = [
+            {**valid, "state": "closed"},
+            {**valid, "head": {"sha": "c" * 40}},
+            {**valid, "merge_commit_sha": None},
+            {**valid, "merge_commit_sha": "bad"},
+            {**valid, "base": {"ref": "other"}},
+        ]
+        for latest in invalid:
+            with self.subTest(latest=latest), \
+                 mock.patch.object(mod, "gh_json", return_value=latest), \
+                 mock.patch.object(mod, "gh_run") as dispatch:
+                self.assertFalse(mod.dispatch_pinned_quality_recovery(repo, 77, head))
+                dispatch.assert_not_called()
+
 if __name__ == "__main__":
     unittest.main()
