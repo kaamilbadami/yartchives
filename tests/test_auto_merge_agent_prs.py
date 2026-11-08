@@ -174,6 +174,8 @@ class SensitivePrCiRecoveryTests(unittest.TestCase):
         self.assertIn("pr_recovery=true", calls[1])
         self.assertIn("pr_number=20", calls[1])
         self.assertIn("pr_head_sha=" + "a" * 40, calls[1])
+        # Recovery must bind the immutable synthetic merge identity too.
+        self.assertIn("pr_merge_sha=" + "c" * 40, calls[1])
         self.assertFalse(any("merge" in call[:2] for call in calls))
 
     def test_sensitive_ci_recovery_deduplicates_and_rejects_exhausted_budget(self):
