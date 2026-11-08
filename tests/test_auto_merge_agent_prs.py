@@ -2418,6 +2418,43 @@ class NativeOwnerAutoMergeRecoveryTests(unittest.TestCase):
 
 
 class PinnedQualityRecoveryTests(unittest.TestCase):
+    def test_mutated_branch_recovery_pins_new_head_and_fails_closed(self):
+        repo = "kaamilbadami/yartchives"
+        old, new, merge = "a" * 40, "b" * 40, "c" * 40
+        live = {
+            "state": "open",
+            "head": {"ref": "copilot-work", "sha": new,
+                     "repo": {"full_name": repo}},
+            "base": {"ref": "main"},
+            "merge_commit_sha": merge,
+        }
+        with mock.patch.object(mod, "gh_json", return_value=live) as lookup, \\
+             mock.patch.object(mod, "gh_run") as dispatch:
+            self.assertTrue(mod.dispatch_pinned_quality_recovery_for_updated_head(
+                repo, 77, "copilot-work", old))
+            self.assertEqual(lookup.call_count, 2)
+            self.assertEqual(dispatch.call_args.args, (
+                "workflow", "run", "quality.yml", "--repo", repo,
+                "--ref", "main", "-f", "pr_recovery=true",
+                "-f", "pr_number=77", "-f", f"pr_head_sha={new}",
+                "-f", f"pr_merge_sha={merge}",
+            ))
+        invalid = [
+            {**live, "state": "closed"},
+            {**live, "head": {**live["head"], "sha": old}},
+            {**live, "head": {**live["head"], "ref": "other"}},
+            {**live, "head": {**live["head"],
+                             "repo": {"full_name": "other/repo"}}},
+            {**live, "merge_commit_sha": None},
+        ]
+        for row in invalid:
+            with self.subTest(row=row), \\
+                 mock.patch.object(mod, "gh_json", return_value=row), \\
+                 mock.patch.object(mod, "gh_run") as dispatch:
+                self.assertFalse(mod.dispatch_pinned_quality_recovery_for_updated_head(
+                    repo, 77, "copilot-work", old))
+                dispatch.assert_not_called()
+
     def test_dispatch_requires_stable_live_identity(self):
         repo = "kaamilbadami/yartchives"
         head, merge = "a" * 40, "b" * 40
