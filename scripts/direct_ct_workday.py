@@ -215,8 +215,15 @@ def fetch_workday_source(
                             fallback_tenants.append(tenant.replace("-", "_"))
                         if tenant in KNOWN_TENANT_ALIASES:
                             fallback_tenants.append(KNOWN_TENANT_ALIASES[tenant])
-                        for fallback_tenant in fallback_tenants:
-                            fallback_url = api_url.replace(f"/wday/cxs/{tenant}/", f"/wday/cxs/{fallback_tenant}/")
+                        fallback_urls = [
+                            api_url.replace(f"/wday/cxs/{tenant}/", f"/wday/cxs/{fallback_tenant}/")
+                            for fallback_tenant in fallback_tenants
+                        ]
+
+                        if re.search(r'\.wd\d+\.', api_url):
+                            fallback_urls.append(re.sub(r'\.wd\d+\.', '.', api_url))
+
+                        for fallback_url in fallback_urls:
                             fallback_response = s.post(fallback_url, json=payload, timeout=TIMEOUT)
                             if fallback_response.status_code == 200:
                                 response = fallback_response

@@ -250,6 +250,45 @@ class DirectWorkdayTests(unittest.TestCase):
         self.assertEqual(session.calls[0], "https://gf.wd1.myworkdayjobs.com/wday/cxs/gf/External/jobs")
         self.assertEqual(session.calls[1], "https://gf.wd1.myworkdayjobs.com/wday/cxs/globalfoundries/External/jobs")
 
+    def test_fallback_retry_with_canonical_host_on_structural_failure(self):
+        ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
+        source = dict(self.source)
+        source["api_url"] = "https://nxp.wd3.myworkdayjobs.com/wday/cxs/nxp/careers/jobs"
+
+        class FallbackAliasSession:
+            def __init__(self):
+                self.calls = []
+
+            def post(self, url, json=None, timeout=None):
+                self.calls.append(url)
+                if url == "https://nxp.wd3.myworkdayjobs.com/wday/cxs/nxp/careers/jobs":
+                    response = type("Response", (), {"status_code": 422})()
+                    def raise_err(*args, **kwargs):
+                        raise mod.requests.HTTPError("422 Client Error", response=response)
+                    response.raise_for_status = raise_err
+                    return response
+                elif url == "https://nxp.myworkdayjobs.com/wday/cxs/nxp/careers/jobs":
+                    mock_json = {
+                        "jobPostings": [
+                            {
+                                "title": "Software Engineering Intern",
+                                "locationsText": "Hartford, CT",
+                                "externalPath": "/job/Hartford/Software-Engineering-Intern_JR123",
+                            }
+                        ]
+                    }
+                    response = type("Response", (), {"status_code": 200, "json": lambda *args, **kwargs: mock_json})()
+                    response.raise_for_status = lambda *args, **kwargs: None
+                    return response
+                raise ValueError(f"Unexpected url {url}")
+
+        session = FallbackAliasSession()
+        jobs = mod.fetch_workday_source(session, source, ref)
+        self.assertEqual(len(jobs), 1)
+        self.assertEqual(jobs[0]["title"], "Software Engineering Intern")
+        self.assertEqual(session.calls[0], "https://nxp.wd3.myworkdayjobs.com/wday/cxs/nxp/careers/jobs")
+        self.assertEqual(session.calls[1], "https://nxp.myworkdayjobs.com/wday/cxs/nxp/careers/jobs")
+
     def test_all_structural_422_failures_raise_quarantinable_error(self):
         ref = datetime(2026, 9, 15, 12, 0, tzinfo=timezone.utc)
         source = dict(self.source)
