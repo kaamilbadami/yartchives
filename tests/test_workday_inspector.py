@@ -192,6 +192,45 @@ class WorkdayInspectorTests(unittest.TestCase):
         self.assertEqual(result["provenance"]["endpoint_url"], "https://gf.wd1.myworkdayjobs.com/wday/cxs/globalfoundries/External/job/USA---Texas---Richardson/XMLNAME-1H-University-Intern---PVD-Equipment_JR-2502699")
         self.assertEqual(len(session.calls), 2)
 
+    def test_inspect_workday_url_falls_back_to_canonical_host(self):
+        url = "https://nxp.wd3.myworkdayjobs.com/wday/cxs/nxp/careers/job/USA---Texas---Richardson/XMLNAME-1H-University-Intern---PVD-Equipment_JR-2502699"
+
+        class FallbackAliasSession:
+            def __init__(self):
+                self.calls = []
+
+            def get(self, endpoint, headers=None, timeout=None):
+                self.calls.append(endpoint)
+                if endpoint == "https://nxp.wd3.myworkdayjobs.com/wday/cxs/nxp/careers/job/USA---Texas---Richardson/XMLNAME-1H-University-Intern---PVD-Equipment_JR-2502699":
+                    response = type("Response", (), {"status_code": 422})()
+                    def raise_err(*args, **kwargs):
+                        raise requests.HTTPError("422 Client Error", response=response)
+                    response.raise_for_status = raise_err
+                    return response
+                elif endpoint == "https://nxp.myworkdayjobs.com/wday/cxs/nxp/careers/job/USA---Texas---Richardson/XMLNAME-1H-University-Intern---PVD-Equipment_JR-2502699":
+                    mock_json = {
+                        "jobPostingInfo": {
+                            "title": "Software Engineering Intern",
+                            "jobDescription": "Build software.",
+                            "jobReqId": "JR-2502699",
+                            "location": "Hartford, CT",
+                        }
+                    }
+                    response = type("Response", (), {"status_code": 200, "json": lambda *args, **kwargs: mock_json})()
+                    response.raise_for_status = lambda *args, **kwargs: None
+                    return response
+                raise ValueError(f"Unexpected endpoint {endpoint}")
+
+        session = FallbackAliasSession()
+        now = lambda: datetime(2026, 11, 2, 12, 0, tzinfo=timezone.utc)
+        result = mod.inspect_workday_url(url, session=session, now=now)
+
+        self.assertEqual(result["status"], "inspected")
+        self.assertEqual(result["retrieval_confidence"], "high")
+        self.assertEqual(result["provenance"]["tenant"], "nxp")
+        self.assertEqual(result["provenance"]["endpoint_url"], "https://nxp.myworkdayjobs.com/wday/cxs/nxp/careers/job/USA---Texas---Richardson/XMLNAME-1H-University-Intern---PVD-Equipment_JR-2502699")
+        self.assertEqual(len(session.calls), 2)
+
     def test_success_records_status_retrieval_confidence_and_provenance(self):
         session = FakeSession(FakeResponse(fixture("software_intern.json")))
         url = (
