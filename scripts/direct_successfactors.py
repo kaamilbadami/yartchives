@@ -193,6 +193,9 @@ def fetch_source(client: requests.Session, source: dict[str, Any], reference: da
 
     try:
         content_str = response.content.decode("utf-8", errors="replace")
+        first_lt = content_str.find("<")
+        if first_lt != -1:
+            content_str = content_str[first_lt:]
         escaped_content = re.sub(r'&(?!(?:[a-zA-Z]+|#\d+|#x[0-9a-fA-F]+);)', '&amp;', content_str)
         root = ET.fromstring(escaped_content)
     except ET.ParseError as exc:

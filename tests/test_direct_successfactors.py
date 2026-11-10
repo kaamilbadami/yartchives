@@ -232,6 +232,29 @@ class DirectSuccessFactorsTests(unittest.TestCase):
         jobs = mod.fetch_source(mock_client, {"key": "test", "name": "test", "company": "test", "employer_id": "test", "homepage": "test", "sitemap_url": "mock://url"}, mock.Mock())
         self.assertEqual(jobs, [])
 
+    def test_fetch_source_strips_leading_characters_before_xml(self):
+        import requests
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        # Simulated payload with a leading BOM/invalid byte before the XML root
+        mock_response.content = b'\xef\xbb\xbf<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.com/job/1</loc></url></urlset>'
+
+        mock_job_response = mock.Mock()
+        mock_job_response.status_code = 200
+        mock_job_response.text = '<html></html>'
+
+        mock_client = mock.Mock()
+        # Return mock_response for the sitemap and mock_job_response for subsequent requests
+        mock_client.get.side_effect = [mock_response, mock_job_response, mock_job_response]
+
+        # Should not raise StructuralSourceError and should return 0 jobs since there's no matches
+        jobs = mod.fetch_source(
+            mock_client,
+            {"key": "test", "name": "test", "company": "test", "employer_id": "test", "homepage": "test", "sitemap_url": "mock://url"},
+            mock.Mock()
+        )
+        self.assertEqual(jobs, [])
+
     def test_fetch_source_raises_structural_error_on_xml_parse_failure(self):
         import requests
         mock_response = mock.Mock()
