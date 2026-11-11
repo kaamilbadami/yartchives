@@ -58,6 +58,27 @@ class AgentShortlistTests(unittest.TestCase):
         self.assertEqual(evidence["requirements"]["graduation"][0]["level"], "required")
         self.assertNotIn("description", evidence)
 
+    def test_filters_international_and_2026_roles(self):
+        jobs = [
+            sample_job("india", location="IN - Bengaluru, India"),
+            sample_job("canada", location="Toronto, ON, CA"),
+            sample_job("conversion", title="Intern Conversion/Systems Engineer I"),
+            sample_job("lastyear", term="Fall 2026"),
+            sample_job("indiana", location="Indianapolis, IN"),
+        ]
+        result = build_export(self.feed(jobs), now=NOW)
+        self.assertEqual([x["id"] for x in result["jobs"]], ["indiana"])
+
+    def test_known_recent_posting_precedes_ingestion_only(self):
+        jobs = [
+            sample_job("unknown", posted_at=None, first_seen="2026-11-11T14:00:00Z"),
+            sample_job("known", posted_at="2026-11-10T14:00:00Z"),
+        ]
+        result = build_export(self.feed(jobs), now=NOW, limit=2)
+        self.assertEqual(result["jobs"][0]["id"], "known")
+        self.assertEqual(result["jobs"][0]["date_basis"], "posted_at")
+        self.assertEqual(result["jobs"][1]["date_basis"], "first_seen_only")
+
     def test_cap_and_deduplication(self):
         jobs = [sample_job(str(i)) for i in range(5)]
         jobs.append(sample_job("0", id="duplicate"))
