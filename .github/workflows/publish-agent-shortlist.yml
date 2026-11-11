@@ -42,7 +42,7 @@ jobs:
           --max-feed-age-hours 6
 
       - name: Build compact public shortlist
-        run: python scripts/build_agent_shortlist.py data/listings.json /tmp/yartchives-shortlist.json --days 21 --limit 250
+        run: python scripts/build_agent_shortlist.py data/listings.json /tmp/yartchives-shortlist.json --inspections data/workday-inspections.json --days 21 --limit 250
 
       - name: Publish to separate data branch
         env:
