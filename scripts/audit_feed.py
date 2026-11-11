@@ -387,17 +387,40 @@ def destination_link_report(doc: dict) -> dict:
 
 def build_audit_report(doc: dict, inspections: dict | None = None, reference: datetime | None = None) -> dict:
     reference = reference or parse_time(doc.get("generated_at")) or datetime.now(timezone.utc)
+    jobs = [job for job in doc.get("jobs", []) if isinstance(job, dict)]
     stale = stale_unavailable_report(doc, inspections, reference)
     dates = posting_date_report(doc, reference)
     ats_extraction = ats_extraction_report(inspections or {})
     links = destination_link_report(doc)
+    total_jobs = len(jobs)
+    authoritative_direct = links["link_kinds"].get("direct", 0) + links["link_kinds"].get("employer_job", 0)
+    intermediary = (
+        links["link_kinds"].get("listing", 0)
+        + links["link_kinds"].get("source", 0)
+        + links["link_kinds"].get("legacy", 0)
+    )
+
+    def pct(count: int) -> float:
+        return round((count / total_jobs) * 100, 1) if total_jobs else 0.0
 
     return {
         "schema_version": 1,
         "feed_generated_at": doc.get("generated_at"),
         "audit_reference": reference.isoformat(),
         "summary": {
-            "total_jobs": len(doc.get("jobs", [])),
+            "total_jobs": total_jobs,
+            "destination_trust_baseline": {
+                "authoritative_direct_destinations": authoritative_direct,
+                "authoritative_direct_percent": pct(authoritative_direct),
+                "intermediary_destinations": intermediary,
+                "intermediary_percent": pct(intermediary),
+                "known_broken_destinations": len(links["known_dead_links"]),
+                "known_broken_percent": pct(len(links["known_dead_links"])),
+                "transient_unreachable_destinations": len(links["unknown_direct_links"]),
+                "transient_unreachable_percent": pct(len(links["unknown_direct_links"])),
+                "unverified_destinations": len(links["unverified_destinations"]),
+                "unverified_percent": pct(len(links["unverified_destinations"])),
+            },
             "stale_unavailable": {
                 "transient_retrieval_failures": len(stale["failed_source_only"]),
                 "confirmed_unavailable_inspections": len(stale["unavailable_inspections"]),
@@ -456,6 +479,24 @@ def render_markdown_report(report: dict) -> str:
     stale = report["stale_unavailable"]
     dest = report["destinations_and_links"]
     dates = report["posting_dates"]
+    baseline = s.get("destination_trust_baseline", {})
+
+    issue_buckets = [
+        ("Unverified destinations", baseline.get("unverified_destinations", 0)),
+        ("Transient destination unreachable", baseline.get("transient_unreachable_destinations", 0)),
+        ("Known broken/closed links", baseline.get("known_broken_destinations", 0)),
+    ]
+    dominant_issue = max(issue_buckets, key=lambda item: item[1]) if issue_buckets else ("None", 0)
+
+    ats_quality = dest.get("ats_link_quality", {})
+    top_unverified_family = None
+    if ats_quality:
+        family, metrics = max(
+            ats_quality.items(),
+            key=lambda item: (item[1].get("unverified", 0), item[1].get("total", 0)),
+        )
+        if metrics.get("unverified", 0) > 0:
+            top_unverified_family = (family, metrics)
 
     lines = [
         "# Yartchives feed quality audit report",
@@ -466,7 +507,11 @@ def render_markdown_report(report: dict) -> str:
         "## Executive summary",
         "",
         f"- Total indexed jobs: **{s['total_jobs']}**",
-        f"- Direct employer/ATS application links: **{dest['link_kinds'].get('direct', 0)}**",
+        (
+            "- Authoritative-direct destinations (`direct` + `employer_job`): "
+            f"**{baseline.get('authoritative_direct_destinations', 0)} "
+            f"({baseline.get('authoritative_direct_percent', 0.0):.1f}%)**"
+        ),
         f"- Source-only (no direct URL) postings: **{dest['link_kinds'].get('source', 0)}**",
         f"- Confirmed closed/unavailable postings: **{stale['confirmed_unavailable_count']}**",
         f"- Transient source retrieval failures: **{stale['failed_source_only_count']}**",
@@ -494,6 +539,11 @@ def render_markdown_report(report: dict) -> str:
         "",
         "### Link health",
         "",
+        (
+            f"- Intermediary destinations (`listing`/`source`/`legacy`): "
+            f"**{baseline.get('intermediary_destinations', 0)} "
+            f"({baseline.get('intermediary_percent', 0.0):.1f}%)**"
+        ),
         f"- Unverified destinations: **{s['broken_destinations']['unverified_destinations']}** (destinations that have not been checked recently)",
         f"- Known broken/closed links: **{s['broken_destinations']['known_dead_links']}** (destinations returning 404/410 or known closed phrases)",
         f"- Transient destination unreachable: **{s['broken_destinations']['unknown_direct_links']}** (destinations returning other errors, e.g. timeouts or 403)",
@@ -587,11 +637,31 @@ def render_markdown_report(report: dict) -> str:
         "",
         "## 7. Root causes and remediation",
         "",
-        "- **Largest generic provider cause**: Over 3,500 links are completely unverified (neither OK, unknown, nor dead), primarily across Greenhouse and Workday endpoints, dominating the uncertainty about link health post-reconciliation.",
-        "- **Generic defect fixed**: Feed generation (`build_feed.py`) or deduplication logic did not preserve `link_status` metrics after reconciliation. The audit now correctly parses and reports these separately, making the unverified rate visible.",
-        "- **Prioritized follow-up**: Investigate why `link_status` is being dropped during reconciliation in `build_feed.py` and `repair_links.py`, or wire up the status tracking during feed refresh, to close the large unverified gap.",
-        "",
+        (
+            f"- **Largest measured trust gap**: **{dominant_issue[0]} = {dominant_issue[1]}** "
+            "(from this snapshot's destination-health buckets)."
+        ),
     ])
+    if top_unverified_family:
+        family, metrics = top_unverified_family
+        unverified = metrics["unverified"]
+        total = metrics["total"]
+        rate = round((unverified / total) * 100, 1) if total else 0.0
+        lines.extend([
+            (
+                f"- **Largest ATS-family unverified bucket**: `{family}` has "
+                f"**{unverified}/{total}** unverified destinations (**{rate:.1f}%**)."
+            ),
+            (
+                f"- **Prioritized generic remediation**: Increase destination verification coverage for "
+                f"`{family}` endpoints first, then re-run this baseline to confirm the unverified count drops."
+            ),
+        ])
+    else:
+        lines.append(
+            "- **Prioritized generic remediation**: No ATS-family unverified bucket was measured in this snapshot."
+        )
+    lines.append("")
     return "\n".join(lines)
 
 
