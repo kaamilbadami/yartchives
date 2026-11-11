@@ -18,11 +18,11 @@ DEFAULT_DAYS = 21
 DEFAULT_LIMIT = 250
 ALLOWED_PROFILES = {"cs", "tech-business", "finance-econ", "engineering"}
 FOREIGN_LOCATION = re.compile(
-    r"\\b(?:India|Bengaluru|Hyderabad|Pune|Gurugram|Gurgaon|"
-    r"United Kingdom|Manchester,\\s*UK|Edinburgh,\\s*UK|London,\\s*UK|"
+    r"\b(?:India|Bengaluru|Hyderabad|Pune|Gurugram|Gurgaon|"
+    r"United Kingdom|Manchester,\s*UK|Edinburgh,\s*UK|London,\s*UK|"
     r"Canada|Toronto|Vancouver|Montreal|Philippines|Singapore|"
     r"Germany|Netherlands|Israel|Ireland|Poland|Romania|"
-    r"Mexico City|Brazil|Australia)\\b",
+    r"Mexico City|Brazil|Australia)\b",
     re.IGNORECASE,
 )
 FIELDS = (
