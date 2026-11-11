@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 from datetime import datetime, timezone, timedelta
 import json
+import re
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -16,6 +17,14 @@ MAX_FEED_AGE_HOURS = 6
 DEFAULT_DAYS = 21
 DEFAULT_LIMIT = 250
 ALLOWED_PROFILES = {"cs", "tech-business", "finance-econ", "engineering"}
+FOREIGN_LOCATION = re.compile(
+    r"\\b(?:India|Bengaluru|Hyderabad|Pune|Gurugram|Gurgaon|"
+    r"United Kingdom|Manchester,\\s*UK|Edinburgh,\\s*UK|London,\\s*UK|"
+    r"Canada|Toronto|Vancouver|Montreal|Philippines|Singapore|"
+    r"Germany|Netherlands|Israel|Ireland|Poland|Romania|"
+    r"Mexico City|Brazil|Australia)\\b",
+    re.IGNORECASE,
+)
 FIELDS = (
     "id", "company", "title", "location", "states", "url", "posting_url",
     "posted_at", "first_seen", "term", "opportunity_type", "education_level",
@@ -48,7 +57,15 @@ def suitable(job, now, days):
         return False
     if not valid_http_url(job.get("posting_url") or job.get("url")):
         return False
+    location = str(job.get("location") or "")
+    if FOREIGN_LOCATION.search(location):
+        return False
     label = str(job.get("title") or "").lower()
+    term = str(job.get("term") or "").lower()
+    if "2026" in term or ("2026" in label and "2027" not in label):
+        return False
+    if "intern conversion" in label:
+        return False
     kind = str(job.get("opportunity_type") or "").lower()
     if kind not in {"internship", "co-op", "coop"} and not any(
         word in label for word in ("intern", "co-op", "coop")
@@ -106,15 +123,20 @@ def build_export(feed, now=None, days=DEFAULT_DAYS, limit=DEFAULT_LIMIT, inspect
     if not isinstance(jobs, list):
         raise ValueError("feed jobs must be an array")
     eligible = [j for j in jobs if suitable(j, now, days)]
-    eligible.sort(
-        key=lambda j: (
-            timestamp(j.get("posted_at")) or timestamp(j.get("first_seen")),
-            bool(j.get("direct_employer")),
-        ), reverse=True,
+    # Prioritize real posting dates rather than treating new ingestion as new posting.
+    dated = [job for job in eligible if timestamp(job.get("posted_at"))]
+    undated = [job for job in eligible if not timestamp(job.get("posted_at"))]
+    dated.sort(key=lambda j: timestamp(j.get("posted_at")), reverse=True)
+    undated.sort(key=lambda j: timestamp(j.get("first_seen")), reverse=True)
+    dated_quota = (limit * 3 + 3) // 4
+    undated_quota = limit - dated_quota
+    ordered = (
+        dated[:dated_quota] + undated[:undated_quota]
+        + dated[dated_quota:] + undated[undated_quota:]
     )
     chosen = []
     seen = set()
-    for job in eligible:
+    for job in ordered:
         dedupe = (
             str(job.get("company") or "").casefold().strip(),
             str(job.get("title") or "").casefold().strip(),
@@ -124,6 +146,7 @@ def build_export(feed, now=None, days=DEFAULT_DAYS, limit=DEFAULT_LIMIT, inspect
             continue
         seen.add(dedupe)
         record = {key: job[key] for key in FIELDS if key in job}
+        record["date_basis"] = "posted_at" if timestamp(job.get("posted_at")) else "first_seen_only"
         evidence = relevant_inspection(job["id"], inspections)
         if evidence:
             record["employer_evidence"] = evidence
