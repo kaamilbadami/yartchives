@@ -43,6 +43,21 @@ class AgentShortlistTests(unittest.TestCase):
         result = build_export(self.feed(data), now=NOW)
         self.assertEqual([x["id"] for x in result["jobs"]], ["good"])
 
+    def test_inspection_evidence_is_bounded(self):
+        cache = {
+            "listing_index": {"A": "canonical"},
+            "entries": {"canonical": {"inspection": {
+                "status": "ok",
+                "posting": {"requisition_id": "REQ123", "application_status": "available"},
+                "requirements": {"graduation": {"required": [{"statement": "Graduation in 2028 or 2029"}]}}
+            }}}
+        }
+        result = build_export(self.feed([sample_job()]), now=NOW, inspections=cache)
+        evidence = result["jobs"][0]["employer_evidence"]
+        self.assertEqual(evidence["requisition_id"], "REQ123")
+        self.assertEqual(evidence["requirements"]["graduation"][0]["level"], "required")
+        self.assertNotIn("description", evidence)
+
     def test_cap_and_deduplication(self):
         jobs = [sample_job(str(i)) for i in range(5)]
         jobs.append(sample_job("0", id="duplicate"))
