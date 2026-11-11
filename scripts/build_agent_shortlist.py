@@ -64,7 +64,37 @@ def suitable(job, now, days):
     return posted >= now - timedelta(days=days)
 
 
-def build_export(feed, now=None, days=DEFAULT_DAYS, limit=DEFAULT_LIMIT):
+def relevant_inspection(job_id, cache):
+    """Extract bounded, employer-derived requirements without posting descriptions."""
+    if not isinstance(cache, dict):
+        return None
+    canonical = (cache.get("listing_index") or {}).get(str(job_id))
+    entry = (cache.get("entries") or {}).get(canonical, {}) if canonical else {}
+    inspection = entry.get("inspection") if isinstance(entry, dict) else None
+    if not isinstance(inspection, dict):
+        return None
+    posting = inspection.get("posting") or {}
+    requirements = inspection.get("requirements") or {}
+    result = {"inspection_status": inspection.get("status")}
+    for key in ("requisition_id", "application_status", "application_deadline"):
+        if isinstance(posting, dict) and posting.get(key):
+            result[key] = posting[key]
+    if isinstance(requirements, dict):
+        for category in ("graduation", "citizenship", "work_authorization", "education", "student_status", "major_fields", "skills"):
+            field = requirements.get(category) or {}
+            if not isinstance(field, dict):
+                continue
+            values = []
+            for level in ("required", "preferred", "not_required"):
+                for fact in (field.get(level) or [])[:2]:
+                    if isinstance(fact, dict) and fact.get("statement"):
+                        values.append({"level": level, "statement": str(fact["statement"])[:320]})
+            if values:
+                result.setdefault("requirements", {})[category] = values
+    return result if len(result) > 1 or result.get("inspection_status") not in (None, "queued") else None
+
+
+def build_export(feed, now=None, days=DEFAULT_DAYS, limit=DEFAULT_LIMIT, inspections=None):
     now = now or datetime.now(timezone.utc)
     generated = timestamp(feed.get("generated_at"))
     if generated is None:
@@ -93,7 +123,11 @@ def build_export(feed, now=None, days=DEFAULT_DAYS, limit=DEFAULT_LIMIT):
         if dedupe in seen:
             continue
         seen.add(dedupe)
-        chosen.append({key: job[key] for key in FIELDS if key in job})
+        record = {key: job[key] for key in FIELDS if key in job}
+        evidence = relevant_inspection(job["id"], inspections)
+        if evidence:
+            record["employer_evidence"] = evidence
+        chosen.append(record)
         if len(chosen) >= limit:
             break
     return {
@@ -113,13 +147,14 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("feed", type=Path)
     parser.add_argument("output", type=Path)
-    parser.add_argument("--days", type=int, default=DEFAULT_DAYS)
+    parser.add_argument("--inspections", type=Path, default=None)\n    parser.add_argument("--days", type=int, default=DEFAULT_DAYS)
     parser.add_argument("--limit", type=int, default=DEFAULT_LIMIT)
     args = parser.parse_args()
     if not (1 <= args.days <= 90 and 1 <= args.limit <= 1000):
         parser.error("days must be 1..90 and limit must be 1..1000")
     data = json.loads(args.feed.read_text(encoding="utf-8"))
-    payload = build_export(data, days=args.days, limit=args.limit)
+    inspections = json.loads(args.inspections.read_text(encoding="utf-8")) if args.inspections else None
+    payload = build_export(data, days=args.days, limit=args.limit, inspections=inspections)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
     print(f"Exported {len(payload['jobs'])} jobs; feed generated {payload['source_generated_at']}")
