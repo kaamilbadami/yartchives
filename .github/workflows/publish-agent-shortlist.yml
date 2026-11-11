@@ -1,0 +1,85 @@
+name: Publish agent discovery shortlist
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "47 * * * *"
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: publish-agent-shortlist
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: "3.12"
+
+      - name: Retrieve latest validated feed artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          python scripts/download_latest_feed.py
+          --repo "${{ github.repository }}"
+          --require-feed-artifact
+          --max-feed-age-hours 6
+
+      - name: Build compact public shortlist
+        run: python scripts/build_agent_shortlist.py data/listings.json /tmp/yartchives-shortlist.json --days 21 --limit 250
+
+      - name: Publish to separate data branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          TARGET_BRANCH="agent-feed"
+          if ! gh api "repos/$REPO/branches/$TARGET_BRANCH" --silent; then
+            echo "Missing agent-feed branch; refusing to publish until it is created explicitly" >&2
+            exit 1
+          fi
+          existing_sha="$(gh api "repos/$REPO/contents/shortlist.json?ref=$TARGET_BRANCH" --jq '.sha' 2>/dev/null || true)"
+          python - "$existing_sha" <<'PY'
+          import base64
+          import json
+          import sys
+          from pathlib import Path
+          payload = {
+              "message": "data: refresh public agent shortlist",
+              "branch": "agent-feed",
+              "content": base64.b64encode(Path("/tmp/yartchives-shortlist.json").read_bytes()).decode("ascii"),
+          }
+          if sys.argv[1]:
+              payload["sha"] = sys.argv[1]
+          Path("/tmp/agent-shortlist-publish-request.json").write_text(json.dumps(payload), encoding="utf-8")
+          PY
+          gh api --method PUT "repos/$REPO/contents/shortlist.json" --input /tmp/agent-shortlist-publish-request.json --silent
+
+      - name: Verify GitHub API read-back and content integrity
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          gh api "repos/$REPO/contents/shortlist.json?ref=agent-feed" --jq '.content' | tr -d '\n' | base64 --decode > /tmp/agent-shortlist-readback.json
+          cmp /tmp/yartchives-shortlist.json /tmp/agent-shortlist-readback.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          payload = json.loads(Path("/tmp/agent-shortlist-readback.json").read_text(encoding="utf-8"))
+          assert payload["schema_version"] == 1
+          assert payload["selection"]["personalized"] is False
+          assert isinstance(payload["jobs"], list)
+          print(f"Read-back verified: {len(payload['jobs'])} candidate jobs from {payload['source_generated_at']}")
+          PY
