@@ -147,7 +147,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("feed", type=Path)
     parser.add_argument("output", type=Path)
-    parser.add_argument("--inspections", type=Path, default=None)\n    parser.add_argument("--days", type=int, default=DEFAULT_DAYS)
+    parser.add_argument("--inspections", type=Path, default=None)
+    parser.add_argument("--days", type=int, default=DEFAULT_DAYS)
     parser.add_argument("--limit", type=int, default=DEFAULT_LIMIT)
     args = parser.parse_args()
     if not (1 <= args.days <= 90 and 1 <= args.limit <= 1000):
