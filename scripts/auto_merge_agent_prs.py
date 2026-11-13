@@ -1036,6 +1036,48 @@ def recover_sensitive_pr_merge_ci(
     return f"dispatched: read-only merge-CI recovery for {merge_sha}"
 
 
+def dispatch_pinned_quality_recovery(repo: str, number: int, head_sha: str) -> bool:
+    """Dispatch trusted-main CI only for a stable, identified PR merge."""
+    latest = gh_json("api", f"repos/{repo}/pulls/{number}")
+    live_head = str((latest.get("head") or {}).get("sha") or "")
+    merge_sha = str(latest.get("merge_commit_sha") or "")
+    if (latest.get("state") != "open" or live_head != head_sha
+            or not re.fullmatch(r"[a-f0-9]{40}", head_sha)
+            or not re.fullmatch(r"[a-f0-9]{40}", merge_sha)
+            or (latest.get("base") or {}).get("ref") != "main"):
+        print(f"BLOCKED_CI PR #{number}: no stable exact-head/merge identity for trusted recovery.")
+        return False
+    gh_run(
+        "workflow", "run", "quality.yml", "--repo", repo,
+        "--ref", "main", "-f", "pr_recovery=true",
+        "-f", f"pr_number={number}",
+        "-f", f"pr_head_sha={head_sha}",
+        "-f", f"pr_merge_sha={merge_sha}",
+    )
+    return True
+
+
+def dispatch_pinned_quality_recovery_for_updated_head(
+    repo: str, number: int, expected_ref: str, previous_head: str,
+) -> bool:
+    """Re-pin CI after a controller-owned cleanup or branch refresh.
+
+    Both operations create a new commit, so the old head cannot be reused.
+    Revalidate the live branch and immutable merge identity before dispatch.
+    """
+    latest = gh_json("api", f"repos/{repo}/pulls/{number}")
+    head = latest.get("head") or {}
+    new_head = str(head.get("sha") or "")
+    if (latest.get("state") != "open"
+            or head.get("ref") != expected_ref
+            or (head.get("repo") or {}).get("full_name") != repo
+            or new_head == previous_head
+            or not re.fullmatch(r"[a-f0-9]{40}", new_head)):
+        print(f"BLOCKED_CI PR #{number}: refreshed PR branch identity not verified.")
+        return False
+    return dispatch_pinned_quality_recovery(repo, number, new_head)
+
+
 def record_missing_ci_recovery(repo: str, pr_number: int, head_sha: str,
                                attempt: int, now: datetime) -> None:
     timestamp = now.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -2184,12 +2226,10 @@ def main() -> int:
                 head_ref,
                 generated,
             )
-            gh_run(
-                "workflow", "run", "quality.yml",
-                "--repo", repo,
-                "--ref", head_ref,
-                "-f", "pr_recovery=true",
-            )
+            if not dispatch_pinned_quality_recovery_for_updated_head(
+                repo, number, head_ref, head_sha
+            ):
+                continue
             print(
                 f"Repaired PR #{number} by removing generated artifacts and dispatched fresh Quality checks."
             )
@@ -2265,12 +2305,10 @@ def main() -> int:
                     continue
                 if not head_ref:
                     raise RuntimeError(f"PR #{number} has no head branch for fresh CI")
-                gh_run(
-                    "workflow", "run", "quality.yml",
-                    "--repo", repo,
-                    "--ref", head_ref,
-                    "-f", "pr_recovery=true",
-                )
+                if not dispatch_pinned_quality_recovery_for_updated_head(
+                    repo, number, head_ref, head_sha
+                ):
+                    continue
                 print(
                     f"Updated PR #{number} onto current {base_ref} and dispatched fresh "
                     "Quality checks because main changed overlapping paths."
@@ -2331,16 +2369,12 @@ def main() -> int:
                         escalate_missing_ci(repo, number, head_sha, comments)
                         print(f"BLOCKED_CI PR #{number}: no Quality run after {attempt} dispatches.")
                         continue
-                    gh_run(
-                        "workflow", "run", "quality.yml", "--repo", repo,
-                        "--ref", head_ref, "-f", "pr_recovery=true",
-                    )
+                    if not dispatch_pinned_quality_recovery(repo, number, head_sha):
+                        continue
                     record_missing_ci_recovery(repo, number, head_sha, attempt, now)
                 else:
-                    gh_run(
-                        "workflow", "run", "quality.yml", "--repo", repo,
-                        "--ref", head_ref, "-f", "pr_recovery=true",
-                    )
+                    if not dispatch_pinned_quality_recovery(repo, number, head_sha):
+                        continue
                 report_quality_state(repo, number, head_sha, "recovery-dispatched")
                 print(f"Dispatched exact-head Quality checks for PR #{number}.")
                 continue
