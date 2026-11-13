@@ -105,6 +105,31 @@ class CopilotRepairTests(unittest.TestCase):
         self.assertEqual(len(api.posts), 1)
         self.assertIn("already requested", mod.dispatch(api.event, REPO, "user-token", api))
 
+    def test_issue_authorization_drift_before_delivery_fails_closed(self):
+        for change in ("closed", "initiative", "unassigned", "excluded"):
+            with self.subTest(change=change):
+                api = FakeApi()
+                reads = [0]
+                def drift(path, *, method="GET", body=None, token=None):
+                    if method == "GET" and path.endswith("/issues/17"):
+                        reads[0] += 1
+                        issue = deepcopy(api.issue)
+                        if reads[0] == 2:
+                            if change == "closed":
+                                issue["state"] = "closed"
+                            elif change == "initiative":
+                                issue["labels"] = [{"name": "initiative"}]
+                            elif change == "unassigned":
+                                issue["assignees"] = []
+                            else:
+                                issue["labels"] = [{"name": "agent-excluded"}]
+                        return issue
+                    return api(path, method=method, body=body, token=token)
+                self.assertIn("issue drifted", mod.dispatch(
+                    api.event, REPO, "user-token", drift))
+                self.assertEqual(reads[0], 2)
+                self.assertEqual(api.posts, [])
+
     def test_failure_classifier_rejects_mixed_failure(self):
         self.assertEqual(mod.failed_test_steps([
             {"conclusion": "failure", "steps": [
