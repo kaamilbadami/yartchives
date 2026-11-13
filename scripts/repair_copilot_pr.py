@@ -129,6 +129,17 @@ def dispatch(event: dict, repo: str, token: str,
             or latest.get("body") != pr.get("body")
             or latest.get("draft") != pr.get("draft")):
         return "PR drifted before repair handoff"
+    # Revalidate the linked issue immediately before delivery: issue state,
+    # labels and Copilot assignment can change without moving the PR head.
+    latest_issue = api(f"repos/{repo}/issues/{issue_number}")
+    latest_labels = {label.get("name") if isinstance(label, dict) else label
+                     for label in latest_issue.get("labels") or []}
+    if (latest_issue.get("state") != "open"
+            or latest_labels & {"initiative", "agent-excluded",
+                                "needs-human-decision", "blocked"}
+            or not any(str(a.get("login") or "").casefold() in COPILOT_LOGINS
+                       for a in latest_issue.get("assignees") or [])):
+        return "linked issue drifted before repair handoff"
     marker = f"{REPAIR_MARKER}head={head_sha} run={run_id} -->"
     api(f"repos/{repo}/issues/{number}/comments", method="POST",
         body={"body": marker + "\nTrusted CI repair delivery attempted; investigate if Copilot does not respond."})
