@@ -69,7 +69,11 @@ SENSITIVE_AUTO_MERGE_PATHS = (
 MERGE_CI_RECOVERY_MARKER = re.compile(
     r"<!-- merge-ci-recovery: head=([a-f0-9]{40}) merge=([a-f0-9]{40}) -->"
 )
-MAX_MERGE_CI_RECOVERIES_PER_HEAD = 2
+# Bound each current synthetic merge independently: obsolete main bases should not
+# spend the next merge's entire recovery budget.
+MAX_MERGE_CI_RECOVERIES_PER_MERGE = 2
+MAX_MERGE_CI_RECOVERIES_PER_HEAD = 8
+MERGE_CI_MATERIALIZATION_GRACE_SECONDS = 8 * 60
 
 JULES_REVIEW_READY_LABEL = "jules-review-ready"
 GITHUB_ACTIONS_BOT = "github-actions[bot]"
@@ -856,13 +860,14 @@ def missing_ci_recovery_decision(comments: Iterable[dict[str, Any]], head_sha: s
 
 
 def merge_ci_recovery_decision(
-    comments: Iterable[dict[str, Any]], head_sha: str, merge_sha: str
+    comments: Iterable[dict[str, Any]], head_sha: str, merge_sha: str,
+    *, retry_current_merge: bool = False,
 ) -> str:
-    """Bound trusted-main synthetic-merge recovery to one attempt per merge.
+    """Deduplicate recovery per merge identity without burning all budget on drift.
 
-    A merge-SHA change permits a second attempt for the same head, but no
-    additional dispatches after the per-head budget. Only trusted bot
-    comments count as attempts; a user cannot forge a consumed budget.
+    Only authenticated Actions-bot marker comments are trusted. We permit one
+    retry of the *same* merge after an observed missing/failed dispatch, while
+    keeping a finite limit across repeatedly changing protected bases.
     """
     if not (re.fullmatch(r"[a-f0-9]{40}", head_sha)
             and re.fullmatch(r"[a-f0-9]{40}", merge_sha)):
@@ -874,11 +879,78 @@ def merge_ci_recovery_decision(
         for match in MERGE_CI_RECOVERY_MARKER.finditer(str(comment.get("body") or "")):
             if match.group(1) == head_sha:
                 attempts.append(match.group(2))
-    if merge_sha in attempts:
+    current_attempts = attempts.count(merge_sha)
+    if current_attempts and not retry_current_merge:
         return "wait"
+    if current_attempts >= MAX_MERGE_CI_RECOVERIES_PER_MERGE:
+        return "escalate"
     if len(attempts) >= MAX_MERGE_CI_RECOVERIES_PER_HEAD:
         return "escalate"
     return "dispatch"
+
+
+def merge_ci_recovery_run_state(
+    repo: str, number: int, head_sha: str, merge_sha: str,
+    comments: Iterable[dict[str, Any]],
+    *, now: datetime | None = None,
+) -> tuple[str, str]:
+    """Reconcile a marker to its concrete Actions run before allowing retry.
+
+    The run-name embeds immutable PR/head/merge identity. New runs are queried
+    from Actions on each bounded reconciliation, not guessed from a successful
+    workflow dispatch command (which returns no run ID).
+    """
+    current = [
+        item for item in comments
+        if str((item.get("user") or {}).get("login") or "") == GITHUB_ACTIONS_BOT
+        and any(match.group(1) == head_sha and match.group(2) == merge_sha
+                for match in MERGE_CI_RECOVERY_MARKER.finditer(str(item.get("body") or "")))
+    ]
+    if not current:
+        return "dispatch", "no recovery marker"
+    now = now or datetime.now(timezone.utc)
+    newest = current[-1]
+    created_at = str(newest.get("created_at") or "")
+    try:
+        created = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+        age = max(0.0, (now - created).total_seconds())
+    except ValueError:
+        # Unknown marker age must not authorize a second dispatch.
+        return "wait", "recovery marker has no reliable creation timestamp"
+    try:
+        response = gh_json(
+            "api", f"repos/{repo}/actions/workflows/quality.yml/runs?event=workflow_dispatch&per_page=100",
+        )
+    except (subprocess.CalledProcessError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+        # A temporary Actions API failure must not crash the whole PR scan or
+        # authorize another dispatch with uncertain prior state.
+        return "wait", f"recovery Actions run metadata unavailable: {exc}"
+    expected = f"Recovery PR #{number} head {head_sha} merge {merge_sha}"
+    matched = [
+        item for item in response.get("workflow_runs", [])
+        if item.get("event") == "workflow_dispatch"
+        and item.get("display_title") == expected
+        and str(item.get("head_branch") or "") == "main"
+    ]
+    if matched:
+        latest = max(matched, key=lambda item: int(item.get("id") or 0))
+        run_id = latest.get("id")
+        conclusion = str(latest.get("conclusion") or "")
+        status = str(latest.get("status") or "")
+        reason = f"recovery run {run_id} ({status}/{conclusion or 'pending'})"
+        if status != "completed":
+            return "wait", reason
+        if conclusion == "success":
+            # The caller has already checked current required check runs. Give
+            # GitHub time to index the check before treating it as missing.
+            return ("retry", reason + ": required current check still missing") if age >= MERGE_CI_MATERIALIZATION_GRACE_SECONDS else ("wait", reason + ": awaiting check indexing")
+        if conclusion in {"failure", "timed_out", "cancelled", "startup_failure", "action_required"}:
+            return ("retry", reason) if age >= MERGE_CI_MATERIALIZATION_GRACE_SECONDS else ("wait", reason)
+        return "wait", reason
+    if age < MERGE_CI_MATERIALIZATION_GRACE_SECONDS:
+        return "wait", f"dispatch has no visible run yet ({int(age)}s)"
+    return "retry", "dispatch did not materialize a matching Actions run"
+
 
 
 def recover_sensitive_pr_merge_ci(
@@ -905,16 +977,24 @@ def recover_sensitive_pr_merge_ci(
     if exact_head_quality_in_flight(runs, head_sha):
         return "wait: head Quality in flight"
 
-    # A checked commit status is only meaningful on the exact current merge.
-    status = gh_json("api", f"repos/{repo}/commits/{merge_sha}/status")
-    latest_tests = next(
-        (row for row in status.get("statuses", [])
-         if row.get("context") == "tests"), None
+    # GitHub branch protection requires an Actions-app-owned *check run*.
+    # A legacy green commit status named tests is not proof of that check.
+    checks = gh_json("api", f"repos/{repo}/commits/{merge_sha}/check-runs?per_page=100")
+    required_checks = sorted(
+        (row for row in checks.get("check_runs", [])
+         if row.get("name") == "tests" and (row.get("app") or {}).get("id") == 15368),
+        key=lambda row: str(row.get("completed_at") or row.get("started_at") or ""),
+        reverse=True,
     )
-    if latest_tests and latest_tests.get("state") == "success":
-        return "verified: merge tests status already green"
-    if latest_tests and latest_tests.get("state") in {"failure", "error"}:
-        return "block: latest merge tests status failed"
+    if required_checks:
+        latest_tests = required_checks[0]
+        if (latest_tests.get("status") == "completed"
+                and latest_tests.get("conclusion") == "success"):
+            return "verified: current merge has Actions-owned tests check"
+        if (latest_tests.get("status") == "completed"
+                and latest_tests.get("conclusion") in {"failure", "timed_out", "cancelled"}):
+            return "block: current merge Actions-owned tests check failed"
+        return "wait: current merge Actions-owned tests check pending"
 
     # Recheck the live PR immediately before recording a bounded dispatch.
     current = gh_json("api", f"repos/{repo}/pulls/{number}")
@@ -929,8 +1009,16 @@ def recover_sensitive_pr_merge_ci(
         "api", f"repos/{repo}/issues/{number}/comments?per_page=100",
     )
     decision = merge_ci_recovery_decision(comments, head_sha, merge_sha)
+    diagnostic = "no prior attempt"
+    if decision == "wait":
+        state, diagnostic = merge_ci_recovery_run_state(
+            repo, number, head_sha, merge_sha, comments,
+        )
+        decision = merge_ci_recovery_decision(
+            comments, head_sha, merge_sha, retry_current_merge=(state == "retry"),
+        ) if state == "retry" else "wait"
     if decision != "dispatch":
-        return f"{decision}: bounded merge-CI recovery"
+        return f"{decision}: bounded merge-CI recovery; {diagnostic}"
     marker = f"<!-- merge-ci-recovery: head={head_sha} merge={merge_sha} -->"
     gh_run(
         "issue", "comment", str(number), "--repo", repo, "--body",
@@ -1447,13 +1535,44 @@ def protected_merge_freshness(repo: str, number: int, head_sha: str) -> tuple[bo
     checks = gh_json("api", f"repos/{repo}/commits/{merge_sha}/check-runs?per_page=100")
     if not isinstance(checks.get("check_runs"), list):
         return False, "required merge check runs unavailable"
-    required = [
-        row for row in checks["check_runs"]
-        if row.get("name") == "tests"
-        and (row.get("app") or {}).get("id") == 15368
-    ]
-    if not required or required[0].get("status") != "completed" or required[0].get("conclusion") != "success":
-        return False, "current merge SHA lacks successful Actions-owned tests check"
+    required = sorted(
+        (row for row in checks["check_runs"]
+         if row.get("name") == "tests" and (row.get("app") or {}).get("id") == 15368),
+        key=lambda row: (str(row.get("completed_at") or row.get("started_at") or ""),
+                         int(row.get("id") or 0)),
+        reverse=True,
+    )
+    if not required:
+        # GitHub strict required checks also accept a successful head check when
+        # the PR head incorporates the exact current base. This fallback must
+        # never admit a behind-base head or override a failing merge check.
+        comparison = gh_json(
+            "api", f"repos/{repo}/compare/{base['sha']}...{head_sha}",
+        )
+        if (comparison.get("behind_by") != 0
+                or comparison.get("status") not in {"ahead", "identical"}):
+            return False, "head is not verified up to date with current main"
+        head_checks = gh_json(
+            "api", f"repos/{repo}/commits/{head_sha}/check-runs?per_page=100",
+        )
+        if not isinstance(head_checks.get("check_runs"), list):
+            return False, "required exact-head check runs unavailable"
+        head_required = sorted(
+            (row for row in head_checks["check_runs"]
+             if row.get("name") == "tests"
+             and (row.get("app") or {}).get("id") == 15368),
+            key=lambda row: (
+                str(row.get("completed_at") or row.get("started_at") or ""),
+                int(row.get("id") or 0),
+            ),
+            reverse=True,
+        )
+        if (not head_required or head_required[0].get("status") != "completed"
+                or head_required[0].get("conclusion") != "success"):
+            return False, "up-to-date head lacks latest successful Actions-owned tests check"
+    elif (required[0].get("status") != "completed"
+          or required[0].get("conclusion") != "success"):
+        return False, "current merge SHA lacks latest successful Actions-owned tests check"
     # Keep the final observable freshness check close to the protected API call.
     current = gh_json("api", f"repos/{repo}/pulls/{number}")
     if (current.get("state") != "open"
@@ -1461,6 +1580,12 @@ def protected_merge_freshness(repo: str, number: int, head_sha: str) -> tuple[bo
             or (current.get("base") or {}).get("sha") != base.get("sha")
             or current.get("merge_commit_sha") != merge_sha):
         return False, "PR changed while validating protected merge"
+    # Another trusted writer can advance main independently of this controller's
+    # workflow-level concurrency lock. Check the protected ref again as the last
+    # preflight step; GitHub's merge endpoint remains the final arbiter.
+    latest_main = gh_json("api", f"repos/{repo}/git/ref/heads/main")
+    if (latest_main.get("object") or {}).get("sha") != base.get("sha"):
+        return False, "main advanced during protected merge validation"
     return True, ""
 
 
@@ -1840,6 +1965,11 @@ def main() -> int:
     merged_count = 0
 
     for pr in pull_requests:
+        # Admit at most one protected merge per controller cycle. Subsequent PRs
+        # need a fresh inventory/current-base verification after main advances.
+        # The existing post-merge workflow dispatch schedules that next scan.
+        if merged_count:
+            break
         number = int(pr["number"])
         files = files_by_pr[number]
         head_sha = str((pr.get("head") or {}).get("sha") or "")
@@ -2361,9 +2491,18 @@ def main() -> int:
                             "api", f"repos/{repo}/issues/{number}/comments?per_page=100"
                         )
                         action = merge_ci_recovery_decision(comments, head_sha, merge_sha)
+                        diagnostic = "no prior attempt"
+                        if action == "wait":
+                            state, diagnostic = merge_ci_recovery_run_state(
+                                repo, number, head_sha, merge_sha, comments,
+                            )
+                            action = merge_ci_recovery_decision(
+                                comments, head_sha, merge_sha,
+                                retry_current_merge=(state == "retry"),
+                            ) if state == "retry" else "wait"
                         if action != "dispatch":
                             print(f"PR #{number}: merge CI recovery {action} for {merge_sha}; "
-                                  "no repeated dispatch.")
+                                  f"{diagnostic}.")
                             continue
                         marker = (
                             f"<!-- merge-ci-recovery: head={head_sha} merge={merge_sha} -->"

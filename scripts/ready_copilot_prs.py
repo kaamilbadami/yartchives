@@ -487,7 +487,8 @@ def main() -> int:
             # the required tests status only if its merge SHA stays unchanged.
             gh_write("workflow", "run", "quality.yml", "--repo", repo,
                      "--ref", "main", "-f", "pr_recovery=true",
-                     "-f", f"pr_number={number}", "-f", f"pr_head_sha={sha}")
+                     "-f", f"pr_number={number}", "-f", f"pr_head_sha={sha}",
+                     "-f", f"pr_merge_sha={merge_sha}")
             print(f"PR #{number}: dispatched one current-merge Quality recovery; remains draft.")
         except (subprocess.CalledProcessError, ValueError, KeyError, TypeError) as exc:
             print(f"PR #{number}: blocked safely by verification/API error: {exc}")

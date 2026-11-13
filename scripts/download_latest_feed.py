@@ -14,6 +14,7 @@ import json
 import os
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from urllib.parse import urlsplit
 import zipfile
@@ -78,7 +79,7 @@ def latest_artifact(repo: str, workflow: str, artifact_name: str, token: str | N
     page = 1
     while page <= 10:
         runs_url = (
-            f"{API_ROOT}/repos/{repo}/actions/workflows/{workflow}/runs"
+            f"{API_ROOT}/repos/{repo}/actions/workflows/{urllib.parse.quote(workflow)}/runs"
             f"?branch=main&status=success&per_page=100&page={page}"
         )
         runs_payload = _request_json(runs_url, token)
@@ -194,7 +195,7 @@ def workflow_has_active_run(repo: str, workflow: str, token: str | None) -> bool
     if not token:
         return False
     runs_url = (
-        f"{API_ROOT}/repos/{repo}/actions/workflows/{workflow}/runs"
+        f"{API_ROOT}/repos/{repo}/actions/workflows/{urllib.parse.quote(workflow)}/runs"
         "?branch=main&per_page=20"
     )
     payload = _request_json(runs_url, token)

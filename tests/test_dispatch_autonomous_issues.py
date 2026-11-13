@@ -2,6 +2,7 @@ import importlib.util
 from pathlib import Path
 from datetime import datetime, timezone
 import unittest
+import warnings
 from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -36,6 +37,66 @@ def task_body(priority, area, autonomous=True, resources=None, depends_on=None):
 
 
 class AutonomousDispatcherTests(unittest.TestCase):
+    def test_jules_read_only_cutoff_is_utc_and_fail_closed(self):
+        self.assertTrue(self.original_jules_writes_enabled(datetime(2026, 11, 10, 23, 59, 59, tzinfo=timezone.utc)))
+        self.assertFalse(self.original_jules_writes_enabled(datetime(2026, 11, 11, 0, 0, tzinfo=timezone.utc)))
+        self.assertFalse(self.original_jules_writes_enabled(datetime(2027, 1, 1, tzinfo=timezone.utc)))
+        with self.assertRaisesRegex(ValueError, "timezone-aware"):
+            self.original_jules_writes_enabled(datetime(2026, 11, 10))
+
+    def test_jules_cutoff_denies_session_creation_before_api_call(self):
+        post = mock.Mock()
+        with mock.patch.object(mod, "jules_writes_enabled", return_value=False):
+            with self.assertRaisesRegex(RuntimeError, "read-only"):
+                mod.create_jules_session("key", "source", "owner/repo", object(), api_post=post)
+        post.assert_not_called()
+
+    def test_jules_api_boundary_blocks_mutations_after_cutoff(self):
+        with mock.patch.object(mod, "jules_writes_enabled", return_value=False), \
+             mock.patch.object(mod.request, "urlopen") as urlopen:
+            for method in ("POST", "DELETE", "PATCH", "PUT", "post"):
+                with self.subTest(method=method):
+                    with self.assertRaisesRegex(RuntimeError, "read-only"):
+                        mod.jules_json("key", "/sessions/test", method=method)
+            urlopen.assert_not_called()
+
+    def test_jules_message_and_delete_denied_at_api_boundary(self):
+        with mock.patch.object(mod, "jules_writes_enabled", return_value=False), \
+             mock.patch.object(mod.request, "urlopen") as urlopen:
+            with self.assertRaisesRegex(RuntimeError, "read-only"):
+                mod.send_jules_message("key", "session", "feedback")
+            with self.assertRaisesRegex(RuntimeError, "read-only"):
+                mod.delete_jules_session("key", "session")
+            urlopen.assert_not_called()
+
+    def test_jules_api_boundary_keeps_read_only_get_available(self):
+        response = mock.MagicMock()
+        response.__enter__.return_value.read.return_value = b'{"sessions":[]}'
+        with mock.patch.object(mod, "jules_writes_enabled", return_value=False), \
+             mock.patch.object(mod.request, "urlopen", return_value=response) as urlopen:
+            self.assertEqual(mod.jules_json("key", "/sessions", method="GET"), {"sessions": []})
+            urlopen.assert_called_once()
+
+    def test_jules_cutoff_run_cycle_does_not_fetch_or_mutate(self):
+        with mock.patch.object(mod, "jules_writes_enabled", return_value=False), \
+             mock.patch.object(mod, "fetch_active_issues", side_effect=AssertionError("no fetch")):
+            self.assertEqual(mod.run_dispatch_cycle("owner/repo", "key"), (False, None))
+
+    def test_jules_cutoff_main_works_without_secret_and_skips_writes(self):
+        with mock.patch.object(mod, "jules_writes_enabled", return_value=False), \
+             mock.patch.object(mod, "ensure_labels", side_effect=AssertionError("no writes")), \
+             mock.patch.dict(mod.os.environ, {"REPOSITORY": "owner/repo"}, clear=True):
+            self.assertEqual(mod.main(), 0)
+
+    def test_dispatch_script_compiles_without_escape_warnings(self):
+        # Invalid escapes become SyntaxWarning on Python 3.12 and must not
+        # break strict CI or hide a regression in Jules history parsing.
+        source = MODULE_PATH.read_text(encoding="utf-8")
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", SyntaxWarning)
+            warnings.simplefilter("error", DeprecationWarning)
+            compile(source, str(MODULE_PATH), "exec")
+
 
     def test_empty_backlog_dispatches_no_work(self):
         self.assertEqual(mod.select_tasks([], max_active=2), [])
@@ -85,9 +146,15 @@ class AutonomousDispatcherTests(unittest.TestCase):
     def setUp(self):
         self.original_reconcile_labels = mod.reconcile_autonomous_labels
         mod.reconcile_autonomous_labels = lambda *args, **kwargs: None
+        # Existing dispatcher behavior tests must stay deterministic after the
+        # real November 11 cutoff; dedicated tests below exercise the gate.
+        self.original_jules_writes_enabled = mod.jules_writes_enabled
+        mod.jules_writes_enabled = lambda *args, **kwargs: True
+
 
     def tearDown(self):
         mod.reconcile_autonomous_labels = self.original_reconcile_labels
+        mod.jules_writes_enabled = self.original_jules_writes_enabled
 
 
     def test_reconcile_autonomous_labels_adds_missing_labels(self):

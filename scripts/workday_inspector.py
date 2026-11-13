@@ -227,8 +227,16 @@ def inspect_workday_url(
                 fallback_tenants.append(tenant.replace("-", "_"))
             if tenant in KNOWN_TENANT_ALIASES:
                 fallback_tenants.append(KNOWN_TENANT_ALIASES[tenant])
-            for fallback_tenant in fallback_tenants:
-                fallback_url = endpoint["endpoint_url"].replace(f"/wday/cxs/{tenant}/", f"/wday/cxs/{fallback_tenant}/")
+
+            fallback_urls = [
+                (endpoint["endpoint_url"].replace(f"/wday/cxs/{tenant}/", f"/wday/cxs/{fallback_tenant}/"), fallback_tenant)
+                for fallback_tenant in fallback_tenants
+            ]
+
+            if re.search(r'\.wd\d+\.', endpoint["endpoint_url"]):
+                fallback_urls.append((re.sub(r'\.wd\d+\.', '.', endpoint["endpoint_url"]), tenant))
+
+            for fallback_url, fallback_tenant in fallback_urls:
                 fallback_response = client.get(
                     fallback_url,
                     headers={"Accept": "application/json", "User-Agent": "Yartchives/1.0 (+public job inspection)"},

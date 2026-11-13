@@ -69,7 +69,7 @@ const workflowFiles = fs.readdirSync(".github/workflows")
   .sort();
 assert.deepEqual(
   workflowFiles,
-  ["ai-profile-benchmark.yml", "auto-merge-agent-prs.yml", "autonomous-dispatch.yml", "branch-preflight.yml", "coverage-audit.yml", "coverage-automation.yml", "deploy-analytics.yml", "deploy-pages.yml", "feed-freshness.yml", "import-discoveries.yml", "persona-trust-benchmark.yml", "publish-validated-agent-pr.yml", "quality.yml", "refresh-inspections.yml", "repository-housekeeping.yml", "triage-workflow-failures.yml", "update-feed-fast.yml", "update-feed.yml"],
+  ["ai-profile-benchmark.yml", "auto-merge-agent-prs.yml", "autonomous-dispatch.yml", "branch-preflight.yml", "coverage-audit.yml", "coverage-automation.yml", "deploy-analytics.yml", "deploy-pages.yml", "feed-freshness.yml", "import-discoveries.yml", "persona-trust-benchmark.yml", "publish-agent-shortlist.yml", "publish-validated-agent-pr.yml", "quality.yml", "refresh-inspections.yml", "repository-housekeeping.yml", "triage-workflow-failures.yml", "update-feed-fast.yml", "update-feed.yml"],
   "Production workflow set changed; update the workflow-health contract intentionally and do not leave temporary workflows on main"
 );
 
@@ -178,10 +178,22 @@ assert.match(
   "Coverage audits should finish rather than lose an audit result to a newer sample push"
 );
 
+// Normal quality runs may cancel superseded work; recovery runs targeting
+// independent PR/merge identities must never cancel each other.
 assert.match(
   qualityWorkflow,
-  /group:\s*quality-\$\{\{ github\.ref \}\}[\s\S]*?cancel-in-progress:\s*true/,
-  "Replaceable quality runs should cancel superseded runs on the same ref"
+  /format\('quality-\{0\}', github\.ref\)/,
+  "Ordinary quality runs should retain ref-based concurrency"
+);
+assert.match(
+  qualityWorkflow,
+  /format\('quality-recovery-\{0\}-\{1\}-\{2\}', inputs\.pr_number, inputs\.pr_head_sha, github\.run_id\)/,
+  "Recovery runs must have unique PR/run concurrency identities"
+);
+assert.match(
+  qualityWorkflow,
+  /cancel-in-progress:\s*\$\{\{ !\(github\.event_name == 'workflow_dispatch' && inputs\.pr_recovery == true\) \}\}/,
+  "PR recovery must not cancel independently running checks"
 );
 
 assert.match(
