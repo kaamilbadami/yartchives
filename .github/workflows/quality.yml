@@ -249,8 +249,11 @@ jobs:
       always() &&
       github.event_name == 'workflow_dispatch' &&
       inputs.pr_recovery == true &&
+      inputs.pr_number != '' &&
+      inputs.pr_head_sha != '' &&
+      inputs.pr_merge_sha != '' &&
       needs.tests.result == 'success' &&
-      (needs.head-tests.result == 'success' || needs.head-tests.result == 'skipped')
+      needs.head-tests.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: read
