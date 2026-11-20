@@ -276,13 +276,20 @@ class BuildAuditReportTests(unittest.TestCase):
         )
 
         self.assertEqual(report["summary"]["total_jobs"], 2)
+        self.assertEqual(report["summary"]["destination_trust_baseline"]["authoritative_direct_destinations"], 1)
+        self.assertEqual(report["summary"]["destination_trust_baseline"]["authoritative_direct_percent"], 50.0)
+        self.assertEqual(report["summary"]["destination_trust_baseline"]["intermediary_destinations"], 1)
         self.assertEqual(report["summary"]["broken_destinations"]["workday_contract_violations"], 1)
         self.assertEqual(report["summary"]["missing_dates"]["missing_posted_at"], 1)
 
         rendered = mod.render_markdown_report(report)
         self.assertIn("# Yartchives feed quality audit report", rendered)
         self.assertIn("Total indexed jobs: **2**", rendered)
+        self.assertIn("Authoritative-direct destinations (`direct` + `employer_job`): **1 (50.0%)**", rendered)
+        self.assertIn("Unverified destinations = 1", rendered)
+        self.assertIn("`workday` has **1/1** unverified destinations", rendered)
         self.assertIn("Missing posting timestamp (`posted_at`): **1**", rendered)
+        self.assertNotIn("Over 3,500 links are completely unverified", rendered)
 
 
 if __name__ == "__main__":
