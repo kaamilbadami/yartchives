@@ -319,6 +319,18 @@ assert.match(
 );
 
 
+assert.match(
+  workflow,
+  /Upload Pages artifact[\s\S]*?uses: actions\/upload-pages-artifact@[^\n]+[\s\S]*?name: github-pages-\$\{\{ github\.run_attempt \}\}/,
+  "Pages upload must use an attempt-scoped artifact name so job reruns cannot collide with earlier uploads"
+);
+assert.match(
+  workflow,
+  /Deploy to GitHub Pages[\s\S]*?uses: actions\/deploy-pages@[^\n]+[\s\S]*?artifact_name: github-pages-\$\{\{ github\.run_attempt \}\}/,
+  "Pages deployment must select the same attempt-scoped artifact uploaded by its job"
+);
+
+
 const pushSender = fs.readFileSync(path.join(__dirname, "..", "scripts", "send_web_push.py"), "utf8");
 assert.match(pushSender, /VAPID_SUBJECT\s*=\s*"mailto:[^"]+"/, "Web Push VAPID subject must be a mailto contact accepted by push providers");
 assert.match(pushSender, /::error::Web Push delivery failed:[\s\S]*?return 1/, "Web Push delivery errors must fail instead of producing a false-green deploy notification");
