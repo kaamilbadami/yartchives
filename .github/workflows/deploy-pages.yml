@@ -187,11 +187,16 @@ jobs:
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
         with:
           path: _site
+          # A failed-job rerun shares the workflow run's artifact namespace.
+          # Give each attempt a distinct name to avoid duplicate github-pages artifacts.
+          name: github-pages-${{ github.run_attempt }}
 
       - name: Deploy to GitHub Pages
         if: steps.hydrate.outputs.deploy_ready != 'false'
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
 
       - name: Verify live deployment
         if: steps.hydrate.outputs.deploy_ready != 'false'
