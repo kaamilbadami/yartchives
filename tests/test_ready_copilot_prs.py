@@ -299,7 +299,9 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
                        late_disconnect=False, body_drift_on_recheck=False,
                        head_ref_drift_on_recheck=False, author_drift_on_recheck=False,
                        base_sha_drift_on_recheck=False, missing_base_sha_on_recheck=False,
-                       trusted_head_recovery=False, head_failed=False):
+                       trusted_head_recovery=False, head_failed=False,
+                       issue_closed_on_recheck=False,
+                       issue_initiative_on_recheck=False):
         pr, issue, files, events, links = fixtures()
         current = dict(pr)
         if head_drift:
@@ -317,6 +319,7 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         timeline_reads = [0]
         issue_timeline_reads = [0]
         pr_reads = [0]
+        issue_reads = [0]
         def pages(endpoint):
             if "/pulls?state=open" in endpoint:
                 return [pr]
@@ -341,6 +344,11 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
             raise AssertionError(f"Unexpected endpoint: {endpoint}")
         def get(endpoint):
             if "/issues/76" in endpoint:
+                issue_reads[0] += 1
+                if issue_reads[0] > 1 and issue_closed_on_recheck:
+                    return dict(issue, state="closed")
+                if issue_reads[0] > 1 and issue_initiative_on_recheck:
+                    return dict(issue, labels=[{"name": "initiative"}])
                 return issue
             if endpoint == f"repos/{REPO}/actions/runs/123":
                 return {
@@ -398,6 +406,16 @@ class CopilotReadyReconciliationTests(unittest.TestCase):
         calls = self.run_controller(merge_quality=True)
         self.assertEqual(len(calls), 1)
         self.assertEqual(calls[0].args, ("pr", "ready", "77", "--repo", REPO))
+
+    def test_issue_closure_or_initiative_on_recheck_blocks_ready(self):
+        for case, kwargs in (
+            ("closed", {"issue_closed_on_recheck": True}),
+            ("initiative", {"issue_initiative_on_recheck": True}),
+        ):
+            with self.subTest(case=case):
+                self.assertEqual(self.run_controller(
+                    quality=True, merge_quality=True, **kwargs
+                ), [])
 
     def test_head_green_without_merge_sha_never_marks_ready(self):
         self.assertEqual(self.run_controller(quality=True), [])
