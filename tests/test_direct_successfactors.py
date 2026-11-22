@@ -204,7 +204,7 @@ class DirectSuccessFactorsTests(unittest.TestCase):
         mock_response = mock.Mock()
         mock_response.status_code = 200
         # Preserve main-branch BOM/preamble regression alongside CDATA repair.
-        mock_response.content = b"\\xef\\xbb\\xbf" + b"""<?xml version="1.0" encoding="UTF-8" ?>
+        mock_response.content = b"\xef\xbb\xbf" + b"""<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
 <item data-note="Research & Development">
