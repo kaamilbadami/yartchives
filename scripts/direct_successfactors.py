@@ -197,7 +197,7 @@ def fetch_source(client: requests.Session, source: dict[str, Any], reference: da
         # Preserve CDATA verbatim while escaping malformed ampersands in all
         # other XML regions, including attribute values inside opening tags.
         # Splitting on CDATA boundaries avoids rewriting literal CDATA text.
-        cdata_parts = re.split(r"(<!\\[CDATA\\[.*?\\]\\]>)", content, flags=re.DOTALL)
+        cdata_parts = re.split(r"(<!\[CDATA\[.*?\]\]>)", content, flags=re.DOTALL)
         for index in range(0, len(cdata_parts), 2):
             cdata_parts[index] = re.sub(
                 r"&(?!amp;|lt;|gt;|apos;|quot;|#x[0-9a-fA-F]+;|#[0-9]+;)",
