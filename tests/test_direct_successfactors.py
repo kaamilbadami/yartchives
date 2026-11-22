@@ -258,7 +258,9 @@ class DirectSuccessFactorsTests(unittest.TestCase):
             "sitemap_url": "https://jobs.test.com/sitemap.xml",
         }
 
-        jobs = mod.fetch_source(mock_client, source, datetime.now(timezone.utc))
+        with mock.patch.object(mod.ET, "fromstring", wraps=mod.ET.fromstring) as parse_xml:
+            jobs = mod.fetch_source(mock_client, source, datetime.now(timezone.utc))
+        self.assertIn(b"<![CDATA[Some desc with A & B unescaped]]>", parse_xml.call_args.args[0])
         self.assertEqual(len(jobs), 2)
         self.assertEqual(jobs[0]["title"], "Software & Data Intern (Student)")
         self.assertEqual(jobs[1]["title"], "Software Intern (Student)")
