@@ -206,7 +206,7 @@ class DirectSuccessFactorsTests(unittest.TestCase):
         mock_response.content = b"""<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
-<item>
+<item data-note="Research & Development">
 <title>Software & Data Intern (Student)</title>
 <description><![CDATA[Some desc with A & B unescaped]]></description>
 <link>https://jobs.test.com/job/1</link>
