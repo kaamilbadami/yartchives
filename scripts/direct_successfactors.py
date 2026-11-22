@@ -194,14 +194,17 @@ def fetch_source(client: requests.Session, source: dict[str, Any], reference: da
     try:
         content = response.content.decode("utf-8", errors="replace")
 
-        # Replace unescaped ampersands outside of CDATA blocks
-        def sanitize_cdata(match):
-            return match.group(0)
-
-        def sanitize_outside(match):
-            return re.sub(r"&(?!amp;|lt;|gt;|apos;|quot;|#x[0-9a-fA-F]+;|#[0-9]+;)", "&amp;", match.group(0))
-
-        content = re.sub(r'<!\[CDATA\[.*?\]\]>|[^<]+', lambda m: sanitize_cdata(m) if m.group(0).startswith("<![CDATA[") else sanitize_outside(m), content, flags=re.DOTALL)
+        # Preserve CDATA verbatim while escaping malformed ampersands in all
+        # other XML regions, including attribute values inside opening tags.
+        # Splitting on CDATA boundaries avoids rewriting literal CDATA text.
+        cdata_parts = re.split(r"(<!\\[CDATA\\[.*?\\]\\]>)", content, flags=re.DOTALL)
+        for index in range(0, len(cdata_parts), 2):
+            cdata_parts[index] = re.sub(
+                r"&(?!amp;|lt;|gt;|apos;|quot;|#x[0-9a-fA-F]+;|#[0-9]+;)",
+                "&amp;",
+                cdata_parts[index],
+            )
+        content = "".join(cdata_parts)
 
         root = ET.fromstring(content.encode("utf-8"))
     except ET.ParseError as exc:
