@@ -7384,11 +7384,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Oracle endpoint retired (redirected to 404): https://careers.americanexpress.com/errors/404",
             "invalidated_at": "2026-11-02T01:12:14Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Oracle endpoint retired (redirected to 404): https://careers.americanexpress.com/errors/404",
-            "invalidated_at": "2026-11-02T15:08:34Z"
           }
         ]
       },
@@ -8567,11 +8562,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -9655,11 +9645,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -18502,6 +18487,14 @@
           "hq_country_code": "US",
           "source_url": "https://withresumeai.com/ats-checker/colgate-palmolive",
           "upstream_slug": "colgate-palmolive"
+        },
+        "provider-lifecycle-overrides": {
+          "provider_lifecycle": {
+            "family": "successfactors",
+            "status": "retired",
+            "reason": "Persistent StructuralSourceError (sitemap XML parse failed) on auto-discovered source; endpoint permanently retired.",
+            "observed_at": "2026-11-06"
+          }
         }
       },
       "domain_hints": [
@@ -24858,11 +24851,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -31891,11 +31879,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -32001,11 +31984,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -34327,11 +34305,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -36077,11 +36050,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -38956,11 +38924,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -40014,11 +39977,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       }
@@ -40140,11 +40098,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -42180,11 +42133,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -43387,11 +43335,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -47840,11 +47783,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -48674,11 +48612,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -50212,11 +50145,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -50815,11 +50743,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -52235,11 +52158,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -52846,11 +52764,6 @@
             "type": "invalidation",
             "reason": "Lever board retired: 404",
             "invalidated_at": "2026-11-02T01:12:12Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "Lever board retired: 404",
-            "invalidated_at": "2026-11-02T15:08:35Z"
           }
         ]
       },
@@ -54461,11 +54374,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -55683,11 +55591,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
@@ -58690,11 +58593,6 @@
             "type": "invalidation",
             "reason": "Lever board retired: 404",
             "invalidated_at": "2026-11-02T01:12:12Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "Lever board retired: 404",
-            "invalidated_at": "2026-11-02T15:08:47Z"
           }
         ]
       },
@@ -59603,11 +59501,6 @@
             "type": "invalidation",
             "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
             "invalidated_at": "2026-11-02T01:13:13Z"
-          },
-          {
-            "type": "invalidation",
-            "reason": "EndpointRetiredError: Greenhouse board retired: HTTP 404",
-            "invalidated_at": "2026-11-02T15:09:26Z"
           }
         ]
       },
