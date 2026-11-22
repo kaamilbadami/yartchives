@@ -193,6 +193,11 @@ def fetch_source(client: requests.Session, source: dict[str, Any], reference: da
 
     try:
         content = response.content.decode("utf-8", errors="replace")
+        # Preserve the already-deployed leading-preamble/BOM recovery when
+        # reconciling the new CDATA-aware sanitizer with current main.
+        first_lt = content.find("<")
+        if first_lt != -1:
+            content = content[first_lt:]
 
         # Preserve CDATA verbatim while escaping malformed ampersands in all
         # other XML regions, including attribute values inside opening tags.
