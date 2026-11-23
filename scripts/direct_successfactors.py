@@ -179,7 +179,7 @@ def fetch_source(client: requests.Session, source: dict[str, Any], reference: da
     try:
         response = client.get(
             source["sitemap_url"],
-            headers={"User-Agent": bf.USER_AGENT},
+            headers={"User-Agent": bf.USER_AGENT, "Accept": "*/*"},
             timeout=TIMEOUT,
         )
         response.raise_for_status()
